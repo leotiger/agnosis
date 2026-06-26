@@ -89,9 +89,26 @@
         <!-- $class is the canonical PSR-4 autoloader parameter name per PHP docs. -->
         <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.classFound"/>
 
-        <!-- Inline comments: no terminal punctuation or post-statement rules. -->
+        <!-- Inline comments: no terminal punctuation, capitalisation, spacing,
+             or post-statement rules. -->
         <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+        <exclude name="Squiz.Commenting.InlineComment.NotCapital"/>
+        <exclude name="Squiz.Commenting.InlineComment.SpacingAfter"/>
+        <exclude name="Squiz.Commenting.InlineComment.SpacingBefore"/>
         <exclude name="Squiz.Commenting.PostStatementComment.Found"/>
+
+        <!-- //end functionName() closing comments — old PEAR idiom, not used here. -->
+        <exclude name="Squiz.Commenting.ClosingDeclarationComment"/>
+
+        <!-- @subpackage tag in file comments — obsolete phpdoc tag. -->
+        <exclude name="Squiz.Commenting.FileComment.MissingSubpackageTag"/>
+
+        <!-- /** style enforcement and @param name spacing inside docblocks. -->
+        <exclude name="Squiz.Commenting.FunctionComment.WrongStyle"/>
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamName"/>
+
+        <!-- Long-condition closing comment (// end foreach etc.). -->
+        <exclude name="Squiz.Commenting.LongConditionClosingComment"/>
 
     </rule>
 
