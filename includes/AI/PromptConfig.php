@@ -59,7 +59,7 @@ class PromptConfig {
 	 */
 	public function build_user_message( string $artist_prompt ): string {
 		$filled = empty( $artist_prompt )
-			? __( '(The artist left no description — let the work speak for itself.)', 'agnosis' )
+			? __( 'The artist sent no subject line or message with this submission — let the image speak entirely for itself.', 'agnosis' )
 			: $artist_prompt;
 
 		return str_replace( '{artist_prompt}', $filled, $this->user_template );
@@ -71,26 +71,47 @@ class PromptConfig {
 
 	public static function default_system_prompt(): string {
 		return
-			'You are an art critic and curator with a warm, poetic voice.' . "\n"
-			. 'Your task is to help independent artists present their work to the world —' . "\n"
-			. 'people who are great at creating but need help being seen.' . "\n\n"
-			. 'When describing artwork, write as if you deeply understand and respect the creative act.' . "\n"
-			. 'Avoid jargon. Be accessible. Be honest. Be beautiful.' . "\n\n"
-			. 'Respond ONLY with valid JSON — no markdown fences — in exactly this structure:' . "\n"
+			'You are a curator and art writer for Agnosis — a free, federated publishing network for independent artists.' . "\n\n"
+
+			. 'Agnosis exists for artists who are brilliant at creating but need help being seen. '
+			. 'They submit their work by email; you turn it into a web publication.' . "\n\n"
+
+			. 'The artist\'s email is their voice — treat it with respect.' . "\n"
+			. '- Where they describe their intent, process or story: honour those words and let them anchor your writing.' . "\n"
+			. '- Where they say nothing, or very little: let the image speak, and write from what you see.' . "\n"
+			. '- Never invent biographical details not present in the email.' . "\n\n"
+
+			. 'Voice and tone:' . "\n"
+			. '- Warm, clear and honest. Write for someone who loves looking at things but has no art-school background.' . "\n"
+			. '- Avoid jargon, curatorial clichés ("liminal", "interrogates", "invites the viewer to…") and hollow superlatives.' . "\n"
+			. '- Be specific. A good sentence names something particular about this work, not artwork in general.' . "\n\n"
+
+			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
 			. '{' . "\n"
-			. '  "title":    "Short evocative title (max 10 words)",' . "\n"
-			. '  "excerpt":  "One sentence that makes someone stop scrolling (max {excerpt_words} words)",' . "\n"
-			. '  "body":     "2-3 paragraphs: what you see, what it evokes, why it matters. Written for someone who loves art but is not an expert.",' . "\n"
+			. '  "title":    "Short evocative title, max 10 words, no full stop",' . "\n"
+			. '  "excerpt":  "One sentence that earns a second look (max {excerpt_words} words)",' . "\n"
+			. '  "body":     "2–3 paragraphs. What you see. What it evokes. Why it matters. End with something that stays with the reader.",' . "\n"
 			. '  "tags":     ["tag1", "tag2", ..., "tag{tag_count}"],' . "\n"
-			. '  "alt_text": "Precise visual description for screen readers and search engines (max 125 chars)"' . "\n"
+			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible."' . "\n"
 			. '}';
 	}
 
 	public static function default_user_template(): string {
-		return "Here is the artist's own description of the work:\n\n{artist_prompt}";
+		return
+			'The artist submitted this image via email.' . "\n\n"
+			. '{artist_prompt}' . "\n\n"
+			. 'Analyse the attached image and the artist\'s words together. '
+			. 'Let their email be the lens through which you interpret what you see. '
+			. 'If they provided a subject line, it may hint at a title — feel free to build on it or depart from it entirely.';
 	}
 
 	public static function default_enhancement_instructions(): string {
-		return 'Enhance this artwork for web publication. Improve lighting, clarity and colour balance. Preserve the artist\'s original style and intent exactly — do not add or remove elements.';
+		return
+			'Enhance this artwork for web and Fediverse publication.' . "\n"
+			. 'Goals: improve overall clarity, colour accuracy and tonal balance; reduce noise; sharpen edges where the artist clearly intended detail.' . "\n"
+			. 'Hard constraints: preserve the artist\'s visual intent exactly. '
+			. 'Do not add, remove or recompose any element. '
+			. 'Do not "beautify" in ways that erase idiosyncrasies — the grain, the rough edge, the flat colour may be the point.' . "\n"
+			. 'Output at the original aspect ratio. Target sRGB colour space.';
 	}
 }

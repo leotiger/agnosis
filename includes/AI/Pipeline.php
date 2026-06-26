@@ -40,19 +40,45 @@ class Pipeline {
 	 * @return array<int, array<string, mixed>> One result per attachment.
 	 */
 	public function process( array $submission ): array {
-		$results       = [];
-		$artist_prompt = $submission['description'] ?? '';
+		$results        = [];
+		$artist_context = $this->build_artist_context( $submission );
 
 		foreach ( $submission['attachments'] as $attachment ) {
 			$results[] = $this->process_single(
 				$attachment['data'],
 				$attachment['mime'],
 				$attachment['filename'],
-				$artist_prompt
+				$artist_context
 			);
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Build a structured context string from the full email submission.
+	 *
+	 * Includes the subject line (which often hints at a title) and the email
+	 * body (the artist's own words). Both are passed to the AI so it can weigh
+	 * them together with the image.
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission.
+	 */
+	private function build_artist_context( array $submission ): string {
+		$parts = [];
+
+		$subject = trim( (string) ( $submission['subject'] ?? '' ) );
+		if ( ! empty( $subject ) ) {
+			$parts[] = 'Email subject: ' . $subject;
+		}
+
+		$body = trim( (string) ( $submission['description'] ?? '' ) );
+		if ( ! empty( $body ) ) {
+			$label   = ! empty( $subject ) ? "Artist's message:" : "Artist's note:";
+			$parts[] = $label . "\n" . $body;
+		}
+
+		return implode( "\n\n", $parts );
 	}
 
 	// -------------------------------------------------------------------------
