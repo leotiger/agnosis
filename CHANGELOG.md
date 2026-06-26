@@ -22,6 +22,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Dev: add `.eslintrc.json` and `.stylelintrc.json` matching lingua-forge conventions
 - Dev: add `--no-error-on-unmatched-pattern` / `--allow-empty-input` to lint scripts so they pass with no `src/` files present
 - Dev: exclude `coverage/` from ESLint and stylelint to prevent generated PHPUnit HTML from being linted
+- **`Admin\Settings`**: settings cross-tab data loss — saving any one tab was silently zeroing out all other tabs. Root cause: all fields shared a single `agnosis_options` group; `options.php` iterates every option in the group and writes empty for fields absent from the POST body. Fix: each tab now owns its own option group (`agnosis_general_options`, `agnosis_email_options`, etc.)
 
 ## [0.1.1] — 2026-06-26
 
