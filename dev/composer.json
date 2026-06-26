@@ -38,6 +38,7 @@
     "scripts": {
         "lint":       "phpcs",
         "lint:fix":   "phpcbf; RESULT=$?; [ $RESULT -le 2 ] && exit 0 || exit $RESULT",
+        "cs:fix":     "@lint:fix",
         "analyse":    "phpstan analyse --memory-limit=2G",
         "test": [
             "Composer\\Config::disableProcessTimeout",
@@ -81,6 +82,7 @@
     "scripts-descriptions": {
         "lint":             "Run PHPCS against ../ using WordPress Coding Standards.",
         "lint:fix":         "Auto-fix the subset of PHPCS issues phpcbf can fix.",
+        "cs:fix":           "Alias for lint:fix — auto-fix code style with phpcbf.",
         "analyse":          "Run PHPStan with the WordPress stub set against ../.",
         "test":             "Run the full PHPUnit suite (unit + integration).",
         "test:unit":        "Run only the unit suite (no WordPress required).",
