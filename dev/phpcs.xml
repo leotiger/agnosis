@@ -89,6 +89,37 @@
         <!-- $class is the canonical PSR-4 autoloader parameter name per PHP docs. -->
         <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.classFound"/>
 
+        <!--
+            Squiz phpdoc @param/@return rules:
+            – PHP 8 native aliases (bool/int/float) are preferred over the
+              long-hand equivalents (boolean/integer/double).
+            – @return void is omitted on void functions — the return type says it.
+            – @param is written where it adds value, not by rule; partial @param
+              blocks and name-order mismatches are therefore expected.
+            – Type-hint lines for IMAP\Connection etc. are omitted deliberately.
+        -->
+        <exclude name="Squiz.Commenting.FunctionComment.MissingReturn"/>
+        <exclude name="Squiz.Commenting.FunctionComment.InvalidReturn"/>
+        <exclude name="Squiz.Commenting.FunctionComment.IncorrectParamVarName"/>
+        <exclude name="Squiz.Commenting.FunctionComment.ParamCommentNotCapital"/>
+        <exclude name="Squiz.Commenting.FunctionComment.TypeHintMissing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.ParamNameNoMatch"/>
+
+        <!-- Block / inline comment micro-style rules. -->
+        <exclude name="Squiz.Commenting.BlockComment.SingleLine"/>
+        <exclude name="Squiz.Commenting.BlockComment.WrongStart"/>
+        <exclude name="Squiz.Commenting.InlineComment.DocBlock"/>
+
+        <!-- Column alignment: precision-alignment warnings conflict with the
+             deliberate column-aligned assignment style used throughout. -->
+        <exclude name="Universal.WhiteSpace.PrecisionAlignment"/>
+        <exclude name="WordPress.WhiteSpace.OperatorSpacing.SpacingBefore"/>
+
+        <!-- base64_encode/decode used for binary image data and inline SVG icons,
+             not for obfuscation. -->
+        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode"/>
+        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode"/>
+
         <!-- Inline comments: no terminal punctuation, capitalisation, spacing,
              or post-statement rules. -->
         <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
@@ -161,6 +192,26 @@
         <exclude-pattern>*/tests/*</exclude-pattern>
     </rule>
     <rule ref="Squiz.Commenting">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <!-- Test helpers use file_put_contents/unlink for fixtures. -->
+    <rule ref="WordPress.WP.AlternativeFunctions">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <!-- base64 in tests is for fixture data encoding. -->
+    <rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <!-- @imap_open silencing is required in tests (imap errors, not PHP errors). -->
+    <rule ref="WordPress.PHP.NoSilencedErrors">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <!-- Bootstrap sets $path, $table_prefix etc. — no WP globals in scope yet. -->
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <!-- Bootstrap uses getenv() before WP escaping functions load. -->
+    <rule ref="WordPress.Security.EscapeOutput">
         <exclude-pattern>*/tests/*</exclude-pattern>
     </rule>
 

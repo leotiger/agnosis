@@ -169,7 +169,7 @@ class Admission {
 			return false;
 		}
 		return in_array( 'agnosis_artist', (array) $user->roles, true )
-			|| user_can( $user_id, 'administrator' );
+			|| user_can( $user_id, 'manage_options' );
 	}
 
 	private function count_vouches( int $candidate_id ): int {

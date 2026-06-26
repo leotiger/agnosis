@@ -71,6 +71,7 @@ class Inbox {
 		$pass    = get_option( 'agnosis_imap_pass' );
 		$mailbox = sprintf( '{%s:%d/imap%s}INBOX', $host, $port, $ssl ? '/ssl' : '' );
 
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- imap_open emits PHP notices on connection failure; the return value is the authoritative error signal.
 		return @imap_open( $mailbox, $user, $pass, 0, 1 );
 	}
 

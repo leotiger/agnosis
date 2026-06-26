@@ -146,6 +146,7 @@ class Activator {
 		}
 
 		// Register the 5-minute cron interval if not present.
+		// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- 5-minute poll is intentional; email latency target is <5 min.
 		add_filter( 'cron_schedules', function ( array $schedules ): array {
 			if ( ! isset( $schedules['every_five_minutes'] ) ) {
 				$schedules['every_five_minutes'] = [
