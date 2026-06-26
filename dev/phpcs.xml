@@ -15,7 +15,7 @@
     <exclude-pattern>*/languages/*</exclude-pattern>
 
     <!-- Arguments. -->
-    <arg name="basepath" value="."/>
+    <arg name="basepath" value=".."/>
     <arg name="colors"/>
     <arg name="extensions" value="php"/>
     <arg name="cache" value=".phpcs.cache"/>
