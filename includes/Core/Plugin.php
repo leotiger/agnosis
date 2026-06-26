@@ -43,6 +43,7 @@ class Plugin {
 
 	/** Wire hooks and boot services. */
 	public function run(): void {
+		$this->load_textdomain();
 		$this->register_services();
 		$this->loader->run();
 	}
@@ -68,6 +69,16 @@ class Plugin {
 	// -------------------------------------------------------------------------
 	// Private helpers
 	// -------------------------------------------------------------------------
+
+	private function load_textdomain(): void {
+		// Required for self-hosted distributions. WP.org auto-load only works
+		// for plugins listed in the wordpress.org repository.
+		load_plugin_textdomain(
+			'agnosis',
+			false,
+			dirname( AGNOSIS_BASENAME ) . '/languages/'
+		);
+	}
 
 	private function register_services(): void {
 
