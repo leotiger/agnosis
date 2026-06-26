@@ -68,6 +68,7 @@
         "node_modules/",
         "build/",
         "coverage/",
-        "**/*.min.js"
+        "**/*.min.js",
+        "**/*.min.css"
     ]
 }

@@ -11,6 +11,7 @@
         "vendor/**",
         "node_modules/**",
         "build/**",
+        "coverage/**",
         "**/*.min.css"
     ]
 }
