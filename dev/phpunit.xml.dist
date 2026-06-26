@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="bootstrap.php"
+    colors="true"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutChangesToGlobalState="true"
+    failOnWarning="true"
+    failOnRisky="true"
+>
+    <testsuites>
+        <testsuite name="unit">
+            <directory>../tests/php/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>../tests/php/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">../includes</directory>
+        </include>
+        <exclude>
+            <directory>../dev</directory>
+            <directory>../tests</directory>
+        </exclude>
+    </coverage>
+
+    <php>
+        <env name="WP_TESTS_SKIP_DB_CREATION" value="true"/>
+    </php>
+</phpunit>

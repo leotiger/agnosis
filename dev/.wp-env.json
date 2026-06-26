@@ -1,0 +1,33 @@
+{
+    "$schema": "https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/wp-env.json",
+    "core": "WordPress/WordPress#6.8",
+    "phpVersion": "8.3",
+    "plugins": [
+        "..",
+        "../../lingua-forge"
+    ],
+    "mappings": {
+        "wp-content/plugins/agnosis":      "..",
+        "wp-content/plugins/lingua-forge": "../../lingua-forge"
+    },
+    "config": {
+        "WP_DEBUG":         true,
+        "WP_DEBUG_LOG":     true,
+        "WP_DEBUG_DISPLAY": false,
+        "SCRIPT_DEBUG":     true,
+        "WP_ENVIRONMENT_TYPE": "local"
+    },
+    "env": {
+        "tests": {
+            "plugins": [
+                "..",
+                "../../lingua-forge"
+            ],
+            "config": {
+                "WP_DEBUG":         true,
+                "WP_DEBUG_LOG":     true,
+                "WP_DEBUG_DISPLAY": false
+            }
+        }
+    }
+}

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<ruleset name="Agnosis">
+    <description>Agnosis WordPress Plugin — PHPCS ruleset (WordPress Coding Standards).</description>
+
+    <!-- Scan the plugin source, not the dev tooling. -->
+    <file>../agnosis.php</file>
+    <file>../includes/</file>
+    <file>../tests/php/</file>
+
+    <!-- Exclude build artefacts and vendor. -->
+    <exclude-pattern>../dev/</exclude-pattern>
+    <exclude-pattern>../vendor/</exclude-pattern>
+    <exclude-pattern>../node_modules/</exclude-pattern>
+    <exclude-pattern>../build/</exclude-pattern>
+
+    <!-- PHP version target. -->
+    <config name="testVersion" value="8.1-"/>
+    <config name="minimum_supported_wp_version" value="6.4"/>
+
+    <rule ref="WordPress">
+        <!-- Allow PSR-4 file naming (class files don't need "class-" prefix). -->
+        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+    </rule>
+
+    <!-- Text domain. -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array" value="agnosis"/>
+        </properties>
+    </rule>
+
+    <!-- Require short array syntax. -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+
+    <!-- No Yoda conditions (modern PHP style). -->
+    <rule ref="WordPress.PHP.YodaConditions">
+        <properties>
+            <property name="use_yoda_conditions" value="false"/>
+        </properties>
+    </rule>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+</ruleset>

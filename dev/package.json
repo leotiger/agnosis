@@ -1,0 +1,33 @@
+{
+    "name": "agnosis-dev",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Dev-only Node tooling for the Agnosis plugin. The plugin source lives at ../ (parent directory). Nothing in this folder is shipped to production.",
+    "homepage": "https://github.com/agnosis/agnosis",
+    "license": "GPL-2.0-or-later",
+    "author": "Uli Hake",
+    "scripts": {
+        "env:start":   "wp-env start || (echo 'MySQL not ready, retrying in 10s...' && sleep 10 && wp-env start) && wp-env run cli bash -c 'wp plugin activate agnosis lingua-forge --quiet' && bash bin/seed-dev-env.sh",
+        "env:stop":    "wp-env stop",
+        "env:destroy": "wp-env destroy",
+        "env:seed":    "bash bin/seed-dev-env.sh",
+        "env:cli":     "wp-env run cli wp",
+
+        "build":       "wp-scripts build --config webpack.config.js",
+        "start":       "wp-scripts start --config webpack.config.js",
+
+        "lint:js":     "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . \"../src/**/*.js\" \"../src/**/*.jsx\"",
+        "lint:js:fix": "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --fix \"../src/**/*.js\" \"../src/**/*.jsx\"",
+        "lint:css":    "wp-scripts lint-style --config .stylelintrc.json \"../src/**/*.css\"",
+        "lint:css:fix":"wp-scripts lint-style --config .stylelintrc.json --fix \"../src/**/*.css\"",
+        "format":      "wp-scripts format \"../src/**/*.{js,jsx,css,json}\"",
+
+        "test:e2e":    "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "e2e:install": "playwright install chromium --with-deps"
+    },
+    "devDependencies": {
+        "@wordpress/env": "^10.0.0",
+        "@wordpress/scripts": "^30.0.0"
+    }
+}
