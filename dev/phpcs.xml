@@ -21,24 +21,21 @@
         <!-- Allow PSR-4 file naming (class files don't need "class-" prefix). -->
         <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
         <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+        <!-- No Yoda conditions (modern PHP style). -->
+        <exclude name="WordPress.PHP.YodaConditions"/>
     </rule>
 
     <!-- Text domain. -->
     <rule ref="WordPress.WP.I18n">
         <properties>
-            <property name="text_domain" type="array" value="agnosis"/>
+            <property name="text_domain" type="array">
+                <element value="agnosis"/>
+            </property>
         </properties>
     </rule>
 
     <!-- Require short array syntax. -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
-
-    <!-- No Yoda conditions (modern PHP style). -->
-    <rule ref="WordPress.PHP.YodaConditions">
-        <properties>
-            <property name="use_yoda_conditions" value="false"/>
-        </properties>
-    </rule>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
