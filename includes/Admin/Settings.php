@@ -15,7 +15,15 @@ namespace Agnosis\Admin;
 class Settings {
 
 	private const PAGE   = 'agnosis-settings';
-	private const GROUP  = 'agnosis_options';
+
+	/** Each tab gets its own option group so saving one tab never clobbers another. */
+	private const GROUPS = [
+		'general'  => 'agnosis_general_options',
+		'email'    => 'agnosis_email_options',
+		'ai'       => 'agnosis_ai_options',
+		'network'  => 'agnosis_network_options',
+		'commerce' => 'agnosis_commerce_options',
+	];
 
 	public function register_menu(): void {
 		add_menu_page(
@@ -30,10 +38,10 @@ class Settings {
 	}
 
 	public function register_settings(): void {
-		$fields = $this->field_definitions();
-
-		foreach ( $fields as $key => $field ) {
-			register_setting( self::GROUP, $key, [
+		foreach ( $this->field_definitions() as $key => $field ) {
+			$tab   = $field['tab'] ?? 'general';
+			$group = self::GROUPS[ $tab ] ?? self::GROUPS['general'];
+			register_setting( $group, $key, [
 				'type'              => $field['type'] ?? 'string',
 				'sanitize_callback' => $field['sanitize'] ?? 'sanitize_text_field',
 				'default'           => $field['default'] ?? '',
@@ -76,7 +84,7 @@ class Settings {
 
 			<form method="post" action="options.php">
 				<?php
-				settings_fields( self::GROUP );
+				settings_fields( self::GROUPS[ $active_tab ] ?? self::GROUPS['general'] );
 				$this->render_tab( $active_tab );
 				submit_button( __( 'Save Changes', 'agnosis' ) );
 				?>
