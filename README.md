@@ -34,7 +34,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 
 ```bash
 # From a release zip
-wp plugin install agnosis-0.1.1.zip --activate
+wp plugin install agnosis-0.1.2.zip --activate
 
 # Or from source
 git clone https://github.com/agnosis/agnosis wp-content/plugins/agnosis

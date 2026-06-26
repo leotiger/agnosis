@@ -7,6 +7,22 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-06-26
+
+### Fixed
+- PHPCS: exclude noisy Squiz.Commenting sub-sniffs (`MissingReturn`, `InvalidReturn`, `IncorrectParamVarName`, `ParamNameNoMatch`, `BlockComment.SingleLine`, `InlineComment.DocBlock`, etc.)
+- PHPCS: exclude `Universal.WhiteSpace.PrecisionAlignment` and `WordPress.WhiteSpace.OperatorSpacing.SpacingBefore` to allow column alignment
+- PHPCS: exclude `WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_{encode,decode}` — legitimately used for image data and SVG icons
+- PHPCS: add test-specific relaxations for `AlternativeFunctions`, `NoSilencedErrors`, `GlobalVariablesOverride`, `EscapeOutput`
+- PHPCS: set `basepath=..` in phpcs.xml so phpcbf writes fixed files to the correct path (was doubling `dev/` into the output path)
+- `Artist\Admission`: `user_can( $user, 'administrator' )` changed to `manage_options` capability (role name is not a valid capability)
+- `Core\Activator`: suppress `CronInterval` sniff — 5-minute poll interval is intentional
+- `Email\Inbox`: suppress `NoSilencedErrors` on `@imap_open` — notices are suppressed intentionally, return value is the error signal
+- `Compat\LinguaForge`: move `phpcs:ignore` to the string line where the hook-name violation fires
+- Dev: add `.eslintrc.json` and `.stylelintrc.json` matching lingua-forge conventions
+- Dev: add `--no-error-on-unmatched-pattern` / `--allow-empty-input` to lint scripts so they pass with no `src/` files present
+- Dev: exclude `coverage/` from ESLint and stylelint to prevent generated PHPUnit HTML from being linted
+
 ## [0.1.1] — 2026-06-26
 
 ### Changed
