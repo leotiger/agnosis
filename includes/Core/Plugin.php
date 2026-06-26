@@ -105,6 +105,7 @@ class Plugin {
 
 		// Email ingestion — IMAP scheduled poll.
 		$inbox = new Inbox();
+		$this->loader->add_filter( 'cron_schedules',      $inbox, 'register_interval' );
 		$this->loader->add_action( 'agnosis_poll_inbox',  $inbox, 'poll' );
 		$this->loader->add_action( 'init',                $inbox, 'schedule_poll' );
 

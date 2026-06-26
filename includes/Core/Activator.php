@@ -144,17 +144,8 @@ class Activator {
 		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_poll_inbox' );
 		}
-
-		// Register the 5-minute cron interval if not present.
-		// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- 5-minute poll is intentional; email latency target is <5 min.
-		add_filter( 'cron_schedules', function ( array $schedules ): array {
-			if ( ! isset( $schedules['every_five_minutes'] ) ) {
-				$schedules['every_five_minutes'] = [
-					'interval' => 300,
-					'display'  => __( 'Every 5 minutes', 'agnosis' ),
-				];
-			}
-			return $schedules;
-		} );
+		// The cron_schedules filter that defines 'every_five_minutes' must be
+		// registered on every request, not just on activation. It lives in
+		// Inbox::register_interval() and is wired via Plugin::register_services().
 	}
 }

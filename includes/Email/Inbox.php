@@ -26,6 +26,27 @@ class Inbox {
 	// Hook callbacks
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Register the custom cron interval.
+	 *
+	 * Must be called on every request (hooked to cron_schedules) so WordPress
+	 * recognises 'every_five_minutes' when evaluating the cron queue — not just
+	 * at plugin activation time.
+	 *
+	 * @param array<string, array<string, mixed>> $schedules Existing cron schedules.
+	 * @return array<string, array<string, mixed>>
+	 */
+	public function register_interval( array $schedules ): array {
+		if ( ! isset( $schedules['every_five_minutes'] ) ) {
+			// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- 5-minute poll is intentional; email latency target is <5 min.
+			$schedules['every_five_minutes'] = [
+				'interval' => 300,
+				'display'  => __( 'Every 5 minutes', 'agnosis' ),
+			];
+		}
+		return $schedules;
+	}
+
 	/** Schedule the cron poll if not already scheduled (idempotent). */
 	public function schedule_poll(): void {
 		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
