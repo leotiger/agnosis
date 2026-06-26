@@ -4,7 +4,7 @@ Tags: art, gallery, artists, federation, activitypub, ai, email
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,7 +44,7 @@ Artists who are great at creating — but not at promoting — can simply **send
 
 1. Upload the `agnosis` folder to `/wp-content/plugins/`
 2. Activate via **Plugins → Installed Plugins**
-3. Go to **Settings → Agnosis** and configure your email inbox and AI API keys
+3. Go to **Agnosis** in the admin sidebar and configure your email inbox and AI API keys
 4. Artists apply at `/wp-json/agnosis/v1/admission/apply` and are vouched in by peers
 
 == Frequently Asked Questions ==
@@ -62,6 +62,9 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.1.1 =
+* Agnosis promoted to top-level sidebar menu (was Settings → Agnosis)
 
 = 0.1.0 =
 * Initial release — core plugin scaffold
