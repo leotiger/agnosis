@@ -11,16 +11,22 @@ namespace Agnosis\AI\Providers;
 
 use Agnosis\AI\DescriptionResult;
 use Agnosis\AI\EnhancementResult;
+use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
 
 class OpenAI implements ProviderInterface {
 
-	private const CHAT_URL    = 'https://api.openai.com/v1/chat/completions';
-	private const IMAGE_URL   = 'https://api.openai.com/v1/images/edits';
-	private const VISION_MODEL = 'gpt-4o';
-	private const IMAGE_MODEL  = 'gpt-image-1';
+	private const CHAT_URL             = 'https://api.openai.com/v1/chat/completions';
+	private const IMAGE_URL            = 'https://api.openai.com/v1/images/edits';
+	private const DEFAULT_VISION_MODEL = 'gpt-4o';
+	private const DEFAULT_IMAGE_MODEL  = 'gpt-image-1';
 
-	public function __construct( private readonly string $api_key ) {}
+	public function __construct(
+		private readonly string       $api_key,
+		private readonly PromptConfig $config,
+		private readonly string       $vision_model = self::DEFAULT_VISION_MODEL,
+		private readonly string       $image_model  = self::DEFAULT_IMAGE_MODEL,
+	) {}
 
 	// -------------------------------------------------------------------------
 	// Description
@@ -34,22 +40,11 @@ class OpenAI implements ProviderInterface {
 		$image_b64  = base64_encode( $image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
-		$system =
-			'You are an art critic and curator with a warm, poetic voice.' . "\n"
-			. 'Help independent artists present their work to the world.' . "\n"
-			. 'Respond ONLY with valid JSON — no markdown fences.' . "\n"
-			. '{' . "\n"
-			. '  "title":    "<Short evocative title, max 10 words>",' . "\n"
-			. '  "excerpt":  "<One sentence that makes someone stop scrolling, max 30 words>",' . "\n"
-			. '  "body":     "<2-3 paragraphs: what you see, what it evokes, why it matters>",' . "\n"
-			. '  "tags":     ["tag1","tag2","tag3","tag4","tag5"],' . "\n"
-			. '  "alt_text": "<Visual description for screen readers, max 125 chars>"' . "\n"
-			. '}';
-
-		$user_text = "Artist's notes: " . ( $artist_prompt ?: '(none provided)' );
+		$system    = $this->config->resolved_system_prompt();
+		$user_text = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [
-			'model'           => self::VISION_MODEL,
+			'model'           => $this->vision_model,
 			'max_tokens'      => 1024,
 			'response_format' => [ 'type' => 'json_object' ],
 			'messages'        => [
@@ -165,12 +160,12 @@ class OpenAI implements ProviderInterface {
 		// prompt field
 		$body .= '--' . $boundary . $eol;
 		$body .= 'Content-Disposition: form-data; name="prompt"' . $eol . $eol;
-		$body .= 'Enhance this artwork for web publication. Improve lighting, clarity and colour balance. ' . $prompt . $eol;
+		$body .= $prompt . $eol;
 
 		// model field
 		$body .= '--' . $boundary . $eol;
 		$body .= 'Content-Disposition: form-data; name="model"' . $eol . $eol;
-		$body .= self::IMAGE_MODEL . $eol;
+		$body .= $this->image_model . $eol;
 
 		// size
 		$body .= '--' . $boundary . $eol;

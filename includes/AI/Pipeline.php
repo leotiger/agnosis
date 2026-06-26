@@ -3,10 +3,11 @@
  * AI Pipeline orchestrator.
  *
  * Receives a parsed submission, runs each image through:
- *   1. Description pass  (Claude preferred; falls back to OpenAI)
- *   2. Enhancement pass  (OpenAI GPT-4o / DALL-E 3 or Stability AI)
+ *   1. Description pass  — configured description provider.
+ *   2. Enhancement pass  — configured enhancement provider (may be null / different vendor).
  *
- * Returns a structured result ready for PostCreator.
+ * Provider selection is independent: an operator can use Anthropic for text
+ * and OpenAI for image enhancement, or WordPress AI for both, etc.
  *
  * @package Agnosis\AI
  */
@@ -18,35 +19,37 @@ namespace Agnosis\AI;
 use Agnosis\AI\Providers\Anthropic;
 use Agnosis\AI\Providers\OpenAI;
 use Agnosis\AI\Providers\StabilityAI;
+use Agnosis\AI\Providers\WordPressAI;
 
 class Pipeline {
 
-	private ProviderInterface $description_provider;
+	private ProviderInterface  $description_provider;
 	private ?ProviderInterface $enhancement_provider;
+	private PromptConfig       $config;
 
 	public function __construct() {
-		$this->description_provider  = $this->resolve_description_provider();
-		$this->enhancement_provider  = $this->resolve_enhancement_provider();
+		$this->config               = PromptConfig::from_options();
+		$this->description_provider = $this->resolve_description_provider();
+		$this->enhancement_provider = $this->resolve_enhancement_provider();
 	}
 
 	/**
 	 * Process all attachments in a submission.
 	 *
-	 * @param array<string, mixed> $submission  Parsed submission from Parser.
-	 * @return array<int, array<string, mixed>>  One result per attachment.
+	 * @param array<string, mixed> $submission Parsed submission from Parser.
+	 * @return array<int, array<string, mixed>> One result per attachment.
 	 */
 	public function process( array $submission ): array {
-		$results      = [];
+		$results       = [];
 		$artist_prompt = $submission['description'] ?? '';
 
 		foreach ( $submission['attachments'] as $attachment ) {
-			$result = $this->process_single(
+			$results[] = $this->process_single(
 				$attachment['data'],
 				$attachment['mime'],
 				$attachment['filename'],
 				$artist_prompt
 			);
-			$results[] = $result;
 		}
 
 		return $results;
@@ -54,9 +57,7 @@ class Pipeline {
 
 	// -------------------------------------------------------------------------
 
-	/**
-	 * @return array<string, mixed>
-	 */
+	/** @return array<string, mixed> */
 	private function process_single(
 		string $image_data,
 		string $mime_type,
@@ -66,13 +67,16 @@ class Pipeline {
 		// Step 1 — Describe.
 		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
 
-		// Step 2 — Enhance (if provider available and description succeeded).
-		$enhanced_data = $image_data; // fallback: original
+		// Step 2 — Enhance (skip if no provider or description failed).
+		$enhanced_data = $image_data;
 		$enhanced_mime = $mime_type;
 
 		if ( null !== $this->enhancement_provider && $description->success ) {
-			$instructions = $description->body ?: $artist_prompt;
-			$enhancement  = $this->enhancement_provider->enhance( $image_data, $mime_type, $instructions );
+			// Pass configured enhancement instructions; append description body as context.
+			$instructions = $this->config->enhancement_instructions
+				. ( $description->body ? "\n\n" . $description->body : '' );
+
+			$enhancement = $this->enhancement_provider->enhance( $image_data, $mime_type, $instructions );
 
 			if ( $enhancement->success && ! empty( $enhancement->image_data ) ) {
 				$enhanced_data = $enhancement->image_data;
@@ -100,37 +104,63 @@ class Pipeline {
 	// -------------------------------------------------------------------------
 
 	private function resolve_description_provider(): ProviderInterface {
-		$provider = get_option( 'agnosis_ai_provider', 'openai' );
+		$provider = get_option( 'agnosis_description_provider', 'openai' );
 
-		// Prefer Anthropic for description if key is set.
-		if ( $provider === 'anthropic' || ! empty( get_option( 'agnosis_anthropic_api_key' ) ) ) {
-			$key = get_option( 'agnosis_anthropic_api_key', '' );
-			if ( ! empty( $key ) ) {
-				return new Anthropic( $key );
-			}
+		switch ( $provider ) {
+			case 'anthropic':
+				$key   = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				$model = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
+				return new Anthropic( $key, $this->config, $model );
+
+			case 'wp_ai':
+				return new WordPressAI( $this->config );
+
+			case 'openai':
+			default:
+				$key   = (string) get_option( 'agnosis_openai_api_key', '' );
+				$model = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
+				return new OpenAI( $key, $this->config, $model );
 		}
-
-		// Fallback to OpenAI.
-		$key = get_option( 'agnosis_openai_api_key', '' );
-		return new OpenAI( $key );
 	}
 
 	private function resolve_enhancement_provider(): ?ProviderInterface {
-		// Stability AI — best for image enhancement.
-		$stability_key = get_option( 'agnosis_stability_api_key', '' );
+		$provider = get_option( 'agnosis_enhancement_provider', 'auto' );
+
+		if ( 'none' === $provider ) {
+			return null;
+		}
+
+		if ( 'stability' === $provider ) {
+			$key = (string) get_option( 'agnosis_stability_api_key', '' );
+			if ( ! empty( $key ) ) {
+				return new StabilityAI( $key );
+			}
+		}
+
+		if ( 'wp_ai' === $provider ) {
+			return new WordPressAI( $this->config );
+		}
+
+		if ( 'openai' === $provider ) {
+			$key = (string) get_option( 'agnosis_openai_api_key', '' );
+			if ( ! empty( $key ) ) {
+				$image_model = (string) get_option( 'agnosis_openai_image_model', 'gpt-image-1' );
+				return new OpenAI( $key, $this->config, 'gpt-4o', $image_model );
+			}
+		}
+
+		// 'auto' — pick the best available provider from configured keys.
+		$stability_key = (string) get_option( 'agnosis_stability_api_key', '' );
 		if ( ! empty( $stability_key ) ) {
 			return new StabilityAI( $stability_key );
 		}
 
-		// Fallback: OpenAI GPT-4o image edit.
-		$openai_key = get_option( 'agnosis_openai_api_key', '' );
+		$openai_key = (string) get_option( 'agnosis_openai_api_key', '' );
 		if ( ! empty( $openai_key ) ) {
-			$provider = new OpenAI( $openai_key );
-			if ( $provider->supports_enhancement() ) {
-				return $provider;
-			}
+			$image_model = (string) get_option( 'agnosis_openai_image_model', 'gpt-image-1' );
+			return new OpenAI( $openai_key, $this->config, 'gpt-4o', $image_model );
 		}
 
-		return null; // No enhancement available; original image is used.
+		return null; // No enhancement — original image used.
 	}
 }

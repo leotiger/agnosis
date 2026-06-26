@@ -21,6 +21,7 @@ class Settings {
 		'general'  => 'agnosis_general_options',
 		'email'    => 'agnosis_email_options',
 		'ai'       => 'agnosis_ai_options',
+		'behavior' => 'agnosis_behavior_options',
 		'network'  => 'agnosis_network_options',
 		'commerce' => 'agnosis_commerce_options',
 	];
@@ -101,6 +102,7 @@ class Settings {
 			'general'  => __( 'General',      'agnosis' ),
 			'email'    => __( 'Email Inbox',  'agnosis' ),
 			'ai'       => __( 'AI Providers', 'agnosis' ),
+			'behavior' => __( 'Behaviour',    'agnosis' ),
 			'network'  => __( 'Network',      'agnosis' ),
 			'commerce' => __( 'Commerce',     'agnosis' ),
 		];
@@ -141,6 +143,10 @@ class Settings {
 					echo '<option value="' . esc_attr( $opt_val ) . '" ' . selected( $value, $opt_val, false ) . '>' . esc_html( $opt_label ) . '</option>';
 				}
 				echo '</select>';
+				break;
+			case 'textarea':
+				$rows = $field['rows'] ?? 6;
+				echo '<textarea id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" rows="' . esc_attr( (string) $rows ) . '" class="large-text code">' . esc_textarea( $value ) . '</textarea>';
 				break;
 			case 'readonly':
 				echo '<input type="text" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
@@ -211,35 +217,123 @@ class Settings {
 				'sanitize' => fn( $v ) => $v,
 			],
 
-			// --- AI ---
-			'agnosis_ai_provider' => [
+			// --- AI: Description (text) ---
+			'agnosis_description_provider' => [
 				'tab'     => 'ai',
 				'label'   => __( 'Description provider', 'agnosis' ),
 				'input'   => 'select',
-				'options' => [ 'openai' => 'OpenAI (GPT-4o)', 'anthropic' => 'Anthropic (Claude)' ],
+				'options' => [
+					'openai'    => 'OpenAI (GPT-4o)',
+					'anthropic' => 'Anthropic (Claude)',
+					'wp_ai'     => 'WordPress AI Services',
+				],
 				'default' => 'openai',
-				'desc'    => __( 'Analyses the artwork and writes the title, text and tags.', 'agnosis' ),
+				'desc'    => __( 'Analyses the artwork image and writes the title, body, tags and alt text. WordPress AI Services delegates to whichever provider the site has configured via the AI Services plugin.', 'agnosis' ),
 			],
-			'agnosis_openai_api_key' => [
+			'agnosis_openai_description_model' => [
 				'tab'     => 'ai',
-				'label'   => __( 'OpenAI API key', 'agnosis' ),
-				'input'   => 'password',
+				'label'   => __( 'OpenAI vision model', 'agnosis' ),
+				'default' => 'gpt-4o',
+				'desc'    => __( 'Model used for artwork description when OpenAI is the description provider. Must support vision input.', 'agnosis' ),
+			],
+			'agnosis_anthropic_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Anthropic model', 'agnosis' ),
+				'default' => 'claude-opus-4-8',
+				'desc'    => __( 'Model used for artwork description when Anthropic is the description provider. Must support vision input.', 'agnosis' ),
+			],
+
+			// --- AI: Enhancement (image) ---
+			'agnosis_enhancement_provider' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Enhancement provider', 'agnosis' ),
+				'input'   => 'select',
+				'options' => [
+					'auto'      => __( 'Auto (best available key)', 'agnosis' ),
+					'stability' => 'Stability AI',
+					'openai'    => 'OpenAI (gpt-image-1)',
+					'none'      => __( 'Disabled — use original image', 'agnosis' ),
+				],
+				'default' => 'auto',
+				'desc'    => __( 'Enhances the artwork image before publishing. Can differ from the description provider — e.g. Anthropic for text, OpenAI for images.', 'agnosis' ),
+			],
+			'agnosis_openai_image_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'OpenAI image model', 'agnosis' ),
+				'default' => 'gpt-image-1',
+				'desc'    => __( 'Model used for image enhancement when OpenAI is the enhancement provider.', 'agnosis' ),
+			],
+
+			// --- AI: API keys ---
+			'agnosis_openai_api_key' => [
+				'tab'      => 'ai',
+				'label'    => __( 'OpenAI API key', 'agnosis' ),
+				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
-				'desc'    => __( 'Used for GPT-4o Vision (description) and gpt-image-1 (enhancement).', 'agnosis' ),
+				'desc'     => __( 'Required when OpenAI is used as description or enhancement provider.', 'agnosis' ),
 			],
 			'agnosis_anthropic_api_key' => [
-				'tab'     => 'ai',
-				'label'   => __( 'Anthropic API key', 'agnosis' ),
-				'input'   => 'password',
+				'tab'      => 'ai',
+				'label'    => __( 'Anthropic API key', 'agnosis' ),
+				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
-				'desc'    => __( 'Used for Claude Vision — description only.', 'agnosis' ),
+				'desc'     => __( 'Required when Anthropic is the description provider.', 'agnosis' ),
 			],
 			'agnosis_stability_api_key' => [
-				'tab'     => 'ai',
-				'label'   => __( 'Stability AI API key', 'agnosis' ),
-				'input'   => 'password',
+				'tab'      => 'ai',
+				'label'    => __( 'Stability AI API key', 'agnosis' ),
+				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
-				'desc'    => __( 'Used for image upscaling and enhancement (preferred over OpenAI for images).', 'agnosis' ),
+				'desc'     => __( 'Required when Stability AI is the enhancement provider.', 'agnosis' ),
+			],
+
+			// --- BEHAVIOUR ---
+			'agnosis_prompt_system' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'System prompt', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 12,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => \Agnosis\AI\PromptConfig::default_system_prompt(),
+				'desc'     => __( 'Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words} as tokens — they are replaced with the values below.', 'agnosis' ),
+			],
+			'agnosis_prompt_user_template' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Artist prompt template', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 4,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => \Agnosis\AI\PromptConfig::default_user_template(),
+				'desc'     => __( 'User message sent alongside the artwork image. Use {artist_prompt} where the artist\'s own description should appear.', 'agnosis' ),
+			],
+			'agnosis_prompt_enhancement' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Enhancement instructions', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 4,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => \Agnosis\AI\PromptConfig::default_enhancement_instructions(),
+				'desc'     => __( 'Instructions passed to the image enhancement provider. The AI-generated artwork description is appended automatically as context.', 'agnosis' ),
+			],
+			'agnosis_prompt_tag_count' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Number of tags', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 5,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'How many tags the AI should generate per artwork. Referenced as {tag_count} in the system prompt.', 'agnosis' ),
+			],
+			'agnosis_prompt_excerpt_words' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Excerpt word limit', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 30,
+				'min'      => 5,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 5, (int) $v ),
+				'desc'     => __( 'Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in the system prompt.', 'agnosis' ),
 			],
 
 			// --- NETWORK ---
