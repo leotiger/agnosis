@@ -16,10 +16,10 @@
         "build":       "wp-scripts build --config webpack.config.js",
         "start":       "wp-scripts start --config webpack.config.js",
 
-        "lint:js":     "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . \"../src/**/*.js\" \"../src/**/*.jsx\"",
-        "lint:js:fix": "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --fix \"../src/**/*.js\" \"../src/**/*.jsx\"",
-        "lint:css":    "wp-scripts lint-style --config .stylelintrc.json \"../src/**/*.css\"",
-        "lint:css:fix":"wp-scripts lint-style --config .stylelintrc.json --fix \"../src/**/*.css\"",
+        "lint:js":     "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern \"../src/**/*.js\" \"../src/**/*.jsx\"",
+        "lint:js:fix": "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --fix \"../src/**/*.js\" \"../src/**/*.jsx\"",
+        "lint:css":    "wp-scripts lint-style --config .stylelintrc.json --allow-empty-input \"../src/**/*.css\"",
+        "lint:css:fix":"wp-scripts lint-style --config .stylelintrc.json --allow-empty-input --fix \"../src/**/*.css\"",
         "format":      "wp-scripts format \"../src/**/*.{js,jsx,css,json}\"",
 
         "test:e2e":    "playwright test",
