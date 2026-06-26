@@ -125,6 +125,7 @@ class LinguaForge {
 		 * @param array  $languages   Target language tags to translate into.
 		 * @param array  $context     Contextual hints for the translation model.
 		 */
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- intentionally calling a Lingua Forge hook; the prefix belongs to that plugin.
 		do_action(
 			'linguaforge_request_translation',
 			$post_id,

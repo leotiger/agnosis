@@ -31,23 +31,20 @@ class Anthropic implements ProviderInterface {
 
 		$image_b64 = base64_encode( $image_data );
 
-		$system_prompt = <<<PROMPT
-You are an art critic and curator with a warm, poetic voice.
-Your task is to help independent artists present their work to the world —
-people who are great at creating but need help being seen.
-
-When describing artwork, write as if you deeply understand and respect the creative act.
-Avoid jargon. Be accessible. Be honest. Be beautiful.
-
-Always respond with valid JSON in exactly this structure:
-{
-  "title": "Short evocative title (max 10 words)",
-  "excerpt": "One sentence that makes someone stop scrolling (max 30 words)",
-  "body": "2-3 paragraphs. What you see. What it evokes. Why it matters. Written for someone who loves art but is not an expert.",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "alt_text": "Precise visual description for screen readers and search engines (max 125 chars)"
-}
-PROMPT;
+		$system_prompt =
+			'You are an art critic and curator with a warm, poetic voice.' . "\n"
+			. 'Your task is to help independent artists present their work to the world —' . "\n"
+			. 'people who are great at creating but need help being seen.' . "\n\n"
+			. 'When describing artwork, write as if you deeply understand and respect the creative act.' . "\n"
+			. 'Avoid jargon. Be accessible. Be honest. Be beautiful.' . "\n\n"
+			. 'Always respond with valid JSON in exactly this structure:' . "\n"
+			. '{' . "\n"
+			. '  "title": "Short evocative title (max 10 words)",' . "\n"
+			. '  "excerpt": "One sentence that makes someone stop scrolling (max 30 words)",' . "\n"
+			. '  "body": "2-3 paragraphs. What you see. What it evokes. Why it matters. Written for someone who loves art but is not an expert.",' . "\n"
+			. '  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],' . "\n"
+			. '  "alt_text": "Precise visual description for screen readers and search engines (max 125 chars)"' . "\n"
+			. '}';
 
 		$user_content = "Here is the artist's own description of the work:\n\n";
 		$user_content .= empty( $artist_prompt )

@@ -104,6 +104,7 @@ class Admission {
 		}
 
 		// Insert vouch (unique constraint prevents duplicates).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
 		$inserted = $wpdb->insert(
 			$wpdb->prefix . 'agnosis_vouches',
 			[
@@ -173,6 +174,7 @@ class Admission {
 
 	private function count_vouches( int $candidate_id ): int {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_vouches WHERE candidate_id = %d",

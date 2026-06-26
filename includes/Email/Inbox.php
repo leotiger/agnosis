@@ -113,6 +113,7 @@ class Inbox {
 
 	private function is_already_queued( string $uid ): bool {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table; caching an idempotency check would risk duplicate queue entries.
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT id FROM {$wpdb->prefix}agnosis_queue WHERE message_uid = %s LIMIT 1",
@@ -130,6 +131,7 @@ class Inbox {
 	private function enqueue( string $uid, array $submission ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
 		$wpdb->insert(
 			$wpdb->prefix . 'agnosis_queue',
 			[

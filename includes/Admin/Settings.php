@@ -54,6 +54,7 @@ class Settings {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading tab slug for display only, no data mutation.
 		$active_tab = sanitize_key( $_GET['tab'] ?? 'general' );
 		$tabs       = $this->tabs();
 
@@ -112,10 +113,9 @@ class Settings {
 	private function render_field( string $key, array $field ): void {
 		$value = get_option( $key, $field['default'] ?? '' );
 		$type  = $field['input'] ?? 'text';
-		$label = esc_html( $field['label'] );
 		$desc  = isset( $field['desc'] ) ? '<p class="description">' . esc_html( $field['desc'] ) . '</p>' : '';
 
-		echo '<tr><th scope="row"><label for="' . esc_attr( $key ) . '">' . $label . '</label></th><td>';
+		echo '<tr><th scope="row"><label for="' . esc_attr( $key ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
 
 		switch ( $type ) {
 			case 'password':
@@ -141,6 +141,7 @@ class Settings {
 				echo '<input type="text" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" class="regular-text">';
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $desc is built from esc_html() above; the <p> wrapper is static markup.
 		echo $desc . '</td></tr>';
 	}
 

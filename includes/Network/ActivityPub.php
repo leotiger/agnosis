@@ -167,7 +167,8 @@ class ActivityPub {
 			return;
 		}
 
-		$resource = sanitize_text_field( $_GET['resource'] ?? '' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WebFinger is a public unauthenticated discovery endpoint; nonces are not applicable.
+		$resource = sanitize_text_field( wp_unslash( $_GET['resource'] ?? '' ) );
 		$host     = wp_parse_url( home_url(), PHP_URL_HOST );
 		$expected = 'acct:agnosis@' . $host;
 

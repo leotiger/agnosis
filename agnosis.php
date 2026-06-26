@@ -12,7 +12,6 @@
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       agnosis
  * Domain Path:       /languages
- * Network:           false
  *
  * @package Agnosis
  */
@@ -63,7 +62,7 @@ function agnosis_requirements_check(): bool {
 				sprintf(
 					/* translators: %s: required PHP version */
 					esc_html__( 'Agnosis requires PHP %s or higher.', 'agnosis' ),
-					AGNOSIS_MIN_PHP
+					esc_html( AGNOSIS_MIN_PHP )
 				)
 			);
 		} );
@@ -76,7 +75,7 @@ function agnosis_requirements_check(): bool {
 				sprintf(
 					/* translators: %s: required WP version */
 					esc_html__( 'Agnosis requires WordPress %s or higher.', 'agnosis' ),
-					AGNOSIS_MIN_WP
+					esc_html( AGNOSIS_MIN_WP )
 				)
 			);
 		} );

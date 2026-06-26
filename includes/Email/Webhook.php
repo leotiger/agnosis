@@ -46,6 +46,7 @@ class Webhook {
 
 		$uid = 'webhook-' . md5( ( $payload['Message-Id'] ?? $payload['message-id'] ?? '' ) . time() );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
 		$wpdb->insert(
 			$wpdb->prefix . 'agnosis_queue',
 			[

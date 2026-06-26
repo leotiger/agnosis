@@ -85,6 +85,7 @@ class Node {
 		}
 
 		// TODO: verify the peer's signature before trusting.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
 		$wpdb->replace(
 			$wpdb->prefix . 'agnosis_nodes',
 			[
@@ -103,6 +104,7 @@ class Node {
 	public function list_peers( WP_REST_Request $request ): WP_REST_Response {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
 		$peers = $wpdb->get_results(
 			"SELECT url, label, status, last_seen FROM {$wpdb->prefix}agnosis_nodes WHERE status = 'trusted' ORDER BY last_seen DESC"
 		);

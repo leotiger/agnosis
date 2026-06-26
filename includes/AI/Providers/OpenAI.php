@@ -34,18 +34,17 @@ class OpenAI implements ProviderInterface {
 		$image_b64  = base64_encode( $image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
-		$system = <<<PROMPT
-You are an art critic and curator with a warm, poetic voice.
-Help independent artists present their work to the world.
-Respond ONLY with valid JSON — no markdown fences.
-{
-  "title":    "<Short evocative title, max 10 words>",
-  "excerpt":  "<One sentence that makes someone stop scrolling, max 30 words>",
-  "body":     "<2-3 paragraphs: what you see, what it evokes, why it matters>",
-  "tags":     ["tag1","tag2","tag3","tag4","tag5"],
-  "alt_text": "<Visual description for screen readers, max 125 chars>"
-}
-PROMPT;
+		$system =
+			'You are an art critic and curator with a warm, poetic voice.' . "\n"
+			. 'Help independent artists present their work to the world.' . "\n"
+			. 'Respond ONLY with valid JSON — no markdown fences.' . "\n"
+			. '{' . "\n"
+			. '  "title":    "<Short evocative title, max 10 words>",' . "\n"
+			. '  "excerpt":  "<One sentence that makes someone stop scrolling, max 30 words>",' . "\n"
+			. '  "body":     "<2-3 paragraphs: what you see, what it evokes, why it matters>",' . "\n"
+			. '  "tags":     ["tag1","tag2","tag3","tag4","tag5"],' . "\n"
+			. '  "alt_text": "<Visual description for screen readers, max 125 chars>"' . "\n"
+			. '}';
 
 		$user_text = "Artist's notes: " . ( $artist_prompt ?: '(none provided)' );
 

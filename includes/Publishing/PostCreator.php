@@ -31,6 +31,7 @@ class PostCreator {
 	public function handle( int $queue_id ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT * FROM {$wpdb->prefix}agnosis_queue WHERE id = %d AND status = 'pending' LIMIT 1",
@@ -158,7 +159,7 @@ class PostCreator {
 		$sideload = wp_handle_sideload( $file, [ 'test_form' => false ] );
 		remove_all_filters( 'upload_size_limit' );
 
-		@unlink( $tmp );
+		wp_delete_file( $tmp );
 
 		if ( isset( $sideload['error'] ) ) {
 			return new \WP_Error( 'agnosis_upload', $sideload['error'] );
@@ -222,6 +223,7 @@ class PostCreator {
 
 	private function mark( int $id, string $status, string $error = '' ): void {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
 		$wpdb->update(
 			$wpdb->prefix . 'agnosis_queue',
 			[ 'status' => $status, 'error' => $error ?: null ],

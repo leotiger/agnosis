@@ -84,6 +84,7 @@ class Parser {
 		// Mailgun / SendGrid attach files differently — handle both.
 		$attachment_count = (int) ( $payload['attachment-count'] ?? 0 );
 		for ( $i = 1; $i <= $attachment_count; $i++ ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- request authenticated via HMAC in Webhook::verify_signature(); file type/size validated below.
 			$file = $_FILES[ 'attachment-' . $i ] ?? null;
 			if ( null === $file || ! $this->is_allowed_mime( $file['type'] ) ) {
 				continue;
