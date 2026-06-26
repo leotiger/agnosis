@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
- * Description:       Blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
+ * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
  * Version:           0.1.2
  * Requires at least: 6.4
  * Requires PHP:      8.1

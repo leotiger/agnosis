@@ -8,7 +8,7 @@ Stable tag: 0.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Blooming out of oblivion. Email your art, AI polishes it, the world sees it.
+Art blooming out of oblivion. Email your art, AI polishes it, the world sees it.
 
 == Description ==
 

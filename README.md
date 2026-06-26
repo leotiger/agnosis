@@ -1,6 +1,6 @@
 # ✦ Agnosis
 
-> Blooming out of oblivion. Email your art, AI polishes it, the world sees it.
+> Art blooming out of oblivion. Email your art, AI polishes it, the world sees it.
 
 Agnosis is a free, federated WordPress plugin for independent artists. Artists who are great at creating — but not at promoting — send an email with their artwork. Agnosis handles the rest.
 

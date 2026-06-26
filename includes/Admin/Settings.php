@@ -62,7 +62,7 @@ class Settings {
 		<div class="wrap agnosis-settings">
 			<h1>
 				<span style="color:#7c6af7">✦</span> <?php esc_html_e( 'Agnosis', 'agnosis' ); ?>
-				<small style="font-size:.6em;font-weight:400;color:#888">— <?php esc_html_e( 'Blooming out of oblivion', 'agnosis' ); ?></small>
+				<small style="font-size:.6em;font-weight:400;color:#888">— <?php esc_html_e( 'Art blooming out of oblivion', 'agnosis' ); ?></small>
 			</h1>
 
 			<nav class="nav-tab-wrapper" style="margin-bottom:1.5rem">
