@@ -18,12 +18,14 @@ class Settings {
 	private const GROUP  = 'agnosis_options';
 
 	public function register_menu(): void {
-		add_options_page(
+		add_menu_page(
 			__( 'Agnosis', 'agnosis' ),
 			__( 'Agnosis', 'agnosis' ),
 			'manage_options',
 			self::PAGE,
-			[ $this, 'render_page' ]
+			[ $this, 'render_page' ],
+			$this->menu_icon(),
+			58 // Below WooCommerce (56), above Appearance (60).
 		);
 	}
 
@@ -40,7 +42,7 @@ class Settings {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		if ( $hook !== 'settings_page_' . self::PAGE ) {
+		if ( $hook !== 'toplevel_page_' . self::PAGE ) {
 			return;
 		}
 		// Inline minimal CSS — no external dependency needed for MVP.
@@ -64,7 +66,7 @@ class Settings {
 
 			<nav class="nav-tab-wrapper" style="margin-bottom:1.5rem">
 				<?php foreach ( $tabs as $slug => $label ) : ?>
-					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . self::PAGE . '&tab=' . $slug ) ); ?>"
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE . '&tab=' . $slug ) ); ?>"
 					   class="nav-tab <?php echo $active_tab === $slug ? 'nav-tab-active' : ''; ?>">
 						<?php echo esc_html( $label ); ?>
 					</a>
@@ -271,10 +273,19 @@ class Settings {
 		];
 	}
 
+	private function menu_icon(): string {
+		// SVG ✦ sparkle in WordPress menu grey (#a7aaad), base64-encoded.
+		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#a7aaad" d="M10 0l1.8 7.2L19 10l-7.2 1.8L10 20l-1.8-8.2L1 10l8.2-1.8z"/></svg>';
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	}
+
 	private function admin_css(): string {
 		return '
 		.agnosis-settings h1 { display:flex; align-items:baseline; gap:.4rem; }
 		.agnosis-settings .nav-tab-active { border-bottom-color:#7c6af7; color:#7c6af7; }
+		#adminmenu .toplevel_page_agnosis-settings .wp-menu-image img { opacity:.7; }
+		#adminmenu .toplevel_page_agnosis-settings.current .wp-menu-image img,
+		#adminmenu .toplevel_page_agnosis-settings:hover .wp-menu-image img { opacity:1; filter:brightness(0) saturate(100%) invert(52%) sepia(60%) saturate(500%) hue-rotate(220deg); }
 		';
 	}
 }
