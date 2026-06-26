@@ -1,33 +1,111 @@
 <?xml version="1.0"?>
 <ruleset name="Agnosis">
-    <description>Agnosis WordPress Plugin — PHPCS ruleset (WordPress Coding Standards).</description>
+    <description>WordPress Coding Standards for the Agnosis plugin.</description>
 
     <!-- Scan the plugin source, not the dev tooling. -->
     <file>../agnosis.php</file>
     <file>../includes/</file>
     <file>../tests/php/</file>
 
-    <!-- Exclude build artefacts and vendor. -->
-    <exclude-pattern>../dev/</exclude-pattern>
-    <exclude-pattern>../vendor/</exclude-pattern>
-    <exclude-pattern>../node_modules/</exclude-pattern>
-    <exclude-pattern>../build/</exclude-pattern>
+    <!-- Exclude generated / vendored / non-PHP trees. -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/coverage/*</exclude-pattern>
+    <exclude-pattern>*/languages/*</exclude-pattern>
 
-    <!-- PHP version target. -->
+    <!-- Arguments. -->
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+    <arg name="cache" value=".phpcs.cache"/>
+    <arg name="parallel" value="8"/>
+    <arg value="ps"/>
+
+    <!-- PHP / WP version targets. -->
     <config name="testVersion" value="8.1-"/>
     <config name="minimum_supported_wp_version" value="6.4"/>
 
-    <rule ref="WordPress">
-        <!-- Allow PSR-4 file naming (class files don't need "class-" prefix). -->
+    <!-- ── WordPress-Extra with targeted exclusions ────────────────────── -->
+    <!--
+        WordPress-Extra is a superset of WordPress; one ref here plus the
+        exclude list below covers all sniffs regardless of which ruleset
+        path loaded them.
+    -->
+    <rule ref="WordPress-Extra">
+
+        <!-- PSR-4 file naming (class files don't need "class-" prefix). -->
         <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
         <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+
         <!-- No Yoda conditions (modern PHP style). -->
         <exclude name="WordPress.PHP.YodaConditions"/>
-        <!-- Allow short array syntax [] — enforced by Generic.Arrays.DisallowLongArraySyntax below. -->
+
+        <!-- Modern short array syntax [] is used consistently.
+             Generic.Arrays.DisallowLongArraySyntax (below) enforces it. -->
         <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
-        <!-- Allow Elvis operator (?:) — widely used and unambiguous in this codebase. -->
+
+        <!-- Short ternary ?: used intentionally for falsy fallback. -->
         <exclude name="Universal.Operators.DisallowShortTernary"/>
+
+        <!-- WP hook callbacks must match the hook signature; unused params expected. -->
+        <exclude name="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+
+        <!--
+            PEAR-style multi-line function-call signatures are not the
+            convention used in this codebase.
+        -->
+        <exclude name="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.MultipleArguments"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.CloseBracketLine"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.Indent"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket"/>
+        <exclude name="PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket"/>
+
+        <!-- Column-aligned define()/hook calls use deliberate extra spaces. -->
+        <exclude name="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma"/>
+        <exclude name="Generic.Formatting.MultipleStatementAlignment"/>
+
+        <!-- Array => alignment varies by context; don't impose a global rule. -->
+        <exclude name="WordPress.Arrays.MultipleStatementAlignment"/>
+        <exclude name="WordPress.Arrays.ArrayDeclarationSpacing"/>
+        <exclude name="NormalizedArrays.Arrays.ArrayBraceSpacing"/>
+
+        <!--
+            WordPress-Docs commenting requirements:
+            PHP 8.1 native type hints + return types replace @param/@return
+            boilerplate. PHPStan reads typed params directly; class/property
+            /function docblocks are written where they add value, not by rule.
+        -->
+        <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+        <exclude name="Squiz.Commenting.VariableComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
+        <exclude name="Squiz.Commenting.FunctionComment.MissingParamComment"/>
+        <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamType"/>
+        <exclude name="Squiz.Commenting.FunctionComment.IncorrectTypeHint"/>
+        <exclude name="Generic.Commenting.DocComment.MissingShort"/>
+
+        <!-- $class is the canonical PSR-4 autoloader parameter name per PHP docs. -->
+        <exclude name="Universal.NamingConventions.NoReservedKeywordParameterNames.classFound"/>
+
+        <!-- Inline comments: no terminal punctuation or post-statement rules. -->
+        <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+        <exclude name="Squiz.Commenting.PostStatementComment.Found"/>
+
     </rule>
+
+    <!--
+        WordPress-Docs intentionally omitted at the top level:
+        PHP 8.1 native types are used throughout instead of duplicating
+        them in phpdoc. Useful sub-sniffs stay via WordPress-Extra above.
+    -->
+
+    <!-- PHP cross-version compatibility. -->
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!-- Require short array syntax [] everywhere. -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
 
     <!-- Text domain. -->
     <rule ref="WordPress.WP.I18n">
@@ -38,10 +116,35 @@
         </properties>
     </rule>
 
-    <!-- Require short array syntax. -->
-    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <!-- Global symbol prefix enforcement. -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="agnosis"/>
+                <element value="AGNOSIS"/>
+                <element value="Agnosis"/>
+            </property>
+        </properties>
+    </rule>
 
-    <arg name="extensions" value="php"/>
-    <arg name="colors"/>
-    <arg value="sp"/>
+    <!-- Custom capabilities registered by this plugin. -->
+    <rule ref="WordPress.WP.Capabilities">
+        <properties>
+            <property name="custom_capabilities" type="array">
+                <element value="agnosis_artist"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- ── Test-specific relaxations ──────────────────────────────────── -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.Security.NonceVerification">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Commenting">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
 </ruleset>
