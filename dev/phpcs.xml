@@ -23,6 +23,10 @@
         <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
         <!-- No Yoda conditions (modern PHP style). -->
         <exclude name="WordPress.PHP.YodaConditions"/>
+        <!-- Allow short array syntax [] — enforced by Generic.Arrays.DisallowLongArraySyntax below. -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <!-- Allow Elvis operator (?:) — widely used and unambiguous in this codebase. -->
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
     </rule>
 
     <!-- Text domain. -->
