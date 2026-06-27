@@ -93,13 +93,18 @@ class WordPressAI implements ProviderInterface {
 			return DescriptionResult::failure( 'WordPress AI Client returned a non-JSON response.' );
 		}
 
+		// WordPressAI is text-only — no image is sent, so quality cannot be assessed.
+		// Score defaults to 0 (not assessed) and issues remain empty.
 		return new DescriptionResult(
-			title:    sanitize_text_field( $json['title']    ?? '' ),
-			excerpt:  sanitize_text_field( $json['excerpt']  ?? '' ),
-			body:     wp_kses_post( $json['body']     ?? '' ),
-			tags:     array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
-			alt_text: sanitize_text_field( $json['alt_text'] ?? '' ),
-			success:  true,
+			title:                sanitize_text_field( $json['title']    ?? '' ),
+			excerpt:              sanitize_text_field( $json['excerpt']  ?? '' ),
+			body:                 wp_kses_post( $json['body']            ?? '' ),
+			tags:                 array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+			alt_text:             sanitize_text_field( $json['alt_text'] ?? '' ),
+			success:              true,
+			photo_quality_score:  0,
+			photo_quality_issues: [],
+			medium:               sanitize_text_field( $json['medium']   ?? '' ),
 		);
 	}
 

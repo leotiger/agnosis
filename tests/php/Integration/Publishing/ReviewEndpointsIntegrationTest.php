@@ -284,6 +284,81 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// promote_featured — called by approve() and save(publish=true)
+	// -------------------------------------------------------------------------
+
+	public function test_approve_sets_featured_meta_on_approved_post(): void {
+		$req = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$this->endpoints->approve( $req );
+
+		$this->assertSame( '1', get_post_meta( $this->post_id, '_agnosis_featured', true ) );
+	}
+
+	public function test_approve_clears_previously_featured_artwork_for_same_artist(): void {
+		// Give the artist a second published artwork that is currently featured.
+		$old_post_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Old Featured Artwork',
+		] );
+		update_post_meta( $old_post_id, '_agnosis_featured', '1' );
+
+		$req = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$this->endpoints->approve( $req );
+
+		$this->assertSame( '0', get_post_meta( $old_post_id, '_agnosis_featured', true ) );
+		$this->assertSame( '1', get_post_meta( $this->post_id, '_agnosis_featured', true ) );
+	}
+
+	public function test_approve_does_not_affect_featured_artwork_by_other_artist(): void {
+		$other_artist_id = self::factory()->user->create( [ 'role' => 'subscriber' ] );
+
+		$other_post_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $other_artist_id,
+			'post_title'  => 'Other Artist Featured',
+		] );
+		update_post_meta( $other_post_id, '_agnosis_featured', '1' );
+
+		$req = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$this->endpoints->approve( $req );
+
+		// Other artist's featured post must be untouched.
+		$this->assertSame( '1', get_post_meta( $other_post_id, '_agnosis_featured', true ) );
+	}
+
+	public function test_approve_does_not_clear_featured_on_draft_artworks(): void {
+		// A draft by the same artist that happens to have the featured flag set
+		// (e.g. manually via the meta box) must not be demoted.
+		$draft_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'draft',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Draft With Featured Flag',
+		] );
+		update_post_meta( $draft_id, '_agnosis_featured', '1' );
+
+		$req = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$this->endpoints->approve( $req );
+
+		// promote_featured only clears published artworks; draft must be untouched.
+		$this->assertSame( '1', get_post_meta( $draft_id, '_agnosis_featured', true ) );
+	}
+
+	public function test_save_with_publish_sets_featured_meta(): void {
+		$req = $this->request( [
+			'id'      => $this->post_id,
+			'token'   => self::VALID_TOKEN,
+			'publish' => true,
+		] );
+		$this->endpoints->save( $req );
+
+		$this->assertSame( '1', get_post_meta( $this->post_id, '_agnosis_featured', true ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Token edge cases
 	// -------------------------------------------------------------------------
 

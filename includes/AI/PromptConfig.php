@@ -23,12 +23,33 @@ namespace Agnosis\AI;
 
 class PromptConfig {
 
+	/**
+	 * Canonical medium taxonomy terms.
+	 *
+	 * This is the single source of truth — used both in the AI prompt (so the
+	 * model picks from exactly this list) and by Activator to seed the taxonomy.
+	 * Keep it between 8–10 entries; broad categories only.
+	 *
+	 * @var array<string>
+	 */
+	public const CANONICAL_MEDIUMS = [
+		'Oil Painting',
+		'Watercolour',
+		'Drawing & Illustration',
+		'Photography',
+		'Digital Art',
+		'Sculpture',
+		'Printmaking',
+		'Mixed Media',
+	];
+
 	public function __construct(
 		public readonly string $system_prompt,
 		public readonly string $user_template,
 		public readonly string $enhancement_instructions,
 		public readonly int $tag_count,
 		public readonly int $excerpt_words,
+		public readonly int $quality_threshold = 7,
 	) {}
 
 	/** Build a PromptConfig from saved wp_options, falling back to defaults. */
@@ -39,6 +60,7 @@ class PromptConfig {
 			enhancement_instructions: (string) get_option( 'agnosis_prompt_enhancement',       self::default_enhancement_instructions() ),
 			tag_count:                (int) get_option( 'agnosis_prompt_tag_count',         5 ),
 			excerpt_words:            (int) get_option( 'agnosis_prompt_excerpt_words',     30 ),
+			quality_threshold:        (int) get_option( 'agnosis_quality_threshold',        7 ),
 		);
 	}
 
@@ -47,8 +69,8 @@ class PromptConfig {
 	 */
 	public function resolved_system_prompt(): string {
 		return str_replace(
-			[ '{tag_count}', '{excerpt_words}' ],
-			[ (string) $this->tag_count, (string) $this->excerpt_words ],
+			[ '{tag_count}', '{excerpt_words}', '{medium_list}' ],
+			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', self::CANONICAL_MEDIUMS ) ],
 			$this->system_prompt
 		);
 	}
@@ -69,6 +91,30 @@ class PromptConfig {
 	// Defaults
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Build issue-targeted enhancement instructions.
+	 *
+	 * Prepends a focused correction block (listing only the detected photographic
+	 * issues) to the base enhancement instructions. When no issues are detected
+	 * the base instructions are returned unchanged.
+	 *
+	 * @param array<string> $issues Detected photographic issues from the quality assessment.
+	 */
+	public function build_targeted_enhancement_instructions( array $issues ): string {
+		if ( empty( $issues ) ) {
+			return $this->enhancement_instructions;
+		}
+
+		$issue_list = implode( "\n", array_map( fn( string $i ) => '- ' . $i, $issues ) );
+
+		return 'The following photographic/technical issues were detected in this image:' . "\n"
+			. $issue_list . "\n\n"
+			. 'Correct ONLY these specific issues to improve the visibility of the artwork. '
+			. 'Do not alter the artwork itself — preserve all colours, textures, composition and artistic choices exactly. '
+			. 'This is a correction of camera and photography problems only, not an artistic edit.' . "\n\n"
+			. $this->enhancement_instructions;
+	}
+
 	public static function default_system_prompt(): string {
 		return 'You are a curator and art writer for Agnosis — a free, federated publishing network for independent artists.' . "\n\n"
 
@@ -85,14 +131,25 @@ class PromptConfig {
 			. '- Avoid jargon, curatorial clichés ("liminal", "interrogates", "invites the viewer to…") and hollow superlatives.' . "\n"
 			. '- Be specific. A good sentence names something particular about this work, not artwork in general.' . "\n\n"
 
+			. 'Also assess the photographic quality of the submitted image — the quality of the photograph itself, not the artwork. '
+			. 'Look for: blur or camera shake, underexposure or overexposure, poor white balance, distracting backgrounds, '
+			. 'clipped highlights, heavy noise, or anything that obscures the artwork.' . "\n\n"
+
 			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
 			. '{' . "\n"
 			. '  "title":    "Short evocative title, max 10 words, no full stop",' . "\n"
 			. '  "excerpt":  "One sentence that earns a second look (max {excerpt_words} words)",' . "\n"
 			. '  "body":     "2–3 paragraphs. What you see. What it evokes. Why it matters. End with something that stays with the reader.",' . "\n"
 			. '  "tags":     ["tag1", "tag2", ..., "tag{tag_count}"],' . "\n"
-			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible."' . "\n"
-			. '}';
+			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible.",' . "\n"
+			. '  "medium":   "Pick exactly one from: {medium_list}",' . "\n"
+			. '  "photo_quality": {' . "\n"
+			. '    "score": <integer 1–10, where 1 = technically unusable, 10 = publication-perfect photograph>,' . "\n"
+			. '    "issues": ["<concise description of photographic issue>"]' . "\n"
+			. '  }' . "\n"
+			. '}' . "\n\n"
+			. 'photo_quality.issues must be an empty array [] when no issues are found. '
+			. 'Score the photograph only — not the artistic merit of the work itself.';
 	}
 
 	public static function default_user_template(): string {

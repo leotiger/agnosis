@@ -20,8 +20,10 @@ use Agnosis\Email\Inbox;
 use Agnosis\Email\Webhook;
 use Agnosis\Network\ActivityPub;
 use Agnosis\Network\Node;
+use Agnosis\Publishing\GalleryOverview;
 use Agnosis\Publishing\Notification;
 use Agnosis\Publishing\PostCreator;
+use Agnosis\Publishing\RemovalEndpoints;
 use Agnosis\Publishing\ReviewEndpoints;
 use Agnosis\Publishing\SubmissionsPage;
 
@@ -342,6 +344,30 @@ class Plugin {
 		exit;
 	}
 
+	/**
+	 * Register custom image sizes.
+	 *
+	 * agnosis-artwork — uncropped, width-constrained display size for post content / lightbox.
+	 * agnosis-thumb   — square hard-cropped size for submission cards and email previews.
+	 *
+	 * Both widths/heights are configurable via the Behaviour settings tab so admins
+	 * can tune them for their server's disk budget without touching code.
+	 */
+	public function register_image_sizes(): void {
+		$artwork = max( 400, (int) get_option( 'agnosis_artwork_size_px', 1920 ) );
+		$thumb   = max( 64,  (int) get_option( 'agnosis_thumb_size_px',  512  ) );
+		$email   = max( 200, (int) get_option( 'agnosis_email_size_px',  420  ) );
+
+		// Width only, height scales to preserve aspect ratio.
+		add_image_size( 'agnosis-artwork', $artwork, 0, false );
+
+		// Square crop, centred — for submission cards and dashboard.
+		add_image_size( 'agnosis-thumb', $thumb, $thumb, true );
+
+		// Email width, proportional — for artist notification emails.
+		add_image_size( 'agnosis-email', $email, 0, false );
+	}
+
 	/** Ensures the agnosis_artist role exists. Idempotent — safe to call on every init. */
 	public function ensure_roles(): void {
 		if ( null === get_role( 'agnosis_artist' ) ) {
@@ -443,6 +469,10 @@ class Plugin {
 
 	private function register_services(): void {
 
+		// Custom image sizes — registered on after_setup_theme so they are
+		// always available regardless of whether a theme has loaded yet.
+		$this->loader->add_action( 'after_setup_theme', $this, 'register_image_sizes' );
+
 		// Compatibility checks — shown on every admin screen to all admins.
 		if ( is_admin() ) {
 			$this->loader->add_action( 'admin_notices', $this, 'compatibility_notices' );
@@ -507,16 +537,27 @@ class Plugin {
 
 		// Artist review workflow — email notification + REST endpoints.
 		$notification = new Notification();
-		$this->loader->add_action( 'agnosis_post_drafted', $notification, 'on_post_drafted', 10, 2 );
+		$this->loader->add_action( 'agnosis_post_drafted',       $notification, 'on_post_drafted',       10, 2 );
+		$this->loader->add_action( 'agnosis_removal_requested',  $notification, 'on_removal_requested',  10, 2 );
 
 		$review = new ReviewEndpoints();
 		$this->loader->add_action( 'rest_api_init', $review, 'register_routes' );
+
+		$removal = new RemovalEndpoints();
+		$this->loader->add_action( 'rest_api_init', $removal, 'register_routes' );
 
 		$submissions = new SubmissionsPage();
 		$this->loader->add_action( 'init',                $submissions, 'register_shortcode' );
 		$this->loader->add_action( 'init',                $submissions, 'register_block' );
 		$this->loader->add_action( 'rest_api_init',       $submissions, 'register_routes' );
 		$this->loader->add_filter( 'block_categories_all', $submissions, 'add_block_category', 10, 1 );
+
+		// Gallery overview block + featured artwork meta.
+		$gallery_overview = new GalleryOverview();
+		$this->loader->add_action( 'init',                       $gallery_overview, 'register_block' );
+		$this->loader->add_action( 'init',                       $gallery_overview, 'register_meta' );
+		$this->loader->add_action( 'add_meta_boxes',             $gallery_overview, 'register_meta_box' );
+		$this->loader->add_action( 'save_post_agnosis_artwork',  $gallery_overview, 'save_meta_box' );
 
 		// ActivityPub / rhizome network.
 		$node = new Node();

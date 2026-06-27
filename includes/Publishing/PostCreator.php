@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Agnosis\Publishing;
 
 use Agnosis\AI\Pipeline;
+use Agnosis\AI\PromptConfig;
 use Agnosis\Core\Logger;
 
 /**
@@ -88,17 +89,24 @@ class PostCreator {
 				throw new \RuntimeException( 'Queue row has no valid submission data.' );
 			}
 
-			// ---- Resolve subject-line indicator ---------------------------------
-			// Parse [Keyword] prefix from the subject; strip it for use as post title.
-			[ $post_type, $singleton, $clean_subject ] = $this->resolve_indicator(
-				(string) ( $submission['subject'] ?? '' )
-			);
+			// ---- Resolve post type ----------------------------------------------
+			// Primary: recipient address (To: header / webhook 'recipient' field).
+			// Fallback: subject-line [Indicator] prefix (backward compat).
+			[ $post_type, $singleton, $clean_subject ] = $this->resolve_post_type( $submission );
 			$submission['subject'] = $clean_subject;
 
 			Logger::info(
 				sprintf( 'Queue #%d: post type resolved to "%s"%s.', $queue_id, $post_type, $singleton ? ' (singleton)' : '' ),
 				'publisher'
 			);
+
+			// ---- Special handlers (no AI pipeline) ------------------------------
+
+			if ( 'agnosis_remove' === $post_type ) {
+				$this->handle_removal_request( $submission, (int) $row->artist_id, $queue_id );
+				$this->mark( $queue_id, 'published' );
+				return;
+			}
 
 			// ---- Decode attachments ---------------------------------------------
 			if ( ! empty( $submission['attachments'] ) ) {
@@ -146,7 +154,18 @@ class PostCreator {
 			}
 
 			// ---- Duplicate / singleton resolution -------------------------------
-			if ( $singleton ) {
+			if ( 'agnosis_replace' === $post_type ) {
+				// Explicit replacement: skip AI fuzzy detection entirely.
+				// Match only by exact subject — the artist named the artwork they want replaced.
+				$post_type  = 'agnosis_artwork';
+				$singleton  = false;
+				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id );
+				if ( $merge_into ) {
+					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing post #%d.', $queue_id, $merge_into ), 'publisher' );
+				} else {
+					Logger::info( sprintf( 'Queue #%d: replace@ — no existing post found, creating new artwork.', $queue_id ), 'publisher' );
+				}
+			} elseif ( $singleton ) {
 				// Singleton types always merge into the one existing post for this artist.
 				$merge_into = $this->find_singleton_post( $post_type, (int) $row->artist_id, $queue_id );
 			} else {
@@ -173,6 +192,48 @@ class PostCreator {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Resolve the target post type for an incoming submission.
+	 *
+	 * Routing priority:
+	 *   1. Recipient address (To: header from IMAP; 'recipient'/'to' from webhook).
+	 *      Matched case-insensitively against the three configured routing addresses.
+	 *   2. Subject-line [Indicator] prefix — backward-compatible fallback for artists
+	 *      who already use the bracket syntax or whose mail client doesn't set To:.
+	 *   3. Default: agnosis_artwork.
+	 *
+	 * @param  array<string, mixed> $submission Parsed email submission.
+	 * @return array{0: string, 1: bool, 2: string} [post_type, is_singleton, clean_subject]
+	 */
+	private function resolve_post_type( array $submission ): array {
+		$to      = strtolower( trim( (string) ( $submission['to_address'] ?? '' ) ) );
+		$subject = (string) ( $submission['subject'] ?? '' );
+
+		if ( $to ) {
+			$bio_addr     = strtolower( trim( (string) get_option( 'agnosis_email_bio',     '' ) ) );
+			$event_addr   = strtolower( trim( (string) get_option( 'agnosis_email_event',   '' ) ) );
+			$replace_addr = strtolower( trim( (string) get_option( 'agnosis_email_replace', '' ) ) );
+			$remove_addr  = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
+
+			if ( $bio_addr && $to === $bio_addr ) {
+				return [ 'agnosis_biography', true, $subject ];
+			}
+			if ( $event_addr && $to === $event_addr ) {
+				return [ 'agnosis_event', true, $subject ];
+			}
+			// Pseudo-types — handled specially in handle() before create_post() is called.
+			if ( $replace_addr && $to === $replace_addr ) {
+				return [ 'agnosis_replace', false, $subject ];
+			}
+			if ( $remove_addr && $to === $remove_addr ) {
+				return [ 'agnosis_remove', false, $subject ];
+			}
+		}
+
+		// Fallback: subject-line indicator.
+		return $this->resolve_indicator( $subject );
+	}
 
 	/**
 	 * Parse a subject-line indicator and return the resolved CPT + singleton flag.
@@ -387,6 +448,86 @@ PROMPT;
 	}
 
 	/**
+	 * Find a published or draft artwork post by exact title for a given artist.
+	 *
+	 * Used by the replace@ path to locate the post to overwrite without running
+	 * the AI fuzzy comparison.
+	 *
+	 * @param string $subject   Post title to match.
+	 * @param int    $artist_id WordPress user ID.
+	 * @return int Post ID, or 0 if not found.
+	 */
+	private function find_post_by_subject( string $subject, int $artist_id ): int {
+		if ( ! $subject || ! $artist_id ) {
+			return 0;
+		}
+		$matches = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'author'         => $artist_id,
+			'title'          => $subject,
+			'post_status'    => [ 'draft', 'pending', 'publish' ],
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+		return ! empty( $matches ) ? (int) $matches[0] : 0;
+	}
+
+	/**
+	 * Handle a takedown request sent to remove@.
+	 *
+	 * Finds the artwork by subject, moves it to draft, records a
+	 * '_agnosis_removal_requested' timestamp, and fires the
+	 * 'agnosis_removal_requested' action so admins can be notified.
+	 * Does NOT auto-delete — the admin reviews and confirms.
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission.
+	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
+	 * @param int                  $queue_id   Current queue row (for logging).
+	 */
+	private function handle_removal_request( array $submission, int $artist_id, int $queue_id ): void {
+		$subject = trim( $submission['subject'] ?? '' );
+
+		if ( ! $subject ) {
+			Logger::warning( sprintf( 'Queue #%d: remove@ request has no subject — cannot identify post.', $queue_id ), 'publisher' );
+			return;
+		}
+
+		$post_id = $this->find_post_by_subject( $subject, $artist_id );
+
+		if ( ! $post_id ) {
+			Logger::warning(
+				sprintf( 'Queue #%d: remove@ — no artwork titled "%s" found for this artist.', $queue_id, $subject ),
+				'publisher'
+			);
+			return;
+		}
+
+		// Generate a signed removal token — same pattern as the review workflow.
+		// The post is NOT moved or modified yet; the artist must confirm via email link.
+		$token  = wp_hash( $artist_id . '|removal|' . $post_id . '|' . time() . '|' . wp_salt( 'auth' ) );
+		$expiry = time() + ( 7 * DAY_IN_SECONDS );
+
+		update_post_meta( $post_id, '_agnosis_removal_token',  $token );
+		update_post_meta( $post_id, '_agnosis_removal_expiry', $expiry );
+		update_post_meta( $post_id, '_agnosis_removal_reason', sanitize_textarea_field( $submission['description'] ?? '' ) );
+
+		Logger::info(
+			sprintf( 'Queue #%d: remove@ — removal confirmation email queued for post #%d.', $queue_id, $post_id ),
+			'publisher'
+		);
+
+		/**
+		 * Fires when an artist requests takedown of one of their artworks.
+		 * A signed token has been stored — Notification sends the confirmation email.
+		 *
+		 * @param int $post_id   The artwork post ID (unchanged until confirmed).
+		 * @param int $artist_id The requesting artist's user ID.
+		 */
+		do_action( 'agnosis_removal_requested', $post_id, $artist_id );
+	}
+
+	/**
 	 * Build and insert (or update) a post for the given CPT.
 	 *
 	 * @param array<string, mixed>             $submission       Parsed email submission data.
@@ -520,6 +661,17 @@ PROMPT;
 			wp_set_post_tags( $post_id, $all_tags );
 		}
 
+		// Set medium taxonomy term — only for artwork posts.
+		// Validate against the canonical list to prevent AI hallucinations from
+		// creating rogue terms. Empty or unrecognised values are silently skipped;
+		// the admin can assign manually from the edit screen.
+		if ( 'agnosis_artwork' === $post_type ) {
+			$medium = trim( $primary['medium'] ?? '' );
+			if ( $medium && in_array( $medium, PromptConfig::CANONICAL_MEDIUMS, true ) ) {
+				wp_set_object_terms( $post_id, $medium, 'agnosis_medium' );
+			}
+		}
+
 		// Mirror image hashes from attachments onto the artwork post.
 		// This lets find_duplicate_post() detect resends via a simple meta query
 		// (exact hash match) without touching the AI — the strongest duplicate signal.
@@ -530,6 +682,16 @@ PROMPT;
 				add_post_meta( $post_id, '_agnosis_image_hash', $hash ); // multiple values allowed
 			}
 		}
+
+		// Store photo quality assessment from the primary result.
+		// Score 0 means the provider could not assess quality (e.g. text-only provider).
+		$quality_score  = (int) ( $primary['photo_quality_score']  ?? 0 );
+		$quality_issues = (array) ( $primary['photo_quality_issues'] ?? [] );
+		$was_enhanced   = (bool) ( $primary['enhanced'] ?? false );
+
+		update_post_meta( $post_id, '_agnosis_photo_quality_score',  $quality_score );
+		update_post_meta( $post_id, '_agnosis_photo_quality_issues', wp_json_encode( $quality_issues ) );
+		update_post_meta( $post_id, '_agnosis_enhanced',             $was_enhanced ? '1' : '0' );
 
 		return $post_id;
 	}
@@ -633,24 +795,37 @@ PROMPT;
 	 * @return string Block markup string.
 	 */
 	private function build_gallery_block( array $ids ): string {
-		$json = wp_json_encode( [ 'ids' => $ids, 'columns' => 2, 'linkTo' => 'none' ] ) ?: '{}';
+		$json = wp_json_encode( [
+			'ids'           => $ids,
+			'columns'       => 2,
+			'linkTo'        => 'none',
+			'imageSizeSlug' => 'agnosis-artwork',
+		] ) ?: '{}';
 		$imgs = '';
 		foreach ( $ids as $id ) {
-			$url  = esc_url( wp_get_attachment_url( $id ) ?: '' );
-			$imgs .= '<!-- wp:image {"id":' . $id . '} --><figure class="wp-block-image"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+			$imgs .= $this->build_image_block( $id );
 		}
 		return '<!-- wp:gallery ' . $json . ' --><figure class="wp-block-gallery">' . $imgs . '</figure><!-- /wp:gallery -->';
 	}
 
 	/**
-	 * Build a Gutenberg single image block.
+	 * Build a Gutenberg single image block with lightbox enabled.
+	 *
+	 * Uses the agnosis-artwork registered size so WP serves the correctly
+	 * scaled variant and generates responsive srcset automatically.
 	 *
 	 * @param int $id Attachment post ID.
 	 * @return string Block markup string.
 	 */
 	private function build_image_block( int $id ): string {
-		$url = esc_url( wp_get_attachment_url( $id ) ?: '' );
-		return '<!-- wp:image {"id":' . $id . '} --><figure class="wp-block-image"><img src="' . $url . '" /></figure><!-- /wp:image -->';
+		$src_data = wp_get_attachment_image_src( $id, 'agnosis-artwork' );
+		$src      = esc_url( $src_data ? $src_data[0] : ( wp_get_attachment_url( $id ) ?: '' ) );
+		$attr     = wp_json_encode( [
+			'id'       => $id,
+			'sizeSlug' => 'agnosis-artwork',
+			'lightbox' => [ 'enabled' => true ],
+		] ) ?: '{}';
+		return '<!-- wp:image ' . $attr . ' --><figure class="wp-block-image size-agnosis-artwork"><img src="' . $src . '" /></figure><!-- /wp:image -->';
 	}
 
 	/**

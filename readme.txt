@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.2
+Stable tag: 0.1.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,27 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.1.6 =
+* Dedicated email endpoints — submit@, bio@, event@, replace@, remove@ — routing by To: header
+* Artist-driven removal workflow — artist confirms via signed email link; no admin action needed
+* Medium auto-categorisation — AI assigns one of 8 canonical medium terms (Oil, Acrylic, Watercolour, Drawing, Digital, Photography, Sculpture, Mixed Media) to every artwork; taxonomy seeded on activation
+* replace@ endpoint — bypasses AI fuzzy detection for explicit artwork replacement
+* Photo quality detection — vision AI scores photographs 1–10; enhancement only runs below the configured threshold
+* Conditional image enhancement — targeted correction based on detected issues; good photographs untouched
+* Full gallery in review email — all submitted images rendered at agnosis-email size
+* Agnosis Theme — new theme folder with Agnosis branding; build-theme-zip composer command
+
+= 0.1.5 =
+* Artist subdomain routing (SubdomainRouter)
+* LinguaForge subfolder compatibility on artist subdomains
+
+= 0.1.4 =
+* Inbox admin page with per-row actions and attachment lightbox
+* AI-powered and image-hash duplicate detection
+* Subject-line indicators for biography and event submissions
+* Biography and event CPTs (singleton per artist)
+* AI polish for bio and event submissions
 
 = 0.1.2 =
 * Agnosis promoted to top-level sidebar menu (was Settings → Agnosis)

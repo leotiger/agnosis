@@ -89,38 +89,62 @@ class Pipeline {
 		string $filename,
 		string $artist_prompt
 	): array {
-		// Step 1 — Describe.
+		// Step 1 — Describe (also assesses photo quality as part of the same vision call).
 		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
 
-		// Step 2 — Enhance (skip if no provider or description failed).
+		$quality_score  = $description->photo_quality_score;
+		$quality_issues = $description->photo_quality_issues;
+
+		// Step 2 — Conditionally enhance.
+		// Enhancement only runs when:
+		//   • A provider is configured.
+		//   • Description succeeded (we need the body for contextual instructions).
+		//   • The photo quality score is below the configured threshold (default 7).
+		//     Score 0 means the provider could not assess quality (e.g. text-only) — skip.
+		$threshold     = $this->config->quality_threshold;
+		$needs_enhance = null !== $this->enhancement_provider
+			&& $description->success
+			&& $quality_score > 0
+			&& $quality_score < $threshold;
+
 		$enhanced_data = $image_data;
 		$enhanced_mime = $mime_type;
+		$enhanced      = false;
 
-		if ( null !== $this->enhancement_provider && $description->success ) {
-			// Pass configured enhancement instructions; append description body as context.
-			$instructions = $this->config->enhancement_instructions
-				. ( $description->body ? "\n\n" . $description->body : '' );
+		if ( $needs_enhance ) {
+			// Build instructions targeted at the specific issues detected, with the
+			// base enhancement constraints always present as the final section.
+			$instructions = $this->config->build_targeted_enhancement_instructions( $quality_issues );
+
+			// Append the AI-generated body as additional visual context for the enhancer.
+			if ( $description->body ) {
+				$instructions .= "\n\n" . $description->body;
+			}
 
 			$enhancement = $this->enhancement_provider->enhance( $image_data, $mime_type, $instructions );
 
 			if ( $enhancement->success && ! empty( $enhancement->image_data ) ) {
 				$enhanced_data = $enhancement->image_data;
 				$enhanced_mime = $enhancement->mime_type;
+				$enhanced      = true;
 			}
 		}
 
 		return [
-			'filename'       => $filename,
-			'original_data'  => $image_data,
-			'enhanced_data'  => $enhanced_data,
-			'mime_type'      => $enhanced_mime,
-			'title'          => $description->title,
-			'excerpt'        => $description->excerpt,
-			'body'           => $description->body,
-			'tags'           => $description->tags,
-			'alt_text'       => $description->alt_text,
-			'description_ok' => $description->success,
-			'error'          => $description->error,
+			'filename'             => $filename,
+			'original_data'        => $image_data,
+			'enhanced_data'        => $enhanced_data,
+			'mime_type'            => $enhanced_mime,
+			'title'                => $description->title,
+			'excerpt'              => $description->excerpt,
+			'body'                 => $description->body,
+			'tags'                 => $description->tags,
+			'alt_text'             => $description->alt_text,
+			'description_ok'       => $description->success,
+			'error'                => $description->error,
+			'photo_quality_score'  => $quality_score,
+			'photo_quality_issues' => $quality_issues,
+			'enhanced'             => $enhanced,
 		];
 	}
 

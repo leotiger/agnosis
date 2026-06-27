@@ -52,6 +52,13 @@ class Parser {
 			$from = sanitize_email( (string) $from_addresses[0]->mail );
 		}
 
+		// --- Recipient (To:) — primary routing signal ---
+		$to_addresses = $message->getTo()->toArray();
+		$to_address   = '';
+		if ( ! empty( $to_addresses ) ) {
+			$to_address = strtolower( sanitize_email( (string) $to_addresses[0]->mail ) );
+		}
+
 		// --- Subject ---
 		$subject = sanitize_text_field( (string) $message->getSubject() );
 
@@ -92,6 +99,7 @@ class Parser {
 
 		return [
 			'from'        => $from,
+			'to_address'  => $to_address,
 			'subject'     => $subject,
 			'description' => $this->clean_text( $text_body ),
 			'attachments' => $attachments,
@@ -108,6 +116,7 @@ class Parser {
 	 */
 	public function parse_webhook_payload( array $payload ): ?array {
 		$from        = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
+		$to_address  = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
 		$subject     = sanitize_text_field( $payload['subject'] ?? '' );
 		$description = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
 		$attachments = [];
@@ -140,6 +149,7 @@ class Parser {
 
 		return [
 			'from'        => $from,
+			'to_address'  => $to_address,
 			'subject'     => $subject,
 			'description' => $this->clean_text( $description ),
 			'attachments' => $attachments,

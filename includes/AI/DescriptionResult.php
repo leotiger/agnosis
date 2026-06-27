@@ -13,6 +13,7 @@ class DescriptionResult {
 
 	/**
 	 * @param array<string> $tags
+	 * @param array<string> $photo_quality_issues
 	 */
 	public function __construct(
 		public readonly string $title,
@@ -22,6 +23,9 @@ class DescriptionResult {
 		public readonly string $alt_text,
 		public readonly bool $success,
 		public readonly string $error = '',
+		public readonly int $photo_quality_score = 0,
+		public readonly array $photo_quality_issues = [],
+		public readonly string $medium = '',
 	) {}
 
 	public static function failure( string $error ): self {

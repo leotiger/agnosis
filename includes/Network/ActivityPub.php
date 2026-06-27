@@ -196,7 +196,7 @@ class ActivityPub {
 	private function post_to_activity( \WP_Post $post ): array {
 		$actor     = rest_url( 'agnosis/v1/activitypub/actor' );
 		$object_id = home_url( '/art/' . $post->post_name );
-		$image_url = get_the_post_thumbnail_url( $post->ID, 'large' ) ?: '';
+		$image_url = get_the_post_thumbnail_url( $post->ID, 'agnosis-artwork' ) ?: '';
 
 		$note = [
 			'@context'     => self::CONTEXT,

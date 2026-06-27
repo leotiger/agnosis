@@ -242,6 +242,34 @@ class Settings {
 				'options' => [ 'imap' => 'IMAP (poll)', 'webhook' => 'Webhook (push)' ],
 				'default' => 'imap',
 			],
+			// --- Routing addresses ---
+			'agnosis_email_submit' => [
+				'tab'   => 'email',
+				'label' => __( 'Artwork submissions address', 'agnosis' ),
+				'desc'  => __( 'Artists send artwork to this address — e.g. submit@agnosis.art', 'agnosis' ),
+			],
+			'agnosis_email_bio' => [
+				'tab'   => 'email',
+				'label' => __( 'Biography submissions address', 'agnosis' ),
+				'desc'  => __( 'Artists send biography updates to this address — e.g. bio@agnosis.art', 'agnosis' ),
+			],
+			'agnosis_email_event' => [
+				'tab'   => 'email',
+				'label' => __( 'Event submissions address', 'agnosis' ),
+				'desc'  => __( 'Artists send event announcements to this address — e.g. event@agnosis.art', 'agnosis' ),
+			],
+			'agnosis_email_replace' => [
+				'tab'  => 'email',
+				'label' => __( 'Replace artwork address', 'agnosis' ),
+				'desc'  => __( 'Artist sends a new version of an existing artwork. Subject must match the original title. Bypasses duplicate detection — e.g. replace@agnosis.art', 'agnosis' ),
+			],
+			'agnosis_email_remove' => [
+				'tab'  => 'email',
+				'label' => __( 'Removal request address', 'agnosis' ),
+				'desc'  => __( 'Artist requests takedown of an existing artwork. Subject must match the title. Moves the post to draft pending admin review — e.g. remove@agnosis.art', 'agnosis' ),
+			],
+
+			// --- IMAP connection ---
 			'agnosis_imap_host' => [
 				'tab'   => 'email',
 				'label' => __( 'IMAP host', 'agnosis' ),
@@ -273,8 +301,8 @@ class Settings {
 			],
 			'agnosis_imap_user' => [
 				'tab'   => 'email',
-				'label' => __( 'Submission email address', 'agnosis' ),
-				'desc'  => __( 'Artists send their work to this address — e.g. submit@agnosis.art', 'agnosis' ),
+				'label' => __( 'IMAP username', 'agnosis' ),
+				'desc'  => __( 'Login username for the IMAP account — typically the catch-all mailbox address.', 'agnosis' ),
 			],
 			'agnosis_imap_pass' => [
 				'tab'     => 'email',
@@ -362,6 +390,19 @@ class Settings {
 				'desc'    => __( 'When enabled, event submissions are passed through the AI to fix spelling and make minor text improvements before saving.', 'agnosis' ),
 			],
 
+			// --- AI: Quality detection ---
+			'agnosis_quality_threshold' => [
+				'tab'      => 'ai',
+				'label'    => __( 'Enhancement threshold (quality score)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 7,
+				'min'      => 1,
+				'step'     => '1',
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, min( 10, (int) $v ) ),
+				'desc'     => __( 'Photos scoring below this value (1–10) are automatically enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: 7 — only visibly problematic photos are processed. Set to 1 to disable automatic enhancement entirely.', 'agnosis' ),
+			],
+
 			// --- AI: API keys ---
 			'agnosis_openai_api_key' => [
 				'tab'      => 'ai',
@@ -378,7 +419,51 @@ class Settings {
 				'desc'     => __( 'Required when Anthropic is the description provider.', 'agnosis' ),
 			],
 
-			// --- BEHAVIOUR ---
+			// --- BEHAVIOUR: Image sizes ---
+			'agnosis_artwork_size_px' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Artwork display width (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 1920,
+				'min'      => 400,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 400, (int) $v ),
+				'desc'     => __( 'Width of the agnosis-artwork image size used in post content and lightbox. Height scales proportionally. Default: 1920. Existing images need to be regenerated after changing this value.', 'agnosis' ),
+			],
+			'agnosis_thumb_size_px' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Thumbnail size (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 512,
+				'min'      => 64,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 64, (int) $v ),
+				'desc'     => __( 'Side length of the square agnosis-thumb size used in submission cards and dashboard. Default: 512. Existing images need to be regenerated after changing this value.', 'agnosis' ),
+			],
+			'agnosis_email_size_px' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Email image width (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 420,
+				'min'      => 200,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 200, (int) $v ),
+				'desc'     => __( 'Width of the agnosis-email size used in artist notification emails. Height scales proportionally — no cropping. Default: 420. Existing images need to be regenerated after changing this value.', 'agnosis' ),
+			],
+
+			// --- BEHAVIOUR: Gallery overview ---
+			'agnosis_gallery_per_page' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Gallery overview — items per page', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 12,
+				'min'      => 3,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 3, (int) $v ),
+				'desc'     => __( 'How many artwork cards the gallery overview shows per page. Pool is built proportionally across all artists; featured artworks are preferred. Default: 12.', 'agnosis' ),
+			],
+
+			// --- BEHAVIOUR: AI prompts ---
 			'agnosis_prompt_system' => [
 				'tab'      => 'behavior',
 				'label'    => __( 'System prompt', 'agnosis' ),

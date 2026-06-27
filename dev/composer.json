@@ -71,7 +71,8 @@
         ],
         "make-pot":    "bash bin/make-pot.sh",
         "compile-pos": "bash bin/compile-pos.sh",
-        "build-zip":   "bash bin/build-zip.sh",
+        "build-zip":        "bash bin/build-zip.sh",
+        "build-theme-zip":  "bash bin/build-theme-zip.sh",
         "qa": [
             "@lint",
             "@analyse",
@@ -95,6 +96,7 @@
         "make-pot":         "Extract source strings and merge into .po files.",
         "compile-pos":      "Compile .po files into .mo binaries and .l10n.php caches.",
         "build-zip":        "Package the plugin into a distributable zip via git archive.",
+        "build-theme-zip":  "Package the Agnosis Theme into a distributable zip, output to agnosis-deploy/.",
         "qa":               "Local pre-deploy gate: lint → analyse → unit tests → js/css lint."
     }
 }

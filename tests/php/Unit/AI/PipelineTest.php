@@ -64,12 +64,13 @@ class PipelineTest extends TestCase {
 		$mock->method( 'describe' )->willReturn(
 			$success
 				? new DescriptionResult(
-					title:    'Mocked Title',
-					excerpt:  'Mocked excerpt.',
-					body:     '<p>Mocked body.</p>',
-					tags:     [ 'art', 'mock' ],
-					alt_text: 'A mocked artwork image.',
-					success:  true,
+					title:               'Mocked Title',
+					excerpt:             'Mocked excerpt.',
+					body:                '<p>Mocked body.</p>',
+					tags:                [ 'art', 'mock' ],
+					alt_text:            'A mocked artwork image.',
+					success:             true,
+					photo_quality_score: 5, // Below default threshold (7) and above 0 — triggers enhancement.
 				)
 				: DescriptionResult::failure( 'Mocked provider error.' )
 		);

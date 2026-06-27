@@ -45,7 +45,7 @@ class OpenAI implements ProviderInterface {
 
 		$body = wp_json_encode( [
 			'model'           => $this->vision_model,
-			'max_tokens'      => 1024,
+			'max_tokens'      => 1500,
 			'response_format' => [ 'type' => 'json_object' ],
 			'messages'        => [
 				[ 'role' => 'system', 'content' => $system ],
@@ -89,13 +89,20 @@ class OpenAI implements ProviderInterface {
 			return DescriptionResult::failure( 'OpenAI returned non-JSON content.' );
 		}
 
+		$quality        = is_array( $json['photo_quality'] ?? null ) ? $json['photo_quality'] : [];
+		$quality_score  = max( 0, min( 10, (int) ( $quality['score'] ?? 0 ) ) );
+		$quality_issues = array_map( 'sanitize_text_field', (array) ( $quality['issues'] ?? [] ) );
+
 		return new DescriptionResult(
-			title:    sanitize_text_field( $json['title']    ?? '' ),
-			excerpt:  sanitize_text_field( $json['excerpt']  ?? '' ),
-			body:     wp_kses_post( $json['body']     ?? '' ),
-			tags:     array_map( 'sanitize_text_field', $json['tags']     ?? [] ),
-			alt_text: sanitize_text_field( $json['alt_text'] ?? '' ),
-			success:  true,
+			title:                sanitize_text_field( $json['title']    ?? '' ),
+			excerpt:              sanitize_text_field( $json['excerpt']  ?? '' ),
+			body:                 wp_kses_post( $json['body']            ?? '' ),
+			tags:                 array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+			alt_text:             sanitize_text_field( $json['alt_text'] ?? '' ),
+			success:              true,
+			photo_quality_score:  $quality_score,
+			photo_quality_issues: $quality_issues,
+			medium:               sanitize_text_field( $json['medium']   ?? '' ),
 		);
 	}
 

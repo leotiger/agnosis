@@ -51,6 +51,7 @@ class Activator {
 	public static function activate(): void {
 		self::create_tables();
 		self::seed_options();
+		self::seed_medium_terms();
 		self::register_roles();
 		self::schedule_events();
 		self::create_submissions_page();
@@ -176,6 +177,11 @@ class Activator {
 			'agnosis_anthropic_api_key'   => '',
 			'agnosis_stability_api_key'   => '',
 			'agnosis_email_driver'        => 'imap',
+			'agnosis_email_submit'        => '',
+			'agnosis_email_bio'           => '',
+			'agnosis_email_event'         => '',
+			'agnosis_email_replace'       => '',
+			'agnosis_email_remove'        => '',
 			'agnosis_imap_host'           => '',
 			'agnosis_imap_port'           => 993,
 			'agnosis_imap_user'           => '',
@@ -191,6 +197,27 @@ class Activator {
 
 		foreach ( $defaults as $key => $value ) {
 			add_option( $key, $value ); // add_option skips if key already exists.
+		}
+	}
+
+	/**
+	 * Seed the agnosis_medium taxonomy with the canonical list from PromptConfig.
+	 *
+	 * Idempotent — uses wp_insert_term() which is a no-op when the slug already
+	 * exists. Safe to call on every activation or upgrade.
+	 */
+	private static function seed_medium_terms(): void {
+		// The taxonomy must be registered before we can insert terms. On activation
+		// the CPT/taxonomy registration hooks have not fired yet, so we register
+		// directly here rather than depending on the 'init' hook being fired first.
+		if ( ! taxonomy_exists( 'agnosis_medium' ) ) {
+			register_taxonomy( 'agnosis_medium', [ 'agnosis_artwork' ] );
+		}
+
+		foreach ( \Agnosis\AI\PromptConfig::CANONICAL_MEDIUMS as $name ) {
+			if ( ! term_exists( $name, 'agnosis_medium' ) ) {
+				wp_insert_term( $name, 'agnosis_medium' );
+			}
 		}
 	}
 

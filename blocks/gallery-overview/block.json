@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/gallery-overview",
+	"version": "0.1.0",
+	"title": "Agnosis Gallery Overview",
+	"category": "agnosis",
+	"description": "Proportional, randomised artwork grid across all artists. Shows featured artworks first, respects per-artist budget, supports medium filtering and pagination.",
+	"keywords": [ "gallery", "artwork", "artists", "overview" ],
+	"textdomain": "agnosis",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ],
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"attributes": {
+		"columns": {
+			"type": "integer",
+			"default": 3
+		},
+		"align": {
+			"type": "string",
+			"default": "full"
+		}
+	},
+	"render": "file:./render.php",
+	"editorScript": "file:./editor.js"
+}

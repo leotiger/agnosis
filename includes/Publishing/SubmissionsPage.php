@@ -140,7 +140,7 @@ class SubmissionsPage {
 
 		foreach ( $drafts as $post ) {
 			$thumb     = get_post_thumbnail_id( $post->ID );
-			$thumb_url = $thumb ? wp_get_attachment_image_url( $thumb, 'medium' ) : '';
+			$thumb_url = $thumb ? wp_get_attachment_image_url( $thumb, 'agnosis-thumb' ) : '';
 
 			$data[] = [
 				'id'        => $post->ID,
@@ -196,7 +196,7 @@ class SubmissionsPage {
 	 */
 	private function render_card( \WP_Post $post ): void {
 		$thumb_id  = get_post_thumbnail_id( $post->ID );
-		$thumb_url = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
+		$thumb_url = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'agnosis-thumb' ) : '';
 		$nonce     = wp_create_nonce( 'wp_rest' );
 
 		// Strip block markup to get the raw body text for the edit textarea.

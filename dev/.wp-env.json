@@ -6,9 +6,13 @@
         "..",
         "../../lingua-forge"
     ],
+    "themes": [
+        "../../agnosis-theme"
+    ],
     "mappings": {
         "wp-content/plugins/agnosis":      "..",
-        "wp-content/plugins/lingua-forge": "../../lingua-forge"
+        "wp-content/plugins/lingua-forge": "../../lingua-forge",
+        "wp-content/themes/agnosis-theme": "../../agnosis-theme"
     },
     "config": {
         "WP_DEBUG":         true,

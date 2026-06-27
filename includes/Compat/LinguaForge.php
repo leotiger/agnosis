@@ -178,7 +178,7 @@ class LinguaForge {
 			return $image_url;
 		}
 
-		$thumbnail = get_the_post_thumbnail_url( $post->ID, 'large' );
+		$thumbnail = get_the_post_thumbnail_url( $post->ID, 'agnosis-artwork' );
 		return $thumbnail ?: $image_url;
 	}
 
