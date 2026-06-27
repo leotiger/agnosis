@@ -14,7 +14,7 @@ class EnhancementResult {
 	public function __construct(
 		public readonly string $image_data,   // Raw binary of the enhanced image.
 		public readonly string $mime_type,
-		public readonly bool   $success,
+		public readonly bool $success,
 		public readonly string $error = '',
 	) {}
 

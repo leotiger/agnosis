@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/submissions",
+	"version": "0.1.2",
+	"title": "My Submissions",
+	"category": "agnosis",
+	"icon": "art",
+	"description": "Lists the logged-in artist's pending artwork submissions for review and approval. Place this on your /my-submissions/ page or in a Site Editor template.",
+	"keywords": [ "submissions", "review", "artwork", "artist", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"editorStyle": "file:editor.css",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"reusable": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"background": true,
+			"text": false
+		}
+	},
+	"example": {}
+}

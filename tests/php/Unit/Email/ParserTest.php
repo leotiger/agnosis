@@ -159,37 +159,6 @@ class ParserTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// decode_body (private — tested via reflection)
-	// -------------------------------------------------------------------------
-
-	private function decode_body( string $raw, int $encoding ): string {
-		$ref = new \ReflectionMethod( Parser::class, 'decode_body' );
-		$ref->setAccessible( true );
-		return $ref->invoke( $this->parser, $raw, $encoding );
-	}
-
-	public function test_decode_body_base64_returns_decoded_string(): void {
-		$original = 'Hello, artist!';
-		$encoded  = base64_encode( $original );
-
-		$this->assertSame( $original, $this->decode_body( $encoded, 3 ) );
-	}
-
-	public function test_decode_body_quoted_printable_returns_decoded_string(): void {
-		$original = "Café au lait";
-		$encoded  = quoted_printable_encode( $original );
-
-		$this->assertSame( $original, $this->decode_body( $encoded, 4 ) );
-	}
-
-	public function test_decode_body_plain_returns_raw(): void {
-		$raw = "Plain text, no encoding.";
-
-		$this->assertSame( $raw, $this->decode_body( $raw, 0 ) );
-		$this->assertSame( $raw, $this->decode_body( $raw, 7 ) ); // unknown encoding → raw
-	}
-
-	// -------------------------------------------------------------------------
 	// clean_text (private — tested via reflection)
 	// -------------------------------------------------------------------------
 
@@ -209,7 +178,7 @@ class ParserTest extends TestCase {
 	}
 
 	public function test_clean_text_trims_whitespace(): void {
-		$result = $this->clean_text( "   some text   " );
+		$result = $this->clean_text( '   some text   ' );
 
 		$this->assertSame( 'some text', $result );
 	}

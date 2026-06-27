@@ -18,9 +18,9 @@ class DescriptionResult {
 		public readonly string $title,
 		public readonly string $excerpt,
 		public readonly string $body,
-		public readonly array  $tags,
+		public readonly array $tags,
 		public readonly string $alt_text,
-		public readonly bool   $success,
+		public readonly bool $success,
 		public readonly string $error = '',
 	) {}
 

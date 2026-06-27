@@ -27,8 +27,8 @@ class PromptConfig {
 		public readonly string $system_prompt,
 		public readonly string $user_template,
 		public readonly string $enhancement_instructions,
-		public readonly int    $tag_count,
-		public readonly int    $excerpt_words,
+		public readonly int $tag_count,
+		public readonly int $excerpt_words,
 	) {}
 
 	/** Build a PromptConfig from saved wp_options, falling back to defaults. */
@@ -37,8 +37,8 @@ class PromptConfig {
 			system_prompt:            (string) get_option( 'agnosis_prompt_system',            self::default_system_prompt() ),
 			user_template:            (string) get_option( 'agnosis_prompt_user_template',     self::default_user_template() ),
 			enhancement_instructions: (string) get_option( 'agnosis_prompt_enhancement',       self::default_enhancement_instructions() ),
-			tag_count:                (int)    get_option( 'agnosis_prompt_tag_count',         5 ),
-			excerpt_words:            (int)    get_option( 'agnosis_prompt_excerpt_words',     30 ),
+			tag_count:                (int) get_option( 'agnosis_prompt_tag_count',         5 ),
+			excerpt_words:            (int) get_option( 'agnosis_prompt_excerpt_words',     30 ),
 		);
 	}
 
@@ -70,8 +70,7 @@ class PromptConfig {
 	// -------------------------------------------------------------------------
 
 	public static function default_system_prompt(): string {
-		return
-			'You are a curator and art writer for Agnosis — a free, federated publishing network for independent artists.' . "\n\n"
+		return 'You are a curator and art writer for Agnosis — a free, federated publishing network for independent artists.' . "\n\n"
 
 			. 'Agnosis exists for artists who are brilliant at creating but need help being seen. '
 			. 'They submit their work by email; you turn it into a web publication.' . "\n\n"
@@ -97,8 +96,7 @@ class PromptConfig {
 	}
 
 	public static function default_user_template(): string {
-		return
-			'The artist submitted this image via email.' . "\n\n"
+		return 'The artist submitted this image via email.' . "\n\n"
 			. '{artist_prompt}' . "\n\n"
 			. 'Analyse the attached image and the artist\'s words together. '
 			. 'Let their email be the lens through which you interpret what you see. '
@@ -106,8 +104,7 @@ class PromptConfig {
 	}
 
 	public static function default_enhancement_instructions(): string {
-		return
-			'Enhance this artwork for web and Fediverse publication.' . "\n"
+		return 'Enhance this artwork for web and Fediverse publication.' . "\n"
 			. 'Goals: improve overall clarity, colour accuracy and tonal balance; reduce noise; sharpen edges where the artist clearly intended detail.' . "\n"
 			. 'Hard constraints: preserve the artist\'s visual intent exactly. '
 			. 'Do not add, remove or recompose any element. '

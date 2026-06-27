@@ -44,4 +44,15 @@ interface ProviderInterface {
 	 * Providers that are description-only (e.g. pure-language models) return false.
 	 */
 	public function supports_enhancement(): bool;
+
+	/**
+	 * Send a plain-text prompt and return the model's text response.
+	 *
+	 * Used for lightweight classification tasks (e.g. duplicate detection) that
+	 * do not require image input. Implementations should use the cheapest/fastest
+	 * model available (gpt-4o-mini, claude-haiku-4-5, etc.).
+	 *
+	 * Returns an empty string on failure — callers must treat '' as "no answer".
+	 */
+	public function chat( string $prompt ): string;
 }

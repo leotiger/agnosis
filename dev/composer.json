@@ -1,6 +1,6 @@
 {
     "name": "agnosis/agnosis-dev",
-    "description": "Dev tooling for the Agnosis WordPress plugin. The plugin source lives in the parent ../ directory and ships with zero runtime Composer dependencies — this dev/ folder holds vendor/ and every linter/test config. Nothing here ever reaches production.",
+    "description": "Dev tooling for the Agnosis WordPress plugin. The plugin source lives in the parent ../ directory. Runtime deps (webklex/php-imap) are listed here so tests can resolve them; the distributable vendor/ is built from the plugin root composer.json by build-zip.sh.",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "homepage": "https://github.com/agnosis/agnosis",
@@ -14,7 +14,8 @@
         }
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.1",
+        "webklex/php-imap": "^5.3"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",

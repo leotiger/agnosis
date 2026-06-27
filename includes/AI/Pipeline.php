@@ -18,14 +18,13 @@ namespace Agnosis\AI;
 
 use Agnosis\AI\Providers\Anthropic;
 use Agnosis\AI\Providers\OpenAI;
-use Agnosis\AI\Providers\StabilityAI;
 use Agnosis\AI\Providers\WordPressAI;
 
 class Pipeline {
 
-	private ProviderInterface  $description_provider;
+	private ProviderInterface $description_provider;
 	private ?ProviderInterface $enhancement_provider;
-	private PromptConfig       $config;
+	private PromptConfig $config;
 
 	public function __construct() {
 		$this->config               = PromptConfig::from_options();
@@ -125,6 +124,31 @@ class Pipeline {
 		];
 	}
 
+	/**
+	 * Plain-text chat — delegates to the description provider's cheap text model.
+	 *
+	 * Used for lightweight classification (e.g. duplicate detection) that does
+	 * not require image input. Returns '' on failure.
+	 */
+	public function chat( string $prompt ): string {
+		return $this->description_provider->chat( $prompt );
+	}
+
+	/**
+	 * Polish a block of text — fix spelling and grammar, make minimal
+	 * improvements without changing meaning or adding content.
+	 *
+	 * Returns the improved text, or the original unchanged if the call fails.
+	 */
+	public function polish( string $text ): string {
+		if ( empty( trim( $text ) ) ) {
+			return $text;
+		}
+		$prompt   = "Fix spelling and grammar in the following text. Make only minimal improvements — do not change the meaning, tone, or add any content. Return only the corrected text, nothing else.\n\n" . $text;
+		$polished = $this->description_provider->chat( $prompt );
+		return $polished ?: $text;
+	}
+
 	// -------------------------------------------------------------------------
 	// Provider resolution
 	// -------------------------------------------------------------------------
@@ -156,17 +180,6 @@ class Pipeline {
 			return null;
 		}
 
-		if ( 'stability' === $provider ) {
-			$key = (string) get_option( 'agnosis_stability_api_key', '' );
-			if ( ! empty( $key ) ) {
-				return new StabilityAI( $key );
-			}
-		}
-
-		if ( 'wp_ai' === $provider ) {
-			return new WordPressAI( $this->config );
-		}
-
 		if ( 'openai' === $provider ) {
 			$key = (string) get_option( 'agnosis_openai_api_key', '' );
 			if ( ! empty( $key ) ) {
@@ -175,12 +188,7 @@ class Pipeline {
 			}
 		}
 
-		// 'auto' — pick the best available provider from configured keys.
-		$stability_key = (string) get_option( 'agnosis_stability_api_key', '' );
-		if ( ! empty( $stability_key ) ) {
-			return new StabilityAI( $stability_key );
-		}
-
+		// 'auto' — use OpenAI if a key is configured; otherwise no enhancement.
 		$openai_key = (string) get_option( 'agnosis_openai_api_key', '' );
 		if ( ! empty( $openai_key ) ) {
 			$image_model = (string) get_option( 'agnosis_openai_image_model', 'gpt-image-1' );

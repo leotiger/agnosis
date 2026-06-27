@@ -3,7 +3,8 @@
  * Email parser.
  *
  * Extracts the artist-supplied description (prompt) and attached images
- * from an IMAP message or a raw RFC-2822 string (webhook path).
+ * from a webklex Message object (IMAP path) or a raw RFC-2822 payload
+ * (webhook path).
  *
  * @package Agnosis\Email
  */
@@ -11,6 +12,8 @@
 declare(strict_types=1);
 
 namespace Agnosis\Email;
+
+use Webklex\PHPIMAP\Message;
 
 class Parser {
 
@@ -32,26 +35,54 @@ class Parser {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Parse an IMAP message into a submission array.
+	 * Parse a webklex IMAP Message into a submission array.
 	 *
-	 * @param \IMAP\Connection $conn    Open IMAP connection.
-	 * @param int              $msg_num Message sequence number.
-	 * @param object           $headers stdClass from imap_headerinfo().
+	 * webklex/php-imap handles all MIME decoding, base64/QP decoding, and
+	 * header unfolding — no manual structure walking required.
 	 *
+	 * @param Message $message Webklex message object from a connected folder query.
 	 * @return array<string, mixed>|null Submission data, or null if the message should be skipped.
 	 */
-	public function parse_imap_message( $conn, int $msg_num, object $headers ): ?array {
-		$from        = $this->extract_from_address( $headers );
-		$subject     = $this->decode_header( $headers->subject ?? '' );
-		$structure   = imap_fetchstructure( $conn, $msg_num );
-		$text_body   = '';
-		$attachments = [];
-
-		if ( false === $structure ) {
-			return null;
+	public function parse_imap_message( Message $message ): ?array {
+		// --- Sender ---
+		// getFrom() returns an Attribute whose ->toArray() yields address objects.
+		$from_addresses = $message->getFrom()->toArray();
+		$from = '';
+		if ( ! empty( $from_addresses ) ) {
+			$from = sanitize_email( (string) $from_addresses[0]->mail );
 		}
 
-		$this->walk_structure( $conn, $msg_num, $structure, $text_body, $attachments );
+		// --- Subject ---
+		$subject = sanitize_text_field( (string) $message->getSubject() );
+
+		// --- Plain-text body ---
+		// getTextBody() returns string — cast directly, no ?? needed.
+		$text_body = (string) $message->getTextBody();
+
+		// --- Image attachments ---
+		$attachments = [];
+
+		foreach ( $message->getAttachments() as $attachment ) {
+			$mime = strtolower( (string) $attachment->getMimeType() );
+
+			if ( ! $this->is_allowed_mime( $mime ) ) {
+				continue;
+			}
+
+			$data = (string) $attachment->getContent();
+
+			if ( strlen( $data ) > self::MAX_BYTES ) {
+				continue;
+			}
+
+			$name = (string) ( $attachment->getName() ?? '' );
+
+			$attachments[] = [
+				'filename' => sanitize_file_name( $name ?: 'artwork-' . uniqid() . '.jpg' ),
+				'mime'     => $mime,
+				'data'     => $data,
+			];
+		}
 
 		if ( empty( $attachments ) ) {
 			return null; // No images — skip.
@@ -121,116 +152,8 @@ class Parser {
 	// Private helpers
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Recursively walk the MIME structure collecting text body and image attachments.
-	 *
-	 * @param \IMAP\Connection      $conn
-	 * @param int                   $msg_num
-	 * @param object                $structure
-	 * @param string                &$text_body   Accumulated plain-text body.
-	 * @param array<int, array<string, string>> &$attachments Accumulated attachments.
-	 * @param string                $prefix       MIME section prefix.
-	 */
-	private function walk_structure(
-		$conn,
-		int $msg_num,
-		object $structure,
-		string &$text_body,
-		array &$attachments,
-		string $prefix = ''
-	): void {
-		if ( isset( $structure->parts ) && is_array( $structure->parts ) ) {
-			foreach ( $structure->parts as $index => $part ) {
-				$section = $prefix === '' ? (string) ( $index + 1 ) : $prefix . '.' . ( $index + 1 );
-				$this->walk_structure( $conn, $msg_num, $part, $text_body, $attachments, $section );
-			}
-			return;
-		}
-
-		$section = $prefix ?: '1';
-		$type    = strtolower( $structure->subtype ?? '' );
-		$mime    = strtolower( $this->type_to_mime( $structure->type ?? 0 ) ) . '/' . $type;
-
-		// Plain text body.
-		if ( $mime === 'text/plain' ) {
-			$raw = imap_fetchbody( $conn, $msg_num, $section );
-			if ( false !== $raw ) {
-				$text_body .= $this->decode_body( $raw, $structure->encoding ?? 0 );
-			}
-			return;
-		}
-
-		// Image attachment.
-		if ( $this->is_allowed_mime( $mime ) ) {
-			$raw = imap_fetchbody( $conn, $msg_num, $section );
-			if ( false === $raw ) {
-				return;
-			}
-			$data = $this->decode_body( $raw, $structure->encoding ?? 0 );
-
-			if ( strlen( $data ) > self::MAX_BYTES ) {
-				return;
-			}
-
-			$filename = $this->extract_filename( $structure );
-
-			$attachments[] = [
-				'filename' => $filename,
-				'mime'     => $mime,
-				'data'     => $data,
-			];
-		}
-	}
-
-	private function decode_body( string $raw, int $encoding ): string {
-		switch ( $encoding ) {
-			case 3: // BASE64
-				return base64_decode( $raw );
-			case 4: // QUOTED-PRINTABLE
-				return quoted_printable_decode( $raw );
-			default:
-				return $raw;
-		}
-	}
-
-	private function type_to_mime( int $type ): string {
-		$map = [ 'text', 'multipart', 'message', 'application', 'audio', 'image', 'video', 'other' ];
-		return $map[ $type ] ?? 'application';
-	}
-
 	private function is_allowed_mime( string $mime ): bool {
 		return in_array( strtolower( $mime ), self::ALLOWED_MIME, true );
-	}
-
-	private function extract_filename( object $structure ): string {
-		foreach ( [ $structure->dparameters ?? [], $structure->parameters ?? [] ] as $params ) {
-			foreach ( $params as $param ) {
-				if ( strtolower( $param->attribute ) === 'filename' || strtolower( $param->attribute ) === 'name' ) {
-					return sanitize_file_name( $this->decode_header( $param->value ) );
-				}
-			}
-		}
-		return 'artwork-' . uniqid() . '.jpg';
-	}
-
-	private function extract_from_address( object $headers ): string {
-		$from_objects = $headers->from ?? [];
-		if ( empty( $from_objects ) ) {
-			return '';
-		}
-		$f = $from_objects[0];
-		return sanitize_email( ( $f->mailbox ?? '' ) . '@' . ( $f->host ?? '' ) );
-	}
-
-	private function decode_header( string $header ): string {
-		$decoded = imap_mime_header_decode( $header );
-		$result  = '';
-		if ( false !== $decoded ) {
-			foreach ( $decoded as $part ) {
-				$result .= $part->text;
-			}
-		}
-		return sanitize_text_field( $result );
 	}
 
 	private function clean_text( string $text ): string {

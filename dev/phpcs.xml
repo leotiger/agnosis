@@ -134,6 +134,15 @@
         <!-- @subpackage tag in file comments — obsolete phpdoc tag. -->
         <exclude name="Squiz.Commenting.FileComment.MissingSubpackageTag"/>
 
+        <!-- Squiz-specific author/copyright enforcement — not applicable to
+             third-party plugins; these rules hard-code Squiz company details. -->
+        <exclude name="Squiz.Commenting.FileComment.IncorrectAuthor"/>
+        <exclude name="Squiz.Commenting.FileComment.IncorrectCopyright"/>
+        <exclude name="Squiz.Commenting.FileComment.MissingAuthorTag"/>
+        <exclude name="Squiz.Commenting.FileComment.MissingCopyrightTag"/>
+        <exclude name="Squiz.Commenting.FileComment.SubpackageTagOrder"/>
+        <exclude name="Squiz.Commenting.FileComment.CopyrightTagOrder"/>
+
         <!-- /** style enforcement and @param name spacing inside docblocks. -->
         <exclude name="Squiz.Commenting.FunctionComment.WrongStyle"/>
         <exclude name="Squiz.Commenting.FunctionComment.SpacingAfterParamName"/>

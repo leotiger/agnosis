@@ -1,0 +1,20 @@
+{
+    "name": "agnosis/agnosis",
+    "description": "Art blooming out of oblivion. Email your art, AI polishes it, the world sees it.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1",
+        "webklex/php-imap": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Agnosis\\": "includes/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

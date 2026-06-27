@@ -11,6 +11,11 @@
 
 declare(strict_types=1);
 
+// Namespace-scoped function overrides for unit tests (one file per namespace).
+// Must be loaded before any test class that depends on them, so we require
+// them here at bootstrap time. Each file only defines functions — no side effects.
+require_once dirname( __DIR__ ) . '/tests/php/Unit/Email/Stubs/email_namespace_stubs.php';
+
 // Ensure vendor/ is available.
 $autoload = __DIR__ . '/vendor/autoload.php';
 if ( ! file_exists( $autoload ) ) {
@@ -126,6 +131,72 @@ if ( ! function_exists( 'wp_remote_retrieve_header' ) ) {
 if ( ! function_exists( 'wp_generate_password' ) ) {
     function wp_generate_password( int $length = 12, bool $special_chars = true ): string {
         return bin2hex( random_bytes( (int) ceil( $length / 2 ) ) );
+    }
+}
+if ( ! function_exists( '__' ) ) {
+    function __( string $text, string $domain = 'default' ): string { return $text; }
+}
+if ( ! function_exists( '_n' ) ) {
+    function _n( string $single, string $plural, int $number, string $domain = 'default' ): string {
+        return $number === 1 ? $single : $plural;
+    }
+}
+if ( ! function_exists( 'esc_html__' ) ) {
+    function esc_html__( string $text, string $domain = 'default' ): string { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
+}
+if ( ! function_exists( 'home_url' ) ) {
+    function home_url( string $path = '' ): string { return 'http://localhost' . $path; }
+}
+if ( ! function_exists( 'is_ssl' ) ) {
+    function is_ssl(): bool { return false; }
+}
+if ( ! function_exists( 'esc_html' ) ) {
+    function esc_html( string $text ): string { return htmlspecialchars( $text, ENT_QUOTES, 'UTF-8' ); }
+}
+if ( ! function_exists( 'absint' ) ) {
+    function absint( mixed $val ): int { return abs( (int) $val ); }
+}
+if ( ! function_exists( 'sanitize_key' ) ) {
+    function sanitize_key( string $key ): string { return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $key ) ); }
+}
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+    /**
+     * Minimal WP_REST_Request stub for unit tests.
+     * Override get_header(), get_body(), get_param() per test via subclassing or mocking.
+     */
+    class WP_REST_Request {
+        /** @var array<string, mixed> */
+        private array $params  = [];
+        /** @var array<string, string> */
+        private array $headers = [];
+        private string $body   = '';
+
+        /** @param array<string, mixed> $params */
+        public function __construct( array $params = [], array $headers = [], string $body = '' ) {
+            $this->params  = $params;
+            $this->headers = $headers;
+            $this->body    = $body;
+        }
+        public function get_param( string $key ): mixed { return $this->params[ $key ] ?? null; }
+        /** @param array<string, mixed> $params */
+        public function set_params( array $params ): void { $this->params = $params; }
+        public function get_header( string $key ): ?string { return $this->headers[ strtolower( $key ) ] ?? null; }
+        public function get_body(): string { return $this->body; }
+    }
+}
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+    class WP_REST_Response {
+        public int $status;
+        /** @var array<string, mixed> */
+        public array $data;
+        /** @param array<string, mixed> $data */
+        public function __construct( array $data = [], int $status = 200 ) {
+            $this->data   = $data;
+            $this->status = $status;
+        }
+        /** @return array<string, mixed> */
+        public function get_data(): array { return $this->data; }
+        public function get_status(): int { return $this->status; }
     }
 }
 if ( ! class_exists( 'WP_Error' ) ) {

@@ -1,0 +1,60 @@
+# Files excluded from the distributable plugin ZIP.
+# This file is read by dev/bin/build-zip.sh (rsync-based).
+# Any path listed here is kept in the repo but stripped from the ZIP.
+
+# Repo documentation and WordPress.org assets
+docs/
+
+# Developer / project documentation
+SECURITY.md
+CONTRIBUTING.md
+CHANGELOG.md
+README.md
+CLAUDE.md
+REVIEW.md
+
+# Git and CI
+.git
+.gitignore
+.gitattributes
+.github/
+.distignore
+
+# Editor and IDE
+.editorconfig
+.vscode/
+.idea/
+.DS_Store
+
+# Git placeholder files — real directories don't need these in a ZIP
+.gitkeep
+
+# Dev tooling — all tooling lives under dev/
+dev/
+
+# Tests
+tests/
+build/
+coverage/
+
+# Belt-and-braces — dev config files that shouldn't ship
+node_modules/
+package.json
+package-lock.json
+.eslintrc.json
+.prettierrc.json
+.stylelintrc.json
+.wp-env.json
+.wp-env.override.json
+.wp-env/
+composer.lock
+phpcs.xml
+phpcs.xml.dist
+.phpcs.xml
+.phpcs.cache
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+phpstan.neon
+phpstan.neon.dist
+.phpstan.cache

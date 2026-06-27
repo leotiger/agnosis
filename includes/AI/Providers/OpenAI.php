@@ -22,10 +22,10 @@ class OpenAI implements ProviderInterface {
 	private const DEFAULT_IMAGE_MODEL  = 'gpt-image-1';
 
 	public function __construct(
-		private readonly string       $api_key,
+		private readonly string $api_key,
 		private readonly PromptConfig $config,
-		private readonly string       $vision_model = self::DEFAULT_VISION_MODEL,
-		private readonly string       $image_model  = self::DEFAULT_IMAGE_MODEL,
+		private readonly string $vision_model = self::DEFAULT_VISION_MODEL,
+		private readonly string $image_model = self::DEFAULT_IMAGE_MODEL,
 	) {}
 
 	// -------------------------------------------------------------------------
@@ -143,6 +143,40 @@ class OpenAI implements ProviderInterface {
 
 	public function supports_enhancement(): bool {
 		return true;
+	}
+
+	public function chat( string $prompt ): string {
+		if ( empty( $this->api_key ) ) {
+			return '';
+		}
+
+		$body = wp_json_encode( [
+			'model'      => 'gpt-4o-mini', // cheap text-only model
+			'max_tokens' => 16,
+			'messages'   => [
+				[ 'role' => 'user', 'content' => $prompt ],
+			],
+		] );
+
+		if ( false === $body ) {
+			return '';
+		}
+
+		$response = wp_remote_post( self::CHAT_URL, [
+			'timeout' => 15,
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->api_key,
+				'Content-Type'  => 'application/json',
+			],
+			'body'    => $body,
+		] );
+
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return '';
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		return trim( (string) ( $data['choices'][0]['message']['content'] ?? '' ) );
 	}
 
 	// -------------------------------------------------------------------------

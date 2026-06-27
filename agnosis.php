@@ -3,7 +3,7 @@
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
  * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
- * Version:           0.1.2
+ * Version:           0.1.5
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Agnosis Network
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AGNOSIS_VERSION', '0.1.2' );
+define( 'AGNOSIS_VERSION', '0.1.5' );
 define( 'AGNOSIS_FILE', __FILE__ );
 define( 'AGNOSIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGNOSIS_URL', plugin_dir_url( __FILE__ ) );
@@ -102,6 +102,29 @@ function agnosis_requirements_check(): bool {
 register_activation_hook( __FILE__, [ Core\Activator::class, 'activate' ] );
 register_deactivation_hook( __FILE__, [ Core\Activator::class, 'deactivate' ] );
 
+// Schema migration — runs on every load but only executes when the stored
+// DB version is behind the plugin version. dbDelta is additive-only (adds
+// columns / indexes, never removes), so this is safe on live databases.
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		if ( get_option( 'agnosis_db_version' ) !== AGNOSIS_VERSION ) {
+			Core\Activator::maybe_upgrade();
+		}
+	},
+	5
+);
+
+// Subdomain router — must boot before the main plugin (priority 10) so the
+// option_home filter is in place before init runs and WP builds its URL tables.
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		( new Network\SubdomainRouter() )->boot();
+	},
+	7
+);
+
 // Boot.
 add_action(
 	'plugins_loaded',
@@ -111,5 +134,5 @@ add_action(
 		}
 		Core\Plugin::instance()->run();
 	},
-	0
+	10
 );

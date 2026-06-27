@@ -38,6 +38,13 @@ class LinguaForge {
 	/** Option key LF uses to read the list of active site languages. */
 	private const LF_LANGUAGES_OPTION = 'linguaforge_active_languages';
 
+	/** All Agnosis CPT slugs — used to scope LF integrations to our content. */
+	private const AGNOSIS_POST_TYPES = [
+		'agnosis_artwork',
+		'agnosis_biography',
+		'agnosis_event',
+	];
+
 	// -------------------------------------------------------------------------
 	// Boot
 	// -------------------------------------------------------------------------
@@ -79,7 +86,7 @@ class LinguaForge {
 	 * fall back to the site's default locale.
 	 */
 	public function set_language_meta( int $post_id ): void {
-		if ( get_post_type( $post_id ) !== 'agnosis_artwork' ) {
+		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
 		}
 
@@ -106,7 +113,7 @@ class LinguaForge {
 	 * while LF creates translated versions in the background.
 	 */
 	public function request_translations( int $post_id ): void {
-		if ( get_post_type( $post_id ) !== 'agnosis_artwork' ) {
+		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
 		}
 

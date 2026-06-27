@@ -24,9 +24,9 @@ class Anthropic implements ProviderInterface {
 	private const DEFAULT_MODEL = 'claude-opus-4-8'; // vision-capable
 
 	public function __construct(
-		private readonly string       $api_key,
+		private readonly string $api_key,
 		private readonly PromptConfig $config,
-		private readonly string       $model = self::DEFAULT_MODEL,
+		private readonly string $model = self::DEFAULT_MODEL,
 	) {}
 
 	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult {
@@ -112,5 +112,40 @@ class Anthropic implements ProviderInterface {
 
 	public function supports_enhancement(): bool {
 		return false;
+	}
+
+	public function chat( string $prompt ): string {
+		if ( empty( $this->api_key ) ) {
+			return '';
+		}
+
+		$body = wp_json_encode( [
+			'model'      => 'claude-haiku-4-5-20251001', // cheapest/fastest model
+			'max_tokens' => 16,
+			'messages'   => [
+				[ 'role' => 'user', 'content' => $prompt ],
+			],
+		] );
+
+		if ( false === $body ) {
+			return '';
+		}
+
+		$response = wp_remote_post( self::API_URL, [
+			'timeout' => 15,
+			'headers' => [
+				'x-api-key'         => $this->api_key,
+				'anthropic-version' => '2023-06-01',
+				'content-type'      => 'application/json',
+			],
+			'body'    => $body,
+		] );
+
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return '';
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+		return trim( (string) ( $data['content'][0]['text'] ?? '' ) );
 	}
 }

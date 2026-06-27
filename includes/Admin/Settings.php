@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin;
 
+use Agnosis\Core\Logger;
+
 class Settings {
 
 	private const PAGE   = 'agnosis-settings';
@@ -27,14 +29,13 @@ class Settings {
 	];
 
 	public function register_menu(): void {
-		add_menu_page(
-			__( 'Agnosis', 'agnosis' ),
-			__( 'Agnosis', 'agnosis' ),
+		add_submenu_page(
+			'agnosis',
+			__( 'Configuration', 'agnosis' ),
+			__( 'Configuration', 'agnosis' ),
 			'manage_options',
 			self::PAGE,
-			[ $this, 'render_page' ],
-			$this->menu_icon(),
-			58 // Below WooCommerce (56), above Appearance (60).
+			[ $this, 'render_page' ]
 		);
 	}
 
@@ -51,11 +52,13 @@ class Settings {
 	}
 
 	public function enqueue_assets( string $hook ): void {
-		if ( $hook !== 'toplevel_page_' . self::PAGE ) {
+		// Hook name for submenu under 'agnosis': agnosis_page_{slug}
+		if ( $hook !== 'agnosis_page_' . self::PAGE ) {
 			return;
 		}
-		// Inline minimal CSS — no external dependency needed for MVP.
 		wp_add_inline_style( 'wp-admin', $this->admin_css() );
+		// wp-util is always available in the WP admin and provides no-jQuery baseline.
+		wp_add_inline_script( 'wp-util', $this->ai_test_js() );
 	}
 
 	public function render_page(): void {
@@ -66,6 +69,55 @@ class Settings {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading tab slug for display only, no data mutation.
 		$active_tab = sanitize_key( $_GET['tab'] ?? 'general' );
 		$tabs       = $this->tabs();
+
+		// Success notices from admin-post redirects.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- integer/flag from our own redirect, display only.
+		if ( isset( $_GET['reprocessed'] ) ) {
+			$reset    = (int) $_GET['reprocessed'];
+			$enqueued = isset( $_GET['enqueued'] ) ? (int) $_GET['enqueued'] : 0;
+			$msg      = sprintf(
+				/* translators: 1: queue rows reset, 2: messages newly enqueued */
+				__( 'Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) enqueued. Click "Process Pending Queue" to run the AI pipeline.', 'agnosis' ),
+				$reset,
+				$enqueued
+			);
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
+		}
+		if ( isset( $_GET['cleared'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html__( 'Log cleared.', 'agnosis' )
+				. '</p></div>';
+		}
+		if ( isset( $_GET['processed'] ) ) {
+			$count = (int) $_GET['processed'];
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html( sprintf(
+					/* translators: %d: number of queue items processed */
+					__( 'Processed %d pending queue item(s). Check the Logs tab for details.', 'agnosis' ),
+					$count
+				) )
+				. '</p></div>';
+		}
+		if ( isset( $_GET['polled'] ) ) {
+			$count = (int) $_GET['polled'];
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html( sprintf(
+					/* translators: %d: number of new messages enqueued */
+					__( 'Poll complete. %d new message(s) enqueued. Check the Logs tab, then click Process Pending Queue.', 'agnosis' ),
+					$count
+				) )
+				. '</p></div>';
+		}
+		if ( isset( $_GET['inbox_test'] ) ) {
+			$ok  = 'ok' === $_GET['inbox_test'];
+			$msg = isset( $_GET['inbox_message'] ) ? rawurldecode( sanitize_text_field( wp_unslash( $_GET['inbox_message'] ) ) ) : '';
+			$cls = $ok ? 'notice-success' : 'notice-error';
+			echo '<div class="notice ' . esc_attr( $cls ) . ' is-dismissible"><p>'
+				. ( $ok ? '✅ ' : '❌ ' )
+				. esc_html( $msg )
+				. '</p></div>';
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		?>
 		<div class="wrap agnosis-settings">
@@ -83,13 +135,18 @@ class Settings {
 				<?php endforeach; ?>
 			</nav>
 
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( self::GROUPS[ $active_tab ] ?? self::GROUPS['general'] );
-				$this->render_tab( $active_tab );
-				submit_button( __( 'Save Changes', 'agnosis' ) );
-				?>
-			</form>
+			<?php if ( 'logs' === $active_tab ) : ?>
+				<?php $this->render_logs_tab(); ?>
+			<?php else : ?>
+				<form method="post" action="options.php">
+					<?php
+					settings_fields( self::GROUPS[ $active_tab ] ?? self::GROUPS['general'] );
+					$this->render_tab( $active_tab );
+					submit_button( __( 'Save Changes', 'agnosis' ) );
+					?>
+				</form>
+				<?php $this->render_tab_tools( $active_tab ); ?>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -105,6 +162,7 @@ class Settings {
 			'behavior' => __( 'Behaviour',    'agnosis' ),
 			'network'  => __( 'Network',      'agnosis' ),
 			'commerce' => __( 'Commerce',     'agnosis' ),
+			'logs'     => __( 'Logs',         'agnosis' ),
 		];
 	}
 
@@ -163,6 +221,12 @@ class Settings {
 	private function field_definitions(): array {
 		return [
 			// --- GENERAL ---
+			'agnosis_base_domain' => [
+				'tab'     => 'general',
+				'label'   => __( 'Base domain', 'agnosis' ),
+				'desc'    => __( 'Root domain for artist subdomains, e.g. agnosis.art. Each artist is reachable at nicename.{base_domain}. Requires a wildcard DNS record (*.{base_domain}) pointing to this server. Leave blank to disable subdomain routing.', 'agnosis' ),
+				'default' => '',
+			],
 			'agnosis_node_label' => [
 				'tab'     => 'general',
 				'label'   => __( 'Node label', 'agnosis' ),
@@ -198,6 +262,15 @@ class Settings {
 				'type'    => 'boolean',
 				'sanitize' => fn( $v ) => (bool) $v,
 			],
+			'agnosis_imap_novalidate_cert' => [
+				'tab'      => 'email',
+				'label'    => __( 'Skip SSL certificate validation', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( '⚠ Use only as a temporary workaround when your mail server\'s certificate is not yet trusted (e.g. Plesk self-signed cert before Let\'s Encrypt is applied to the mail daemon). Disable this once the mail server presents a valid certificate.', 'agnosis' ),
+			],
 			'agnosis_imap_user' => [
 				'tab'   => 'email',
 				'label' => __( 'Submission email address', 'agnosis' ),
@@ -215,6 +288,16 @@ class Settings {
 				'desc'    => __( 'HMAC secret shared with your webhook provider (Mailgun, SendGrid…).', 'agnosis' ),
 				'input'   => 'password',
 				'sanitize' => fn( $v ) => $v,
+			],
+			'agnosis_imap_cleanup_days' => [
+				'tab'      => 'email',
+				'label'    => __( 'Inbox retention (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 7,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Seen IMAP messages and processed/failed queue rows older than this are permanently deleted by the daily cleanup. Default: 7 days.', 'agnosis' ),
 			],
 
 			// --- AI: Description (text) ---
@@ -249,13 +332,12 @@ class Settings {
 				'label'   => __( 'Enhancement provider', 'agnosis' ),
 				'input'   => 'select',
 				'options' => [
-					'auto'      => __( 'Auto (best available key)', 'agnosis' ),
-					'stability' => 'Stability AI',
-					'openai'    => 'OpenAI (gpt-image-1)',
-					'none'      => __( 'Disabled — use original image', 'agnosis' ),
+					'auto'   => __( 'Auto (OpenAI if key is set)', 'agnosis' ),
+					'openai' => 'OpenAI (gpt-image-1)',
+					'none'   => __( 'Disabled — use original image', 'agnosis' ),
 				],
 				'default' => 'auto',
-				'desc'    => __( 'Enhances the artwork image before publishing. Can differ from the description provider — e.g. Anthropic for text, OpenAI for images.', 'agnosis' ),
+				'desc'    => __( 'Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set to Disabled to skip enhancement and publish the original.', 'agnosis' ),
 			],
 			'agnosis_openai_image_model' => [
 				'tab'     => 'ai',
@@ -264,13 +346,29 @@ class Settings {
 				'desc'    => __( 'Model used for image enhancement when OpenAI is the enhancement provider.', 'agnosis' ),
 			],
 
+			// --- AI: Singleton post polish ---
+			'agnosis_ai_polish_biography' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Polish biography with AI', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '0',
+				'desc'    => __( 'When enabled, biography submissions are passed through the AI to fix spelling and make minor text improvements before saving.', 'agnosis' ),
+			],
+			'agnosis_ai_polish_event' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Polish events with AI', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '0',
+				'desc'    => __( 'When enabled, event submissions are passed through the AI to fix spelling and make minor text improvements before saving.', 'agnosis' ),
+			],
+
 			// --- AI: API keys ---
 			'agnosis_openai_api_key' => [
 				'tab'      => 'ai',
 				'label'    => __( 'OpenAI API key', 'agnosis' ),
 				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
-				'desc'     => __( 'Required when OpenAI is used as description or enhancement provider.', 'agnosis' ),
+				'desc'     => __( 'Required when OpenAI is the description or enhancement provider.', 'agnosis' ),
 			],
 			'agnosis_anthropic_api_key' => [
 				'tab'      => 'ai',
@@ -278,13 +376,6 @@ class Settings {
 				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
 				'desc'     => __( 'Required when Anthropic is the description provider.', 'agnosis' ),
-			],
-			'agnosis_stability_api_key' => [
-				'tab'      => 'ai',
-				'label'    => __( 'Stability AI API key', 'agnosis' ),
-				'input'    => 'password',
-				'sanitize' => fn( $v ) => $v,
-				'desc'     => __( 'Required when Stability AI is the enhancement provider.', 'agnosis' ),
 			],
 
 			// --- BEHAVIOUR ---
@@ -376,19 +467,252 @@ class Settings {
 		];
 	}
 
-	private function menu_icon(): string {
-		// SVG ✦ sparkle in WordPress menu grey (#a7aaad), base64-encoded.
-		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="#a7aaad" d="M10 0l1.8 7.2L19 10l-7.2 1.8L10 20l-1.8-8.2L1 10l8.2-1.8z"/></svg>';
-		return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+	private function render_ai_test_tools(): void {
+		$providers = [
+			'openai'    => [
+				'label' => 'OpenAI',
+				'desc'  => __( 'Sends a minimal ping ("Reply with the word: ping") using the configured API key.', 'agnosis' ),
+			],
+			'anthropic' => [
+				'label' => 'Anthropic',
+				'desc'  => __( 'Sends a minimal ping using the configured API key.', 'agnosis' ),
+			],
+			'wp_ai'     => [
+				'label' => __( 'WordPress AI Client', 'agnosis' ),
+				'desc'  => __( 'Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-generation model is configured.', 'agnosis' ),
+			],
+		];
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Test AI Providers', 'agnosis' ); ?></h2>
+			<table class="form-table" role="presentation" style="margin-bottom:0"><tbody>
+				<?php foreach ( $providers as $slug => $info ) : ?>
+				<tr>
+					<th scope="row"><?php echo esc_html( $info['label'] ); ?></th>
+					<td>
+						<button type="button"
+							class="button button-secondary agnosis-test-ai"
+							data-provider="<?php echo esc_attr( $slug ); ?>"
+							data-nonce="<?php echo esc_attr( wp_create_nonce( 'agnosis_test_ai' ) ); ?>">
+							<?php
+							printf(
+								/* translators: %s: provider label */
+								esc_html__( 'Test %s', 'agnosis' ),
+								esc_html( $info['label'] )
+							);
+							?>
+						</button>
+						<span class="agnosis-test-result" data-provider="<?php echo esc_attr( $slug ); ?>"
+							  style="margin-left:.8rem;font-style:italic;color:#666"></span>
+						<p class="description"><?php echo esc_html( $info['desc'] ); ?></p>
+					</td>
+				</tr>
+				<?php endforeach; ?>
+			</tbody></table>
+		</div>
+		<?php
+	}
+
+	private function render_logs_tab(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- integer page offset for display only.
+		$page    = max( 1, (int) sanitize_key( wp_unslash( $_GET['log_page'] ?? '1' ) ) );
+		$per     = 50;
+		$offset  = ( $page - 1 ) * $per;
+		$total   = Logger::count();
+		$entries = Logger::get_entries( $per, $offset );
+		$pages   = (int) ceil( $total / $per );
+
+		$level_colours = [
+			'info'    => '#0a7c48',
+			'warning' => '#8a6d3b',
+			'error'   => '#c0392b',
+		];
+		$level_bg = [
+			'info'    => '#ecfdf5',
+			'warning' => '#fef9e7',
+			'error'   => '#fdf2f2',
+		];
+
+		?>
+		<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+			<h2 style="margin:0"><?php esc_html_e( 'Pipeline Logs', 'agnosis' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="agnosis_clear_logs">
+				<?php wp_nonce_field( 'agnosis_clear_logs' ); ?>
+				<button type="submit" class="button button-secondary"
+					onclick="return confirm('<?php echo esc_js( __( 'Clear all log entries?', 'agnosis' ) ); ?>')">
+					<?php esc_html_e( 'Clear All', 'agnosis' ); ?>
+				</button>
+			</form>
+		</div>
+
+		<p class="description" style="margin-bottom:1rem">
+			<?php
+			printf(
+				/* translators: %d: total log entry count */
+				esc_html__( '%d entries total. Logs are pruned automatically according to the Inbox retention setting.', 'agnosis' ),
+				(int) $total
+			);
+			?>
+		</p>
+
+		<?php if ( empty( $entries ) ) : ?>
+			<p><?php esc_html_e( 'No log entries yet.', 'agnosis' ); ?></p>
+		<?php else : ?>
+			<table class="widefat striped" style="max-width:1200px">
+				<thead>
+					<tr>
+						<th style="width:160px"><?php esc_html_e( 'Time', 'agnosis' ); ?></th>
+						<th style="width:80px"><?php esc_html_e( 'Level', 'agnosis' ); ?></th>
+						<th style="width:120px"><?php esc_html_e( 'Context', 'agnosis' ); ?></th>
+						<th><?php esc_html_e( 'Message', 'agnosis' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php
+					foreach ( $entries as $entry ) :
+						$lvl = $entry['level'] ?? 'info';
+						$bg  = $level_bg[ $lvl ]  ?? '';
+						$fg  = $level_colours[ $lvl ] ?? '#000';
+						?>
+						<tr style="background:<?php echo esc_attr( $bg ); ?>">
+							<td style="white-space:nowrap;font-family:monospace;font-size:.85em">
+								<?php echo esc_html( $entry['created_at'] ); ?>
+							</td>
+							<td>
+								<span style="color:<?php echo esc_attr( $fg ); ?>;font-weight:600;text-transform:uppercase;font-size:.8em">
+									<?php echo esc_html( $lvl ); ?>
+								</span>
+							</td>
+							<td style="font-family:monospace;font-size:.85em;color:#555">
+								<?php echo esc_html( $entry['context'] ); ?>
+							</td>
+							<td><?php echo esc_html( $entry['message'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+
+			<?php if ( $pages > 1 ) : ?>
+				<div style="margin-top:1rem">
+					<?php for ( $p = 1; $p <= $pages; $p++ ) : ?>
+						<?php if ( $p === $page ) : ?>
+							<strong>[<?php echo (int) $p; ?>]</strong>
+						<?php else : ?>
+							<a href="<?php echo esc_url( add_query_arg( [ 'page' => 'agnosis-settings', 'tab' => 'logs', 'log_page' => $p ], admin_url( 'admin.php' ) ) ); ?>">
+								<?php echo (int) $p; ?>
+							</a>
+						<?php endif; ?>
+					<?php endfor; ?>
+				</div>
+			<?php endif; ?>
+		<?php endif; ?>
+		<?php
+	}
+
+	private function render_tab_tools( string $tab ): void {
+		if ( 'ai' === $tab ) {
+			$this->render_ai_test_tools();
+			return;
+		}
+		if ( 'email' !== $tab ) {
+			return;
+		}
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Inbox Tools', 'agnosis' ); ?></h2>
+
+			<table class="form-table" role="presentation" style="margin-bottom:0"><tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Test connection', 'agnosis' ); ?></th>
+					<td>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="agnosis_test_inbox">
+							<?php wp_nonce_field( 'agnosis_test_inbox' ); ?>
+							<?php submit_button( __( 'Test IMAP Connection', 'agnosis' ), 'primary', 'submit', false ); ?>
+						</form>
+						<p class="description"><?php esc_html_e( 'Connects to the configured mailbox and reports the total and unseen message count.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Poll inbox now', 'agnosis' ); ?></th>
+					<td>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="agnosis_poll_now">
+							<?php wp_nonce_field( 'agnosis_poll_now' ); ?>
+							<?php submit_button( __( 'Poll Inbox Now', 'agnosis' ), 'primary', 'submit', false ); ?>
+						</form>
+						<p class="description"><?php esc_html_e( 'Fetches unseen messages immediately without waiting for WP-Cron. Then click "Process Pending Queue" to run the AI pipeline.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Process queue', 'agnosis' ); ?></th>
+					<td>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="agnosis_process_queue">
+							<?php wp_nonce_field( 'agnosis_process_queue' ); ?>
+							<?php submit_button( __( 'Process Pending Queue', 'agnosis' ), 'primary', 'submit', false ); ?>
+						</form>
+						<p class="description"><?php esc_html_e( 'Immediately runs the AI pipeline on all pending queue items without waiting for WP-Cron. Use this to test the end-to-end flow after a poll.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Force reprocess', 'agnosis' ); ?></th>
+					<td>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="agnosis_force_reprocess">
+							<?php wp_nonce_field( 'agnosis_force_reprocess' ); ?>
+							<?php submit_button( __( 'Force Reprocess Inbox', 'agnosis' ), 'secondary', 'submit', false ); ?>
+						</form>
+						<p class="description"><?php esc_html_e( 'Resets failed/stuck/orphaned queue rows back to pending, then immediately polls for unprocessed messages. Then click "Process Pending Queue" to run the AI pipeline. Already-published artworks with valid posts are never re-processed.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+			</tbody></table>
+		</div>
+		<?php
+	}
+
+
+	private function ai_test_js(): string {
+		$ajax_url = esc_js( admin_url( 'admin-ajax.php' ) );
+		return <<<JS
+document.addEventListener('click', function(e) {
+	var btn = e.target.closest('.agnosis-test-ai');
+	if (!btn) return;
+	var provider = btn.dataset.provider;
+	var nonce    = btn.dataset.nonce;
+	var result   = document.querySelector('.agnosis-test-result[data-provider="' + provider + '"]');
+	if (!result) return;
+
+	btn.disabled = true;
+	result.style.color = '#666';
+	result.textContent = 'Testing…';
+
+	var body = new URLSearchParams({ action: 'agnosis_test_ai', provider: provider, nonce: nonce });
+	fetch('{$ajax_url}', { method: 'POST', credentials: 'same-origin', body: body })
+		.then(function(r) { return r.json(); })
+		.then(function(res) {
+			if (res && res.success) {
+				result.style.color = '#0a7c48';
+				result.textContent = '✓ ' + ((res.data && res.data.message) || 'OK');
+			} else {
+				result.style.color = '#c0392b';
+				result.textContent = '✗ ' + ((res.data && res.data.message) || 'Request failed');
+			}
+		})
+		.catch(function() {
+			result.style.color = '#c0392b';
+			result.textContent = '✗ Request failed';
+		})
+		.finally(function() { btn.disabled = false; });
+});
+JS;
 	}
 
 	private function admin_css(): string {
 		return '
 		.agnosis-settings h1 { display:flex; align-items:baseline; gap:.4rem; }
 		.agnosis-settings .nav-tab-active { border-bottom-color:#7c6af7; color:#7c6af7; }
-		#adminmenu .toplevel_page_agnosis-settings .wp-menu-image img { opacity:.7; }
-		#adminmenu .toplevel_page_agnosis-settings.current .wp-menu-image img,
-		#adminmenu .toplevel_page_agnosis-settings:hover .wp-menu-image img { opacity:1; filter:brightness(0) saturate(100%) invert(52%) sepia(60%) saturate(500%) hue-rotate(220deg); }
 		';
 	}
 }

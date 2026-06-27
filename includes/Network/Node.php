@@ -85,8 +85,7 @@ class Node {
 		}
 
 		// TODO: verify the peer's signature before trusting.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
-		$wpdb->replace(
+		$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table write; caching not applicable to REPLACE.
 			$wpdb->prefix . 'agnosis_nodes',
 			[
 				'url'        => $peer_url,

@@ -278,7 +278,7 @@ class ActivityPub {
 
 		$signature = '';
 		if ( $private_key && function_exists( 'openssl_sign' ) ) {
-			$signing_string = "(request-target): post " . wp_parse_url( $inbox_url, PHP_URL_PATH ) . "\nhost: " . wp_parse_url( $inbox_url, PHP_URL_HOST ) . "\ndate: " . $date;
+			$signing_string = '(request-target): post ' . wp_parse_url( $inbox_url, PHP_URL_PATH ) . "\nhost: " . wp_parse_url( $inbox_url, PHP_URL_HOST ) . "\ndate: " . $date;
 			openssl_sign( $signing_string, $raw_sig, $private_key, OPENSSL_ALGO_SHA256 );
 			$signature = 'keyId="' . $key_id . '",algorithm="rsa-sha256",headers="(request-target) host date",signature="' . base64_encode( $raw_sig ) . '"';
 		}
