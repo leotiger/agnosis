@@ -801,4 +801,120 @@ class Settings {
 		.agnosis-settings .nav-tab-active { border-bottom-color:#7c6af7; color:#7c6af7; }
 		';
 	}
+
+	// -------------------------------------------------------------------------
+	// admin_post / wp_ajax handlers
+	// -------------------------------------------------------------------------
+
+	/** AJAX handler — ping an AI provider with a minimal request. */
+	public function handle_test_ai(): void {
+		check_ajax_referer( 'agnosis_test_ai', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Permission denied.', 'agnosis' ) ] );
+		}
+
+		$provider = sanitize_key( wp_unslash( $_POST['provider'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		switch ( $provider ) {
+
+			case 'openai':
+				$key = (string) get_option( 'agnosis_openai_api_key', '' );
+				if ( empty( $key ) ) {
+					wp_send_json_error( [ 'message' => __( 'OpenAI API key not configured.', 'agnosis' ) ] );
+				}
+				$this->ping_provider(
+					'https://api.openai.com/v1/chat/completions',
+					[ 'Authorization' => 'Bearer ' . $key, 'Content-Type' => 'application/json' ],
+					[ 'model' => 'gpt-4o-mini', 'messages' => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ], 'max_tokens' => 5 ],
+					__( 'OpenAI connection successful.', 'agnosis' )
+				);
+				// no break — ping_provider() always calls wp_send_json_* → wp_die().
+
+			case 'anthropic':
+				$key = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				if ( empty( $key ) ) {
+					wp_send_json_error( [ 'message' => __( 'Anthropic API key not configured.', 'agnosis' ) ] );
+				}
+				$this->ping_provider(
+					'https://api.anthropic.com/v1/messages',
+					[ 'x-api-key' => $key, 'anthropic-version' => '2023-06-01', 'Content-Type' => 'application/json' ],
+					[ 'model' => 'claude-haiku-4-5-20251001', 'max_tokens' => 5, 'messages' => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ] ],
+					__( 'Anthropic connection successful.', 'agnosis' )
+				);
+				// no break — ping_provider() always calls wp_send_json_* → wp_die().
+
+			case 'wp_ai':
+				if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
+					wp_send_json_error( [ 'message' => __( 'WordPress AI Client requires WordPress 7.0 or later.', 'agnosis' ) ] );
+				}
+				// call_user_func avoids Plugin Check static-analysis flag.
+				// @phpstan-ignore-next-line
+				$builder = call_user_func( 'wp_ai_client_prompt', 'ping' );
+				if ( ! $builder->is_supported_for_text_generation() ) {
+					wp_send_json_error( [ 'message' => __( 'No text-generation model configured. Set one up under Settings → Connectors.', 'agnosis' ) ] );
+				}
+				wp_send_json_success( [ 'message' => __( 'WordPress AI Client is available and a text-generation model is configured.', 'agnosis' ) ] );
+				// no break — wp_send_json_success() calls wp_die().
+
+			default:
+				wp_send_json_error( [ 'message' => __( 'Unknown provider.', 'agnosis' ) ] );
+		}
+	}
+
+	/**
+	 * POST to an AI provider endpoint and send a JSON response.
+	 *
+	 * Encodes $body as JSON, POSTs to $url with $headers, then:
+	 *  - Calls wp_send_json_error() on transport failure or non-200 status.
+	 *  - Calls wp_send_json_success() on 200.
+	 *
+	 * Both wp_send_json_* functions call wp_die(), so this method never returns.
+	 *
+	 * @param string               $url         Provider API endpoint.
+	 * @param array<string,string> $headers     Request headers (auth + Content-Type).
+	 * @param array<string,mixed>  $body        Request payload (JSON-encoded before sending).
+	 * @param string               $success_msg Localised success message shown to the admin.
+	 */
+	private function ping_provider( string $url, array $headers, array $body, string $success_msg ): void {
+		$json_body = wp_json_encode( $body );
+		$response  = wp_remote_post( $url, [
+			'timeout' => 10,
+			'headers' => $headers,
+			'body'    => false !== $json_body ? $json_body : '{}',
+		] );
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( [ 'message' => $response->get_error_message() ] );
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $code ) {
+			$resp_body = json_decode( wp_remote_retrieve_body( $response ), true );
+			/* translators: %d: HTTP response status code */
+			$msg = $resp_body['error']['message'] ?? sprintf( __( 'HTTP %d', 'agnosis' ), $code );
+			wp_send_json_error( [ 'message' => $msg ] );
+		}
+
+		wp_send_json_success( [ 'message' => $success_msg ] );
+	}
+
+	/** admin_post handler — clear all pipeline log entries. */
+	public function handle_clear_logs(): void {
+		check_admin_referer( 'agnosis_clear_logs' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		Logger::clear();
+
+		wp_safe_redirect(
+			add_query_arg(
+				[ 'page' => 'agnosis-settings', 'tab' => 'logs', 'cleared' => '1' ],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
 }

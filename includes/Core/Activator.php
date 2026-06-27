@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Core;
 
+use Agnosis\Email\AttachmentStore;
+
 class Activator {
 
 	/**
@@ -22,20 +24,28 @@ class Activator {
 	public static function maybe_upgrade(): void {
 		global $wpdb;
 
-		// Explicitly add post_id if missing — dbDelta can silently skip new columns
-		// on existing tables when the CURRENT_TIMESTAMP default confuses its differ.
+		// Use SHOW COLUMNS … LIKE instead of information_schema — the latter is
+		// restricted on some managed database providers (PlanetScale, Kinsta DB, etc.).
+		// SHOW COLUMNS returns an empty result set when the column doesn't exist.
+
+		// Add post_id to agnosis_queue if missing — dbDelta silently skips new
+		// columns on tables that have a CURRENT_TIMESTAMP default, so we do it
+		// explicitly here.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$has_post_id = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM information_schema.columns
-			 WHERE table_schema = DATABASE()
-			 AND table_name   = '{$wpdb->prefix}agnosis_queue'
-			 AND column_name  = 'post_id'"
-		);
-		if ( ! $has_post_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- dbDelta() silently skips new columns on CURRENT_TIMESTAMP tables; ALTER TABLE is the only reliable path.
+		$has_post_id = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_queue LIKE 'post_id'" );
+		if ( empty( $has_post_id ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue ADD COLUMN post_id BIGINT UNSIGNED DEFAULT NULL AFTER artist_id" );
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue ADD INDEX idx_post_id (post_id)" );
+		}
+
+		// Add revoked_at to agnosis_vouches if missing (column added in 0.1.8).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_revoked_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_vouches LIKE 'revoked_at'" );
+		if ( empty( $has_revoked_at ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_vouches ADD COLUMN revoked_at DATETIME NULL DEFAULT NULL AFTER created_at" );
 		}
 
 		self::create_tables();
@@ -49,6 +59,9 @@ class Activator {
 		self::register_roles();
 		self::schedule_events();
 		self::create_submissions_page();
+
+		// Create the protected attachment queue directory under uploads/.
+		AttachmentStore::ensure_protected();
 
 		// Flush rewrite rules after registering CPTs.
 		flush_rewrite_rules();
@@ -123,6 +136,7 @@ class Activator {
 			candidate_id BIGINT UNSIGNED NOT NULL,
 			message      TEXT            DEFAULT NULL,
 			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			revoked_at   DATETIME        NULL      DEFAULT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY   uq_pair (voucher_id, candidate_id)
 		) $charset_collate;";

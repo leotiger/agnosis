@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Email;
 
+use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -74,6 +75,11 @@ class Webhook {
 	 * X-Agnosis-Signature header (HMAC-SHA256 of the raw body).
 	 */
 	public function verify_signature( WP_REST_Request $request ): bool|WP_Error {
+		$rate = RateLimiter::check( 'email_inbound', 60, 60 );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
 		$secret = get_option( 'agnosis_webhook_secret', '' );
 
 		if ( empty( $secret ) ) {

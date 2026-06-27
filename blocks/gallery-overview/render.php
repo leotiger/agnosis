@@ -164,14 +164,44 @@ $agnosis_post_url_for = static function ( \WP_Post $p ) use ( $agnosis_has_subdo
 	return (string) get_permalink( $p->ID );
 };
 
-$agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_subdomains ): string {
+// On an artist subdomain  → link to their biography page on that subdomain.
+// On the main domain      → link to the artist's subdomain home.
+// Memoised per request to avoid redundant queries for repeated artists.
+$agnosis_on_subdomain   = $agnosis_has_subdomains
+	&& class_exists( '\Agnosis\Network\SubdomainRouter' )
+	&& \Agnosis\Network\SubdomainRouter::is_artist_subdomain();
+$agnosis_bio_url_cache  = [];
+$agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_subdomains, $agnosis_on_subdomain, &$agnosis_bio_url_cache ): string {
+	if ( isset( $agnosis_bio_url_cache[ $artist_id ] ) ) {
+		return $agnosis_bio_url_cache[ $artist_id ];
+	}
+
+	if ( $agnosis_on_subdomain ) {
+		// We're on an artist subdomain — link to the biography page.
+		$bios = get_posts( [
+			'post_type'      => 'agnosis_biography',
+			'post_status'    => 'publish',
+			'author'         => $artist_id,
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+		] );
+		if ( $bios ) {
+			$url = (string) get_permalink( $bios[0]->ID );
+			return ( $agnosis_bio_url_cache[ $artist_id ] = $url );
+		}
+		// No biography yet — stay on subdomain home.
+		$url = \Agnosis\Network\SubdomainRouter::url_for_artist( $artist_id );
+		return ( $agnosis_bio_url_cache[ $artist_id ] = $url );
+	}
+
+	// We're on the main domain — link to the artist's subdomain.
 	if ( $agnosis_has_subdomains && class_exists( '\Agnosis\Network\SubdomainRouter' ) ) {
 		$home = \Agnosis\Network\SubdomainRouter::url_for_artist( $artist_id );
 		if ( $home ) {
-			return $home;
+			return ( $agnosis_bio_url_cache[ $artist_id ] = $home );
 		}
 	}
-	return (string) get_author_posts_url( $artist_id );
+	return ( $agnosis_bio_url_cache[ $artist_id ] = (string) get_author_posts_url( $artist_id ) );
 };
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -197,41 +227,91 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 <div class="agnosis-gallery-overview agnosis-gallery-overview--cols-<?php echo (int) $agnosis_columns; ?>">
 	<?php foreach ( $agnosis_posts as $agnosis_post ) :
 		$agnosis_artist_id   = (int) $agnosis_post->post_author;
-		$agnosis_thumb       = wp_get_attachment_image_src( get_post_thumbnail_id( $agnosis_post->ID ), 'agnosis-thumb' );
+		$agnosis_thumb_id    = (int) get_post_thumbnail_id( $agnosis_post->ID );
+		$agnosis_thumb       = wp_get_attachment_image_src( $agnosis_thumb_id, 'agnosis-thumb' );
+		$agnosis_full_src    = (string) get_the_post_thumbnail_url( $agnosis_post->ID, 'full' );
+		$agnosis_meta        = wp_get_attachment_metadata( $agnosis_thumb_id );
 		$agnosis_is_featured = '1' === get_post_meta( $agnosis_post->ID, '_agnosis_featured', true );
 		$agnosis_artist      = get_userdata( $agnosis_artist_id );
 		$agnosis_post_url    = $agnosis_post_url_for( $agnosis_post );
 		$agnosis_art_url     = $agnosis_artist_url_for( $agnosis_artist_id );
+
+		// Per-image unique ID and WP Interactivity state for the core/image lightbox store.
+		$agnosis_uid = uniqid( 'ag', true );
+		wp_interactivity_state(
+			'core/image',
+			[
+				'metadata' => [
+					$agnosis_uid => [
+						// Full-resolution source shown in the lightbox overlay.
+						'uploadedSrc'      => $agnosis_full_src ?: ( $agnosis_thumb ? $agnosis_thumb[0] : '' ),
+						// Classes applied to the <figure> inside the overlay (no frame padding there).
+						'figureClassNames' => 'wp-block-image',
+						'figureStyles'     => null,
+						// Class applied to the <img> inside the overlay.
+						'imgClassNames'    => $agnosis_thumb_id ? 'wp-image-' . $agnosis_thumb_id : '',
+						'imgStyles'        => null,
+						// Original upload dimensions — used by view.js to compute the zoom animation.
+						'targetWidth'      => $agnosis_meta['width']  ?? 'none',
+						'targetHeight'     => $agnosis_meta['height'] ?? 'none',
+						'scaleAttr'        => false,
+						'ariaLabel'        => __( 'Enlarged image', 'agnosis' ),
+						'alt'              => $agnosis_post->post_title,
+					],
+				],
+			]
+		);
 	?>
 	<article class="agnosis-gallery-overview__item<?php echo $agnosis_is_featured ? ' is-featured' : ''; ?>">
-		<a href="<?php echo esc_url( $agnosis_post_url ); ?>" class="agnosis-gallery-overview__link">
-			<?php if ( $agnosis_thumb ) : ?>
-			<div class="agnosis-gallery-overview__image-wrap">
-				<img
-					src="<?php echo esc_url( $agnosis_thumb[0] ); ?>"
-					width="<?php echo (int) $agnosis_thumb[1]; ?>"
-					height="<?php echo (int) $agnosis_thumb[2]; ?>"
-					alt="<?php echo esc_attr( $agnosis_post->post_title ); ?>"
-					loading="lazy"
-					decoding="async"
-				>
-				<?php if ( $agnosis_is_featured ) : ?>
-				<span class="agnosis-gallery-overview__badge" aria-label="<?php esc_attr_e( 'Featured', 'agnosis' ); ?>">✦</span>
-				<?php endif; ?>
-			</div>
+		<?php if ( $agnosis_thumb ) : ?>
+		<figure
+			class="wp-block-image agnosis-gallery-overview__image-wrap wp-lightbox-container"
+			data-wp-interactive="core/image"
+			data-wp-context="<?php echo esc_attr( wp_json_encode( [ 'imageId' => $agnosis_uid ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ); ?>"
+			data-wp-key="<?php echo esc_attr( $agnosis_uid ); ?>"
+		>
+			<img
+				src="<?php echo esc_url( $agnosis_thumb[0] ); ?>"
+				width="<?php echo (int) $agnosis_thumb[1]; ?>"
+				height="<?php echo (int) $agnosis_thumb[2]; ?>"
+				alt="<?php echo esc_attr( $agnosis_post->post_title ); ?>"
+				class="wp-image-<?php echo $agnosis_thumb_id; ?>"
+				loading="lazy"
+				decoding="async"
+				data-wp-init="callbacks.setButtonStyles"
+				data-wp-on--load="callbacks.setButtonStyles"
+				data-wp-on-window--resize="callbacks.setButtonStyles"
+				data-wp-on--click="actions.showLightbox"
+				data-wp-class--hide="state.isContentHidden"
+				data-wp-class--show="state.isContentVisible"
+			>
+			<?php if ( $agnosis_is_featured ) : ?>
+			<span class="agnosis-gallery-overview__badge" aria-label="<?php esc_attr_e( 'Featured', 'agnosis' ); ?>">✦</span>
 			<?php endif; ?>
-			<div class="agnosis-gallery-overview__caption">
-				<span class="agnosis-gallery-overview__title"><?php echo esc_html( $agnosis_post->post_title ); ?></span>
-				<?php if ( $agnosis_artist ) : ?>
-				<a href="<?php echo esc_url( $agnosis_art_url ); ?>"
-				   class="agnosis-gallery-overview__artist"
-				   tabindex="-1"
-				   onclick="event.stopPropagation();">
-					<?php echo esc_html( $agnosis_artist->display_name ); ?>
-				</a>
-				<?php endif; ?>
-			</div>
-		</a>
+			<button
+				class="lightbox-trigger"
+				type="button"
+				aria-haspopup="dialog"
+				aria-label="<?php esc_attr_e( 'Enlarge', 'agnosis' ); ?>"
+				data-wp-init="callbacks.initTriggerButton"
+				data-wp-on--click="actions.showLightbox"
+				data-wp-style--right="state.imageButtonRight"
+				data-wp-style--top="state.imageButtonTop"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 12 12">
+					<path fill="#fff" d="M2 0a2 2 0 0 0-2 2v2h1.5V2a.5.5 0 0 1 .5-.5h2V0H2Zm2 10.5H2a.5.5 0 0 1-.5-.5V8H0v2a2 2 0 0 0 2 2h2v-1.5ZM8 12v-1.5h2a.5.5 0 0 0 .5-.5V8H12v2a2 2 0 0 1-2 2H8Zm2-12a2 2 0 0 1 2 2v2h-1.5V2a.5.5 0 0 0-.5-.5H8V0h2Z" />
+				</svg>
+			</button>
+		</figure>
+		<?php endif; ?>
+		<div class="agnosis-gallery-overview__caption">
+			<a href="<?php echo esc_url( $agnosis_post_url ); ?>" class="agnosis-gallery-overview__title"><?php echo esc_html( $agnosis_post->post_title ); ?></a>
+			<?php if ( $agnosis_artist ) : ?>
+			<a href="<?php echo esc_url( $agnosis_art_url ); ?>" class="agnosis-gallery-overview__artist">
+				<?php echo esc_html( $agnosis_artist->display_name ); ?>
+			</a>
+			<?php endif; ?>
+		</div>
 	</article>
 	<?php endforeach; ?>
 </div>

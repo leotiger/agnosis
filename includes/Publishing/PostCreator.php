@@ -22,6 +22,7 @@ namespace Agnosis\Publishing;
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\PromptConfig;
 use Agnosis\Core\Logger;
+use Agnosis\Email\AttachmentStore;
 
 /**
  * Converts a queued email submission into a WordPress post.
@@ -52,10 +53,16 @@ class PostCreator {
 	private Pipeline $pipeline;
 
 	/**
-	 * Initialise the pipeline.
+	 * Inject or auto-create the AI pipeline.
+	 *
+	 * Accepts an optional Pipeline so tests can pass a lightweight stub without
+	 * hitting real AI endpoints. Production code calls `new PostCreator()` and
+	 * gets a fully-configured pipeline automatically.
+	 *
+	 * @param Pipeline|null $pipeline Pipeline instance, or null to create one.
 	 */
-	public function __construct() {
-		$this->pipeline = new Pipeline();
+	public function __construct( ?Pipeline $pipeline = null ) {
+		$this->pipeline = $pipeline ?? new Pipeline();
 	}
 
 	/**
@@ -108,10 +115,21 @@ class PostCreator {
 				return;
 			}
 
-			// ---- Decode attachments ---------------------------------------------
+			// ---- Load attachment binaries ---------------------------------------
+			// New path: binary was written to uploads/agnosis-queue/{uid}/ at
+			// ingest time; read it back now and remove the temp file reference.
+			// Legacy path (rows enqueued before this change): binary is still
+			// base64-encoded inline — decode it for backwards compatibility.
 			if ( ! empty( $submission['attachments'] ) ) {
 				foreach ( $submission['attachments'] as &$att ) {
-					if ( ( $att['encoding'] ?? '' ) === 'base64' && isset( $att['data'] ) ) {
+					if ( isset( $att['file'] ) ) {
+						$binary = $this->filesystem()->get_contents( $att['file'] );
+
+						if ( false !== $binary ) {
+							$att['data'] = $binary;
+						}
+						unset( $att['file'] );
+					} elseif ( ( $att['encoding'] ?? '' ) === 'base64' && isset( $att['data'] ) ) {
 						$att['data'] = base64_decode( $att['data'] );
 						unset( $att['encoding'] );
 					}
@@ -181,6 +199,9 @@ class PostCreator {
 
 			$this->mark( $queue_id, 'published', '', $post_id );
 			Logger::info( sprintf( 'Queue #%d: artwork post #%d created as draft.', $queue_id, $post_id ), 'publisher' );
+
+			// Remove temp attachment files — binaries are now in the media library.
+			AttachmentStore::delete_dir( $row->message_uid );
 
 			// Notify review layer — email sent to artist for approval.
 			do_action( 'agnosis_post_drafted', $post_id, (int) $row->artist_id );
@@ -277,6 +298,7 @@ class PostCreator {
 			'posts_per_page' => 1,
 			'post_status'    => 'any',
 			'fields'         => 'ids',
+			'no_found_rows'  => true,
 		] );
 		if ( ! empty( $existing ) ) {
 			$post_id = (int) $existing[0];
@@ -332,6 +354,7 @@ class PostCreator {
 				'posts_per_page' => 1,
 				'post_status'    => 'any',
 				'fields'         => 'ids',
+				'no_found_rows'  => true,
 			] );
 			if ( ! empty( $exact ) ) {
 				$match_id = (int) $exact[0];
@@ -360,6 +383,7 @@ class PostCreator {
 				'posts_per_page' => 1,
 				'post_status'    => 'any',
 				'fields'         => 'ids',
+				'no_found_rows'  => true,
 			] );
 			if ( ! empty( $matches ) ) {
 				$match_id = (int) $matches[0];
@@ -396,6 +420,7 @@ class PostCreator {
 			'post_status'    => 'any',
 			'date_query'     => [ [ 'after' => '30 days ago' ] ],
 			'fields'         => 'ids',
+			'no_found_rows'  => true,
 		] );
 
 		if ( empty( $recent ) ) {
@@ -507,9 +532,9 @@ class PostCreator {
 			return;
 		}
 
-		// Generate a signed removal token — same pattern as the review workflow.
+		// Generate a cryptographically random removal token.
 		// The post is NOT moved or modified yet; the artist must confirm via email link.
-		$token  = wp_hash( $artist_id . '|removal|' . $post_id . '|' . time() . '|' . wp_salt( 'auth' ) );
+		$token  = $this->generate_token();
 		$expiry = time() + ( 7 * DAY_IN_SECONDS );
 
 		update_post_meta( $post_id, '_agnosis_removal_token',  $token );
@@ -555,6 +580,7 @@ class PostCreator {
 				'posts_per_page' => 1,
 				'post_status'    => 'any',
 				'fields'         => 'ids',
+				'no_found_rows'  => true,
 			] );
 			$existing_id = ! empty( $existing ) ? (int) $existing[0] : 0;
 		}
@@ -563,64 +589,14 @@ class PostCreator {
 		$primary  = $this->primary_result( $results );
 		$all_tags = array_unique( array_merge( ...array_column( $results, 'tags' ) ) );
 
-		// When updating an existing post, build a hash → attachment ID map from the
-		// current gallery so we can reuse already-uploaded images instead of
-		// duplicating them in the media library. This is what makes the
-		// "series amplification" workflow work: an artist can include previously
-		// submitted images alongside new ones — we skip re-uploading known images
-		// and append only the genuinely new ones to the existing gallery.
-		$existing_hash_map = [];
-		$existing_gallery  = [];
-		if ( $existing_id ) {
-			$existing_gallery = (array) get_post_meta( $existing_id, '_agnosis_gallery_ids', true );
-			foreach ( $existing_gallery as $att_id ) {
-				$h = (string) get_post_meta( (int) $att_id, '_agnosis_image_hash', true );
-				if ( $h ) {
-					$existing_hash_map[ $h ] = (int) $att_id;
-				}
-			}
-		}
-
-		// Upload new attachments, reusing existing ones where the hash matches.
-		// Hash is always computed from original_data (pre-enhancement) so it is
-		// stable across resubmissions regardless of whether enhancement ran.
-		$new_gallery = [];
-		foreach ( $results as $result ) {
-			$hash = ! empty( $result['original_data'] ) ? md5( $result['original_data'] ) : '';
-			if ( $hash && isset( $existing_hash_map[ $hash ] ) ) {
-				// Already in media library — reuse without re-uploading.
-				$new_gallery[] = $existing_hash_map[ $hash ];
-				continue;
-			}
-			$attachment_id = $this->upload_image(
-				$result['enhanced_data'],
-				$result['mime_type'],
-				$result['filename'],
-				$result['alt_text'],
-				$result['title'],
-				$hash, // pre-computed from original_data — consistent with find_duplicate_post()
-			);
-			if ( ! is_wp_error( $attachment_id ) ) {
-				$new_gallery[] = $attachment_id;
-			}
-		}
-
-		// Final gallery: existing images first, then any newly uploaded ones appended.
-		// array_unique preserves order and removes any overlap.
-		$gallery = array_values( array_unique( array_merge( $existing_gallery, $new_gallery ) ) );
-
-		$post_content = $primary['body'] ?? '';
-
-		if ( count( $gallery ) > 1 ) {
-			$post_content = $this->build_gallery_block( $gallery ) . "\n\n" . $post_content;
-		} elseif ( count( $gallery ) === 1 ) {
-			$post_content = $this->build_image_block( $gallery[0] ) . "\n\n" . $post_content;
-		}
+		$gallery      = $this->merge_gallery( $existing_id, $results );
+		$post_content = $this->build_post_content( $primary, $gallery );
 
 		// Keep the existing review token when updating so artist links stay valid.
+		// New tokens are 32 bytes of CSPRNG — no reconstruction possible.
 		$review_token  = $existing_id
-			? ( get_post_meta( $existing_id, '_agnosis_review_token', true ) ?: wp_hash( $artist_id . '|' . time() . '|' . wp_salt( 'auth' ) ) )
-			: wp_hash( $artist_id . '|' . time() . '|' . wp_salt( 'auth' ) );
+			? ( get_post_meta( $existing_id, '_agnosis_review_token', true ) ?: $this->generate_token() )
+			: $this->generate_token();
 		$review_expiry = time() + ( 7 * DAY_IN_SECONDS );
 
 		$post_data = [
@@ -641,7 +617,7 @@ class PostCreator {
 			],
 		];
 
-		// Insert or update.
+		// ---- Insert or update ------------------------------------------------
 		if ( $existing_id ) {
 			$post_data['ID']          = $existing_id;
 			$post_data['post_status'] = get_post_status( $existing_id ) ?: 'draft'; // preserve publish state
@@ -655,17 +631,106 @@ class PostCreator {
 			return $post_id;
 		}
 
-		// Set featured image.
+		$this->write_post_meta( $post_id, $primary, $gallery, $all_tags, $post_type );
+
+		return $post_id;
+	}
+
+	/**
+	 * Build the merged gallery of attachment IDs for a post.
+	 *
+	 * When updating an existing post, reuses already-uploaded images (matched by
+	 * MD5 hash of the original binary) to avoid duplicates in the media library.
+	 * Newly uploaded images are appended after existing ones.
+	 *
+	 * @param int                              $existing_id Post ID to merge into, or 0 for new.
+	 * @param array<int, array<string, mixed>> $results     AI pipeline results, one per attachment.
+	 * @return int[] Ordered, deduplicated attachment IDs.
+	 */
+	private function merge_gallery( int $existing_id, array $results ): array {
+		$existing_hash_map = [];
+		$existing_gallery  = [];
+
+		if ( $existing_id ) {
+			$existing_gallery = (array) get_post_meta( $existing_id, '_agnosis_gallery_ids', true );
+			foreach ( $existing_gallery as $att_id ) {
+				$h = (string) get_post_meta( (int) $att_id, '_agnosis_image_hash', true );
+				if ( $h ) {
+					$existing_hash_map[ $h ] = (int) $att_id;
+				}
+			}
+		}
+
+		$new_gallery = [];
+		foreach ( $results as $result ) {
+			$hash = ! empty( $result['original_data'] ) ? md5( $result['original_data'] ) : '';
+			if ( $hash && isset( $existing_hash_map[ $hash ] ) ) {
+				$new_gallery[] = $existing_hash_map[ $hash ];
+				continue;
+			}
+			$attachment_id = $this->upload_image(
+				$result['enhanced_data'],
+				$result['mime_type'],
+				$result['filename'],
+				$result['alt_text'],
+				$result['title'],
+				$hash,
+			);
+			if ( ! is_wp_error( $attachment_id ) ) {
+				$new_gallery[] = $attachment_id;
+			}
+		}
+
+		return array_values( array_unique( array_merge( $existing_gallery, $new_gallery ) ) );
+	}
+
+	/**
+	 * Build Gutenberg post content from the primary AI result and the image gallery.
+	 *
+	 * A single image uses a standalone wp:image block; multiple images use a
+	 * wp:gallery block with each image nested inside. The AI-generated body text
+	 * follows the image block(s).
+	 *
+	 * @param array<string, mixed> $primary Primary AI result.
+	 * @param int[]                $gallery Ordered attachment IDs.
+	 * @return string Serialised Gutenberg block markup.
+	 */
+	private function build_post_content( array $primary, array $gallery ): string {
+		$body = $primary['body'] ?? '';
+
+		if ( count( $gallery ) > 1 ) {
+			return $this->build_gallery_block( $gallery ) . "\n\n" . $body;
+		}
+		if ( count( $gallery ) === 1 ) {
+			return $this->build_image_block( $gallery[0] ) . "\n\n" . $body;
+		}
+		return $body;
+	}
+
+	/**
+	 * Persist all post meta, taxonomy terms, and quality data for a newly saved post.
+	 *
+	 * Separated from create_post() to keep the insert/update block readable.
+	 * Safe to call on both inserts and updates — all operations are idempotent.
+	 *
+	 * @param int                  $post_id   WordPress post ID.
+	 * @param array<string, mixed> $primary   Primary AI pipeline result.
+	 * @param int[]                $gallery   Ordered attachment IDs.
+	 * @param string[]             $all_tags  Merged tag strings from all results.
+	 * @param string               $post_type CPT slug.
+	 */
+	private function write_post_meta( int $post_id, array $primary, array $gallery, array $all_tags, string $post_type ): void {
+		// Featured image.
 		if ( ! empty( $gallery ) ) {
 			set_post_thumbnail( $post_id, $gallery[0] );
 		}
 
-		// Set tags.
+		// Tags.
 		if ( ! empty( $all_tags ) ) {
 			wp_set_post_tags( $post_id, $all_tags );
 		}
 
-		// Set medium taxonomy term — only for artwork posts.
+		// Medium taxonomy term — only for artwork posts.
 		// Validate against the canonical list to prevent AI hallucinations from
 		// creating rogue terms. Empty or unrecognised values are silently skipped;
 		// the admin can assign manually from the edit screen.
@@ -687,7 +752,7 @@ class PostCreator {
 			}
 		}
 
-		// Store photo quality assessment from the primary result.
+		// Photo quality assessment from the primary result.
 		// Score 0 means the provider could not assess quality (e.g. text-only provider).
 		$quality_score  = (int) ( $primary['photo_quality_score']  ?? 0 );
 		$quality_issues = (array) ( $primary['photo_quality_issues'] ?? [] );
@@ -696,8 +761,6 @@ class PostCreator {
 		update_post_meta( $post_id, '_agnosis_photo_quality_score',  $quality_score );
 		update_post_meta( $post_id, '_agnosis_photo_quality_issues', wp_json_encode( $quality_issues ) );
 		update_post_meta( $post_id, '_agnosis_enhanced',             $was_enhanced ? '1' : '0' );
-
-		return $post_id;
 	}
 
 	/**
@@ -723,9 +786,9 @@ class PostCreator {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 
 		// Write to a temp file, then use wp_handle_sideload.
+		// Use WP_Filesystem (direct method) — see filesystem() helper.
 		$tmp = wp_tempnam( $filename );
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- WP_Filesystem not available at this point in the cron pipeline; temp file is cleaned up immediately after sideload.
-		file_put_contents( $tmp, $data );
+		$this->filesystem()->put_contents( $tmp, $data, FS_CHMOD_FILE );
 
 		$file = [
 			'name'     => $filename,
@@ -735,10 +798,13 @@ class PostCreator {
 			'size'     => strlen( $data ),
 		];
 
-		// Disable the upload size check for our sideload.
-		add_filter( 'upload_size_limit', fn() => PHP_INT_MAX );
+		// Temporarily lift the upload size limit for our sideload.
+		// Store the closure reference so remove_filter() can target it precisely —
+		// remove_all_filters() would silently discard filters added by other plugins.
+		$size_filter = fn() => PHP_INT_MAX;
+		add_filter( 'upload_size_limit', $size_filter );
 		$sideload = wp_handle_sideload( $file, [ 'test_form' => false ] );
-		remove_all_filters( 'upload_size_limit' );
+		remove_filter( 'upload_size_limit', $size_filter );
 
 		wp_delete_file( $tmp );
 
@@ -840,6 +906,40 @@ class PostCreator {
 	 * @param string $error   Optional error message to store.
 	 * @param int    $post_id WordPress post ID to record (0 = leave unchanged).
 	 */
+	/**
+	 * Generate a cryptographically secure token.
+	 *
+	 * 32 bytes (256 bits) from the OS CSPRNG, returned as a 64-character
+	 * lowercase hex string. No predictable inputs — cannot be reconstructed
+	 * from artist ID, timestamp, or site secrets.
+	 *
+	 * @return string 64-character hexadecimal string.
+	 */
+	private function generate_token(): string {
+		return bin2hex( random_bytes( 32 ) );
+	}
+
+	/**
+	 * Return an initialised WP_Filesystem_Direct instance.
+	 *
+	 * Forces 'direct' because FTP/SSH credentials cannot be prompted in cron
+	 * or admin-post contexts.
+	 */
+	private function filesystem(): \WP_Filesystem_Base {
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+
+		add_filter( 'filesystem_method', fn() => 'direct' );
+		WP_Filesystem();
+		remove_all_filters( 'filesystem_method' );
+
+		global $wp_filesystem;
+		return $wp_filesystem;
+	}
+
 	private function mark( int $id, string $status, string $error = '', int $post_id = 0 ): void {
 		global $wpdb;
 		$data   = [ 'status' => $status, 'error' => $error ?: null ];

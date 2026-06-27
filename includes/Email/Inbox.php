@@ -204,18 +204,57 @@ class Inbox {
 
 	/** Cron callback — poll the IMAP inbox for new submissions. */
 	public function poll(): void {
-		if ( ! $this->is_configured() ) {
+		if ( $this->is_configured() ) {
+			try {
+				$client = $this->make_client();
+				$folder = $this->get_inbox_folder( $client );
+				$this->process_messages( $folder );
+				$client->disconnect();
+			} catch ( \Throwable $e ) {
+				Logger::error( 'IMAP poll failed: ' . self::exception_chain( $e ), 'inbox' );
+			}
+		}
+
+		// Always drain the pending queue — covers webhook-sourced rows and any
+		// IMAP rows whose single event was missed (no page load after enqueue).
+		$this->drain_pending();
+	}
+
+	/**
+	 * Schedule a processing event for every queue row that is still pending.
+	 *
+	 * Called at the end of every poll() run so that pending rows are retried
+	 * even when IMAP is unconfigured (webhook-only mode) or when a prior
+	 * wp_schedule_single_event() fired but no page load occurred to run it.
+	 *
+	 * wp_schedule_single_event() is idempotent when identical (hook, args) is
+	 * already queued — WP deduplicates by (hook, args, timestamp bucket) — so
+	 * calling this repeatedly is safe.
+	 */
+	public function drain_pending(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- real-time queue drain; result must not be cached.
+		$ids = $wpdb->get_col(
+			"SELECT id FROM {$wpdb->prefix}agnosis_queue WHERE status = 'pending' ORDER BY id ASC LIMIT 50"
+		);
+
+		if ( empty( $ids ) ) {
 			return;
 		}
 
-		try {
-			$client = $this->make_client();
-			$folder = $this->get_inbox_folder( $client );
-			$this->process_messages( $folder );
-			$client->disconnect();
-		} catch ( \Throwable $e ) {
-			Logger::error( 'IMAP poll failed: ' . self::exception_chain( $e ), 'inbox' );
+		$scheduled = 0;
+		foreach ( $ids as $id ) {
+			$queue_id = (int) $id;
+			// Spread events by 1 second each so they don't all fire simultaneously.
+			wp_schedule_single_event( time() + $scheduled, 'agnosis_publish_submission', [ $queue_id ] );
+			++$scheduled;
 		}
+
+		Logger::info(
+			sprintf( 'drain_pending: scheduled %d pending row(s) for processing.', $scheduled ),
+			'inbox'
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -545,13 +584,22 @@ class Inbox {
 	private function enqueue( string $uid, array $submission ): void {
 		global $wpdb;
 
-		// Binary image data cannot survive wp_json_encode() — WordPress's UTF-8 sanitiser
-		// silently replaces non-UTF-8 bytes with replacement characters, corrupting the image.
-		// Base64-encode each attachment's binary payload before serialising to JSON.
-		foreach ( $submission['attachments'] as &$att ) {
-			if ( isset( $att['data'] ) && ( $att['encoding'] ?? '' ) !== 'base64' ) {
-				$att['data']     = base64_encode( $att['data'] );
-				$att['encoding'] = 'base64';
+		// Write each attachment binary to the agnosis-queue temp directory so the
+		// database never holds large binary payloads.  PostCreator reads the file
+		// back when it processes the row, then deletes it after upload.
+		foreach ( $submission['attachments'] as $i => &$att ) {
+			if ( isset( $att['data'] ) ) {
+				$path = AttachmentStore::store( $uid, $i, $att['filename'] ?? '', $att['data'] );
+				if ( '' !== $path ) {
+					$att['file'] = $path;
+					unset( $att['data'], $att['encoding'] );
+				} else {
+					// Store failed (disk full, permissions) — fall back to base64 so the
+					// submission is not silently lost.
+					$att['data']     = base64_encode( $att['data'] );
+					$att['encoding'] = 'base64';
+					Logger::warning( sprintf( 'AttachmentStore write failed for UID %s att %d; falling back to base64.', $uid, $i ), 'inbox' );
+				}
 			}
 		}
 		unset( $att );
@@ -660,5 +708,9 @@ class Inbox {
 		if ( false !== $deleted && $deleted > 0 ) {
 			Logger::info( sprintf( 'Cleanup: pruned %d stale queue row(s).', $deleted ), 'inbox.cleanup' );
 		}
+
+		// Sweep any orphaned temp attachment directories left by failed or
+		// permanently-stuck queue rows.
+		AttachmentStore::sweep_orphans( $days );
 	}
 }

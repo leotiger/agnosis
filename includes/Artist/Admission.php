@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -44,7 +45,7 @@ class Admission {
 		register_rest_route( 'agnosis/v1', '/admission/status/(?P<id>\d+)', [
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'status' ],
-			'permission_callback' => '__return_true',
+			'permission_callback' => [ $this, 'require_logged_in_for_status' ],
 			'args'                => [
 				'id' => [ 'type' => 'integer', 'required' => true ],
 			],
@@ -128,8 +129,18 @@ class Admission {
 		], 201 );
 	}
 
-	public function status( WP_REST_Request $request ): WP_REST_Response {
+	public function status( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$candidate_id = (int) $request->get_param( 'id' );
+		$current_id   = get_current_user_id();
+
+		// Non-admins may only read their own status.
+		if ( $candidate_id !== $current_id && ! current_user_can( 'manage_options' ) ) {
+			return new WP_Error(
+				'agnosis_forbidden',
+				__( 'You may only view your own admission status.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
+		}
 
 		return new WP_REST_Response( [
 			'user_id'          => $candidate_id,
@@ -144,13 +155,29 @@ class Admission {
 	// Permission callbacks
 	// -------------------------------------------------------------------------
 
+	public function require_logged_in_for_status(): bool|WP_Error {
+		return is_user_logged_in()
+			? true
+			: new WP_Error( 'agnosis_auth', __( 'You must be logged in.', 'agnosis' ), [ 'status' => 401 ] );
+	}
+
 	public function require_logged_in(): bool|WP_Error {
+		$rate = RateLimiter::check( 'admission_apply', 5, 60 );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
 		return is_user_logged_in()
 			? true
 			: new WP_Error( 'agnosis_auth', __( 'You must be logged in.', 'agnosis' ), [ 'status' => 401 ] );
 	}
 
 	public function require_artist(): bool|WP_Error {
+		$rate = RateLimiter::check( 'admission_vouch', 20, 60 );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
 		return $this->is_artist( get_current_user_id() )
 			? true
 			: new WP_Error( 'agnosis_not_artist', __( 'Only admitted artists can vouch.', 'agnosis' ), [ 'status' => 403 ] );
@@ -177,10 +204,37 @@ class Admission {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_vouches WHERE candidate_id = %d",
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_vouches WHERE candidate_id = %d AND revoked_at IS NULL",
 				$candidate_id
 			)
 		);
+	}
+
+	/**
+	 * Revoke a single vouch so it no longer counts toward admission.
+	 *
+	 * Does not delete the row — the history is preserved for audit purposes.
+	 * The vouch is timestamped with the revocation time and excluded from all
+	 * future `count_vouches()` calls.
+	 *
+	 * @param int $voucher_id   WordPress user ID of the vouching artist.
+	 * @param int $candidate_id WordPress user ID of the applicant.
+	 * @return bool True if a row was updated; false if the vouch was not found or already revoked.
+	 */
+	public function revoke_vouch( int $voucher_id, int $candidate_id ): bool {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table write; caching not applicable to UPDATE.
+		$rows = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_vouches
+				 SET revoked_at = %s
+				 WHERE voucher_id = %d AND candidate_id = %d AND revoked_at IS NULL",
+				current_time( 'mysql' ),
+				$voucher_id,
+				$candidate_id
+			)
+		);
+		return (bool) $rows;
 	}
 
 	private function maybe_admit( int $candidate_id ): void {

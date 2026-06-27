@@ -51,6 +51,30 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
         return json_encode( $data, $options, $depth );
     }
 }
+if ( ! function_exists( 'get_transient' ) ) {
+    /** @var array<string, mixed> $agnosis_transients */
+    $GLOBALS['agnosis_transients'] = [];
+    function get_transient( string $transient ): mixed {
+        return $GLOBALS['agnosis_transients'][ $transient ] ?? false;
+    }
+}
+if ( ! function_exists( 'set_transient' ) ) {
+    function set_transient( string $transient, mixed $value, int $expiration = 0 ): bool {
+        $GLOBALS['agnosis_transients'][ $transient ] = $value;
+        return true;
+    }
+}
+if ( ! function_exists( 'delete_transient' ) ) {
+    function delete_transient( string $transient ): bool {
+        unset( $GLOBALS['agnosis_transients'][ $transient ] );
+        return true;
+    }
+}
+if ( ! function_exists( 'wp_unslash' ) ) {
+    function wp_unslash( mixed $value ): mixed {
+        return is_array( $value ) ? array_map( 'wp_unslash', $value ) : stripslashes( (string) $value );
+    }
+}
 if ( ! function_exists( 'sanitize_text_field' ) ) {
     function sanitize_text_field( string $str ): string { return trim( $str ); }
 }

@@ -34,10 +34,10 @@ class ActivityPub {
 		register_rest_route( 'agnosis/v1', '/activitypub/actor',     array_merge( $args, [ 'methods' => 'GET',  'callback' => [ $this, 'actor'     ] ] ) );
 		register_rest_route( 'agnosis/v1', '/activitypub/outbox',    array_merge( $args, [ 'methods' => 'GET',  'callback' => [ $this, 'outbox'    ] ] ) );
 		register_rest_route( 'agnosis/v1', '/activitypub/followers', array_merge( $args, [ 'methods' => 'GET',  'callback' => [ $this, 'followers' ] ] ) );
-		register_rest_route( 'agnosis/v1', '/activitypub/inbox',     [
+		register_rest_route( 'agnosis/v1', '/activitypub/inbox', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'inbox' ],
-			'permission_callback' => '__return_true',
+			'permission_callback' => [ $this, 'verify_inbox_signature' ],
 		] );
 
 		// WebFinger.
@@ -88,6 +88,7 @@ class ActivityPub {
 			'offset'         => ( $page - 1 ) * $limit,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
+			'no_found_rows'  => true,
 		] );
 
 		$items = array_map( [ $this, 'post_to_activity' ], $posts );
@@ -106,6 +107,20 @@ class ActivityPub {
 	// -------------------------------------------------------------------------
 	// Inbox — receive Follow, Like, Announce
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Permission callback for POST /activitypub/inbox.
+	 *
+	 * Verifies the HTTP Signature carried in the incoming request before the
+	 * inbox() callback has a chance to mutate any state.  Returns WP_Error on
+	 * failure so WordPress sends the appropriate 4xx without running inbox().
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return true|WP_Error
+	 */
+	public function verify_inbox_signature( WP_REST_Request $request ): true|WP_Error {
+		return HttpSignature::verify( $request );
+	}
 
 	public function inbox( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$body = $request->get_json_params();

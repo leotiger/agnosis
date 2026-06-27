@@ -20,6 +20,28 @@ class GalleryOverview {
 	// ──────────────────────────────────────────────────────────────────────────
 
 	/**
+	 * Flush the artist-IDs object-cache entry whenever an artwork is published
+	 * or trashed, so the gallery never serves a stale empty list.
+	 *
+	 * Hooked to 'transition_post_status'.
+	 *
+	 * @param string   $new_status New post status.
+	 * @param string   $old_status Old post status.
+	 * @param \WP_Post $post       Post object.
+	 */
+	public function flush_artist_cache( string $new_status, string $old_status, \WP_Post $post ): void {
+		if ( 'agnosis_artwork' !== $post->post_type ) {
+			return;
+		}
+		// Only act when publish/trash boundary is crossed.
+		$affected = [ 'publish', 'trash' ];
+		if ( ! in_array( $new_status, $affected, true ) && ! in_array( $old_status, $affected, true ) ) {
+			return;
+		}
+		wp_cache_delete( 'agnosis_gallery_artist_ids', 'agnosis_gallery' );
+	}
+
+	/**
 	 * Register the agnosis/gallery-overview block.
 	 * Called on 'init'.
 	 */
@@ -42,6 +64,22 @@ class GalleryOverview {
 	 * @return string Rendered HTML.
 	 */
 	public function render_block( array $attributes ): string {
+		// Enqueue the WP Interactivity API view module that powers the core/image
+		// lightbox store (showLightbox action, setButtonStyles callback, etc.).
+		wp_enqueue_script_module( '@wordpress/block-library/image/view' );
+
+		// Enqueue the core image block stylesheet — provides .wp-lightbox-container,
+		// .lightbox-trigger button, and .wp-lightbox-overlay styles.
+		wp_enqueue_style( 'wp-block-image' );
+
+		// Print the WP lightbox overlay <div> into wp_footer exactly once.
+		// block_core_image_print_lightbox_overlay() is defined by WP when the
+		// core/image block is registered (wp-includes/blocks/image.php).
+		if ( function_exists( 'block_core_image_print_lightbox_overlay' )
+			&& ! has_action( 'wp_footer', 'block_core_image_print_lightbox_overlay' ) ) {
+			add_action( 'wp_footer', 'block_core_image_print_lightbox_overlay' );
+		}
+
 		ob_start();
 		include \AGNOSIS_DIR . 'blocks/gallery-overview/render.php';
 		return (string) ob_get_clean();

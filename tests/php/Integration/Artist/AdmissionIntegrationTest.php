@@ -156,20 +156,21 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 	// Status endpoint
 	// -------------------------------------------------------------------------
 
-	public function test_status_endpoint_is_public(): void {
+	public function test_status_endpoint_requires_auth(): void {
 		$applicant = $this->create_applicant();
 		wp_set_current_user( 0 ); // not logged in
 
 		$response = $this->rest_get( "/agnosis/v1/admission/status/$applicant" );
 
-		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	public function test_status_reflects_applied_state(): void {
 		$applicant = $this->create_applicant();
 		update_user_meta( $applicant, '_agnosis_applied', current_time( 'mysql' ) );
 
-		$response = $this->rest_get( "/agnosis/v1/admission/status/$applicant" );
+		// Must be logged in as the applicant to read own status.
+		$response = $this->rest_get( "/agnosis/v1/admission/status/$applicant", $applicant );
 		$data     = $response->get_data();
 
 		$this->assertTrue( $data['has_applied'] );

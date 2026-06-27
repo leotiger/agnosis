@@ -126,6 +126,7 @@ class InboxPage {
 									'posts_per_page' => 1,
 									'post_status'    => 'any',
 									'fields'         => 'ids',
+									'no_found_rows'  => true,
 								] );
 								if ( ! empty( $linked ) ) {
 									$wp_post = get_post( (int) $linked[0] );
@@ -417,6 +418,7 @@ class InboxPage {
 				'posts_per_page' => 1,
 				'post_status'    => 'any',
 				'fields'         => 'ids',
+				'no_found_rows'  => true,
 			] );
 			if ( ! empty( $posts ) ) {
 				$post_id = (int) $posts[0];
@@ -532,5 +534,34 @@ class InboxPage {
 			filter:brightness(0) saturate(100%) invert(52%) sepia(60%) saturate(500%) hue-rotate(220deg);
 		}
 		';
+	}
+
+	// -------------------------------------------------------------------------
+	// admin_post handler
+	// -------------------------------------------------------------------------
+
+	/** admin_post handler — test IMAP connection and report status. */
+	public function handle_test_inbox(): void {
+		check_admin_referer( 'agnosis_test_inbox' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$inbox  = new \Agnosis\Email\Inbox();
+		$result = $inbox->test_connection();
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'page'          => 'agnosis-settings',
+					'tab'           => 'email',
+					'inbox_test'    => $result['ok'] ? 'ok' : 'fail',
+					'inbox_message' => rawurlencode( $result['message'] ),
+				],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
 	}
 }

@@ -50,6 +50,12 @@ class LinguaForge {
 	// -------------------------------------------------------------------------
 
 	public function __construct() {
+		// Compat notice runs regardless of whether LF is fully active — it needs
+		// to warn admins even when LF is installed but misconfigured.
+		if ( is_admin() ) {
+			add_action( 'admin_notices', [ $this, 'compatibility_notices' ] );
+		}
+
 		if ( ! $this->is_active() ) {
 			return;
 		}
@@ -247,5 +253,77 @@ class LinguaForge {
 	private function locale_to_lang( string $locale ): string {
 		// LF typically uses two-letter primary subtags ("en", "de", "es", "fr"…).
 		return strtolower( explode( '_', $locale )[0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Admin notices
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Show a blocking admin notice when LinguaForge is active in subdomain
+	 * routing mode.
+	 *
+	 * In that configuration both plugins compete for the same subdomain
+	 * namespace: LF expects language subdomains (en.agnosis.art) while Agnosis
+	 * expects artist subdomains (artistx.agnosis.art). Artist subdomain routing
+	 * is completely disabled until the conflict is resolved.
+	 *
+	 * Only shown when a base domain has been configured — if the admin hasn't
+	 * set one yet there is nothing to conflict with.
+	 */
+	public function compatibility_notices(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Only relevant when artist subdomains are intended (base domain set).
+		if ( ! get_option( 'agnosis_base_domain' ) ) {
+			return;
+		}
+
+		// Check LinguaForge routing mode.
+		if (
+			! defined( 'LINGUAFORGE_VERSION' ) ||
+			'subdomain' !== (string) get_option( 'linguaforge_routing_mode', 'path' )
+		) {
+			return;
+		}
+
+		$lf_settings_url = admin_url( 'admin.php?page=linguaforge-settings' );
+
+		// Build the body as separate escaped fragments — i18n requires single
+		// string literals; HTML-heavy technical notices are split by sentence.
+		$body =
+			'<strong>LinguaForge</strong> '
+			. esc_html__( 'is active and configured for', 'agnosis' )
+			. ' <strong>' . esc_html__( 'Subdomain', 'agnosis' ) . '</strong> '
+			. esc_html__( 'routing mode', 'agnosis' )
+			. ' (<code>linguaforge_routing_mode = subdomain</code>). '
+			. esc_html__( 'This conflicts with Agnosis artist subdomains — both plugins would claim the same subdomain namespace.', 'agnosis' )
+			. ' ' . esc_html__( 'Artist subdomain routing is', 'agnosis' )
+			. ' <strong>' . esc_html__( 'completely inactive', 'agnosis' ) . '</strong> '
+			. esc_html__( 'until this is resolved.', 'agnosis' )
+			. '<br><br>'
+			. esc_html__( 'Fix: open', 'agnosis' )
+			. ' <strong>LinguaForge &rarr; ' . esc_html__( 'Settings', 'agnosis' ) . ' &rarr; ' . esc_html__( 'Language Router', 'agnosis' ) . '</strong> '
+			. esc_html__( 'and switch the URL strategy to', 'agnosis' )
+			. ' <strong>' . esc_html__( 'Path prefix (subfolder)', 'agnosis' ) . '</strong>. '
+			. esc_html__( 'This is the LinguaForge default and allows artist subdomains to coexist with language subfolders', 'agnosis' )
+			. ' (e.g. <code>artistx.' . esc_html( (string) get_option( 'agnosis_base_domain' ) ) . '/en/</code>).';
+
+		printf(
+			'<div class="notice notice-error"><p><strong>%s</strong></p><p>%s</p><p><a href="%s" class="button button-primary">%s</a></p></div>',
+			esc_html__( 'Agnosis — Artist Subdomain Routing is disabled', 'agnosis' ),
+			wp_kses(
+				$body,
+				[
+					'strong' => [],
+					'code'   => [],
+					'br'     => [],
+				]
+			),
+			esc_url( $lf_settings_url ),
+			esc_html__( 'Open LinguaForge Settings', 'agnosis' )
+		);
 	}
 }

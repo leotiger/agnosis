@@ -111,9 +111,15 @@ class Notification {
 	 * @return string HTML email body.
 	 */
 	private function build_removal_email( \WP_Post $post, string $artist_name, string $token ): string {
+		// Frontend shim — token stays out of REST logs / browser history.
 		$confirm_url = add_query_arg(
-			[ 'token' => $token ],
-			rest_url( 'agnosis/v1/removal/' . $post->ID . '/confirm' )
+			[
+				'agnosis_review' => '1',
+				'id'             => $post->ID,
+				'action'         => 'remove',
+				'token'          => $token,
+			],
+			home_url( '/' )
 		);
 
 		$site_name = esc_html( get_bloginfo( 'name' ) );
@@ -380,9 +386,18 @@ class Notification {
 	 * @return string Full URL.
 	 */
 	private function action_url( int $post_id, string $action, string $token ): string {
+		// Link to the frontend shim instead of directly to the REST endpoint.
+		// The shim processes the token server-side via rest_do_request() and
+		// redirects to a clean URL — keeping the token out of REST access logs,
+		// browser history, and Referer headers.  See ReviewConfirm.
 		return add_query_arg(
-			[ 'token' => $token ],
-			rest_url( 'agnosis/v1/review/' . $post_id . '/' . $action )
+			[
+				'agnosis_review' => '1',
+				'id'             => $post_id,
+				'action'         => $action,
+				'token'          => $token,
+			],
+			home_url( '/' )
 		);
 	}
 

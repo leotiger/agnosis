@@ -38,7 +38,7 @@ class ReviewEndpoints {
 		register_rest_route( 'agnosis/v1', '/review/(?P<id>\d+)', [
 			'methods'             => 'PUT',
 			'callback'            => [ $this, 'save' ],
-			'permission_callback' => '__return_true',
+			'permission_callback' => [ $this, 'check_permission' ],
 			'args'                => array_merge( $id_arg, [
 				'title'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
 				'excerpt' => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_textarea_field' ],
@@ -51,14 +51,14 @@ class ReviewEndpoints {
 		register_rest_route( 'agnosis/v1', '/review/(?P<id>\d+)/approve', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'approve' ],
-			'permission_callback' => '__return_true',
+			'permission_callback' => [ $this, 'check_permission' ],
 			'args'                => $id_arg,
 		] );
 
 		register_rest_route( 'agnosis/v1', '/review/(?P<id>\d+)/reject', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'reject' ],
-			'permission_callback' => '__return_true',
+			'permission_callback' => [ $this, 'check_permission' ],
 			'args'                => $id_arg,
 		] );
 	}
@@ -278,6 +278,30 @@ class ReviewEndpoints {
 	 * @param int             $post_id The artwork post ID.
 	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
+	/**
+	 * REST permission gate — called before the route callback.
+	 *
+	 * Accepts the request if a token is present (will be verified inside the
+	 * callback) OR the user is already authenticated. Returning WP_Error here
+	 * ensures the route is unreachable even if check_access() has a logic bug.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return true|WP_Error
+	 */
+	public function check_permission( WP_REST_Request $request ): true|WP_Error {
+		if ( ! empty( sanitize_text_field( (string) $request->get_param( 'token' ) ) ) ) {
+			return true; // Token path — verified inside the callback.
+		}
+		if ( is_user_logged_in() ) {
+			return true; // Auth path — specific permissions verified inside the callback.
+		}
+		return new WP_Error(
+			'agnosis_auth_required',
+			__( 'Authentication required.', 'agnosis' ),
+			[ 'status' => 401 ]
+		);
+	}
+
 	private function check_access( WP_REST_Request $request, int $post_id ): true|WP_Error {
 		// Path 1 — token from query string (email link).
 		$token = sanitize_text_field( (string) $request->get_param( 'token' ) );

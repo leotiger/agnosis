@@ -39,7 +39,7 @@ class RemovalEndpoints {
 			[
 				'methods'             => \WP_REST_Server::CREATABLE, // POST
 				'callback'            => [ $this, 'confirm' ],
-				'permission_callback' => '__return_true', // token-gated, no cookie auth needed
+				'permission_callback' => [ $this, 'check_permission' ],
 				'args'                => [
 					'id'    => [
 						'required'          => true,
@@ -134,6 +134,31 @@ class RemovalEndpoints {
 	 * @param string $supplied_token Token from the request query string.
 	 * @return true|\WP_Error True on success, WP_Error on failure.
 	 */
+	/**
+	 * REST permission gate — called before the route callback.
+	 *
+	 * The removal endpoint is token-only (no cookie auth path). Returning
+	 * WP_Error here provides a hard outer boundary so the confirm() callback
+	 * is unreachable without a token, even if verify_token() has a logic bug.
+	 *
+	 * Note: 'token' is also declared required in the route args, so WP will
+	 * reject missing tokens before this callback fires. This method handles
+	 * the case where the arg is present but empty after sanitisation.
+	 *
+	 * @param \WP_REST_Request $request Incoming request.
+	 * @return true|\WP_Error
+	 */
+	public function check_permission( \WP_REST_Request $request ): true|\WP_Error {
+		if ( ! empty( sanitize_text_field( (string) $request->get_param( 'token' ) ) ) ) {
+			return true; // Verified inside confirm() via verify_token().
+		}
+		return new \WP_Error(
+			'agnosis_auth_required',
+			__( 'A valid removal token is required.', 'agnosis' ),
+			[ 'status' => 401 ]
+		);
+	}
+
 	private function verify_token( int $post_id, string $supplied_token ): true|\WP_Error {
 		$stored_token = (string) get_post_meta( $post_id, '_agnosis_removal_token', true );
 		$expiry       = (int) get_post_meta( $post_id, '_agnosis_removal_expiry', true );
