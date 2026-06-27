@@ -32,16 +32,10 @@ class Activator {
 			 AND column_name  = 'post_id'"
 		);
 		if ( ! $has_post_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query(
-				"ALTER TABLE {$wpdb->prefix}agnosis_queue
-				 ADD COLUMN post_id BIGINT UNSIGNED DEFAULT NULL AFTER artist_id"
-			);
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-			$wpdb->query(
-				"ALTER TABLE {$wpdb->prefix}agnosis_queue
-				 ADD INDEX idx_post_id (post_id)"
-			);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- dbDelta() silently skips new columns on CURRENT_TIMESTAMP tables; ALTER TABLE is the only reliable path.
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue ADD COLUMN post_id BIGINT UNSIGNED DEFAULT NULL AFTER artist_id" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue ADD INDEX idx_post_id (post_id)" );
 		}
 
 		self::create_tables();

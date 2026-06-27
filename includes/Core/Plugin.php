@@ -214,8 +214,7 @@ class Plugin {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$queue_id = (int) ( $_POST['queue_id'] ?? 0 );
+		$queue_id = isset( $_POST['queue_id'] ) ? absint( wp_unslash( $_POST['queue_id'] ) ) : 0;
 
 		if ( $queue_id > 0 ) {
 			// Reset status to 'pending' so handle() picks it up (it checks for pending rows).
@@ -250,12 +249,11 @@ class Plugin {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$queue_id = (int) ( $_POST['queue_id'] ?? 0 );
+		$queue_id = isset( $_POST['queue_id'] ) ? absint( wp_unslash( $_POST['queue_id'] ) ) : 0;
 
 		if ( $queue_id > 0 ) {
 			global $wpdb;
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->delete( $wpdb->prefix . 'agnosis_queue', [ 'id' => $queue_id ], [ '%d' ] );
 		}
 

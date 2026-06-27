@@ -5,6 +5,23 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.1.7] — 2026-06-27
+
+### Fixed
+- **`agnosis/gallery-overview` block not rendering in FSE template** — block was registered with `"render": "file:./render.php"` in `block.json`, which routes output through WordPress's own `ob_start()/ob_get_clean()` wrapper. Our `render.php` also used `ob_start()/return ob_get_clean()`, creating nested buffering: our inner buffer captured the HTML while WP's outer buffer saw nothing, causing the block to emit an empty string. Fix: removed the `"render"` key from `block.json` and replaced it with a PHP `render_callback` (`GalleryOverview::render_block()`) that owns the `ob_start()/ob_get_clean()` pair and `include`s `render.php` directly. `render.php` now outputs HTML directly; early exits use bare `return`
+- **`editor.js` used ES module imports and JSX** — the file required a bundler (webpack/esbuild) to run but no build step existed; WordPress would reject the raw file in the block editor. Rewrote as an IIFE using `window.wp.*` globals (`wp.blocks`, `wp.element`, `wp.blockEditor`, `wp.components`, `wp.i18n`) — identical pattern to the project's other blocks; no build step needed
+- **Plugin Check: `InputNotSanitized` on `$_GET`/`$_POST` reads** — `(int)` cast is not on WPCS's recognised sanitisation function list; replaced all affected reads with `absint( wp_unslash( ... ) )` (`queue_id`, `reprocessed`, `enqueued`, `polled` in `InboxPage` and `Plugin`)
+- **Plugin Check: `NoCaching` on gallery-overview direct DB query** — `phpcs:ignore` comment was missing `NoCaching`; added alongside the existing `DirectQuery` suppression (result is cached via `wp_cache_set()` immediately after)
+- **Plugin Check: `SchemaChange` on `ALTER TABLE` in `Activator`** — `phpcs:ignore` only covered the `$wpdb->query(` line; `SchemaChange` fires on the SQL string line. Collapsed each call to a single line so one ignore comment covers the whole statement
+- **Plugin Check: `NonPrefixedVariableFound`** in `render.php` — replaced suppression (`phpcs:disable`) with proper `agnosis_`-prefixed variable names throughout the entire file
+- **Plugin Check: `missing_direct_file_access_protection`** in `render.php` — added `if ( ! defined( 'ABSPATH' ) ) exit;` guard
+- **Plugin Check: `OutputNotEscaped` on `$columns`** — changed to `(int) $agnosis_columns`
+- **Plugin Check: `srand()` discouraged / `date()` timezone-unsafe** — replaced `srand() + shuffle()` with a `usort()` using `crc32()` as the sort key (stable daily order without PRNG state); replaced `date()` with `gmdate()`
+- **Plugin Check: `$_GET` inputs missing `wp_unslash()`** — `agnosis_medium` and `agnosis_overview_page` now go through `wp_unslash()` before sanitisation
+- **Plugin Check: heredoc syntax** in `Settings::ai_test_js()` and `PostCreator::find_duplicate_post()` — converted to `sprintf()` string construction
+- **Plugin Check: `$_SERVER['HTTP_HOST']` missing `wp_unslash()`** in `SubdomainRouter` — now uses `sanitize_text_field( wp_unslash( ... ) )`
+- **Plugin Check: `INSERT IGNORE` `NoCaching` in `Inbox`** — added `NoCaching` to existing phpcs:ignore
+
 ## [0.1.6] — 2026-06-27
 
 ### Added
@@ -124,6 +141,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Dev tooling: PHPUnit 9.6 unit + integration suites, PHPCS (WordPress Coding Standards), PHPStan, pcov coverage pipeline (`composer coverage`), `wp-env` integration environment
 - Combined Clover coverage report via `phpunit/phpcov` merge
 
+[0.1.7]: https://github.com/agnosis/agnosis/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/agnosis/agnosis/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/agnosis/agnosis/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/agnosis/agnosis/compare/v0.1.2...v0.1.4

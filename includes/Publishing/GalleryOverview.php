@@ -24,7 +24,27 @@ class GalleryOverview {
 	 * Called on 'init'.
 	 */
 	public function register_block(): void {
-		register_block_type( \AGNOSIS_DIR . 'blocks/gallery-overview' );
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/gallery-overview',
+			[ 'render_callback' => [ $this, 'render_block' ] ]
+		);
+	}
+
+	/**
+	 * Server-side render callback for the agnosis/gallery-overview block.
+	 *
+	 * Includes render.php in an output buffer and returns the captured HTML.
+	 * Using a PHP render_callback (rather than block.json "render": "file:...")
+	 * avoids conflicts with WordPress's own output-buffer wrapper and works
+	 * across all supported WordPress versions.
+	 *
+	 * @param array<string, mixed> $attributes Block attributes from the editor.
+	 * @return string Rendered HTML.
+	 */
+	public function render_block( array $attributes ): string {
+		ob_start();
+		include \AGNOSIS_DIR . 'blocks/gallery-overview/render.php';
+		return (string) ob_get_clean();
 	}
 
 	// ──────────────────────────────────────────────────────────────────────────

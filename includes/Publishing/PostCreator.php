@@ -420,18 +420,22 @@ class PostCreator {
 		}
 
 		$list   = implode( "\n", $candidates );
-		$prompt = <<<PROMPT
-An artist submitted an artwork via email.
-Email subject: "{$subject}"
-AI-generated title: "{$new_title}"
-AI-generated tags: {$new_tags}
-
-Recent artwork posts from the same artist (last 30 days):
-{$list}
-
-Is this submission the same artwork as one of the above posts — including if the subject is misspelled, slightly reworded, or ~90% similar?
-Reply with ONLY the matching post ID number (e.g. "42"), or "0" if this is a genuinely new artwork. No explanation.
-PROMPT;
+		$prompt = sprintf(
+			"An artist submitted an artwork via email.\n"
+			. "Email subject: \"%s\"\n"
+			. "AI-generated title: \"%s\"\n"
+			. "AI-generated tags: %s\n"
+			. "\n"
+			. "Recent artwork posts from the same artist (last 30 days):\n"
+			. "%s\n"
+			. "\n"
+			. "Is this submission the same artwork as one of the above posts — including if the subject is misspelled, slightly reworded, or ~90%% similar?\n"
+			. 'Reply with ONLY the matching post ID number (e.g. "42"), or "0" if this is a genuinely new artwork. No explanation.',
+			$subject,
+			$new_title,
+			$new_tags,
+			$list
+		);
 
 		$response = $this->pipeline->chat( $prompt );
 		$post_id  = (int) preg_replace( '/\D/', '', $response );

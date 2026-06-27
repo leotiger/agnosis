@@ -70,7 +70,7 @@ class SubdomainRouter {
 			return;
 		}
 
-		$host = strtolower( trim( (string) ( $_SERVER['HTTP_HOST'] ?? '' ) ) );
+		$host = strtolower( trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ?? '' ) ) ) );
 		// Strip port if present (e.g. localhost:8080).
 		$host = (string) preg_replace( '/:\d+$/', '', $host );
 

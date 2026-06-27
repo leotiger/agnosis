@@ -565,7 +565,7 @@ class Inbox {
 		// INSERT IGNORE — silently skips on UNIQUE KEY collision (row already exists from
 		// a previous poll). We fetch the row's ID afterward whether it was just inserted
 		// or already present. This makes enqueue() fully idempotent.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction; INSERT IGNORE is inherently uncacheable.
 		$wpdb->query(
 			$wpdb->prepare(
 				"INSERT IGNORE INTO {$wpdb->prefix}agnosis_queue (message_uid, artist_id, raw_email, status)

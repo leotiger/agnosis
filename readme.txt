@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,11 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.1.7 =
+* Fixed gallery-overview block not rendering in FSE template — output-buffer conflict between render.php and WP's block wrapper; switched to PHP render_callback
+* Rewrote editor.js as IIFE (window.wp.* globals) — no build step required
+* Fixed all remaining Plugin Check warnings: absint() sanitisation, SchemaChange suppression, ABSPATH guard, prefixed variables, heredoc → sprintf, wp_unslash() on superglobals
 
 = 0.1.6 =
 * Dedicated email endpoints — submit@, bio@, event@, replace@, remove@ — routing by To: header

@@ -287,7 +287,7 @@ class InboxPage {
 				. '</p></div>';
 		}
 		if ( isset( $_GET['processed_one'] ) ) {
-			$qid = (int) ( $_GET['queue_id'] ?? 0 );
+			$qid = isset( $_GET['queue_id'] ) ? absint( wp_unslash( $_GET['queue_id'] ) ) : 0;
 			echo '<div class="notice notice-success is-dismissible"><p>'
 				. esc_html( sprintf(
 					/* translators: %d: queue row ID */
@@ -297,7 +297,7 @@ class InboxPage {
 				. '</p></div>';
 		}
 		if ( isset( $_GET['polled'] ) ) {
-			$n = (int) $_GET['polled'];
+			$n = absint( wp_unslash( $_GET['polled'] ) );
 			echo '<div class="notice notice-success is-dismissible"><p>'
 				. esc_html( sprintf(
 					/* translators: %d: new messages enqueued */
@@ -307,8 +307,8 @@ class InboxPage {
 				. '</p></div>';
 		}
 		if ( isset( $_GET['reprocessed'] ) ) {
-			$reset    = (int) $_GET['reprocessed'];
-			$enqueued = (int) ( $_GET['enqueued'] ?? 0 );
+			$reset    = absint( wp_unslash( $_GET['reprocessed'] ) );
+			$enqueued = isset( $_GET['enqueued'] ) ? absint( wp_unslash( $_GET['enqueued'] ) ) : 0;
 			echo '<div class="notice notice-success is-dismissible"><p>'
 				. esc_html( sprintf(
 					/* translators: 1: rows reset 2: newly enqueued */

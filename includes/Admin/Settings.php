@@ -760,38 +760,39 @@ class Settings {
 
 	private function ai_test_js(): string {
 		$ajax_url = esc_js( admin_url( 'admin-ajax.php' ) );
-		return <<<JS
-document.addEventListener('click', function(e) {
-	var btn = e.target.closest('.agnosis-test-ai');
-	if (!btn) return;
-	var provider = btn.dataset.provider;
-	var nonce    = btn.dataset.nonce;
-	var result   = document.querySelector('.agnosis-test-result[data-provider="' + provider + '"]');
-	if (!result) return;
-
-	btn.disabled = true;
-	result.style.color = '#666';
-	result.textContent = 'Testing…';
-
-	var body = new URLSearchParams({ action: 'agnosis_test_ai', provider: provider, nonce: nonce });
-	fetch('{$ajax_url}', { method: 'POST', credentials: 'same-origin', body: body })
-		.then(function(r) { return r.json(); })
-		.then(function(res) {
-			if (res && res.success) {
-				result.style.color = '#0a7c48';
-				result.textContent = '✓ ' + ((res.data && res.data.message) || 'OK');
-			} else {
-				result.style.color = '#c0392b';
-				result.textContent = '✗ ' + ((res.data && res.data.message) || 'Request failed');
-			}
-		})
-		.catch(function() {
-			result.style.color = '#c0392b';
-			result.textContent = '✗ Request failed';
-		})
-		.finally(function() { btn.disabled = false; });
-});
-JS;
+		return sprintf(
+			"document.addEventListener('click', function(e) {\n"
+			. "\tvar btn = e.target.closest('.agnosis-test-ai');\n"
+			. "\tif (!btn) return;\n"
+			. "\tvar provider = btn.dataset.provider;\n"
+			. "\tvar nonce    = btn.dataset.nonce;\n"
+			. "\tvar result   = document.querySelector('.agnosis-test-result[data-provider=\"' + provider + '\"]');\n"
+			. "\tif (!result) return;\n"
+			. "\n"
+			. "\tbtn.disabled = true;\n"
+			. "\tresult.style.color = '#666';\n"
+			. "\tresult.textContent = 'Testing…';\n"
+			. "\n"
+			. "\tvar body = new URLSearchParams({ action: 'agnosis_test_ai', provider: provider, nonce: nonce });\n"
+			. "\tfetch('%s', { method: 'POST', credentials: 'same-origin', body: body })\n"
+			. "\t\t.then(function(r) { return r.json(); })\n"
+			. "\t\t.then(function(res) {\n"
+			. "\t\t\tif (res && res.success) {\n"
+			. "\t\t\t\tresult.style.color = '#0a7c48';\n"
+			. "\t\t\t\tresult.textContent = '✓ ' + ((res.data && res.data.message) || 'OK');\n"
+			. "\t\t\t} else {\n"
+			. "\t\t\t\tresult.style.color = '#c0392b';\n"
+			. "\t\t\t\tresult.textContent = '✗ ' + ((res.data && res.data.message) || 'Request failed');\n"
+			. "\t\t\t}\n"
+			. "\t\t})\n"
+			. "\t\t.catch(function() {\n"
+			. "\t\t\tresult.style.color = '#c0392b';\n"
+			. "\t\t\tresult.textContent = '✗ Request failed';\n"
+			. "\t\t})\n"
+			. "\t\t.finally(function() { btn.disabled = false; });\n"
+			. '});',
+			$ajax_url
+		);
 	}
 
 	private function admin_css(): string {
