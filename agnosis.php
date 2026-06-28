@@ -3,8 +3,8 @@
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
  * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
- * Version:           0.1.8
- * Requires at least: 6.4
+ * Version:           0.1.9
+ * Requires at least: 6.6
  * Requires PHP:      8.1
  * Author:            Agnosis Network
  * Author URI:        https://agnosis.art
@@ -26,13 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AGNOSIS_VERSION', '0.1.8' );
+define( 'AGNOSIS_VERSION', '0.1.9' );
 define( 'AGNOSIS_FILE', __FILE__ );
 define( 'AGNOSIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGNOSIS_URL', plugin_dir_url( __FILE__ ) );
 define( 'AGNOSIS_BASENAME', plugin_basename( __FILE__ ) );
 define( 'AGNOSIS_MIN_PHP', '8.1' );
-define( 'AGNOSIS_MIN_WP', '6.4' );
+define( 'AGNOSIS_MIN_WP', '6.6' );
 
 // Autoloader.
 if ( file_exists( AGNOSIS_DIR . 'vendor/autoload.php' ) ) {

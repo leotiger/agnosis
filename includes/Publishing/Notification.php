@@ -418,6 +418,223 @@ class Notification {
 		return (string) get_permalink( $page_id );
 	}
 
+	// -------------------------------------------------------------------------
+	// Submission rejection
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hook callback for 'agnosis_submission_rejected'.
+	 *
+	 * Sends the artist a friendly rejection email explaining the photo quality
+	 * issue in plain language and giving specific, actionable advice so they
+	 * can resubmit with a better photograph.
+	 *
+	 * @param int      $queue_id  Queue row ID (used only for logging).
+	 * @param int      $artist_id WordPress user ID.
+	 * @param int      $score     Detected photo quality score (1–10).
+	 * @param string[] $issues    Issue labels returned by the vision AI.
+	 */
+	public function on_submission_rejected( int $queue_id, int $artist_id, int $score, array $issues ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$subject = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] We couldn\'t process your submission', 'agnosis' ),
+			get_bloginfo( 'name' )
+		);
+
+		$body = $this->build_rejection_email( $artist->display_name, $score, $issues );
+
+		wp_mail(
+			$artist->user_email,
+			$subject,
+			$body,
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			]
+		);
+	}
+
+	/**
+	 * Map a list of AI-detected quality issues to actionable advice sentences.
+	 *
+	 * Each issue label is matched (case-insensitive substring) against the
+	 * known patterns. Unrecognised issues are included verbatim as a fallback.
+	 *
+	 * @param string[] $issues Issue labels from the vision AI.
+	 * @return string[] Corresponding human-readable advice sentences.
+	 */
+	private function issues_to_advice( array $issues ): array {
+		$advice = [];
+
+		$map = [
+			// Lighting
+			'dark'         => __( 'The photo is too dark to show your artwork clearly. Try photographing near a large window in daylight, or use a soft lamp aimed at the work from the side.', 'agnosis' ),
+			'underexpos'   => __( 'The photo is underexposed (too dark). Try photographing near a large window in daylight, or use a soft lamp aimed at the work from the side.', 'agnosis' ),
+			'overexpos'    => __( 'The photo is overexposed (too bright / washed out). Avoid direct sunlight or flash pointed straight at the artwork — diffuse or indirect light works best.', 'agnosis' ),
+			'bright'       => __( 'The photo is too bright or washed out. Avoid direct sunlight or flash — diffuse light or shade gives more even tones.', 'agnosis' ),
+			'glare'        => __( 'There is glare or a bright reflection on the artwork. Tilt the canvas slightly or photograph at an angle to eliminate reflections from the surface.', 'agnosis' ),
+			'reflection'   => __( 'There is a reflection on the artwork surface. Tilt the canvas slightly or change your angle to eliminate it.', 'agnosis' ),
+			// Sharpness
+			'blur'         => __( 'The image is blurry. Rest your phone or camera on a stable surface, use the self-timer, and make sure the artwork fills most of the frame so autofocus locks on it.', 'agnosis' ),
+			'focus'        => __( 'The image is out of focus. Tap on the artwork on your phone screen before shooting to make sure autofocus locks on it, and hold the camera still.', 'agnosis' ),
+			'motion'       => __( 'There is motion blur. Hold the camera very still or use a tripod; press the shutter gently or use the self-timer to avoid shake.', 'agnosis' ),
+			'shake'        => __( 'Camera shake is visible. Use a tripod or rest the camera on a flat surface and use the self-timer to avoid movement when pressing the shutter.', 'agnosis' ),
+			// Resolution / detail
+			'resolution'   => __( 'The image resolution is too low. Use your phone\'s highest quality setting and make sure you\'re close enough that the artwork fills the frame.', 'agnosis' ),
+			'low res'      => __( 'The image resolution is too low. Use your phone\'s highest quality setting and fill the frame with the artwork.', 'agnosis' ),
+			'pixelat'      => __( 'The image is pixelated. Shoot from closer or use a higher resolution setting on your camera.', 'agnosis' ),
+			// Colour / white balance
+			'colour cast'  => __( 'The photo has a strong colour cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colours.', 'agnosis' ),
+			'color cast'   => __( 'The photo has a strong colour cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colours.', 'agnosis' ),
+			'yellow'       => __( 'The photo looks too yellow or warm. Shoot under natural daylight or switch your phone\'s white balance to Daylight / Cloudy.', 'agnosis' ),
+			'blue'         => __( 'The photo has a cold blue tint. Move the artwork to a warmer, more natural light source or adjust your camera\'s white balance.', 'agnosis' ),
+			// Composition
+			'cropped'      => __( 'Part of the artwork appears to be cropped out of the frame. Step back and make sure the entire work is visible before shooting.', 'agnosis' ),
+			'angle'        => __( 'The artwork is photographed at an angle, causing distortion. Shoot straight on, with the camera parallel to the canvas.', 'agnosis' ),
+			'distort'      => __( 'The artwork looks distorted or skewed. Position your camera directly in front of the artwork, parallel to its surface.', 'agnosis' ),
+			'shadow'       => __( 'There is a shadow across part of the artwork. Reposition your light source or move the artwork so no shadows fall on the surface.', 'agnosis' ),
+		];
+
+		foreach ( $issues as $issue ) {
+			$matched = false;
+			$lower   = strtolower( $issue );
+			foreach ( $map as $keyword => $sentence ) {
+				if ( str_contains( $lower, $keyword ) ) {
+					if ( ! in_array( $sentence, $advice, true ) ) {
+						$advice[] = $sentence;
+					}
+					$matched = true;
+					break;
+				}
+			}
+			if ( ! $matched ) {
+				// Unknown issue — include it verbatim so the artist still has context.
+				$advice[] = esc_html( ucfirst( $issue ) ) . '.';
+			}
+		}
+
+		return $advice;
+	}
+
+	/**
+	 * Build the HTML rejection email body.
+	 *
+	 * @param string   $artist_name Artist's display name.
+	 * @param int      $score       Quality score (1–10).
+	 * @param string[] $issues      Issue labels from the vision AI.
+	 * @return string HTML email body.
+	 */
+	private function build_rejection_email( string $artist_name, int $score, array $issues ): string {
+		$site_name      = get_bloginfo( 'name' );
+		$submissions_url = $this->submissions_page_url();
+		$accent          = '#7c6af7';
+		$advice_items    = $this->issues_to_advice( $issues );
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
+		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="padding:36px 40px;">
+		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: artist display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#555;">
+			<?php esc_html_e( "We received your submission, but unfortunately the photo quality is too low for us to show your artwork clearly. We didn't publish it — but please don't be discouraged! A simple retake is usually all it takes.", 'agnosis' ); ?>
+		</p>
+
+		<!-- Issue panel -->
+		<div style="background:#fff8f0;border-left:3px solid #e07b00;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
+			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#b35900;">
+				<?php
+				printf(
+					/* translators: %d: quality score out of 10 */
+					esc_html__( '📷 Photo quality score: %d / 10', 'agnosis' ),
+					absint( $score )
+				);
+				?>
+			</p>
+			<?php if ( ! empty( $advice_items ) ) : ?>
+			<p style="margin:0 0 10px;font-size:14px;color:#555;"><?php esc_html_e( 'Here\'s what our AI detected and how to fix it:', 'agnosis' ); ?></p>
+			<ul style="margin:0;padding-left:20px;">
+				<?php foreach ( $advice_items as $advice ) : ?>
+				<li style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#444;"><?php echo wp_kses_post( $advice ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+			<?php else : ?>
+			<p style="margin:0;font-size:14px;color:#555;"><?php esc_html_e( 'The overall photo quality was too low for our AI to process the artwork clearly.', 'agnosis' ); ?></p>
+			<?php endif; ?>
+		</div>
+
+		<!-- Tips -->
+		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
+			<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#333;"><?php esc_html_e( '💡 Quick tips for a great artwork photo', 'agnosis' ); ?></p>
+			<ul style="margin:0;padding-left:20px;">
+				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Use natural light — position the artwork near a window on a cloudy day for even, soft light.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Shoot straight on — hold your phone parallel to the canvas to avoid perspective distortion.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Fill the frame — let the artwork take up most of the shot; crop out distracting backgrounds.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:14px;color:#555;"><?php esc_html_e( 'Hold still — tap the artwork on your screen to focus, then press the shutter gently or use a self-timer.', 'agnosis' ); ?></li>
+			</ul>
+		</div>
+
+		<p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'Once you have a clearer photo, just email it to the same address as before — we\'ll pick it up automatically.', 'agnosis' ); ?>
+		</p>
+
+		<?php if ( $submissions_url ) : ?>
+		<p style="font-size:14px;color:#666;margin:0 0 0;padding:14px 16px;background:#f0eeff;border-radius:6px;">
+			<?php esc_html_e( 'Your previous submission is saved in your submissions page in case you want to review what was sent.', 'agnosis' ); ?>
+			<a href="<?php echo esc_url( $submissions_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;">
+				<?php esc_html_e( 'View submissions →', 'agnosis' ); ?>
+			</a>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="padding:20px 40px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
 	/**
 	 * Build the From header using the site's admin email and name.
 	 *

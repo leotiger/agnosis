@@ -25,11 +25,16 @@ class AiProviderPingTest extends \WP_UnitTestCase {
 		$this->settings = new Settings();
 		$this->admin_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
 		wp_set_current_user( $this->admin_id );
+		// wp_die() branches on the DOING_AJAX *constant* (not the filter) to pick
+		// its die handler. Define it once so the ajax-die path is always taken and
+		// wp_send_json_* calls wp_die() rather than native die().
+		defined( 'DOING_AJAX' ) || define( 'DOING_AJAX', true );
 	}
 
 	protected function tearDown(): void {
 		parent::tearDown();
-		$_POST = [];
+		$_POST    = [];
+		$_REQUEST = [];
 		remove_all_filters( 'pre_http_request' );
 	}
 
@@ -42,24 +47,45 @@ class AiProviderPingTest extends \WP_UnitTestCase {
 		return [
 			'response' => [ 'code' => $code, 'message' => 'OK' ],
 			'body'     => wp_json_encode( $body ),
-			'headers'  => new \Requests_Utility_CaseInsensitiveDictionary( [] ),
+			'headers'  => [],
 			'cookies'  => [],
 			'filename' => null,
 		];
 	}
 
-	/** Set up $_POST for the AJAX handler and return the captured JSON output. */
+	/** Set up $_POST and $_REQUEST for the AJAX handler and return the captured JSON output. */
 	private function call_handle( string $provider ): string {
-		$_POST['nonce']    = wp_create_nonce( 'agnosis_test_ai' );
-		$_POST['provider'] = $provider;
+		$nonce                = wp_create_nonce( 'agnosis_test_ai' );
+		$_POST['nonce']       = $nonce;
+		$_POST['provider']    = $provider;
+		// check_ajax_referer() reads $_REQUEST, which is a one-time copy made at
+		// script start and does not reflect later $_POST mutations in CLI mode.
+		$_REQUEST['nonce']    = $nonce;
+		$_REQUEST['provider'] = $provider;
 
-		ob_start();
+		// Hook both die-handler filters so WPDieException is thrown regardless of
+		// which branch wp_die() takes (handler vs ajax-handler).
+		add_filter( 'wp_die_handler',      [ $this, 'get_wp_die_handler' ], 1 );
+		add_filter( 'wp_die_ajax_handler', [ $this, 'get_wp_die_handler' ], 1 );
+
+		$raw = '';
+		ob_start(
+			static function ( string $buffer ) use ( &$raw ): string {
+				$raw = $buffer;
+				return ''; // suppress output; content is in $raw.
+			}
+		);
 		try {
 			$this->settings->handle_test_ai();
 		} catch ( \WPDieException $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- wp_send_json_* always calls wp_die(); the exception is the expected exit path.
 			unset( $e );
 		}
-		return (string) ob_get_clean();
+		ob_end_clean();
+
+		remove_filter( 'wp_die_handler',      [ $this, 'get_wp_die_handler' ], 1 );
+		remove_filter( 'wp_die_ajax_handler', [ $this, 'get_wp_die_handler' ], 1 );
+
+		return $raw;
 	}
 
 	// -------------------------------------------------------------------------

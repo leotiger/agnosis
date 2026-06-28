@@ -28,9 +28,9 @@ class Activator {
 		// restricted on some managed database providers (PlanetScale, Kinsta DB, etc.).
 		// SHOW COLUMNS returns an empty result set when the column doesn't exist.
 
-		// Add post_id to agnosis_queue if missing — dbDelta silently skips new
-		// columns on tables that have a CURRENT_TIMESTAMP default, so we do it
-		// explicitly here.
+		// Add post_id to agnosis_queue if missing — guard for installs created
+		// before 0.1.9 when CREATE TABLE used IF NOT EXISTS (causing dbDelta to
+		// silently skip column additions). Kept for backward compatibility.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$has_post_id = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_queue LIKE 'post_id'" );
 		if ( empty( $has_post_id ) ) {
@@ -82,7 +82,7 @@ class Activator {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// Submission queue — tracks email-to-post pipeline state.
-		$sql_queue = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}agnosis_queue (
+		$sql_queue = "CREATE TABLE {$wpdb->prefix}agnosis_queue (
 			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			message_uid  VARCHAR(255)    NOT NULL,
 			artist_id    BIGINT UNSIGNED DEFAULT NULL,
@@ -99,7 +99,7 @@ class Activator {
 		) $charset_collate;";
 
 		// Rhizome peers — known Agnosis (or ActivityPub) nodes.
-		$sql_nodes = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}agnosis_nodes (
+		$sql_nodes = "CREATE TABLE {$wpdb->prefix}agnosis_nodes (
 			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			url          VARCHAR(512)    NOT NULL,
 			public_key   TEXT            DEFAULT NULL,
@@ -112,7 +112,7 @@ class Activator {
 		) $charset_collate;";
 
 		// Transactions — donations and store sales.
-		$sql_tx = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}agnosis_transactions (
+		$sql_tx = "CREATE TABLE {$wpdb->prefix}agnosis_transactions (
 			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			type         ENUM('donation','sale') NOT NULL,
 			artist_id    BIGINT UNSIGNED NOT NULL,
@@ -130,7 +130,7 @@ class Activator {
 		) $charset_collate;";
 
 		// Vouching / admission log.
-		$sql_vouches = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}agnosis_vouches (
+		$sql_vouches = "CREATE TABLE {$wpdb->prefix}agnosis_vouches (
 			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			voucher_id   BIGINT UNSIGNED NOT NULL,
 			candidate_id BIGINT UNSIGNED NOT NULL,
@@ -142,7 +142,7 @@ class Activator {
 		) $charset_collate;";
 
 		// Pipeline activity log — surfaced in Settings → Logs.
-		$sql_log = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}agnosis_log (
+		$sql_log = "CREATE TABLE {$wpdb->prefix}agnosis_log (
 			id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			level      ENUM('info','warning','error') NOT NULL DEFAULT 'info',
 			context    VARCHAR(64)     NOT NULL DEFAULT 'system',
@@ -198,9 +198,11 @@ class Activator {
 			'agnosis_imap_cleanup_days'   => 7,
 			'agnosis_webhook_secret'      => wp_generate_password( 32, false ),
 			'agnosis_node_label'          => get_bloginfo( 'name' ),
-			'agnosis_vouches_required'    => 2,
-			'agnosis_tx_fee_percent'      => 7.0,
-			'agnosis_activitypub_enabled' => true,
+			'agnosis_vouches_required'            => 2,
+			'agnosis_tx_fee_percent'              => 7.0,
+			'agnosis_activitypub_enabled'         => true,
+			'agnosis_quality_threshold'           => 7,
+			'agnosis_quality_rejection_threshold' => 3,
 		];
 
 		foreach ( $defaults as $key => $value ) {

@@ -36,11 +36,29 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 | PHP | 8.1 |
 | MySQL | 5.7 / MariaDB 10.3 |
 
+## Server configuration
+
+### Artist subdomains
+
+Agnosis routes each artist to their own subdomain (e.g. `artyart.agnosis.art`). Two server-level settings are required:
+
+**DNS** — a wildcard A/CNAME record pointing `*.agnosis.art` to the same server as the main domain.
+
+**wp-config.php** — add the following **before** the `/* That's all, stop editing! */` line:
+
+```php
+define( 'COOKIE_DOMAIN', '.agnosis.art' ); // leading dot = all subdomains
+```
+
+Without this, WordPress sets auth cookies for the exact host only. Artists who log in on `agnosis.art` will not be recognised on `artyart.agnosis.art` and vice versa. The leading dot makes the session cookie valid across all subdomains of the root domain.
+
+Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → General** after activation.
+
 ## Installation
 
 ```bash
 # From a release zip
-wp plugin install agnosis-0.1.8.zip --activate
+wp plugin install agnosis-0.1.9.zip --activate
 
 # Or from source
 git clone https://github.com/agnosis/agnosis wp-content/plugins/agnosis

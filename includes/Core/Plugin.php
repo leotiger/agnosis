@@ -111,6 +111,7 @@ class Plugin {
 		$this->loader->add_action( 'init', $profile, 'register_biography_post_type' );
 		$this->loader->add_action( 'init', $profile, 'register_event_post_type' );
 		$this->loader->add_action( 'init', $profile, 'register_taxonomy' );
+		$this->loader->add_action( 'init', $profile, 'register_blocks' );
 
 		// Artist admission (vouching).
 		$admission = new Admission();
@@ -134,8 +135,9 @@ class Plugin {
 
 		// Artist review workflow — email notification + REST endpoints.
 		$notification = new Notification();
-		$this->loader->add_action( 'agnosis_post_drafted',      $notification, 'on_post_drafted',      10, 2 );
-		$this->loader->add_action( 'agnosis_removal_requested', $notification, 'on_removal_requested', 10, 2 );
+		$this->loader->add_action( 'agnosis_post_drafted',         $notification, 'on_post_drafted',         10, 2 );
+		$this->loader->add_action( 'agnosis_removal_requested',    $notification, 'on_removal_requested',    10, 2 );
+		$this->loader->add_action( 'agnosis_submission_rejected',  $notification, 'on_submission_rejected',  10, 4 );
 
 		$review = new ReviewEndpoints();
 		$this->loader->add_action( 'rest_api_init', $review, 'register_routes' );

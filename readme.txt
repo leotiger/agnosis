@@ -1,10 +1,10 @@
 === Agnosis ===
 Contributors: agnosis
 Tags: art, artists, activitypub, federation, ai
-Requires at least: 6.4
+Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,20 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.1.9 =
+* Added: `/my-submissions` works on artist subdomains — scope_query fix + COOKIE_DOMAIN documentation
+* Added: Inline login form on `/my-submissions` via wp_login_form() — no wp-login.php exposure
+* Added: Artist name in subdomain site title via option_blogname filter
+* Added: Multilingual submission translation (SubmissionTranslator) with Lingua Forge integration
+* Added: Media type expansion — audio (Whisper), video stills (ffmpeg), PDF portfolios (Imagick)
+* Added: Automatic quality rejection gate with artist-facing tips email
+* Added: promote@ alias workflow; PostCreator::set_featured() + handle_promotion_request()
+* Added: Pipeline::extract_event_fields(); _agnosis_event_location post meta; agnosis/event-location block
+* Fixed: CREATE TABLE IF NOT EXISTS removed from all dbDelta() calls — was silently skipping new columns
+* Fixed: ReviewEndpoints::reject() incorrect action arg count
+* Fixed: render.php unescaped attachment ID wrapped with absint()
+* Fixed: Minimum WordPress version bumped to 6.6
 
 = 0.1.8 =
 * Security: admission status endpoint now requires authentication; non-admins can only read their own status (was fully public)

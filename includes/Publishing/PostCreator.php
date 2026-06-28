@@ -115,6 +115,12 @@ class PostCreator {
 				return;
 			}
 
+			if ( 'agnosis_promote' === $post_type ) {
+				$this->handle_promotion_request( $submission, (int) $row->artist_id, $queue_id );
+				$this->mark( $queue_id, 'published' );
+				return;
+			}
+
 			// ---- Load attachment binaries ---------------------------------------
 			// New path: binary was written to uploads/agnosis-queue/{uid}/ at
 			// ingest time; read it back now and remove the temp file reference.
@@ -155,6 +161,42 @@ class PostCreator {
 				$results = []; // Biography/event emails may have no attachments.
 			}
 
+			// ---- Quality rejection gate -----------------------------------------
+			// Only applies to artwork submissions with actual pipeline results.
+			// Score 0 means the provider could not assess quality — never reject.
+			// Rejection threshold must be > 0 (setting to 0 disables the gate).
+			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) ) {
+				$primary_score  = (int) ( $results[0]['photo_quality_score']  ?? 0 );
+				$primary_issues = (array) ( $results[0]['photo_quality_issues'] ?? [] );
+				$reject_below   = (int) get_option( 'agnosis_quality_rejection_threshold', 3 );
+
+				if ( $reject_below > 0 && $primary_score > 0 && $primary_score <= $reject_below ) {
+					Logger::warning(
+						sprintf(
+							'Queue #%d: primary image quality score %d ≤ rejection threshold %d — rejecting submission.',
+							$queue_id, $primary_score, $reject_below
+						),
+						'publisher'
+					);
+
+					/**
+					 * Fires when a submission is automatically rejected due to low image quality.
+					 *
+					 * @param int      $queue_id  Queue row ID.
+					 * @param int      $artist_id WordPress user ID of the submitting artist.
+					 * @param int      $score     Detected quality score (1–10).
+					 * @param string[] $issues    Array of human-readable issue labels from the AI.
+					 */
+					do_action( 'agnosis_submission_rejected', $queue_id, (int) $row->artist_id, $primary_score, $primary_issues );
+
+					$this->mark( $queue_id, 'failed', sprintf(
+						'Rejected: image quality score %d is at or below the rejection threshold (%d). Artist notified.',
+						$primary_score, $reject_below
+					) );
+					return;
+				}
+			}
+
 			// ---- AI polish (singleton types only) -------------------------------
 			// If the operator has enabled AI polishing for this post type, run the
 			// email body through a cheap text pass to fix spelling / grammar.
@@ -168,6 +210,17 @@ class PostCreator {
 					$polished                    = $this->pipeline->polish( $submission['description'] );
 					$submission['description']   = $polished;
 					Logger::info( sprintf( 'Queue #%d: AI polish applied to %s body.', $queue_id, $post_type ), 'publisher' );
+				}
+			}
+
+			// ---- Event field extraction -----------------------------------------
+			// For event posts, ask the AI to pull the location out of the email
+			// so the agnosis/event-location block has data without admin entry.
+			if ( 'agnosis_event' === $post_type ) {
+				$event_fields                    = $this->pipeline->extract_event_fields( $submission );
+				$submission['_event_location']   = $event_fields['location'];
+				if ( $event_fields['location'] ) {
+					Logger::info( sprintf( 'Queue #%d: event location extracted — "%s".', $queue_id, $event_fields['location'] ), 'publisher' );
 				}
 			}
 
@@ -235,7 +288,8 @@ class PostCreator {
 			$bio_addr     = strtolower( trim( (string) get_option( 'agnosis_email_bio',     '' ) ) );
 			$event_addr   = strtolower( trim( (string) get_option( 'agnosis_email_event',   '' ) ) );
 			$replace_addr = strtolower( trim( (string) get_option( 'agnosis_email_replace', '' ) ) );
-			$remove_addr  = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
+			$remove_addr   = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
+			$promote_addr  = strtolower( trim( (string) get_option( 'agnosis_email_promote', '' ) ) );
 
 			if ( $bio_addr && $to === $bio_addr ) {
 				return [ 'agnosis_biography', true, $subject ];
@@ -249,6 +303,9 @@ class PostCreator {
 			}
 			if ( $remove_addr && $to === $remove_addr ) {
 				return [ 'agnosis_remove', false, $subject ];
+			}
+			if ( $promote_addr && $to === $promote_addr ) {
+				return [ 'agnosis_promote', false, $subject ];
 			}
 		}
 
@@ -557,6 +614,83 @@ class PostCreator {
 	}
 
 	/**
+	 * Handle a promote@ request: find the published artwork by subject and mark
+	 * it as the artist's featured piece in the gallery overview.
+	 *
+	 * Subject must exactly match the artwork's title.  Only published artworks
+	 * are eligible — a draft cannot be featured until it has been approved.
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission.
+	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
+	 * @param int                  $queue_id   Current queue row (for logging).
+	 */
+	private function handle_promotion_request( array $submission, int $artist_id, int $queue_id ): void {
+		$subject = trim( $submission['subject'] ?? '' );
+
+		if ( ! $subject ) {
+			Logger::warning( sprintf( 'Queue #%d: promote@ request has no subject — cannot identify post.', $queue_id ), 'publisher' );
+			return;
+		}
+
+		$matches = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'post_status'    => 'publish',
+			'author'         => $artist_id,
+			'title'          => $subject,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+
+		if ( empty( $matches ) ) {
+			Logger::warning(
+				sprintf( 'Queue #%d: promote@ — no published artwork titled "%s" found for this artist.', $queue_id, $subject ),
+				'publisher'
+			);
+			return;
+		}
+
+		$post_id = (int) $matches[0];
+		$this->set_featured( $post_id, $artist_id );
+
+		Logger::info(
+			sprintf( 'Queue #%d: promote@ — artwork #%d "%s" is now featured.', $queue_id, $post_id, $subject ),
+			'publisher'
+		);
+	}
+
+	/**
+	 * Mark $post_id as the featured artwork for $artist_id and demote any other
+	 * published artwork that currently holds that flag for the same artist.
+	 *
+	 * Kept here in the publishing layer (not in GalleryOverview, which is a
+	 * display/UI class) because featuring is a workflow decision, not a rendering
+	 * concern.  GalleryOverview reads the meta for display; PostCreator writes it.
+	 *
+	 * @param int $post_id   The artwork post to feature.
+	 * @param int $artist_id The post author (artist) user ID.
+	 */
+	private function set_featured( int $post_id, int $artist_id ): void {
+		$others = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'post_status'    => 'publish',
+			'author'         => $artist_id,
+			'posts_per_page' => -1,
+			'exclude'        => [ $post_id ],
+			'meta_key'       => '_agnosis_featured',
+			'meta_value'     => '1',
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+
+		foreach ( $others as $other_id ) {
+			update_post_meta( (int) $other_id, '_agnosis_featured', '0' );
+		}
+
+		update_post_meta( $post_id, '_agnosis_featured', '1' );
+	}
+
+	/**
 	 * Build and insert (or update) a post for the given CPT.
 	 *
 	 * @param array<string, mixed>             $submission       Parsed email submission data.
@@ -617,6 +751,10 @@ class PostCreator {
 			],
 		];
 
+		if ( 'agnosis_event' === $post_type ) {
+			$post_data['meta_input']['_agnosis_event_location'] = $submission['_event_location'] ?? '';
+		}
+
 		// ---- Insert or update ------------------------------------------------
 		if ( $existing_id ) {
 			$post_data['ID']          = $existing_id;
@@ -663,6 +801,12 @@ class PostCreator {
 
 		$new_gallery = [];
 		foreach ( $results as $result ) {
+			// Audio results carry no image binary — skip the Media Library upload entirely.
+			// The AI-generated text (title, body, tags) is still used for the post content.
+			if ( ( $result['media_type'] ?? 'image' ) === 'audio' ) {
+				continue;
+			}
+
 			$hash = ! empty( $result['original_data'] ) ? md5( $result['original_data'] ) : '';
 			if ( $hash && isset( $existing_hash_map[ $hash ] ) ) {
 				$new_gallery[] = $existing_hash_map[ $hash ];

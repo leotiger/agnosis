@@ -137,6 +137,45 @@ class Profile {
 		] );
 	}
 
+	/**
+	 * Register server-side-rendered blocks that surface CPT meta in FSE templates.
+	 *
+	 * agnosis/event-location — renders the _agnosis_event_location meta value for
+	 * agnosis_event posts. Returns an empty string when the meta is unset so the
+	 * block takes no space on events that have no location recorded yet.
+	 */
+	public function register_blocks(): void {
+		register_block_type(
+			'agnosis/event-location',
+			[
+				'render_callback' => [ $this, 'render_event_location' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/event-location block.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when no location is set.
+	 */
+	public function render_event_location( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id  = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$location = trim( (string) get_post_meta( $post_id, '_agnosis_event_location', true ) );
+
+		if ( ! $location ) {
+			return '';
+		}
+
+		return sprintf(
+			'<p class="agnosis-event-location" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">%s</p>',
+			esc_html( $location )
+		);
+	}
+
 	// -------------------------------------------------------------------------
 
 	/** @return array<string, string> */

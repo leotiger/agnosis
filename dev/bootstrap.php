@@ -15,6 +15,7 @@ declare(strict_types=1);
 // Must be loaded before any test class that depends on them, so we require
 // them here at bootstrap time. Each file only defines functions — no side effects.
 require_once dirname( __DIR__ ) . '/tests/php/Unit/Email/Stubs/email_namespace_stubs.php';
+require_once dirname( __DIR__ ) . '/tests/php/Unit/AI/Stubs/ai_namespace_stubs.php';
 
 // Ensure vendor/ is available.
 $autoload = __DIR__ . '/vendor/autoload.php';
@@ -182,6 +183,9 @@ if ( ! function_exists( 'absint' ) ) {
 }
 if ( ! function_exists( 'sanitize_key' ) ) {
     function sanitize_key( string $key ): string { return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $key ) ); }
+}
+if ( ! function_exists( 'get_locale' ) ) {
+    function get_locale(): string { return 'en_US'; }
 }
 if ( ! class_exists( 'WP_REST_Request' ) ) {
     /**

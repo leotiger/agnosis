@@ -125,7 +125,6 @@ class ReviewEndpoints {
 		if ( $should_publish ) {
 			delete_post_meta( $post_id, '_agnosis_review_token' );
 			delete_post_meta( $post_id, '_agnosis_review_expiry' );
-			$this->promote_featured( $post_id, (int) get_post_field( 'post_author', $post_id ) );
 			do_action( 'agnosis_post_published', $post_id );
 		}
 
@@ -165,11 +164,6 @@ class ReviewEndpoints {
 		delete_post_meta( $post_id, '_agnosis_review_token' );
 		delete_post_meta( $post_id, '_agnosis_review_expiry' );
 
-		// Promote this artwork to featured, clearing the previous featured
-		// artwork for the same artist.  Done here — at the approval point —
-		// because this is a publishing workflow concern, not a display concern.
-		$this->promote_featured( $post_id, (int) $post->post_author );
-
 		// Trigger ActivityPub broadcast and any other publish subscribers.
 		do_action( 'agnosis_post_published', $post_id );
 
@@ -205,7 +199,7 @@ class ReviewEndpoints {
 		delete_post_meta( $post_id, '_agnosis_review_token' );
 		delete_post_meta( $post_id, '_agnosis_review_expiry' );
 
-		do_action( 'agnosis_submission_rejected', $post_id );
+		do_action( 'agnosis_submission_rejected', $post_id, (int) $post->post_author, 0, [] );
 
 		return new WP_REST_Response( [ 'status' => 'rejected', 'post_id' => $post_id ], 200 );
 	}
@@ -213,39 +207,6 @@ class ReviewEndpoints {
 	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
-
-	/**
-	 * Promote a just-published artwork to featured and demote all others for
-	 * the same artist.
-	 *
-	 * Called directly within the approval path so this logic stays with the
-	 * publishing workflow rather than in the display-oriented GalleryOverview
-	 * class.  Only published artworks are considered for demotion — drafts are
-	 * left untouched regardless of their meta value.
-	 *
-	 * @param int $post_id   The artwork post that was just published.
-	 * @param int $artist_id The post author (artist) user ID.
-	 */
-	private function promote_featured( int $post_id, int $artist_id ): void {
-		// Clear the flag on every other published artwork by this artist.
-		$others = get_posts( [
-			'post_type'      => 'agnosis_artwork',
-			'post_status'    => 'publish',
-			'author'         => $artist_id,
-			'posts_per_page' => -1,
-			'exclude'        => [ $post_id ],
-			'meta_key'       => '_agnosis_featured',
-			'meta_value'     => '1',
-			'fields'         => 'ids',
-			'no_found_rows'  => true,
-		] );
-
-		foreach ( $others as $other_id ) {
-			update_post_meta( (int) $other_id, '_agnosis_featured', '0' );
-		}
-
-		update_post_meta( $post_id, '_agnosis_featured', '1' );
-	}
 
 	/**
 	 * Extract the leading image/gallery block markup from post content.

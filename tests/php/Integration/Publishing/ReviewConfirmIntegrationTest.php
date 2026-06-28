@@ -70,17 +70,19 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		);
 
 		// Intercept wp_die() — throw instead of outputting HTML.
-		add_filter(
-			'wp_die_handler',
-			static function (): callable {
-				return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
-					$http_status = (int) ( $args['response'] ?? 200 );
-					$title_str   = is_string( $title ) ? $title : '';
-					$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
-					throw new DieCapture( $msg_str, $title_str, $http_status );
-				};
-			}
-		);
+		// Both filters are hooked because wp_die() picks the handler based on the
+		// DOING_AJAX constant: if it is defined (e.g. by a preceding test class),
+		// it uses wp_die_ajax_handler; otherwise wp_die_handler.
+		$die_interceptor = static function (): callable {
+			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
+				$http_status = (int) ( $args['response'] ?? 200 );
+				$title_str   = is_string( $title ) ? $title : '';
+				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
+				throw new DieCapture( $msg_str, $title_str, $http_status );
+			};
+		};
+		add_filter( 'wp_die_handler',      $die_interceptor );
+		add_filter( 'wp_die_ajax_handler', $die_interceptor );
 	}
 
 	protected function tearDown(): void {

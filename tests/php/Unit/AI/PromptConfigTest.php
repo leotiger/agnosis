@@ -177,6 +177,112 @@ class PromptConfigTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Quality threshold constructor params
+	// -------------------------------------------------------------------------
+
+	public function test_constructor_stores_quality_threshold(): void {
+		$cfg = new PromptConfig(
+			system_prompt:               '',
+			user_template:               '',
+			enhancement_instructions:    '',
+			tag_count:                   5,
+			excerpt_words:               30,
+			quality_threshold:           9,
+			quality_rejection_threshold: 2,
+		);
+
+		$this->assertSame( 9, $cfg->quality_threshold );
+		$this->assertSame( 2, $cfg->quality_rejection_threshold );
+	}
+
+	public function test_constructor_defaults_quality_threshold_to_7(): void {
+		$cfg = new PromptConfig(
+			system_prompt: '', user_template: '', enhancement_instructions: '',
+			tag_count: 5, excerpt_words: 30,
+		);
+
+		$this->assertSame( 7, $cfg->quality_threshold );
+	}
+
+	public function test_constructor_defaults_quality_rejection_threshold_to_3(): void {
+		$cfg = new PromptConfig(
+			system_prompt: '', user_template: '', enhancement_instructions: '',
+			tag_count: 5, excerpt_words: 30,
+		);
+
+		$this->assertSame( 3, $cfg->quality_rejection_threshold );
+	}
+
+	public function test_from_options_defaults_quality_threshold_to_7(): void {
+		$cfg = PromptConfig::from_options();
+
+		$this->assertSame( 7, $cfg->quality_threshold );
+	}
+
+	public function test_from_options_defaults_quality_rejection_threshold_to_3(): void {
+		$cfg = PromptConfig::from_options();
+
+		$this->assertSame( 3, $cfg->quality_rejection_threshold );
+	}
+
+	// -------------------------------------------------------------------------
+	// resolved_system_prompt() — {medium_list} token
+	// -------------------------------------------------------------------------
+
+	public function test_resolved_system_prompt_replaces_medium_list_token(): void {
+		$cfg = $this->make( system_prompt: 'Mediums: {medium_list}.' );
+
+		$result = $cfg->resolved_system_prompt();
+
+		$this->assertStringContainsString( 'Oil Painting', $result );
+		$this->assertStringContainsString( 'Watercolour', $result );
+		$this->assertStringNotContainsString( '{medium_list}', $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// build_targeted_enhancement_instructions()
+	// -------------------------------------------------------------------------
+
+	public function test_targeted_instructions_returns_base_when_no_issues(): void {
+		$cfg = $this->make( enhancement_instructions: 'Base instructions.' );
+
+		$result = $cfg->build_targeted_enhancement_instructions( [] );
+
+		$this->assertSame( 'Base instructions.', $result );
+	}
+
+	public function test_targeted_instructions_prepends_issue_list_when_non_empty(): void {
+		$cfg = $this->make( enhancement_instructions: 'Base instructions.' );
+
+		$result = $cfg->build_targeted_enhancement_instructions( [ 'motion blur', 'underexposed' ] );
+
+		$this->assertStringContainsString( 'motion blur', $result );
+		$this->assertStringContainsString( 'underexposed', $result );
+		$this->assertStringContainsString( 'Base instructions.', $result );
+	}
+
+	public function test_targeted_instructions_issue_list_appears_before_base(): void {
+		$cfg = $this->make( enhancement_instructions: 'Base.' );
+
+		$result = $cfg->build_targeted_enhancement_instructions( [ 'too dark' ] );
+
+		$this->assertLessThan( strpos( $result, 'Base.' ), strpos( $result, 'too dark' ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// CANONICAL_MEDIUMS constant
+	// -------------------------------------------------------------------------
+
+	public function test_canonical_mediums_contains_expected_entries(): void {
+		$mediums = PromptConfig::CANONICAL_MEDIUMS;
+
+		$this->assertContains( 'Oil Painting', $mediums );
+		$this->assertContains( 'Photography', $mediums );
+		$this->assertContains( 'Digital Art', $mediums );
+		$this->assertGreaterThanOrEqual( 5, count( $mediums ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Helper
 	// -------------------------------------------------------------------------
 

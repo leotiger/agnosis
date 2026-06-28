@@ -18,8 +18,10 @@ class OpenAI implements ProviderInterface {
 
 	private const CHAT_URL             = 'https://api.openai.com/v1/chat/completions';
 	private const IMAGE_URL            = 'https://api.openai.com/v1/images/edits';
+	private const AUDIO_URL            = 'https://api.openai.com/v1/audio/transcriptions';
 	private const DEFAULT_VISION_MODEL = 'gpt-4o';
 	private const DEFAULT_IMAGE_MODEL  = 'gpt-image-1';
+	private const WHISPER_MODEL        = 'whisper-1';
 
 	public function __construct(
 		private readonly string $api_key,
@@ -159,7 +161,7 @@ class OpenAI implements ProviderInterface {
 
 		$body = wp_json_encode( [
 			'model'      => 'gpt-4o-mini', // cheap text-only model
-			'max_tokens' => 16,
+			'max_tokens' => 1024,
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],
@@ -170,7 +172,7 @@ class OpenAI implements ProviderInterface {
 		}
 
 		$response = wp_remote_post( self::CHAT_URL, [
-			'timeout' => 15,
+			'timeout' => 30,
 			'headers' => [
 				'Authorization' => 'Bearer ' . $this->api_key,
 				'Content-Type'  => 'application/json',
@@ -184,6 +186,80 @@ class OpenAI implements ProviderInterface {
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		return trim( (string) ( $data['choices'][0]['message']['content'] ?? '' ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Audio
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Transcribe audio binary to text using OpenAI Whisper.
+	 *
+	 * Uses multipart/form-data upload — the same pattern as the image edits endpoint.
+	 * Supported audio formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.
+	 *
+	 * @param string $audio_data  Raw binary of the audio file.
+	 * @param string $mime_type   e.g. 'audio/mpeg'.
+	 * @return string             Transcript text, or '' on failure.
+	 */
+	public function transcribe( string $audio_data, string $mime_type ): string {
+		if ( empty( $this->api_key ) ) {
+			return '';
+		}
+
+		// Derive a sensible filename extension from the MIME type.
+		$ext_map   = [
+			'audio/mpeg'  => 'mp3',
+			'audio/mp4'   => 'm4a',
+			'audio/ogg'   => 'ogg',
+			'audio/wav'   => 'wav',
+			'audio/webm'  => 'webm',
+			'audio/flac'  => 'flac',
+			'audio/x-m4a' => 'm4a',
+		];
+		$ext       = $ext_map[ $mime_type ] ?? 'mp3';
+		$filename  = 'audio.' . $ext;
+
+		$boundary = wp_generate_password( 24, false );
+		$eol      = "\r\n";
+		$body     = '';
+
+		// file field
+		$body .= '--' . $boundary . $eol;
+		$body .= 'Content-Disposition: form-data; name="file"; filename="' . $filename . '"' . $eol;
+		$body .= 'Content-Type: ' . $mime_type . $eol . $eol;
+		$body .= $audio_data . $eol;
+
+		// model field
+		$body .= '--' . $boundary . $eol;
+		$body .= 'Content-Disposition: form-data; name="model"' . $eol . $eol;
+		$body .= self::WHISPER_MODEL . $eol;
+
+		// response_format — plain text is cheapest and simplest
+		$body .= '--' . $boundary . $eol;
+		$body .= 'Content-Disposition: form-data; name="response_format"' . $eol . $eol;
+		$body .= 'text' . $eol;
+
+		$body .= '--' . $boundary . '--' . $eol;
+
+		$response = wp_remote_post( self::AUDIO_URL, [
+			'timeout' => 120,
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->api_key,
+				'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
+			],
+			'body'    => $body,
+		] );
+
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return '';
+		}
+
+		return trim( wp_remote_retrieve_body( $response ) );
+	}
+
+	public function supports_audio(): bool {
+		return true;
 	}
 
 	// -------------------------------------------------------------------------

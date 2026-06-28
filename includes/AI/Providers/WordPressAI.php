@@ -135,4 +135,15 @@ class WordPressAI implements ProviderInterface {
 			return '';
 		}
 	}
+
+	/**
+	 * WordPress AI Client does not support audio transcription.
+	 */
+	public function transcribe( string $audio_data, string $mime_type ): string {
+		return '';
+	}
+
+	public function supports_audio(): bool {
+		return false;
+	}
 }

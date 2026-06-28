@@ -104,7 +104,12 @@ class SubdomainRouter {
 		// Scope main query to this artist's content.
 		add_action( 'pre_get_posts',        [ $this, 'scope_query'         ] );
 
-		// Page title: replace site name with the artist's display name.
+		// Site name: replace blogname with the artist's display name so that
+		// wp:site-title (and anything else reading get_bloginfo('name')) shows
+		// the artist rather than the main portal name.
+		add_filter( 'option_blogname',      [ $this, 'filter_blogname'     ] );
+
+		// HTML <title>: replace the site segment with the artist's display name.
 		add_filter( 'document_title_parts', [ $this, 'filter_title_parts'  ] );
 		add_filter( 'wp_title',             [ $this, 'filter_wp_title'     ], 10, 1 );
 	}
@@ -130,19 +135,41 @@ class SubdomainRouter {
 	 *
 	 * Only affects the main query on the front end; admin and secondary
 	 * queries (nav menus, widget queries, etc.) are untouched.
+	 *
+	 * Static pages (e.g. /my-submissions/) are sitewide content — they are
+	 * not authored by any individual artist and must not be filtered by author.
+	 * When WordPress resolves a pagename query the post_type is already 'page',
+	 * so we bail early and let WP find the page normally.
 	 */
 	public function scope_query( \WP_Query $q ): void {
 		if ( ! $q->is_main_query() || is_admin() ) {
 			return;
 		}
 
-		// Pin every query to this artist.
+		// Let page requests through unscoped — pages are sitewide, not per-artist.
+		if ( $q->get( 'pagename' ) || 'page' === $q->get( 'post_type' ) ) {
+			return;
+		}
+
+		// Pin every non-page query to this artist.
 		$q->set( 'author', self::$artist_id );
 
 		// If no post type is already specified, show all Agnosis CPTs.
 		if ( ! $q->get( 'post_type' ) ) {
 			$q->set( 'post_type', [ 'agnosis_artwork', 'agnosis_biography', 'agnosis_event' ] );
 		}
+	}
+
+	/**
+	 * Replace the `blogname` option with the artist's display name.
+	 *
+	 * This makes the `wp:site-title` block (and any call to `get_bloginfo('name')`)
+	 * show the artist's name rather than the main portal site name.
+	 * Falls back to the nicename slug so the header is never blank.
+	 */
+	public function filter_blogname( string $name ): string {
+		$user = get_user_by( 'id', self::$artist_id );
+		return $user ? ( $user->display_name ?: $user->user_nicename ?: $name ) : $name;
 	}
 
 	/**

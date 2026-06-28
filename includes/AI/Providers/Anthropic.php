@@ -128,7 +128,7 @@ class Anthropic implements ProviderInterface {
 
 		$body = wp_json_encode( [
 			'model'      => 'claude-haiku-4-5-20251001', // cheapest/fastest model
-			'max_tokens' => 16,
+			'max_tokens' => 1024,
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],
@@ -139,7 +139,7 @@ class Anthropic implements ProviderInterface {
 		}
 
 		$response = wp_remote_post( self::API_URL, [
-			'timeout' => 15,
+			'timeout' => 30,
 			'headers' => [
 				'x-api-key'         => $this->api_key,
 				'anthropic-version' => '2023-06-01',
@@ -154,5 +154,17 @@ class Anthropic implements ProviderInterface {
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		return trim( (string) ( $data['content'][0]['text'] ?? '' ) );
+	}
+
+	/**
+	 * Anthropic does not support audio transcription.
+	 * Use the OpenAI provider's Whisper integration for audio files.
+	 */
+	public function transcribe( string $audio_data, string $mime_type ): string {
+		return '';
+	}
+
+	public function supports_audio(): bool {
+		return false;
 	}
 }

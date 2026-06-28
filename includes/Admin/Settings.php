@@ -268,6 +268,11 @@ class Settings {
 				'label' => __( 'Removal request address', 'agnosis' ),
 				'desc'  => __( 'Artist requests takedown of an existing artwork. Subject must match the title. Moves the post to draft pending admin review — e.g. remove@agnosis.art', 'agnosis' ),
 			],
+			'agnosis_email_promote' => [
+				'tab'  => 'email',
+				'label' => __( 'Promote artwork address', 'agnosis' ),
+				'desc'  => __( 'Artist sends an email here (subject = exact artwork title) to mark that artwork as featured in their gallery overview. Any previously featured artwork is automatically demoted — e.g. promote@agnosis.art', 'agnosis' ),
+			],
 
 			// --- IMAP connection ---
 			'agnosis_imap_host' => [
@@ -391,12 +396,26 @@ class Settings {
 			],
 
 			// --- AI: Quality detection ---
+			'agnosis_quality_rejection_threshold' => [
+				'tab'      => 'ai',
+				'label'    => __( 'Rejection threshold (quality score)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 3,
+				'min'      => 0,
+				'max'      => 10,
+				'step'     => '1',
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 0, min( 10, (int) $v ) ),
+				'desc'     => __( 'Photos scoring at or below this value (1–10) are automatically rejected — the artist receives a friendly email explaining the issue and is invited to resubmit. Score 0 disables automatic rejection. Must be lower than the enhancement threshold. Default: 3.', 'agnosis' ),
+			],
+
 			'agnosis_quality_threshold' => [
 				'tab'      => 'ai',
 				'label'    => __( 'Enhancement threshold (quality score)', 'agnosis' ),
 				'input'    => 'number',
 				'default'  => 7,
 				'min'      => 1,
+				'max'      => 10,
 				'step'     => '1',
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, min( 10, (int) $v ) ),

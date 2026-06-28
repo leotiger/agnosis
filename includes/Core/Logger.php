@@ -98,6 +98,11 @@ class Logger {
 	private static function write( string $level, string $context, string $message ): void {
 		global $wpdb;
 
+		// Guard: $wpdb may be null in unit-test environments or very early boot.
+		if ( ! isset( $wpdb ) ) {
+			return;
+		}
+
 		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- append-only log write; no caching applicable.
 			$wpdb->prefix . 'agnosis_log',
 			[

@@ -107,7 +107,7 @@ class SubmissionsPage {
 	 */
 	private function render(): string {
 		if ( ! is_user_logged_in() ) {
-			return '<p class="agnosis-notice">' . esc_html__( 'Please log in to view your submissions.', 'agnosis' ) . '</p>';
+			return $this->render_login_form();
 		}
 
 		$drafts = $this->fetch_drafts( get_current_user_id() );
@@ -492,5 +492,40 @@ class SubmissionsPage {
 }());
 </script>';
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	// -------------------------------------------------------------------------
+	// Login form
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render an inline login form so artists never need to visit wp-login.php.
+	 *
+	 * wp_login_form() posts credentials to wp-login.php and redirects back to
+	 * the current page on success. With COOKIE_DOMAIN set to the root domain
+	 * (e.g. .agnosis.art) the session cookie is valid on all subdomains, so
+	 * logging in here works identically on the main domain or any artist subdomain.
+	 */
+	private function render_login_form(): string {
+		$redirect = get_permalink() ?: home_url( '/my-submissions/' );
+		ob_start();
+		?>
+		<div class="agnosis-submissions agnosis-submissions--login">
+			<h2><?php esc_html_e( 'Log in to view your submissions', 'agnosis' ); ?></h2>
+			<?php
+			wp_login_form(
+				[
+					'redirect'       => esc_url( $redirect ),
+					'label_username' => __( 'Username or email address', 'agnosis' ),
+					'label_password' => __( 'Password', 'agnosis' ),
+					'label_log_in'   => __( 'Log in', 'agnosis' ),
+					'remember'       => true,
+					'label_remember' => __( 'Remember me', 'agnosis' ),
+				]
+			);
+			?>
+		</div>
+		<?php
+		return (string) ob_get_clean();
 	}
 }

@@ -50,17 +50,19 @@ class PromptConfig {
 		public readonly int $tag_count,
 		public readonly int $excerpt_words,
 		public readonly int $quality_threshold = 7,
+		public readonly int $quality_rejection_threshold = 3,
 	) {}
 
 	/** Build a PromptConfig from saved wp_options, falling back to defaults. */
 	public static function from_options(): self {
 		return new self(
-			system_prompt:            (string) get_option( 'agnosis_prompt_system',            self::default_system_prompt() ),
-			user_template:            (string) get_option( 'agnosis_prompt_user_template',     self::default_user_template() ),
-			enhancement_instructions: (string) get_option( 'agnosis_prompt_enhancement',       self::default_enhancement_instructions() ),
-			tag_count:                (int) get_option( 'agnosis_prompt_tag_count',         5 ),
-			excerpt_words:            (int) get_option( 'agnosis_prompt_excerpt_words',     30 ),
-			quality_threshold:        (int) get_option( 'agnosis_quality_threshold',        7 ),
+			system_prompt:                    (string) get_option( 'agnosis_prompt_system',                self::default_system_prompt() ),
+			user_template:                    (string) get_option( 'agnosis_prompt_user_template',         self::default_user_template() ),
+			enhancement_instructions:         (string) get_option( 'agnosis_prompt_enhancement',           self::default_enhancement_instructions() ),
+			tag_count:                        (int) get_option( 'agnosis_prompt_tag_count',             5 ),
+			excerpt_words:                    (int) get_option( 'agnosis_prompt_excerpt_words',         30 ),
+			quality_threshold:                (int) get_option( 'agnosis_quality_threshold',            7 ),
+			quality_rejection_threshold:      (int) get_option( 'agnosis_quality_rejection_threshold',  3 ),
 		);
 	}
 
