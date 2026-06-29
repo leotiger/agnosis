@@ -62,6 +62,7 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 			],
 			'artist_id'   => $this->artist_id,
 			'to_address'  => '',
+			'source'      => 'test',
 		] );
 		$wpdb->insert(
 			$wpdb->prefix . 'agnosis_queue',
@@ -87,7 +88,7 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 			}
 
 			/** @return array<string, mixed>[] */
-			public function process( array $submission ): array {
+			public function process( array $submission, bool $skip_enhancement = false ): array {
 				$results = [];
 				foreach ( $submission['attachments'] ?? [] as $att ) {
 					$results[] = [

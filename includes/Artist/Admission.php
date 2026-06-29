@@ -658,14 +658,29 @@ class Admission {
 	}
 
 	public function is_artist( int $user_id ): bool {
+		return self::is_admitted_artist( $user_id );
+	}
+
+	/**
+	 * Check whether a WP user is an admitted Agnosis artist (or an admin).
+	 *
+	 * Public static so it can be used as a shared choke point across the intake
+	 * paths (Webhook, Inbox, PostCreator) without coupling those classes to
+	 * the full Admission object.
+	 *
+	 * @param int|null $user_id WordPress user ID, or null for unauthenticated.
+	 */
+	public static function is_admitted_artist( int|null $user_id ): bool {
 		if ( ! $user_id ) {
 			return false;
 		}
-		$user = get_userdata( $user_id );
-		if ( ! $user ) {
-			return false;
-		}
-		return in_array( 'agnosis_artist', (array) $user->roles, true )
+		// user_can() resolves the primitive capability from wp_capabilities meta
+		// directly — it does not require the role to be present in the global
+		// WP_Roles registry. This means the check works correctly in test
+		// environments where register_activation_hook() hasn't run (and therefore
+		// add_role('agnosis_artist') was never called globally), while remaining
+		// identical in production where the role IS registered.
+		return user_can( $user_id, 'agnosis_artist' )
 			|| user_can( $user_id, 'manage_options' );
 	}
 

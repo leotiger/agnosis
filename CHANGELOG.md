@@ -5,6 +5,36 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [Unreleased]
+
+### Added
+- **`agnosis/event-date` block** — server-side-rendered block that reads `_agnosis_event_date` post meta and formats it with WordPress's configured date (and time, when present) format via `date_i18n()`. Emits a `<time datetime="…">` element; returns empty string when no date is set so the block takes no space. The event template now shows the actual event date instead of the post publication date. (§4c)
+- **Event date AI extraction** — `Pipeline::extract_event_fields()` now also extracts the event date from the email body (ISO 8601), stored in `_agnosis_event_date` post meta. Non-ISO strings are discarded to prevent AI hallucinations from producing garbage output.
+
+### Added
+- **Photo-only intake lane** (`photo@` address + `[Photo]` subject indicator). Photographers and lens-based artists whose photograph is the artwork can submit to a dedicated address that publishes their image exactly as sent — AI enhancement is skipped entirely (no API call, no image mutation), and the quality-rejection gate is bypassed (a deliberately dark, grainy, or low-fi image is an aesthetic choice, not a defect). AI description (title, excerpt, tags, alt text) still runs. Original preservation also added: for standard artwork submissions where enhancement does run, the original binary is now uploaded as a sidecar attachment (`_agnosis_is_original = '1'`) linked via `_agnosis_original_attachment_id` on the enhanced attachment — so the master is always recoverable. (§4f)
+- **`Pipeline::process()` `$skip_enhancement` flag** — when `true`, the enhancement provider is not called at all. Used by the photo-only path in `PostCreator`.
+
+### Added
+- **`FrontendAccess` class** (`includes/Artist/FrontendAccess.php`) — enforces frontend-only access for the `agnosis_artist` role: redirects artists who land on any `/wp-admin/` URL to the front page (`admin_init`), hides the admin toolbar on the frontend (`show_admin_bar`), and sends artists to the front page instead of the dashboard after login (`login_redirect`). Admins who also hold the artist role are intentionally excluded from all three restrictions. AJAX requests are skipped in the redirect to avoid breaking any `admin-ajax.php` calls. (§2c)
+
+### Added
+- **`EmailAuth` helper** (`includes/Email/EmailAuth.php`) — parses `Authentication-Results` headers (RFC 8601) to extract SPF, DKIM, and DMARC verdicts. Includes a Mailgun-specific extractor for the `message-headers` JSON field. `passes()` returns true when at least SPF or DKIM is `pass` — requiring both would over-reject legitimate senders who have only one mechanism configured. (§2a)
+- **Per-sender intake throttle** (`RateLimiter::check_sender()`) — rate limit keyed by hashed `From:` address (not IP, since all ESP relay traffic shares the same IP). Both the IMAP and webhook paths enforce a configurable hourly cap per artist (default: 5). Exceeding the limit silently drops the message so ESPs do not retry. (§2a)
+- **`Admission::is_admitted_artist()` public static** — centralises the admission role check. Called by `Inbox`, `Webhook`, and (as a defense-in-depth re-assert) `PostCreator` before any AI spend. (§2a)
+- **Settings: `agnosis_intake_per_sender_limit`** (Email tab) — per-artist hourly submission cap (default 5, min 1). (§2a)
+- **Settings: `agnosis_require_email_auth`** (Email tab) — opt-in SPF/DKIM enforcement via `Authentication-Results`. Off by default; requires SPF/DKIM records to be configured and the ESP to include the header. (§2a)
+
+- **IMAP poll UID cursor + headers-first fetch** (`Inbox::query_messages()`). Each poll now fetches only messages whose IMAP UID is strictly greater than the last processed UID, persisted in `agnosis_imap_last_uid`. First run (cursor = 0) falls back to the configured retention window so no legitimate back-dated mail is skipped. Query is run in UID-sequence mode (`ST_UID`) so the cursor survives mailbox expunges and reconnects. `fetchBody(false)` is set on every query so the initial IMAP FETCH returns only RFC-822 headers; body download is triggered lazily by `parse_imap_message()` and only for senders that clear all cheap gates. The cursor advances to the highest UID seen in each poll — including skipped messages — so it can never regress. (§2b)
+- **LinguaForge SEO/OG/schema hooks rewired** (`Compat/LinguaForge.php`). The four previously broken hook registrations (silent no-ops against non-existent LF filters) are now corrected or removed: `linguaforge_og_image` → `linguaforge_seo_og_image` (single string arg, `get_post()` used internally); `linguaforge_schema_type` → `linguaforge_seo_schema_data` (array + type, returns modified array with `@type = VisualArtwork`); `linguaforge_meta_description_post` dropped (LF reads `post_excerpt` natively via `get_og_description()`); `linguaforge_managed_textdomains` dropped (LF has no such system). Admin notice URL corrected (`linguaforge-settings` → `lingua-forge`). (§3b, §3c)
+
+### Fixed
+- **Biography and event `post_content` now uses the artist's own written statement, not the AI image description** (`PostCreator::build_post_content`). For `agnosis_biography` and `agnosis_event`, the body is now the (optionally AI-polished) text the artist sent. The AI image description body is reserved for `agnosis_artwork`, where the image *is* the work. Text-only biography/event submissions no longer produce a blank page. (§4b)
+- **Biography updates are now AI-merged with existing content** (`Pipeline::merge_biography()`). When an artist sends a biography update and a previous biography already exists, the new information is merged with the existing text rather than replacing it — preserving all prior content and integrating the new update naturally. Artists can send incremental updates ("I just won an award") without resubmitting their full biography. Events are intentionally excluded and continue to replace. Gated by the `agnosis_ai_merge_biography` setting (default on). As a fallback when no existing content is present or the merge call fails, the new submission is used as-is. When a resend produces no text at all, the existing body is preserved unchanged. (§4d)
+- **Webhook path now enforces the admitted-sender gate** (`Webhook::handle()`). Previously, any image-bearing message relayed by the ESP was AI-processed and drafted regardless of whether the sender was an admitted artist. The admission check now runs before any DB write or AI call. Returns HTTP 200 to prevent ESP retries. (§2a)
+- **IMAP path now checks admission, throttle, and auth from headers before downloading message body** (`Inbox::process_messages()`). The sender's `From:` address is read cheaply; non-admitted senders and throttled senders are skipped without incurring a body download. SPF/DKIM check is also performed at this cheap stage when `agnosis_require_email_auth` is on. (§2a)
+- **`PostCreator::handle()` re-asserts admission before AI spend** — defense-in-depth guard catches the edge case where an artist's role is removed between enqueue and cron processing. (§2a)
+
 ## [0.2.0] — 2026-06-29
 
 ### Added

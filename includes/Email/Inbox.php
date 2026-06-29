@@ -15,11 +15,14 @@ declare(strict_types=1);
 
 namespace Agnosis\Email;
 
+use Agnosis\Artist\Admission;
 use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
+use Agnosis\Core\RateLimiter;
 use Webklex\PHPIMAP\Client;
 use Webklex\PHPIMAP\ClientManager;
 use Webklex\PHPIMAP\Folder;
+use Webklex\PHPIMAP\IMAP;
 
 class Inbox {
 
@@ -385,12 +388,25 @@ class Inbox {
 	 * @param Folder $folder
 	 */
 	private function process_messages( Folder $folder ): void {
-		// Bound the query to the retention window so we never scan the full inbox.
-		$days  = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 30 ) );
-		$since = new \DateTime( '-' . $days . ' days' );
+		// ---- Build the query — headers-first, UID-sequenced -----------------
+		//
+		// fetchBody(false): webklex fetches only RFC-822 headers on the first
+		// IMAP FETCH.  The body is pulled lazily when parse_imap_message() is
+		// called below — and only for messages that clear all cheap gates.
+		//
+		// setSequence(ST_UID): the IMAP server numbers messages two ways:
+		//   • Message Sequence Numbers (MSN) — renumber when older mail is deleted.
+		//   • UIDs — stable for the lifetime of a mailbox.
+		// Operating in UID mode means our cursor survives expunges and reconnects.
+		//
+		// UID cursor: on every run after the first we send `UID N+1:*` which tells
+		// the server to return only messages whose UID is strictly greater than the
+		// last one we processed.  First run (or cursor reset) falls back to the
+		// configured retention window so we do not skip legitimate back-dated mail.
 
-		$messages = $folder->query()->since( $since )->get();
-		Logger::info( sprintf( 'Poll: scanning %d message(s) from last %d day(s).', $messages->count(), $days ), 'inbox' );
+		$last_uid = max( 0, (int) get_option( 'agnosis_imap_last_uid', 0 ) );
+		$messages = $this->query_messages( $folder, $last_uid );
+		$max_uid_seen = $last_uid;
 
 		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
 
@@ -398,41 +414,91 @@ class Inbox {
 			try {
 				$uid = (string) $message->getUid();
 
+				// Track the highest UID we have seen in this poll so we can
+				// advance the cursor even for messages we decide to skip.
+				$numeric_uid = (int) $uid;
+				if ( $numeric_uid > $max_uid_seen ) {
+					$max_uid_seen = $numeric_uid;
+				}
+
 				if ( $this->is_already_queued( $uid ) ) {
 					continue; // DB state machine handles all cases.
 				}
 
+				// ---- Cheap header checks (before body download) --------------------
+				// Read From: and To: from headers — no body fetch needed. These are
+				// fast IMAP FETCH (RFC 822 header) operations. All expensive work
+				// (body download, attachment parsing, AI) only runs for admitted senders
+				// that also pass throttle and auth checks.
+
+				$from_list  = $message->getFrom()->toArray();
+				$from_email = $from_list ? sanitize_email( (string) $from_list[0]->mail ) : '';
+
 				// --- Goodbye alias: self-removal request (no attachment required) ---
 				if ( $goodbye_addr ) {
-					$to_list    = $message->getTo()->toArray();
-					$msg_to     = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
+					$to_list = $message->getTo()->toArray();
+					$msg_to  = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
 					if ( $msg_to === $goodbye_addr ) {
-						$from_list  = $message->getFrom()->toArray();
-						$from_email = $from_list ? sanitize_email( (string) $from_list[0]->mail ) : '';
 						$this->handle_goodbye_email( $from_email, $uid );
 						continue;
 					}
 				}
 
-				$submission = $this->parser->parse_imap_message( $message );
-
-				if ( null === $submission ) {
-					// No valid image attachments — mark it so we don't re-check it.
-					Logger::info( 'Skipped UID ' . $uid . ': no valid image attachments.', 'inbox' );
-					$this->mark_no_artwork( $uid );
-					continue;
-				}
-
-				$artist_id = $submission['artist_id'] ?? null;
+				// --- Cheap gate 1: admitted sender (header-only) -------------------
+				$artist_user = $from_email ? get_user_by( 'email', $from_email ) : null;
+				$artist_id   = $artist_user ? $artist_user->ID : null;
 
 				if ( null === $artist_id ) {
-					Logger::warning( 'Skipped: unregistered sender <' . $submission['from'] . '>.', 'inbox' );
+					Logger::warning( 'Skipped UID ' . $uid . ': unregistered sender <' . $from_email . '>.', 'inbox' );
 					$this->mark_no_artwork( $uid );
 					continue;
 				}
 
 				if ( ! $this->is_admitted_artist( $artist_id ) ) {
-					Logger::warning( 'Skipped: sender <' . $submission['from'] . '> (user #' . $artist_id . ') is not an admitted artist.', 'inbox' );
+					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> (user #' . $artist_id . ') is not admitted.', 'inbox' );
+					$this->mark_no_artwork( $uid );
+					continue;
+				}
+
+				// --- Cheap gate 2: per-sender intake throttle ----------------------
+				$sender_limit  = max( 1, (int) get_option( 'agnosis_intake_per_sender_limit', 5 ) );
+				$throttle      = RateLimiter::check_sender( 'email_intake', $from_email, $sender_limit, HOUR_IN_SECONDS );
+				if ( is_wp_error( $throttle ) ) {
+					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> throttled (' . $sender_limit . '/hour limit).', 'inbox' );
+					$this->mark_no_artwork( $uid );
+					continue;
+				}
+
+				// --- Cheap gate 3: SPF/DKIM (opt-in) -------------------------------
+				if ( get_option( 'agnosis_require_email_auth' ) ) {
+					$auth_raw = '';
+					try {
+						$auth_raw = (string) $message->getHeader()->get( 'authentication-results' );
+					} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw; $auth_raw stays ''
+					}
+					if ( $auth_raw ) {
+						$verdicts = EmailAuth::check_header( $auth_raw );
+						if ( ! EmailAuth::passes( $verdicts ) ) {
+							Logger::warning(
+								sprintf( 'Skipped UID ' . $uid . ': <' . $from_email . '> failed auth — SPF=%s DKIM=%s.', $verdicts['spf'] ?: 'none', $verdicts['dkim'] ?: 'none' ),
+								'inbox'
+							);
+							$this->mark_no_artwork( $uid );
+							continue;
+						}
+					} else {
+						Logger::warning( 'Skipped UID ' . $uid . ': auth required but no Authentication-Results header.', 'inbox' );
+						$this->mark_no_artwork( $uid );
+						continue;
+					}
+				}
+
+				// ---- Full parse (body + attachments) — admitted senders only ------
+				$submission = $this->parser->parse_imap_message( $message );
+
+				if ( null === $submission ) {
+					// No valid image attachments — mark it so we don't re-check it.
+					Logger::info( 'Skipped UID ' . $uid . ': no valid image attachments.', 'inbox' );
 					$this->mark_no_artwork( $uid );
 					continue;
 				}
@@ -443,6 +509,51 @@ class Inbox {
 				Logger::error( 'Error processing message UID ' . ( $uid ?? '?' ) . ': ' . $e->getMessage(), 'inbox' );
 			}
 		}
+
+		// Advance the UID cursor so the next poll only fetches genuinely new mail.
+		if ( $max_uid_seen > $last_uid ) {
+			update_option( 'agnosis_imap_last_uid', $max_uid_seen );
+			Logger::info( 'Poll: UID cursor advanced to ' . $max_uid_seen . '.', 'inbox' );
+		}
+	}
+
+	/**
+	 * Build the IMAP message query for this poll.
+	 *
+	 * Extracted as a protected method so tests can subclass Inbox and inject a
+	 * controlled message collection without requiring a live IMAP connection.
+	 *
+	 * When $last_uid > 0 we send `UID N+1:*` to the server, retrieving only
+	 * messages whose UID is strictly greater than the last processed one.
+	 * On the first run ($last_uid === 0) we fall back to a date-bounded window
+	 * so we do not skip legitimate back-dated mail.
+	 *
+	 * @param Folder $folder   Webklex folder to query.
+	 * @param int    $last_uid Last UID persisted from the previous poll (0 = first run).
+	 * @return \Webklex\PHPIMAP\Support\MessageCollection
+	 */
+	protected function query_messages( Folder $folder, int $last_uid ): \Webklex\PHPIMAP\Support\MessageCollection {
+		$base = $folder->query(); // WhereQuery — do not chain through Query-typed fluent setters.
+		$base->setSequence( IMAP::ST_UID );
+		$base->fetchBody( false );
+
+		if ( $last_uid > 0 ) {
+			$messages = $base->whereUid( ( $last_uid + 1 ) . ':*' )->get();
+			Logger::info(
+				sprintf( 'Poll: UID cursor at %d — fetched %d new message(s).', $last_uid, $messages->count() ),
+				'inbox'
+			);
+			return $messages;
+		}
+
+		$days  = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 30 ) );
+		$since = new \DateTime( '-' . $days . ' days' );
+		$messages = $base->since( $since )->get();
+		Logger::info(
+			sprintf( 'Poll: no UID cursor — scanning %d message(s) from last %d day(s).', $messages->count(), $days ),
+			'inbox'
+		);
+		return $messages;
 	}
 
 	/**
@@ -507,18 +618,11 @@ class Inbox {
 	/**
 	 * Check whether a WP user is an admitted Agnosis artist (or an admin).
 	 *
-	 * Mirrors the check in Admission::is_artist() without coupling Inbox to that class.
+	 * Delegates to the shared Admission::is_admitted_artist() so the logic
+	 * stays in one place across all intake paths.
 	 */
 	private function is_admitted_artist( int $user_id ): bool {
-		if ( ! $user_id ) {
-			return false;
-		}
-		$user = get_userdata( $user_id );
-		if ( ! $user ) {
-			return false;
-		}
-		return in_array( 'agnosis_artist', (array) $user->roles, true )
-			|| user_can( $user_id, 'manage_options' );
+		return Admission::is_admitted_artist( $user_id );
 	}
 
 	/**

@@ -1,0 +1,1633 @@
+# Copyright (C) 2026 Agnosis Network
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Agnosis 0.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
+"Last-Translator: admin\n"
+"Language-Team: Portuguese (Portugal)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-29T00:00+00:00\n"
+"PO-Revision-Date: 2026-06-29 12:28+0000\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Domain: agnosis\n"
+"Language: pt_PT\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Loco-Version: 2.8.5; wp-7.0; php-8.5.7"
+
+#. Plugin Name of the plugin
+#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:125
+#: includes/Publishing/SubmissionsPage.php:60
+msgid "Agnosis"
+msgstr "Agnosis"
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: agnosis.php
+msgid "https://agnosis.art"
+msgstr "https://agnosis.art"
+
+#. Description of the plugin
+#: agnosis.php
+msgid ""
+"Art blooming out of oblivion. Email your art, AI polishes it, the world sees "
+"it. A free, federated publishing network for independent artists."
+msgstr ""
+"Arte a emergir do esquecimento. Envie sua arte por e-mail, a IA a aprimora, "
+"o mundo a vê. Uma rede de publicação federada e gratuita para artistas "
+"independentes."
+
+#. Author of the plugin
+#: agnosis.php
+msgid "Agnosis Network"
+msgstr "Rede Agnosis"
+
+#. translators: %s: required PHP version
+#: agnosis.php:74
+#, php-format
+msgid "Agnosis requires PHP %s or higher."
+msgstr "Agnosis requer PHP %s ou superior."
+
+#. translators: %s: required WP version
+#: agnosis.php:90
+#, php-format
+msgid "Agnosis requires WordPress %s or higher."
+msgstr "Agnosis requer WordPress %s ou superior."
+
+#: blocks/gallery-overview/render.php:168
+msgid "Filter by medium"
+msgstr "Filtrar por meio"
+
+#: blocks/gallery-overview/render.php:171
+msgid "All"
+msgstr "Todos"
+
+#: blocks/gallery-overview/render.php:204
+msgid "Featured"
+msgstr "Destaque"
+
+#: blocks/gallery-overview/render.php:225
+msgid "Gallery pages"
+msgstr "Páginas de galeria"
+
+#: blocks/gallery-overview/render.php:228
+msgid "Prev"
+msgstr "Anterior"
+
+#: blocks/gallery-overview/render.php:241 includes/Admin/InboxPage.php:214
+msgid "Next"
+msgstr "Próximo"
+
+#: includes/Admin/InboxPage.php:33
+msgid "Agnosis Inbox"
+msgstr "Inbox Agnosis"
+
+#: includes/Admin/InboxPage.php:45 includes/Admin/InboxPage.php:46
+#: includes/Admin/InboxPage.php:81
+msgid "Inbox"
+msgstr "Inbox"
+
+#: includes/Admin/InboxPage.php:88
+msgid ""
+"No messages in the queue yet. Click \"Poll Inbox\" to fetch messages from "
+"your IMAP account."
+msgstr ""
+"Ainda não há mensagens na fila. Clique em \"Poll Inbox\" para buscar "
+"mensagens da sua conta IMAP."
+
+#: includes/Admin/InboxPage.php:94
+msgid "#"
+msgstr "#"
+
+#: includes/Admin/InboxPage.php:95
+msgid "From"
+msgstr "De"
+
+#: includes/Admin/InboxPage.php:96
+msgid "Subject"
+msgstr "Assunto"
+
+#: includes/Admin/InboxPage.php:97
+msgid "Files"
+msgstr "Arquivos"
+
+#: includes/Admin/InboxPage.php:98
+msgid "Status"
+msgstr "Status"
+
+#: includes/Admin/InboxPage.php:99
+msgid "Received"
+msgstr "Recebido"
+
+#: includes/Admin/InboxPage.php:100
+msgid "Error"
+msgstr "Erro"
+
+#: includes/Admin/InboxPage.php:101
+msgid "Actions"
+msgstr "Ações"
+
+#: includes/Admin/InboxPage.php:141
+msgid "unregistered sender"
+msgstr "remetente não registrado"
+
+#: includes/Admin/InboxPage.php:169
+msgid "Old row — delete and re-poll to preview"
+msgstr "Linha antiga — excluir e reconsultar para visualização"
+
+#: includes/Admin/InboxPage.php:198
+msgid "Showing the 100 most recent queue entries."
+msgstr "Mostrando as 100 entradas mais recentes na fila."
+
+#: includes/Admin/InboxPage.php:205
+msgid "Attachment viewer"
+msgstr "Visualizador de anexos"
+
+#: includes/Admin/InboxPage.php:208
+msgid "Close"
+msgstr "Fechar"
+
+#: includes/Admin/InboxPage.php:209
+msgid "Previous"
+msgstr "Anterior"
+
+#: includes/Admin/InboxPage.php:286
+msgid "Queue row deleted. Poll Inbox to re-fetch the message."
+msgstr ""
+"Linha da fila excluída. Refaça a consulta na Inbox para buscar a mensagem "
+"novamente."
+
+#. translators: %d: queue row ID
+#: includes/Admin/InboxPage.php:294
+#, php-format
+msgid "Queue #%d sent to pipeline. Check back in a few seconds."
+msgstr "Fila #%d enviada para o pipeline. Volte em alguns segundos."
+
+#. translators: %d: new messages enqueued
+#: includes/Admin/InboxPage.php:304
+#, php-format
+msgid "Poll complete. %d new message(s) added to the queue."
+msgstr "Consulta concluída. %d nova(s) mensagem(ns) adicionada(s) à fila."
+
+#. translators: 1: rows reset 2: newly enqueued
+#: includes/Admin/InboxPage.php:315
+#, php-format
+msgid "Force-reprocess: %1$d row(s) reset, %2$d new message(s) enqueued."
+msgstr ""
+"Reprocessamento forçado: %1$d linha(s) redefinida(s), %2$d nova(s) "
+"mensagem(ns) enfileirada(s)."
+
+#. translators: %d: items processed
+#: includes/Admin/InboxPage.php:325
+#, php-format
+msgid "Processed %d pending item(s)."
+msgstr "Itens pendentes processados: %d."
+
+#: includes/Admin/InboxPage.php:342
+msgid "Poll Inbox"
+msgstr "Consultar Inbox"
+
+#: includes/Admin/InboxPage.php:351
+msgid "Force Reprocess"
+msgstr "Reprocessar forçadamente"
+
+#: includes/Admin/InboxPage.php:360
+msgid "Process All Pending"
+msgstr "Processar tudo"
+
+#: includes/Admin/InboxPage.php:373
+msgid "Awaiting Review"
+msgstr "Aguardando revisão"
+
+#: includes/Admin/InboxPage.php:376
+msgid "Live"
+msgstr "Ao vivo"
+
+#: includes/Admin/InboxPage.php:379
+msgid "Processed"
+msgstr "Processado"
+
+#: includes/Admin/InboxPage.php:384
+msgid "Pending"
+msgstr "Pendente"
+
+#: includes/Admin/InboxPage.php:385
+msgid "Processing"
+msgstr "Processando"
+
+#: includes/Admin/InboxPage.php:386
+msgid "Failed"
+msgstr "Falhou"
+
+#: includes/Admin/InboxPage.php:407
+msgid "Process"
+msgstr "Processar"
+
+#: includes/Admin/InboxPage.php:426
+msgid "View Post"
+msgstr "Ver publicação"
+
+#: includes/Admin/InboxPage.php:436
+msgid "Reprocess"
+msgstr "Reprocessar"
+
+#: includes/Admin/InboxPage.php:441
+msgid "Running…"
+msgstr "Executando…"
+
+#: includes/Admin/InboxPage.php:447
+msgid "Delete this queue row?"
+msgstr "Excluir esta linha da fila?"
+
+#: includes/Admin/InboxPage.php:452
+msgid "Delete"
+msgstr "Excluir"
+
+#: includes/Admin/InboxPage.php:463
+msgid "just now"
+msgstr "agora mesmo"
+
+#. translators: %d: number of minutes
+#: includes/Admin/InboxPage.php:468
+#, php-format
+msgid "%dm ago"
+msgstr "%dm atrás"
+
+#. translators: %d: number of hours
+#: includes/Admin/InboxPage.php:473
+#, php-format
+msgid "%dh ago"
+msgstr "%dh atrás"
+
+#: includes/Admin/Settings.php:34 includes/Admin/Settings.php:35
+msgid "Configuration"
+msgstr "Configuração"
+
+#. translators: 1: queue rows reset, 2: messages newly enqueued
+#: includes/Admin/Settings.php:80
+#, php-format
+msgid ""
+"Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
+"enqueued. Click \"Process Pending Queue\" to run the AI pipeline."
+msgstr ""
+"Reprocessamento forçado concluído. %1$d linha(s) da fila redefinidas, %2$d "
+"nova(s) mensagem(ns) enfileirada(s). Clique em \"Processar Fila Pendente\" "
+"para executar o pipeline de IA."
+
+#: includes/Admin/Settings.php:88
+msgid "Log cleared."
+msgstr "Registo limpo."
+
+#. translators: %d: number of queue items processed
+#: includes/Admin/Settings.php:96
+#, php-format
+msgid "Processed %d pending queue item(s). Check the Logs tab for details."
+msgstr ""
+"%d item(ns) da fila processado(s). Verifique a aba de Registos para detalhes."
+
+#. translators: %d: number of new messages enqueued
+#: includes/Admin/Settings.php:106
+#, php-format
+msgid ""
+"Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
+"Process Pending Queue."
+msgstr ""
+"Poll concluído. %d nova(s) mensagem(ns) enfileirada(s). Verifique a aba de "
+"Registos e clique em Processar Fila Pendente."
+
+#: includes/Admin/Settings.php:126
+msgid "Art blooming out of oblivion"
+msgstr "Arte a florescer do esquecimento"
+
+#: includes/Admin/Settings.php:145
+msgid "Save Changes"
+msgstr "Guardar Alterações"
+
+#: includes/Admin/Settings.php:159
+msgid "General"
+msgstr "Geral"
+
+#: includes/Admin/Settings.php:160
+msgid "Email Inbox"
+msgstr "Caixa de Entrada de Email"
+
+#: includes/Admin/Settings.php:161
+msgid "AI Providers"
+msgstr "Provedores de IA"
+
+#: includes/Admin/Settings.php:162
+msgid "Behaviour"
+msgstr "Comportamento"
+
+#: includes/Admin/Settings.php:163
+msgid "Network"
+msgstr "Rede"
+
+#: includes/Admin/Settings.php:164
+msgid "Commerce"
+msgstr "Comércio"
+
+#: includes/Admin/Settings.php:165
+msgid "Logs"
+msgstr "Registos"
+
+#: includes/Admin/Settings.php:226
+msgid "Base domain"
+msgstr "Domínio base"
+
+#: includes/Admin/Settings.php:227
+msgid ""
+"Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
+"reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
+"{base_domain}) pointing to this server. Leave blank to disable subdomain "
+"routing."
+msgstr ""
+"Domínio raiz para subdomínios de artistas, por exemplo, agnosis.art. Cada "
+"artista é acessível em nicename.{domínio_base}. É necessário um registo DNS "
+"curinga (*.{domínio_base}) apontando para este servidor. Deixe em branco "
+"para desativar o encaminhamento de subdomínios."
+
+#: includes/Admin/Settings.php:232
+msgid "Node label"
+msgstr "Etiqueta do nó"
+
+#: includes/Admin/Settings.php:233
+msgid "How this node introduces itself to the network."
+msgstr "Como este nó se apresenta à rede."
+
+#: includes/Admin/Settings.php:240
+msgid "Email driver"
+msgstr "Controlador de email"
+
+#: includes/Admin/Settings.php:248
+msgid "Artwork submissions address"
+msgstr "Endereço de submissões de obras de arte"
+
+#: includes/Admin/Settings.php:249
+msgid "Artists send artwork to this address — e.g. submit@agnosis.art"
+msgstr ""
+"Artistas enviam obras para este endereço — por exemplo, submit@agnosis.art"
+
+#: includes/Admin/Settings.php:253
+msgid "Biography submissions address"
+msgstr "Endereço de submissões de biografias"
+
+#: includes/Admin/Settings.php:254
+msgid "Artists send biography updates to this address — e.g. bio@agnosis.art"
+msgstr ""
+"Artistas enviam atualizações de biografia para este endereço — por exemplo, "
+"bio@agnosis.art"
+
+#: includes/Admin/Settings.php:258
+msgid "Event submissions address"
+msgstr "Endereço de submissões de eventos"
+
+#: includes/Admin/Settings.php:259
+msgid ""
+"Artists send event announcements to this address — e.g. event@agnosis.art"
+msgstr ""
+"Artistas enviam anúncios de eventos para este endereço — por exemplo, "
+"event@agnosis.art"
+
+#: includes/Admin/Settings.php:263
+msgid "Replace artwork address"
+msgstr "Substituir endereço de obras"
+
+#: includes/Admin/Settings.php:264
+msgid ""
+"Artist sends a new version of an existing artwork. Subject must match the "
+"original title. Bypasses duplicate detection — e.g. replace@agnosis.art"
+msgstr ""
+"O artista envia uma nova versão de uma obra existente. O assunto deve "
+"corresponder ao título original. Ignora a deteção de duplicados — por "
+"exemplo, replace@agnosis.art"
+
+#: includes/Admin/Settings.php:268
+msgid "Removal request address"
+msgstr "Endereço de pedido de remoção"
+
+#: includes/Admin/Settings.php:269
+msgid ""
+"Artist requests takedown of an existing artwork. Subject must match the "
+"title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
+msgstr ""
+"O artista solicita a retirada de uma obra existente. O assunto deve "
+"corresponder ao título. Move a publicação para rascunho pendente de revisão "
+"administrativa — por exemplo, remove@agnosis.art"
+
+#: includes/Admin/Settings.php:275
+msgid "IMAP host"
+msgstr "Host IMAP"
+
+#: includes/Admin/Settings.php:276
+msgid "e.g. imap.yourhost.com"
+msgstr "por exemplo, imap.yourhost.com"
+
+#: includes/Admin/Settings.php:280
+msgid "IMAP port"
+msgstr "Porta IMAP"
+
+#: includes/Admin/Settings.php:287
+msgid "Use SSL"
+msgstr "Usar SSL"
+
+#: includes/Admin/Settings.php:295
+msgid "Skip SSL certificate validation"
+msgstr "Ignorar validação do certificado SSL"
+
+#: includes/Admin/Settings.php:300
+msgid ""
+"⚠ Use only as a temporary workaround when your mail server's certificate is "
+"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
+"to the mail daemon). Disable this once the mail server presents a valid "
+"certificate."
+msgstr ""
+"⚠ Usar apenas como uma solução temporária quando o certificado do seu "
+"servidor de email ainda não for confiável (por exemplo, certificado "
+"autoassinado do Plesk antes de aplicar o Let's Encrypt ao daemon de email). "
+"Desative isto assim que o servidor de email apresentar um certificado válido."
+
+#: includes/Admin/Settings.php:304
+msgid "IMAP username"
+msgstr "Nome de utilizador IMAP"
+
+#: includes/Admin/Settings.php:305
+msgid ""
+"Login username for the IMAP account — typically the catch-all mailbox "
+"address."
+msgstr ""
+"Nome de utilizador de login para a conta IMAP — tipicamente o endereço da "
+"caixa de correio catch-all."
+
+#: includes/Admin/Settings.php:309
+msgid "Submission email password"
+msgstr "Palavra-passe do email de submissão"
+
+#: includes/Admin/Settings.php:315
+msgid "Webhook secret"
+msgstr "Segredo do Webhook"
+
+#: includes/Admin/Settings.php:316
+msgid "HMAC secret shared with your webhook provider (Mailgun, SendGrid…)."
+msgstr ""
+"Segredo HMAC partilhado com o seu provedor de webhook (Mailgun, SendGrid…)."
+
+#: includes/Admin/Settings.php:322
+msgid "Inbox retention (days)"
+msgstr "Retenção da caixa de entrada (dias)"
+
+#: includes/Admin/Settings.php:328
+msgid ""
+"Seen IMAP messages and processed/failed queue rows older than this are "
+"permanently deleted by the daily cleanup. Default: 7 days."
+msgstr ""
+"Mensagens IMAP vistas e linhas de fila processadas/falhadas com mais de este "
+"tempo são apagadas permanentemente pela limpeza diária. Padrão: 7 dias."
+
+#: includes/Admin/Settings.php:334
+msgid "Description provider"
+msgstr "Descrição do provedor"
+
+#: includes/Admin/Settings.php:342
+msgid ""
+"Analyses the artwork image and writes the title, body, tags and alt text. "
+"WordPress AI Services delegates to whichever provider the site has "
+"configured via the AI Services plugin."
+msgstr ""
+"Analisa a imagem da obra de arte e escreve o título, corpo, tags e texto "
+"alternativo. Os Serviços de IA do WordPress delegam ao provedor configurado "
+"pelo site através do plugin de Serviços de IA."
+
+#: includes/Admin/Settings.php:346
+msgid "OpenAI vision model"
+msgstr "Modelo de visão OpenAI"
+
+#: includes/Admin/Settings.php:348
+msgid ""
+"Model used for artwork description when OpenAI is the description provider. "
+"Must support vision input."
+msgstr ""
+"Modelo usado para descrição de obras de arte quando o OpenAI é o provedor de "
+"descrição. Deve suportar entrada de visão."
+
+#: includes/Admin/Settings.php:352
+msgid "Anthropic model"
+msgstr "Modelo Anthropic"
+
+#: includes/Admin/Settings.php:354
+msgid ""
+"Model used for artwork description when Anthropic is the description "
+"provider. Must support vision input."
+msgstr ""
+"Modelo usado para descrição de obras de arte quando o Anthropic é o provedor "
+"de descrição. Deve suportar entrada de visão."
+
+#: includes/Admin/Settings.php:360
+msgid "Enhancement provider"
+msgstr "Provedor de aprimoramento"
+
+#: includes/Admin/Settings.php:363
+msgid "Auto (OpenAI if key is set)"
+msgstr "Automático (OpenAI se a chave estiver definida)"
+
+#: includes/Admin/Settings.php:365
+msgid "Disabled — use original image"
+msgstr "Desativado — usar a imagem original"
+
+#: includes/Admin/Settings.php:368
+msgid ""
+"Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
+"to Disabled to skip enhancement and publish the original."
+msgstr ""
+"Melhora a imagem da obra de arte antes de publicar. Usa o OpenAI gpt-image-1."
+" Defina como Desativado para pular a melhoria e publicar a original."
+
+#: includes/Admin/Settings.php:372
+msgid "OpenAI image model"
+msgstr "Modelo de imagem OpenAI"
+
+#: includes/Admin/Settings.php:374
+msgid ""
+"Model used for image enhancement when OpenAI is the enhancement provider."
+msgstr ""
+"Modelo usado para aprimoramento de imagem quando o OpenAI é o provedor de "
+"aprimoramento."
+
+#: includes/Admin/Settings.php:380
+msgid "Polish biography with AI"
+msgstr "Polir biografia com IA"
+
+#: includes/Admin/Settings.php:383
+msgid ""
+"When enabled, biography submissions are passed through the AI to fix "
+"spelling and make minor text improvements before saving."
+msgstr ""
+"Quando ativado, as submissões de biografia passam pela IA para corrigir "
+"ortografia e fazer pequenas melhorias no texto antes de salvar."
+
+#: includes/Admin/Settings.php:387
+msgid "Polish events with AI"
+msgstr "Polir eventos com IA"
+
+#: includes/Admin/Settings.php:390
+msgid ""
+"When enabled, event submissions are passed through the AI to fix spelling "
+"and make minor text improvements before saving."
+msgstr ""
+"Quando ativado, as submissões de eventos passam pela IA para corrigir "
+"ortografia e fazer pequenas melhorias no texto antes de salvar."
+
+#: includes/Admin/Settings.php:396
+msgid "Enhancement threshold (quality score)"
+msgstr "Limite de aprimoramento (pontuação de qualidade)"
+
+#: includes/Admin/Settings.php:403
+msgid ""
+"Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
+"= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
+"problematic photos are processed. Set to 1 to disable automatic enhancement "
+"entirely."
+msgstr ""
+"Fotos com pontuação abaixo deste valor (1–10) são automaticamente "
+"aprimoradas. Pontuação 10 = fotografia perfeita, 1 = tecnicamente "
+"inutilizável. Padrão: 7 — apenas fotos visivelmente problemáticas são "
+"processadas. Defina como 1 para desativar o aprimoramento automático "
+"completamente."
+
+#: includes/Admin/Settings.php:409
+msgid "OpenAI API key"
+msgstr "Chave API do OpenAI"
+
+#: includes/Admin/Settings.php:412
+msgid "Required when OpenAI is the description or enhancement provider."
+msgstr "Necessária quando o OpenAI é o provedor de descrição ou aprimoramento."
+
+#: includes/Admin/Settings.php:416
+msgid "Anthropic API key"
+msgstr "Chave API do Anthropic"
+
+#: includes/Admin/Settings.php:419
+msgid "Required when Anthropic is the description provider."
+msgstr "Necessária quando o Anthropic é o provedor de descrição."
+
+#: includes/Admin/Settings.php:425
+msgid "Artwork display width (px)"
+msgstr "Largura de exibição da obra de arte (px)"
+
+#: includes/Admin/Settings.php:431
+msgid ""
+"Width of the agnosis-artwork image size used in post content and lightbox. "
+"Height scales proportionally. Default: 1920. Existing images need to be "
+"regenerated after changing this value."
+msgstr ""
+"Largura do tamanho da imagem agnosis-artwork usada no conteúdo do post e "
+"lightbox. A altura escala proporcionalmente. Padrão: 1920. Imagens "
+"existentes precisam ser regeneradas após alterar este valor."
+
+#: includes/Admin/Settings.php:435
+msgid "Thumbnail size (px)"
+msgstr "Tamanho da miniatura (px)"
+
+#: includes/Admin/Settings.php:441
+msgid ""
+"Side length of the square agnosis-thumb size used in submission cards and "
+"dashboard. Default: 512. Existing images need to be regenerated after "
+"changing this value."
+msgstr ""
+"Comprimento lateral do tamanho quadrado agnosis-thumb usado em cartões de "
+"submissão e painel. Padrão: 512. Imagens existentes precisam ser regeneradas "
+"após alterar este valor."
+
+#: includes/Admin/Settings.php:445
+msgid "Email image width (px)"
+msgstr "Largura da imagem do email (px)"
+
+#: includes/Admin/Settings.php:451
+msgid ""
+"Width of the agnosis-email size used in artist notification emails. Height "
+"scales proportionally — no cropping. Default: 420. Existing images need to "
+"be regenerated after changing this value."
+msgstr ""
+"Largura do tamanho agnosis-email usado nos emails de notificação de artistas."
+" A altura escala proporcionalmente — sem corte. Padrão: 420. Imagens "
+"existentes precisam ser regeneradas após alterar este valor."
+
+#: includes/Admin/Settings.php:457
+msgid "Gallery overview — items per page"
+msgstr "Visão geral da galeria — itens por página"
+
+#: includes/Admin/Settings.php:463
+msgid ""
+"How many artwork cards the gallery overview shows per page. Pool is built "
+"proportionally across all artists; featured artworks are preferred. Default: "
+"12."
+msgstr ""
+"Quantos cartões de obra de arte a visão geral da galeria mostra por página. "
+"O pool é construído proporcionalmente entre todos os artistas; obras em "
+"destaque são preferidas. Padrão: 12."
+
+#: includes/Admin/Settings.php:469
+msgid "System prompt"
+msgstr "Prompt do sistema"
+
+#: includes/Admin/Settings.php:474
+msgid ""
+"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
+" as tokens — they are replaced with the values below."
+msgstr ""
+"Enviado à IA como instrução do sistema. Use {tag_count} e {excerpt_words} "
+"como tokens — eles são substituídos pelos valores abaixo."
+
+#: includes/Admin/Settings.php:478
+msgid "Artist prompt template"
+msgstr "Modelo de prompt do artista"
+
+#: includes/Admin/Settings.php:483
+msgid ""
+"User message sent alongside the artwork image. Use {artist_prompt} where the "
+"artist's own description should appear."
+msgstr ""
+"Mensagem do usuário enviada junto com a imagem da obra de arte. Use "
+"{artist_prompt} onde a descrição do próprio artista deve aparecer."
+
+#: includes/Admin/Settings.php:487
+msgid "Enhancement instructions"
+msgstr "Instruções de aprimoramento"
+
+#: includes/Admin/Settings.php:492
+msgid ""
+"Instructions passed to the image enhancement provider. The AI-generated "
+"artwork description is appended automatically as context."
+msgstr ""
+"Instruções passadas ao provedor de aprimoramento de imagem. A descrição da "
+"obra gerada pela IA é automaticamente adicionada como contexto."
+
+#: includes/Admin/Settings.php:496
+msgid "Number of tags"
+msgstr "Número de tags"
+
+#: includes/Admin/Settings.php:502
+msgid ""
+"How many tags the AI should generate per artwork. Referenced as {tag_count} "
+"in the system prompt."
+msgstr ""
+"Quantas tags a IA deve gerar por obra de arte. Referenciado como {tag_count} "
+"no prompt do sistema."
+
+#: includes/Admin/Settings.php:506
+msgid "Excerpt word limit"
+msgstr "Limite de palavras do trecho"
+
+#: includes/Admin/Settings.php:512
+msgid ""
+"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
+"the system prompt."
+msgstr ""
+"Palavras máximas para o trecho de uma frase. Referenciado como "
+"{excerpt_words} no prompt do sistema."
+
+#: includes/Admin/Settings.php:518
+msgid "Enable ActivityPub federation"
+msgstr "Ativar federação ActivityPub"
+
+#: includes/Admin/Settings.php:522
+msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
+msgstr "Transmitir novas obras de arte para Mastodon, Pixelfed e Fediverse."
+
+#: includes/Admin/Settings.php:527
+msgid "Node public key"
+msgstr "Chave pública do nó"
+
+#: includes/Admin/Settings.php:529
+msgid ""
+"Auto-generated RSA public key for this node. Share this with peer nodes."
+msgstr ""
+"Chave pública RSA gerada automaticamente para este nó. Compartilhe com os "
+"nós pares."
+
+#: includes/Admin/Settings.php:533
+msgid "Vouches required for admission"
+msgstr "Votos necessários para admissão"
+
+#: includes/Admin/Settings.php:537
+msgid "How many existing artists must vouch before a new artist is admitted."
+msgstr ""
+"Quantos artistas existentes devem votar antes que um novo artista seja "
+"admitido."
+
+#: includes/Admin/Settings.php:543
+msgid "Transaction fee (%)"
+msgstr "Taxa de transação (%)"
+
+#: includes/Admin/Settings.php:548
+msgid ""
+"Percentage retained by this node on donations and art sales. Artists pay "
+"nothing up front."
+msgstr ""
+"Percentagem retida por este nó em doações e vendas de arte. Os artistas não "
+"pagam nada antecipadamente."
+
+#: includes/Admin/Settings.php:559
+msgid ""
+"Sends a minimal ping (\"Reply with the word: ping\") using the configured "
+"API key."
+msgstr ""
+"Envia um ping mínimo (\"Reply with the word: ping\") usando a chave API "
+"configurada."
+
+#: includes/Admin/Settings.php:563
+msgid "Sends a minimal ping using the configured API key."
+msgstr "Envia um ping mínimo usando a chave API configurada."
+
+#: includes/Admin/Settings.php:566
+msgid "WordPress AI Client"
+msgstr "Cliente de IA do WordPress"
+
+#: includes/Admin/Settings.php:567
+msgid ""
+"Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
+"generation model is configured."
+msgstr ""
+"Verifica se wp_ai_client_prompt() está disponível (WordPress 7.0+) e se um "
+"modelo de geração de texto está configurado."
+
+#: includes/Admin/Settings.php:572
+msgid "Test AI Providers"
+msgstr "Testar provedores de IA"
+
+#. translators: %s: provider label
+#: includes/Admin/Settings.php:585
+#, php-format
+msgid "Test %s"
+msgstr "Testar %s"
+
+#: includes/Admin/Settings.php:623
+msgid "Pipeline Logs"
+msgstr "Registros do pipeline"
+
+#: includes/Admin/Settings.php:628
+msgid "Clear all log entries?"
+msgstr "Limpar todas as entradas de log?"
+
+#: includes/Admin/Settings.php:629
+msgid "Clear All"
+msgstr "Limpar Tudo"
+
+#. translators: %d: total log entry count
+#: includes/Admin/Settings.php:638
+#, php-format
+msgid ""
+"%d entries total. Logs are pruned automatically according to the Inbox "
+"retention setting."
+msgstr ""
+"%d entradas no total. Os registos são eliminados automaticamente de acordo "
+"com a configuração de retenção da Caixa de Entrada."
+
+#: includes/Admin/Settings.php:645
+msgid "No log entries yet."
+msgstr "Ainda não há registos."
+
+#: includes/Admin/Settings.php:650
+msgid "Time"
+msgstr "Hora"
+
+#: includes/Admin/Settings.php:651
+msgid "Level"
+msgstr "Nível"
+
+#: includes/Admin/Settings.php:652
+msgid "Context"
+msgstr "Contexto"
+
+#: includes/Admin/Settings.php:653
+msgid "Message"
+msgstr "Mensagem"
+
+#: includes/Admin/Settings.php:708
+msgid "Inbox Tools"
+msgstr "Ferramentas da Caixa de Entrada"
+
+#: includes/Admin/Settings.php:712
+msgid "Test connection"
+msgstr "Testar conexão"
+
+#: includes/Admin/Settings.php:717
+msgid "Test IMAP Connection"
+msgstr "Testar Conexão IMAP"
+
+#: includes/Admin/Settings.php:719
+msgid ""
+"Connects to the configured mailbox and reports the total and unseen message "
+"count."
+msgstr ""
+"Conecta-se à caixa de correio configurada e informa o total e o número de "
+"mensagens não lidas."
+
+#: includes/Admin/Settings.php:723
+msgid "Poll inbox now"
+msgstr "Verificar caixa de entrada agora"
+
+#: includes/Admin/Settings.php:728
+msgid "Poll Inbox Now"
+msgstr "Verificar Caixa de Entrada Agora"
+
+#: includes/Admin/Settings.php:730
+msgid ""
+"Fetches unseen messages immediately without waiting for WP-Cron. Then click "
+"\"Process Pending Queue\" to run the AI pipeline."
+msgstr ""
+"Busca mensagens não lidas imediatamente sem esperar pelo WP-Cron. Depois "
+"clique em \"Processar Fila Pendente\" para executar o pipeline de IA."
+
+#: includes/Admin/Settings.php:734
+msgid "Process queue"
+msgstr "Processar fila"
+
+#: includes/Admin/Settings.php:739
+msgid "Process Pending Queue"
+msgstr "Processar Fila Pendente"
+
+#: includes/Admin/Settings.php:741
+msgid ""
+"Immediately runs the AI pipeline on all pending queue items without waiting "
+"for WP-Cron. Use this to test the end-to-end flow after a poll."
+msgstr ""
+"Executa imediatamente o pipeline de IA em todos os itens pendentes na fila "
+"sem esperar pelo WP-Cron. Use isto para testar o fluxo de ponta a ponta após "
+"uma verificação."
+
+#: includes/Admin/Settings.php:745
+msgid "Force reprocess"
+msgstr "Forçar reprocessamento"
+
+#: includes/Admin/Settings.php:750
+msgid "Force Reprocess Inbox"
+msgstr "Forçar Reprocessar Caixa de Entrada"
+
+#: includes/Admin/Settings.php:752
+msgid ""
+"Resets failed/stuck/orphaned queue rows back to pending, then immediately "
+"polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
+"the AI pipeline. Already-published artworks with valid posts are never re-"
+"processed."
+msgstr ""
+"Reinicia as linhas de fila que falharam, ficaram presas ou órfãs para "
+"pendentes, e depois verifica imediatamente por mensagens não processadas. "
+"Depois clique em \"Processar Fila Pendente\" para executar o pipeline de IA. "
+"Obras já publicadas com publicações válidas nunca são reprocessadas."
+
+#: includes/AI/PromptConfig.php:84
+msgid ""
+"The artist sent no subject line or message with this submission — let the "
+"image speak entirely for itself."
+msgstr ""
+"O artista não enviou assunto nem mensagem com esta submissão — deixe a "
+"imagem falar por si só."
+
+#: includes/Artist/Admission.php:95
+msgid "You cannot vouch for yourself."
+msgstr "Não podes garantir por ti mesmo."
+
+#: includes/Artist/Admission.php:99
+msgid "This user has not applied."
+msgstr "Este utilizador não se candidatou."
+
+#: includes/Artist/Admission.php:150
+#: includes/Publishing/SubmissionsPage.php:160
+msgid "You must be logged in."
+msgstr "É necessário estar autenticado."
+
+#: includes/Artist/Admission.php:156
+msgid "Only admitted artists can vouch."
+msgstr "Apenas artistas admitidos podem garantir."
+
+#: includes/Artist/Profile.php:26 includes/Artist/Profile.php:145
+#: includes/Artist/Profile.php:158
+msgid "Artworks"
+msgstr "Obras de arte"
+
+#: includes/Artist/Profile.php:44
+msgid "Write about this artwork…"
+msgstr "Escreva sobre esta obra de arte…"
+
+#: includes/Artist/Profile.php:51 includes/Artist/Profile.php:53
+#: includes/Artist/Profile.php:63
+msgid "Biographies"
+msgstr "Biografias"
+
+#: includes/Artist/Profile.php:54 includes/Artist/Profile.php:64
+msgid "Biography"
+msgstr "Biografia"
+
+#: includes/Artist/Profile.php:55
+msgid "Add New Biography"
+msgstr "Adicionar Nova Biografia"
+
+#: includes/Artist/Profile.php:56
+msgid "Edit Biography"
+msgstr "Editar Biografia"
+
+#: includes/Artist/Profile.php:57
+msgid "New Biography"
+msgstr "Nova Biografia"
+
+#: includes/Artist/Profile.php:58
+msgid "View Biography"
+msgstr "Ver Biografia"
+
+#: includes/Artist/Profile.php:59
+msgid "Search Biographies"
+msgstr "Pesquisar Biografias"
+
+#: includes/Artist/Profile.php:60
+msgid "No biographies found."
+msgstr "Não foram encontradas biografias."
+
+#: includes/Artist/Profile.php:61
+msgid "No biographies in trash."
+msgstr "Não há biografias na lixeira."
+
+#: includes/Artist/Profile.php:62
+msgid "All Biographies"
+msgstr "Todas as Biografias"
+
+#: includes/Artist/Profile.php:85 includes/Artist/Profile.php:87
+#: includes/Artist/Profile.php:97
+msgid "Events"
+msgstr "Eventos"
+
+#: includes/Artist/Profile.php:88 includes/Artist/Profile.php:98
+msgid "Event"
+msgstr "Evento"
+
+#: includes/Artist/Profile.php:89
+msgid "Add New Event"
+msgstr "Adicionar Novo Evento"
+
+#: includes/Artist/Profile.php:90
+msgid "Edit Event"
+msgstr "Editar Evento"
+
+#: includes/Artist/Profile.php:91
+msgid "New Event"
+msgstr "Novo Evento"
+
+#: includes/Artist/Profile.php:92
+msgid "View Event"
+msgstr "Ver Evento"
+
+#: includes/Artist/Profile.php:93
+msgid "Search Events"
+msgstr "Pesquisar Eventos"
+
+#: includes/Artist/Profile.php:94
+msgid "No events found."
+msgstr "Não foram encontrados eventos."
+
+#: includes/Artist/Profile.php:95
+msgid "No events in trash."
+msgstr "Não há eventos na lixeira."
+
+#: includes/Artist/Profile.php:96
+msgid "All Events"
+msgstr "Todos os Eventos"
+
+#: includes/Artist/Profile.php:119 includes/Artist/Profile.php:122
+msgid "Medium"
+msgstr "Médio"
+
+#: includes/Artist/Profile.php:121 includes/Artist/Profile.php:129
+msgid "Mediums"
+msgstr "Meios"
+
+#: includes/Artist/Profile.php:123
+msgid "Search Mediums"
+msgstr "Pesquisar Meios"
+
+#: includes/Artist/Profile.php:124
+msgid "All Mediums"
+msgstr "Todos os Meios"
+
+#: includes/Artist/Profile.php:125
+msgid "Edit Medium"
+msgstr "Editar Meio"
+
+#: includes/Artist/Profile.php:126
+msgid "Update Medium"
+msgstr "Atualizar Meio"
+
+#: includes/Artist/Profile.php:127
+msgid "Add New Medium"
+msgstr "Adicionar Novo Meio"
+
+#: includes/Artist/Profile.php:128
+msgid "New Medium Name"
+msgstr "Nome do Novo Meio"
+
+#: includes/Artist/Profile.php:146 includes/Artist/Profile.php:159
+msgid "Artwork"
+msgstr "Obra de Arte"
+
+#: includes/Artist/Profile.php:147
+msgid "Add New"
+msgstr "Adicionar Novo"
+
+#: includes/Artist/Profile.php:148
+msgid "Add New Artwork"
+msgstr "Adicionar Nova Obra de Arte"
+
+#: includes/Artist/Profile.php:149
+msgid "Edit Artwork"
+msgstr "Editar Obra de Arte"
+
+#: includes/Artist/Profile.php:150
+msgid "New Artwork"
+msgstr "Nova Obra de Arte"
+
+#: includes/Artist/Profile.php:151
+msgid "View Artwork"
+msgstr "Ver Obra de Arte"
+
+#: includes/Artist/Profile.php:152
+msgid "Search Artworks"
+msgstr "Pesquisar Obras de Arte"
+
+#: includes/Artist/Profile.php:153
+msgid "No artworks found."
+msgstr "Obras de arte não encontradas."
+
+#: includes/Artist/Profile.php:154
+msgid "No artworks in trash."
+msgstr "Nenhuma obra de arte na lixeira."
+
+#: includes/Artist/Profile.php:155
+msgid "All Artworks"
+msgstr "Todas as Obras de Arte"
+
+#: includes/Artist/Profile.php:156
+msgid "Artwork Archives"
+msgstr "Arquivos de Obras de Arte"
+
+#: includes/Artist/Profile.php:157
+msgid "Artwork Attributes"
+msgstr "Atributos da Obra de Arte"
+
+#: includes/Core/Activator.php:164 includes/Core/Plugin.php:376
+msgid "Agnosis Artist"
+msgstr "Artista Agnosis"
+
+#: includes/Core/Activator.php:243
+msgid "My Submissions"
+msgstr "Minhas Submissões"
+
+#: includes/Core/Plugin.php:66
+msgid "Permission denied."
+msgstr "Permissão negada."
+
+#: includes/Core/Plugin.php:77
+msgid "OpenAI API key not configured."
+msgstr "Chave API do OpenAI não configurada."
+
+#. translators: %d: HTTP response status code
+#: includes/Core/Plugin.php:99 includes/Core/Plugin.php:131
+#, php-format
+msgid "HTTP %d"
+msgstr "HTTP %d"
+
+#: includes/Core/Plugin.php:102
+msgid "OpenAI connection successful."
+msgstr "Conexão com OpenAI bem-sucedida."
+
+#: includes/Core/Plugin.php:108
+msgid "Anthropic API key not configured."
+msgstr "Chave API da Anthropic não configurada."
+
+#: includes/Core/Plugin.php:134
+msgid "Anthropic connection successful."
+msgstr "Conexão com Anthropic bem-sucedida."
+
+#: includes/Core/Plugin.php:139
+msgid "WordPress AI Client requires WordPress 7.0 or later."
+msgstr "O cliente WordPress AI requer WordPress 7.0 ou superior."
+
+#: includes/Core/Plugin.php:145
+msgid ""
+"No text-generation model configured. Set one up under Settings → Connectors."
+msgstr ""
+"Nenhum modelo de geração de texto configurado. Configure um em Configurações "
+"→ Conectores."
+
+#: includes/Core/Plugin.php:147
+msgid ""
+"WordPress AI Client is available and a text-generation model is configured."
+msgstr ""
+"O cliente WordPress AI está disponível e um modelo de geração de texto está "
+"configurado."
+
+#: includes/Core/Plugin.php:151
+msgid "Unknown provider."
+msgstr "Provedor desconhecido."
+
+#: includes/Core/Plugin.php:160 includes/Core/Plugin.php:185
+#: includes/Core/Plugin.php:214 includes/Core/Plugin.php:250
+#: includes/Core/Plugin.php:271 includes/Core/Plugin.php:304
+#: includes/Core/Plugin.php:323
+msgid "You do not have permission to perform this action."
+msgstr "Você não tem permissão para realizar esta ação."
+
+#: includes/Core/Plugin.php:425
+msgid "is active and configured for"
+msgstr "está ativo e configurado para"
+
+#: includes/Core/Plugin.php:426
+msgid "Subdomain"
+msgstr "Subdomínio"
+
+#: includes/Core/Plugin.php:427
+msgid "routing mode"
+msgstr "modo de roteamento"
+
+#: includes/Core/Plugin.php:429
+msgid ""
+"This conflicts with Agnosis artist subdomains — both plugins would claim the "
+"same subdomain namespace."
+msgstr ""
+"Isto entra em conflito com os subdomínios de artistas do Agnosis — ambos os "
+"plugins reivindicariam o mesmo espaço de nomes de subdomínio."
+
+#: includes/Core/Plugin.php:430
+msgid "Artist subdomain routing is"
+msgstr "O roteamento de subdomínios de artistas é"
+
+#: includes/Core/Plugin.php:431
+msgid "completely inactive"
+msgstr "completamente inativo"
+
+#: includes/Core/Plugin.php:432
+msgid "until this is resolved."
+msgstr "até que isto seja resolvido."
+
+#: includes/Core/Plugin.php:434
+msgid "Fix: open"
+msgstr "Correção: abrir"
+
+#: includes/Core/Plugin.php:435
+msgid "Settings"
+msgstr "Configurações"
+
+#: includes/Core/Plugin.php:435
+msgid "Language Router"
+msgstr "Roteador de Idiomas"
+
+#: includes/Core/Plugin.php:436
+msgid "and switch the URL strategy to"
+msgstr "e alterar a estratégia de URL para"
+
+#: includes/Core/Plugin.php:437
+msgid "Path prefix (subfolder)"
+msgstr "Prefixo de caminho (subpasta)"
+
+#: includes/Core/Plugin.php:438
+msgid ""
+"This is the LinguaForge default and allows artist subdomains to coexist with "
+"language subfolders"
+msgstr ""
+"Este é o padrão do LinguaForge e permite que subdomínios de artistas "
+"coexistam com subpastas de idiomas"
+
+#: includes/Core/Plugin.php:443
+msgid "Agnosis — Artist Subdomain Routing is disabled"
+msgstr "Agnosis — Roteamento de Subdomínios de Artistas está desativado"
+
+#: includes/Core/Plugin.php:453
+msgid "Open LinguaForge Settings"
+msgstr "Abrir Configurações do LinguaForge"
+
+#: includes/Email/Inbox.php:50
+msgid "Every 5 minutes"
+msgstr "A cada 5 minutos"
+
+#: includes/Email/Inbox.php:163
+msgid "IMAP credentials are not configured."
+msgstr "Credenciais IMAP não configuradas."
+
+#. translators: 1: total message count, 2: unseen message count
+#: includes/Email/Inbox.php:190
+#, php-format
+msgid "Connected successfully. %1$d message(s) in inbox, %2$d unseen."
+msgstr ""
+"Conexão bem-sucedida. %1$d mensagem(ns) na caixa de entrada, %2$d não lidas."
+
+#: includes/Email/Webhook.php:81
+msgid "Webhook secret not configured."
+msgstr "Segredo do Webhook não configurado."
+
+#: includes/Email/Webhook.php:102
+msgid "Invalid or missing webhook signature."
+msgstr "Assinatura do webhook inválida ou ausente."
+
+#: includes/Network/Node.php:84
+msgid "Node URL is required."
+msgstr "A URL do nó é obrigatória."
+
+#: includes/Publishing/GalleryOverview.php:65
+msgid "Gallery overview"
+msgstr "Visão geral da galeria"
+
+#: includes/Publishing/GalleryOverview.php:91
+msgid "Feature this artwork in the gallery overview"
+msgstr "Destaque esta obra na visão geral da galeria"
+
+#: includes/Publishing/GalleryOverview.php:95
+msgid ""
+"Featured artworks are always chosen first when selecting one work per artist "
+"for the homepage overview."
+msgstr ""
+"Obras em destaque são sempre escolhidas primeiro ao selecionar uma obra por "
+"artista para a visão geral da página inicial."
+
+#. translators: %s: artwork title
+#: includes/Publishing/Notification.php:50
+#, php-format
+msgid "[Agnosis] Confirm removal of: %s"
+msgstr "[Agnosis] Confirme a remoção de: %s"
+
+#. translators: %s: artwork title
+#: includes/Publishing/Notification.php:87
+#, php-format
+msgid "[Agnosis] Your submission is ready to review: %s"
+msgstr "[Agnosis] Sua submissão está pronta para revisão: %s"
+
+#. translators: %s: artist display name
+#: includes/Publishing/Notification.php:145
+#: includes/Publishing/Notification.php:299
+#, php-format
+msgid "Hi %s,"
+msgstr "Olá %s,"
+
+#: includes/Publishing/Notification.php:152
+msgid "We received a removal request for the following artwork:"
+msgstr "Recebemos uma solicitação de remoção para a seguinte obra:"
+
+#: includes/Publishing/Notification.php:160
+msgid ""
+"If you want to permanently remove this artwork from the gallery, click the "
+"button below. This action cannot be undone."
+msgstr ""
+"Se deseja remover permanentemente esta obra da galeria, clique no botão "
+"abaixo. Esta ação não pode ser desfeita."
+
+#: includes/Publishing/Notification.php:166
+msgid "Yes, remove this artwork"
+msgstr "Sim, remova esta obra"
+
+#: includes/Publishing/Notification.php:172
+msgid ""
+"If you did not request this removal, simply ignore this email — your artwork "
+"will remain published."
+msgstr ""
+"Se você não solicitou esta remoção, ignore este e-mail — sua obra "
+"permanecerá publicada."
+
+#: includes/Publishing/Notification.php:176
+msgid "This confirmation link expires in 7 days."
+msgstr "Este link de confirmação expira em 7 dias."
+
+#. translators: %s: site name
+#: includes/Publishing/Notification.php:186
+#: includes/Publishing/Notification.php:358
+#, php-format
+msgid "%s — art blooming out of oblivion"
+msgstr "%s — arte surgindo do esquecimento"
+
+#: includes/Publishing/Notification.php:249
+msgid "📷 Photo enhanced automatically"
+msgstr "📷 Foto aprimorada automaticamente"
+
+#: includes/Publishing/Notification.php:252
+msgid ""
+"We detected some photographic issues and applied AI correction to improve "
+"visibility of your artwork:"
+msgstr ""
+"Detectámos alguns problemas fotográficos e aplicámos correções de IA para "
+"melhorar a visibilidade da sua obra:"
+
+#: includes/Publishing/Notification.php:256
+msgid ""
+"The artwork itself has not been altered — only the photograph quality was "
+"corrected."
+msgstr ""
+"A própria obra não foi alterada — apenas a qualidade da fotografia foi "
+"corrigida."
+
+#. translators: %d: photo quality score out of 10
+#: includes/Publishing/Notification.php:263
+#, php-format
+msgid "📷 Photo quality score: %d/10"
+msgstr "Pontuação de qualidade da foto: %d/10"
+
+#: includes/Publishing/Notification.php:305
+msgid ""
+"Your submission has been processed. Here's what our AI curator came up with "
+"— take a look and let us know if it's ready to publish."
+msgstr ""
+"Sua submissão foi processada. Veja o que o nosso curador de IA sugeriu — dê "
+"uma olhada e nos diga se está pronta para publicar."
+
+#: includes/Publishing/Notification.php:330
+msgid "Looks great — Publish it"
+msgstr "Parece ótimo — Publicar"
+
+#: includes/Publishing/Notification.php:333
+#: includes/Publishing/SubmissionsPage.php:240
+msgid "Discard"
+msgstr "Descartar"
+
+#: includes/Publishing/Notification.php:340
+msgid "Want to tweak the title, text or tags before publishing?"
+msgstr "Quer ajustar o título, texto ou tags antes de publicar?"
+
+#: includes/Publishing/Notification.php:342
+msgid "Open your submissions page →"
+msgstr "Abra sua página de submissões →"
+
+#: includes/Publishing/Notification.php:348
+msgid ""
+"The Publish and Discard links above expire in 7 days. Your submission stays "
+"as a draft until you decide."
+msgstr ""
+"Os links de Publicar e Descartar acima expiram em 7 dias. Sua submissão "
+"permanece como rascunho até que decida."
+
+#: includes/Publishing/PostCreator.php:623
+msgid "Untitled"
+msgstr "Sem título"
+
+#: includes/Publishing/PostCreator.php:756
+msgid "Failed to insert attachment."
+msgstr "Falha ao inserir anexo."
+
+#: includes/Publishing/RemovalEndpoints.php:79
+msgid "Artwork not found."
+msgstr "Obra não encontrada."
+
+#: includes/Publishing/RemovalEndpoints.php:88
+msgid "Artwork already removed."
+msgstr "Obra já removida."
+
+#: includes/Publishing/RemovalEndpoints.php:107
+msgid "Could not remove the artwork. Please try again."
+msgstr "Não foi possível remover a obra. Por favor, tente novamente."
+
+#: includes/Publishing/RemovalEndpoints.php:122
+msgid "Your artwork has been removed from the gallery."
+msgstr "Sua obra foi removida da galeria."
+
+#: includes/Publishing/RemovalEndpoints.php:144
+msgid "No pending removal request found for this artwork."
+msgstr "Nenhuma solicitação de remoção pendente encontrada para esta obra."
+
+#: includes/Publishing/RemovalEndpoints.php:156
+msgid "The removal link has expired. Please send another removal request."
+msgstr ""
+"O link de remoção expirou. Por favor, envie outra solicitação de remoção."
+
+#: includes/Publishing/RemovalEndpoints.php:164
+msgid "Invalid removal token."
+msgstr "Token de remoção inválido."
+
+#: includes/Publishing/ReviewEndpoints.php:85
+#: includes/Publishing/ReviewEndpoints.php:147
+#: includes/Publishing/ReviewEndpoints.php:191
+msgid "Submission not found."
+msgstr "Submissão não encontrada."
+
+#: includes/Publishing/ReviewEndpoints.php:94
+#: includes/Publishing/ReviewEndpoints.php:156
+#: includes/Publishing/ReviewEndpoints.php:200
+msgid "This submission is not awaiting review."
+msgstr "Esta submissão não está aguardando revisão."
+
+#: includes/Publishing/ReviewEndpoints.php:293
+msgid "Authentication required."
+msgstr "Autenticação necessária."
+
+#: includes/Publishing/ReviewEndpoints.php:309
+msgid "You do not have permission to review this submission."
+msgstr "Você não tem permissão para revisar esta submissão."
+
+#: includes/Publishing/ReviewEndpoints.php:328
+msgid "Review link not found or already used."
+msgstr "Link de revisão não encontrado ou já utilizado."
+
+#: includes/Publishing/ReviewEndpoints.php:336
+msgid "Invalid review token."
+msgstr "Token de revisão inválido."
+
+#: includes/Publishing/ReviewEndpoints.php:344
+msgid "This review link has expired. Please log in to manage your submissions."
+msgstr ""
+"Este link de revisão expirou. Faça login para gerenciar suas submissões."
+
+#: includes/Publishing/SubmissionsPage.php:110
+msgid "Please log in to view your submissions."
+msgstr "Faça login para ver suas submissões."
+
+#: includes/Publishing/SubmissionsPage.php:121
+msgid "No submissions awaiting review."
+msgstr "Nenhuma submissão aguardando revisão."
+
+#: includes/Publishing/SubmissionsPage.php:231
+msgid "Publish it"
+msgstr "Publicar"
+
+#: includes/Publishing/SubmissionsPage.php:235
+msgid "Make changes"
+msgstr "Fazer alterações"
+
+#: includes/Publishing/SubmissionsPage.php:251
+msgid "Title"
+msgstr "Título"
+
+#: includes/Publishing/SubmissionsPage.php:259
+msgid "One-line description"
+msgstr "Descrição de uma linha"
+
+#: includes/Publishing/SubmissionsPage.php:266
+msgid "Description"
+msgstr "Descrição"
+
+#: includes/Publishing/SubmissionsPage.php:273
+msgid "Tags (comma-separated)"
+msgstr "Tags (separadas por vírgulas)"
+
+#: includes/Publishing/SubmissionsPage.php:282
+msgid "Save &amp; Publish"
+msgstr "Guardar e Publicar"
+
+#: includes/Publishing/SubmissionsPage.php:285
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: includes/Publishing/SubmissionsPage.php:370
+msgid "Publishing…"
+msgstr "Publicando…"
+
+#: includes/Publishing/SubmissionsPage.php:378
+#: includes/Publishing/SubmissionsPage.php:450
+msgid "Published ✓"
+msgstr "Publicado ✓"
+
+#: includes/Publishing/SubmissionsPage.php:380
+#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:452
+msgid "Something went wrong."
+msgstr "Algo deu errado."
+
+#: includes/Publishing/SubmissionsPage.php:385
+#: includes/Publishing/SubmissionsPage.php:410
+#: includes/Publishing/SubmissionsPage.php:457
+msgid "Could not connect. Please try again."
+msgstr "Não foi possível conectar. Por favor, tente novamente."
+
+#: includes/Publishing/SubmissionsPage.php:393
+msgid "Discard this submission? This cannot be undone."
+msgstr "Deseja descartar esta submissão? Isto não pode ser desfeito."
+
+#: includes/Publishing/SubmissionsPage.php:395
+msgid "Discarding…"
+msgstr "A descartar…"
+
+#: includes/Publishing/SubmissionsPage.php:403
+msgid "Discarded."
+msgstr "Descartado."
+
+#: includes/Publishing/SubmissionsPage.php:440
+msgid "Saving and publishing…"
+msgstr "A guardar e publicar…"
+
+#: blocks/gallery-overview/editor.js:23
+msgid "Gallery settings"
+msgstr "Configurações da galeria"
+
+#: blocks/gallery-overview/editor.js:25
+msgid "Columns"
+msgstr "Colunas"
+
+#: blocks/gallery-overview/editor.js:35
+msgid "✦ Agnosis Gallery Overview — rendered on the server"
+msgstr "✦ Visão geral da Galeria Agnosis — renderizado no servidor"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block title"
+msgid "Agnosis Gallery Overview"
+msgstr "Visão geral da Galeria Agnosis"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block description"
+msgid ""
+"Proportional, randomised artwork grid across all artists. Shows featured "
+"artworks first, respects per-artist budget, supports medium filtering and "
+"pagination."
+msgstr ""
+"Grade de obras de arte proporcionais e aleatórias em todos os artistas. "
+"Mostra primeiro as obras em destaque, respeita o orçamento por artista, "
+"suporta filtragem por meio e paginação."
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "gallery"
+msgstr "galeria"
+
+#: blocks/gallery-overview/block.json blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artwork"
+msgstr "obra de arte"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "artists"
+msgstr "artistas"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "overview"
+msgstr "visão geral"
+
+#: blocks/submissions/block.json
+msgctxt "block title"
+msgid "My Submissions"
+msgstr "Minhas Submissões"
+
+#: blocks/submissions/block.json
+msgctxt "block description"
+msgid ""
+"Lists the logged-in artist's pending artwork submissions for review and "
+"approval. Place this on your /my-submissions/ page or in a Site Editor "
+"template."
+msgstr ""
+"Lista as submissões pendentes do artista conectado para revisão e aprovação. "
+"Coloque isto na sua página /my-submissions/ ou em um modelo do Editor de "
+"Sites."
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "submissions"
+msgstr "submissões"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "review"
+msgstr "revisão"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artist"
+msgstr "artista"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "agnosis"
+msgstr "agnosis"

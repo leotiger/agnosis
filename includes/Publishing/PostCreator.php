@@ -21,6 +21,7 @@ namespace Agnosis\Publishing;
 
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\PromptConfig;
+use Agnosis\Artist\Admission;
 use Agnosis\Core\Logger;
 use Agnosis\Email\AttachmentStore;
 
@@ -45,8 +46,9 @@ class PostCreator {
 	 * @var array<string, array{post_type: string, singleton: bool}>
 	 */
 	private const INDICATORS = [
-		'biography' => [ 'post_type' => 'agnosis_biography', 'singleton' => true ],
-		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true ],
+		'biography' => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false ],
+		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false ],
+		'photo'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true  ],
 	];
 
 	/** @var Pipeline AI pipeline instance. */
@@ -86,6 +88,15 @@ class PostCreator {
 			return;
 		}
 
+		// Defense-in-depth: re-assert admission before any AI spend. The intake
+		// path gates on this too, but re-checking here ensures nothing slips
+		// through if an artist's role is removed between enqueue and processing.
+		if ( ! Admission::is_admitted_artist( (int) $row->artist_id ) ) {
+			Logger::warning( 'PostCreator: skipped queue #' . $queue_id . ' — artist #' . ( $row->artist_id ?? '?' ) . ' is not admitted.', 'publisher' );
+			$this->mark( $queue_id, 'skipped' );
+			return;
+		}
+
 		$this->mark( $queue_id, 'processing' );
 		Logger::info( 'Processing queue #' . $queue_id . ' from <' . ( $row->artist_id ?? '?' ) . '>.', 'publisher' );
 
@@ -99,7 +110,7 @@ class PostCreator {
 			// ---- Resolve post type ----------------------------------------------
 			// Primary: recipient address (To: header / webhook 'recipient' field).
 			// Fallback: subject-line [Indicator] prefix (backward compat).
-			[ $post_type, $singleton, $clean_subject ] = $this->resolve_post_type( $submission );
+			[ $post_type, $singleton, $clean_subject, $photo_only ] = $this->resolve_post_type( $submission );
 			$submission['subject'] = $clean_subject;
 
 			// Capture the artist's original title before SubmissionTranslator may
@@ -154,8 +165,16 @@ class PostCreator {
 			// from AI-generated body text from the email content.
 			$attach_count = count( $submission['attachments'] ?? [] );
 			if ( $attach_count > 0 ) {
-				Logger::info( sprintf( 'Queue #%d: running AI pipeline on %d attachment(s).', $queue_id, $attach_count ), 'publisher' );
-				$results = $this->pipeline->process( $submission );
+				Logger::info(
+					sprintf(
+						'Queue #%d: running AI pipeline on %d attachment(s)%s.',
+						$queue_id,
+						$attach_count,
+						$photo_only ? ' (photo-only — enhancement skipped)' : ''
+					),
+					'publisher'
+				);
+				$results = $this->pipeline->process( $submission, $photo_only );
 				foreach ( $results as $i => $r ) {
 					if ( $r['description_ok'] ) {
 						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ), 'publisher' );
@@ -171,7 +190,9 @@ class PostCreator {
 			// Only applies to artwork submissions with actual pipeline results.
 			// Score 0 means the provider could not assess quality — never reject.
 			// Rejection threshold must be > 0 (setting to 0 disables the gate).
-			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) ) {
+			// photo_only submissions bypass this gate entirely: a deliberately low-fi
+			// or stylised photograph is an artistic choice, not a defect.
+			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) && ! $photo_only ) {
 				$primary_score  = (int) ( $results[0]['photo_quality_score']  ?? 0 );
 				$primary_issues = (array) ( $results[0]['photo_quality_issues'] ?? [] );
 				$reject_below   = (int) get_option( 'agnosis_quality_rejection_threshold', 3 );
@@ -220,13 +241,18 @@ class PostCreator {
 			}
 
 			// ---- Event field extraction -----------------------------------------
-			// For event posts, ask the AI to pull the location out of the email
-			// so the agnosis/event-location block has data without admin entry.
+			// For event posts, ask the AI to pull the location and event date out of
+			// the email so the agnosis/event-location and agnosis/event-date blocks
+			// have data without admin entry.
 			if ( 'agnosis_event' === $post_type ) {
 				$event_fields                    = $this->pipeline->extract_event_fields( $submission );
 				$submission['_event_location']   = $event_fields['location'];
+				$submission['_event_date']        = $event_fields['event_date'];
 				if ( $event_fields['location'] ) {
 					Logger::info( sprintf( 'Queue #%d: event location extracted — "%s".', $queue_id, $event_fields['location'] ), 'publisher' );
+				}
+				if ( $event_fields['event_date'] ) {
+					Logger::info( sprintf( 'Queue #%d: event date extracted — "%s".', $queue_id, $event_fields['event_date'] ), 'publisher' );
 				}
 			}
 
@@ -248,6 +274,34 @@ class PostCreator {
 			} else {
 				// Standard artworks: full three-layer duplicate detection.
 				$merge_into = $this->find_duplicate_post( $submission, $results, (int) $row->artist_id, $queue_id );
+			}
+
+			// ---- Biography merge (singleton update) --------------------------------
+			// When an artist submits a biography update and a previous biography
+			// already exists, merge the new text with the existing one rather than
+			// replacing it. This lets artists send incremental updates ("I just won
+			// the Premio Nacional") without having to resubmit their entire bio.
+			//
+			// Source for existing text: _agnosis_artist_prompt (the previous
+			// submission's plain text, stored without block markup).
+			//
+			// Events are intentionally excluded — a new event announcement supersedes
+			// the previous one wholesale; there is nothing to preserve.
+			if ( 'agnosis_biography' === $post_type
+				&& $merge_into > 0
+				&& ! empty( $submission['description'] )
+				&& get_option( 'agnosis_ai_merge_biography', '1' )
+			) {
+				$existing_prompt = trim( (string) get_post_meta( $merge_into, '_agnosis_artist_prompt', true ) );
+				if ( ! empty( $existing_prompt ) ) {
+					$merged = $this->pipeline->merge_biography( $existing_prompt, $submission['description'] );
+					if ( ! empty( $merged ) ) {
+						$submission['description'] = $merged;
+						Logger::info( sprintf( 'Queue #%d: biography merged with existing content.', $queue_id ), 'publisher' );
+					} else {
+						Logger::warning( sprintf( 'Queue #%d: biography merge failed — using new submission as-is.', $queue_id ), 'publisher' );
+					}
+				}
 			}
 
 			$post_id = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title );
@@ -283,8 +337,20 @@ class PostCreator {
 	 *      who already use the bracket syntax or whose mail client doesn't set To:.
 	 *   3. Default: agnosis_artwork.
 	 *
-	 * @param  array<string, mixed> $submission Parsed email submission.
-	 * @return array{0: string, 1: bool, 2: string} [post_type, is_singleton, clean_subject]
+	/**
+	 * Resolve the post type, singleton flag, cleaned subject, and photo-only flag
+	 * from the submission's To: address and subject line.
+	 *
+	 * Returns a four-element array: [post_type, singleton, clean_subject, photo_only].
+	 *
+	 * photo_only = true means the submission came via photo@ or [Photo] indicator:
+	 *   - AI enhancement is skipped entirely (no API call, no image mutation).
+	 *   - Quality rejection gate is bypassed (a deliberately low-fi image is not a defect).
+	 *   - AI description (title, excerpt, tags, alt text) still runs normally.
+	 *   - The original binary is published as-is.
+	 *
+	 * @param array<string, mixed> $submission
+	 * @return array{0: string, 1: bool, 2: string, 3: bool}
 	 */
 	private function resolve_post_type( array $submission ): array {
 		$to      = strtolower( trim( (string) ( $submission['to_address'] ?? '' ) ) );
@@ -294,24 +360,29 @@ class PostCreator {
 			$bio_addr     = strtolower( trim( (string) get_option( 'agnosis_email_bio',     '' ) ) );
 			$event_addr   = strtolower( trim( (string) get_option( 'agnosis_email_event',   '' ) ) );
 			$replace_addr = strtolower( trim( (string) get_option( 'agnosis_email_replace', '' ) ) );
-			$remove_addr   = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
-			$promote_addr  = strtolower( trim( (string) get_option( 'agnosis_email_promote', '' ) ) );
+			$remove_addr  = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
+			$promote_addr = strtolower( trim( (string) get_option( 'agnosis_email_promote', '' ) ) );
+			$photo_addr   = strtolower( trim( (string) get_option( 'agnosis_email_photo',   '' ) ) );
 
 			if ( $bio_addr && $to === $bio_addr ) {
-				return [ 'agnosis_biography', true, $subject ];
+				return [ 'agnosis_biography', true, $subject, false ];
 			}
 			if ( $event_addr && $to === $event_addr ) {
-				return [ 'agnosis_event', true, $subject ];
+				return [ 'agnosis_event', true, $subject, false ];
+			}
+			// Photo-only lane: AI description + no enhancement + no quality rejection.
+			if ( $photo_addr && $to === $photo_addr ) {
+				return [ 'agnosis_artwork', false, $subject, true ];
 			}
 			// Pseudo-types — handled specially in handle() before create_post() is called.
 			if ( $replace_addr && $to === $replace_addr ) {
-				return [ 'agnosis_replace', false, $subject ];
+				return [ 'agnosis_replace', false, $subject, false ];
 			}
 			if ( $remove_addr && $to === $remove_addr ) {
-				return [ 'agnosis_remove', false, $subject ];
+				return [ 'agnosis_remove', false, $subject, false ];
 			}
 			if ( $promote_addr && $to === $promote_addr ) {
-				return [ 'agnosis_promote', false, $subject ];
+				return [ 'agnosis_promote', false, $subject, false ];
 			}
 		}
 
@@ -327,7 +398,7 @@ class PostCreator {
 	 * post title. Unknown indicators fall back to the default artwork type.
 	 *
 	 * @param  string $subject Raw email subject.
-	 * @return array{0: string, 1: bool, 2: string} [post_type, is_singleton, clean_subject]
+	 * @return array{0: string, 1: bool, 2: string, 3: bool} [post_type, is_singleton, clean_subject, photo_only]
 	 */
 	private function resolve_indicator( string $subject ): array {
 		if ( preg_match( '/^\[([^\]]+)\]\s*/u', $subject, $m ) ) {
@@ -335,10 +406,15 @@ class PostCreator {
 			$clean     = substr( $subject, strlen( $m[0] ) );
 			$indicator = self::INDICATORS[ $keyword ] ?? null;
 			if ( $indicator ) {
-				return [ $indicator['post_type'], $indicator['singleton'], $clean ];
+				return [
+					$indicator['post_type'],
+					$indicator['singleton'],
+					$clean,
+					$indicator['photo_only'],
+				];
 			}
 		}
-		return [ 'agnosis_artwork', false, $subject ];
+		return [ 'agnosis_artwork', false, $subject, false ];
 	}
 
 	/**
@@ -730,7 +806,7 @@ class PostCreator {
 		$all_tags = array_unique( array_merge( ...array_column( $results, 'tags' ) ) );
 
 		$gallery      = $this->merge_gallery( $existing_id, $results );
-		$post_content = $this->build_post_content( $primary, $gallery );
+		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '' );
 
 		// Keep the existing review token when updating so artist links stay valid.
 		// New tokens are 32 bytes of CSPRNG — no reconstruction possible.
@@ -752,8 +828,8 @@ class PostCreator {
 			'post_type'    => $post_type,
 			'post_author'  => $artist_id ?: 1,
 			'meta_input'   => [
-				'_agnosis_from'             => $submission['from'],
-				'_agnosis_source'           => $submission['source'],
+				'_agnosis_from'             => $submission['from']   ?? '',
+				'_agnosis_source'           => $submission['source'] ?? '',
 				'_agnosis_gallery_ids'      => $gallery,
 				'_agnosis_artist_prompt'    => $submission['description'] ?? '',
 				'_agnosis_review_token'     => $review_token,
@@ -765,6 +841,7 @@ class PostCreator {
 
 		if ( 'agnosis_event' === $post_type ) {
 			$post_data['meta_input']['_agnosis_event_location'] = $submission['_event_location'] ?? '';
+			$post_data['meta_input']['_agnosis_event_date']     = $submission['_event_date']     ?? '';
 		}
 
 		// For new posts, derive the URL slug from the artist's original submitted
@@ -783,6 +860,16 @@ class PostCreator {
 		if ( $existing_id ) {
 			$post_data['ID']          = $existing_id;
 			$post_data['post_status'] = get_post_status( $existing_id ) ?: 'draft'; // preserve publish state
+
+			// For singleton types (biography, event): do not replace existing body
+			// with empty content. This guards against a resend that arrives with no
+			// text and no attachment producing a blank page over a previously good bio.
+			if ( '' === trim( wp_strip_all_tags( $post_content ) )
+				&& in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true )
+			) {
+				unset( $post_data['post_content'] );
+			}
+
 			$post_id = wp_update_post( $post_data, true );
 			Logger::info( sprintf( 'Queue #%d: updated existing post #%d.', $queue_id, $existing_id ), 'publisher' );
 		} else {
@@ -853,6 +940,36 @@ class PostCreator {
 			);
 			if ( ! is_wp_error( $attachment_id ) ) {
 				$new_gallery[] = $attachment_id;
+
+				// Original preservation — when enhancement actually changed the image,
+				// upload the artist's original binary as a sidecar attachment so the
+				// master is always recoverable. Stored as a child of the enhanced
+				// attachment with _agnosis_is_original = '1'; its ID is recorded in
+				// _agnosis_original_attachment_id on the enhanced attachment.
+				if ( ( $result['enhanced'] ?? false )
+					&& ! empty( $result['original_data'] )
+					&& $result['original_data'] !== $result['enhanced_data']
+				) {
+					$base          = pathinfo( $result['filename'], PATHINFO_FILENAME );
+					$ext           = pathinfo( $result['filename'], PATHINFO_EXTENSION );
+					$orig_filename = $base . '-original.' . $ext;
+					$orig_mime     = $this->mime_for_extension( $ext ) ?: 'image/jpeg';
+
+					$orig_id = $this->upload_image(
+						$result['original_data'],
+						$orig_mime,
+						$orig_filename,
+						$result['alt_text'],
+						// translators: %s is the artwork title.
+						sprintf( __( '%s (original)', 'agnosis' ), $result['title'] ),
+						$hash, // same hash — same image before enhancement
+					);
+
+					if ( ! is_wp_error( $orig_id ) ) {
+						update_post_meta( $orig_id,          '_agnosis_is_original',             '1' );
+						update_post_meta( $attachment_id,    '_agnosis_original_attachment_id',  $orig_id );
+					}
+				}
 			}
 		}
 
@@ -870,8 +987,15 @@ class PostCreator {
 	 * @param int[]                $gallery Ordered attachment IDs.
 	 * @return string Serialised Gutenberg block markup.
 	 */
-	private function build_post_content( array $primary, array $gallery ): string {
-		$body = $primary['body'] ?? '';
+	private function build_post_content( array $primary, array $gallery, string $post_type = 'agnosis_artwork', string $artist_text = '' ): string {
+		// For biography and event posts, the body is the artist's own written
+		// statement (already AI-polished if that setting is on). The AI image
+		// description body is only appropriate for artwork — where the image *is*
+		// the work. For bio/event, the image is supplementary (portrait, venue
+		// photo, map) and describing it is not useful as page content.
+		$body = in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true )
+			? wp_kses_post( $artist_text )
+			: ( $primary['body'] ?? '' );
 
 		if ( count( $gallery ) > 1 ) {
 			return $this->build_gallery_block( $gallery ) . "\n\n" . $body;
@@ -1147,6 +1271,22 @@ class PostCreator {
 	 * Forces 'direct' because FTP/SSH credentials cannot be prompted in cron
 	 * or admin-post contexts.
 	 */
+	/**
+	 * Map a file extension to a MIME type for sidecar original uploads.
+	 *
+	 * Returns '' for unknown extensions — caller should supply a sensible default.
+	 */
+	private function mime_for_extension( string $ext ): string {
+		return match ( strtolower( $ext ) ) {
+			'jpg', 'jpeg' => 'image/jpeg',
+			'png'         => 'image/png',
+			'webp'        => 'image/webp',
+			'gif'         => 'image/gif',
+			'tiff', 'tif' => 'image/tiff',
+			default       => '',
+		};
+	}
+
 	private function filesystem(): \WP_Filesystem_Base {
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';

@@ -30,7 +30,7 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 		$pipeline = new class() extends Pipeline {
 			public function __construct() {}
 			/** @param array<string, mixed> $submission */
-			public function process( array $submission ): array {
+			public function process( array $submission, bool $skip_enhancement = false ): array {
 				return [];
 			}
 		};

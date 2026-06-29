@@ -42,7 +42,7 @@ class PipelineInjectionTest extends TestCase {
 			}
 
 			/** @param array<string, mixed> $submission */
-			public function process( array $submission ): array {
+			public function process( array $submission, bool $skip_enhancement = false ): array {
 				++$this->call_count;
 				return $this->canned;
 			}

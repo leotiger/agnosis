@@ -16,12 +16,11 @@
  *     so the title, excerpt and body are translated into all configured site
  *     languages without the artist doing anything.
  *
- *  3. SEO METADATA — filters `linguaforge_meta_description_post` to return
- *     the AI-generated excerpt as the SEO meta description for artwork posts,
- *     and provides Open Graph image data from the gallery attachment.
+ *  3. SEO METADATA — overrides the Open Graph image with the artwork's
+ *     featured thumbnail via the `linguaforge_seo_og_image` filter.
  *
- *  4. ARTWORK SCHEMA — hooks into LF's Schema.org output to annotate
- *     artwork posts as `VisualArtwork` rather than generic `Article`.
+ *  4. ARTWORK SCHEMA — hooks into LF's `linguaforge_seo_schema_data` filter
+ *     to annotate artwork posts as `VisualArtwork` rather than generic `Article`.
  *
  * When Lingua Forge is NOT active, this class does nothing — all hooks are
  * registered conditionally. No hard dependency.
@@ -66,18 +65,11 @@ class LinguaForge {
 		// Translation pipeline.
 		add_action( 'agnosis_post_published',        [ $this, 'request_translations'  ], 20, 1 );
 
-		// SEO: meta description.
-		add_filter( 'linguaforge_meta_description_post', [ $this, 'filter_meta_description' ], 10, 2 );
-
 		// SEO: Open Graph image override for artwork posts.
-		add_filter( 'linguaforge_og_image',          [ $this, 'filter_og_image'       ], 10, 2 );
+		add_filter( 'linguaforge_seo_og_image',      [ $this, 'filter_og_image'       ], 10, 1 );
 
 		// Schema.org type override.
-		add_filter( 'linguaforge_schema_type',       [ $this, 'filter_schema_type'    ], 10, 2 );
-
-		// Register Agnosis text domain with LF's i18n override system so
-		// translators can ship .mo files via LF's uploads-based overrides dir.
-		add_filter( 'linguaforge_managed_textdomains', [ $this, 'register_textdomain' ] );
+		add_filter( 'linguaforge_seo_schema_data',   [ $this, 'filter_schema_type'    ], 10, 2 );
 	}
 
 	// -------------------------------------------------------------------------
@@ -155,30 +147,18 @@ class LinguaForge {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Return the AI-generated excerpt as the SEO meta description for artwork posts.
-	 *
-	 * @param string   $description  Current meta description candidate.
-	 * @param \WP_Post $post         The post being described.
-	 * @return string
-	 */
-	public function filter_meta_description( string $description, \WP_Post $post ): string {
-		if ( $post->post_type !== 'agnosis_artwork' ) {
-			return $description;
-		}
-
-		$excerpt = trim( $post->post_excerpt );
-		return ! empty( $excerpt ) ? $excerpt : $description;
-	}
-
-	/**
 	 * Supply the featured artwork image as the Open Graph image.
 	 *
-	 * @param string   $image_url  Current OG image URL.
-	 * @param \WP_Post $post       The post being described.
+	 * LF 2.3.3 fires `linguaforge_seo_og_image` with a single string arg (the
+	 * current candidate URL). We use get_post() to identify the current post
+	 * rather than receiving it as a parameter.
+	 *
+	 * @param string $image_url  Current OG image URL.
 	 * @return string
 	 */
-	public function filter_og_image( string $image_url, \WP_Post $post ): string {
-		if ( $post->post_type !== 'agnosis_artwork' ) {
+	public function filter_og_image( string $image_url ): string {
+		$post = get_post();
+		if ( ! $post instanceof \WP_Post || $post->post_type !== 'agnosis_artwork' ) {
 			return $image_url;
 		}
 
@@ -187,33 +167,21 @@ class LinguaForge {
 	}
 
 	/**
-	 * Override Schema.org type to `VisualArtwork` for artwork posts.
+	 * Override Schema.org `@type` to `VisualArtwork` for artwork singular pages.
 	 *
-	 * @param string   $type  Current schema type (e.g. 'Article').
-	 * @param \WP_Post $post  The post.
-	 * @return string
+	 * LF 2.3.3 fires `linguaforge_seo_schema_data` with the full schema array
+	 * and a type string. We modify `$data['@type']` in-place and return the array.
+	 *
+	 * @param array<string, mixed> $data  Current schema.org data array.
+	 * @param string               $type  Schema type hint (e.g. 'Article').
+	 * @return array<string, mixed>
 	 */
-	public function filter_schema_type( string $type, \WP_Post $post ): string {
-		if ( $post->post_type !== 'agnosis_artwork' ) {
-			return $type;
+	public function filter_schema_type( array $data, string $type ): array {
+		if ( is_singular( 'agnosis_artwork' ) ) {
+			$data['@type'] = 'VisualArtwork';
 		}
 
-		return 'VisualArtwork';
-	}
-
-	/**
-	 * Tell Lingua Forge to manage translations for the 'agnosis' text domain.
-	 *
-	 * @param array $domains  Current list of managed text domains.
-	 * @return array
-	 */
-	/**
-	 * @param array<string> $domains
-	 * @return array<string>
-	 */
-	public function register_textdomain( array $domains ): array {
-		$domains[] = 'agnosis';
-		return $domains;
+		return $data;
 	}
 
 	// -------------------------------------------------------------------------
@@ -296,7 +264,7 @@ class LinguaForge {
 			return;
 		}
 
-		$lf_settings_url = admin_url( 'admin.php?page=linguaforge-settings' );
+		$lf_settings_url = admin_url( 'admin.php?page=lingua-forge' );
 
 		// Build the body as separate escaped fragments — i18n requires single
 		// string literals; HTML-heavy technical notices are split by sentence.

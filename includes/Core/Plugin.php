@@ -19,6 +19,7 @@ use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\Departure;
 use Agnosis\Artist\DepartureNotification;
+use Agnosis\Artist\FrontendAccess;
 use Agnosis\Artist\JoinPage;
 use Agnosis\Artist\VouchConfirm;
 use Agnosis\Artist\Profile;
@@ -114,6 +115,14 @@ class Plugin {
 		// Custom roles.
 		$roles = new Roles();
 		$this->loader->add_action( 'init', $roles, 'ensure' );
+
+		// Frontend-only access: block artists from wp-admin, hide admin bar,
+		// redirect to front page after login. Runs outside is_admin() so the
+		// show_admin_bar and login_redirect filters fire on every request.
+		$frontend_access = new FrontendAccess();
+		$this->loader->add_action( 'admin_init',    $frontend_access, 'block_admin_access' );
+		$this->loader->add_filter( 'show_admin_bar', $frontend_access, 'hide_admin_bar', 10, 1 );
+		$this->loader->add_filter( 'login_redirect', $frontend_access, 'redirect_after_login', 10, 3 );
 
 		// Custom post types & taxonomies.
 		$profile = new Profile();

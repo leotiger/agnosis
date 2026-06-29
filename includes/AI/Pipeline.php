@@ -50,7 +50,21 @@ class Pipeline {
 	 * @param array<string, mixed> $submission Parsed submission from Parser.
 	 * @return array<int, array<string, mixed>> One result per (adapted) attachment.
 	 */
-	public function process( array $submission ): array {
+	/**
+	 * Run the full AI pipeline on all attachments in a submission.
+	 *
+	 * @param array<string, mixed> $submission      Parsed email submission.
+	 * @param bool                 $skip_enhancement When true, the enhancement step is
+	 *                                               skipped entirely and the original
+	 *                                               image binary is used as-is. Use for
+	 *                                               photo@ submissions where the photograph
+	 *                                               itself is the artwork and AI enhancement
+	 *                                               would alter the work without consent.
+	 *                                               AI description (title, excerpt, tags,
+	 *                                               alt text) still runs normally.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function process( array $submission, bool $skip_enhancement = false ): array {
 		$results = [];
 
 		// Step 1 — Translate artist text to the site's primary language.
@@ -74,7 +88,8 @@ class Pipeline {
 					$attachment['data'],
 					$attachment['mime'],
 					$attachment['filename'],
-					$artist_context
+					$artist_context,
+					$skip_enhancement
 				);
 			}
 		}
@@ -115,7 +130,8 @@ class Pipeline {
 		string $image_data,
 		string $mime_type,
 		string $filename,
-		string $artist_prompt
+		string $artist_prompt,
+		bool $skip_enhancement = false
 	): array {
 		// Step 1 — Describe (also assesses photo quality as part of the same vision call).
 		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
@@ -125,12 +141,14 @@ class Pipeline {
 
 		// Step 2 — Conditionally enhance.
 		// Enhancement only runs when:
+		//   • $skip_enhancement is false (photo@ submissions pass true to preserve the original).
 		//   • A provider is configured.
 		//   • Description succeeded (we need the body for contextual instructions).
 		//   • The photo quality score is below the configured threshold (default 7).
 		//     Score 0 means the provider could not assess quality (e.g. text-only) — skip.
 		$threshold     = $this->config->quality_threshold;
-		$needs_enhance = null !== $this->enhancement_provider
+		$needs_enhance = ! $skip_enhancement
+			&& null !== $this->enhancement_provider
 			&& $description->success
 			&& $quality_score > 0
 			&& $quality_score < $threshold;
@@ -292,44 +310,61 @@ class Pipeline {
 	 * Extract structured fields from an event email.
 	 *
 	 * Uses a cheap text-model pass to pull the event location (venue, city,
-	 * address) from the artist's email body and subject.  Returns an array with
-	 * a 'location' key; value is an empty string when no location is found.
+	 * address) and event date/time from the artist's email body and subject.
+	 *
+	 * Returns an array with:
+	 *   'location'   — venue/city/address string, or '' when none found.
+	 *   'event_date' — ISO 8601 date or datetime string (e.g. "2026-08-15" or
+	 *                  "2026-08-15T19:00"), or '' when none found.
 	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
-	 * @return array{location: string}
+	 * @return array{location: string, event_date: string}
 	 */
 	public function extract_event_fields( array $submission ): array {
+		$empty = [ 'location' => '', 'event_date' => '' ];
+
 		$body    = trim( (string) ( $submission['description'] ?? '' ) );
 		$subject = trim( (string) ( $submission['subject'] ?? '' ) );
 
 		if ( empty( $body ) && empty( $subject ) ) {
-			return [ 'location' => '' ];
+			return $empty;
 		}
 
 		$email_text = empty( $subject ) ? $body : "Subject: {$subject}\n\n{$body}";
 
 		$prompt = 'You are extracting structured data from an artist\'s event announcement email.' . "\n\n"
 			. "Email content:\n---\n{$email_text}\n---\n\n"
-			. 'Extract the event location — venue name, city, address, or any place information mentioned. '
-			. 'Return ONLY a JSON object with a single key "location" (string). '
-			. 'If no location is mentioned, return {"location": ""}. '
-			. 'No markdown fences. No preamble. Just the JSON object.';
+			. "Extract two fields:\n"
+			. "- \"location\": venue name, city, address, or any place information mentioned (string). Empty string if none.\n"
+			. '- "event_date": the date (and time, if given) when the event takes place, as an ISO 8601 string '
+			. '(e.g. "2026-08-15" or "2026-08-15T19:00"). Empty string if no event date is mentioned. '
+			. "Do NOT use today's date — only extract a date that is explicitly stated in the email.\n\n"
+			. 'Return ONLY a JSON object with those two keys. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
 
 		if ( empty( $response ) ) {
-			return [ 'location' => '' ];
+			return $empty;
 		}
 
 		// Tolerate a stray markdown fence or surrounding whitespace.
 		$json    = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
 		$decoded = json_decode( $json, true );
 
-		if ( is_array( $decoded ) && array_key_exists( 'location', $decoded ) ) {
-			return [ 'location' => sanitize_text_field( (string) $decoded['location'] ) ];
+		if ( ! is_array( $decoded ) ) {
+			return $empty;
 		}
 
-		return [ 'location' => '' ];
+		$location   = sanitize_text_field( (string) ( $decoded['location']   ?? '' ) );
+		$event_date = sanitize_text_field( (string) ( $decoded['event_date'] ?? '' ) );
+
+		// Validate event_date looks like an ISO 8601 date to prevent the AI from
+		// returning a natural-language string or hallucinating an unrelated value.
+		if ( $event_date && ! preg_match( '/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?$/', $event_date ) ) {
+			$event_date = '';
+		}
+
+		return [ 'location' => $location, 'event_date' => $event_date ];
 	}
 
 	/**
@@ -355,6 +390,47 @@ class Pipeline {
 		$prompt   = "Fix spelling and grammar in the following text. Make only minimal improvements — do not change the meaning, tone, or add any content. Return only the corrected text, nothing else.\n\n" . $text;
 		$polished = $this->description_provider->chat( $prompt );
 		return $polished ?: $text;
+	}
+
+	/**
+	 * Merge an updated artist statement into an existing biography.
+	 *
+	 * Called when an artist submits a biography update and a previous biography
+	 * already exists. Rather than replacing the old text wholesale, the AI
+	 * integrates the new information — preserving everything already written and
+	 * weaving in the new content naturally.
+	 *
+	 * The caller should pass the previous biography as plain text (from
+	 * _agnosis_artist_prompt meta, which holds the un-marked-up artist statement)
+	 * and the new submission text.  The returned string may contain basic HTML
+	 * (<p>, <em>, <strong>) suitable for wp_kses_post().
+	 *
+	 * Returns '' on provider failure — the caller must then fall back to the
+	 * new submission text as-is.
+	 *
+	 * @param string $existing Plain-text existing biography (from _agnosis_artist_prompt).
+	 * @param string $update   Plain-text new submission from the artist.
+	 * @return string Merged biography (may contain basic HTML), or '' on failure.
+	 */
+	public function merge_biography( string $existing, string $update ): string {
+		if ( empty( trim( $existing ) ) || empty( trim( $update ) ) ) {
+			return '';
+		}
+
+		$prompt = "You are editing an artist's biography on an art platform.\n\n"
+			. "Existing biography:\n---\n{$existing}\n---\n\n"
+			. "New information submitted by the artist:\n---\n{$update}\n---\n\n"
+			. 'Rewrite the biography as a single coherent text that incorporates both. '
+			. "Rules:\n"
+			. "- Preserve all factual information from the existing biography.\n"
+			. "- Naturally integrate the new information — do not repeat facts or create redundancy.\n"
+			. "- Keep the artist's voice and tone.\n"
+			. "- Do not invent new facts or embellish.\n"
+			. "- Length: two to four paragraphs.\n"
+			. "- May use basic HTML (<p>, <em>, <strong>) but no headings or lists.\n"
+			. 'Return only the merged biography text. No preamble, no explanation.';
+
+		return $this->description_provider->chat( $prompt ) ?: '';
 	}
 
 	// -------------------------------------------------------------------------

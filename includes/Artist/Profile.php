@@ -153,6 +153,19 @@ class Profile {
 			]
 		);
 
+		// agnosis/event-date — renders the _agnosis_event_date meta value for
+		// agnosis_event posts. The ISO 8601 value is formatted with WordPress's
+		// configured date (and optionally time) format via date_i18n(). Returns an
+		// empty string when the meta is unset so the block takes no space on events
+		// that have no date recorded yet.
+		register_block_type(
+			'agnosis/event-date',
+			[
+				'render_callback' => [ $this, 'render_event_date' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
+
 		// agnosis/artwork-title — bilingual title block for single artwork pages.
 		// Renders the artist's original title (post_title) as the primary <h1> and
 		// the AI-generated site-language translation (_agnosis_translated_title meta)
@@ -186,6 +199,44 @@ class Profile {
 		return sprintf(
 			'<p class="agnosis-event-location" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">%s</p>',
 			esc_html( $location )
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/event-date block.
+	 *
+	 * Reads the ISO 8601 _agnosis_event_date meta and formats it using the site's
+	 * configured date format (and time format when a time component is present).
+	 * Returns an empty string when the meta is absent so the block takes no space.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when no date is set.
+	 */
+	public function render_event_date( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id    = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$event_date = trim( (string) get_post_meta( $post_id, '_agnosis_event_date', true ) );
+
+		if ( ! $event_date ) {
+			return '';
+		}
+
+		$timestamp = strtotime( $event_date );
+		if ( false === $timestamp ) {
+			return '';
+		}
+
+		// Include time when the stored value has a time component (i.e. contains 'T').
+		$has_time  = str_contains( $event_date, 'T' );
+		$formatted = $has_time
+			? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp )
+			: date_i18n( (string) get_option( 'date_format' ), $timestamp );
+
+		return sprintf(
+			'<p class="agnosis-event-date" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;"><time datetime="%s">%s</time></p>',
+			esc_attr( $event_date ),
+			esc_html( $formatted )
 		);
 	}
 

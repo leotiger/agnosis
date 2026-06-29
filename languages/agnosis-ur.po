@@ -1,0 +1,1613 @@
+# Copyright (C) 2026 Agnosis Network
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Agnosis 0.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
+"Last-Translator: admin\n"
+"Language-Team: Urdu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-29T00:00+00:00\n"
+"PO-Revision-Date: 2026-06-29 13:49+0000\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Domain: agnosis\n"
+"Language: ur\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Loco-Version: 2.8.5; wp-7.0; php-8.5.7"
+
+#. Plugin Name of the plugin
+#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:125
+#: includes/Publishing/SubmissionsPage.php:60
+msgid "Agnosis"
+msgstr "ایگنوس"
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: agnosis.php
+msgid "https://agnosis.art"
+msgstr "https://agnosis.art"
+
+#. Description of the plugin
+#: agnosis.php
+msgid ""
+"Art blooming out of oblivion. Email your art, AI polishes it, the world sees "
+"it. A free, federated publishing network for independent artists."
+msgstr ""
+"فن پارہ اُڑتا ہوا، فراموشی سے نکل کر۔ اپنا فن ای میل کریں، اے آئی اسے "
+"نکھارتا ہے، دنیا دیکھتی ہے۔ آزاد، وفاقی اشاعت کا نیٹ ورک آزاد فنکاروں کے لیے۔"
+
+#. Author of the plugin
+#: agnosis.php
+msgid "Agnosis Network"
+msgstr "ایگنوس نیٹ ورک"
+
+#. translators: %s: required PHP version
+#: agnosis.php:74
+#, php-format
+msgid "Agnosis requires PHP %s or higher."
+msgstr "ایگنوس کو پی ایچ پی %s یا اس سے اوپر کی ضرورت ہے۔"
+
+#. translators: %s: required WP version
+#: agnosis.php:90
+#, php-format
+msgid "Agnosis requires WordPress %s or higher."
+msgstr "ایگنوس کو ورڈپریس %s یا اس سے اوپر کی ضرورت ہے۔"
+
+#: blocks/gallery-overview/render.php:168
+msgid "Filter by medium"
+msgstr "میڈیم کے لحاظ سے فلٹر کریں"
+
+#: blocks/gallery-overview/render.php:171
+msgid "All"
+msgstr "تمام"
+
+#: blocks/gallery-overview/render.php:204
+msgid "Featured"
+msgstr "نمایاں"
+
+#: blocks/gallery-overview/render.php:225
+msgid "Gallery pages"
+msgstr "گیلری صفحات"
+
+#: blocks/gallery-overview/render.php:228
+msgid "Prev"
+msgstr "پچھلا"
+
+#: blocks/gallery-overview/render.php:241 includes/Admin/InboxPage.php:214
+msgid "Next"
+msgstr "آگے"
+
+#: includes/Admin/InboxPage.php:33
+msgid "Agnosis Inbox"
+msgstr "ایگنوس انباکس"
+
+#: includes/Admin/InboxPage.php:45 includes/Admin/InboxPage.php:46
+#: includes/Admin/InboxPage.php:81
+msgid "Inbox"
+msgstr "انباکس"
+
+#: includes/Admin/InboxPage.php:88
+msgid ""
+"No messages in the queue yet. Click \"Poll Inbox\" to fetch messages from "
+"your IMAP account."
+msgstr ""
+"ابھی تک قطار میں کوئی پیغامات نہیں۔ پیغامات حاصل کرنے کے لیے \"پول انباکس\" "
+"پر کلک کریں۔"
+
+#: includes/Admin/InboxPage.php:94
+msgid "#"
+msgstr "#"
+
+#: includes/Admin/InboxPage.php:95
+msgid "From"
+msgstr "سے"
+
+#: includes/Admin/InboxPage.php:96
+msgid "Subject"
+msgstr "موضوع"
+
+#: includes/Admin/InboxPage.php:97
+msgid "Files"
+msgstr "فائلیں"
+
+#: includes/Admin/InboxPage.php:98
+msgid "Status"
+msgstr "حالت"
+
+#: includes/Admin/InboxPage.php:99
+msgid "Received"
+msgstr "موصول"
+
+#: includes/Admin/InboxPage.php:100
+msgid "Error"
+msgstr "خرابی"
+
+#: includes/Admin/InboxPage.php:101
+msgid "Actions"
+msgstr "عمل"
+
+#: includes/Admin/InboxPage.php:141
+msgid "unregistered sender"
+msgstr "غیر رجسٹر شدہ بھیجنے والا"
+
+#: includes/Admin/InboxPage.php:169
+msgid "Old row — delete and re-poll to preview"
+msgstr "پرانا صفحہ — حذف کریں اور پیش نظارہ کے لیے دوبارہ پول کریں"
+
+#: includes/Admin/InboxPage.php:198
+msgid "Showing the 100 most recent queue entries."
+msgstr "سب سے حالیہ 100 قطاریں دکھائی جا رہی ہیں۔"
+
+#: includes/Admin/InboxPage.php:205
+msgid "Attachment viewer"
+msgstr "منسلکہ دیکھنے والا"
+
+#: includes/Admin/InboxPage.php:208
+msgid "Close"
+msgstr "بند کریں"
+
+#: includes/Admin/InboxPage.php:209
+msgid "Previous"
+msgstr "پچھلا"
+
+#: includes/Admin/InboxPage.php:286
+msgid "Queue row deleted. Poll Inbox to re-fetch the message."
+msgstr "قطار حذف ہو گئی ہے۔ پیغام دوبارہ حاصل کرنے کے لیے انباکس کو پول کریں۔"
+
+#. translators: %d: queue row ID
+#: includes/Admin/InboxPage.php:294
+#, php-format
+msgid "Queue #%d sent to pipeline. Check back in a few seconds."
+msgstr "قطار #%d کو پائپ لائن میں بھیجا گیا۔ چند سیکنڈ بعد واپس چیک کریں۔"
+
+#. translators: %d: new messages enqueued
+#: includes/Admin/InboxPage.php:304
+#, php-format
+msgid "Poll complete. %d new message(s) added to the queue."
+msgstr "پول مکمل۔ %d نئی پیغامیں قطار میں شامل کی گئی ہیں۔"
+
+#. translators: 1: rows reset 2: newly enqueued
+#: includes/Admin/InboxPage.php:315
+#, php-format
+msgid "Force-reprocess: %1$d row(s) reset, %2$d new message(s) enqueued."
+msgstr ""
+"مجبوراً دوبارہ عمل کریں: %1$d قطاریں ری سیٹ ہو گئی ہیں، %2$d نئی پیغامیں "
+"شامل کی گئی ہیں۔"
+
+#. translators: %d: items processed
+#: includes/Admin/InboxPage.php:325
+#, php-format
+msgid "Processed %d pending item(s)."
+msgstr "%d زیر التواء اشیاء پر کارروائی کی گئی۔"
+
+#: includes/Admin/InboxPage.php:342
+msgid "Poll Inbox"
+msgstr "انباکس کو پول کریں"
+
+#: includes/Admin/InboxPage.php:351
+msgid "Force Reprocess"
+msgstr "مجبوراً دوبارہ عمل کریں"
+
+#: includes/Admin/InboxPage.php:360
+msgid "Process All Pending"
+msgstr "تمام زیر التواء عمل کریں"
+
+#: includes/Admin/InboxPage.php:373
+msgid "Awaiting Review"
+msgstr "جائزہ کے انتظار میں"
+
+#: includes/Admin/InboxPage.php:376
+msgid "Live"
+msgstr "براہ راست"
+
+#: includes/Admin/InboxPage.php:379
+msgid "Processed"
+msgstr "عملدرآمد"
+
+#: includes/Admin/InboxPage.php:384
+msgid "Pending"
+msgstr "زیر التواء"
+
+#: includes/Admin/InboxPage.php:385
+msgid "Processing"
+msgstr "عملدرآمد جاری ہے"
+
+#: includes/Admin/InboxPage.php:386
+msgid "Failed"
+msgstr "ناکام"
+
+#: includes/Admin/InboxPage.php:407
+msgid "Process"
+msgstr "عمل کریں"
+
+#: includes/Admin/InboxPage.php:426
+msgid "View Post"
+msgstr "پوسٹ دیکھیں"
+
+#: includes/Admin/InboxPage.php:436
+msgid "Reprocess"
+msgstr "دوبارہ عمل کریں"
+
+#: includes/Admin/InboxPage.php:441
+msgid "Running…"
+msgstr "چل رہا ہے…"
+
+#: includes/Admin/InboxPage.php:447
+msgid "Delete this queue row?"
+msgstr "اس قطار کو حذف کریں؟"
+
+#: includes/Admin/InboxPage.php:452
+msgid "Delete"
+msgstr "حذف کریں"
+
+#: includes/Admin/InboxPage.php:463
+msgid "just now"
+msgstr "ابھی ابھی"
+
+#. translators: %d: number of minutes
+#: includes/Admin/InboxPage.php:468
+#, php-format
+msgid "%dm ago"
+msgstr "%d منٹ پہلے"
+
+#. translators: %d: number of hours
+#: includes/Admin/InboxPage.php:473
+#, php-format
+msgid "%dh ago"
+msgstr "%d گھنٹے پہلے"
+
+#: includes/Admin/Settings.php:34 includes/Admin/Settings.php:35
+msgid "Configuration"
+msgstr "تشکیل"
+
+#. translators: 1: queue rows reset, 2: messages newly enqueued
+#: includes/Admin/Settings.php:80
+#, php-format
+msgid ""
+"Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
+"enqueued. Click \"Process Pending Queue\" to run the AI pipeline."
+msgstr ""
+"مکمل دوبارہ پروسیس کریں۔ %1$d قطاریں ری سیٹ کی گئی ہیں، %2$d نئی پیغامات "
+"شامل کی گئی ہیں۔ \"پینڈنگ قطاریں پروسیس کریں\" پر کلک کریں تاکہ AI پائپ لائن "
+"چلائی جائے۔"
+
+#: includes/Admin/Settings.php:88
+msgid "Log cleared."
+msgstr "لاگ صاف کیا گیا۔"
+
+#. translators: %d: number of queue items processed
+#: includes/Admin/Settings.php:96
+#, php-format
+msgid "Processed %d pending queue item(s). Check the Logs tab for details."
+msgstr ""
+"%d زیر التواء قطار آئٹمز پروسیس کی گئی۔ تفصیلات کے لیے لاگز ٹیب چیک کریں۔"
+
+#. translators: %d: number of new messages enqueued
+#: includes/Admin/Settings.php:106
+#, php-format
+msgid ""
+"Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
+"Process Pending Queue."
+msgstr ""
+"پول مکمل۔ %d نئی پیغامات شامل کی گئی ہیں۔ لاگز ٹیب چیک کریں، پھر \"پینڈنگ "
+"قطاریں پروسیس کریں\" پر کلک کریں۔"
+
+#: includes/Admin/Settings.php:126
+msgid "Art blooming out of oblivion"
+msgstr "بھول سے نکلنے والی فن پارہ"
+
+#: includes/Admin/Settings.php:145
+msgid "Save Changes"
+msgstr "تبدیلیاں محفوظ کریں"
+
+#: includes/Admin/Settings.php:159
+msgid "General"
+msgstr "عام"
+
+#: includes/Admin/Settings.php:160
+msgid "Email Inbox"
+msgstr "ای میل ان باکس"
+
+#: includes/Admin/Settings.php:161
+msgid "AI Providers"
+msgstr "AI فراہم کنندگان"
+
+#: includes/Admin/Settings.php:162
+msgid "Behaviour"
+msgstr "رویہ"
+
+#: includes/Admin/Settings.php:163
+msgid "Network"
+msgstr "نیٹ ورک"
+
+#: includes/Admin/Settings.php:164
+msgid "Commerce"
+msgstr "تجارتی"
+
+#: includes/Admin/Settings.php:165
+msgid "Logs"
+msgstr "لاگز"
+
+#: includes/Admin/Settings.php:226
+msgid "Base domain"
+msgstr "بنیادی ڈومین"
+
+#: includes/Admin/Settings.php:227
+msgid ""
+"Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
+"reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
+"{base_domain}) pointing to this server. Leave blank to disable subdomain "
+"routing."
+msgstr ""
+"فنکار سب ڈومینز کے لیے روٹ ڈومین، مثلاً agnosis.art۔ ہر فنکار کو nicename."
+"{base_domain} پر رسائی حاصل ہے۔ ایک وائلڈ کارڈ DNS ریکارڈ (*.{base_domain}) "
+"کی ضرورت ہے جو اس سرور کی طرف اشارہ کرتا ہو۔ سب ڈومین روٹنگ کو غیر فعال کرنے "
+"کے لیے خالی چھوڑیں۔"
+
+#: includes/Admin/Settings.php:232
+msgid "Node label"
+msgstr "نوڈ لیبل"
+
+#: includes/Admin/Settings.php:233
+msgid "How this node introduces itself to the network."
+msgstr "یہ نوڈ نیٹ ورک میں اپنا تعارف کس طرح کرواتا ہے۔"
+
+#: includes/Admin/Settings.php:240
+msgid "Email driver"
+msgstr "ای میل ڈرائیور"
+
+#: includes/Admin/Settings.php:248
+msgid "Artwork submissions address"
+msgstr "آرٹ ورک جمع کرانے کا پتہ"
+
+#: includes/Admin/Settings.php:249
+msgid "Artists send artwork to this address — e.g. submit@agnosis.art"
+msgstr "فنکار اس پتہ پر آرٹ ورک بھیجتے ہیں — مثلاً submit@agnosis.art"
+
+#: includes/Admin/Settings.php:253
+msgid "Biography submissions address"
+msgstr "سوانح حیات جمع کرانے کا پتہ"
+
+#: includes/Admin/Settings.php:254
+msgid "Artists send biography updates to this address — e.g. bio@agnosis.art"
+msgstr ""
+"فنکار اس پتہ پر سوانح حیات کی تازہ کاری بھیجتے ہیں — مثلاً bio@agnosis.art"
+
+#: includes/Admin/Settings.php:258
+msgid "Event submissions address"
+msgstr "ایونٹ جمع کرانے کا پتہ"
+
+#: includes/Admin/Settings.php:259
+msgid ""
+"Artists send event announcements to this address — e.g. event@agnosis.art"
+msgstr "فنکار اس پتہ پر ایونٹ کا اعلان بھیجتے ہیں — مثلاً event@agnosis.art"
+
+#: includes/Admin/Settings.php:263
+msgid "Replace artwork address"
+msgstr "آرٹ ورک کا پتہ تبدیل کریں"
+
+#: includes/Admin/Settings.php:264
+msgid ""
+"Artist sends a new version of an existing artwork. Subject must match the "
+"original title. Bypasses duplicate detection — e.g. replace@agnosis.art"
+msgstr ""
+"فنکار ایک موجودہ آرٹ ورک کا نیا ورژن بھیجتا ہے۔ موضوع اصل عنوان سے ملنا "
+"چاہیے۔ نقل کی شناخت کو نظر انداز کرتا ہے — مثلاً replace@agnosis.art"
+
+#: includes/Admin/Settings.php:268
+msgid "Removal request address"
+msgstr "حذف کرنے کا پتہ"
+
+#: includes/Admin/Settings.php:269
+msgid ""
+"Artist requests takedown of an existing artwork. Subject must match the "
+"title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
+msgstr ""
+"فنکار کسی موجودہ آرٹ ورک کو ہٹانے کی درخواست کرتا ہے۔ موضوع عنوان سے ملنا "
+"چاہیے۔ پوسٹ کو مسودہ میں منتقل کرتا ہے تاکہ انتظامیہ سے منظوری لی جائے — "
+"مثلاً remove@agnosis.art"
+
+#: includes/Admin/Settings.php:275
+msgid "IMAP host"
+msgstr "IMAP میزبان"
+
+#: includes/Admin/Settings.php:276
+msgid "e.g. imap.yourhost.com"
+msgstr "مثلاً imap.yourhost.com"
+
+#: includes/Admin/Settings.php:280
+msgid "IMAP port"
+msgstr "IMAP پورٹ"
+
+#: includes/Admin/Settings.php:287
+msgid "Use SSL"
+msgstr "SSL استعمال کریں"
+
+#: includes/Admin/Settings.php:295
+msgid "Skip SSL certificate validation"
+msgstr "SSL سرٹیفکیٹ کی تصدیق چھوڑیں"
+
+#: includes/Admin/Settings.php:300
+msgid ""
+"⚠ Use only as a temporary workaround when your mail server's certificate is "
+"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
+"to the mail daemon). Disable this once the mail server presents a valid "
+"certificate."
+msgstr ""
+"⚠ صرف عارضی حل کے طور پر استعمال کریں جب آپ کے میل سرور کا سرٹیفکیٹ ابھی "
+"قابل اعتماد نہیں ہے (مثلاً Plesk خود دستخط شدہ سرٹیفکیٹ، جب تک کہ Let's "
+"Encrypt میل ڈیمون پر لاگو نہ ہو جائے)۔ جب میل سرور ایک درست سرٹیفکیٹ پیش کرے "
+"تو اسے غیر فعال کریں۔"
+
+#: includes/Admin/Settings.php:304
+msgid "IMAP username"
+msgstr "IMAP صارف نام"
+
+#: includes/Admin/Settings.php:305
+msgid ""
+"Login username for the IMAP account — typically the catch-all mailbox "
+"address."
+msgstr "IMAP اکاؤنٹ کے لیے لاگ ان صارف نام — عموماً catch-all میل باکس کا پتہ۔"
+
+#: includes/Admin/Settings.php:309
+msgid "Submission email password"
+msgstr "جمع کرانے کا ای میل پاس ورڈ"
+
+#: includes/Admin/Settings.php:315
+msgid "Webhook secret"
+msgstr "Webhook راز"
+
+#: includes/Admin/Settings.php:316
+msgid "HMAC secret shared with your webhook provider (Mailgun, SendGrid…)."
+msgstr ""
+"آپ کے webhook فراہم کنندہ کے ساتھ شیئر شدہ HMAC راز (Mailgun، SendGrid…)"
+
+#: includes/Admin/Settings.php:322
+msgid "Inbox retention (days)"
+msgstr "ان باکس برقرار رکھنے کا وقت (دن)"
+
+#: includes/Admin/Settings.php:328
+msgid ""
+"Seen IMAP messages and processed/failed queue rows older than this are "
+"permanently deleted by the daily cleanup. Default: 7 days."
+msgstr ""
+"پڑھے گئے IMAP پیغامات اور پراسیس/ناکام قطار کی قطاریں جو اس سے پرانی ہیں، "
+"روزانہ کی صفائی میں مستقل حذف ہو جاتی ہیں۔ ڈیفالٹ: 7 دن۔"
+
+#: includes/Admin/Settings.php:334
+msgid "Description provider"
+msgstr "تفصیل فراہم کنندہ"
+
+#: includes/Admin/Settings.php:342
+msgid ""
+"Analyses the artwork image and writes the title, body, tags and alt text. "
+"WordPress AI Services delegates to whichever provider the site has "
+"configured via the AI Services plugin."
+msgstr ""
+"آرٹ ورک تصویر کا تجزیہ کرتا ہے اور عنوان، جسم، ٹیگز اور متبادل متن لکھتا ہے۔ "
+"WordPress AI سروسز کسی بھی فراہم کنندہ کو تفویض کرتی ہیں جو سائٹ نے AI سروسز "
+"پلگ ان کے ذریعے ترتیب دیا ہے۔"
+
+#: includes/Admin/Settings.php:346
+msgid "OpenAI vision model"
+msgstr "OpenAI وژن ماڈل"
+
+#: includes/Admin/Settings.php:348
+msgid ""
+"Model used for artwork description when OpenAI is the description provider. "
+"Must support vision input."
+msgstr ""
+"OpenAI کے لیے آرٹ ورک کی تفصیل کے لیے استعمال ہونے والا ماڈل۔ وژن ان پٹ کی "
+"حمایت ہونی چاہیے۔"
+
+#: includes/Admin/Settings.php:352
+msgid "Anthropic model"
+msgstr "Anthropic ماڈل"
+
+#: includes/Admin/Settings.php:354
+msgid ""
+"Model used for artwork description when Anthropic is the description "
+"provider. Must support vision input."
+msgstr ""
+"Anthropic کے لیے آرٹ ورک کی تفصیل کے لیے استعمال ہونے والا ماڈل۔ وژن ان پٹ "
+"کی حمایت ہونی چاہیے۔"
+
+#: includes/Admin/Settings.php:360
+msgid "Enhancement provider"
+msgstr "بہتری فراہم کرنے والا"
+
+#: includes/Admin/Settings.php:363
+msgid "Auto (OpenAI if key is set)"
+msgstr "خودکار (اگر کلید سیٹ ہے تو OpenAI)"
+
+#: includes/Admin/Settings.php:365
+msgid "Disabled — use original image"
+msgstr "غیر فعال — اصل تصویر استعمال کریں"
+
+#: includes/Admin/Settings.php:368
+msgid ""
+"Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
+"to Disabled to skip enhancement and publish the original."
+msgstr ""
+"اشاعت سے پہلے فن پارہ تصویر کو بہتر بناتا ہے۔ OpenAI gpt-image-1 استعمال "
+"کرتا ہے۔ بہتری کو چھوڑنے اور اصل کو شائع کرنے کے لیے غیر فعال پر سیٹ کریں۔"
+
+#: includes/Admin/Settings.php:372
+msgid "OpenAI image model"
+msgstr "OpenAI تصویر ماڈل"
+
+#: includes/Admin/Settings.php:374
+msgid ""
+"Model used for image enhancement when OpenAI is the enhancement provider."
+msgstr ""
+"جب OpenAI بہتری فراہم کرنے والا ہو تو تصویر کی بہتری کے لیے استعمال ہونے "
+"والا ماڈل۔"
+
+#: includes/Admin/Settings.php:380
+msgid "Polish biography with AI"
+msgstr "آرٹ ورک کی سوانح حیات کو AI کے ساتھ بہتر بنائیں"
+
+#: includes/Admin/Settings.php:383
+msgid ""
+"When enabled, biography submissions are passed through the AI to fix "
+"spelling and make minor text improvements before saving."
+msgstr ""
+"جب فعال ہو، تو سوانح حیات کی جمع کرائیں کو AI کے ذریعے پاس کیا جاتا ہے تاکہ "
+"ہجے درست کیے جائیں اور معمولی متن کی بہتری کی جائے قبل از محفوظ کرنا۔"
+
+#: includes/Admin/Settings.php:387
+msgid "Polish events with AI"
+msgstr "ایونٹس کو AI کے ساتھ بہتر بنائیں"
+
+#: includes/Admin/Settings.php:390
+msgid ""
+"When enabled, event submissions are passed through the AI to fix spelling "
+"and make minor text improvements before saving."
+msgstr ""
+"جب فعال ہو، تو ایونٹ جمع کرائیں کو AI کے ذریعے پاس کیا جاتا ہے تاکہ ہجے درست "
+"کیے جائیں اور معمولی متن کی بہتری کی جائے قبل از محفوظ کرنا۔"
+
+#: includes/Admin/Settings.php:396
+msgid "Enhancement threshold (quality score)"
+msgstr "بہتری کا معیار (معیار اسکور)"
+
+#: includes/Admin/Settings.php:403
+msgid ""
+"Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
+"= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
+"problematic photos are processed. Set to 1 to disable automatic enhancement "
+"entirely."
+msgstr ""
+"اس قدر (1–10) سے کم اسکور والی تصاویر خودکار طور پر بہتر بنائی جاتی ہیں۔ "
+"اسکور 10 = کامل تصویر، 1 = تکنیکی طور پر ناقابل استعمال۔ ڈیفالٹ: 7 — صرف "
+"واضح طور پر مسئلہ والی تصاویر پر عمل کیا جاتا ہے۔ مکمل طور پر خودکار بہتری "
+"کو غیر فعال کرنے کے لیے 1 پر سیٹ کریں۔"
+
+#: includes/Admin/Settings.php:409
+msgid "OpenAI API key"
+msgstr "OpenAI API کلید"
+
+#: includes/Admin/Settings.php:412
+msgid "Required when OpenAI is the description or enhancement provider."
+msgstr "جب OpenAI تشریح یا بہتری فراہم کرنے والا ہو تو ضروری ہے۔"
+
+#: includes/Admin/Settings.php:416
+msgid "Anthropic API key"
+msgstr "Anthropic API کلید"
+
+#: includes/Admin/Settings.php:419
+msgid "Required when Anthropic is the description provider."
+msgstr "جب Anthropic تشریح فراہم کرنے والا ہو تو ضروری ہے۔"
+
+#: includes/Admin/Settings.php:425
+msgid "Artwork display width (px)"
+msgstr "آرٹ ورک ڈسپلے چوڑائی (پیکسل)"
+
+#: includes/Admin/Settings.php:431
+msgid ""
+"Width of the agnosis-artwork image size used in post content and lightbox. "
+"Height scales proportionally. Default: 1920. Existing images need to be "
+"regenerated after changing this value."
+msgstr ""
+"پوسٹ مواد اور لائٹ باکس میں استعمال ہونے والی agnosis-artwork تصویر کا سائز۔ "
+"اونچائی تناسب سے بڑھتی ہے۔ ڈیفالٹ: 1920۔ موجودہ تصاویر کو اس قدر کو تبدیل "
+"کرنے کے بعد دوبارہ پیدا کرنا ہوگا۔"
+
+#: includes/Admin/Settings.php:435
+msgid "Thumbnail size (px)"
+msgstr "تھمب نیل سائز (پیکسل)"
+
+#: includes/Admin/Settings.php:441
+msgid ""
+"Side length of the square agnosis-thumb size used in submission cards and "
+"dashboard. Default: 512. Existing images need to be regenerated after "
+"changing this value."
+msgstr ""
+"جمع کرانے کے کارڈز اور ڈیش بورڈ میں استعمال ہونے والی agnosis-thumb مربع کا "
+"سائیڈ لمبائی۔ ڈیفالٹ: 512۔ موجودہ تصاویر کو اس قدر کو تبدیل کرنے کے بعد "
+"دوبارہ پیدا کرنا ہوگا۔"
+
+#: includes/Admin/Settings.php:445
+msgid "Email image width (px)"
+msgstr "ای میل تصویر چوڑائی (پیکسل)"
+
+#: includes/Admin/Settings.php:451
+msgid ""
+"Width of the agnosis-email size used in artist notification emails. Height "
+"scales proportionally — no cropping. Default: 420. Existing images need to "
+"be regenerated after changing this value."
+msgstr ""
+"آرٹسٹ اطلاع ای میلز میں استعمال ہونے والی agnosis-email سائز کی چوڑائی۔ "
+"اونچائی تناسب سے بڑھتی ہے — کوئی کٹائی نہیں۔ ڈیفالٹ: 420۔ موجودہ تصاویر کو "
+"اس قدر کو تبدیل کرنے کے بعد دوبارہ پیدا کرنا ہوگا۔"
+
+#: includes/Admin/Settings.php:457
+msgid "Gallery overview — items per page"
+msgstr "گیلری کا جائزہ — صفحات پر اشیاء"
+
+#: includes/Admin/Settings.php:463
+msgid ""
+"How many artwork cards the gallery overview shows per page. Pool is built "
+"proportionally across all artists; featured artworks are preferred. Default: "
+"12."
+msgstr ""
+"گیلری کے ہر صفحہ پر کتنی آرٹ ورک کارڈز دکھائے جاتے ہیں۔ پول تمام آرٹسٹس کے "
+"درمیان تناسب سے بنایا گیا ہے؛ نمایاں آرٹ ورکس کو ترجیح دی جاتی ہے۔ ڈیفالٹ: "
+"12۔"
+
+#: includes/Admin/Settings.php:469
+msgid "System prompt"
+msgstr "سسٹم پرامپٹ"
+
+#: includes/Admin/Settings.php:474
+msgid ""
+"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
+" as tokens — they are replaced with the values below."
+msgstr ""
+"AI کو سسٹم ہدایت کے طور پر بھیجا جاتا ہے۔ {tag_count} اور {excerpt_words} کو "
+"ٹوکن کے طور پر استعمال کریں — یہ نیچے دی گئی قیمتوں سے بدل جاتے ہیں۔"
+
+#: includes/Admin/Settings.php:478
+msgid "Artist prompt template"
+msgstr "آرٹسٹ پرامپٹ ٹیمپلیٹ"
+
+#: includes/Admin/Settings.php:483
+msgid ""
+"User message sent alongside the artwork image. Use {artist_prompt} where the "
+"artist's own description should appear."
+msgstr ""
+"آرٹ ورک کے ساتھ بھیجا گیا صارف کا پیغام۔ جہاں آرٹسٹ کی اپنی وضاحت ظاہر ہونی "
+"چاہیے، وہاں {artist_prompt} استعمال کریں۔"
+
+#: includes/Admin/Settings.php:487
+msgid "Enhancement instructions"
+msgstr "بہتری کی ہدایات"
+
+#: includes/Admin/Settings.php:492
+msgid ""
+"Instructions passed to the image enhancement provider. The AI-generated "
+"artwork description is appended automatically as context."
+msgstr ""
+"تصویر کی بہتری فراہم کرنے والے کو دی گئی ہدایات۔ AI سے تیار کردہ آرٹ ورک کی "
+"تفصیل خود بخود سیاق و سباق کے طور پر شامل کی جاتی ہے۔"
+
+#: includes/Admin/Settings.php:496
+msgid "Number of tags"
+msgstr "ٹیگز کی تعداد"
+
+#: includes/Admin/Settings.php:502
+msgid ""
+"How many tags the AI should generate per artwork. Referenced as {tag_count} "
+"in the system prompt."
+msgstr ""
+"AI کو ہر آرٹ ورک کے لیے کتنے ٹیگز تیار کرنے چاہئیں۔ سسٹم پرامپٹ میں "
+"{tag_count} کے طور پر حوالہ دیا گیا ہے۔"
+
+#: includes/Admin/Settings.php:506
+msgid "Excerpt word limit"
+msgstr "اقتباس کا لفظی حد"
+
+#: includes/Admin/Settings.php:512
+msgid ""
+"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
+"the system prompt."
+msgstr ""
+"ایک جملے کے اقتباس کے لیے زیادہ سے زیادہ الفاظ۔ سسٹم پرامپٹ میں "
+"{excerpt_words} کے طور پر حوالہ دیا گیا ہے۔"
+
+#: includes/Admin/Settings.php:518
+msgid "Enable ActivityPub federation"
+msgstr "ActivityPub فیڈریشن فعال کریں"
+
+#: includes/Admin/Settings.php:522
+msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
+msgstr "نئے آرٹ ورکس کو Mastodon، Pixelfed اور Fediverse پر نشر کریں۔"
+
+#: includes/Admin/Settings.php:527
+msgid "Node public key"
+msgstr "نوڈ پبلک کلید"
+
+#: includes/Admin/Settings.php:529
+msgid ""
+"Auto-generated RSA public key for this node. Share this with peer nodes."
+msgstr ""
+"اس نوڈ کے لیے خودکار طور پر تیار شدہ RSA پبلک کلید۔ اسے ہم منصب نوڈز کے ساتھ "
+"شیئر کریں۔"
+
+#: includes/Admin/Settings.php:533
+msgid "Vouches required for admission"
+msgstr "داخلے کے لیے واؤچز درکار"
+
+#: includes/Admin/Settings.php:537
+msgid "How many existing artists must vouch before a new artist is admitted."
+msgstr "کتنے موجودہ آرٹسٹ واؤچ کریں گے اس سے پہلے کہ ایک نیا آرٹسٹ داخل ہو۔"
+
+#: includes/Admin/Settings.php:543
+msgid "Transaction fee (%)"
+msgstr "ٹرانزیکشن فیس (%)"
+
+#: includes/Admin/Settings.php:548
+msgid ""
+"Percentage retained by this node on donations and art sales. Artists pay "
+"nothing up front."
+msgstr ""
+"اس نوڈ کے ذریعے عطیات اور آرٹ کی فروخت پر رکھی گئی فیصد۔ آرٹسٹ کوئی ادائیگی "
+"نہیں کرتے۔"
+
+#: includes/Admin/Settings.php:559
+msgid ""
+"Sends a minimal ping (\"Reply with the word: ping\") using the configured "
+"API key."
+msgstr ""
+"محدود پنگ بھیجتا ہے (\"پنگ کے ساتھ جواب دیں\")، استعمال شدہ API کلید کے "
+"ذریعے۔"
+
+#: includes/Admin/Settings.php:563
+msgid "Sends a minimal ping using the configured API key."
+msgstr "محدود پنگ بھیجتا ہے، استعمال شدہ API کلید کے ذریعے۔"
+
+#: includes/Admin/Settings.php:566
+msgid "WordPress AI Client"
+msgstr "WordPress AI کلائنٹ"
+
+#: includes/Admin/Settings.php:567
+msgid ""
+"Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
+"generation model is configured."
+msgstr ""
+"چیک کرتا ہے کہ wp_ai_client_prompt() دستیاب ہے (WordPress 7.0+) اور ایک "
+"ٹیکسٹ جنریشن ماڈل کنفیگر ہے۔"
+
+#: includes/Admin/Settings.php:572
+msgid "Test AI Providers"
+msgstr "AI فراہم کنندگان کا ٹیسٹ کریں"
+
+#. translators: %s: provider label
+#: includes/Admin/Settings.php:585
+#, php-format
+msgid "Test %s"
+msgstr "ٹیسٹ %s"
+
+#: includes/Admin/Settings.php:623
+msgid "Pipeline Logs"
+msgstr "پائپ لائن لاگز"
+
+#: includes/Admin/Settings.php:628
+msgid "Clear all log entries?"
+msgstr "تمام لاگ اندراجات صاف کریں؟"
+
+#: includes/Admin/Settings.php:629
+msgid "Clear All"
+msgstr "سب کچھ صاف کریں"
+
+#. translators: %d: total log entry count
+#: includes/Admin/Settings.php:638
+#, php-format
+msgid ""
+"%d entries total. Logs are pruned automatically according to the Inbox "
+"retention setting."
+msgstr "%d داخلے کل۔ لاگز کو خود بخود حذف کیا جاتا ہے ان باکس کی مدت کے مطابق۔"
+
+#: includes/Admin/Settings.php:645
+msgid "No log entries yet."
+msgstr "ابھی تک کوئی لاگ داخلہ نہیں۔"
+
+#: includes/Admin/Settings.php:650
+msgid "Time"
+msgstr "وقت"
+
+#: includes/Admin/Settings.php:651
+msgid "Level"
+msgstr "سطح"
+
+#: includes/Admin/Settings.php:652
+msgid "Context"
+msgstr "سیاق و سباق"
+
+#: includes/Admin/Settings.php:653
+msgid "Message"
+msgstr "پیغام"
+
+#: includes/Admin/Settings.php:708
+msgid "Inbox Tools"
+msgstr "ان باکس کے اوزار"
+
+#: includes/Admin/Settings.php:712
+msgid "Test connection"
+msgstr "کنکشن کا ٹیسٹ"
+
+#: includes/Admin/Settings.php:717
+msgid "Test IMAP Connection"
+msgstr "ایم آئی اے پی کنکشن کا ٹیسٹ"
+
+#: includes/Admin/Settings.php:719
+msgid ""
+"Connects to the configured mailbox and reports the total and unseen message "
+"count."
+msgstr ""
+"مت configured میل باکس سے کنیکٹ کرتا ہے اور کل اور غیر دیکھی گئی پیغامات کی "
+"تعداد رپورٹ کرتا ہے۔"
+
+#: includes/Admin/Settings.php:723
+msgid "Poll inbox now"
+msgstr "ابھی ان باکس کو پول کریں"
+
+#: includes/Admin/Settings.php:728
+msgid "Poll Inbox Now"
+msgstr "ابھی ان باکس کو پول کریں"
+
+#: includes/Admin/Settings.php:730
+msgid ""
+"Fetches unseen messages immediately without waiting for WP-Cron. Then click "
+"\"Process Pending Queue\" to run the AI pipeline."
+msgstr ""
+"غیر دیکھی گئی پیغامات کو فوراً حاصل کرتا ہے بغیر WP-Cron کا انتظار کیے۔ پھر "
+"\"پینڈنگ قطار کو عمل میں لائیں\" پر کلک کریں تاکہ AI پائپ لائن چلائی جائے۔"
+
+#: includes/Admin/Settings.php:734
+msgid "Process queue"
+msgstr "قطار کو عمل میں لائیں"
+
+#: includes/Admin/Settings.php:739
+msgid "Process Pending Queue"
+msgstr "پینڈنگ قطار کو عمل میں لائیں"
+
+#: includes/Admin/Settings.php:741
+msgid ""
+"Immediately runs the AI pipeline on all pending queue items without waiting "
+"for WP-Cron. Use this to test the end-to-end flow after a poll."
+msgstr ""
+"فوراً تمام زیر التواء قطار اشیاء پر AI پائپ لائن چلائیں بغیر WP-Cron کے "
+"انتظار کے۔ اس کا استعمال کریں تاکہ پول کے بعد مکمل بہاؤ کی جانچ کی جا سکے۔"
+
+#: includes/Admin/Settings.php:745
+msgid "Force reprocess"
+msgstr "دباؤ reprocess"
+
+#: includes/Admin/Settings.php:750
+msgid "Force Reprocess Inbox"
+msgstr "ان باکس کو دوبارہ پروسیس کریں"
+
+#: includes/Admin/Settings.php:752
+msgid ""
+"Resets failed/stuck/orphaned queue rows back to pending, then immediately "
+"polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
+"the AI pipeline. Already-published artworks with valid posts are never re-"
+"processed."
+msgstr ""
+"ناکام/رکا ہوا/یتیم قطار کی لائنوں کو واپس زیر التواء میں ری سیٹ کرتا ہے، پھر "
+"فوراً غیر عمل شدہ پیغامات کے لیے پول کرتا ہے۔ پھر \"پینڈنگ قطار کو عمل میں "
+"لائیں\" پر کلک کریں تاکہ AI پائپ لائن چلائی جائے۔ پہلے سے شائع شدہ فن پارے "
+"جن کے پوسٹس درست ہیں، دوبارہ پروسیس نہیں کیے جاتے۔"
+
+#: includes/AI/PromptConfig.php:84
+msgid ""
+"The artist sent no subject line or message with this submission — let the "
+"image speak entirely for itself."
+msgstr ""
+"اس جمع کرانے کے ساتھ آرٹسٹ نے کوئی موضوع یا پیغام نہیں بھیجا — تصویر کو خود "
+"بولنے دیں۔"
+
+#: includes/Artist/Admission.php:95
+msgid "You cannot vouch for yourself."
+msgstr "آپ اپنے لیے گواہی نہیں دے سکتے۔"
+
+#: includes/Artist/Admission.php:99
+msgid "This user has not applied."
+msgstr "اس صارف نے درخواست نہیں دی۔"
+
+#: includes/Artist/Admission.php:150
+#: includes/Publishing/SubmissionsPage.php:160
+msgid "You must be logged in."
+msgstr "آپ کو لاگ ان ہونا ضروری ہے۔"
+
+#: includes/Artist/Admission.php:156
+msgid "Only admitted artists can vouch."
+msgstr "صرف داخل شدہ فنکار ہی گواہی دے سکتے ہیں۔"
+
+#: includes/Artist/Profile.php:26 includes/Artist/Profile.php:145
+#: includes/Artist/Profile.php:158
+msgid "Artworks"
+msgstr "فن پارے"
+
+#: includes/Artist/Profile.php:44
+msgid "Write about this artwork…"
+msgstr "اس فن پارے کے بارے میں لکھیں…"
+
+#: includes/Artist/Profile.php:51 includes/Artist/Profile.php:53
+#: includes/Artist/Profile.php:63
+msgid "Biographies"
+msgstr "سوانح حیات"
+
+#: includes/Artist/Profile.php:54 includes/Artist/Profile.php:64
+msgid "Biography"
+msgstr "سوانح حیات"
+
+#: includes/Artist/Profile.php:55
+msgid "Add New Biography"
+msgstr "نئی سوانح حیات شامل کریں"
+
+#: includes/Artist/Profile.php:56
+msgid "Edit Biography"
+msgstr "سوانح حیات میں ترمیم کریں"
+
+#: includes/Artist/Profile.php:57
+msgid "New Biography"
+msgstr "نئی سوانح حیات"
+
+#: includes/Artist/Profile.php:58
+msgid "View Biography"
+msgstr "سوانح حیات دیکھیں"
+
+#: includes/Artist/Profile.php:59
+msgid "Search Biographies"
+msgstr "سوانح حیات تلاش کریں"
+
+#: includes/Artist/Profile.php:60
+msgid "No biographies found."
+msgstr "کوئی سوانح حیات نہیں ملی۔"
+
+#: includes/Artist/Profile.php:61
+msgid "No biographies in trash."
+msgstr "کچرے میں کوئی سوانح حیات نہیں۔"
+
+#: includes/Artist/Profile.php:62
+msgid "All Biographies"
+msgstr "تمام سوانح حیات"
+
+#: includes/Artist/Profile.php:85 includes/Artist/Profile.php:87
+#: includes/Artist/Profile.php:97
+msgid "Events"
+msgstr "واقعات"
+
+#: includes/Artist/Profile.php:88 includes/Artist/Profile.php:98
+msgid "Event"
+msgstr "واقعہ"
+
+#: includes/Artist/Profile.php:89
+msgid "Add New Event"
+msgstr "نیا واقعہ شامل کریں"
+
+#: includes/Artist/Profile.php:90
+msgid "Edit Event"
+msgstr "واقعہ میں ترمیم کریں"
+
+#: includes/Artist/Profile.php:91
+msgid "New Event"
+msgstr "نیا واقعہ"
+
+#: includes/Artist/Profile.php:92
+msgid "View Event"
+msgstr "واقعہ دیکھیں"
+
+#: includes/Artist/Profile.php:93
+msgid "Search Events"
+msgstr "واقعات تلاش کریں"
+
+#: includes/Artist/Profile.php:94
+msgid "No events found."
+msgstr "کوئی واقعات نہیں ملے۔"
+
+#: includes/Artist/Profile.php:95
+msgid "No events in trash."
+msgstr "کچرے میں کوئی واقعات نہیں۔"
+
+#: includes/Artist/Profile.php:96
+msgid "All Events"
+msgstr "تمام واقعات"
+
+#: includes/Artist/Profile.php:119 includes/Artist/Profile.php:122
+msgid "Medium"
+msgstr "درمیانہ"
+
+#: includes/Artist/Profile.php:121 includes/Artist/Profile.php:129
+msgid "Mediums"
+msgstr "میڈیمز"
+
+#: includes/Artist/Profile.php:123
+msgid "Search Mediums"
+msgstr "میڈیمز تلاش کریں"
+
+#: includes/Artist/Profile.php:124
+msgid "All Mediums"
+msgstr "تمام میڈیمز"
+
+#: includes/Artist/Profile.php:125
+msgid "Edit Medium"
+msgstr "میڈیم میں ترمیم کریں"
+
+#: includes/Artist/Profile.php:126
+msgid "Update Medium"
+msgstr "میڈیم کو اپ ڈیٹ کریں"
+
+#: includes/Artist/Profile.php:127
+msgid "Add New Medium"
+msgstr "نیا میڈیم شامل کریں"
+
+#: includes/Artist/Profile.php:128
+msgid "New Medium Name"
+msgstr "نیا میڈیم کا نام"
+
+#: includes/Artist/Profile.php:146 includes/Artist/Profile.php:159
+msgid "Artwork"
+msgstr "فن پارہ"
+
+#: includes/Artist/Profile.php:147
+msgid "Add New"
+msgstr "نیا شامل کریں"
+
+#: includes/Artist/Profile.php:148
+msgid "Add New Artwork"
+msgstr "نیا فن پارہ شامل کریں"
+
+#: includes/Artist/Profile.php:149
+msgid "Edit Artwork"
+msgstr "فن پارہ میں ترمیم کریں"
+
+#: includes/Artist/Profile.php:150
+msgid "New Artwork"
+msgstr "نیا فن پارہ"
+
+#: includes/Artist/Profile.php:151
+msgid "View Artwork"
+msgstr "فن پارہ دیکھیں"
+
+#: includes/Artist/Profile.php:152
+msgid "Search Artworks"
+msgstr "فن پاروں کی تلاش کریں"
+
+#: includes/Artist/Profile.php:153
+msgid "No artworks found."
+msgstr "کوئی فن پارہ نہیں ملا۔"
+
+#: includes/Artist/Profile.php:154
+msgid "No artworks in trash."
+msgstr "کچرے میں کوئی فن پارہ نہیں۔"
+
+#: includes/Artist/Profile.php:155
+msgid "All Artworks"
+msgstr "تمام فن پارے"
+
+#: includes/Artist/Profile.php:156
+msgid "Artwork Archives"
+msgstr "فن پارہ آرکائیو"
+
+#: includes/Artist/Profile.php:157
+msgid "Artwork Attributes"
+msgstr "فن پارہ کی خصوصیات"
+
+#: includes/Core/Activator.php:164 includes/Core/Plugin.php:376
+msgid "Agnosis Artist"
+msgstr "ایگنوس آرٹسٹ"
+
+#: includes/Core/Activator.php:243
+msgid "My Submissions"
+msgstr "میری جمع کرائیں"
+
+#: includes/Core/Plugin.php:66
+msgid "Permission denied."
+msgstr "اجازت نہیں ہے۔"
+
+#: includes/Core/Plugin.php:77
+msgid "OpenAI API key not configured."
+msgstr "OpenAI API کلید ترتیب نہیں دی گئی۔"
+
+#. translators: %d: HTTP response status code
+#: includes/Core/Plugin.php:99 includes/Core/Plugin.php:131
+#, php-format
+msgid "HTTP %d"
+msgstr "HTTP %d"
+
+#: includes/Core/Plugin.php:102
+msgid "OpenAI connection successful."
+msgstr "OpenAI کنکشن کامیاب۔"
+
+#: includes/Core/Plugin.php:108
+msgid "Anthropic API key not configured."
+msgstr "Anthropic API کلید ترتیب نہیں دی گئی۔"
+
+#: includes/Core/Plugin.php:134
+msgid "Anthropic connection successful."
+msgstr "Anthropic کنکشن کامیاب۔"
+
+#: includes/Core/Plugin.php:139
+msgid "WordPress AI Client requires WordPress 7.0 or later."
+msgstr "ورڈپریس AI کلائنٹ کو ورڈپریس 7.0 یا اس سے جدید ورژن کی ضرورت ہے۔"
+
+#: includes/Core/Plugin.php:145
+msgid ""
+"No text-generation model configured. Set one up under Settings → Connectors."
+msgstr ""
+"کوئی ٹیکسٹ جنریشن ماڈل ترتیب نہیں دیا گیا۔ سیٹنگز → کنیکٹرز کے تحت ایک سیٹ "
+"کریں۔"
+
+#: includes/Core/Plugin.php:147
+msgid ""
+"WordPress AI Client is available and a text-generation model is configured."
+msgstr ""
+"ورڈپریس AI کلائنٹ دستیاب ہے اور ایک ٹیکسٹ جنریشن ماڈل ترتیب دیا گیا ہے۔"
+
+#: includes/Core/Plugin.php:151
+msgid "Unknown provider."
+msgstr "نامعلوم فراہم کنندہ۔"
+
+#: includes/Core/Plugin.php:160 includes/Core/Plugin.php:185
+#: includes/Core/Plugin.php:214 includes/Core/Plugin.php:250
+#: includes/Core/Plugin.php:271 includes/Core/Plugin.php:304
+#: includes/Core/Plugin.php:323
+msgid "You do not have permission to perform this action."
+msgstr "آپ کو یہ عمل انجام دینے کی اجازت نہیں ہے۔"
+
+#: includes/Core/Plugin.php:425
+msgid "is active and configured for"
+msgstr "فعال ہے اور کے لیے ترتیب دیا گیا ہے"
+
+#: includes/Core/Plugin.php:426
+msgid "Subdomain"
+msgstr "سب ڈومین"
+
+#: includes/Core/Plugin.php:427
+msgid "routing mode"
+msgstr "راؤٹنگ موڈ"
+
+#: includes/Core/Plugin.php:429
+msgid ""
+"This conflicts with Agnosis artist subdomains — both plugins would claim the "
+"same subdomain namespace."
+msgstr ""
+"یہ ایگنوسس آرٹسٹ سب ڈومینز کے ساتھ تصادم کرتا ہے — دونوں پلگ ان ایک ہی سب "
+"ڈومین namespace کا دعویٰ کریں گے۔"
+
+#: includes/Core/Plugin.php:430
+msgid "Artist subdomain routing is"
+msgstr "آرٹسٹ سب ڈومین راؤٹنگ"
+
+#: includes/Core/Plugin.php:431
+msgid "completely inactive"
+msgstr "بالکل غیر فعال"
+
+#: includes/Core/Plugin.php:432
+msgid "until this is resolved."
+msgstr "جب تک یہ حل نہیں ہوتا۔"
+
+#: includes/Core/Plugin.php:434
+msgid "Fix: open"
+msgstr "درست کریں: کھولیں"
+
+#: includes/Core/Plugin.php:435
+msgid "Settings"
+msgstr "سیٹنگز"
+
+#: includes/Core/Plugin.php:435
+msgid "Language Router"
+msgstr "لینگوا فورج راؤٹر"
+
+#: includes/Core/Plugin.php:436
+msgid "and switch the URL strategy to"
+msgstr "اور URL حکمت عملی کو تبدیل کریں"
+
+#: includes/Core/Plugin.php:437
+msgid "Path prefix (subfolder)"
+msgstr "پاتھ پیش فکس (سب فولڈر)"
+
+#: includes/Core/Plugin.php:438
+msgid ""
+"This is the LinguaForge default and allows artist subdomains to coexist with "
+"language subfolders"
+msgstr ""
+"یہ LinguaForge کا ڈیفالٹ ہے اور آرٹسٹ سب ڈومینز کو زبان کے سب فولڈرز کے ساتھ "
+"ہم آہنگ ہونے کی اجازت دیتا ہے۔"
+
+#: includes/Core/Plugin.php:443
+msgid "Agnosis — Artist Subdomain Routing is disabled"
+msgstr "ایگنوسس — آرٹسٹ سب ڈومین راؤٹنگ غیر فعال ہے"
+
+#: includes/Core/Plugin.php:453
+msgid "Open LinguaForge Settings"
+msgstr "LinguaForge سیٹنگز کھولیں"
+
+#: includes/Email/Inbox.php:50
+msgid "Every 5 minutes"
+msgstr "ہر 5 منٹ"
+
+#: includes/Email/Inbox.php:163
+msgid "IMAP credentials are not configured."
+msgstr "IMAP اسناد ترتیب نہیں دی گئی۔"
+
+#. translators: 1: total message count, 2: unseen message count
+#: includes/Email/Inbox.php:190
+#, php-format
+msgid "Connected successfully. %1$d message(s) in inbox, %2$d unseen."
+msgstr "کامیابی سے جُڑا۔ %1$d پیغام(پیغامات) ان باکس میں، %2$d غیر دیکھی گئی۔"
+
+#: includes/Email/Webhook.php:81
+msgid "Webhook secret not configured."
+msgstr "Webhook راز ترتیب نہیں دیا گیا۔"
+
+#: includes/Email/Webhook.php:102
+msgid "Invalid or missing webhook signature."
+msgstr "غلط یا غائب webhook دستخط۔"
+
+#: includes/Network/Node.php:84
+msgid "Node URL is required."
+msgstr "نود URL ضروری ہے۔"
+
+#: includes/Publishing/GalleryOverview.php:65
+msgid "Gallery overview"
+msgstr "گیلری کا جائزہ"
+
+#: includes/Publishing/GalleryOverview.php:91
+msgid "Feature this artwork in the gallery overview"
+msgstr "اس فن پارے کو گیلری کے جائزہ میں نمایاں کریں"
+
+#: includes/Publishing/GalleryOverview.php:95
+msgid ""
+"Featured artworks are always chosen first when selecting one work per artist "
+"for the homepage overview."
+msgstr ""
+"نمایاں فن پارے ہمیشہ پہلے منتخب کیے جاتے ہیں جب ایک فن پارہ کو ہوم پیج کے "
+"لیے منتخب کیا جاتا ہے۔"
+
+#. translators: %s: artwork title
+#: includes/Publishing/Notification.php:50
+#, php-format
+msgid "[Agnosis] Confirm removal of: %s"
+msgstr "[Agnosis] حذف کرنے کی تصدیق کریں: %s"
+
+#. translators: %s: artwork title
+#: includes/Publishing/Notification.php:87
+#, php-format
+msgid "[Agnosis] Your submission is ready to review: %s"
+msgstr "[Agnosis] آپ کی جمع کرائی گئی درخواست تیار ہے: %s"
+
+#. translators: %s: artist display name
+#: includes/Publishing/Notification.php:145
+#: includes/Publishing/Notification.php:299
+#, php-format
+msgid "Hi %s,"
+msgstr "ہیلو %s،"
+
+#: includes/Publishing/Notification.php:152
+msgid "We received a removal request for the following artwork:"
+msgstr "ہمیں درج ذیل فن پارے کے لیے حذف کرنے کی درخواست موصول ہوئی ہے:"
+
+#: includes/Publishing/Notification.php:160
+msgid ""
+"If you want to permanently remove this artwork from the gallery, click the "
+"button below. This action cannot be undone."
+msgstr ""
+"اگر آپ اس فن پارے کو مستقل طور پر گیلری سے ہٹانا چاہتے ہیں، تو نیچے دیے گئے "
+"بٹن پر کلک کریں۔ یہ عمل واپس نہیں لیا جا سکتا۔"
+
+#: includes/Publishing/Notification.php:166
+msgid "Yes, remove this artwork"
+msgstr "ہاں، اس فن پارے کو ہٹائیں"
+
+#: includes/Publishing/Notification.php:172
+msgid ""
+"If you did not request this removal, simply ignore this email — your artwork "
+"will remain published."
+msgstr ""
+"اگر آپ نے یہ حذف کرنے کی درخواست نہیں دی، تو اس ای میل کو نظر انداز کریں — "
+"آپ کا فن پارہ جاری رہے گا۔"
+
+#: includes/Publishing/Notification.php:176
+msgid "This confirmation link expires in 7 days."
+msgstr "یہ تصدیقی لنک 7 دن میں ختم ہو جائے گا۔"
+
+#. translators: %s: site name
+#: includes/Publishing/Notification.php:186
+#: includes/Publishing/Notification.php:358
+#, php-format
+msgid "%s — art blooming out of oblivion"
+msgstr "%s — فنونِ لطیفہ غفلت سے نکل کر پھول رہا ہے"
+
+#: includes/Publishing/Notification.php:249
+msgid "📷 Photo enhanced automatically"
+msgstr "📷 تصویر خود بخود بہتر بنائی گئی"
+
+#: includes/Publishing/Notification.php:252
+msgid ""
+"We detected some photographic issues and applied AI correction to improve "
+"visibility of your artwork:"
+msgstr ""
+"ہم نے کچھ تصویری مسائل کا پتہ لگایا اور AI کی مدد سے بہتری کی تاکہ آپ کے فن "
+"پارے کی نمائش بہتر ہو جائے:"
+
+#: includes/Publishing/Notification.php:256
+msgid ""
+"The artwork itself has not been altered — only the photograph quality was "
+"corrected."
+msgstr "فن پارہ خود تبدیل نہیں ہوا — صرف تصویر کا معیار بہتر کیا گیا ہے۔"
+
+#. translators: %d: photo quality score out of 10
+#: includes/Publishing/Notification.php:263
+#, php-format
+msgid "📷 Photo quality score: %d/10"
+msgstr "تصویر کا معیار اسکور: %d/10"
+
+#: includes/Publishing/Notification.php:305
+msgid ""
+"Your submission has been processed. Here's what our AI curator came up with "
+"— take a look and let us know if it's ready to publish."
+msgstr ""
+"آپ کی جمع کرائی گئی درخواست پر کارروائی کی گئی ہے۔ یہ ہے ہمارے AI کیوریٹر کا "
+"نتیجہ — دیکھیں اور ہمیں بتائیں کہ کیا یہ اشاعت کے لیے تیار ہے۔"
+
+#: includes/Publishing/Notification.php:330
+msgid "Looks great — Publish it"
+msgstr "بہت اچھا لگ رہا ہے — اسے شائع کریں"
+
+#: includes/Publishing/Notification.php:333
+#: includes/Publishing/SubmissionsPage.php:240
+msgid "Discard"
+msgstr "رد کریں"
+
+#: includes/Publishing/Notification.php:340
+msgid "Want to tweak the title, text or tags before publishing?"
+msgstr "کیا آپ اشاعت سے پہلے عنوان، متن یا ٹیگز میں ترمیم کرنا چاہتے ہیں؟"
+
+#: includes/Publishing/Notification.php:342
+msgid "Open your submissions page →"
+msgstr "اپنی جمع کرائی گئی درخواست کا صفحہ کھولیں →"
+
+#: includes/Publishing/Notification.php:348
+msgid ""
+"The Publish and Discard links above expire in 7 days. Your submission stays "
+"as a draft until you decide."
+msgstr ""
+"اوپر دیے گئے شائع اور رد لنک 7 دن میں ختم ہو جائیں گے۔ آپ کی درخواست ایک "
+"مسودہ کے طور پر رہتی ہے جب تک کہ آپ فیصلہ کریں۔"
+
+#: includes/Publishing/PostCreator.php:623
+msgid "Untitled"
+msgstr "بغیر عنوان کے"
+
+#: includes/Publishing/PostCreator.php:756
+msgid "Failed to insert attachment."
+msgstr "منسلکہ شامل کرنے میں ناکامی۔"
+
+#: includes/Publishing/RemovalEndpoints.php:79
+msgid "Artwork not found."
+msgstr "فن پارہ نہیں ملا۔"
+
+#: includes/Publishing/RemovalEndpoints.php:88
+msgid "Artwork already removed."
+msgstr "فن پارہ پہلے ہی ہٹا دیا گیا ہے۔"
+
+#: includes/Publishing/RemovalEndpoints.php:107
+msgid "Could not remove the artwork. Please try again."
+msgstr "فن پارہ ہٹانے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔"
+
+#: includes/Publishing/RemovalEndpoints.php:122
+msgid "Your artwork has been removed from the gallery."
+msgstr "آپ کا فن پارہ گیلری سے ہٹا دیا گیا ہے۔"
+
+#: includes/Publishing/RemovalEndpoints.php:144
+msgid "No pending removal request found for this artwork."
+msgstr "اس فن پارے کے لیے کوئی زیر التوا حذف کرنے کی درخواست نہیں ملی۔"
+
+#: includes/Publishing/RemovalEndpoints.php:156
+msgid "The removal link has expired. Please send another removal request."
+msgstr ""
+"حذف کرنے کا لنک ختم ہو چکا ہے۔ براہ کرم دوبارہ حذف کرنے کی درخواست بھیجیں۔"
+
+#: includes/Publishing/RemovalEndpoints.php:164
+msgid "Invalid removal token."
+msgstr "غلط حذف کرنے کا ٹوکن۔"
+
+#: includes/Publishing/ReviewEndpoints.php:85
+#: includes/Publishing/ReviewEndpoints.php:147
+#: includes/Publishing/ReviewEndpoints.php:191
+msgid "Submission not found."
+msgstr "جمع کرائی گئی درخواست نہیں ملی۔"
+
+#: includes/Publishing/ReviewEndpoints.php:94
+#: includes/Publishing/ReviewEndpoints.php:156
+#: includes/Publishing/ReviewEndpoints.php:200
+msgid "This submission is not awaiting review."
+msgstr "یہ درخواست جائزہ کے انتظار میں نہیں ہے۔"
+
+#: includes/Publishing/ReviewEndpoints.php:293
+msgid "Authentication required."
+msgstr "توثیق کی ضرورت ہے۔"
+
+#: includes/Publishing/ReviewEndpoints.php:309
+msgid "You do not have permission to review this submission."
+msgstr "آپ کو اس درخواست کا جائزہ لینے کی اجازت نہیں ہے۔"
+
+#: includes/Publishing/ReviewEndpoints.php:328
+msgid "Review link not found or already used."
+msgstr "جائزہ لنک نہیں ملا یا پہلے ہی استعمال ہو چکا ہے۔"
+
+#: includes/Publishing/ReviewEndpoints.php:336
+msgid "Invalid review token."
+msgstr "غلط جائزہ ٹوکن۔"
+
+#: includes/Publishing/ReviewEndpoints.php:344
+msgid "This review link has expired. Please log in to manage your submissions."
+msgstr ""
+"یہ جائزہ لنک ختم ہو چکا ہے۔ براہ کرم اپنی جمع کرائی گئی درخواست کا انتظام "
+"کرنے کے لیے لاگ ان کریں۔"
+
+#: includes/Publishing/SubmissionsPage.php:110
+msgid "Please log in to view your submissions."
+msgstr "براہ کرم اپنی جمع کرائی گئی درخواستیں دیکھنے کے لیے لاگ ان کریں۔"
+
+#: includes/Publishing/SubmissionsPage.php:121
+msgid "No submissions awaiting review."
+msgstr "کوئی درخواستیں جائزہ کے انتظار میں نہیں۔"
+
+#: includes/Publishing/SubmissionsPage.php:231
+msgid "Publish it"
+msgstr "اسے شائع کریں"
+
+#: includes/Publishing/SubmissionsPage.php:235
+msgid "Make changes"
+msgstr "تبدیلی کریں"
+
+#: includes/Publishing/SubmissionsPage.php:251
+msgid "Title"
+msgstr "عنوان"
+
+#: includes/Publishing/SubmissionsPage.php:259
+msgid "One-line description"
+msgstr "ایک لائن کی تفصیل"
+
+#: includes/Publishing/SubmissionsPage.php:266
+msgid "Description"
+msgstr "تفصیل"
+
+#: includes/Publishing/SubmissionsPage.php:273
+msgid "Tags (comma-separated)"
+msgstr "ٹیگز (کاما سے جدا)"
+
+#: includes/Publishing/SubmissionsPage.php:282
+msgid "Save &amp; Publish"
+msgstr "محفوظ کریں اور شائع کریں"
+
+#: includes/Publishing/SubmissionsPage.php:285
+msgid "Cancel"
+msgstr "منسوخ کریں"
+
+#: includes/Publishing/SubmissionsPage.php:370
+msgid "Publishing…"
+msgstr "شائع ہو رہا ہے…"
+
+#: includes/Publishing/SubmissionsPage.php:378
+#: includes/Publishing/SubmissionsPage.php:450
+msgid "Published ✓"
+msgstr "شائع ہو گیا ✓"
+
+#: includes/Publishing/SubmissionsPage.php:380
+#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:452
+msgid "Something went wrong."
+msgstr "کچھ غلط ہو گیا ہے۔"
+
+#: includes/Publishing/SubmissionsPage.php:385
+#: includes/Publishing/SubmissionsPage.php:410
+#: includes/Publishing/SubmissionsPage.php:457
+msgid "Could not connect. Please try again."
+msgstr "کنکشن نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔"
+
+#: includes/Publishing/SubmissionsPage.php:393
+msgid "Discard this submission? This cannot be undone."
+msgstr "کیا آپ اس جمع کرانے کو رد کرنا چاہتے ہیں؟ یہ واپس نہیں لیا جا سکتا۔"
+
+#: includes/Publishing/SubmissionsPage.php:395
+msgid "Discarding…"
+msgstr "رد کر رہے ہیں…"
+
+#: includes/Publishing/SubmissionsPage.php:403
+msgid "Discarded."
+msgstr "رد کر دیا گیا۔"
+
+#: includes/Publishing/SubmissionsPage.php:440
+msgid "Saving and publishing…"
+msgstr "محفوظ کر رہے ہیں اور شائع کر رہے ہیں…"
+
+#: blocks/gallery-overview/editor.js:23
+msgid "Gallery settings"
+msgstr "گیلری کی ترتیبات"
+
+#: blocks/gallery-overview/editor.js:25
+msgid "Columns"
+msgstr "کالم"
+
+#: blocks/gallery-overview/editor.js:35
+msgid "✦ Agnosis Gallery Overview — rendered on the server"
+msgstr "✦ اگنوس گیلری کا جائزہ — سرور پر تیار کیا گیا"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block title"
+msgid "Agnosis Gallery Overview"
+msgstr "اگنوس گیلری کا جائزہ"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block description"
+msgid ""
+"Proportional, randomised artwork grid across all artists. Shows featured "
+"artworks first, respects per-artist budget, supports medium filtering and "
+"pagination."
+msgstr ""
+"تمام فنکاروں کے لیے تناسبی، تصادفی فن پاروں کا گرڈ۔ نمایاں فن پارے پہلے "
+"دکھائے جاتے ہیں، فنکار کے بجٹ کا احترام کرتا ہے، درمیانے درجے کے فلٹر اور "
+"صفحات بندی کی حمایت کرتا ہے۔"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "gallery"
+msgstr "گیلری"
+
+#: blocks/gallery-overview/block.json blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artwork"
+msgstr "فن پارہ"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "artists"
+msgstr "فنکار"
+
+#: blocks/gallery-overview/block.json
+msgctxt "block keyword"
+msgid "overview"
+msgstr "جائزہ"
+
+#: blocks/submissions/block.json
+msgctxt "block title"
+msgid "My Submissions"
+msgstr "میری جمع کرائیں"
+
+#: blocks/submissions/block.json
+msgctxt "block description"
+msgid ""
+"Lists the logged-in artist's pending artwork submissions for review and "
+"approval. Place this on your /my-submissions/ page or in a Site Editor "
+"template."
+msgstr ""
+"لاگ ان شدہ فنکار کی زیر التواء فن پاروں کی جمع کرائیں کی فہرست۔ اسے اپنی /my-"
+"submissions/ صفحہ یا ایک سائٹ ایڈیٹر ٹیمپلیٹ میں رکھیں۔"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "submissions"
+msgstr "جمع کرائیں"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "review"
+msgstr "جائزہ"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artist"
+msgstr "فنکار"
+
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "agnosis"
+msgstr "اگنوس"

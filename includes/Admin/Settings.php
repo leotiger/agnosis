@@ -294,6 +294,11 @@ class Settings {
 				'label' => __( 'Promote artwork address', 'agnosis' ),
 				'desc'  => __( 'Artist sends an email here (subject = exact artwork title) to mark that artwork as featured in their gallery overview. Any previously featured artwork is automatically demoted — e.g. promote@agnosis.art', 'agnosis' ),
 			],
+			'agnosis_email_photo' => [
+				'tab'   => 'email',
+				'label' => __( 'Photo-only address', 'agnosis' ),
+				'desc'  => __( 'Opt-out lane for photographers and lens-based artists whose photograph is the artwork, not a snapshot of it. Submissions here are published with the original image exactly as sent — AI enhancement is skipped and the quality-rejection gate is bypassed. AI description (title, tags, alt text) still runs. Use the [Photo] subject indicator as a fallback for mail clients that do not support To: aliases — e.g. photo@agnosis.art', 'agnosis' ),
+			],
 			'agnosis_email_goodbye' => [
 				'tab'   => 'email',
 				'label' => __( 'Goodbye / self-removal address', 'agnosis' ),
@@ -359,6 +364,27 @@ class Settings {
 				'desc'     => __( 'Seen IMAP messages and processed/failed queue rows older than this are permanently deleted by the daily cleanup. Default: 7 days.', 'agnosis' ),
 			],
 
+			// --- Email: Security ---
+			'agnosis_intake_per_sender_limit' => [
+				'tab'      => 'email',
+				'label'    => __( 'Per-sender hourly submission limit', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 5,
+				'min'      => 1,
+				'max'      => 100,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum submissions accepted from a single artist per hour, across both IMAP and webhook intake. Exceeding this limit silently drops the message (no retry from ESPs). Default: 5.', 'agnosis' ),
+			],
+
+			'agnosis_require_email_auth' => [
+				'tab'     => 'email',
+				'label'   => __( 'Require SPF/DKIM authentication', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '0',
+				'desc'    => __( 'When enabled, intake messages must pass SPF or DKIM authentication (via the Authentication-Results header). Prevents spoofed From: addresses. Requires your ESP to include Authentication-Results headers and your domain to have SPF/DKIM records configured. Leave off if you are not sure — rejected legitimate mail is silent. Default: off.', 'agnosis' ),
+			],
+
 			// --- AI: Description (text) ---
 			'agnosis_description_provider' => [
 				'tab'     => 'ai',
@@ -419,6 +445,15 @@ class Settings {
 				'input'   => 'checkbox',
 				'default' => '0',
 				'desc'    => __( 'When enabled, event submissions are passed through the AI to fix spelling and make minor text improvements before saving.', 'agnosis' ),
+			],
+
+			// --- AI: Biography merge ---
+			'agnosis_ai_merge_biography' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Merge biography updates with AI', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '1',
+				'desc'    => __( 'When enabled, biography updates are merged with the existing biography using AI — new information is integrated rather than replacing everything. Recommended: artists can send incremental updates ("I just won an award") without resubmitting their full bio. Disable to always replace the biography with the latest submission.', 'agnosis' ),
 			],
 
 			// --- AI: Quality detection ---
