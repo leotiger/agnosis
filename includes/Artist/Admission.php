@@ -2,14 +2,26 @@
 /**
  * Artist admission — community vouching system.
  *
- * An artist applies by registering a WP account and requesting admission.
- * Existing admitted artists can vouch for them. Once the required number
- * of vouches is reached the applicant is granted the 'agnosis_artist' role.
+ * An artist applies without a WP account. The application is stored in
+ * agnosis_applications. Existing artists and the admin vote via email links
+ * (yes / no) which are recorded in agnosis_application_vouches.
+ *
+ * Admission rules (all configurable in Settings → Network):
+ *   - Minimum positive votes = max( ceil( active_artists × percent / 100 ), minimum )
+ *     Default: 10 % of active artists, at least 3 positive votes.
+ *   - Voting window: 7 days. If the threshold is not reached within that window
+ *     the application is marked rejected and both parties are notified.
+ *   - Negative votes are recorded but do not subtract from the positive count.
+ *   - Votes can be changed (clicking the other link overwrites the previous vote).
+ *
+ * No WP user is ever created before the community approves the application.
  *
  * REST endpoints:
- *   POST /agnosis/v1/admission/apply       — submit application
- *   POST /agnosis/v1/admission/vouch/{id}  — vouch for a user
- *   GET  /agnosis/v1/admission/status/{id} — check admission status
+ *   POST /agnosis/v1/admission/apply       — submit application (unauthenticated)
+ *   POST /agnosis/v1/admission/vouch/{id}  — cast a vote (artists only, REST)
+ *   GET  /agnosis/v1/admission/status/{id} — check application status (admin only)
+ *
+ * Email-link voting is handled by VouchConfirm (template_redirect).
  *
  * @package Agnosis\Artist
  */
@@ -29,7 +41,36 @@ class Admission {
 		register_rest_route( 'agnosis/v1', '/admission/apply', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'apply' ],
-			'permission_callback' => [ $this, 'require_logged_in' ],
+			'permission_callback' => [ $this, 'rate_limit_apply' ],
+			'args'                => [
+				'email'         => [
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_email',
+					'validate_callback' => fn( string $v ): bool => (bool) is_email( $v ),
+				],
+				'display_name'  => [
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+				'bio'           => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_textarea_field',
+				],
+				'portfolio_url' => [
+					'type'              => 'string',
+					'sanitize_callback' => 'esc_url_raw',
+				],
+				'statement'     => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_textarea_field',
+				],
+				'language'      => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_key',
+				],
+			],
 		] );
 
 		register_rest_route( 'agnosis/v1', '/admission/vouch/(?P<id>\d+)', [
@@ -38,14 +79,19 @@ class Admission {
 			'permission_callback' => [ $this, 'require_artist' ],
 			'args'                => [
 				'id'      => [ 'type' => 'integer', 'required' => true ],
-				'message' => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_textarea_field' ],
+				'vote'    => [
+					'type'    => 'string',
+					'enum'    => [ 'yes', 'no' ],
+					'default' => 'yes',
+				],
+				'message' => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_textarea_field' ],
 			],
 		] );
 
 		register_rest_route( 'agnosis/v1', '/admission/status/(?P<id>\d+)', [
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'status' ],
-			'permission_callback' => [ $this, 'require_logged_in_for_status' ],
+			'permission_callback' => [ $this, 'require_admin' ],
 			'args'                => [
 				'id' => [ 'type' => 'integer', 'required' => true ],
 			],
@@ -57,97 +103,143 @@ class Admission {
 	// -------------------------------------------------------------------------
 
 	public function apply( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$user_id = get_current_user_id();
+		global $wpdb;
 
-		if ( $this->is_artist( $user_id ) ) {
-			return new WP_REST_Response( [ 'status' => 'already_artist' ], 200 );
+		$email        = (string) $request->get_param( 'email' );
+		$display_name = (string) $request->get_param( 'display_name' );
+		$bio          = (string) ( $request->get_param( 'bio' ) ?? '' );
+		$portfolio    = (string) ( $request->get_param( 'portfolio_url' ) ?? '' );
+		$statement    = (string) ( $request->get_param( 'statement' ) ?? '' );
+		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?? '' ) );
+
+		// Fall back to the browser's primary Accept-Language when none submitted.
+		if ( '' === $language ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitize_key() applied immediately.
+			$accept = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) : '';
+			if ( '' !== $accept ) {
+				// "es-ES,es;q=0.9,en;q=0.8" → "es"
+				$primary  = explode( ',', $accept )[0];
+				$primary  = explode( ';', $primary )[0];
+				$language = sanitize_key( strtolower( (string) explode( '-', trim( $primary ) )[0] ) );
+			}
 		}
 
-		update_user_meta( $user_id, '_agnosis_applied', current_time( 'mysql' ) );
-
-		// Bio / statement submitted with the application.
-		$bio = sanitize_textarea_field( $request->get_param( 'bio' ) ?? '' );
-		if ( $bio ) {
-			update_user_meta( $user_id, '_agnosis_application_bio', $bio );
+		// Block if a WP account already exists for this email.
+		if ( get_user_by( 'email', $email ) ) {
+			return new WP_Error(
+				'agnosis_email_exists',
+				__( 'An account with this email address already exists.', 'agnosis' ),
+				[ 'status' => 409 ]
+			);
 		}
 
-		$portfolio_url = esc_url_raw( $request->get_param( 'portfolio_url' ) ?? '' );
-		if ( $portfolio_url ) {
-			update_user_meta( $user_id, '_agnosis_portfolio_url', $portfolio_url );
+		// Check for an existing application row.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$existing = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id, status FROM {$wpdb->prefix}agnosis_applications WHERE email = %s",
+				$email
+			)
+		);
+
+		if ( $existing ) {
+			if ( in_array( $existing->status, [ 'pending', 'admitted' ], true ) ) {
+				return new WP_Error(
+					'agnosis_already_applied',
+					'pending' === $existing->status
+						? __( 'An application for this email address is already pending.', 'agnosis' )
+						: __( 'This email address belongs to an admitted artist.', 'agnosis' ),
+					[ 'status' => 409 ]
+				);
+			}
+
+			// withdrawn / rejected / left — allow reapplication.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$wpdb->prefix}agnosis_applications
+					 SET display_name = %s, bio = %s, portfolio_url = %s, statement = %s,
+					     language = %s, status = 'pending', wp_user_id = NULL,
+					     applied_at = %s, resolved_at = NULL
+					 WHERE id = %d",
+					$display_name,
+					$bio,
+					$portfolio,
+					$statement,
+					$language,
+					current_time( 'mysql' ),
+					$existing->id
+				)
+			);
+
+			$application_id = (int) $existing->id;
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->insert(
+				$wpdb->prefix . 'agnosis_applications',
+				[
+					'email'         => $email,
+					'display_name'  => $display_name,
+					'bio'           => $bio,
+					'portfolio_url' => $portfolio,
+					'statement'     => $statement,
+					'language'      => '' !== $language ? $language : null,
+				],
+				[ '%s', '%s', '%s', '%s', '%s', '%s' ]
+			);
+
+			$application_id = (int) $wpdb->insert_id;
 		}
 
-		do_action( 'agnosis_artist_applied', $user_id );
+		do_action( 'agnosis_artist_applied', $application_id, $email, $display_name );
 
 		return new WP_REST_Response( [
 			'status'           => 'applied',
-			'vouches_received' => 0,
-			'vouches_required' => (int) get_option( 'agnosis_vouches_required', 2 ),
+			'application_id'   => $application_id,
+			'vouches_required' => $this->calculate_required(),
 		], 201 );
 	}
 
 	public function vouch( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		global $wpdb;
+		$voucher_id     = get_current_user_id();
+		$application_id = (int) $request->get_param( 'id' );
+		$vote           = (string) ( $request->get_param( 'vote' ) ?? 'yes' );
+		$message        = (string) ( $request->get_param( 'message' ) ?? '' );
 
-		$voucher_id   = get_current_user_id();
-		$candidate_id = (int) $request->get_param( 'id' );
-		$message      = $request->get_param( 'message' ) ?? '';
-
-		if ( $voucher_id === $candidate_id ) {
-			return new WP_Error( 'agnosis_self_vouch', __( 'You cannot vouch for yourself.', 'agnosis' ), [ 'status' => 400 ] );
-		}
-
-		if ( ! get_user_meta( $candidate_id, '_agnosis_applied', true ) ) {
-			return new WP_Error( 'agnosis_not_applied', __( 'This user has not applied.', 'agnosis' ), [ 'status' => 404 ] );
-		}
-
-		if ( $this->is_artist( $candidate_id ) ) {
-			return new WP_REST_Response( [ 'status' => 'already_artist' ], 200 );
-		}
-
-		// Insert vouch (unique constraint prevents duplicates).
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- custom table, no WP abstraction available.
-		$inserted = $wpdb->insert(
-			$wpdb->prefix . 'agnosis_vouches',
-			[
-				'voucher_id'   => $voucher_id,
-				'candidate_id' => $candidate_id,
-				'message'      => $message,
-			],
-			[ '%d', '%d', '%s' ]
-		);
-
-		if ( ! $inserted ) {
-			return new WP_REST_Response( [ 'status' => 'already_vouched' ], 200 );
-		}
-
-		$this->maybe_admit( $candidate_id );
-
-		return new WP_REST_Response( [
-			'status'           => 'vouched',
-			'vouches_received' => $this->count_vouches( $candidate_id ),
-			'vouches_required' => (int) get_option( 'agnosis_vouches_required', 2 ),
-		], 201 );
+		return $this->record_vote( $voucher_id, $application_id, $vote, $message );
 	}
 
 	public function status( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$candidate_id = (int) $request->get_param( 'id' );
-		$current_id   = get_current_user_id();
+		global $wpdb;
 
-		// Non-admins may only read their own status.
-		if ( $candidate_id !== $current_id && ! current_user_can( 'manage_options' ) ) {
+		$application_id = (int) $request->get_param( 'id' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$application = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		if ( ! $application ) {
 			return new WP_Error(
-				'agnosis_forbidden',
-				__( 'You may only view your own admission status.', 'agnosis' ),
-				[ 'status' => 403 ]
+				'agnosis_not_found',
+				__( 'Application not found.', 'agnosis' ),
+				[ 'status' => 404 ]
 			);
 		}
 
 		return new WP_REST_Response( [
-			'user_id'          => $candidate_id,
-			'is_artist'        => $this->is_artist( $candidate_id ),
-			'has_applied'      => (bool) get_user_meta( $candidate_id, '_agnosis_applied', true ),
-			'vouches_received' => $this->count_vouches( $candidate_id ),
-			'vouches_required' => (int) get_option( 'agnosis_vouches_required', 2 ),
+			'id'               => (int) $application->id,
+			'email'            => $application->email,
+			'display_name'     => $application->display_name,
+			'status'           => $application->status,
+			'wp_user_id'       => $application->wp_user_id ? (int) $application->wp_user_id : null,
+			'vouches_received' => $this->count_positive_vouches( (int) $application->id ),
+			'vouches_required' => $this->calculate_required(),
+			'applied_at'       => $application->applied_at,
+			'resolved_at'      => $application->resolved_at,
 		] );
 	}
 
@@ -155,21 +247,12 @@ class Admission {
 	// Permission callbacks
 	// -------------------------------------------------------------------------
 
-	public function require_logged_in_for_status(): bool|WP_Error {
-		return is_user_logged_in()
-			? true
-			: new WP_Error( 'agnosis_auth', __( 'You must be logged in.', 'agnosis' ), [ 'status' => 401 ] );
-	}
-
-	public function require_logged_in(): bool|WP_Error {
+	public function rate_limit_apply(): bool|WP_Error {
 		$rate = RateLimiter::check( 'admission_apply', 5, 60 );
 		if ( is_wp_error( $rate ) ) {
 			return $rate;
 		}
-
-		return is_user_logged_in()
-			? true
-			: new WP_Error( 'agnosis_auth', __( 'You must be logged in.', 'agnosis' ), [ 'status' => 401 ] );
+		return true;
 	}
 
 	public function require_artist(): bool|WP_Error {
@@ -180,14 +263,401 @@ class Admission {
 
 		return $this->is_artist( get_current_user_id() )
 			? true
-			: new WP_Error( 'agnosis_not_artist', __( 'Only admitted artists can vouch.', 'agnosis' ), [ 'status' => 403 ] );
+			: new WP_Error(
+				'agnosis_not_artist',
+				__( 'Only admitted artists can vouch.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
+	}
+
+	public function require_admin(): bool|WP_Error {
+		return current_user_can( 'manage_options' )
+			? true
+			: new WP_Error(
+				'agnosis_forbidden',
+				__( 'Admin access required.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
+	}
+
+	// -------------------------------------------------------------------------
+	// Core voting logic — used by both the REST endpoint and VouchConfirm
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Record or update a vote for an application.
+	 *
+	 * Uses INSERT … ON DUPLICATE KEY UPDATE so artists can change their mind
+	 * within the voting window. Triggers maybe_admit() after a 'yes' vote.
+	 *
+	 * @param int    $voucher_id     WP user ID of the voting artist.
+	 * @param int    $application_id Row ID in agnosis_applications.
+	 * @param string $vote           'yes' or 'no'.
+	 * @param string $message        Optional personal note (stored for audit).
+	 */
+	public function record_vote(
+		int $voucher_id,
+		int $application_id,
+		string $vote,
+		string $message = ''
+	): WP_REST_Response|WP_Error {
+		global $wpdb;
+
+		$vote = in_array( $vote, [ 'yes', 'no' ], true ) ? $vote : 'yes';
+
+		// Load the application.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$application = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id, status, email FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		if ( ! $application ) {
+			return new WP_Error(
+				'agnosis_not_found',
+				__( 'Application not found.', 'agnosis' ),
+				[ 'status' => 404 ]
+			);
+		}
+
+		if ( 'pending' !== $application->status ) {
+			return new WP_REST_Response( [ 'status' => $application->status ], 200 );
+		}
+
+		// Artists cannot vote on their own application — guard by email.
+		$voucher = get_userdata( $voucher_id );
+		if ( $voucher && $voucher->user_email === $application->email ) {
+			return new WP_Error(
+				'agnosis_self_vouch',
+				__( 'You cannot vote on your own application.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		// Upsert: allow vote change via ON DUPLICATE KEY UPDATE.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$wpdb->prefix}agnosis_application_vouches
+				 (application_id, voucher_id, vote, message)
+				 VALUES (%d, %d, %s, %s)
+				 ON DUPLICATE KEY UPDATE vote = VALUES(vote), message = VALUES(message)",
+				$application_id,
+				$voucher_id,
+				$vote,
+				$message
+			)
+		);
+
+		if ( 'yes' === $vote ) {
+			$this->maybe_admit( $application_id );
+		}
+
+		return new WP_REST_Response( [
+			'status'           => 'recorded',
+			'vote'             => $vote,
+			'vouches_received' => $this->count_positive_vouches( $application_id ),
+			'vouches_required' => $this->calculate_required(),
+		], 201 );
+	}
+
+	// -------------------------------------------------------------------------
+	// Cron callback — daily expiry check
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Check all pending applications that have exceeded the voting window.
+	 *
+	 * Called by the 'agnosis_check_admissions' daily cron event. For each
+	 * expired pending application:
+	 *   - If positive votes >= required → admit (handles race where threshold
+	 *     was met just before the window closed but maybe_admit was not called).
+	 *   - Otherwise → reject, fire 'agnosis_application_expired' action so
+	 *     AdmissionNotification can send the notification emails.
+	 */
+	public function check_expired_applications(): void {
+		global $wpdb;
+
+		$window = max( 1, (int) get_option( 'agnosis_admission_window_days', 7 ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$expired = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}agnosis_applications
+				 WHERE status = 'pending'
+				   AND applied_at <= DATE_SUB(%s, INTERVAL %d DAY)",
+				current_time( 'mysql' ),
+				$window
+			)
+		);
+
+		foreach ( $expired as $row ) {
+			$app_id = (int) $row->id;
+
+			if ( $this->count_positive_vouches( $app_id ) >= $this->calculate_required() ) {
+				// Threshold reached — admit now (edge case).
+				$this->maybe_admit( $app_id );
+				continue;
+			}
+
+			// Reject and notify.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->update(
+				$wpdb->prefix . 'agnosis_applications',
+				[
+					'status'      => 'rejected',
+					'resolved_at' => current_time( 'mysql' ),
+				],
+				[ 'id' => $app_id ],
+				[ '%s', '%s' ],
+				[ '%d' ]
+			);
+
+			do_action( 'agnosis_application_expired', $app_id );
+		}
 	}
 
 	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private function is_artist( int $user_id ): bool {
+	// -------------------------------------------------------------------------
+	// Admin override actions (bypass vouch threshold)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Admit an applicant directly, bypassing the vouch threshold.
+	 *
+	 * For use by admins via the Settings → Network admission dashboard.
+	 * Fires `agnosis_artist_admitted` so the welcome email is sent.
+	 *
+	 * @param int $application_id  Row ID in agnosis_applications.
+	 * @return bool  True on success, false when the row is not pending or user creation fails.
+	 */
+	public function admin_admit( int $application_id ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$application = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE id = %d AND status = 'pending'",
+				$application_id
+			)
+		);
+
+		if ( ! $application ) {
+			return false;
+		}
+
+		// Temporarily make the positive vouch count appear to meet the threshold so
+		// maybe_admit() proceeds.  We do this by calling it directly now that we've
+		// verified the row — simpler than duplicating the admission logic.
+		// Insert a synthetic vouch so count_positive_vouches() passes the guard.
+		// Actually, just inline the admit sequence directly (DRY tradeoff accepted
+		// because maybe_admit is private and duplicating is cleaner than exposing it).
+
+		/** @var object{email: string, display_name: string, language: string|null} $application */
+		$username = $this->unique_username( $application->display_name, $application->email );
+		$user_id  = wp_create_user( $username, wp_generate_password(), $application->email );
+
+		if ( is_wp_error( $user_id ) ) {
+			return false;
+		}
+
+		$update_args = [
+			'ID'           => $user_id,
+			'display_name' => $application->display_name,
+			'first_name'   => $application->display_name,
+		];
+
+		if ( ! empty( $application->language ) ) {
+			$update_args['locale'] = self::iso_to_wp_locale( (string) $application->language );
+		}
+
+		wp_update_user( $update_args );
+
+		$user = get_userdata( $user_id );
+		if ( $user ) {
+			$user->add_role( 'agnosis_artist' );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'status'      => 'admitted',
+				'wp_user_id'  => $user_id,
+				'resolved_at' => current_time( 'mysql' ),
+			],
+			[ 'id' => $application_id ],
+			[ '%s', '%d', '%s' ],
+			[ '%d' ]
+		);
+
+		do_action( 'agnosis_artist_admitted', $user_id, $application_id );
+
+		return true;
+	}
+
+	/**
+	 * Reject an applicant directly, bypassing the vouch window.
+	 *
+	 * For use by admins via the Settings → Network admission dashboard.
+	 * Fires `agnosis_artist_rejected` so the rejection email is sent.
+	 *
+	 * @param int $application_id  Row ID in agnosis_applications.
+	 * @return bool  True on success, false when the row is not pending.
+	 */
+	public function admin_reject( int $application_id ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated = $wpdb->update(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'status'      => 'rejected',
+				'resolved_at' => current_time( 'mysql' ),
+			],
+			[ 'id' => $application_id, 'status' => 'pending' ],
+			[ '%s', '%s' ],
+			[ '%d', '%s' ]
+		);
+
+		if ( ! $updated ) {
+			return false;
+		}
+
+		do_action( 'agnosis_artist_rejected', $application_id );
+
+		return true;
+	}
+
+	/**
+	 * Calculate the required number of positive votes for admission.
+	 *
+	 * = max( ceil( active_artists × percent / 100 ), minimum )
+	 * Default: 10 % of active artists, at least 3.
+	 */
+	public function calculate_required(): int {
+		$percent = max( 0, (int) get_option( 'agnosis_admission_percent', 10 ) );
+		$minimum = max( 1, (int) get_option( 'agnosis_admission_minimum', 3 ) );
+		$active  = $this->count_active_artists();
+
+		return (int) max( (int) ceil( $active * $percent / 100 ), $minimum );
+	}
+
+	private function count_active_artists(): int {
+		$query = new \WP_User_Query( [
+			'role'        => 'agnosis_artist',
+			'count_total' => true,
+			'number'      => 0,
+		] );
+		return (int) $query->get_total();
+	}
+
+	public function count_positive_vouches( int $application_id ): int {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_application_vouches
+				 WHERE application_id = %d AND vote = 'yes' AND revoked_at IS NULL",
+				$application_id
+			)
+		);
+	}
+
+	private function maybe_admit( int $application_id ): void {
+		global $wpdb;
+
+		if ( $this->count_positive_vouches( $application_id ) < $this->calculate_required() ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$application = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE id = %d AND status = 'pending'",
+				$application_id
+			)
+		);
+
+		if ( ! $application ) {
+			return; // Already admitted or not pending.
+		}
+
+		/** @var object{email: string, display_name: string, language: string|null} $application */
+
+		$username = $this->unique_username( $application->display_name, $application->email );
+		$user_id  = wp_create_user( $username, wp_generate_password(), $application->email );
+
+		if ( is_wp_error( $user_id ) ) {
+			return;
+		}
+
+		$update_args = [
+			'ID'           => $user_id,
+			'display_name' => $application->display_name,
+			'first_name'   => $application->display_name,
+		];
+
+		// Map the applicant's ISO 639-1 language code to a WP locale and persist it
+		// so notification emails can be switched to the artist's language on send.
+		if ( ! empty( $application->language ) ) {
+			$update_args['locale'] = self::iso_to_wp_locale( $application->language );
+		}
+
+		wp_update_user( $update_args );
+
+		$user = get_userdata( $user_id );
+		if ( $user ) {
+			$user->add_role( 'agnosis_artist' );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'status'      => 'admitted',
+				'wp_user_id'  => $user_id,
+				'resolved_at' => current_time( 'mysql' ),
+			],
+			[ 'id' => $application_id ],
+			[ '%s', '%d', '%s' ],
+			[ '%d' ]
+		);
+
+		do_action( 'agnosis_artist_admitted', $user_id, $application_id );
+	}
+
+	/**
+	 * Revoke a vouch on a pending application.
+	 *
+	 * Sets revoked_at instead of deleting — the row is preserved for audit.
+	 * Returns false when the vouch doesn't exist or was already revoked.
+	 *
+	 * @param int $voucher_id     WP user ID of the vouching artist.
+	 * @param int $application_id Row ID in agnosis_applications.
+	 */
+	public function revoke_vouch( int $voucher_id, int $application_id ): bool {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_application_vouches
+				 SET revoked_at = %s
+				 WHERE voucher_id = %d AND application_id = %d AND revoked_at IS NULL",
+				current_time( 'mysql' ),
+				$voucher_id,
+				$application_id
+			)
+		);
+		return (bool) $rows;
+	}
+
+	public function is_artist( int $user_id ): bool {
 		if ( ! $user_id ) {
 			return false;
 		}
@@ -199,53 +669,73 @@ class Admission {
 			|| user_can( $user_id, 'manage_options' );
 	}
 
-	private function count_vouches( int $candidate_id ): int {
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
-		return (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_vouches WHERE candidate_id = %d AND revoked_at IS NULL",
-				$candidate_id
-			)
-		);
+	/**
+	 * Map an ISO 639-1 language code to the closest WP locale string.
+	 *
+	 * WP locales use IETF BCP 47 style tags (e.g. 'es_ES', 'zh_CN').
+	 * ISO codes submitted through the join form are converted here before being
+	 * stored in user meta so WP can find matching translation files.
+	 *
+	 * Unmapped codes are returned as-is — WP will gracefully fall back to the
+	 * site language when no translation files are found for that locale.
+	 */
+	public static function iso_to_wp_locale( string $iso ): string {
+		/** @var array<string, string> */
+		$map = [
+			'en'    => 'en_US',
+			'es'    => 'es_ES',
+			'pt'    => 'pt_PT',
+			'fr'    => 'fr_FR',
+			'it'    => 'it_IT',
+			'de'    => 'de_DE',
+			'nl'    => 'nl_NL',
+			'ca'    => 'ca',
+			'sv'    => 'sv_SE',
+			'da'    => 'da_DK',
+			'nb'    => 'nb_NO',
+			'fi'    => 'fi',
+			'pl'    => 'pl_PL',
+			'cs'    => 'cs_CZ',
+			'hu'    => 'hu_HU',
+			'ro'    => 'ro_RO',
+			'el'    => 'el',
+			'uk'    => 'uk',
+			'ru'    => 'ru_RU',
+			'ar'    => 'ar',
+			'tr'    => 'tr_TR',
+			'hi'    => 'hi_IN',
+			'id'    => 'id_ID',
+			'vi'    => 'vi',
+			'th'    => 'th',
+			'zh'    => 'zh_CN',
+			'zh-tw' => 'zh_TW',
+			'ja'    => 'ja',
+			'ko'    => 'ko_KR',
+		];
+
+		return $map[ $iso ] ?? $iso;
 	}
 
 	/**
-	 * Revoke a single vouch so it no longer counts toward admission.
-	 *
-	 * Does not delete the row — the history is preserved for audit purposes.
-	 * The vouch is timestamped with the revocation time and excluded from all
-	 * future `count_vouches()` calls.
-	 *
-	 * @param int $voucher_id   WordPress user ID of the vouching artist.
-	 * @param int $candidate_id WordPress user ID of the applicant.
-	 * @return bool True if a row was updated; false if the vouch was not found or already revoked.
+	 * Generate a unique WP username from the applicant's display name.
 	 */
-	public function revoke_vouch( int $voucher_id, int $candidate_id ): bool {
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table write; caching not applicable to UPDATE.
-		$rows = $wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$wpdb->prefix}agnosis_vouches
-				 SET revoked_at = %s
-				 WHERE voucher_id = %d AND candidate_id = %d AND revoked_at IS NULL",
-				current_time( 'mysql' ),
-				$voucher_id,
-				$candidate_id
-			)
-		);
-		return (bool) $rows;
-	}
-
-	private function maybe_admit( int $candidate_id ): void {
-		$required = (int) get_option( 'agnosis_vouches_required', 2 );
-		if ( $this->count_vouches( $candidate_id ) >= $required ) {
-			$user = get_userdata( $candidate_id );
-			if ( $user ) {
-				$user->add_role( 'agnosis_artist' );
-				update_user_meta( $candidate_id, '_agnosis_admitted_at', current_time( 'mysql' ) );
-				do_action( 'agnosis_artist_admitted', $candidate_id );
-			}
+	private function unique_username( string $display_name, string $email ): string {
+		$base = sanitize_user( str_replace( ' ', '', strtolower( $display_name ) ), true );
+		if ( ! $base ) {
+			$local = strstr( $email, '@', true );
+			$base  = sanitize_user( false !== $local ? $local : $email, true );
 		}
+		if ( ! $base ) {
+			$base = 'artist';
+		}
+
+		$username = $base;
+		$i        = 1;
+		while ( username_exists( $username ) ) {
+			$username = $base . $i;
+			++$i;
+		}
+
+		return $username;
 	}
 }

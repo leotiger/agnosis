@@ -2,11 +2,8 @@
 /**
  * Integration tests — admission status endpoint access control.
  *
- * Verifies that GET /agnosis/v1/admission/status/{id} is:
- *   - Blocked for anonymous requests (401)
- *   - Blocked when a logged-in user requests another user's status (403)
- *   - Allowed when a user requests their own status (200)
- *   - Allowed for admins requesting any user's status (200)
+ * GET /agnosis/v1/admission/status/{application_id} is admin-only.
+ * The endpoint returns the full application record including membership status.
  *
  * @package Agnosis\Tests\Integration\Artist
  */
@@ -21,109 +18,105 @@ class AdmissionStatusTest extends \WP_UnitTestCase {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private function create_artist(): int {
-		$id   = self::factory()->user->create( [ 'role' => 'subscriber' ] );
-		$user = get_user_by( 'id', $id );
-		$user->add_role( 'agnosis_artist' );
-		return $id;
+	private function create_admin(): int {
+		return self::factory()->user->create( [ 'role' => 'administrator' ] );
 	}
 
 	private function create_subscriber(): int {
 		return self::factory()->user->create( [ 'role' => 'subscriber' ] );
 	}
 
-	private function create_admin(): int {
-		return self::factory()->user->create( [ 'role' => 'administrator' ] );
+	/** Insert an application row directly and return its ID. */
+	private function insert_application( string $email, string $status = 'pending' ): int {
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'email'        => $email,
+				'display_name' => 'Status Test Artist',
+				'status'       => $status,
+			],
+			[ '%s', '%s', '%s' ]
+		);
+		return (int) $wpdb->insert_id;
 	}
 
-	private function rest_get_status( int $target_id, ?int $as_user_id = null ): \WP_REST_Response|\WP_Error {
+	private function rest_get_status( int $application_id, ?int $as_user_id = null ): \WP_REST_Response|\WP_Error {
 		wp_set_current_user( $as_user_id ?? 0 );
-		return rest_do_request( new \WP_REST_Request( 'GET', "/agnosis/v1/admission/status/$target_id" ) );
+		return rest_do_request( new \WP_REST_Request( 'GET', "/agnosis/v1/admission/status/{$application_id}" ) );
 	}
 
 	// -------------------------------------------------------------------------
-	// Authentication gate (permission_callback)
+	// Authentication gate
 	// -------------------------------------------------------------------------
 
-	public function test_anonymous_request_returns_401(): void {
-		$applicant = $this->create_subscriber();
+	public function test_anonymous_request_returns_403(): void {
+		$application_id = $this->insert_application( 'anon@example.com' );
 
-		$response = $this->rest_get_status( $applicant );
-
-		$this->assertSame( 401, $response->get_status() );
-	}
-
-	// -------------------------------------------------------------------------
-	// Ownership guard (inside callback)
-	// -------------------------------------------------------------------------
-
-	public function test_logged_in_user_cannot_see_another_users_status(): void {
-		$viewer    = $this->create_subscriber();
-		$applicant = $this->create_subscriber();
-
-		$response = $this->rest_get_status( $applicant, $viewer );
+		$response = $this->rest_get_status( $application_id );
 
 		$this->assertSame( 403, $response->get_status() );
 	}
 
-	public function test_logged_in_user_can_see_own_status(): void {
-		$applicant = $this->create_subscriber();
-		update_user_meta( $applicant, '_agnosis_applied', current_time( 'mysql' ) );
+	public function test_non_admin_logged_in_returns_403(): void {
+		$subscriber     = $this->create_subscriber();
+		$application_id = $this->insert_application( 'sub@example.com' );
 
-		$response = $this->rest_get_status( $applicant, $applicant );
+		$response = $this->rest_get_status( $application_id, $subscriber );
 
-		$this->assertSame( 200, $response->get_status() );
-	}
-
-	public function test_own_status_response_contains_expected_fields(): void {
-		$applicant = $this->create_subscriber();
-		update_user_meta( $applicant, '_agnosis_applied', current_time( 'mysql' ) );
-		update_option( 'agnosis_vouches_required', 3 );
-
-		$response = $this->rest_get_status( $applicant, $applicant );
-		$data     = $response->get_data();
-
-		$this->assertSame( $applicant, $data['user_id'] );
-		$this->assertFalse( $data['is_artist'] );
-		$this->assertTrue( $data['has_applied'] );
-		$this->assertSame( 0, $data['vouches_received'] );
-		$this->assertSame( 3, $data['vouches_required'] );
+		$this->assertSame( 403, $response->get_status() );
 	}
 
 	// -------------------------------------------------------------------------
 	// Admin access
 	// -------------------------------------------------------------------------
 
-	public function test_admin_can_see_any_users_status(): void {
-		$admin     = $this->create_admin();
-		$applicant = $this->create_subscriber();
+	public function test_admin_can_access_status(): void {
+		$admin          = $this->create_admin();
+		$application_id = $this->insert_application( 'admin@example.com' );
 
-		$response = $this->rest_get_status( $applicant, $admin );
+		$response = $this->rest_get_status( $application_id, $admin );
 
 		$this->assertSame( 200, $response->get_status() );
 	}
 
-	public function test_admin_response_reflects_correct_user(): void {
-		$admin  = $this->create_admin();
-		$artist = $this->create_artist();
+	public function test_status_response_contains_expected_fields(): void {
+		$admin          = $this->create_admin();
+		$application_id = $this->insert_application( 'fields@example.com' );
 
-		$response = $this->rest_get_status( $artist, $admin );
+		update_option( 'agnosis_admission_minimum', 3 );
+		update_option( 'agnosis_admission_percent', 0 );
+
+		$response = $this->rest_get_status( $application_id, $admin );
 		$data     = $response->get_data();
 
-		$this->assertSame( $artist, $data['user_id'] );
-		$this->assertTrue( $data['is_artist'] );
+		$this->assertSame( $application_id, $data['id'] );
+		$this->assertSame( 'fields@example.com', $data['email'] );
+		$this->assertSame( 'Status Test Artist', $data['display_name'] );
+		$this->assertSame( 'pending', $data['status'] );
+		$this->assertNull( $data['wp_user_id'] );
+		$this->assertSame( 0, $data['vouches_received'] );
+		$this->assertSame( 3, $data['vouches_required'] );
+		$this->assertArrayHasKey( 'applied_at', $data );
+		$this->assertArrayHasKey( 'resolved_at', $data );
 	}
 
-	// -------------------------------------------------------------------------
-	// Artist viewing own status
-	// -------------------------------------------------------------------------
+	public function test_status_returns_404_for_unknown_application(): void {
+		$admin = $this->create_admin();
 
-	public function test_artist_can_see_own_status(): void {
-		$artist = $this->create_artist();
+		$response = $this->rest_get_status( 99999, $admin );
 
-		$response = $this->rest_get_status( $artist, $artist );
+		$this->assertSame( 404, $response->get_status() );
+	}
+
+	public function test_status_reflects_admitted_state(): void {
+		$admin          = $this->create_admin();
+		$application_id = $this->insert_application( 'admitted@example.com', 'admitted' );
+
+		$response = $this->rest_get_status( $application_id, $admin );
+		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertTrue( $response->get_data()['is_artist'] );
+		$this->assertSame( 'admitted', $data['status'] );
 	}
 }

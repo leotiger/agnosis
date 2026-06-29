@@ -16,6 +16,11 @@ use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
 use Agnosis\Artist\Admission;
+use Agnosis\Artist\AdmissionNotification;
+use Agnosis\Artist\Departure;
+use Agnosis\Artist\DepartureNotification;
+use Agnosis\Artist\JoinPage;
+use Agnosis\Artist\VouchConfirm;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Email\Inbox;
@@ -89,8 +94,13 @@ class Plugin {
 			$this->loader->add_action( 'admin_menu',            $settings, 'register_menu' );
 			$this->loader->add_action( 'admin_init',            $settings, 'register_settings' );
 			$this->loader->add_action( 'admin_enqueue_scripts', $settings, 'enqueue_assets' );
-			$this->loader->add_action( 'admin_post_agnosis_clear_logs', $settings, 'handle_clear_logs' );
-			$this->loader->add_action( 'wp_ajax_agnosis_test_ai',       $settings, 'handle_test_ai' );
+			$this->loader->add_action( 'admin_post_agnosis_clear_logs',         $settings, 'handle_clear_logs' );
+			$this->loader->add_action( 'wp_ajax_agnosis_test_ai',              $settings, 'handle_test_ai' );
+			$this->loader->add_action( 'admin_post_agnosis_admit_application',    $settings, 'handle_admit_application' );
+			$this->loader->add_action( 'admin_post_agnosis_reject_application',   $settings, 'handle_reject_application' );
+			$this->loader->add_action( 'admin_post_agnosis_ban_artist',            $settings, 'handle_ban_artist' );
+			$this->loader->add_action( 'admin_post_agnosis_delete_artist',         $settings, 'handle_delete_artist' );
+			$this->loader->add_action( 'admin_post_agnosis_initiate_removal_vote', $settings, 'handle_initiate_removal_vote' );
 
 			// Queue management handlers.
 			$queue = new QueueController();
@@ -113,9 +123,29 @@ class Plugin {
 		$this->loader->add_action( 'init', $profile, 'register_taxonomy' );
 		$this->loader->add_action( 'init', $profile, 'register_blocks' );
 
-		// Artist admission (vouching).
+		// Artist admission (vouching) + public join form block.
 		$admission = new Admission();
-		$this->loader->add_action( 'rest_api_init', $admission, 'register_routes' );
+		$this->loader->add_action( 'rest_api_init',           $admission, 'register_routes' );
+		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'check_expired_applications' );
+
+		$admission_notification = new AdmissionNotification();
+		$admission_notification->register_hooks();
+
+		$departure = new Departure();
+		$this->loader->add_action( 'rest_api_init',              $departure, 'register_routes' );
+		$this->loader->add_action( 'agnosis_check_bans',         $departure, 'check_expired_bans' );
+		$this->loader->add_action( 'agnosis_check_removal_votes', $departure, 'check_expired_removal_votes' );
+		// Self-removal confirmation shim — processes ?agnosis_departure=1&token=…
+		$this->loader->add_action( 'template_redirect',          $departure, 'handle_departure_confirm', 1 );
+
+		$departure_notification = new DepartureNotification();
+		$departure_notification->register_hooks();
+
+		$vouch_confirm = new VouchConfirm( $admission );
+		$vouch_confirm->register_hooks();
+
+		$join = new JoinPage();
+		$this->loader->add_action( 'init', $join, 'register_block' );
 
 		// Email ingestion — IMAP scheduled poll + daily cleanup.
 		$inbox = new Inbox();

@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Email;
 
+use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
 use Webklex\PHPIMAP\Client;
 use Webklex\PHPIMAP\ClientManager;
@@ -391,12 +392,26 @@ class Inbox {
 		$messages = $folder->query()->since( $since )->get();
 		Logger::info( sprintf( 'Poll: scanning %d message(s) from last %d day(s).', $messages->count(), $days ), 'inbox' );
 
+		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
+
 		foreach ( $messages as $message ) {
 			try {
 				$uid = (string) $message->getUid();
 
 				if ( $this->is_already_queued( $uid ) ) {
 					continue; // DB state machine handles all cases.
+				}
+
+				// --- Goodbye alias: self-removal request (no attachment required) ---
+				if ( $goodbye_addr ) {
+					$to_list    = $message->getTo()->toArray();
+					$msg_to     = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
+					if ( $msg_to === $goodbye_addr ) {
+						$from_list  = $message->getFrom()->toArray();
+						$from_email = $from_list ? sanitize_email( (string) $from_list[0]->mail ) : '';
+						$this->handle_goodbye_email( $from_email, $uid );
+						continue;
+					}
 				}
 
 				$submission = $this->parser->parse_imap_message( $message );
@@ -428,6 +443,43 @@ class Inbox {
 				Logger::error( 'Error processing message UID ' . ( $uid ?? '?' ) . ': ' . $e->getMessage(), 'inbox' );
 			}
 		}
+	}
+
+	/**
+	 * Handle a goodbye email: trigger the self-removal confirmation flow for
+	 * the sending artist, then mark the message so it won't be re-processed.
+	 *
+	 * @param string $from_email Sender email address.
+	 * @param string $uid        IMAP message UID (used for deduplication).
+	 */
+	private function handle_goodbye_email( string $from_email, string $uid ): void {
+		$user = get_user_by( 'email', $from_email );
+
+		if ( ! $user || ! $this->is_admitted_artist( $user->ID ) ) {
+			Logger::warning(
+				'Goodbye email from non-artist <' . $from_email . '> — ignored.',
+				'inbox'
+			);
+			$this->mark_no_artwork( $uid );
+			return;
+		}
+
+		$departure = new Departure();
+		$ok        = $departure->initiate_removal_for_user( $user->ID );
+
+		if ( $ok ) {
+			Logger::info(
+				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): confirmation sent.',
+				'inbox'
+			);
+		} else {
+			Logger::warning(
+				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): no active membership — ignored.',
+				'inbox'
+			);
+		}
+
+		$this->mark_no_artwork( $uid );
 	}
 
 	/**

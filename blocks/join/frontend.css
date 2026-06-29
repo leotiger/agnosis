@@ -1,0 +1,113 @@
+/* Agnosis Join block — frontend form styles.
+ * Follows the theme's black-and-white palette.
+ * All measurements use rem so they scale with the document font size.
+ */
+
+.agnosis-join {
+	max-width: 48rem;
+}
+
+.agnosis-join__form {
+	display:        flex;
+	flex-direction: column;
+	gap:            1.6rem;
+}
+
+.agnosis-join__field {
+	display:        flex;
+	flex-direction: column;
+	gap:            0.4rem;
+}
+
+.agnosis-join__field label {
+	font-size:   0.9rem;
+	font-weight: 600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.agnosis-join__field abbr {
+	text-decoration: none;
+	color: inherit;
+}
+
+.agnosis-join__field input[type="text"],
+.agnosis-join__field input[type="email"],
+.agnosis-join__field input[type="url"],
+.agnosis-join__field textarea {
+	width:            100%;
+	padding:          0.7rem 0.9rem;
+	border:           1px solid currentColor;
+	border-radius:    0;
+	background:       transparent;
+	color:            inherit;
+	font-family:      inherit;
+	font-size:        1rem;
+	line-height:      1.5;
+	box-sizing:       border-box;
+	appearance:       none;
+	-webkit-appearance: none;
+}
+
+.agnosis-join__field input:focus,
+.agnosis-join__field textarea:focus {
+	outline:       2px solid currentColor;
+	outline-offset: 2px;
+}
+
+.agnosis-join__field textarea {
+	resize:     vertical;
+	min-height: 7rem;
+}
+
+.agnosis-join__hint {
+	font-size:  0.8rem;
+	opacity:    0.6;
+	margin-top: 0.2rem;
+}
+
+.agnosis-join__submit {
+	align-self:      flex-start;
+	padding:         0.75rem 2rem;
+	border:          1px solid currentColor;
+	background:      var(--wp--preset--color--foreground, #000);
+	color:           var(--wp--preset--color--background, #fff);
+	font-family:     inherit;
+	font-size:       0.9rem;
+	font-weight:     600;
+	letter-spacing:  0.05em;
+	text-transform:  uppercase;
+	cursor:          pointer;
+	transition:      opacity 0.15s ease;
+}
+
+.agnosis-join__submit:hover {
+	opacity: 0.75;
+}
+
+.agnosis-join__submit:disabled {
+	opacity: 0.4;
+	cursor:  not-allowed;
+}
+
+.agnosis-join__notice {
+	padding:     1rem 1.2rem;
+	border-left: 3px solid currentColor;
+	font-size:   0.95rem;
+	line-height: 1.5;
+}
+
+.agnosis-join__notice--success {
+	border-color: #1a7a1a;
+	color:        #1a7a1a;
+}
+
+.agnosis-join__notice--error {
+	border-color: #c00;
+	color:        #c00;
+}
+
+/* Editor placeholder */
+.agnosis-join-editor .components-placeholder {
+	border: 1px dashed currentColor;
+}

@@ -48,6 +48,62 @@ class Activator {
 			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_vouches ADD COLUMN revoked_at DATETIME NULL DEFAULT NULL AFTER created_at" );
 		}
 
+		// Add vote to agnosis_application_vouches if missing (column added in 0.2.0).
+		// Guard for installs that created this table before the vote column existed.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$app_vouches_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_application_vouches'" );
+		if ( ! empty( $app_vouches_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_vote = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_application_vouches LIKE 'vote'" );
+			if ( empty( $has_vote ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_application_vouches ADD COLUMN vote ENUM('yes','no') NOT NULL DEFAULT 'yes' AFTER voucher_id" );
+			}
+		}
+
+		// Add language to agnosis_applications if missing (column added in 0.2.0).
+		// Stores the applicant's preferred content language (ISO 639-1) for locale
+		// switching in notification emails and AI back-translation of post previews.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$app_table_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_applications'" );
+		if ( ! empty( $app_table_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_language = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'language'" );
+			if ( empty( $has_language ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD COLUMN language VARCHAR(10) DEFAULT NULL AFTER statement" );
+			}
+
+			// Add banned_until (temporary ban expiry) and removal_token (self-removal
+			// confirmation) columns — added in 0.2.0. dbDelta cannot modify ENUMs so
+			// the 'banned' status value is added via ALTER TABLE as well.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_banned_until = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'banned_until'" );
+			if ( empty( $has_banned_until ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD COLUMN banned_until DATETIME DEFAULT NULL AFTER wp_user_id" );
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_removal_token = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'removal_token'" );
+			if ( empty( $has_removal_token ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD COLUMN removal_token VARCHAR(64) DEFAULT NULL AFTER banned_until" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD UNIQUE KEY uq_removal_token (removal_token)" );
+			}
+
+			// Extend the status ENUM to include 'banned' (added in 0.2.0).
+			// We detect this by checking whether the column definition already includes
+			// 'banned'; SHOW COLUMNS returns the Type as e.g. "enum('pending','admitted',…)".
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$status_col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'status'" );
+			if ( $status_col && false === strpos( (string) $status_col->Type, 'banned' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('pending','admitted','rejected','withdrawn','left','banned') NOT NULL DEFAULT 'pending'" );
+			}
+		}
+
 		self::create_tables();
 	}
 
@@ -59,6 +115,7 @@ class Activator {
 		self::register_roles();
 		self::schedule_events();
 		self::create_submissions_page();
+		self::create_join_page();
 
 		// Create the protected attachment queue directory under uploads/.
 		AttachmentStore::ensure_protected();
@@ -71,6 +128,9 @@ class Activator {
 	public static function deactivate(): void {
 		wp_clear_scheduled_hook( 'agnosis_poll_inbox' );
 		wp_clear_scheduled_hook( 'agnosis_cleanup_inbox' );
+		wp_clear_scheduled_hook( 'agnosis_check_admissions' );
+		wp_clear_scheduled_hook( 'agnosis_check_bans' );
+		wp_clear_scheduled_hook( 'agnosis_check_removal_votes' );
 		flush_rewrite_rules();
 	}
 
@@ -153,12 +213,89 @@ class Activator {
 			KEY idx_created (created_at)
 		) $charset_collate;";
 
+		// Membership lifecycle — one row per applicant / artist / former member.
+		// status: pending → admitted | rejected | withdrawn | left | banned.
+		// banned_until: NULL = permanent ban; future datetime = temporary ban (cron reinstates).
+		// removal_token: single-use CSPRNG hex token for self-removal email confirmation.
+		// resolved_at is set whenever status leaves 'pending'.
+		$sql_applications = "CREATE TABLE {$wpdb->prefix}agnosis_applications (
+			id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			email          VARCHAR(255)    NOT NULL,
+			display_name   VARCHAR(255)    NOT NULL,
+			bio            TEXT            DEFAULT NULL,
+			portfolio_url  VARCHAR(512)    DEFAULT NULL,
+			statement      TEXT            DEFAULT NULL,
+			language       VARCHAR(10)     DEFAULT NULL,
+			status         ENUM('pending','admitted','rejected','withdrawn','left','banned') NOT NULL DEFAULT 'pending',
+			wp_user_id     BIGINT UNSIGNED DEFAULT NULL,
+			banned_until   DATETIME        DEFAULT NULL,
+			removal_token  VARCHAR(64)     DEFAULT NULL,
+			applied_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			resolved_at    DATETIME        DEFAULT NULL,
+			PRIMARY KEY    (id),
+			UNIQUE KEY     uq_email (email),
+			UNIQUE KEY     uq_removal_token (removal_token),
+			KEY            idx_status (status),
+			KEY            idx_wp_user (wp_user_id)
+		) $charset_collate;";
+
+		// Community removal requests — tracks open votes to remove an admitted artist.
+		// status: nominating (gathering initiators) → open (full community vote) →
+		//         passed | failed | cancelled.
+		// opened_at / closes_at mark the full-vote window; resolved_at marks the outcome.
+		$sql_removal_requests = "CREATE TABLE {$wpdb->prefix}agnosis_removal_requests (
+			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			subject_user_id BIGINT UNSIGNED NOT NULL,
+			initiated_by    BIGINT UNSIGNED DEFAULT NULL,
+			status          ENUM('nominating','open','passed','failed','cancelled') NOT NULL DEFAULT 'nominating',
+			opened_at       DATETIME        DEFAULT NULL,
+			closes_at       DATETIME        DEFAULT NULL,
+			resolved_at     DATETIME        DEFAULT NULL,
+			PRIMARY KEY     (id),
+			KEY             idx_subject (subject_user_id),
+			KEY             idx_status (status)
+		) $charset_collate;";
+
+		// Individual votes on a community removal request.
+		// A voter may change their vote (UPDATE on the unique key).
+		$sql_removal_votes = "CREATE TABLE {$wpdb->prefix}agnosis_removal_votes (
+			id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			request_id BIGINT UNSIGNED NOT NULL,
+			voter_id   BIGINT UNSIGNED NOT NULL,
+			vote       ENUM('yes','no') NOT NULL,
+			voted_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY  uq_voter (request_id, voter_id),
+			KEY         idx_request (request_id)
+		) $charset_collate;";
+
+		// Pre-admission vouches — artists vouching for a pending application.
+		// Kept separate from agnosis_vouches (post-admission community table).
+		// revoked_at is set instead of deleting so the audit trail is preserved.
+		$sql_application_vouches = "CREATE TABLE {$wpdb->prefix}agnosis_application_vouches (
+			id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			application_id BIGINT UNSIGNED NOT NULL,
+			voucher_id     BIGINT UNSIGNED NOT NULL,
+			vote           ENUM('yes','no') NOT NULL DEFAULT 'yes',
+			message        TEXT            DEFAULT NULL,
+			created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			revoked_at     DATETIME        NULL      DEFAULT NULL,
+			PRIMARY KEY    (id),
+			UNIQUE KEY     uq_pair (application_id, voucher_id),
+			KEY            idx_application (application_id),
+			KEY            idx_voucher (voucher_id)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
 		dbDelta( $sql_tx );
 		dbDelta( $sql_vouches );
 		dbDelta( $sql_log );
+		dbDelta( $sql_applications );
+		dbDelta( $sql_application_vouches );
+		dbDelta( $sql_removal_requests );
+		dbDelta( $sql_removal_votes );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}
@@ -198,7 +335,9 @@ class Activator {
 			'agnosis_imap_cleanup_days'   => 7,
 			'agnosis_webhook_secret'      => wp_generate_password( 32, false ),
 			'agnosis_node_label'          => get_bloginfo( 'name' ),
-			'agnosis_vouches_required'            => 2,
+			'agnosis_admission_percent'           => 10,  // min % of active artists required
+			'agnosis_admission_minimum'           => 3,   // absolute floor regardless of %
+			'agnosis_admission_window_days'       => 7,   // days before application expires
 			'agnosis_tx_fee_percent'              => 7.0,
 			'agnosis_activitypub_enabled'         => true,
 			'agnosis_quality_threshold'           => 7,
@@ -265,9 +404,51 @@ class Activator {
 		}
 	}
 
+	/**
+	 * Create the /join/ page the first time the plugin activates.
+	 *
+	 * Uses the agnosis/join block as page content. The theme's page-join.html
+	 * template is automatically applied via the FSE template hierarchy (WordPress
+	 * selects page-{slug}.html for any page whose slug matches). The page ID is
+	 * stored in wp_options so subsequent activations are no-ops.
+	 */
+	private static function create_join_page(): void {
+		$existing_id = (int) get_option( 'agnosis_join_page_id' );
+
+		if ( $existing_id ) {
+			$existing = get_post( $existing_id );
+			if ( $existing && 'publish' === $existing->post_status ) {
+				return;
+			}
+		}
+
+		$page_id = wp_insert_post( [
+			'post_title'   => __( 'Join', 'agnosis' ),
+			'post_name'    => 'join',
+			'post_content' => '<!-- wp:agnosis/join /-->',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_author'  => 1,
+			'meta_input'   => [ '_agnosis_managed_page' => '1' ],
+		], false );
+
+		if ( $page_id ) {
+			update_option( 'agnosis_join_page_id', $page_id );
+		}
+	}
+
 	private static function schedule_events(): void {
 		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_poll_inbox' );
+		}
+		if ( ! wp_next_scheduled( 'agnosis_check_admissions' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_check_admissions' );
+		}
+		if ( ! wp_next_scheduled( 'agnosis_check_bans' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_check_bans' );
+		}
+		if ( ! wp_next_scheduled( 'agnosis_check_removal_votes' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_check_removal_votes' );
 		}
 		// The cron_schedules filter that defines 'every_five_minutes' must be
 		// registered on every request, not just on activation. It lives in

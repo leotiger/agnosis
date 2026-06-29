@@ -6,7 +6,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 
 ## How it works
 
-1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `replace@`, and `remove@`
+1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `replace@`, `remove@`, and `goodbye@`
 2. **Enhance** — images with low photo quality scores are corrected via AI (OpenAI / Stability AI); good photographs are left untouched
 3. **Describe** — title, description, tags, and medium category are written by AI (Claude / GPT-4o Vision)
 4. **Review** — artist receives an email with a preview; one click to publish, edit, or discard
@@ -15,13 +15,16 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 
 ## Features
 
-- **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, and removal
+- **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, removal, and account departure (`goodbye@`)
 - **AI pipeline** — pluggable provider interface; OpenAI, Anthropic, and Stability AI out of the box
 - **Photo quality gate** — vision AI scores each photograph; enhancement only runs below a configurable threshold; targeted correction from detected issues
 - **Medium taxonomy** — 8 canonical terms (Oil, Acrylic, Watercolour, Drawing, Digital, Photography, Sculpture, Mixed Media); AI assigns one per artwork; seeded on activation
 - **Artist review workflow** — draft posted, artist reviews via email link (approve / edit / discard)
 - **Artist-driven removal** — `remove@` email triggers a signed confirmation link; artist trashes their own artwork; no admin needed
-- **Community admission** — artists vouch for new artists; no committees, no gatekeepers
+- **Artist departure** — three independent paths: self-removal (`goodbye@` alias or REST), admin suspend/delete, community vote; confirmation required before any deletion
+- **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard
+- **Multilingual** — language captured at application; per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language
+- **Dual-title artwork** — `post_title` is always the artist's original title; AI-generated site-language title stored separately in `_agnosis_translated_title` meta
 - **ActivityPub federation** — each installation is a Fediverse actor; peers discover each other via `/.well-known/agnosis-node`
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication
 - **Commerce** — configurable transaction fee on donations and art sales; always free for artists
@@ -32,7 +35,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 
 | | Minimum |
 |---|---|
-| WordPress | 6.4 |
+| WordPress | 6.6 |
 | PHP | 8.1 |
 | MySQL | 5.7 / MariaDB 10.3 |
 
@@ -58,7 +61,7 @@ Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → Gene
 
 ```bash
 # From a release zip
-wp plugin install agnosis-0.1.9.zip --activate
+wp plugin install agnosis-0.2.0.zip --activate
 
 # Or from source
 git clone https://github.com/agnosis/agnosis wp-content/plugins/agnosis

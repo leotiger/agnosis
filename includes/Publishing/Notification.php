@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\AI\SubmissionTranslator;
+
 class Notification {
 
 	/**
@@ -45,6 +47,12 @@ class Notification {
 			return;
 		}
 
+		// Switch to the artist's locale so all translated strings are correct.
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
 		$subject = sprintf(
 			/* translators: %s: artwork title */
 			__( '[Agnosis] Confirm removal of: %s', 'agnosis' ),
@@ -57,6 +65,10 @@ class Notification {
 		];
 
 		wp_mail( $artist->user_email, $subject, $this->build_removal_email( $post, $artist->display_name, $token ), $headers );
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
 	}
 
 	/**
@@ -81,9 +93,48 @@ class Notification {
 			return;
 		}
 
-		$to      = $artist->user_email;
+		// Since 0.2.0, post_title holds the artist's original submitted title (in their
+		// language).  _agnosis_translated_title holds the AI-generated site title (site
+		// language).  The email shows both so the artist understands what will be
+		// published, even if they don't speak the site's primary language.
+		$site_title = (string) get_post_meta( $post_id, '_agnosis_translated_title', true );
+
+		$artist_locale         = (string) get_user_meta( $artist_id, 'locale', true );
+		$site_locale           = get_locale();
+		$translated_site_title = ''; // Site title back-translated to artist's language.
+
+		if ( '' !== $artist_locale && $artist_locale !== $site_locale ) {
+			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for LANGUAGE_NAMES lookup).
+			$lang_code  = strtolower( substr( $artist_locale, 0, 2 ) );
+			$translator = SubmissionTranslator::from_settings();
+
+			if ( null !== $translator ) {
+				// Back-translate the AI site title so the artist knows what it means
+				// in their language — useful when the AI significantly reworded the work.
+				if ( '' !== trim( $site_title ) ) {
+					$back = $translator->translate_text( $site_title, $lang_code );
+					// Only keep if meaningfully different from the original title.
+					if ( '' !== $back && $back !== $post->post_title ) {
+						$translated_site_title = $back;
+					}
+				}
+				// Back-translate the AI-generated excerpt — 100% AI text the artist never wrote.
+				if ( '' !== trim( $post->post_excerpt ) ) {
+					$post->post_excerpt = $translator->translate_text( $post->post_excerpt, $lang_code ) ?: $post->post_excerpt;
+				}
+			}
+		}
+
+		// Switch locale so UI strings (buttons, labels) are in the artist's language.
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$to = $artist->user_email;
+
+		// post_title is now the artist's original title — use it directly in the subject.
 		$subject = sprintf(
-			/* translators: %s: artwork title */
+			/* translators: %s: artwork title (in the artist's own language) */
 			__( '[Agnosis] Your submission is ready to review: %s', 'agnosis' ),
 			$post->post_title
 		);
@@ -93,9 +144,13 @@ class Notification {
 			'From: ' . $this->sender_header(),
 		];
 
-		$body = $this->build_email( $post, $artist->display_name, (string) $token );
+		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title );
 
 		wp_mail( $to, $subject, $body, $headers );
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -130,7 +185,7 @@ class Notification {
 		ob_start();
 		?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
@@ -213,7 +268,7 @@ class Notification {
 	 * @param string   $token        Signed review token stored in post meta.
 	 * @return string HTML email body.
 	 */
-	private function build_email( \WP_Post $post, string $artist_name, string $token ): string {
+	private function build_email( \WP_Post $post, string $artist_name, string $token, string $site_title = '', string $translated_site_title = '' ): string {
 		$approve_url      = $this->action_url( $post->ID, 'approve', $token );
 		$reject_url       = $this->action_url( $post->ID, 'reject', $token );
 		$submissions_url  = $this->submissions_page_url();
@@ -276,7 +331,11 @@ class Notification {
 		$title     = esc_html( $post->post_title );
 		$excerpt   = esc_html( $post->post_excerpt );
 		// Strip blocks / shortcodes for the email body preview.
-		$body_preview = esc_html( wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 ) );
+		$body_preview   = esc_html( wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 ) );
+		// post_title is the artist's original title (their language).
+		// $site_title is the AI-generated title for the site (site language).
+		// $translated_site_title is the site title back-translated into the artist's language.
+		// Both are escaped at point of output (esc_html inside printf) — not pre-escaped here.
 
 		$accent   = '#7c6af7';
 		$btn_base = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
@@ -284,7 +343,7 @@ class Notification {
 		ob_start();
 		?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
@@ -319,7 +378,36 @@ class Notification {
 			<?php echo $quality_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html() and esc_html__() above. ?>
 		<?php endif; ?>
 
+		<!-- Original title (artist's language) — the canonical name of the work -->
 		<h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111;"><?php echo esc_html( $title ); ?></h2>
+
+		<?php if ( $site_title && $site_title !== $title ) : ?>
+		<!-- AI-generated site title (site language) — what visitors will see -->
+		<p style="margin:0 0 4px;font-size:14px;color:#888;">
+			<?php
+			printf(
+				/* translators: %s: the AI-generated site title in the site's primary language */
+				esc_html__( 'On the site: %s', 'agnosis' ),
+				esc_html( $site_title )
+			);
+			?>
+		</p>
+		<?php endif; ?>
+
+		<?php if ( $translated_site_title ) : ?>
+		<!-- Back-translation of the site title into the artist's language — clarity hint -->
+		<p style="margin:0 0 16px;font-size:13px;font-style:italic;color:#bbb;">
+			<?php
+			printf(
+				/* translators: %s: the site title translated back into the artist's language */
+				esc_html__( 'In your language: %s', 'agnosis' ),
+				esc_html( $translated_site_title )
+			);
+			?>
+		</p>
+		<?php else : ?>
+		<div style="margin-bottom:16px;"></div>
+		<?php endif; ?>
 
 		<?php if ( $excerpt ) : ?>
 		<p style="margin:0 0 16px;font-size:15px;font-style:italic;color:#666;border-left:3px solid <?php echo esc_attr( $accent ); ?>;padding-left:14px;"><?php echo esc_html( $excerpt ); ?></p>
@@ -440,6 +528,11 @@ class Notification {
 			return;
 		}
 
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
 		$subject = sprintf(
 			/* translators: %s: site name */
 			__( '[%s] We couldn\'t process your submission', 'agnosis' ),
@@ -457,6 +550,10 @@ class Notification {
 				'From: ' . $this->sender_header(),
 			]
 		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
 	}
 
 	/**
@@ -538,7 +635,7 @@ class Notification {
 		ob_start();
 		?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
@@ -642,5 +739,20 @@ class Notification {
 	 */
 	private function sender_header(): string {
 		return sprintf( '%s <%s>', get_bloginfo( 'name' ), get_option( 'admin_email' ) );
+	}
+
+	/**
+	 * Return the BCP 47 language tag for use in the HTML <html lang="…"> attribute.
+	 *
+	 * Converts a WordPress locale string (e.g. 'es_ES', 'zh_TW') to the hyphenated
+	 * BCP 47 form expected by browsers and screen readers (e.g. 'es-ES', 'zh-TW').
+	 * Defaults to 'en' when no locale is available.
+	 *
+	 * Must be called AFTER switch_to_locale() so get_locale() returns the
+	 * recipient's locale, not the site locale.
+	 */
+	private function html_lang(): string {
+		$locale = get_locale();
+		return $locale ? str_replace( '_', '-', $locale ) : 'en';
 	}
 }

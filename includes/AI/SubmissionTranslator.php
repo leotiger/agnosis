@@ -27,6 +27,9 @@ declare(strict_types=1);
 
 namespace Agnosis\AI;
 
+use Agnosis\AI\Providers\Anthropic;
+use Agnosis\AI\Providers\OpenAI;
+use Agnosis\AI\Providers\WordPressAI;
 use Agnosis\Core\Logger;
 
 class SubmissionTranslator {
@@ -76,6 +79,44 @@ class SubmissionTranslator {
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Return the active language map: ISO 639-1 code → English name.
+	 *
+	 * Derives the list from the WordPress language packs installed on this site
+	 * (get_available_languages() + the site locale) so the join form and any
+	 * other language selects only show languages the site can actually handle.
+	 * Falls back to the full LANGUAGE_NAMES constant when no packs are installed
+	 * (a fresh English-only site) so the form is never empty.
+	 *
+	 * Filterable via `agnosis_translation_languages` for operator overrides.
+	 *
+	 * @return array<string, string>  ISO-639-1 code => English name.
+	 */
+	public static function language_names(): array {
+		// Collect every locale the site has a language pack for, plus the site
+		// locale itself (en_US is the WP default and has no separate pack).
+		$locales = array_merge( get_available_languages(), [ get_locale() ] );
+
+		// Reduce to 2-letter primary subtags ('es_ES' → 'es', 'zh_CN' → 'zh').
+		$active_codes = array_unique( array_map(
+			static fn( string $locale ): string => strtolower( substr( $locale, 0, 2 ) ),
+			$locales
+		) );
+
+		// Intersect against our known map to get code → English name pairs.
+		$filtered = array_filter(
+			self::LANGUAGE_NAMES,
+			static fn( string $code ): bool => in_array( $code, $active_codes, true ),
+			ARRAY_FILTER_USE_KEY
+		);
+
+		// If nothing matched (all packs are for unknown scripts) use the full map.
+		$map = ! empty( $filtered ) ? $filtered : self::LANGUAGE_NAMES;
+
+		/** @var array<string, string> */
+		return (array) apply_filters( 'agnosis_translation_languages', $map );
+	}
 
 	/**
 	 * Translate the submission's subject and description to the site's primary
@@ -128,6 +169,76 @@ class SubmissionTranslator {
 			'subject'     => $translated['subject']     ?? null,
 			'description' => $translated['description'] ?? null,
 		], static fn( $v ) => $v !== null ) );
+	}
+
+	/**
+	 * Translate a single piece of text to the given ISO 639-1 target language code.
+	 *
+	 * Intended for back-translation: converting AI-generated post content (title,
+	 * excerpt) from the site's primary language into the artist's preferred language
+	 * before including it in a review email.
+	 *
+	 * No-ops (returns original text) when:
+	 *   • $content is empty.
+	 *   • $target_code is not in the LANGUAGE_NAMES map.
+	 *   • The AI call fails.
+	 *
+	 * @param string $content     Plain text to translate.
+	 * @param string $target_code ISO 639-1 code (e.g. 'es', 'fr', 'zh').
+	 * @return string Translated text, or the original on failure.
+	 */
+	public function translate_text( string $content, string $target_code ): string {
+		$content = trim( $content );
+		if ( '' === $content ) {
+			return $content;
+		}
+
+		$target_name = $this->resolve_language_name( $target_code );
+		if ( null === $target_name ) {
+			Logger::warning(
+				sprintf( 'SubmissionTranslator::translate_text: unknown target language code "%s" — skipping.', $target_code ),
+				'pipeline'
+			);
+			return $content;
+		}
+
+		// Reuse call_translate() — pass as the body field so the result comes back
+		// under the 'description' key.
+		$translated = $this->call_translate( '', $content, $target_name );
+		return $translated['description'] ?? $content;
+	}
+
+	/**
+	 * Create a SubmissionTranslator from the site's currently configured AI provider.
+	 *
+	 * Returns null when no API key is configured so callers can skip translation
+	 * gracefully. Uses the same provider option read by Pipeline.
+	 */
+	public static function from_settings(): ?self {
+		$config   = PromptConfig::from_options();
+		$provider = (string) get_option( 'agnosis_ai_provider', 'openai' );
+
+		switch ( $provider ) {
+			case 'anthropic':
+				$key = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				if ( '' === $key ) {
+					return null;
+				}
+				$model = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
+				return new self( new Anthropic( $key, $config, $model ) );
+
+			case 'wp_ai':
+				return new self( new WordPressAI( $config ) );
+
+			case 'openai':
+			default:
+				$key = (string) get_option( 'agnosis_openai_api_key', '' );
+				if ( '' === $key ) {
+					return null;
+				}
+				$model = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
+				return new self( new OpenAI( $key, $config, $model ) );
+		}
 	}
 
 	// -------------------------------------------------------------------------

@@ -102,6 +102,12 @@ class PostCreator {
 			[ $post_type, $singleton, $clean_subject ] = $this->resolve_post_type( $submission );
 			$submission['subject'] = $clean_subject;
 
+			// Capture the artist's original title before SubmissionTranslator may
+			// rewrite the subject into the site's primary language.  This is stored
+			// in _agnosis_original_title so we can always show the artist their own
+			// words and derive a meaningful slug from the submission language.
+			$original_title = $clean_subject;
+
 			Logger::info(
 				sprintf( 'Queue #%d: post type resolved to "%s"%s.', $queue_id, $post_type, $singleton ? ' (singleton)' : '' ),
 				'publisher'
@@ -244,7 +250,7 @@ class PostCreator {
 				$merge_into = $this->find_duplicate_post( $submission, $results, (int) $row->artist_id, $queue_id );
 			}
 
-			$post_id = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type );
+			$post_id = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title );
 
 			if ( is_wp_error( $post_id ) ) {
 				throw new \RuntimeException( $post_id->get_error_message() );
@@ -701,7 +707,7 @@ class PostCreator {
 	 * @param string                           $post_type        CPT slug (default: agnosis_artwork).
 	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
 	 */
-	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork' ): int|\WP_Error {
+	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '' ): int|\WP_Error {
 		// ---- Idempotency guard ------------------------------------------------
 		// Priority: explicit merge target (singleton/duplicate) > same queue row > new post.
 		$existing_id = $merge_into_post;
@@ -733,26 +739,44 @@ class PostCreator {
 			: $this->generate_token();
 		$review_expiry = time() + ( 7 * DAY_IN_SECONDS );
 
+		// The artist's original submitted title is the canonical post title — it is
+		// the name the artist gave their work, in their own language.  The AI-generated
+		// translation (site language) is stored separately in _agnosis_translated_title
+		// and surfaced to visitors via the agnosis/artwork-title block.
+		$ai_title = $primary['title'] ?? '';
 		$post_data = [
-			'post_title'   => $primary['title'] ?: ( $submission['subject'] ?: __( 'Untitled', 'agnosis' ) ),
+			'post_title'   => '' !== $original_title ? $original_title : ( $ai_title ?: __( 'Untitled', 'agnosis' ) ),
 			'post_excerpt' => $primary['excerpt'] ?? '',
 			'post_content' => $post_content,
 			'post_status'  => 'draft',
 			'post_type'    => $post_type,
 			'post_author'  => $artist_id ?: 1,
 			'meta_input'   => [
-				'_agnosis_from'          => $submission['from'],
-				'_agnosis_source'        => $submission['source'],
-				'_agnosis_gallery_ids'   => $gallery,
-				'_agnosis_artist_prompt' => $submission['description'] ?? '',
-				'_agnosis_review_token'  => $review_token,
-				'_agnosis_review_expiry' => $review_expiry,
-				'_agnosis_queue_id'      => $queue_id,
+				'_agnosis_from'             => $submission['from'],
+				'_agnosis_source'           => $submission['source'],
+				'_agnosis_gallery_ids'      => $gallery,
+				'_agnosis_artist_prompt'    => $submission['description'] ?? '',
+				'_agnosis_review_token'     => $review_token,
+				'_agnosis_review_expiry'    => $review_expiry,
+				'_agnosis_queue_id'         => $queue_id,
+				'_agnosis_translated_title' => $ai_title,
 			],
 		];
 
 		if ( 'agnosis_event' === $post_type ) {
 			$post_data['meta_input']['_agnosis_event_location'] = $submission['_event_location'] ?? '';
+		}
+
+		// For new posts, derive the URL slug from the artist's original submitted
+		// title (before AI translation) so the permalink reflects their language.
+		// On updates we preserve whatever slug is already published.
+		if ( ! $existing_id && '' !== $original_title ) {
+			$slug = $this->make_slug( $original_title );
+			if ( '' !== trim( $slug, '-' ) ) {
+				$post_data['post_name'] = $slug;
+			}
+			// If make_slug() returns empty (intl absent + non-Latin script) we leave
+			// post_name unset; WordPress derives it from post_title (translated title).
 		}
 
 		// ---- Insert or update ------------------------------------------------
@@ -767,6 +791,13 @@ class PostCreator {
 
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
+		}
+
+		// Persist the artist's original submitted title (pre-translation) once.
+		// Subsequent updates (resends, singleton merges) leave this value intact so
+		// the artist's creative intent is never lost or overwritten by a later AI pass.
+		if ( '' !== $original_title && '' === (string) get_post_meta( $post_id, '_agnosis_original_title', true ) ) {
+			update_post_meta( $post_id, '_agnosis_original_title', $original_title );
 		}
 
 		$this->write_post_meta( $post_id, $primary, $gallery, $all_tags, $post_type );
@@ -1050,6 +1081,53 @@ class PostCreator {
 	 * @param string $error   Optional error message to store.
 	 * @param int    $post_id WordPress post ID to record (0 = leave unchanged).
 	 */
+	/**
+	 * Generate a URL slug from an arbitrary-language title.
+	 *
+	 * For Latin and accented scripts (é, ñ, ü, ø, …) WordPress's sanitize_title()
+	 * already does the right thing via remove_accents().
+	 *
+	 * For non-Latin scripts — CJK (Chinese → pinyin, Japanese → romaji, Korean),
+	 * Arabic, Hebrew, Devanagari, Cyrillic, Greek, Thai, etc. — we first run the
+	 * title through PHP's ICU Transliterator (intl extension) using the rule chain
+	 * "Any-Latin; Latin-ASCII; Lower()" which converts any script to a lowercase
+	 * ASCII approximation before sanitize_title() does its final cleanup pass.
+	 *
+	 * Graceful degradation: if the intl extension is absent (unlikely on PHP 8+
+	 * but possible on very constrained hosts), we fall back to sanitize_title()
+	 * directly.  For non-Latin input that produces an empty/hyphen-only result,
+	 * the caller leaves post_name unset and WordPress derives the slug from the
+	 * AI-translated post_title instead.
+	 *
+	 * Examples (with intl):
+	 *   "El Jardín Secreto"  → "el-jardin-secreto"
+	 *   "秘密花園"           → "mi-mi-hua-yuan"    (Mandarin pinyin)
+	 *   "الحديقة السرية"     → "alhdy-alsry"       (Arabic-Latin approximation)
+	 *   "Тайный сад"         → "tajnyj-sad"        (Cyrillic)
+	 *
+	 * @param string $title The artist's original submitted title.
+	 * @return string Sanitised slug (may be empty on intl-less hosts + non-Latin text).
+	 */
+	private function make_slug( string $title ): string {
+		if ( '' === trim( $title ) ) {
+			return '';
+		}
+
+		// ICU transliteration — converts any Unicode script to a Latin/ASCII slug.
+		if ( class_exists( 'Transliterator' ) ) {
+			$t = \Transliterator::create( 'Any-Latin; Latin-ASCII; Lower()' );
+			if ( $t ) {
+				$transliterated = $t->transliterate( $title );
+				if ( false !== $transliterated && '' !== trim( $transliterated, " \t\n\r\0\x0B-" ) ) {
+					return sanitize_title( $transliterated );
+				}
+			}
+		}
+
+		// Fallback for environments without intl.
+		return sanitize_title( $title );
+	}
+
 	/**
 	 * Generate a cryptographically secure token.
 	 *

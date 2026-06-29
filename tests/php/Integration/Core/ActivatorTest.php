@@ -91,7 +91,9 @@ class ActivatorTest extends \WP_UnitTestCase {
 			'agnosis_imap_cleanup_days',
 			'agnosis_webhook_secret',
 			'agnosis_node_label',
-			'agnosis_vouches_required',
+			'agnosis_admission_percent',
+			'agnosis_admission_minimum',
+			'agnosis_admission_window_days',
 			'agnosis_tx_fee_percent',
 			'agnosis_activitypub_enabled',
 			'agnosis_quality_threshold',
@@ -128,10 +130,22 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$this->assertSame( 'openai', get_option( 'agnosis_ai_provider' ) );
 	}
 
-	public function test_seed_options_sets_vouches_required_to_2(): void {
+	public function test_seed_options_sets_admission_percent_to_10(): void {
 		$this->call_private( 'seed_options' );
 
-		$this->assertSame( 2, (int) get_option( 'agnosis_vouches_required' ) );
+		$this->assertSame( 10, (int) get_option( 'agnosis_admission_percent' ) );
+	}
+
+	public function test_seed_options_sets_admission_minimum_to_3(): void {
+		$this->call_private( 'seed_options' );
+
+		$this->assertSame( 3, (int) get_option( 'agnosis_admission_minimum' ) );
+	}
+
+	public function test_seed_options_sets_admission_window_days_to_7(): void {
+		$this->call_private( 'seed_options' );
+
+		$this->assertSame( 7, (int) get_option( 'agnosis_admission_window_days' ) );
 	}
 
 	public function test_seed_options_does_not_overwrite_existing_option(): void {

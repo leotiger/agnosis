@@ -152,6 +152,19 @@ class Profile {
 				'uses_context'    => [ 'postId' ],
 			]
 		);
+
+		// agnosis/artwork-title — bilingual title block for single artwork pages.
+		// Renders the artist's original title (post_title) as the primary <h1> and
+		// the AI-generated site-language translation (_agnosis_translated_title meta)
+		// as a styled subtitle.  Falls back to a plain <h1> when both strings are
+		// identical (English artist on English site) or the meta is absent.
+		register_block_type(
+			'agnosis/artwork-title',
+			[
+				'render_callback' => [ $this, 'render_artwork_title' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
 	}
 
 	/**
@@ -173,6 +186,56 @@ class Profile {
 		return sprintf(
 			'<p class="agnosis-event-location" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">%s</p>',
 			esc_html( $location )
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/artwork-title block.
+	 *
+	 * Outputs the artwork's canonical title (post_title, in the artist's language)
+	 * as an <h1>.  When a site-language AI translation exists and differs from the
+	 * original, it is rendered below as a smaller subtitle so visitors who do not
+	 * speak the artist's language can still understand the work's name.
+	 *
+	 * Example output for a Chinese artwork on an English site:
+	 *
+	 *   <hgroup class="agnosis-artwork-title">
+	 *     <h1 class="agnosis-artwork-title__original">秘密花園</h1>
+	 *     <p  class="agnosis-artwork-title__translation">The Secret Garden</p>
+	 *   </hgroup>
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output.
+	 */
+	public function render_artwork_title( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post ) {
+			return '';
+		}
+
+		$original    = trim( $post->post_title );
+		$translation = trim( (string) get_post_meta( $post_id, '_agnosis_translated_title', true ) );
+
+		// When both strings are identical (same language, no translation stored, or
+		// translation not yet run), render a plain heading — no extra markup.
+		if ( '' === $translation || $translation === $original ) {
+			return sprintf(
+				'<h1 class="agnosis-artwork-title__original" style="font-style:italic;font-weight:300;">%s</h1>',
+				esc_html( $original )
+			);
+		}
+
+		return sprintf(
+			'<hgroup class="agnosis-artwork-title" style="margin:0;">'
+			. '<h1 class="agnosis-artwork-title__original" style="font-style:italic;font-weight:300;margin:0 0 0.25em;">%s</h1>'
+			. '<p class="agnosis-artwork-title__translation" style="margin:0;font-size:var(--wp--preset--font-size--small);color:var(--wp--preset--color--secondary);font-style:normal;">%s</p>'
+			. '</hgroup>',
+			esc_html( $original ),
+			esc_html( $translation )
 		);
 	}
 

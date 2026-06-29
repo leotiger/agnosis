@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Email;
 
+use Agnosis\Artist\Departure;
 use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -35,8 +36,23 @@ class Webhook {
 
 	public function handle( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$payload = $request->get_params();
-		$parser  = new Parser();
 
+		// --- Goodbye alias: self-removal request (no attachment required) ---
+		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
+		if ( $goodbye_addr ) {
+			$recipient = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
+			if ( $recipient === $goodbye_addr ) {
+				$from_email = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
+				$user       = get_user_by( 'email', $from_email );
+				if ( $user ) {
+					$departure = new Departure();
+					$departure->initiate_removal_for_user( $user->ID );
+				}
+				return new WP_REST_Response( [ 'status' => 'goodbye_received' ], 200 );
+			}
+		}
+
+		$parser     = new Parser();
 		$submission = $parser->parse_webhook_payload( $payload );
 
 		if ( null === $submission ) {

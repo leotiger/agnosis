@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/join",
+	"version": "0.2.0",
+	"title": "Join Agnosis",
+	"category": "agnosis",
+	"icon": "admin-users",
+	"description": "Public application form for artists who want to join the Agnosis network. Submits to the admission REST endpoint. Place this on your /join/ page.",
+	"keywords": [ "join", "apply", "application", "admission", "artist", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"reusable": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"example": {}
+}

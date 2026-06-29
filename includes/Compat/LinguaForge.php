@@ -7,12 +7,12 @@
  *
  * What this does when Lingua Forge is present:
  *
- *  1. LANGUAGE META — tags every new artwork post with `_lang` (the source
- *     language of the artist's submission) so LF's router and hreflang
- *     system can handle multilingual URL routing automatically.
+ *  1. LANGUAGE META — tags every new artwork post with `_lf_lang` (the source
+ *     language of the artist's submission) so LF's router, hreflang system,
+ *     and translation engine can all read the canonical language meta key.
  *
- *  2. TRANSLATION TRIGGER — after an artwork is published, fires LF's
- *     translation pipeline via the `linguaforge_request_translation` action
+ *  2. TRANSLATION TRIGGER — after an artwork is published, calls LF's
+ *     `linguaforge_trigger_translation()` function once per target language
  *     so the title, excerpt and body are translated into all configured site
  *     languages without the artist doing anything.
  *
@@ -35,8 +35,8 @@ namespace Agnosis\Compat;
 
 class LinguaForge {
 
-	/** Option key LF uses to read the list of active site languages. */
-	private const LF_LANGUAGES_OPTION = 'linguaforge_active_languages';
+	// LF does not expose active languages via a WP option — the canonical API
+	// is the linguaforge_languages() global function (language-router module).
 
 	/** All Agnosis CPT slugs — used to scope LF integrations to our content. */
 	private const AGNOSIS_POST_TYPES = [
@@ -87,9 +87,10 @@ class LinguaForge {
 	/**
 	 * Tag the artwork post with the source language.
 	 *
-	 * LF reads `_lang` on every post to determine which language it belongs to.
-	 * We detect the language from the email submission metadata; if unknown, we
-	 * fall back to the site's default locale.
+	 * LF reads `_lf_lang` on every post to determine which language it belongs to
+	 * (used by the router, hreflang output, and Translation::run() for the source
+	 * language context). We detect the language from the email submission metadata;
+	 * if unknown, we fall back to the site's default locale.
 	 */
 	public function set_language_meta( int $post_id ): void {
 		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
@@ -104,7 +105,7 @@ class LinguaForge {
 			$lang = $this->locale_to_lang( get_locale() );
 		}
 
-		update_post_meta( $post_id, '_lang', sanitize_text_field( $lang ) );
+		update_post_meta( $post_id, '_lf_lang', sanitize_text_field( $lang ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -114,42 +115,39 @@ class LinguaForge {
 	/**
 	 * Ask Lingua Forge to translate the artwork into all configured languages.
 	 *
-	 * LF listens on `linguaforge_request_translation` and enqueues an async
-	 * translation job. The artwork post stays published in the source language
+	 * Calls `linguaforge_trigger_translation()` once per target language — LF's
+	 * public procedural API (defined in ai/ai.php). Each call enqueues an async
+	 * translation job; the artwork post stays published in the source language
 	 * while LF creates translated versions in the background.
+	 *
+	 * Returns silently when LF is not loaded or there are no target languages.
 	 */
 	public function request_translations( int $post_id ): void {
 		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
 		}
 
-		$source_lang = get_post_meta( $post_id, '_lang', true ) ?: 'en';
+		if ( ! function_exists( 'linguaforge_trigger_translation' ) ) {
+			return;
+		}
+
+		$source_lang = get_post_meta( $post_id, '_lf_lang', true ) ?: 'en';
 		$languages   = $this->get_target_languages( $source_lang );
 
 		if ( empty( $languages ) ) {
 			return;
 		}
 
-		/**
-		 * Fires when Agnosis wants Lingua Forge to translate a post.
-		 *
-		 * @param int    $post_id     The artwork post ID.
-		 * @param string $source_lang BCP-47 language tag of the source content.
-		 * @param array  $languages   Target language tags to translate into.
-		 * @param array  $context     Contextual hints for the translation model.
-		 */
-		do_action(
-			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- intentionally calling a Lingua Forge hook; the prefix belongs to that plugin.
-			'linguaforge_request_translation',
-			$post_id,
-			$source_lang,
-			$languages,
-			[
-				'domain'   => 'art',       // Hint: use the art/creative translation preset.
-				'priority' => 'normal',
-				'source'   => 'agnosis',
-			]
-		);
+		$params = [
+			'domain'   => 'art',    // Use the art/creative translation preset.
+			'priority' => 'normal',
+			'source'   => 'agnosis',
+		];
+
+		foreach ( $languages as $target_lang ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+			linguaforge_trigger_translation( $post_id, $target_lang, $params );
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -230,13 +228,22 @@ class LinguaForge {
 	/**
 	 * Return the target language list: all LF-configured languages minus the source.
 	 *
+	 * Uses the linguaforge_languages() global function exposed by LF's language-
+	 * router module — the canonical public API for the active routing language list.
+	 * Returns an empty array when LF is not loaded or the function is not defined.
+	 *
 	 * @param string $source_lang  BCP-47 tag to exclude.
 	 * @return string[]
 	 */
 	private function get_target_languages( string $source_lang ): array {
-		$all = get_option( self::LF_LANGUAGES_OPTION, [] );
+		if ( ! function_exists( 'linguaforge_languages' ) ) {
+			return [];
+		}
 
-		if ( ! is_array( $all ) || empty( $all ) ) {
+		/** @var string[] $all */
+		$all = linguaforge_languages();
+
+		if ( empty( $all ) ) {
 			return [];
 		}
 

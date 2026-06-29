@@ -34,13 +34,17 @@ class SubmissionTranslatorTest extends TestCase {
 	/** @var string|null Locale returned by get_locale(); null = 'en_US'. */
 	public static ?string $locale = null;
 
+	/** @var string[]|null Locales returned by get_available_languages(); null = []. */
+	public static ?array $available_languages = null;
+
 	/** @var array<string, string>|null Replacement map for 'agnosis_translation_languages'; null = passthrough. */
 	public static ?array $languages_override = null;
 
 	protected function tearDown(): void {
-		self::$options            = null;
-		self::$locale             = null;
-		self::$languages_override = null;
+		self::$options             = null;
+		self::$locale              = null;
+		self::$available_languages = null;
+		self::$languages_override  = null;
 	}
 
 	// -------------------------------------------------------------------------
@@ -212,6 +216,194 @@ class SubmissionTranslatorTest extends TestCase {
 		$result     = $this->make_translator( $provider )->translate( $submission );
 
 		$this->assertSame( $submission, $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// translate_text()
+	// -------------------------------------------------------------------------
+
+	public function test_translate_text_returns_empty_string_unchanged(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->translate_text( '', 'es' ) );
+	}
+
+	public function test_translate_text_returns_original_for_unknown_code(): void {
+		// 'xx' is not in LANGUAGE_NAMES and no filter override is active.
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$result = $this->make_translator( $provider )->translate_text( 'Hello world', 'xx' );
+		$this->assertSame( 'Hello world', $result );
+	}
+
+	public function test_translate_text_returns_translated_content(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"description":"Hola mundo"}' );
+
+		$result = $this->make_translator( $provider )->translate_text( 'Hello world', 'es' );
+		$this->assertSame( 'Hola mundo', $result );
+	}
+
+	public function test_translate_text_includes_target_language_in_prompt(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->stringContains( 'French' ) )
+			->willReturn( '{"description":"Bonjour monde"}' );
+
+		$this->make_translator( $provider )->translate_text( 'Hello world', 'fr' );
+	}
+
+	public function test_translate_text_returns_original_on_empty_provider_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '' );
+
+		$result = $this->make_translator( $provider )->translate_text( 'Hello world', 'es' );
+		$this->assertSame( 'Hello world', $result );
+	}
+
+	public function test_translate_text_returns_original_on_invalid_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( 'Lo siento, no puedo ayudar.' );
+
+		$result = $this->make_translator( $provider )->translate_text( 'Hello world', 'es' );
+		$this->assertSame( 'Hello world', $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// from_settings()
+	// -------------------------------------------------------------------------
+
+	public function test_from_settings_returns_null_when_openai_key_not_configured(): void {
+		self::$options = [
+			'agnosis_ai_provider'    => 'openai',
+			'agnosis_openai_api_key' => '',
+		];
+
+		$this->assertNull( SubmissionTranslator::from_settings() );
+	}
+
+	public function test_from_settings_returns_instance_when_openai_key_set(): void {
+		self::$options = [
+			'agnosis_ai_provider'    => 'openai',
+			'agnosis_openai_api_key' => 'sk-test-key-abc123',
+		];
+
+		$this->assertInstanceOf( SubmissionTranslator::class, SubmissionTranslator::from_settings() );
+	}
+
+	public function test_from_settings_returns_null_when_anthropic_selected_but_key_missing(): void {
+		self::$options = [
+			'agnosis_ai_provider'       => 'anthropic',
+			'agnosis_anthropic_api_key' => '',
+		];
+
+		$this->assertNull( SubmissionTranslator::from_settings() );
+	}
+
+	public function test_from_settings_returns_instance_when_anthropic_key_set(): void {
+		self::$options = [
+			'agnosis_ai_provider'       => 'anthropic',
+			'agnosis_anthropic_api_key' => 'sk-ant-test-key',
+		];
+
+		$this->assertInstanceOf( SubmissionTranslator::class, SubmissionTranslator::from_settings() );
+	}
+
+	public function test_from_settings_returns_instance_for_wp_ai_provider(): void {
+		// WordPressAI requires no API key so it always returns an instance.
+		self::$options = [
+			'agnosis_ai_provider' => 'wp_ai',
+		];
+
+		$this->assertInstanceOf( SubmissionTranslator::class, SubmissionTranslator::from_settings() );
+	}
+
+	// -------------------------------------------------------------------------
+	// language_names()
+	// -------------------------------------------------------------------------
+
+	public function test_language_names_contains_site_locale_when_no_packs_installed(): void {
+		// get_available_languages() returns [] (stub default), get_locale() = 'en_US'.
+		// The site locale contributes 'en', so at minimum English must be present.
+		$names = SubmissionTranslator::language_names();
+
+		$this->assertArrayHasKey( 'en', $names );
+		$this->assertSame( 'English', $names['en'] );
+	}
+
+	public function test_language_names_includes_installed_pack_and_site_locale(): void {
+		self::$available_languages = [ 'es_ES' ];
+		self::$locale              = 'en_US';
+
+		$names = SubmissionTranslator::language_names();
+
+		$this->assertArrayHasKey( 'en', $names );
+		$this->assertArrayHasKey( 'es', $names );
+	}
+
+	public function test_language_names_excludes_languages_without_installed_pack(): void {
+		self::$available_languages = [ 'es_ES' ];
+		self::$locale              = 'en_US';
+
+		$names = SubmissionTranslator::language_names();
+
+		// French has no pack installed — must not appear.
+		$this->assertArrayNotHasKey( 'fr', $names );
+		$this->assertArrayNotHasKey( 'de', $names );
+	}
+
+	public function test_language_names_includes_all_installed_packs(): void {
+		self::$available_languages = [ 'fr_FR', 'de_DE', 'ja' ];
+		self::$locale              = 'en_US';
+
+		$names = SubmissionTranslator::language_names();
+
+		$this->assertArrayHasKey( 'fr', $names );
+		$this->assertArrayHasKey( 'de', $names );
+		$this->assertArrayHasKey( 'ja', $names );
+		$this->assertArrayHasKey( 'en', $names ); // site locale
+	}
+
+	public function test_language_names_falls_back_to_full_map_when_no_codes_match(): void {
+		// 'oc_FR' (Occitan) is not in LANGUAGE_NAMES — nothing matches the installed pack.
+		// The site locale 'en_US' → 'en' IS in the map, so this tests that at least
+		// one known code exists even with an unknown pack.
+		self::$available_languages = [ 'oc_FR' ];
+		self::$locale              = 'en_US';
+
+		$names = SubmissionTranslator::language_names();
+
+		// 'en' from the site locale is still matched, so not a full-fallback case,
+		// but the result must not be empty and must contain 'en'.
+		$this->assertNotEmpty( $names );
+		$this->assertArrayHasKey( 'en', $names );
+	}
+
+	public function test_language_names_full_fallback_when_site_locale_also_unknown(): void {
+		// Both pack and site locale resolve to unknown codes → full LANGUAGE_NAMES returned.
+		self::$available_languages = [ 'oc_FR' ];
+		self::$locale              = 'oc_FR'; // pretend even site locale is unknown
+
+		$names = SubmissionTranslator::language_names();
+
+		// Full fallback: should contain all known languages (spot-check several).
+		$this->assertArrayHasKey( 'en', $names );
+		$this->assertArrayHasKey( 'es', $names );
+		$this->assertArrayHasKey( 'ja', $names );
+	}
+
+	public function test_language_names_filter_applied_after_intersection(): void {
+		self::$available_languages = [ 'es_ES' ];
+		self::$locale              = 'en_US';
+		// Filter replaces the result entirely — tests that apply_filters() is called.
+		self::$languages_override  = [ 'zz' => 'Zeta' ];
+
+		$names = SubmissionTranslator::language_names();
+
+		$this->assertSame( [ 'zz' => 'Zeta' ], $names );
 	}
 
 	// -------------------------------------------------------------------------

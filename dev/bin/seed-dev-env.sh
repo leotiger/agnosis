@@ -95,7 +95,9 @@ echo "  Setting Agnosis options …"
 $WP option update agnosis_node_label         "Agnosis Dev Node" --quiet
 $WP option update agnosis_ai_provider        "openai"           --quiet
 $WP option update agnosis_activitypub_enabled 1                 --quiet
-$WP option update agnosis_vouches_required   2                  --quiet
+$WP option update agnosis_admission_percent      10                 --quiet
+$WP option update agnosis_admission_minimum      3                  --quiet
+$WP option update agnosis_admission_window_days  7                  --quiet
 $WP option update agnosis_tx_fee_percent     7                  --quiet
 
 # ── Done ──────────────────────────────────────────────────────────────────────

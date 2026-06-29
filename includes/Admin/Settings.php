@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin;
 
+use Agnosis\Artist\Admission;
+use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
 
 class Settings {
@@ -116,6 +118,25 @@ class Settings {
 				. ( $ok ? '✅ ' : '❌ ' )
 				. esc_html( $msg )
 				. '</p></div>';
+		}
+		if ( isset( $_GET['agnosis_message'] ) ) {
+			$notice_map = [
+				'admitted'            => [ 'success', __( 'Applicant admitted. A welcome email has been sent.', 'agnosis' ) ],
+				'admit_failed'        => [ 'error', __( 'Could not admit — the application may no longer be pending.', 'agnosis' ) ],
+				'rejected'            => [ 'success', __( 'Application rejected.', 'agnosis' ) ],
+				'reject_failed'       => [ 'error', __( 'Could not reject — the application may no longer be pending.', 'agnosis' ) ],
+				'banned'              => [ 'success', __( 'Artist suspended. A notification email has been sent.', 'agnosis' ) ],
+				'ban_failed'          => [ 'error', __( 'Could not suspend the artist — they may no longer be active.', 'agnosis' ) ],
+				'deleted'             => [ 'success', __( 'Artist permanently deleted. Their account and all content have been removed.', 'agnosis' ) ],
+				'delete_failed'       => [ 'error', __( 'Could not delete the artist — please try again.', 'agnosis' ) ],
+				'vote_opened'         => [ 'success', __( 'Community removal vote opened. All artists have been emailed.', 'agnosis' ) ],
+				'vote_open_failed'    => [ 'error', __( 'Could not open a removal vote — one may already be active for this artist.', 'agnosis' ) ],
+			];
+			$key = sanitize_key( wp_unslash( $_GET['agnosis_message'] ) );
+			if ( isset( $notice_map[ $key ] ) ) {
+				[ $type, $text ] = $notice_map[ $key ];
+				echo '<div class="notice notice-' . esc_attr( $type ) . ' is-dismissible"><p>' . esc_html( $text ) . '</p></div>';
+			}
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
@@ -272,6 +293,11 @@ class Settings {
 				'tab'  => 'email',
 				'label' => __( 'Promote artwork address', 'agnosis' ),
 				'desc'  => __( 'Artist sends an email here (subject = exact artwork title) to mark that artwork as featured in their gallery overview. Any previously featured artwork is automatically demoted — e.g. promote@agnosis.art', 'agnosis' ),
+			],
+			'agnosis_email_goodbye' => [
+				'tab'   => 'email',
+				'label' => __( 'Goodbye / self-removal address', 'agnosis' ),
+				'desc'  => __( 'Artist emails here (any subject, no attachment needed) to request account deletion. A confirmation link is emailed back before anything is deleted — e.g. goodbye@agnosis.art', 'agnosis' ),
 			],
 
 			// --- IMAP connection ---
@@ -547,13 +573,50 @@ class Settings {
 				'input' => 'readonly',
 				'desc'  => __( 'Auto-generated RSA public key for this node. Share this with peer nodes.', 'agnosis' ),
 			],
-			'agnosis_vouches_required' => [
+			'agnosis_admission_percent' => [
 				'tab'     => 'network',
-				'label'   => __( 'Vouches required for admission', 'agnosis' ),
+				'label'   => __( 'Admission vote threshold (%)', 'agnosis' ),
 				'input'   => 'number',
-				'default' => 2,
+				'default' => 10,
+				'min'     => 0,
+				'max'     => 100,
+				'desc'    => __( 'Percentage of active artists that must vote yes for admission. Combined with the minimum floor below.', 'agnosis' ),
+			],
+			'agnosis_admission_minimum' => [
+				'tab'     => 'network',
+				'label'   => __( 'Admission minimum votes', 'agnosis' ),
+				'input'   => 'number',
+				'default' => 3,
 				'min'     => 1,
-				'desc'    => __( 'How many existing artists must vouch before a new artist is admitted.', 'agnosis' ),
+				'desc'    => __( 'Absolute minimum positive votes required regardless of the percentage above.', 'agnosis' ),
+			],
+			'agnosis_admission_window_days' => [
+				'tab'     => 'network',
+				'label'   => __( 'Voting window (days)', 'agnosis' ),
+				'input'   => 'number',
+				'default' => 7,
+				'min'     => 1,
+				'desc'    => __( 'Days an application stays open. If the threshold is not reached within this window the application is rejected.', 'agnosis' ),
+			],
+			'agnosis_removal_nomination_threshold' => [
+				'tab'      => 'network',
+				'label'    => __( 'Removal nominations required', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 3,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Number of artist nominations needed before a community removal vote opens. Admins can bypass this threshold.', 'agnosis' ),
+			],
+			'agnosis_removal_window_days' => [
+				'tab'      => 'network',
+				'label'   => __( 'Removal vote window (days)', 'agnosis' ),
+				'input'   => 'number',
+				'default'  => 7,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Days a community removal vote stays open. A majority (>50%) of active artists must vote yes for removal to proceed.', 'agnosis' ),
 			],
 
 			// --- COMMERCE ---
@@ -719,6 +782,11 @@ class Settings {
 			$this->render_ai_test_tools();
 			return;
 		}
+		if ( 'network' === $tab ) {
+			$this->render_admission_dashboard();
+			$this->render_members_dashboard();
+			return;
+		}
 		if ( 'email' !== $tab ) {
 			return;
 		}
@@ -776,6 +844,383 @@ class Settings {
 		<?php
 	}
 
+
+	// -------------------------------------------------------------------------
+	// Admission dashboard (Network tab)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render the pending applications table on the Network tab.
+	 *
+	 * Shows every application in status='pending' with vouch counts and
+	 * admin-override Admit / Reject buttons.
+	 */
+	private function render_admission_dashboard(): void {
+		global $wpdb;
+
+		$admission = new Admission();
+		$required  = $admission->calculate_required();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$applications = $wpdb->get_results(
+			"SELECT * FROM {$wpdb->prefix}agnosis_applications
+			 WHERE status = 'pending'
+			 ORDER BY applied_at ASC"
+		);
+
+		?>
+		<div class="card" style="max-width:900px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Pending Applications', 'agnosis' ); ?></h2>
+
+			<?php if ( empty( $applications ) ) : ?>
+				<p style="color:#666"><?php esc_html_e( 'No pending applications.', 'agnosis' ); ?></p>
+			<?php else : ?>
+				<p class="description" style="margin-bottom:1rem">
+					<?php
+					printf(
+						/* translators: %d: number of positive votes currently required for admission */
+						esc_html__( '%d positive vote(s) currently required for admission.', 'agnosis' ),
+						(int) $required
+					);
+					?>
+				</p>
+				<table class="widefat striped" style="border-radius:4px;overflow:hidden">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Applicant', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Applied', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Votes', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Bio / Portfolio', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Actions', 'agnosis' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php foreach ( $applications as $app ) : ?>
+						<?php
+						/** @var object{id: string, display_name: string, email: string, applied_at: string, bio: string|null, portfolio_url: string|null} $app */
+						$app_id  = (int) $app->id;
+						$yes     = $admission->count_positive_vouches( $app_id );
+						$bar_pct = $required > 0 ? min( 100, (int) round( $yes / $required * 100 ) ) : 100;
+						$bar_col = $yes >= $required ? '#00a32a' : '#2271b1';
+						?>
+						<tr>
+							<td>
+								<strong><?php echo esc_html( $app->display_name ); ?></strong><br>
+								<span style="color:#666;font-size:12px"><?php echo esc_html( $app->email ); ?></span>
+							</td>
+							<td style="white-space:nowrap"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $app->applied_at ) ) ); ?></td>
+							<td style="min-width:120px">
+								<div style="background:#ddd;border-radius:3px;height:6px;margin-bottom:4px">
+									<div style="background:<?php echo esc_attr( $bar_col ); ?>;width:<?php echo esc_attr( (string) $bar_pct ); ?>%;height:6px;border-radius:3px"></div>
+								</div>
+								<?php
+								printf(
+									/* translators: 1: yes votes received, 2: total votes required */
+									esc_html__( '%1$d / %2$d', 'agnosis' ),
+									(int) $yes,
+									(int) $required
+								);
+								?>
+							</td>
+							<td style="max-width:260px;font-size:12px">
+								<?php if ( $app->bio ) : ?>
+									<span title="<?php echo esc_attr( $app->bio ); ?>"><?php echo esc_html( wp_trim_words( $app->bio, 20 ) ); ?></span>
+								<?php endif; ?>
+								<?php if ( $app->portfolio_url ) : ?>
+									<br><a href="<?php echo esc_url( $app->portfolio_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Portfolio ↗', 'agnosis' ); ?></a>
+								<?php endif; ?>
+							</td>
+							<td style="white-space:nowrap">
+								<!-- Admit -->
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
+									<input type="hidden" name="action" value="agnosis_admit_application">
+									<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
+									<?php wp_nonce_field( 'agnosis_admit_' . $app_id, 'agnosis_nonce' ); ?>
+									<?php submit_button( __( 'Admit', 'agnosis' ), 'small', 'submit', false ); ?>
+								</form>
+								<!-- Reject -->
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;margin-left:4px">
+									<input type="hidden" name="action" value="agnosis_reject_application">
+									<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
+									<?php wp_nonce_field( 'agnosis_reject_' . $app_id, 'agnosis_nonce' ); ?>
+									<?php submit_button( __( 'Reject', 'agnosis' ), 'small delete', 'submit', false ); ?>
+								</form>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * admin-post handler: admit an applicant, bypassing the vouch threshold.
+	 */
+	public function handle_admit_application(): void {
+		$app_id = absint( wp_unslash( $_POST['application_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_admit_' . $app_id, 'agnosis_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$admission = new Admission();
+		$ok        = $admission->admin_admit( $app_id );
+
+		$redirect = add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'network',
+				'agnosis_message' => $ok ? 'admitted' : 'admit_failed',
+			],
+			admin_url( 'admin.php' )
+		);
+
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: reject an applicant.
+	 */
+	public function handle_reject_application(): void {
+		$app_id = absint( wp_unslash( $_POST['application_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_reject_' . $app_id, 'agnosis_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$admission = new Admission();
+		$ok        = $admission->admin_reject( $app_id );
+
+		$redirect = add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'network',
+				'agnosis_message' => $ok ? 'rejected' : 'reject_failed',
+			],
+			admin_url( 'admin.php' )
+		);
+
+		wp_safe_redirect( $redirect );
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Members dashboard (Network tab)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render the admitted (and banned) members table on the Network tab.
+	 *
+	 * Shows every admitted/banned artist with Ban / Delete / Initiate Vote actions.
+	 */
+	private function render_members_dashboard(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$members = $wpdb->get_results(
+			"SELECT * FROM {$wpdb->prefix}agnosis_applications
+			 WHERE status IN ('admitted', 'banned')
+			 ORDER BY display_name ASC"
+		);
+
+		?>
+		<div class="card" style="max-width:960px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Members', 'agnosis' ); ?></h2>
+
+			<?php if ( empty( $members ) ) : ?>
+				<p style="color:#666"><?php esc_html_e( 'No admitted members yet.', 'agnosis' ); ?></p>
+			<?php else : ?>
+				<table class="widefat striped" style="border-radius:4px;overflow:hidden">
+					<thead>
+						<tr>
+							<th><?php esc_html_e( 'Artist', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Status', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Joined', 'agnosis' ); ?></th>
+							<th><?php esc_html_e( 'Actions', 'agnosis' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php foreach ( $members as $member ) : ?>
+						<?php
+						/** @var object{id: string, wp_user_id: string|null, display_name: string, email: string, status: string, resolved_at: string|null, banned_until: string|null} $member */
+						$app_id     = (int) $member->id;
+						$is_banned  = 'banned' === $member->status;
+						$status_col = $is_banned ? '#c0392b' : '#0a7c48';
+						$status_lbl = $is_banned
+							? ( $member->banned_until
+								? sprintf(
+									/* translators: %s: date until which the artist is banned */
+									__( 'Banned until %s', 'agnosis' ),
+									date_i18n( get_option( 'date_format' ), strtotime( $member->banned_until ) )
+								)
+								: __( 'Banned', 'agnosis' ) )
+							: __( 'Active', 'agnosis' );
+						?>
+						<tr>
+							<td>
+								<strong><?php echo esc_html( $member->display_name ); ?></strong><br>
+								<span style="color:#666;font-size:12px"><?php echo esc_html( $member->email ); ?></span>
+							</td>
+							<td>
+								<span style="color:<?php echo esc_attr( $status_col ); ?>;font-weight:600;font-size:12px">
+									<?php echo esc_html( $status_lbl ); ?>
+								</span>
+							</td>
+							<td style="white-space:nowrap;font-size:12px">
+								<?php echo $member->resolved_at ? esc_html( date_i18n( get_option( 'date_format' ), strtotime( $member->resolved_at ) ) ) : '—'; ?>
+							</td>
+							<td style="white-space:nowrap">
+								<?php if ( ! $is_banned ) : ?>
+									<!-- Temporary ban -->
+									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+										  style="display:inline;margin-right:4px"
+										  onsubmit="return this.querySelector('[name=banned_until]').value !== '' || confirm('<?php echo esc_js( __( 'Leave the date blank to ban indefinitely. Continue?', 'agnosis' ) ); ?>')">
+										<input type="hidden" name="action" value="agnosis_ban_artist">
+										<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
+										<input type="date" name="banned_until" style="font-size:12px;padding:2px 4px"
+											   min="<?php echo esc_attr( gmdate( 'Y-m-d', strtotime( '+1 day' ) ) ); ?>"
+											   title="<?php esc_attr_e( 'Leave blank to ban indefinitely', 'agnosis' ); ?>">
+										<?php wp_nonce_field( 'agnosis_ban_' . $app_id, 'agnosis_nonce' ); ?>
+										<?php submit_button( __( 'Suspend', 'agnosis' ), 'small', 'submit', false ); ?>
+									</form>
+								<?php endif; ?>
+								<!-- Permanent delete -->
+								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+									  style="display:inline;margin-right:4px"
+									  onsubmit="return confirm('<?php echo esc_js( __( 'Permanently delete this artist and all their content? This cannot be undone.', 'agnosis' ) ); ?>')">
+									<input type="hidden" name="action" value="agnosis_delete_artist">
+									<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
+									<?php wp_nonce_field( 'agnosis_delete_' . $app_id, 'agnosis_nonce' ); ?>
+									<?php submit_button( __( 'Delete', 'agnosis' ), 'small delete', 'submit', false ); ?>
+								</form>
+								<?php if ( ! $is_banned ) : ?>
+									<!-- Initiate community vote -->
+									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+										  style="display:inline"
+										  onsubmit="return confirm('<?php echo esc_js( __( 'Open a community removal vote for this artist? All members will be emailed.', 'agnosis' ) ); ?>')">
+										<input type="hidden" name="action" value="agnosis_initiate_removal_vote">
+										<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
+										<?php wp_nonce_field( 'agnosis_vote_' . $app_id, 'agnosis_nonce' ); ?>
+										<?php submit_button( __( 'Open Vote', 'agnosis' ), 'small', 'submit', false ); ?>
+									</form>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * admin-post handler: suspend (ban) an artist, optionally until a date.
+	 */
+	public function handle_ban_artist(): void {
+		$app_id = absint( wp_unslash( $_POST['application_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_ban_' . $app_id, 'agnosis_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$raw_until = sanitize_text_field( wp_unslash( $_POST['banned_until'] ?? '' ) );
+		$until     = ( '' !== $raw_until && strtotime( $raw_until ) )
+			? ( new \DateTimeImmutable( $raw_until ) )
+			: null;
+
+		$departure = new Departure();
+		$ok        = $departure->admin_ban( $app_id, $until );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'network',
+				'agnosis_message' => $ok ? 'banned' : 'ban_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: permanently delete an artist and all their content.
+	 */
+	public function handle_delete_artist(): void {
+		$app_id = absint( wp_unslash( $_POST['application_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_delete_' . $app_id, 'agnosis_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$departure = new Departure();
+		$ok        = $departure->admin_delete( $app_id );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'network',
+				'agnosis_message' => $ok ? 'deleted' : 'delete_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: open a community removal vote for an artist (admin bypass).
+	 */
+	public function handle_initiate_removal_vote(): void {
+		$app_id = absint( wp_unslash( $_POST['application_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_vote_' . $app_id, 'agnosis_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		global $wpdb;
+
+		// Resolve subject user_id from application.
+		$user_id = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT user_id FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$app_id
+			)
+		);
+
+		if ( ! $user_id ) {
+			wp_safe_redirect( add_query_arg(
+				[ 'page' => 'agnosis-settings', 'tab' => 'network', 'agnosis_message' => 'vote_open_failed' ],
+				admin_url( 'admin.php' )
+			) );
+			exit;
+		}
+
+		$departure = new Departure();
+		$ok        = $departure->admin_open_removal_vote( $user_id, get_current_user_id() );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'network',
+				'agnosis_message' => $ok ? 'vote_opened' : 'vote_open_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
 
 	private function ai_test_js(): string {
 		$ajax_url = esc_js( admin_url( 'admin-ajax.php' ) );

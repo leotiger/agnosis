@@ -10,10 +10,11 @@
  *
  * SubmissionTranslatorTest exposes static properties that these stubs read:
  *
- *   $options           — map of option key → value (null = use $default fallback)
- *   $locale            — value returned by get_locale() (null = 'en_US')
- *   $languages_override — replacement map for 'agnosis_translation_languages'
- *                         filter (null = pass value through unchanged)
+ *   $options              — map of option key → value (null = use $default fallback)
+ *   $locale               — value returned by get_locale() (null = 'en_US')
+ *   $available_languages  — value returned by get_available_languages() (null = [])
+ *   $languages_override   — replacement map for 'agnosis_translation_languages'
+ *                           filter (null = pass value through unchanged)
  *
  * All properties default to null so that existing Pipeline / MediaAdapter /
  * ProviderInterface tests are completely unaffected — the stubs just mirror the
@@ -48,6 +49,18 @@ function get_option( string $key, mixed $fallback = false ): mixed {
  */
 function get_locale(): string {
 	return SubmissionTranslatorTest::$locale ?? 'en_US';
+}
+
+/**
+ * Namespace-scoped get_available_languages override.
+ *
+ * Returns SubmissionTranslatorTest::$available_languages when set; otherwise []
+ * (fresh install with no packs — same as WP on a new English-only site).
+ *
+ * @return string[]  Array of locale strings, e.g. ['es_ES', 'fr_FR'].
+ */
+function get_available_languages(): array {
+	return SubmissionTranslatorTest::$available_languages ?? [];
 }
 
 /**

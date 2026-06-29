@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.9
+Stable tag: 0.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,25 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.2.0 =
+* Added: Three independent artist departure paths — self-removal (email-confirmed token link), admin suspend/delete, and community removal vote
+* Added: `goodbye@` email alias — artists email to request account deletion; confirmation link sent back before anything is deleted
+* Added: Members dashboard in Settings → Network — suspend, delete, or open a community vote on any admitted artist
+* Added: Community voting on admission — yes/no votes via HMAC-signed email links; dynamic threshold (% of active artists); 7-day window; daily cron resolution
+* Added: `agnosis/join` block — server-side-rendered public application form; `/join/` page auto-created on activation
+* Added: Admin admit/reject overrides — bypass vouch threshold directly from the pending applications dashboard
+* Added: Applicant acknowledgment email — confirmation sent immediately on application in the applicant's language
+* Added: Applicant language capture — `language` param or `Accept-Language` header; stored and mapped to WP locale on admission
+* Added: `agnosis_email_goodbye` setting (Email tab) — configurable goodbye alias address
+* Added: Dual-title artwork architecture — `post_title` = artist's original title; AI title stored in `_agnosis_translated_title` meta
+* Added: `agnosis/artwork-title` block — renders original + translated title as `<hgroup>` when they differ
+* Added: Per-recipient locale switching across all notification emails
+* Added: URL slugs derived from original submitted title; ICU transliteration for non-Latin scripts
+* Added: `SubmissionTranslator::translate_text()` and `from_settings()` — back-translation and no-injection factory
+* Added: Welcome email now includes gallery URL, `/my-submissions/` link, alias reference, and goodbye instructions
+* Added: Language list on join form driven by installed WP language packs (no hardcoded list)
+* Fixed: LinguaForge translation trigger was a silent no-op — replaced missing hook with direct `linguaforge_trigger_translation()` API call
 
 = 0.1.9 =
 * Added: `/my-submissions` works on artist subdomains — scope_query fix + COOKIE_DOMAIN documentation
