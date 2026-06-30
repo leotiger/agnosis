@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -133,6 +134,12 @@ class Admission {
 			);
 		}
 
+		// Community size cap: when the instance is full, park the application on the
+		// FIFO waitlist instead of opening it for vouching. Existing members are
+		// never affected — the cap gates new admissions only.
+		$waitlisted = ( new CommunityCap() )->is_full();
+		$new_status = $waitlisted ? 'waitlisted' : 'pending';
+
 		// Check for an existing application row.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$existing = $wpdb->get_row(
@@ -159,7 +166,7 @@ class Admission {
 				$wpdb->prepare(
 					"UPDATE {$wpdb->prefix}agnosis_applications
 					 SET display_name = %s, bio = %s, portfolio_url = %s, statement = %s,
-					     language = %s, status = 'pending', wp_user_id = NULL,
+					     language = %s, status = %s, wp_user_id = NULL,
 					     applied_at = %s, resolved_at = NULL
 					 WHERE id = %d",
 					$display_name,
@@ -167,6 +174,7 @@ class Admission {
 					$portfolio,
 					$statement,
 					$language,
+					$new_status,
 					current_time( 'mysql' ),
 					$existing->id
 				)
@@ -184,11 +192,23 @@ class Admission {
 					'portfolio_url' => $portfolio,
 					'statement'     => $statement,
 					'language'      => '' !== $language ? $language : null,
+					'status'        => $new_status,
 				],
-				[ '%s', '%s', '%s', '%s', '%s', '%s' ]
+				[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 			);
 
 			$application_id = (int) $wpdb->insert_id;
+		}
+
+		if ( $waitlisted ) {
+			do_action( 'agnosis_artist_waitlisted', $application_id, $email, $display_name );
+
+			return new WP_REST_Response( [
+				'status'         => 'waitlisted',
+				'application_id' => $application_id,
+				'cap'            => ( new CommunityCap() )->cap(),
+				'message'        => __( 'This community is currently full. Your application has joined the waitlist — when a member leaves, the next person in line is welcomed in, and the community can also vote to make room for more artists.', 'agnosis' ),
+			], 202 );
 		}
 
 		do_action( 'agnosis_artist_applied', $application_id, $email, $display_name );
@@ -442,13 +462,28 @@ class Admission {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$application = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE id = %d AND status = 'pending'",
+				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE id = %d AND status IN ('pending','waitlisted')",
 				$application_id
 			)
 		);
 
 		if ( ! $application ) {
 			return false;
+		}
+
+		// The admin is the ultimate steward: admitting is allowed even when the
+		// instance is at its community cap, but it is logged so an over-cap
+		// admission is a deliberate, visible act rather than a silent one.
+		$cap = new CommunityCap();
+		if ( $cap->is_full() ) {
+			Logger::warning(
+				sprintf(
+					'Admin admitted application #%d over the community cap of %d (deliberate override).',
+					$application_id,
+					$cap->cap()
+				),
+				'admission'
+			);
 		}
 
 		// Temporarily make the positive vouch count appear to meet the threshold so
@@ -588,6 +623,22 @@ class Admission {
 			return; // Already admitted or not pending.
 		}
 
+		// Community size cap: re-check at admission time (the count can change
+		// between application and threshold). If full, park on the waitlist instead
+		// of admitting — it re-enters this flow when a slot opens (advance_waitlist).
+		if ( ( new CommunityCap() )->is_full() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->update(
+				$wpdb->prefix . 'agnosis_applications',
+				[ 'status' => 'waitlisted' ],
+				[ 'id' => $application_id, 'status' => 'pending' ],
+				[ '%s' ],
+				[ '%d', '%s' ]
+			);
+			do_action( 'agnosis_artist_waitlisted', $application_id, $application->email, $application->display_name );
+			return;
+		}
+
 		/** @var object{email: string, display_name: string, language: string|null} $application */
 
 		$username = $this->unique_username( $application->display_name, $application->email );
@@ -630,6 +681,21 @@ class Admission {
 		);
 
 		do_action( 'agnosis_artist_admitted', $user_id, $application_id );
+	}
+
+	/**
+	 * Re-evaluate an application for admission after a waitlist slot opened.
+	 *
+	 * Hooked on `agnosis_waitlist_advanced` (fired by CommunityCap::advance_waitlist
+	 * when a member leaves). The row was just moved waitlisted → pending; if it
+	 * already meets the vouch threshold and there is now capacity it is admitted at
+	 * once, otherwise it stays pending in the normal vouching window.
+	 *
+	 * @param int $application_id Row ID in agnosis_applications.
+	 * @return void
+	 */
+	public function reconsider( int $application_id ): void {
+		$this->maybe_admit( $application_id );
 	}
 
 	/**

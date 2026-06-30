@@ -17,6 +17,9 @@ use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
+use Agnosis\Artist\CommunityCap;
+use Agnosis\Artist\CommunityCapVote;
+use Agnosis\Artist\CommunityCapNotification;
 use Agnosis\Artist\Departure;
 use Agnosis\Artist\DepartureNotification;
 use Agnosis\Artist\FrontendAccess;
@@ -136,6 +139,16 @@ class Plugin {
 		$admission = new Admission();
 		$this->loader->add_action( 'rest_api_init',           $admission, 'register_routes' );
 		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'check_expired_applications' );
+		// Community size cap: re-evaluate the advanced application when a slot opens.
+		$this->loader->add_action( 'agnosis_waitlist_advanced', $admission, 'reconsider' );
+
+		// Community size cap: when a member permanently leaves, advance the next
+		// waitlisted applicant ("open a slot, fill a slot"). All three signals fire
+		// after the agnosis_artist role has been removed, so the slot is already free.
+		$community_cap = new CommunityCap();
+		$this->loader->add_action( 'agnosis_artist_left',             $community_cap, 'advance_waitlist' );
+		$this->loader->add_action( 'agnosis_artist_deleted_by_admin', $community_cap, 'advance_waitlist' );
+		$this->loader->add_action( 'agnosis_removal_vote_passed',     $community_cap, 'advance_waitlist' );
 
 		$admission_notification = new AdmissionNotification();
 		$admission_notification->register_hooks();
@@ -149,6 +162,14 @@ class Plugin {
 
 		$departure_notification = new DepartureNotification();
 		$departure_notification->register_hooks();
+
+		// Member-governed community size-cap vote (Phase 2).
+		$cap_vote = new CommunityCapVote();
+		$this->loader->add_action( 'rest_api_init',           $cap_vote, 'register_routes' );
+		$this->loader->add_action( CommunityCapVote::CRON_HOOK, $cap_vote, 'check_expired_cap_votes' );
+
+		$cap_notification = new CommunityCapNotification();
+		$cap_notification->register_hooks();
 
 		$vouch_confirm = new VouchConfirm( $admission );
 		$vouch_confirm->register_hooks();

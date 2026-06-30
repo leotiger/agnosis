@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,14 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.3.0 =
+* Added: Member-governed community size cap — a maximum number of admitted artists (default 50; 0 = unlimited). When full, applications join a FIFO waitlist instead of being rejected, and a freed slot welcomes the next in line. The community can vote to change the cap (propose → co-sign → community vote → daily tally).
+* Added: "About" and "Artist Guide" pages, created out of the box, explaining what Agnosis is and how to submit work by email. Translated automatically by Lingua Forge.
+* Added: `uninstall.php` — deleting the plugin now fully cleans up (custom tables, options, the artist role, managed pages, scheduled events, and the upload queue directory). Artists' published work and accounts are preserved.
+* Changed: Lingua Forge integration overhaul — translated artwork posts now inherit their images, gallery, and per-language titles; the translated description is written at creation; translation is dispatched off the email-intake request (no blocking AI calls inline) and uses Lingua Forge 2.4.0's async queue when available.
+* Fixed: The source language tag (`_lf_lang`) now tracks Lingua Forge's configured primary language rather than the WordPress locale, so translations start from the right language.
+* Fixed: IMAP polling now fetches only new mail via a UID cursor (headers-first), instead of re-scanning the whole retention window every run.
 
 = 0.2.0 =
 * Added: Three independent artist departure paths — self-removal (email-confirmed token link), admin suspend/delete, and community removal vote

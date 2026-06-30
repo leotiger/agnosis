@@ -100,11 +100,43 @@ class Activator {
 			$status_col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'status'" );
 			if ( $status_col && false === strpos( (string) $status_col->Type, 'banned' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
-				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('pending','admitted','rejected','withdrawn','left','banned') NOT NULL DEFAULT 'pending'" );
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'pending'" );
+			}
+
+			// Extend the status ENUM to include 'waitlisted' (community size cap, 0.3.0).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$status_col_wl = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'status'" );
+			if ( $status_col_wl && false === strpos( (string) $status_col_wl->Type, 'waitlisted' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'pending'" );
 			}
 		}
 
+		// Finish the upgrade with idempotent provisioning so a version bump fully
+		// applies: new tables (dbDelta), new default options, the role, and all
+		// scheduled events (incl. agnosis_check_cap_votes). Each step is a no-op when
+		// its target already exists. Managed-page creation needs $wp_rewrite
+		// (permalinks), which is NOT ready on plugins_loaded, so it is deferred to
+		// init in the same request.
 		self::create_tables();
+		self::seed_options();
+		self::register_roles();
+		self::schedule_events();
+		add_action( 'init', [ self::class, 'create_managed_pages' ], 99 );
+	}
+
+	/**
+	 * Create the managed content pages (submissions, join, about, artist guide).
+	 *
+	 * Idempotent. Called directly from activate() (admin context, permalinks ready)
+	 * and deferred to init from maybe_upgrade() (where plugins_loaded is too early
+	 * for permalink generation).
+	 */
+	public static function create_managed_pages(): void {
+		self::create_submissions_page();
+		self::create_join_page();
+		self::create_about_page();
+		self::create_help_page();
 	}
 
 	/** Runs on plugin activation. */
@@ -114,8 +146,7 @@ class Activator {
 		self::seed_medium_terms();
 		self::register_roles();
 		self::schedule_events();
-		self::create_submissions_page();
-		self::create_join_page();
+		self::create_managed_pages();
 
 		// Create the protected attachment queue directory under uploads/.
 		AttachmentStore::ensure_protected();
@@ -131,6 +162,7 @@ class Activator {
 		wp_clear_scheduled_hook( 'agnosis_check_admissions' );
 		wp_clear_scheduled_hook( 'agnosis_check_bans' );
 		wp_clear_scheduled_hook( 'agnosis_check_removal_votes' );
+		wp_clear_scheduled_hook( 'agnosis_check_cap_votes' );
 		flush_rewrite_rules();
 	}
 
@@ -226,7 +258,7 @@ class Activator {
 			portfolio_url  VARCHAR(512)    DEFAULT NULL,
 			statement      TEXT            DEFAULT NULL,
 			language       VARCHAR(10)     DEFAULT NULL,
-			status         ENUM('pending','admitted','rejected','withdrawn','left','banned') NOT NULL DEFAULT 'pending',
+			status         ENUM('pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'pending',
 			wp_user_id     BIGINT UNSIGNED DEFAULT NULL,
 			banned_until   DATETIME        DEFAULT NULL,
 			removal_token  VARCHAR(64)     DEFAULT NULL,
@@ -269,6 +301,34 @@ class Activator {
 			KEY         idx_request (request_id)
 		) $charset_collate;";
 
+		// Community size-cap change proposals (member-governed cap).
+		// status: nominating (gathering co-signers) → open (full vote) →
+		//         passed | failed | cancelled. proposed_cap is the value to adopt.
+		$sql_cap_proposals = "CREATE TABLE {$wpdb->prefix}agnosis_cap_proposals (
+			id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			proposed_cap  INT             NOT NULL,
+			initiated_by  BIGINT UNSIGNED DEFAULT NULL,
+			status        ENUM('nominating','open','passed','failed','cancelled') NOT NULL DEFAULT 'nominating',
+			opened_at     DATETIME        DEFAULT NULL,
+			closes_at     DATETIME        DEFAULT NULL,
+			resolved_at   DATETIME        DEFAULT NULL,
+			created_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY   (id),
+			KEY           idx_status (status)
+		) $charset_collate;";
+
+		// Individual votes on a cap-change proposal (a voter may change their vote).
+		$sql_cap_votes = "CREATE TABLE {$wpdb->prefix}agnosis_cap_votes (
+			id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			proposal_id BIGINT UNSIGNED NOT NULL,
+			voter_id    BIGINT UNSIGNED NOT NULL,
+			vote        ENUM('yes','no') NOT NULL,
+			voted_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY  uq_voter (proposal_id, voter_id),
+			KEY         idx_proposal (proposal_id)
+		) $charset_collate;";
+
 		// Pre-admission vouches — artists vouching for a pending application.
 		// Kept separate from agnosis_vouches (post-admission community table).
 		// revoked_at is set instead of deleting so the audit trail is preserved.
@@ -296,6 +356,8 @@ class Activator {
 		dbDelta( $sql_application_vouches );
 		dbDelta( $sql_removal_requests );
 		dbDelta( $sql_removal_votes );
+		dbDelta( $sql_cap_proposals );
+		dbDelta( $sql_cap_votes );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}
@@ -338,6 +400,9 @@ class Activator {
 			'agnosis_admission_percent'           => 10,  // min % of active artists required
 			'agnosis_admission_minimum'           => 3,   // absolute floor regardless of %
 			'agnosis_admission_window_days'       => 7,   // days before application expires
+			'agnosis_community_max_artists'       => 50,  // community size cap (0 = unlimited)
+			'agnosis_cap_proposal_threshold'      => 3,   // co-signers to open a cap-change vote
+			'agnosis_cap_vote_window_days'        => 7,   // days a cap-change vote stays open
 			'agnosis_tx_fee_percent'              => 7.0,
 			'agnosis_activitypub_enabled'         => true,
 			'agnosis_quality_threshold'           => 7,
@@ -405,6 +470,96 @@ class Activator {
 	}
 
 	/**
+	 * Create the public "About Agnosis" page on first activation.
+	 *
+	 * A plain content page (core blocks). Lingua Forge translates it like any page,
+	 * so the copy is authored in the site's source language — no i18n at creation.
+	 */
+	private static function create_about_page(): void {
+		self::create_managed_page( 'agnosis_about_page_id', 'About', 'about', self::about_page_content() );
+	}
+
+	/**
+	 * Create the public "Artist Guide" help page on first activation.
+	 *
+	 * Explains the email-driven workflow in plain language. Translated by LF.
+	 */
+	private static function create_help_page(): void {
+		self::create_managed_page( 'agnosis_help_page_id', 'Artist Guide', 'artist-guide', self::help_page_content() );
+	}
+
+	/**
+	 * Shared creator for a managed content page. Idempotent: stores the new ID in
+	 * $option and is a no-op when that page already exists and is published. Tags
+	 * the page with _agnosis_managed_page so uninstall.php removes it.
+	 *
+	 * @param string $option  Option name holding the page ID.
+	 * @param string $title   Page title (source language; LF translates it).
+	 * @param string $slug    URL slug.
+	 * @param string $content Block markup for the page body.
+	 */
+	private static function create_managed_page( string $option, string $title, string $slug, string $content ): void {
+		$existing_id = (int) get_option( $option );
+		if ( $existing_id ) {
+			$existing = get_post( $existing_id );
+			if ( $existing && 'publish' === $existing->post_status ) {
+				return;
+			}
+		}
+
+		$page_id = wp_insert_post( [
+			'post_title'   => $title,
+			'post_name'    => $slug,
+			'post_content' => $content,
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_author'  => 1,
+			'meta_input'   => [ '_agnosis_managed_page' => '1' ],
+		], false );
+
+		if ( $page_id ) {
+			update_option( $option, $page_id );
+		}
+	}
+
+	/** Block markup for the "About Agnosis" page. */
+	private static function about_page_content(): string {
+		return implode( "\n", [
+			'<!-- wp:heading {"level":1} --><h1>About Agnosis</h1><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Agnosis is a community-run home for independent artists. You email your work, AI gives it a clean title, description, and tags, the community decides who joins, and your art appears here and across the open social web (the &#8220;fediverse&#8221;). There are no dashboards to learn, no algorithm deciding who sees you, and no ads.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>How it works</h2><!-- /wp:heading -->',
+			'<!-- wp:list --><ul><li>You email your artwork, a biography, or an event.</li><li>AI polishes the <em>presentation</em> &#8212; never the artwork itself, unless you ask.</li><li>Existing members vouch for newcomers; the community admits them.</li><li>Your work is published here and delivered to your followers on the fediverse.</li></ul><!-- /wp:list -->',
+			'<!-- wp:heading --><h2>Owned by its members</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>The community admits new members, can vote to part ways with one, and even votes on how large it grows. Agnosis is a commons, not a platform &#8212; small and human by design.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Your work stays yours</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>You can leave whenever you like and take everything with you. No lock-in, ever.</p><!-- /wp:paragraph -->',
+		] );
+	}
+
+	/** Block markup for the "Artist Guide" help page. */
+	private static function help_page_content(): string {
+		return implode( "\n", [
+			'<!-- wp:heading {"level":1} --><h1>Artist Guide</h1><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Working with Agnosis is as simple as sending an email &#8212; you never have to log in to a dashboard. Here is everything you need to know.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Joining</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Apply from the join page. Once enough members have vouched for you, you are welcomed in and can start sending work by email.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Sending artwork</h2><!-- /wp:heading -->',
+			'<!-- wp:list --><ul><li>Attach your image to an email.</li><li>Put the title of the piece in the <strong>subject line</strong>.</li><li>Add a few words in the body if you like &#8212; or nothing at all.</li><li>Send it to the submission address your community shared with you.</li></ul><!-- /wp:list -->',
+			'<!-- wp:paragraph --><p>AI writes a clean title, a description, alt text for accessibility, and tags. You will receive an email when your piece is reviewed and published.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Photographs &#8212; published untouched</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>If your photograph <em>is</em> the artwork, send it to the photo address (or put <code>[Photo]</code> at the start of the subject line). It is published exactly as you sent it, with no AI changes to the image.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Your biography</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Email your artist statement to the biography address. The words you write are your statement &#8212; AI only tidies the formatting.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Events</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Send an event announcement to the events address and include the date and place in your message. The date is shown on your event page.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Updating or removing a piece</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Send a new version to replace a piece, or use the remove address to take one down. You can also leave the community at any time and take all of your content with you.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Write in your own language</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Write to us in whatever language you are comfortable with. Your words are published in the community&#8217;s main language and translated automatically, so your work reads naturally for everyone.</p><!-- /wp:paragraph -->',
+		] );
+	}
+
+	/**
 	 * Create the /join/ page the first time the plugin activates.
 	 *
 	 * Uses the agnosis/join block as page content. The theme's page-join.html
@@ -449,6 +604,9 @@ class Activator {
 		}
 		if ( ! wp_next_scheduled( 'agnosis_check_removal_votes' ) ) {
 			wp_schedule_event( time(), 'daily', 'agnosis_check_removal_votes' );
+		}
+		if ( ! wp_next_scheduled( 'agnosis_check_cap_votes' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_check_cap_votes' );
 		}
 		// The cron_schedules filter that defines 'every_five_minutes' must be
 		// registered on every request, not just on activation. It lives in

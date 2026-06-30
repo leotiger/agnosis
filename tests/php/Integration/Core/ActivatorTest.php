@@ -245,6 +245,58 @@ class ActivatorTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// create_about_page() / create_help_page() — out-of-the-box content pages
+	// =========================================================================
+
+	public function test_create_about_page_inserts_managed_page(): void {
+		delete_option( 'agnosis_about_page_id' );
+
+		$this->call_private( 'create_about_page' );
+
+		$page_id = (int) get_option( 'agnosis_about_page_id' );
+		$this->assertGreaterThan( 0, $page_id );
+
+		$page = get_post( $page_id );
+		$this->assertNotNull( $page );
+		$this->assertSame( 'page', $page->post_type );
+		$this->assertSame( 'publish', $page->post_status );
+		$this->assertSame( 'about', $page->post_name );
+		$this->assertStringContainsString( 'About Agnosis', $page->post_content );
+		// Tagged for uninstall cleanup.
+		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
+	}
+
+	public function test_create_help_page_inserts_managed_page(): void {
+		delete_option( 'agnosis_help_page_id' );
+
+		$this->call_private( 'create_help_page' );
+
+		$page_id = (int) get_option( 'agnosis_help_page_id' );
+		$this->assertGreaterThan( 0, $page_id );
+
+		$page = get_post( $page_id );
+		$this->assertSame( 'artist-guide', $page->post_name );
+		$this->assertStringContainsString( 'Artist Guide', $page->post_content );
+		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
+	}
+
+	public function test_content_pages_are_idempotent(): void {
+		delete_option( 'agnosis_about_page_id' );
+		delete_option( 'agnosis_help_page_id' );
+
+		$this->call_private( 'create_about_page' );
+		$this->call_private( 'create_help_page' );
+		$about_first = (int) get_option( 'agnosis_about_page_id' );
+		$help_first  = (int) get_option( 'agnosis_help_page_id' );
+
+		$this->call_private( 'create_about_page' );
+		$this->call_private( 'create_help_page' );
+
+		$this->assertSame( $about_first, (int) get_option( 'agnosis_about_page_id' ) );
+		$this->assertSame( $help_first, (int) get_option( 'agnosis_help_page_id' ) );
+	}
+
+	// =========================================================================
 	// seed_medium_terms()
 	// =========================================================================
 

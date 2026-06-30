@@ -57,3 +57,17 @@ if ( ! function_exists( 'linguaforge_trigger_translation' ) ) {
 		return $ret instanceof \WP_Error ? $ret : ( is_int( $ret ) ? $ret : 999 );
 	}
 }
+
+if ( ! function_exists( 'linguaforge_queue_translation' ) ) {
+	/**
+	 * Stub for LF's async translation queue (LF 2.4.0+).
+	 * Records every call in $queue_calls so tests can assert on them.
+	 */
+	function linguaforge_queue_translation( int $post_id, string $target_lang, array $params = [] ): void {
+		\Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest::$queue_calls[] = [
+			'post_id'     => $post_id,
+			'target_lang' => $target_lang,
+			'params'      => $params,
+		];
+	}
+}
