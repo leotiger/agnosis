@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,18 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.4.2 =
+* Fixed: A newsletter issue where every recipient's send failed (e.g. a temporary mail delivery problem) could get stuck showing "Sending…" on the Newsletter settings dashboard forever, with "Send Now" disabled — it's now always reconciled to a finished state once the queue drains, even if nothing was successfully delivered.
+
+= 0.4.1 =
+* Fixed: Newsletters are now actually localized. Previously the digest and intro were rendered once per issue in a single language and reused for every recipient — a French subscriber and a German artist both got the same English text, and post titles never used their translated versions even when Lingua Forge had one. Recipients are now grouped by their own locale; the digest links to each post's translated title/page when available (falling back to the original when no translation exists yet), and the admin's intro is machine-translated per locale when an AI provider is configured. Also fixed a related bug where a multi-language site's digest listed the same artwork once per translated copy instead of once.
+
+= 0.4.0 =
+* Added: Newsletter system — a monthly (configurable) artist newsletter, auto-enrolled with one-click opt-out, and a separate public newsletter with double opt-in subscription (a `agnosis/newsletter-signup` block for pages). Each issue combines an auto-generated activity digest (new artworks, events, admissions) with an optional admin-written intro, sent in batches by WP-Cron. Self-hosted; no external email service required.
+* Added: Settings → Newsletter tab — enable/disable and set frequency per newsletter, write the intro, configure a dedicated "From" name/address for newsletter mail (separate from the site's admin email), see subscriber stats, and trigger a manual "Send Now" or a "Send Test" preview to a single address without affecting subscribers or the schedule.
+* Changed: Default "About" and "Artist Guide" pages rewritten with clearer, more complete guidance — how AI is used (image quality enhancement only, never altering the artwork itself), how artwork titles work, and how to submit multiple images as a series. Removed a duplicated heading now that the theme renders the page title itself.
+* Fixed: Code-coverage tooling (`composer coverage`) was silently under-reporting integration test coverage due to stale PHP configuration in the local test environment; coverage now reports correctly.
 
 = 0.3.0 =
 * Added: Member-governed community size cap — a maximum number of admitted artists (default 50; 0 = unlimited). When full, applications join a FIFO waitlist instead of being rejected, and a freed slot welcomes the next in line. The community can vote to change the cap (propose → co-sign → community vote → daily tally).

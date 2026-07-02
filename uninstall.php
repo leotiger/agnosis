@@ -5,8 +5,10 @@
  * Runs only when the plugin is *deleted* (not on deactivate). It removes
  * everything Agnosis creates that the operator would not expect to linger:
  *
- *   • the 9 custom tables (queue, applications, vouches, application_vouches,
- *     nodes, transactions, removal_requests, removal_votes, log);
+ *   • the 14 custom tables (queue, applications, vouches, application_vouches,
+ *     nodes, transactions, removal_requests, removal_votes, cap_proposals,
+ *     cap_votes, log, newsletter_subscribers, newsletter_issues,
+ *     newsletter_queue);
  *   • every `agnosis_*` option and transient;
  *   • the `agnosis_artist` role (its capabilities go with it);
  *   • the managed pages (/join/, My Submissions);
@@ -48,6 +50,9 @@ function agnosis_uninstall_site(): void {
 		'agnosis_cap_proposals',
 		'agnosis_cap_votes',
 		'agnosis_log',
+		'agnosis_newsletter_subscribers',
+		'agnosis_newsletter_issues',
+		'agnosis_newsletter_queue',
 	];
 
 	foreach ( $tables as $table ) {
@@ -94,13 +99,19 @@ function agnosis_uninstall_site(): void {
 		'agnosis_check_cap_votes',
 		'agnosis_publish_submission',
 		'agnosis_dispatch_lf_translations',
+		'agnosis_prepare_newsletters',
+		'agnosis_send_newsletter_queue',
 	];
 
 	foreach ( $cron_hooks as $hook ) {
 		wp_clear_scheduled_hook( $hook );
 	}
 
-	// 6. Uploads working directory (uploads/agnosis-queue/).
+	// 6. Artist newsletter opt-out flag — not covered by the options cleanup
+	// above because it lives in usermeta, not wp_options.
+	$wpdb->delete( $wpdb->usermeta, [ 'meta_key' => '_agnosis_newsletter_optout' ] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one-off uninstall cleanup; no caching layer applies during plugin removal.
+
+	// 7. Uploads working directory (uploads/agnosis-queue/).
 	$upload = wp_upload_dir();
 
 	if ( empty( $upload['error'] ) && ! empty( $upload['basedir'] ) ) {

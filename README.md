@@ -61,7 +61,7 @@ Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → Gene
 
 ```bash
 # From a release zip
-wp plugin install agnosis-0.3.0.zip --activate
+wp plugin install agnosis-0.4.2.zip --activate
 
 # Or from source
 git clone https://github.com/agnosis/agnosis wp-content/plugins/agnosis

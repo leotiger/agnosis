@@ -31,6 +31,11 @@ use Agnosis\Email\Inbox;
 use Agnosis\Email\Webhook;
 use Agnosis\Network\ActivityPub;
 use Agnosis\Network\Node;
+use Agnosis\Newsletter\QueueProcessor;
+use Agnosis\Newsletter\Scheduler;
+use Agnosis\Newsletter\SignupBlock;
+use Agnosis\Newsletter\Subscription;
+use Agnosis\Newsletter\SubscriptionConfirm;
 use Agnosis\Publishing\GalleryOverview;
 use Agnosis\Publishing\Notification;
 use Agnosis\Publishing\PostCreator;
@@ -105,6 +110,8 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_ban_artist',            $settings, 'handle_ban_artist' );
 			$this->loader->add_action( 'admin_post_agnosis_delete_artist',         $settings, 'handle_delete_artist' );
 			$this->loader->add_action( 'admin_post_agnosis_initiate_removal_vote', $settings, 'handle_initiate_removal_vote' );
+			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_now',   $settings, 'handle_send_newsletter_now' );
+			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_test', $settings, 'handle_send_newsletter_test' );
 
 			// Queue management handlers.
 			$queue = new QueueController();
@@ -233,6 +240,24 @@ class Plugin {
 		$activitypub = new ActivityPub();
 		$this->loader->add_action( 'rest_api_init',          $activitypub, 'register_routes' );
 		$this->loader->add_action( 'agnosis_post_published', $activitypub, 'broadcast', 10, 1 );
+
+		// Newsletters — public signup block + double opt-in, self-hosted
+		// scheduling (daily prepare) and batched sending (every 5 minutes,
+		// reusing the interval Inbox already registers below).
+		$subscription = new Subscription();
+		$this->loader->add_action( 'rest_api_init', $subscription, 'register_routes' );
+
+		$subscription_confirm = new SubscriptionConfirm();
+		$subscription_confirm->register_hooks();
+
+		$newsletter_scheduler = new Scheduler();
+		$this->loader->add_action( 'agnosis_prepare_newsletters', $newsletter_scheduler, 'prepare' );
+
+		$newsletter_queue = new QueueProcessor();
+		$this->loader->add_action( 'agnosis_send_newsletter_queue', $newsletter_queue, 'process' );
+
+		$signup_block = new SignupBlock();
+		$this->loader->add_action( 'init', $signup_block, 'register_block' );
 
 		// Lingua Forge integration — boots itself only when LF is present;
 		// registers the compat admin notice unconditionally.

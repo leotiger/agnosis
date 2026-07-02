@@ -41,19 +41,54 @@ fi
 
 echo "ℹ  Container: $CONTAINER"
 
+# NOTE: the composer.json integration-coverage command now also passes
+# `-d pcov.enabled=1 -d pcov.directory=...` directly on the CLI, so it no
+# longer *depends* on the php.ini state this script writes — that was the
+# root cause of a real regression (coverage silently collapsing to ~0% while
+# tests kept passing): this script used to short-circuit the moment the pcov
+# *extension* was loaded, without checking whether pcov.directory was still
+# pointing at the right path, or present at all. The CLI flags on the
+# integration command now make coverage correct regardless of this script's
+# state, but this script is kept idempotent and self-correcting too, since
+# other invocations (e.g. running phpunit by hand inside the container) still
+# rely on the ini file being right.
+
 if "$DOCKER" exec "$CONTAINER" php -m 2>/dev/null | grep -q pcov; then
-    echo "✅  pcov is already active — nothing to do."
-    exit 0
+    echo "ℹ  pcov extension already loaded — verifying ini configuration is still correct…"
+else
+    echo "ℹ  Installing pcov (this compiles from source, ~30 s)…"
+    "$DOCKER" exec --user root "$CONTAINER" bash -c 'pecl install pcov 2>&1 | tail -3'
 fi
 
-echo "ℹ  Installing pcov (this compiles from source, ~30 s)…"
+# Always (re)assert the ini directives — never trust that a pre-existing line
+# still has the correct value (a stale "pcov.directory=." from an image
+# default would otherwise survive forever, since it technically matches a
+# plain `grep -q pcov.directory` check).
 "$DOCKER" exec --user root "$CONTAINER" bash -c '
-    pecl install pcov 2>&1 | tail -3
     PHP_INI=/usr/local/etc/php/php.ini
-    grep -q "extension=pcov.so"   "$PHP_INI" || echo "extension=pcov.so"   >> "$PHP_INI"
-    grep -q "pcov.enabled"        "$PHP_INI" || echo "pcov.enabled=1"       >> "$PHP_INI"
-    grep -q "pcov.directory"      "$PHP_INI" || echo "pcov.directory=/var/www/html/wp-content/plugins/agnosis" >> "$PHP_INI"
-    php -m | grep pcov
+    EXPECTED_DIR=/var/www/html/wp-content/plugins/agnosis
+
+    grep -q "^extension=pcov.so" "$PHP_INI" || echo "extension=pcov.so" >> "$PHP_INI"
+
+    if grep -q "^pcov.enabled=" "$PHP_INI"; then
+        sed -i "s|^pcov.enabled=.*|pcov.enabled=1|" "$PHP_INI"
+    else
+        echo "pcov.enabled=1" >> "$PHP_INI"
+    fi
+
+    if grep -q "^pcov.directory=" "$PHP_INI"; then
+        sed -i "s|^pcov.directory=.*|pcov.directory=${EXPECTED_DIR}|" "$PHP_INI"
+    else
+        echo "pcov.directory=${EXPECTED_DIR}" >> "$PHP_INI"
+    fi
+
+    echo "--- Active pcov config ---"
+    php -i | grep -i "^pcov" || echo "⚠️  pcov module still not visible in php -i — extension may need a server restart."
 '
 
-echo "✅  pcov installed and enabled in $CONTAINER"
+if "$DOCKER" exec "$CONTAINER" php -m 2>/dev/null | grep -q pcov; then
+    echo "✅  pcov installed, enabled, and pointed at the plugin directory in $CONTAINER"
+else
+    echo "❌  pcov still not active after setup — coverage will silently read as ~0%. Investigate manually." >&2
+    exit 1
+fi

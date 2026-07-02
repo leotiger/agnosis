@@ -261,7 +261,12 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$this->assertSame( 'page', $page->post_type );
 		$this->assertSame( 'publish', $page->post_status );
 		$this->assertSame( 'about', $page->post_name );
-		$this->assertStringContainsString( 'About Agnosis', $page->post_content );
+		// The theme's page.html template renders the title via wp:post-title,
+		// so post_content must not duplicate it with its own H1 — the page's
+		// title lives in post_title only.
+		$this->assertSame( 'About', $page->post_title );
+		$this->assertStringNotContainsString( '<h1', $page->post_content );
+		$this->assertStringContainsString( 'How we use AI', $page->post_content );
 		// Tagged for uninstall cleanup.
 		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
 	}
@@ -276,7 +281,11 @@ class ActivatorTest extends \WP_UnitTestCase {
 
 		$page = get_post( $page_id );
 		$this->assertSame( 'artist-guide', $page->post_name );
-		$this->assertStringContainsString( 'Artist Guide', $page->post_content );
+		// Title lives in post_title only — no duplicate H1 in post_content
+		// (the theme's page.html template renders the title via wp:post-title).
+		$this->assertSame( 'Artist Guide', $page->post_title );
+		$this->assertStringNotContainsString( '<h1', $page->post_content );
+		$this->assertStringContainsString( 'Sending a series or set of images', $page->post_content );
 		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
 	}
 

@@ -163,6 +163,8 @@ class Activator {
 		wp_clear_scheduled_hook( 'agnosis_check_bans' );
 		wp_clear_scheduled_hook( 'agnosis_check_removal_votes' );
 		wp_clear_scheduled_hook( 'agnosis_check_cap_votes' );
+		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
+		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
 		flush_rewrite_rules();
 	}
 
@@ -346,6 +348,70 @@ class Activator {
 			KEY            idx_voucher (voucher_id)
 		) $charset_collate;";
 
+		// Public newsletter subscribers (double opt-in). Admitted artists are NOT
+		// stored here — the artist newsletter audience is derived live from
+		// WP_User_Query (role agnosis_artist) minus the _agnosis_newsletter_optout
+		// user meta flag, so there is never a second, driftable copy of who is a member.
+		$sql_newsletter_subscribers = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_subscribers (
+			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			email           VARCHAR(255)    NOT NULL,
+			status          ENUM('pending','confirmed','unsubscribed') NOT NULL DEFAULT 'pending',
+			token           VARCHAR(64)     NOT NULL,
+			locale          VARCHAR(10)     DEFAULT NULL,
+			created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			confirmed_at    DATETIME        DEFAULT NULL,
+			unsubscribed_at DATETIME        DEFAULT NULL,
+			PRIMARY KEY     (id),
+			UNIQUE KEY      uq_email (email),
+			UNIQUE KEY      uq_token (token),
+			KEY             idx_status (status)
+		) $charset_collate;";
+
+		// One row per newsletter send ("issue"). intro/digest_html hold the
+		// site-default-locale rendering (used as the base/fallback render, and by
+		// the "Send Test" preview). locale_content holds a JSON map of
+		// locale => {intro, digest_html} for every other locale actually present
+		// among this issue's recipients, rendered once per locale at prepare time
+		// (not per recipient) and reused for everyone sharing that locale, so what
+		// was queued is exactly what goes out even if posts change while sending
+		// is in progress.
+		$sql_newsletter_issues = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_issues (
+			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			newsletter_type ENUM('artist','public') NOT NULL,
+			status          ENUM('draft','sending','sent') NOT NULL DEFAULT 'draft',
+			intro           TEXT            DEFAULT NULL,
+			digest_html     LONGTEXT        DEFAULT NULL,
+			locale_content  LONGTEXT        DEFAULT NULL,
+			recipient_count INT UNSIGNED    NOT NULL DEFAULT 0,
+			scheduled_at    DATETIME        DEFAULT NULL,
+			sent_at         DATETIME        DEFAULT NULL,
+			created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY     (id),
+			KEY             idx_type_status (newsletter_type, status)
+		) $charset_collate;";
+
+		// Per-recipient send queue for a single issue. Processed in small batches by
+		// the agnosis_send_newsletter_queue cron tick so a 200-300 recipient send
+		// never blocks a single request or trips a host's outbound mail rate limit.
+		// locale is the recipient's resolved send-locale (their own locale, or the
+		// site default when none is known) — set once at fan-out time so send-time
+		// localization never needs a repeat per-recipient DB/meta lookup.
+		$sql_newsletter_queue = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_queue (
+			id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			issue_id          BIGINT UNSIGNED NOT NULL,
+			recipient_id      BIGINT UNSIGNED DEFAULT NULL,
+			recipient_email   VARCHAR(255)    NOT NULL,
+			recipient_type    ENUM('artist','public') NOT NULL,
+			unsubscribe_token VARCHAR(64)     NOT NULL,
+			locale            VARCHAR(10)     DEFAULT NULL,
+			status            ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+			created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			sent_at           DATETIME        DEFAULT NULL,
+			PRIMARY KEY       (id),
+			KEY               idx_issue (issue_id),
+			KEY               idx_status (status)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
@@ -358,6 +424,9 @@ class Activator {
 		dbDelta( $sql_removal_votes );
 		dbDelta( $sql_cap_proposals );
 		dbDelta( $sql_cap_votes );
+		dbDelta( $sql_newsletter_subscribers );
+		dbDelta( $sql_newsletter_issues );
+		dbDelta( $sql_newsletter_queue );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}
@@ -407,6 +476,26 @@ class Activator {
 			'agnosis_activitypub_enabled'         => true,
 			'agnosis_quality_threshold'           => 7,
 			'agnosis_quality_rejection_threshold' => 3,
+			// Newsletters — self-hosted digest sending. Frequencies are in days
+			// (default 30 ≈ monthly); each has its own enable flag and pending
+			// intro text, set independently from Settings → Newsletter.
+			// Dedicated From: address for digest mail, separate from admin_email —
+			// blank falls back to the site name / admin_email at send time.
+			'agnosis_newsletter_from_name'                 => '',
+			'agnosis_newsletter_from_email'                => '',
+			'agnosis_newsletter_artist_enabled'            => true,
+			'agnosis_newsletter_artist_frequency_days'     => 30,
+			'agnosis_newsletter_artist_intro'              => '',
+			'agnosis_newsletter_public_enabled'            => true,
+			'agnosis_newsletter_public_frequency_days'     => 30,
+			'agnosis_newsletter_public_intro'              => '',
+			// Recipients emailed per agnosis_send_newsletter_queue cron tick (every
+			// 5 minutes) — keeps self-hosted sending under shared-host outbound caps.
+			'agnosis_newsletter_batch_size'                => 20,
+			// Once confirmed public subscribers exceed this count, the Newsletter
+			// settings tab shows a banner suggesting an ESP; self-hosted sending
+			// still works above it, this is advisory only.
+			'agnosis_newsletter_subscriber_warn_threshold' => 250,
 		];
 
 		foreach ( $defaults as $key => $value ) {
@@ -525,37 +614,51 @@ class Activator {
 	/** Block markup for the "About Agnosis" page. */
 	private static function about_page_content(): string {
 		return implode( "\n", [
-			'<!-- wp:heading {"level":1} --><h1>About Agnosis</h1><!-- /wp:heading -->',
-			'<!-- wp:paragraph --><p>Agnosis is a community-run home for independent artists. You email your work, AI gives it a clean title, description, and tags, the community decides who joins, and your art appears here and across the open social web (the &#8220;fediverse&#8221;). There are no dashboards to learn, no algorithm deciding who sees you, and no ads.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>Agnosis is a community-run home for independent artists. You email your work, AI gives it a clean presentation &#8212; a title, a description, tags, and alt text &#8212; the community decides who joins, and your art appears here and across the open social web (the &#8220;fediverse&#8221;). There are no dashboards to learn, no algorithm deciding who sees you, and no ads.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>How it works</h2><!-- /wp:heading -->',
-			'<!-- wp:list --><ul><li>You email your artwork, a biography, or an event.</li><li>AI polishes the <em>presentation</em> &#8212; never the artwork itself, unless you ask.</li><li>Existing members vouch for newcomers; the community admits them.</li><li>Your work is published here and delivered to your followers on the fediverse.</li></ul><!-- /wp:list -->',
+			'<!-- wp:list --><ul><li>You email your artwork, a biography, or an event &#8212; no account or upload form needed.</li><li>AI writes the parts you leave blank: a title suggestion, a description, tags, and alt text. Your own words, wherever you give them, always come first.</li><li>Existing members vouch for newcomers; the community decides who joins.</li><li>Your work is published here and delivered to your followers on the fediverse.</li></ul><!-- /wp:list -->',
+			'<!-- wp:heading --><h2>How we use AI &#8212; and what it won&#8217;t do</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Handing your work to an algorithm can feel uneasy, so here is exactly what happens, with nothing hidden.</p><!-- /wp:paragraph -->',
+			'<!-- wp:list --><ul><li><strong>Writing, not judging.</strong> AI reads your email and image and writes a title suggestion, a description, tags, and factual alt text &#8212; grounded only in what you actually sent, never invented.</li><li><strong>Photo correction, only when needed.</strong> If a photograph has a technical problem &#8212; blur, poor lighting, heavy noise &#8212; that gets in the way of seeing the work clearly, AI may correct that problem alone.</li><li><strong>Never the artwork itself.</strong> Colours, textures, composition, and every artistic choice you made are preserved exactly. This is treated as a camera-and-lighting fix, not an artistic edit &#8212; and a well-photographed piece is never touched at all.</li><li><strong>Your call, always.</strong> Send through the photo-only lane at any time and your image is published exactly as sent, with no automatic correction whatsoever. The Artist Guide explains how.</li></ul><!-- /wp:list -->',
 			'<!-- wp:heading --><h2>Owned by its members</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>The community admits new members, can vote to part ways with one, and even votes on how large it grows. Agnosis is a commons, not a platform &#8212; small and human by design.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Your work stays yours</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>You can leave whenever you like and take everything with you. No lock-in, ever.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>Curious how the email workflow actually works day to day &#8212; including sending a series of images, asking to be featured, or writing in your own language? The <a href="/artist-guide/">Artist Guide</a> walks through every step.</p><!-- /wp:paragraph -->',
 		] );
 	}
 
 	/** Block markup for the "Artist Guide" help page. */
 	private static function help_page_content(): string {
 		return implode( "\n", [
-			'<!-- wp:heading {"level":1} --><h1>Artist Guide</h1><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Working with Agnosis is as simple as sending an email &#8212; you never have to log in to a dashboard. Here is everything you need to know.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Joining</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Apply from the join page. Once enough members have vouched for you, you are welcomed in and can start sending work by email.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Sending artwork</h2><!-- /wp:heading -->',
-			'<!-- wp:list --><ul><li>Attach your image to an email.</li><li>Put the title of the piece in the <strong>subject line</strong>.</li><li>Add a few words in the body if you like &#8212; or nothing at all.</li><li>Send it to the submission address your community shared with you.</li></ul><!-- /wp:list -->',
-			'<!-- wp:paragraph --><p>AI writes a clean title, a description, alt text for accessibility, and tags. You will receive an email when your piece is reviewed and published.</p><!-- /wp:paragraph -->',
+			'<!-- wp:list --><ul><li>Attach your image (or several &#8212; see below) to an email.</li><li>Put the title of the piece in the <strong>subject line</strong> &#8212; this becomes the artwork&#8217;s title exactly as you write it.</li><li>Add a few words in the body if you like &#8212; or nothing at all.</li><li>Send it to the submission address your community shared with you.</li></ul><!-- /wp:list -->',
+			'<!-- wp:paragraph --><p>AI writes a description, alt text for accessibility, and tags around what you send. If your subject line already gives a title, it is kept exactly as you wrote it &#8212; AI never overwrites it, only fills in a suggestion when you leave it blank. You will receive an email when your piece is reviewed and published.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Sending a series or set of images</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Working in a series, or want to show a piece from a few angles &#8212; a detail shot, an alternate view? Attach more than one image to the <em>same</em> email. They are published together as a single piece, shown as a gallery in the order you attached them, under the one title in your subject line.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>Want to add more images to something you&#8217;ve already published? Send them again to the replace address with the <em>exact same title</em> in the subject line &#8212; the new images join the gallery alongside what is already there.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>About AI &#8212; what it does, and what it never does</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>It is fair to wonder exactly what AI is allowed to touch. Here is the honest answer.</p><!-- /wp:paragraph -->',
+			'<!-- wp:list --><ul><li>It writes the presentation: a title suggestion (only used if you did not give one), a description, tags, and factual alt text &#8212; always grounded in what you actually sent, never invented.</li><li>It may correct a technical photo problem &#8212; blur, poor lighting, heavy noise &#8212; but only when the photo needs it, and only enough to make the artwork easier to see.</li><li>It does not alter the artwork itself. Colours, textures, composition, and every artistic choice you made are preserved exactly &#8212; this is a camera fix, not an artistic edit.</li><li>A well-photographed piece is never touched at all.</li><li>Want zero automatic correction, always? Use the photo-only lane below &#8212; your image is published pixel-for-pixel as you sent it.</li></ul><!-- /wp:list -->',
+			'<!-- wp:heading --><h2>Your title, kept in your own words</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Whatever you put in the subject line becomes your artwork&#8217;s title &#8212; exactly as written, in whatever language you wrote it in. If your community publishes in a different main language, the translated title is shown alongside yours, never in place of it.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Photographs &#8212; published untouched</h2><!-- /wp:heading -->',
-			'<!-- wp:paragraph --><p>If your photograph <em>is</em> the artwork, send it to the photo address (or put <code>[Photo]</code> at the start of the subject line). It is published exactly as you sent it, with no AI changes to the image.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>If your photograph <em>is</em> the artwork, send it to the photo address (or put <code>[Photo]</code> at the start of the subject line). It is published exactly as you sent it, with no AI changes to the image &#8212; a deliberately dark, grainy, or low-fi photograph is your artistic choice, not a defect to fix.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Your biography</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Email your artist statement to the biography address. The words you write are your statement &#8212; AI only tidies the formatting.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Events</h2><!-- /wp:heading -->',
-			'<!-- wp:paragraph --><p>Send an event announcement to the events address and include the date and place in your message. The date is shown on your event page.</p><!-- /wp:paragraph -->',
-			'<!-- wp:heading --><h2>Updating or removing a piece</h2><!-- /wp:heading -->',
-			'<!-- wp:paragraph --><p>Send a new version to replace a piece, or use the remove address to take one down. You can also leave the community at any time and take all of your content with you.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>Send an event announcement to the events address and include the date and place in your message. Both are shown on your event page.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Asking to be featured</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Want a published piece highlighted on your gallery? Email the promote address with that artwork&#8217;s exact title in the subject line &#8212; no message needed. It becomes your featured piece until you feature another.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Updating, removing, or leaving</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Send a new version &#8212; or new images &#8212; to the replace address using the piece&#8217;s exact title to update it. Use the remove address to take a single piece down. You can also leave the community entirely at any time via the goodbye address and take everything you&#8217;ve published with you &#8212; no lock-in, ever.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Write in your own language</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Write to us in whatever language you are comfortable with. Your words are published in the community&#8217;s main language and translated automatically, so your work reads naturally for everyone.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Your own space</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Every admitted artist gets their own address on the web showing only their published work. Visit <code>/my-submissions</code> any time to check the status of everything you&#8217;ve sent &#8212; sign in there directly, with no dashboard to learn.</p><!-- /wp:paragraph -->',
 		] );
 	}
 
@@ -607,6 +710,14 @@ class Activator {
 		}
 		if ( ! wp_next_scheduled( 'agnosis_check_cap_votes' ) ) {
 			wp_schedule_event( time(), 'daily', 'agnosis_check_cap_votes' );
+		}
+		// Newsletters: daily check for due issues, then a frequent small-batch send.
+		// 'every_five_minutes' is registered by Inbox::register_interval() (see below).
+		if ( ! wp_next_scheduled( 'agnosis_prepare_newsletters' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_prepare_newsletters' );
+		}
+		if ( ! wp_next_scheduled( 'agnosis_send_newsletter_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_send_newsletter_queue' );
 		}
 		// The cron_schedules filter that defines 'every_five_minutes' must be
 		// registered on every request, not just on activation. It lives in

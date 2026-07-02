@@ -15,6 +15,8 @@ namespace Agnosis\Admin;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
+use Agnosis\Newsletter\Scheduler;
+use Agnosis\Newsletter\Subscriber;
 
 class Settings {
 
@@ -22,12 +24,13 @@ class Settings {
 
 	/** Each tab gets its own option group so saving one tab never clobbers another. */
 	private const GROUPS = [
-		'general'  => 'agnosis_general_options',
-		'email'    => 'agnosis_email_options',
-		'ai'       => 'agnosis_ai_options',
-		'behavior' => 'agnosis_behavior_options',
-		'network'  => 'agnosis_network_options',
-		'commerce' => 'agnosis_commerce_options',
+		'general'     => 'agnosis_general_options',
+		'email'       => 'agnosis_email_options',
+		'ai'          => 'agnosis_ai_options',
+		'behavior'    => 'agnosis_behavior_options',
+		'network'     => 'agnosis_network_options',
+		'commerce'    => 'agnosis_commerce_options',
+		'newsletter'  => 'agnosis_newsletter_options',
 	];
 
 	public function register_menu(): void {
@@ -131,6 +134,10 @@ class Settings {
 				'delete_failed'       => [ 'error', __( 'Could not delete the artist — please try again.', 'agnosis' ) ],
 				'vote_opened'         => [ 'success', __( 'Community removal vote opened. All artists have been emailed.', 'agnosis' ) ],
 				'vote_open_failed'    => [ 'error', __( 'Could not open a removal vote — one may already be active for this artist.', 'agnosis' ) ],
+				'newsletter_sent'        => [ 'success', __( 'Issue prepared and queued — it will go out over the next few cron cycles.', 'agnosis' ) ],
+				'newsletter_send_failed' => [ 'error', __( 'Could not start this issue — a previous one may still be sending.', 'agnosis' ) ],
+				'newsletter_test_sent'   => [ 'success', __( 'Test email sent — check the inbox you sent it to.', 'agnosis' ) ],
+				'newsletter_test_failed' => [ 'error', __( 'Could not send the test email — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
 			];
 			$key = sanitize_key( wp_unslash( $_GET['agnosis_message'] ) );
 			if ( isset( $notice_map[ $key ] ) ) {
@@ -177,13 +184,14 @@ class Settings {
 	/** @return array<string, string> */
 	private function tabs(): array {
 		return [
-			'general'  => __( 'General',      'agnosis' ),
-			'email'    => __( 'Email Inbox',  'agnosis' ),
-			'ai'       => __( 'AI Providers', 'agnosis' ),
-			'behavior' => __( 'Behaviour',    'agnosis' ),
-			'network'  => __( 'Network',      'agnosis' ),
-			'commerce' => __( 'Commerce',     'agnosis' ),
-			'logs'     => __( 'Logs',         'agnosis' ),
+			'general'    => __( 'General',      'agnosis' ),
+			'email'      => __( 'Email Inbox',  'agnosis' ),
+			'ai'         => __( 'AI Providers', 'agnosis' ),
+			'behavior'   => __( 'Behaviour',    'agnosis' ),
+			'network'    => __( 'Network',      'agnosis' ),
+			'commerce'   => __( 'Commerce',     'agnosis' ),
+			'newsletter' => __( 'Newsletter',   'agnosis' ),
+			'logs'       => __( 'Logs',         'agnosis' ),
 		];
 	}
 
@@ -690,6 +698,87 @@ class Settings {
 				'type'    => 'number',
 				'sanitize' => fn( $v ) => (float) $v,
 			],
+
+			// --- NEWSLETTER ---
+			'agnosis_newsletter_from_name' => [
+				'tab'   => 'newsletter',
+				'label' => __( 'Sender name', 'agnosis' ),
+				'desc'  => __( 'Name shown as the sender of digest emails. Leave blank to use the site name.', 'agnosis' ),
+			],
+			'agnosis_newsletter_from_email' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Sender email address', 'agnosis' ),
+				'sanitize' => 'sanitize_email',
+				'desc'     => __( 'Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — keeps digest mail separate from the site\'s admin email for deliverability and so artists can filter it. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
+			],
+			'agnosis_newsletter_artist_enabled' => [
+				'tab'     => 'newsletter',
+				'label'   => __( 'Artist newsletter', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '1',
+				'desc'    => __( 'Admitted artists are auto-enrolled (they can unsubscribe from any issue with one click). Community digest: recent activity, new members, open votes.', 'agnosis' ),
+			],
+			'agnosis_newsletter_artist_frequency_days' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Artist newsletter frequency (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 30,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Default 30 ≈ monthly. A new issue is prepared once this many days have passed since the last one was sent.', 'agnosis' ),
+			],
+			'agnosis_newsletter_artist_intro' => [
+				'tab'   => 'newsletter',
+				'label' => __( 'Artist newsletter intro', 'agnosis' ),
+				'input' => 'textarea',
+				'rows'  => 4,
+				'desc'  => __( 'Optional note prepended to the next artist issue only — cleared automatically once that issue is queued. Leave blank to send the auto-digest with no intro.', 'agnosis' ),
+			],
+			'agnosis_newsletter_public_enabled' => [
+				'tab'     => 'newsletter',
+				'label'   => __( 'Public newsletter', 'agnosis' ),
+				'input'   => 'checkbox',
+				'default' => '1',
+				'desc'    => __( 'Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). Digest: new artwork and events published since the last issue.', 'agnosis' ),
+			],
+			'agnosis_newsletter_public_frequency_days' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Public newsletter frequency (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 30,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Default 30 ≈ monthly.', 'agnosis' ),
+			],
+			'agnosis_newsletter_public_intro' => [
+				'tab'   => 'newsletter',
+				'label' => __( 'Public newsletter intro', 'agnosis' ),
+				'input' => 'textarea',
+				'rows'  => 4,
+				'desc'  => __( 'Optional note prepended to the next public issue only — cleared automatically once that issue is queued.', 'agnosis' ),
+			],
+			'agnosis_newsletter_batch_size' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Send batch size', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 20,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Recipients emailed per 5-minute cron tick. Lower this if your host throttles outbound mail; raise it for faster delivery on hosts with generous limits.', 'agnosis' ),
+			],
+			'agnosis_newsletter_subscriber_warn_threshold' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Self-hosting comfort threshold', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 250,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Advisory only — self-hosted sending keeps working above this count. Once confirmed public subscribers pass it, this page shows a reminder to consider an email service provider (e.g. Brevo\'s free tier) instead.', 'agnosis' ),
+			],
 		];
 	}
 
@@ -844,6 +933,10 @@ class Settings {
 		if ( 'network' === $tab ) {
 			$this->render_admission_dashboard();
 			$this->render_members_dashboard();
+			return;
+		}
+		if ( 'newsletter' === $tab ) {
+			$this->render_newsletter_dashboard();
 			return;
 		}
 		if ( 'email' !== $tab ) {
@@ -1275,6 +1368,201 @@ class Settings {
 				'page'            => 'agnosis-settings',
 				'tab'             => 'network',
 				'agnosis_message' => $ok ? 'vote_opened' : 'vote_open_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Newsletter dashboard (Newsletter tab)
+	// -------------------------------------------------------------------------
+
+	private function render_newsletter_dashboard(): void {
+		$scheduler        = new Scheduler();
+		$sub_counts       = Subscriber::counts();
+		$threshold        = (int) get_option( 'agnosis_newsletter_subscriber_warn_threshold', 250 );
+		$artist_query     = new \WP_User_Query( [ 'role' => 'agnosis_artist', 'count_total' => true, 'number' => 0, 'fields' => 'ID' ] );
+		$artist_total     = (int) $artist_query->get_total();
+		$optout_query     = new \WP_User_Query( [
+			'role'       => 'agnosis_artist',
+			'count_total' => true,
+			'number'     => 0,
+			'fields'     => 'ID',
+			'meta_key'   => '_agnosis_newsletter_optout', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- small table (admitted artists only).
+			'meta_value' => '1', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		] );
+		$artist_optouts   = (int) $optout_query->get_total();
+
+		?>
+		<div class="card" style="max-width:900px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Newsletter Status', 'agnosis' ); ?></h2>
+
+			<?php if ( $sub_counts['confirmed'] > $threshold ) : ?>
+				<div class="notice notice-warning inline" style="margin:0 0 1rem">
+					<p>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: 1: confirmed public subscriber count, 2: configured comfort threshold */
+								__( 'You have %1$d confirmed public subscribers, above the configured comfort threshold of %2$d. Self-hosted sending still works, but you may want to connect an email service provider (e.g. Brevo\'s free tier) for better deliverability at this size.', 'agnosis' ),
+								(int) $sub_counts['confirmed'],
+								(int) $threshold
+							)
+						);
+						?>
+					</p>
+				</div>
+			<?php endif; ?>
+
+			<table class="widefat striped" style="border-radius:4px;overflow:hidden;margin-bottom:1.5rem">
+				<thead><tr>
+					<th><?php esc_html_e( 'Newsletter', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Audience', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Last sent', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Status', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Action', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Send a test', 'agnosis' ); ?></th>
+				</tr></thead>
+				<tbody>
+					<tr>
+						<td><strong><?php esc_html_e( 'Artist', 'agnosis' ); ?></strong></td>
+						<td>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: admitted artist count, 2: how many of them opted out */
+									__( '%1$d admitted (%2$d opted out)', 'agnosis' ),
+									$artist_total,
+									$artist_optouts
+								)
+							);
+							?>
+						</td>
+						<td><?php echo esc_html( $this->format_last_sent( $scheduler->last_sent_at( 'artist' ) ) ); ?></td>
+						<td><?php echo $scheduler->has_issue_in_flight( 'artist' ) ? esc_html__( 'Sending…', 'agnosis' ) : esc_html__( 'Idle', 'agnosis' ); ?></td>
+						<td>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<input type="hidden" name="action" value="agnosis_send_newsletter_now">
+								<input type="hidden" name="newsletter_type" value="artist">
+								<?php wp_nonce_field( 'agnosis_send_newsletter_artist' ); ?>
+								<?php submit_button( __( 'Send Now', 'agnosis' ), 'small', 'submit', false, $scheduler->has_issue_in_flight( 'artist' ) ? [ 'disabled' => 'disabled' ] : [] ); ?>
+							</form>
+						</td>
+						<td><?php $this->render_newsletter_test_form( 'artist' ); ?></td>
+					</tr>
+					<tr>
+						<td><strong><?php esc_html_e( 'Public', 'agnosis' ); ?></strong></td>
+						<td>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count */
+									__( '%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed', 'agnosis' ),
+									(int) $sub_counts['confirmed'],
+									(int) $sub_counts['pending'],
+									(int) $sub_counts['unsubscribed']
+								)
+							);
+							?>
+						</td>
+						<td><?php echo esc_html( $this->format_last_sent( $scheduler->last_sent_at( 'public' ) ) ); ?></td>
+						<td><?php echo $scheduler->has_issue_in_flight( 'public' ) ? esc_html__( 'Sending…', 'agnosis' ) : esc_html__( 'Idle', 'agnosis' ); ?></td>
+						<td>
+							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+								<input type="hidden" name="action" value="agnosis_send_newsletter_now">
+								<input type="hidden" name="newsletter_type" value="public">
+								<?php wp_nonce_field( 'agnosis_send_newsletter_public' ); ?>
+								<?php submit_button( __( 'Send Now', 'agnosis' ), 'small', 'submit', false, $scheduler->has_issue_in_flight( 'public' ) ? [ 'disabled' => 'disabled' ] : [] ); ?>
+							</form>
+						</td>
+						<td><?php $this->render_newsletter_test_form( 'public' ); ?></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<p class="description">
+				<?php esc_html_e( 'Add the "Newsletter Signup" block to any page to let visitors subscribe to the public newsletter. Artists are enrolled automatically and can unsubscribe from any issue with one click.', 'agnosis' ); ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	private function format_last_sent( ?string $mysql_datetime ): string {
+		if ( ! $mysql_datetime ) {
+			return __( 'Never', 'agnosis' );
+		}
+		return date_i18n( get_option( 'date_format' ), strtotime( $mysql_datetime ) );
+	}
+
+	/**
+	 * Inline "send a preview to one address" form for the Newsletter dashboard.
+	 *
+	 * Defaults to the current admin's own email. Sending a test does not touch
+	 * the schedule, the issues table, or any subscriber — see Scheduler::send_test().
+	 */
+	private function render_newsletter_test_form( string $type ): void {
+		$current_user = wp_get_current_user();
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.4rem;align-items:center">
+			<input type="hidden" name="action" value="agnosis_send_newsletter_test">
+			<input type="hidden" name="newsletter_type" value="<?php echo esc_attr( $type ); ?>">
+			<?php wp_nonce_field( 'agnosis_send_newsletter_test_' . $type ); ?>
+			<input type="email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
+			<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * admin-post handler: manually trigger a newsletter issue right now.
+	 */
+	public function handle_send_newsletter_now(): void {
+		$type = sanitize_key( wp_unslash( $_POST['newsletter_type'] ?? '' ) );
+
+		check_admin_referer( 'agnosis_send_newsletter_' . $type );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$scheduler = new Scheduler();
+		$result    = $scheduler->send_now( $type );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'newsletter',
+				'agnosis_message' => true === $result ? 'newsletter_sent' : 'newsletter_send_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: send a one-off preview of the next issue to a single
+	 * address. Does not touch the schedule, issues table, or any subscriber.
+	 */
+	public function handle_send_newsletter_test(): void {
+		$type = sanitize_key( wp_unslash( $_POST['newsletter_type'] ?? '' ) );
+
+		check_admin_referer( 'agnosis_send_newsletter_test_' . $type );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$test_email = sanitize_email( wp_unslash( $_POST['test_email'] ?? '' ) );
+
+		$scheduler = new Scheduler();
+		$result    = $scheduler->send_test( $type, $test_email );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'newsletter',
+				'agnosis_message' => true === $result ? 'newsletter_test_sent' : 'newsletter_test_failed',
 			],
 			admin_url( 'admin.php' )
 		) );

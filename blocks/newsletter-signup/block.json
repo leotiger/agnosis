@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/newsletter-signup",
+	"version": "0.3.0",
+	"title": "Newsletter Signup",
+	"category": "agnosis",
+	"icon": "email-alt",
+	"description": "Email signup form for the public newsletter (double opt-in). Submits to the newsletter subscribe REST endpoint.",
+	"keywords": [ "newsletter", "subscribe", "email", "signup", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"reusable": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"example": {}
+}
