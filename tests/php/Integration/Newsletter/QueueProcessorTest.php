@@ -136,10 +136,20 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
-	// Success / failure marking
+	// Success / failure marking, bounded retry (audit §3d)
 	// =========================================================================
 
-	public function test_failed_send_is_marked_failed_not_sent(): void {
+	private function queue_row( int $issue_id ): object {
+		global $wpdb;
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d LIMIT 1",
+				$issue_id
+			)
+		);
+	}
+
+	public function test_failed_send_stays_pending_and_increments_attempts(): void {
 		$this->create_confirmed_subscriber( 'bounces@example.com' );
 		$this->scheduler->send_now( 'public' );
 		$issue = $this->latest_issue( 'public' );
@@ -150,8 +160,78 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
 		$counts = $this->queue_status_counts( (int) $issue->id );
+		$this->assertSame( 0, $counts['failed'], 'A single failure must not be terminal — it should be retried.' );
+		$this->assertSame( 1, $counts['pending'] );
+
+		$row = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 1, (int) $row->attempts );
+	}
+
+	public function test_row_is_retried_on_the_next_tick_after_a_failure(): void {
+		$this->create_confirmed_subscriber( 'bounces@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$attempts_seen = 0;
+		$calls_unused  = [];
+		$filter        = $this->capture_mail(
+			$calls_unused,
+			function ( array $atts ) use ( &$attempts_seen ) {
+				$attempts_seen++;
+				return false;
+			}
+		);
+		$this->processor->process(); // attempt 1 — fails, stays pending
+		$this->processor->process(); // attempt 2 — fails, stays pending
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertSame( 2, $attempts_seen, 'wp_mail() must be retried on a later tick, not skipped once pending.' );
+
+		$row = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'pending', $row->status );
+		$this->assertSame( 2, (int) $row->attempts );
+	}
+
+	public function test_row_becomes_terminally_failed_once_max_attempts_exhausted(): void {
+		$this->create_confirmed_subscriber( 'bounces@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls, fn( array $atts ) => false );
+		// QueueProcessor::MAX_ATTEMPTS is 3 — three failing ticks must exhaust it.
+		$this->processor->process();
+		$this->processor->process();
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$row = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'failed', $row->status );
+		$this->assertSame( 3, (int) $row->attempts );
+		$this->assertNotEmpty( $row->resolved_at, 'resolved_at should be stamped as the final-failure time.' );
+
+		$counts = $this->queue_status_counts( (int) $issue->id );
 		$this->assertSame( 1, $counts['failed'] );
-		$this->assertSame( 0, $counts['sent'] );
+		$this->assertSame( 0, $counts['pending'] );
+	}
+
+	public function test_row_succeeding_after_a_prior_failure_is_marked_sent(): void {
+		$this->create_confirmed_subscriber( 'flaky@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls_a     = [];
+		$fail_filter = $this->capture_mail( $calls_a, fn( array $atts ) => false );
+		$this->processor->process(); // attempt 1 — fails, stays pending
+		remove_filter( 'pre_wp_mail', $fail_filter, 10 );
+
+		$calls_b   = [];
+		$ok_filter = $this->capture_mail( $calls_b ); // defaults to success
+		$this->processor->process(); // attempt 2 — succeeds
+		remove_filter( 'pre_wp_mail', $ok_filter, 10 );
+
+		$row = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'sent', $row->status );
 	}
 
 	// =========================================================================
@@ -207,6 +287,11 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 
 		$calls  = [];
 		$filter = $this->capture_mail( $calls, fn( array $atts ) => false ); // every send fails
+		// The row stays 'pending' (bounded retry, audit §3d) until MAX_ATTEMPTS
+		// ticks have failed — only then does it become terminal and unblock
+		// issue reconciliation.
+		$this->processor->process();
+		$this->processor->process();
 		$this->processor->process();
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
@@ -364,6 +449,24 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 
 		$headers = implode( "\n", (array) $calls[0]['headers'] );
 		$this->assertStringContainsString( 'List-Unsubscribe:', $headers );
+	}
+
+	/**
+	 * RFC 8058 one-click unsubscribe (audit §2b) — Gmail/Yahoo bulk-sender
+	 * rules and the Gmail/Outlook "Unsubscribe" UI affordance both key off
+	 * this header pair being present together.
+	 */
+	public function test_sent_mail_includes_rfc_8058_list_unsubscribe_post_header(): void {
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->scheduler->send_now( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$headers = implode( "\n", (array) $calls[0]['headers'] );
+		$this->assertStringContainsString( 'List-Unsubscribe-Post: List-Unsubscribe=One-Click', $headers );
 	}
 
 	public function test_artist_unsubscribe_url_includes_uid(): void {

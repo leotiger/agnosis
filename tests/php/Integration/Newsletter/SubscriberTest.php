@@ -59,25 +59,115 @@ class SubscriberTest extends \WP_UnitTestCase {
 		$this->assertFalse( Subscriber::confirm( $result['token'] ) );
 	}
 
-	public function test_subscribe_already_confirmed_email_errors(): void {
+	/**
+	 * Enumeration-safe (security audit §2c): re-subscribing an already-confirmed
+	 * address must NOT return a distinguishable error — same success shape as
+	 * every other outcome, just flagged internally so the REST layer knows not
+	 * to send a second confirmation email.
+	 */
+	public function test_subscribe_already_confirmed_email_returns_success_shape_not_error(): void {
 		$result = Subscriber::subscribe( 'taken@example.com' );
 		Subscriber::confirm( $result['token'] );
 
 		$second = Subscriber::subscribe( 'taken@example.com' );
 
-		$this->assertInstanceOf( \WP_Error::class, $second );
-		$this->assertSame( 'agnosis_already_subscribed', $second->get_error_code() );
+		$this->assertIsArray( $second );
+		$this->assertTrue( $second['already_confirmed'] );
+		$this->assertFalse( $second['resent'] );
+
+		// The confirmed row must be completely untouched — no new token issued.
+		$row = Subscriber::find_by_token( $result['token'] );
+		$this->assertSame( 'confirmed', $row['status'] );
 	}
 
-	public function test_subscribe_pending_email_resends_with_fresh_token(): void {
-		$first  = Subscriber::subscribe( 'resend@example.com' );
+	// =========================================================================
+	// Resend cooldown + pending expiry (security audit §2d)
+	// =========================================================================
+
+	/**
+	 * Repeated submissions for the same still-pending address within the
+	 * cooldown window (an impatient double-click, or a bot hammering the form)
+	 * must not rotate the token or trigger a fresh confirmation email.
+	 */
+	public function test_subscribe_pending_email_immediate_resubmission_is_throttled(): void {
+		$first  = Subscriber::subscribe( 'immediate@example.com' );
+		$second = Subscriber::subscribe( 'immediate@example.com' );
+
+		$this->assertTrue( $second['throttled'] );
+		$this->assertFalse( $second['resent'] );
+		$this->assertSame( $first['token'], $second['token'], 'Token must not rotate while throttled.' );
+
+		$row = Subscriber::find_by_token( $first['token'] );
+		$this->assertSame( 'pending', $row['status'], 'The original token must remain valid.' );
+	}
+
+	public function test_subscribe_pending_email_resends_with_fresh_token_after_cooldown(): void {
+		global $wpdb;
+
+		$first = Subscriber::subscribe( 'resend@example.com' );
+
+		// Backdate created_at past the resend cooldown window (400s > 300s).
+		$wpdb->query( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			"UPDATE {$wpdb->prefix}agnosis_newsletter_subscribers SET created_at = ( NOW() - INTERVAL 400 SECOND ) WHERE id = %d",
+			$first['id']
+		) );
+
 		$second = Subscriber::subscribe( 'resend@example.com' );
 
 		$this->assertTrue( $second['resent'] );
+		$this->assertFalse( $second['throttled'] );
 		$this->assertNotSame( $first['token'], $second['token'] );
 
 		// Old token must no longer resolve (row's token column was overwritten).
 		$this->assertNull( Subscriber::find_by_token( $first['token'] ) );
+	}
+
+	public function test_expire_stale_pending_deletes_abandoned_rows(): void {
+		global $wpdb;
+
+		$result = Subscriber::subscribe( 'abandoned@example.com' );
+		$wpdb->query( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			"UPDATE {$wpdb->prefix}agnosis_newsletter_subscribers SET created_at = ( NOW() - INTERVAL 15 DAY ) WHERE id = %d",
+			$result['id']
+		) );
+
+		$deleted = Subscriber::expire_stale_pending();
+
+		$this->assertSame( 1, $deleted );
+		$this->assertNull( Subscriber::find_by_token( $result['token'] ) );
+	}
+
+	public function test_expire_stale_pending_keeps_recent_pending_rows(): void {
+		$result = Subscriber::subscribe( 'fresh@example.com' );
+
+		$deleted = Subscriber::expire_stale_pending();
+
+		$this->assertSame( 0, $deleted );
+		$this->assertNotNull( Subscriber::find_by_token( $result['token'] ) );
+	}
+
+	public function test_expire_stale_pending_never_deletes_confirmed_or_unsubscribed_rows(): void {
+		global $wpdb;
+
+		$confirmed = Subscriber::subscribe( 'old-confirmed@example.com' );
+		Subscriber::confirm( $confirmed['token'] );
+
+		$unsub = Subscriber::subscribe( 'old-unsub@example.com' );
+		Subscriber::confirm( $unsub['token'] );
+		Subscriber::unsubscribe( $unsub['token'] );
+
+		// Backdate both as if they'd been sitting untouched for weeks.
+		$wpdb->query( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			"UPDATE {$wpdb->prefix}agnosis_newsletter_subscribers SET created_at = ( NOW() - INTERVAL 30 DAY ) WHERE id IN ( %d, %d )",
+			$confirmed['id'],
+			$unsub['id']
+		) );
+
+		$deleted = Subscriber::expire_stale_pending();
+
+		$this->assertSame( 0, $deleted, 'Only pending rows may ever be expired.' );
+		$this->assertNotNull( Subscriber::find_by_token( $confirmed['token'] ) );
+		$this->assertNotNull( Subscriber::find_by_token( $unsub['token'] ) );
 	}
 
 	public function test_unsubscribe_confirmed_subscriber(): void {

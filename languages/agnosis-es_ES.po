@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.2.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-01T20:23+00:00\n"
+"POT-Creation-Date: 2026-07-03T20:32+00:00\n"
 "PO-Revision-Date: 2026-06-29 12:21+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Spanish (Spain)\n"
@@ -1832,39 +1832,39 @@ msgstr ""
 msgid "Proposal not found."
 msgstr "Obra no encontrada."
 
-#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:502
+#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:527
 msgid "This vote is not currently open."
 msgstr ""
 
-#: includes/Artist/Departure.php:128
+#: includes/Artist/Departure.php:133
 #: includes/Publishing/SubmissionsPage.php:160
 msgid "You must be logged in."
 msgstr "Debes iniciar sesión."
 
-#: includes/Artist/Departure.php:132
+#: includes/Artist/Departure.php:137
 msgid "Artist access required."
 msgstr ""
 
-#: includes/Artist/Departure.php:156
+#: includes/Artist/Departure.php:161
 msgid "No active membership found for this account."
 msgstr ""
 
-#: includes/Artist/Departure.php:413
+#: includes/Artist/Departure.php:418
 #, fuzzy
 msgid "You cannot nominate yourself for removal."
 msgstr "No puedes dar tu aval por ti mismo."
 
-#: includes/Artist/Departure.php:423
+#: includes/Artist/Departure.php:428
 #, fuzzy
 msgid "Artist not found."
 msgstr "Obra no encontrada."
 
-#: includes/Artist/Departure.php:498
+#: includes/Artist/Departure.php:523
 #, fuzzy
 msgid "Removal request not found."
 msgstr "Dirección de solicitudes de eliminación"
 
-#: includes/Artist/Departure.php:506
+#: includes/Artist/Departure.php:531
 #, fuzzy
 msgid "You cannot vote on your own removal."
 msgstr "No puedes dar tu aval por ti mismo."
@@ -2079,7 +2079,7 @@ msgstr ""
 msgid "Your application has been received. The community will be in touch!"
 msgstr ""
 
-#: includes/Artist/JoinPage.php:180 includes/Newsletter/SignupBlock.php:88
+#: includes/Artist/JoinPage.php:180 includes/Newsletter/SignupBlock.php:89
 #, fuzzy
 msgid "Something went wrong. Please try again."
 msgstr "Algo salió mal."
@@ -2255,44 +2255,93 @@ msgstr "Archivos de obras de arte"
 msgid "Artwork Attributes"
 msgstr "Atributos de obras de arte"
 
-#: includes/Artist/VouchConfirm.php:56
+#: includes/Artist/RemovalVoteConfirm.php:70
+#: includes/Artist/VouchConfirm.php:63
 #, fuzzy
 msgid "Invalid vote link."
 msgstr "Token de revisión inválido."
 
-#: includes/Artist/VouchConfirm.php:61
+#: includes/Artist/RemovalVoteConfirm.php:75
+#: includes/Artist/VouchConfirm.php:68
 msgid "This vote link is invalid or has been tampered with."
 msgstr ""
 
-#: includes/Artist/VouchConfirm.php:67
+#: includes/Artist/RemovalVoteConfirm.php:89
+#: includes/Artist/VouchConfirm.php:82
 #, fuzzy
 msgid "Voter account not found."
 msgstr "Obra no encontrada."
 
-#: includes/Artist/VouchConfirm.php:102
+#: includes/Artist/RemovalVoteConfirm.php:143
+msgid "Vote to remove this artist from the community?"
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:144
+msgid "Vote to keep this artist in the community?"
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:146
+#: includes/Artist/VouchConfirm.php:136
+msgid "Your vote will be recorded once you confirm below."
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:147
+#: includes/Artist/VouchConfirm.php:137
+msgid "Confirm my vote"
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:187
+msgid "You voted to remove this artist from the community."
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:188
+msgid "You voted to keep this artist in the community."
+msgstr ""
+
+#. translators: %d: number of votes to remove recorded so far
+#: includes/Artist/RemovalVoteConfirm.php:192
+#, php-format
+msgid "%d vote to remove recorded so far."
+msgid_plural "%d votes to remove recorded so far."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/Artist/RemovalVoteConfirm.php:201
+#: includes/Artist/VouchConfirm.php:189
+msgid "Vote recorded"
+msgstr ""
+
+#: includes/Artist/RemovalVoteConfirm.php:205
+#: includes/Artist/VouchConfirm.php:193
+msgid "Vote error"
+msgstr ""
+
+#: includes/Artist/VouchConfirm.php:133
+#, fuzzy
+msgid "Vote in favour of this application?"
+msgstr "No tienes permiso para realizar esta acción."
+
+#: includes/Artist/VouchConfirm.php:134
+#, fuzzy
+msgid "Vote against this application?"
+msgstr "No tienes permiso para realizar esta acción."
+
+#: includes/Artist/VouchConfirm.php:175
 #, fuzzy
 msgid "You voted in favour of this application."
 msgstr "No tienes permiso para realizar esta acción."
 
-#: includes/Artist/VouchConfirm.php:103
+#: includes/Artist/VouchConfirm.php:176
 msgid "You voted against this application."
 msgstr ""
 
 #. translators: %d: number of positive votes so far
-#: includes/Artist/VouchConfirm.php:107
+#: includes/Artist/VouchConfirm.php:180
 #, php-format
 msgid "%d positive vote recorded so far."
 msgid_plural "%d positive votes recorded so far."
 msgstr[0] ""
 msgstr[1] ""
-
-#: includes/Artist/VouchConfirm.php:117
-msgid "Vote recorded"
-msgstr ""
-
-#: includes/Artist/VouchConfirm.php:124
-msgid "Vote error"
-msgstr ""
 
 #: includes/Compat/LinguaForge.php:577
 msgid "is active and configured for"
@@ -2362,15 +2411,15 @@ msgstr "Agnosis — El enrutamiento de subdominios de artistas está desactivado
 msgid "Open LinguaForge Settings"
 msgstr "Abrir configuración de LinguaForge"
 
-#: includes/Core/Activator.php:430 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:501 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Artista de Agnosis"
 
-#: includes/Core/Activator.php:536
+#: includes/Core/Activator.php:607
 msgid "My Submissions"
 msgstr "Mis envíos"
 
-#: includes/Core/Activator.php:674
+#: includes/Core/Activator.php:745
 msgid "Join"
 msgstr ""
 
@@ -2459,23 +2508,23 @@ msgstr ""
 msgid "Node URL is required."
 msgstr "Se requiere la URL del nodo."
 
-#: includes/Newsletter/Digest.php:34
+#: includes/Newsletter/Digest.php:47
 msgid ""
 "Nothing new to report this time — but the community is still here, and the "
 "next issue will have more."
 msgstr ""
 
-#: includes/Newsletter/Digest.php:41
+#: includes/Newsletter/Digest.php:54
 #, fuzzy
 msgid "New artwork"
 msgstr "Nueva obra de arte"
 
-#: includes/Newsletter/Digest.php:46
+#: includes/Newsletter/Digest.php:59
 msgid "Upcoming events"
 msgstr ""
 
 #. translators: %d: number of new artworks published
-#: includes/Newsletter/Digest.php:68
+#: includes/Newsletter/Digest.php:84
 #, php-format
 msgid "%d new artwork published"
 msgid_plural "%d new artworks published"
@@ -2483,7 +2532,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of new events announced
-#: includes/Newsletter/Digest.php:73
+#: includes/Newsletter/Digest.php:89
 #, php-format
 msgid "%d new event announced"
 msgid_plural "%d new events announced"
@@ -2491,7 +2540,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: comma-separated list of new members' display names
-#: includes/Newsletter/Digest.php:80
+#: includes/Newsletter/Digest.php:96
 #, php-format
 msgid "Welcome to our newest member: %s"
 msgid_plural "Welcome to our newest members: %s"
@@ -2499,7 +2548,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of open community votes
-#: includes/Newsletter/Digest.php:88
+#: includes/Newsletter/Digest.php:104
 #, php-format
 msgid ""
 "%d community vote is open — check your email for your personal voting link."
@@ -2509,12 +2558,12 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Newsletter/Digest.php:96
+#: includes/Newsletter/Digest.php:112
 msgid "Recent work from the community"
 msgstr ""
 
 #. translators: %d: number of additional items not individually listed
-#: includes/Newsletter/Digest.php:170
+#: includes/Newsletter/Digest.php:227
 #, php-format
 msgid "…and %d more."
 msgid_plural "…and %d more."
@@ -2526,7 +2575,7 @@ msgid "Community Newsletter"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/Newsletter/Mailer.php:59 includes/Newsletter/Subscription.php:130
+#: includes/Newsletter/Mailer.php:59 includes/Newsletter/Subscription.php:145
 #: includes/Publishing/Notification.php:247
 #: includes/Publishing/Notification.php:452
 #: includes/Publishing/Notification.php:719
@@ -2550,19 +2599,19 @@ msgstr ""
 msgid "[%s] Newsletter"
 msgstr ""
 
-#: includes/Newsletter/Scheduler.php:52 includes/Newsletter/Scheduler.php:75
+#: includes/Newsletter/Scheduler.php:71 includes/Newsletter/Scheduler.php:94
 msgid "Unknown newsletter type."
 msgstr ""
 
-#: includes/Newsletter/Scheduler.php:56
+#: includes/Newsletter/Scheduler.php:75
 msgid "A previous issue is still sending — please wait for it to finish."
 msgstr ""
 
-#: includes/Newsletter/Scheduler.php:78
+#: includes/Newsletter/Scheduler.php:97
 msgid "Please enter a valid email address to send the test to."
 msgstr ""
 
-#: includes/Newsletter/Scheduler.php:85
+#: includes/Newsletter/Scheduler.php:104
 msgid ""
 "This is a TEST send — it previews the next issue using the current draft "
 "intro and recent activity. It was not counted as a real send and no "
@@ -2571,54 +2620,51 @@ msgid ""
 msgstr ""
 
 #. translators: %s: real newsletter subject line
-#: includes/Newsletter/Scheduler.php:102
+#: includes/Newsletter/Scheduler.php:121
 #, php-format
 msgid "[TEST] %s"
 msgstr ""
 
-#: includes/Newsletter/Scheduler.php:109
+#: includes/Newsletter/Scheduler.php:128
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
 
-#: includes/Newsletter/SignupBlock.php:57
+#: includes/Newsletter/SignupBlock.php:58
 msgid "you@example.com"
 msgstr ""
 
-#: includes/Newsletter/SignupBlock.php:62
+#: includes/Newsletter/SignupBlock.php:63
 msgid "Subscribe"
 msgstr ""
 
-#: includes/Newsletter/SignupBlock.php:87
+#: includes/Newsletter/SignupBlock.php:88
 msgid "Almost there — check your inbox for a confirmation link."
 msgstr ""
 
-#: includes/Newsletter/Subscriber.php:43
+#: includes/Newsletter/Subscriber.php:67
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: includes/Newsletter/Subscriber.php:59
-msgid "This email address is already subscribed to the newsletter."
-msgstr ""
-
 #. translators: %s: site name
-#: includes/Newsletter/Subscription.php:86
+#: includes/Newsletter/Subscription.php:101
 #, php-format
 msgid "[%s] Confirm your newsletter subscription"
 msgstr ""
 
-#: includes/Newsletter/Subscription.php:109
+#: includes/Newsletter/Subscription.php:124
 msgid ""
 "Thanks for signing up! Confirm your email address to start receiving the "
 "newsletter."
 msgstr ""
 
-#: includes/Newsletter/Subscription.php:115
+#: includes/Newsletter/Subscription.php:130
+#: includes/Newsletter/SubscriptionConfirm.php:204
 #, fuzzy
 msgid "Confirm subscription"
 msgstr "Configuración"
 
-#: includes/Newsletter/Subscription.php:121
+#: includes/Newsletter/Subscription.php:136
 #, fuzzy
 msgid ""
 "If you didn't request this, simply ignore this email — you will not be "
@@ -2627,58 +2673,81 @@ msgstr ""
 "Si no solicitaste esta eliminación, simplemente ignora este correo "
 "electrónico — tu obra permanecerá publicada."
 
-#: includes/Newsletter/SubscriptionConfirm.php:46
+#: includes/Newsletter/SubscriptionConfirm.php:82
+#: includes/Newsletter/SubscriptionConfirm.php:139
 #, fuzzy
 msgid "Invalid or incomplete link."
 msgstr "Token de revisión inválido."
 
-#: includes/Newsletter/SubscriptionConfirm.php:57
+#: includes/Newsletter/SubscriptionConfirm.php:88
 msgid "Artists are automatically subscribed — there is nothing to confirm."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:69
+#: includes/Newsletter/SubscriptionConfirm.php:156
 #, fuzzy
 msgid "Subscription confirmed"
 msgstr "Proveedor de descripción"
 
-#: includes/Newsletter/SubscriptionConfirm.php:69
+#: includes/Newsletter/SubscriptionConfirm.php:156
 msgid "You're all set — the newsletter will land in your inbox from now on."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:71
+#: includes/Newsletter/SubscriptionConfirm.php:158
 #, fuzzy
 msgid "This confirmation link is invalid or has already been used."
 msgstr "Este enlace de confirmación expira en 7 días."
 
-#: includes/Newsletter/SubscriptionConfirm.php:77
-#: includes/Newsletter/SubscriptionConfirm.php:98
+#: includes/Newsletter/SubscriptionConfirm.php:164
+#: includes/Newsletter/SubscriptionConfirm.php:185
 msgid "Unsubscribed"
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:77
+#: includes/Newsletter/SubscriptionConfirm.php:164
 msgid "You will no longer receive the newsletter. Sorry to see you go."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:79
+#: includes/Newsletter/SubscriptionConfirm.php:166
 msgid "This unsubscribe link is invalid or has already been used."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:85
+#: includes/Newsletter/SubscriptionConfirm.php:172
 msgid "This unsubscribe link is invalid or has been tampered with."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:91
+#: includes/Newsletter/SubscriptionConfirm.php:178
 #, fuzzy
 msgid "Account not found."
 msgstr "Obra no encontrada."
 
-#: includes/Newsletter/SubscriptionConfirm.php:99
+#: includes/Newsletter/SubscriptionConfirm.php:186
 msgid ""
 "You will no longer receive the artist newsletter. You can re-subscribe any "
 "time from your submissions page."
 msgstr ""
 
-#: includes/Newsletter/SubscriptionConfirm.php:112
+#: includes/Newsletter/SubscriptionConfirm.php:202
+#, fuzzy
+msgid "Confirm your subscription?"
+msgstr "Configuración"
+
+#: includes/Newsletter/SubscriptionConfirm.php:203
+msgid "You'll start receiving the newsletter once you confirm below."
+msgstr ""
+
+#: includes/Newsletter/SubscriptionConfirm.php:206
+msgid "Unsubscribe from the newsletter?"
+msgstr ""
+
+#: includes/Newsletter/SubscriptionConfirm.php:207
+msgid "You will stop receiving the newsletter once you confirm below."
+msgstr ""
+
+#: includes/Newsletter/SubscriptionConfirm.php:208
+#, fuzzy
+msgid "Confirm unsubscribe"
+msgstr "Configuración"
+
+#: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr ""
 
@@ -3033,7 +3102,7 @@ msgid "Could not remove the artwork. Please try again."
 msgstr "No se pudo eliminar la obra. Por favor, intenta de nuevo."
 
 #: includes/Publishing/RemovalEndpoints.php:122
-#: includes/Publishing/ReviewConfirm.php:105
+#: includes/Publishing/ReviewConfirm.php:135
 msgid "Your artwork has been removed from the gallery."
 msgstr "Tu obra ha sido eliminada de la galería."
 
@@ -3057,37 +3126,37 @@ msgstr ""
 msgid "Invalid removal token."
 msgstr "Token de eliminación inválido."
 
-#: includes/Publishing/ReviewConfirm.php:96
+#: includes/Publishing/ReviewConfirm.php:126
 #, fuzzy
 msgid "Artwork published"
 msgstr "Obras de arte"
 
-#: includes/Publishing/ReviewConfirm.php:97
+#: includes/Publishing/ReviewConfirm.php:127
 #, fuzzy
 msgid "Submission discarded"
 msgstr "Contraseña del correo de envío"
 
-#: includes/Publishing/ReviewConfirm.php:98
+#: includes/Publishing/ReviewConfirm.php:128
 #, fuzzy
 msgid "Artwork removed"
 msgstr "Obra ya eliminada."
 
-#: includes/Publishing/ReviewConfirm.php:99
+#: includes/Publishing/ReviewConfirm.php:129
 #, fuzzy
 msgid "Link expired or already used"
 msgstr "Enlace de revisión no encontrado o ya utilizado."
 
-#: includes/Publishing/ReviewConfirm.php:103
+#: includes/Publishing/ReviewConfirm.php:133
 #, fuzzy
 msgid "The artwork has been published to the gallery."
 msgstr "Tu obra ha sido eliminada de la galería."
 
-#: includes/Publishing/ReviewConfirm.php:104
+#: includes/Publishing/ReviewConfirm.php:134
 #, fuzzy
 msgid "The submission has been discarded."
 msgstr "Este envío no está esperando revisión."
 
-#: includes/Publishing/ReviewConfirm.php:106
+#: includes/Publishing/ReviewConfirm.php:136
 #, fuzzy
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
@@ -3095,6 +3164,49 @@ msgid ""
 msgstr ""
 "Este enlace de revisión ha expirado. Por favor, inicia sesión para gestionar "
 "tus envíos."
+
+#: includes/Publishing/ReviewConfirm.php:177
+#, fuzzy
+msgid "Publish this artwork?"
+msgstr "Editar obra de arte"
+
+#: includes/Publishing/ReviewConfirm.php:178
+msgid "This will make the submission visible in the gallery."
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:179
+#, fuzzy
+msgid "Yes, publish it"
+msgstr "Publícalo"
+
+#: includes/Publishing/ReviewConfirm.php:182
+#, fuzzy
+msgid "Discard this submission?"
+msgstr "¿Deseas descartar esta presentación? Esto no se puede deshacer."
+
+#: includes/Publishing/ReviewConfirm.php:183
+msgid ""
+"This will permanently discard the submission — it will not be published."
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:184
+msgid "Yes, discard it"
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:187
+#, fuzzy
+msgid "Remove this artwork?"
+msgstr "Sí, elimina esta obra"
+
+#: includes/Publishing/ReviewConfirm.php:188
+#, fuzzy
+msgid "This will remove the published artwork from the gallery."
+msgstr "Tu obra ha sido eliminada de la galería."
+
+#: includes/Publishing/ReviewConfirm.php:189
+#, fuzzy
+msgid "Yes, remove it"
+msgstr "Sí, elimina esta obra"
 
 #: includes/Publishing/ReviewEndpoints.php:85
 #: includes/Publishing/ReviewEndpoints.php:146

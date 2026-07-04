@@ -11,13 +11,24 @@
  * sent to external resources, and browser history.  This class moves those
  * tokens off the REST layer:
  *
- *   /?agnosis_review=1&id={id}&action=approve&token=<token>   (email link)
+ *   /?agnosis_review=1&id={id}&action=approve&token=<token>   (email link, GET)
+ *       → renders a confirm page with a single POST button (no action taken yet)
+ *       → artist clicks the button → POST /?agnosis_review=1 (token in POST body)
  *       → server processes via rest_do_request() (no logged REST URL)
  *       → 302 → /?agnosis_result=approve                      (clean URL)
  *
- * The token appears only once — in the frontend shim URL's server log entry.
- * It is never forwarded to the REST access log, is never in browser history
- * after the redirect, and is never in a Referer header (same-origin redirect).
+ * The GET/POST split exists because corporate mail-security scanners (Outlook
+ * SafeLinks, Mimecast, Proofpoint, etc.) prefetch links in incoming email to
+ * scan them — issuing a GET, never a POST, and never clicking a button. Before
+ * this split, that prefetch alone was enough to approve, reject, or trash
+ * artwork, or consume a single-use token so the artist's real click showed
+ * "link expired". See docs/security audit §2a.
+ *
+ * The token still appears only once in a URL — in the initial GET's server log
+ * entry. The confirmation POST carries it only in the request body (a hidden
+ * form field), never in a query string, so it is never logged a second time,
+ * never forwarded to the REST access log, never in browser history after the
+ * final redirect, and never in a Referer header (same-origin redirect).
  *
  * Hooks registered in Plugin::register_services() on 'template_redirect' (priority 1).
  *
@@ -35,27 +46,46 @@ class ReviewConfirm {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Handle ?agnosis_review=1 — process the token action internally and
-	 * redirect to a clean confirmation URL.
+	 * Handle ?agnosis_review=1.
+	 *
+	 * On GET: renders a confirm page with a single POST button — no state
+	 * changes yet. On POST: processes the token action and redirects to a
+	 * clean confirmation URL.
 	 *
 	 * Must run on 'template_redirect' before WP attempts to load a template.
 	 */
 	public function handle_confirm(): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		if ( empty( $_GET['agnosis_review'] ) ) {
+		$is_post = $this->is_post_request();
+
+		// This branches to $_POST once the confirm button is clicked (§2a) —
+		// there is no WP nonce here because the request is unauthenticated by
+		// design (an email-link recipient with no WP session); the single-use
+		// HMAC-style review token plays the nonce's role instead.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+		$source = $is_post ? $_POST : $_GET;
+
+		if ( empty( $source['agnosis_review'] ) ) {
 			return;
 		}
 
-		$id     = absint( wp_unslash( $_GET['id'] ?? 0 ) );
-		$action = sanitize_key( wp_unslash( $_GET['action'] ?? '' ) );
-		$token  = sanitize_text_field( wp_unslash( $_GET['token'] ?? '' ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		$id     = absint( wp_unslash( $source['id'] ?? 0 ) );
+		$action = sanitize_key( wp_unslash( $source['action'] ?? '' ) );
+		$token  = sanitize_text_field( wp_unslash( $source['token'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
 		$allowed = [ 'approve', 'reject', 'remove' ];
 
 		if ( ! $id || ! $token || ! in_array( $action, $allowed, true ) ) {
 			wp_safe_redirect( home_url( '/' ) );
 			exit;
+		}
+
+		// GET only renders the confirm page — a mail scanner prefetching this
+		// URL gets a harmless page, not a state change. The token travels in
+		// the confirm form's hidden POST field, never in the form's action URL.
+		if ( ! $is_post ) {
+			$this->render_confirm( $id, $action, $token );
+			return;
 		}
 
 		// Map action to REST path.  Token travels in the POST body via
@@ -129,5 +159,70 @@ class ReviewConfirm {
 		);
 
 		wp_die( $html, esc_html( $label ), [ 'response' => $status ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $html is fully escaped above.
+	}
+
+	// -------------------------------------------------------------------------
+	// Confirm interstitial (GET) — no state change, single POST button
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render a "are you sure" page with a single POST button for a validated
+	 * (but not yet executed) action. Reached only via GET — the button's form
+	 * POSTs the id/action/token back as hidden fields so the token never
+	 * appears in the form's action URL.
+	 */
+	private function render_confirm( int $id, string $action, string $token ): void {
+		$prompts = [
+			'approve' => [
+				__( 'Publish this artwork?', 'agnosis' ),
+				__( 'This will make the submission visible in the gallery.', 'agnosis' ),
+				__( 'Yes, publish it', 'agnosis' ),
+			],
+			'reject'  => [
+				__( 'Discard this submission?', 'agnosis' ),
+				__( 'This will permanently discard the submission — it will not be published.', 'agnosis' ),
+				__( 'Yes, discard it', 'agnosis' ),
+			],
+			'remove'  => [
+				__( 'Remove this artwork?', 'agnosis' ),
+				__( 'This will remove the published artwork from the gallery.', 'agnosis' ),
+				__( 'Yes, remove it', 'agnosis' ),
+			],
+		];
+
+		[ $title, $description, $button ] = $prompts[ $action ];
+
+		$html = sprintf(
+			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
+			. '<p style="font-size:32px;color:#7c6af7;margin:0 0 16px;">✦</p>'
+			. '<h1 style="font-size:22px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
+			. '<p style="font-size:16px;color:#555;margin:0 0 32px;">%2$s</p>'
+			. '<form method="post" action="%3$s">'
+			. '<input type="hidden" name="agnosis_review" value="1">'
+			. '<input type="hidden" name="id" value="%4$s">'
+			. '<input type="hidden" name="action" value="%5$s">'
+			. '<input type="hidden" name="token" value="%6$s">'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:15px;font-family:inherit;cursor:pointer;">%7$s</button>'
+			. '</form>'
+			. '<p style="margin:24px 0 0;"><a href="%8$s" style="color:#999;font-size:14px;text-decoration:none;">&larr; %9$s</a></p>'
+			. '</div>',
+			esc_html( $title ),
+			esc_html( $description ),
+			esc_url( home_url( '/' ) ),
+			esc_attr( (string) $id ),
+			esc_attr( $action ),
+			esc_attr( $token ),
+			esc_html( $button ),
+			esc_url( home_url( '/' ) ),
+			esc_html( get_bloginfo( 'name' ) )
+		);
+
+		wp_die( $html, esc_html( $title ), [ 'response' => 200 ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $html is fully escaped above.
+	}
+
+	/** True when the current request is a POST (the confirm button was clicked). */
+	private function is_post_request(): bool {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- comparison only, not used as output.
+		return isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'];
 	}
 }

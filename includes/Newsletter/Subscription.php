@@ -7,6 +7,11 @@
  * confirmation email is always sent before a subscriber is added to any send
  * list — nobody starts receiving mail just by typing an address into a form.
  *
+ * The endpoint's response is enumeration-safe (security audit §2c): it always
+ * returns 201 with the same body, whether the address is new, still pending,
+ * or already confirmed — see Subscriber::subscribe()'s `already_confirmed`
+ * flag, which only ever changes whether a confirmation email goes out.
+ *
  * @package Agnosis\Newsletter
  */
 
@@ -56,7 +61,17 @@ class Subscription {
 			return $result;
 		}
 
-		$this->send_confirmation_email( $email, (string) $result['token'], $locale );
+		// Enumeration-safe (security audit §2c): the response is identical
+		// (201, same body) whether this address was brand new, still pending,
+		// or already confirmed — only whether an email goes out differs, and
+		// that's invisible to the caller. Skip re-sending a confirmation to an
+		// address that's already confirmed (nothing left to confirm), and skip
+		// it too when the address just resubmitted within the resend cooldown
+		// (security audit §2d) — an impatient double-click or a bot hammering
+		// the form must not get a fresh email every time.
+		if ( empty( $result['already_confirmed'] ) && empty( $result['throttled'] ) ) {
+			$this->send_confirmation_email( $email, (string) $result['token'], $locale );
+		}
 
 		return new WP_REST_Response( [ 'status' => 'pending_confirmation' ], 201 );
 	}

@@ -351,4 +351,107 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$this->expectNotToPerformAssertions();
 		Activator::maybe_upgrade();
 	}
+
+	// =========================================================================
+	// maybe_upgrade() — agnosis_newsletter_queue.sent_at -> resolved_at (§3f)
+	// =========================================================================
+
+	/**
+	 * Put agnosis_newsletter_queue back into its pre-0.4.3 shape (sent_at,
+	 * no resolved_at) so maybe_upgrade()'s rename path can be exercised.
+	 *
+	 * Guarded/idempotent rather than a blind DROP + ADD: ALTER TABLE is DDL,
+	 * which implicit-commits in MySQL/InnoDB and so is never undone by the
+	 * per-test transaction rollback the WP test suite normally relies on for
+	 * isolation. A prior run of this fixture that was interrupted before
+	 * Activator::maybe_upgrade() renamed the column back (e.g. a failed
+	 * assertion, or these two tests running out of the order PHPUnit happened
+	 * to pick) would otherwise leave sent_at already present, and a second
+	 * blind "ADD COLUMN sent_at" would fail with a duplicate-column DB error —
+	 * which is exactly what surfaced running the full suite. A single
+	 * existence-checked CHANGE COLUMN (matching Activator::maybe_upgrade()'s
+	 * own defensive style) is safe to call repeatedly from either state.
+	 */
+	private function simulate_legacy_sent_at_column(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_sent_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'sent_at'" );
+		if ( ! empty( $has_sent_at ) ) {
+			return; // Already in the legacy shape — nothing to do.
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_resolved_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'resolved_at'" );
+		if ( ! empty( $has_resolved_at ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue CHANGE COLUMN resolved_at sent_at DATETIME DEFAULT NULL" );
+		} else {
+			// Neither column present somehow — add the legacy one fresh.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN sent_at DATETIME DEFAULT NULL" );
+		}
+	}
+
+	public function test_maybe_upgrade_renames_legacy_sent_at_to_resolved_at(): void {
+		global $wpdb;
+
+		// Simulate a pre-0.4.3 install: rename resolved_at back to the old sent_at.
+		$this->simulate_legacy_sent_at_column();
+
+		Activator::maybe_upgrade();
+
+		$has_resolved = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'resolved_at'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_sent_at  = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'sent_at'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$this->assertNotEmpty( $has_resolved, 'resolved_at must exist after upgrade.' );
+		$this->assertEmpty( $has_sent_at, 'The legacy sent_at column name must be gone (renamed, not duplicated).' );
+	}
+
+	public function test_maybe_upgrade_preserves_queue_row_data_when_renaming_sent_at(): void {
+		global $wpdb;
+
+		$this->simulate_legacy_sent_at_column();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_newsletter_queue',
+			[
+				'issue_id'          => 999999,
+				'recipient_email'   => 'legacy@example.com',
+				'recipient_type'    => 'public',
+				'unsubscribe_token' => 'legacytoken',
+				'status'            => 'sent',
+				'sent_at'           => '2026-01-01 00:00:00',
+			],
+			[ '%d', '%s', '%s', '%s', '%s', '%s' ]
+		);
+
+		Activator::maybe_upgrade();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$value = $wpdb->get_var( $wpdb->prepare(
+			"SELECT resolved_at FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE recipient_email = %s",
+			'legacy@example.com'
+		) );
+
+		$this->assertSame( '2026-01-01 00:00:00', $value, 'Existing data must survive the rename.' );
+	}
+
+	// =========================================================================
+	// maybe_upgrade() — subscribers.email VARCHAR(255) -> VARCHAR(191) (§3f/§2d)
+	// =========================================================================
+
+	public function test_maybe_upgrade_shortens_legacy_email_column_width(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_subscribers MODIFY COLUMN email VARCHAR(255) NOT NULL" );
+
+		Activator::maybe_upgrade();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_subscribers LIKE 'email'" );
+		$this->assertStringContainsString( 'varchar(191)', strtolower( (string) $col->Type ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+	}
 }

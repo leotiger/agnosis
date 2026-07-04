@@ -33,6 +33,14 @@
  *     - Returns true on success
  *     - Escalates an existing 'nominating' request to 'open' rather than creating a duplicate
  *
+ *   record_vote_on_request() — shared core used by both cast_vote() (REST) and
+ *   RemovalVoteConfirm (email-link shim, security audit §2e):
+ *     - Records a yes/no vote on an open request
+ *     - Returns 404 for an unknown request
+ *     - Returns an error when the request is not 'open'
+ *     - Returns an error when the voter is the subject of the removal
+ *     - cast_vote() (REST) delegates to it with the current user as voter
+ *
  * @package Agnosis\Tests\Integration\Artist
  */
 
@@ -92,6 +100,24 @@ class DepartureTest extends \WP_UnitTestCase {
 			'post_author' => $user_id,
 			'post_status' => 'publish',
 		] );
+	}
+
+	/** Insert an 'open' removal request for $subject_id and return its row ID. */
+	private function create_open_removal_request( int $subject_id ): int {
+		global $wpdb;
+
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$wpdb->prefix . 'agnosis_removal_requests',
+			[
+				'subject_user_id' => $subject_id,
+				'status'          => 'open',
+				'opened_at'       => current_time( 'mysql' ),
+				'closes_at'       => gmdate( 'Y-m-d H:i:s', strtotime( '+7 days' ) ),
+			],
+			[ '%d', '%s', '%s', '%s' ]
+		);
+
+		return (int) $wpdb->insert_id;
 	}
 
 	// -------------------------------------------------------------------------
@@ -470,5 +496,96 @@ class DepartureTest extends \WP_UnitTestCase {
 
 		$this->assertFalse( $result,
 			'initiate_removal_for_user() must return false when there is no active membership.' );
+	}
+
+	// =========================================================================
+	// record_vote_on_request() — shared core (REST cast_vote() + RemovalVoteConfirm)
+	// =========================================================================
+
+	public function test_record_vote_on_request_records_yes_vote(): void {
+		[ $subject_id, ] = $this->create_admitted_artist( 'subject1@example.com' );
+		[ $voter_id, ]   = $this->create_admitted_artist( 'voter1@example.com' );
+
+		$request_id = $this->create_open_removal_request( $subject_id );
+
+		$result = $this->departure->record_vote_on_request( $request_id, $voter_id, 'yes' );
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$data = $result->get_data();
+		$this->assertSame( 'recorded', $data['status'] );
+		$this->assertSame( 'yes', $data['vote'] );
+		$this->assertSame( 1, $data['yes_votes'] );
+		$this->assertSame( 0, $data['no_votes'] );
+	}
+
+	public function test_record_vote_on_request_records_no_vote(): void {
+		[ $subject_id, ] = $this->create_admitted_artist( 'subject2@example.com' );
+		[ $voter_id, ]   = $this->create_admitted_artist( 'voter2@example.com' );
+
+		$request_id = $this->create_open_removal_request( $subject_id );
+
+		$result = $this->departure->record_vote_on_request( $request_id, $voter_id, 'no' );
+
+		$data = $result->get_data();
+		$this->assertSame( 0, $data['yes_votes'] );
+		$this->assertSame( 1, $data['no_votes'] );
+	}
+
+	public function test_record_vote_on_request_returns_404_for_unknown_request(): void {
+		[ $voter_id, ] = $this->create_admitted_artist( 'voter3@example.com' );
+
+		$result = $this->departure->record_vote_on_request( 999999, $voter_id, 'yes' );
+
+		$this->assertTrue( is_wp_error( $result ) );
+		$this->assertSame( 404, $result->get_error_data()['status'] );
+	}
+
+	public function test_record_vote_on_request_returns_error_when_not_open(): void {
+		global $wpdb;
+
+		[ $subject_id, ] = $this->create_admitted_artist( 'subject4@example.com' );
+		[ $voter_id, ]   = $this->create_admitted_artist( 'voter4@example.com' );
+
+		$request_id = $this->create_open_removal_request( $subject_id );
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prefix . 'agnosis_removal_requests',
+			[ 'status' => 'passed' ],
+			[ 'id' => $request_id ],
+			[ '%s' ], [ '%d' ]
+		);
+
+		$result = $this->departure->record_vote_on_request( $request_id, $voter_id, 'yes' );
+
+		$this->assertTrue( is_wp_error( $result ) );
+		$this->assertSame( 409, $result->get_error_data()['status'] );
+	}
+
+	public function test_record_vote_on_request_rejects_self_vote(): void {
+		[ $subject_id, ] = $this->create_admitted_artist( 'subject5@example.com' );
+
+		$request_id = $this->create_open_removal_request( $subject_id );
+
+		$result = $this->departure->record_vote_on_request( $request_id, $subject_id, 'yes' );
+
+		$this->assertTrue( is_wp_error( $result ) );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+	}
+
+	public function test_cast_vote_rest_delegates_to_record_vote_on_request(): void {
+		[ $subject_id, ] = $this->create_admitted_artist( 'subject6@example.com' );
+		[ $voter_id, ]   = $this->create_admitted_artist( 'voter6@example.com' );
+
+		$request_id = $this->create_open_removal_request( $subject_id );
+
+		wp_set_current_user( $voter_id );
+
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/removal/vote/' . $request_id );
+		$request->set_param( 'id', $request_id );
+		$request->set_param( 'vote', 'yes' );
+
+		$result = $this->departure->cast_vote( $request );
+
+		$this->assertFalse( is_wp_error( $result ) );
+		$this->assertSame( 1, $result->get_data()['yes_votes'] );
 	}
 }

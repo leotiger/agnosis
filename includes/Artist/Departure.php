@@ -35,6 +35,11 @@
  * Self-removal confirmation is handled by a template_redirect shim that reads
  * the ?agnosis_departure=1&token={token} query string (see Plugin.php).
  *
+ * Community removal votes cast via the email link (as opposed to the
+ * authenticated REST route above) are handled by a separate template_redirect
+ * shim, RemovalVoteConfirm, which reads the ?agnosis_removal_vote=1&… query
+ * string and calls record_vote_on_request() below (see Plugin.php).
+ *
  * @package Agnosis\Artist
  */
 
@@ -480,11 +485,31 @@ class Departure {
 	 * of themselves.
 	 */
 	public function cast_vote( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		global $wpdb;
-
 		$request_id = (int) $request->get_param( 'id' );
 		$voter_id   = get_current_user_id();
 		$vote       = (string) $request->get_param( 'vote' );
+
+		return $this->record_vote_on_request( $request_id, $voter_id, $vote );
+	}
+
+	/**
+	 * Core removal-vote logic — used by both the authenticated REST endpoint
+	 * above (cast_vote()) and the email-link shim (RemovalVoteConfirm), the
+	 * same way Admission::record_vote() is shared between its REST route and
+	 * VouchConfirm.
+	 *
+	 * Only valid while the request is 'open'. Voters cannot vote on their own
+	 * removal. Distinct from the private record_removal_vote() helper used by
+	 * nominate() — that one intentionally skips these checks because
+	 * nominate() has already validated its own (different) business rules
+	 * before calling it.
+	 *
+	 * @param int    $request_id Removal request row ID.
+	 * @param int    $voter_id   WP user ID of the voting artist.
+	 * @param string $vote       'yes' or 'no'.
+	 */
+	public function record_vote_on_request( int $request_id, int $voter_id, string $vote ): WP_REST_Response|WP_Error {
+		global $wpdb;
 
 		$removal = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(

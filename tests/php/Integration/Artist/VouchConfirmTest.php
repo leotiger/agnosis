@@ -2,8 +2,12 @@
 /**
  * Integration tests — VouchConfirm template_redirect vote handler.
  *
- * VouchConfirm::handle() calls exit() after rendering its response page, so
- * full end-to-end flow tests are deferred. Instead, this suite covers:
+ * Since the §2a fix (mail-security scanners prefetching action links),
+ * handle() only calls exit() (via wp_die()) after the token is verified — and
+ * only *records* the vote on POST. GET renders a confirm interstitial and
+ * leaves the DB untouched. wp_die() is intercepted via the 'wp_die_handler'
+ * filter (thrown as DieCapture) so both paths can now be exercised end-to-end
+ * without killing the test process. This suite covers:
  *
  *   verify_token() (via Reflection — private method):
  *     - Returns true for a correctly-signed token
@@ -16,6 +20,12 @@
  *   handle() — no-op guard:
  *     - Returns immediately (no side effects) when agnosis_vouch is absent
  *     - Does not touch the DB when the query string is empty
+ *
+ *   handle() — GET vs. POST (§2a):
+ *     - GET renders the confirm interstitial and does not record a vote
+ *     - POST records the vote and renders the success page
+ *     - An invalid/tampered token renders an error on GET already (cheap,
+ *       stateless HMAC check — no DB write either way)
  *
  *   Token ↔ vote_url() round-trip:
  *     - A token produced by vote_url() passes verify_token() for the same params
@@ -35,6 +45,7 @@ namespace Agnosis\Tests\Integration\Artist;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\VouchConfirm;
+use Agnosis\Tests\Integration\Support\DieCapture;
 
 class VouchConfirmTest extends \WP_UnitTestCase {
 
@@ -55,6 +66,26 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 
 		update_option( 'agnosis_admission_percent', 0 );
 		update_option( 'agnosis_admission_minimum', 2 );
+
+		// Intercept wp_die() — throw instead of outputting HTML/exiting.
+		$die_interceptor = static function (): callable {
+			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
+				$http_status = (int) ( $args['response'] ?? 200 );
+				$title_str   = is_string( $title ) ? $title : '';
+				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
+				throw new DieCapture( $msg_str, $title_str, $http_status );
+			};
+		};
+		add_filter( 'wp_die_handler',      $die_interceptor );
+		add_filter( 'wp_die_ajax_handler', $die_interceptor );
+	}
+
+	protected function tearDown(): void {
+		unset( $_GET['agnosis_vouch'], $_GET['voter'], $_GET['app'], $_GET['vote'], $_GET['token'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_POST['agnosis_vouch'], $_POST['voter'], $_POST['app'], $_POST['vote'], $_POST['token'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_SERVER['REQUEST_METHOD'] );
+
+		parent::tearDown();
 	}
 
 	// -------------------------------------------------------------------------
@@ -199,6 +230,84 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 		);
 
 		$this->assertSame( $before, $after, 'handle() must not write to DB when agnosis_vouch is absent.' );
+	}
+
+	// =========================================================================
+	// handle() — GET renders the confirm interstitial, does not record a vote (§2a)
+	// =========================================================================
+
+	public function test_handle_get_renders_interstitial_without_recording_vote(): void {
+		$artist         = $this->create_artist();
+		$application_id = $this->insert_application( 'interstitial@example.com' );
+		$token          = $this->make_token( $artist, $application_id, 'yes' );
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_GET['agnosis_vouch'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['voter']         = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['app']           = (string) $application_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['vote']          = 'yes'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['token']         = $token; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->confirm->handle();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'favour', $e->body );
+		}
+
+		$this->assertSame(
+			0,
+			$this->admission->count_positive_vouches( $application_id ),
+			'GET alone must never record a vote — only the confirm POST may.'
+		);
+	}
+
+	public function test_handle_post_records_vote_and_renders_success(): void {
+		$artist         = $this->create_artist();
+		$application_id = $this->insert_application( 'postvote@example.com' );
+		$token          = $this->make_token( $artist, $application_id, 'yes' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_vouch'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['voter']         = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['app']           = (string) $application_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote']          = 'yes'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']         = $token; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->confirm->handle();
+			$this->fail( 'Expected the success page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+		}
+
+		$this->assertSame(
+			1,
+			$this->admission->count_positive_vouches( $application_id ),
+			'POST with a valid token must record the vote.'
+		);
+	}
+
+	public function test_handle_get_with_tampered_token_renders_error_and_does_not_record(): void {
+		$artist         = $this->create_artist();
+		$application_id = $this->insert_application( 'tampered@example.com' );
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_GET['agnosis_vouch'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['voter']         = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['app']           = (string) $application_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['vote']          = 'yes'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['token']         = 'not-the-real-token'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->confirm->handle();
+			$this->fail( 'Expected the error page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'tampered', $e->body );
+		}
+
+		$this->assertSame( 0, $this->admission->count_positive_vouches( $application_id ) );
 	}
 
 	// =========================================================================

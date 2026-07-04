@@ -33,8 +33,18 @@
 				submit.disabled = true;
 				submit.setAttribute( 'aria-busy', 'true' );
 
+				// document.documentElement.lang reflects the language of the page the
+				// visitor is actually on (WordPress/Lingua Forge set it per language
+				// version — e.g. "es-ES" on /es/), so a subscriber signing up from a
+				// translated page gets the right locale for free, with no extra form
+				// field. Only the primary subtag is sent — the REST endpoint's
+				// iso_to_wp_locale() map keys on that (mirrors the same
+				// split-on-hyphen logic Admission::apply() uses for Accept-Language).
+				var htmlLang = ( document.documentElement.lang || '' ).split( '-' )[ 0 ].toLowerCase();
+
 				var payload = {
-					email: ( form.querySelector( '[name="email"]' ) || {} ).value || '',
+					email:    ( form.querySelector( '[name="email"]' ) || {} ).value || '',
+					language: htmlLang,
 				};
 
 				fetch( cfg.apiUrl || '', {

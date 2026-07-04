@@ -112,6 +112,55 @@ class Activator {
 			}
 		}
 
+		// Add attempts to agnosis_newsletter_queue if missing (column added in 0.4.3,
+		// bounded send-retry — see security audit §3d).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$queue_table_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_newsletter_queue'" );
+		if ( ! empty( $queue_table_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_attempts = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'attempts'" );
+			if ( empty( $has_attempts ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER status" );
+			}
+
+			// Rename sent_at to resolved_at on existing installs (renamed in 0.4.3
+			// — "sent_at" was a misleading name for a column also stamped on a
+			// terminal failure, not just a real send; see security audit §3f).
+			// dbDelta() can't rename columns (it would just add resolved_at
+			// alongside the untouched old one), so this needs an explicit ALTER.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_resolved_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'resolved_at'" );
+			if ( empty( $has_resolved_at ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$has_old_sent_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'sent_at'" );
+				if ( ! empty( $has_old_sent_at ) ) {
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+					$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue CHANGE COLUMN sent_at resolved_at DATETIME DEFAULT NULL" );
+				} else {
+					// Table exists but predates both names somehow — add fresh.
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+					$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN resolved_at DATETIME DEFAULT NULL" );
+				}
+			}
+		}
+
+		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
+		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char
+		// UNIQUE index under utf8mb4 exceeds the 767-byte limit on older
+		// MariaDB/MyISAM configs; 191 stays safely under it everywhere. Only
+		// runs if the column is still at its old, wider definition.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$subscribers_table_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_newsletter_subscribers'" );
+		if ( ! empty( $subscribers_table_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$email_col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_subscribers LIKE 'email'" );
+			if ( $email_col && false !== strpos( (string) $email_col->Type, 'varchar(255)' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_subscribers MODIFY COLUMN email VARCHAR(191) NOT NULL" );
+			}
+		}
+
 		// Finish the upgrade with idempotent provisioning so a version bump fully
 		// applies: new tables (dbDelta), new default options, the role, and all
 		// scheduled events (incl. agnosis_check_cap_votes). Each step is a no-op when
@@ -352,9 +401,14 @@ class Activator {
 		// stored here — the artist newsletter audience is derived live from
 		// WP_User_Query (role agnosis_artist) minus the _agnosis_newsletter_optout
 		// user meta flag, so there is never a second, driftable copy of who is a member.
+		// email is VARCHAR(191), not 255: under utf8mb4 (4 bytes/char), a 255-char
+		// UNIQUE index needs 1020 bytes, over the 767-byte limit on older
+		// MariaDB/MyISAM configs; 191 (WordPress core's own long-standing
+		// convention for indexed email/login columns) stays safely under it in
+		// every configuration — see security audit §3f/§2d.
 		$sql_newsletter_subscribers = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_subscribers (
 			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			email           VARCHAR(255)    NOT NULL,
+			email           VARCHAR(191)    NOT NULL,
 			status          ENUM('pending','confirmed','unsubscribed') NOT NULL DEFAULT 'pending',
 			token           VARCHAR(64)     NOT NULL,
 			locale          VARCHAR(10)     DEFAULT NULL,
@@ -396,6 +450,12 @@ class Activator {
 		// locale is the recipient's resolved send-locale (their own locale, or the
 		// site default when none is known) — set once at fan-out time so send-time
 		// localization never needs a repeat per-recipient DB/meta lookup.
+		// attempts counts failed wp_mail() calls; a row stays 'pending' (retried on
+		// a later tick) until QueueProcessor::MAX_ATTEMPTS is reached, then flips to
+		// 'failed' for good — see security audit §3d.
+		// resolved_at (named sent_at before 0.4.3) is stamped for BOTH a real send
+		// and a terminal failure — "sent_at" was a misleading name for a failure
+		// timestamp; see security audit §3f.
 		$sql_newsletter_queue = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_queue (
 			id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			issue_id          BIGINT UNSIGNED NOT NULL,
@@ -405,8 +465,9 @@ class Activator {
 			unsubscribe_token VARCHAR(64)     NOT NULL,
 			locale            VARCHAR(10)     DEFAULT NULL,
 			status            ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+			attempts          SMALLINT UNSIGNED NOT NULL DEFAULT 0,
 			created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			sent_at           DATETIME        DEFAULT NULL,
+			resolved_at       DATETIME        DEFAULT NULL,
 			PRIMARY KEY       (id),
 			KEY               idx_issue (issue_id),
 			KEY               idx_status (status)

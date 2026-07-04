@@ -4,8 +4,16 @@
  *
  * ReviewConfirm is the security boundary between the one-click email links
  * artists receive and the REST endpoints that change post state.  It runs on
- * 'template_redirect', reads query params, calls rest_do_request() internally
- * (token in POST body, never in a logged URL), then redirects to a clean URL.
+ * 'template_redirect', reads query/post params, calls rest_do_request()
+ * internally (token in POST body, never in a logged URL), then redirects to a
+ * clean URL.
+ *
+ * Since the §2a fix (mail-security scanners prefetching action links), a
+ * plain GET no longer executes anything: it renders a "confirm" interstitial
+ * with a single POST button, and the action is only taken once that POST
+ * arrives. This suite therefore exercises both halves — GET renders the
+ * interstitial and leaves state untouched, POST performs the action — using
+ * $_SERVER['REQUEST_METHOD'] to simulate each.
  *
  * Testing strategy
  * ────────────────
@@ -14,7 +22,9 @@
  * us assert on the destination URL without killing the test process.
  *
  * Similarly, wp_die() is intercepted via 'wp_die_handler' to capture the
- * message and status code instead of outputting HTML.
+ * message and status code instead of outputting HTML. Both the confirm
+ * interstitial and the result page go through wp_die(), so this same
+ * interception covers both.
  *
  * @package Agnosis\Tests\Integration\Publishing
  */
@@ -87,12 +97,34 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 
 	protected function tearDown(): void {
 		unset( $_GET['agnosis_review'], $_GET['id'], $_GET['action'], $_GET['token'], $_GET['agnosis_result'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_POST['agnosis_review'], $_POST['id'], $_POST['action'], $_POST['token'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_SERVER['REQUEST_METHOD'] );
 
 		parent::tearDown();
 	}
 
 	// -------------------------------------------------------------------------
-	// handle_confirm() — guard clauses
+	// Helpers
+	// -------------------------------------------------------------------------
+
+	/** Simulate the initial GET from the email link. */
+	private function simulate_get( array $params ): void {
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		foreach ( $params as $key => $value ) {
+			$_GET[ $key ] = $value; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+	}
+
+	/** Simulate the confirm-button POST that actually performs the action. */
+	private function simulate_post( array $params ): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		foreach ( $params as $key => $value ) {
+			$_POST[ $key ] = $value; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_confirm() — guard clauses (identical on GET and POST)
 	// -------------------------------------------------------------------------
 
 	/**
@@ -105,9 +137,11 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_redirects_to_home_on_missing_id(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['action']         = 'approve';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -120,10 +154,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_redirects_to_home_on_invalid_action(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'delete'; // not in the allowed list.
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'delete', // not in the allowed list.
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -134,9 +170,11 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_redirects_to_home_on_missing_token(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -147,14 +185,60 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// handle_confirm() — approve happy path
+	// handle_confirm() — GET renders the confirm interstitial, does not act
+	// -------------------------------------------------------------------------
+
+	public function test_handle_confirm_get_renders_interstitial_without_acting(): void {
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'Publish this artwork?', $e->body );
+		}
+
+		// GET alone must never publish the post or consume the token — a mail
+		// scanner prefetching the link must not trigger any state change.
+		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
+		$this->assertSame( self::VALID_TOKEN, get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
+	}
+
+	public function test_handle_confirm_get_renders_interstitial_for_reject(): void {
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'reject',
+			'token'          => self::VALID_TOKEN,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'Discard this submission?', $e->body );
+		}
+
+		$this->assertSame( 'draft', get_post_status( $this->post_id ), 'GET must not discard the submission.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_confirm() — POST approve happy path
 	// -------------------------------------------------------------------------
 
 	public function test_handle_confirm_approve_redirects_to_clean_url(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -166,10 +250,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_approve_publishes_the_post(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -181,10 +267,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_approve_consumes_token(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -196,14 +284,16 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// handle_confirm() — reject
+	// handle_confirm() — POST reject
 	// -------------------------------------------------------------------------
 
 	public function test_handle_confirm_reject_redirects_to_clean_url(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'reject';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'reject',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -215,10 +305,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_reject_trashes_the_post(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'reject';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'reject',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -230,7 +322,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// handle_confirm() — remove
+	// handle_confirm() — POST remove
 	// -------------------------------------------------------------------------
 
 	public function test_handle_confirm_remove_routes_to_removal_endpoint(): void {
@@ -241,10 +333,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		// Removal endpoint acts on published posts.
 		wp_update_post( [ 'ID' => $this->post_id, 'post_status' => 'publish' ] );
 
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'remove';
-		$_GET['token']          = $removal_token;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'remove',
+			'token'          => $removal_token,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -256,15 +350,41 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'trash', get_post_status( $this->post_id ) );
 	}
 
+	public function test_handle_confirm_get_remove_renders_interstitial_without_trashing(): void {
+		$removal_token = 'removal-test-token-xyz987';
+		update_post_meta( $this->post_id, '_agnosis_removal_token',  $removal_token );
+		update_post_meta( $this->post_id, '_agnosis_removal_expiry', time() + 86400 );
+
+		wp_update_post( [ 'ID' => $this->post_id, 'post_status' => 'publish' ] );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'remove',
+			'token'          => $removal_token,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'Remove this artwork?', $e->body );
+		}
+
+		$this->assertSame( 'publish', get_post_status( $this->post_id ), 'GET must not remove the artwork.' );
+	}
+
 	// -------------------------------------------------------------------------
-	// handle_confirm() — invalid / expired token
+	// handle_confirm() — POST invalid / expired token
 	// -------------------------------------------------------------------------
 
 	public function test_handle_confirm_invalid_token_redirects_to_error(): void {
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
-		$_GET['token']          = 'completely-wrong-token';
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => 'completely-wrong-token',
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -279,10 +399,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	public function test_handle_confirm_expired_token_redirects_to_error(): void {
 		update_post_meta( $this->post_id, '_agnosis_review_expiry', time() - 1 );
 
-		$_GET['agnosis_review'] = '1';
-		$_GET['id']             = (string) $this->post_id;
-		$_GET['action']         = 'approve';
-		$_GET['token']          = self::VALID_TOKEN;
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -304,7 +426,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_result_approve_returns_200(): void {
-		$_GET['agnosis_result'] = 'approve';
+		$_GET['agnosis_result'] = 'approve'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		try {
 			$this->confirm->handle_result();
@@ -315,7 +437,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_result_error_returns_400(): void {
-		$_GET['agnosis_result'] = 'error';
+		$_GET['agnosis_result'] = 'error'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		try {
 			$this->confirm->handle_result();
@@ -326,7 +448,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_result_unknown_key_falls_back_to_error_page(): void {
-		$_GET['agnosis_result'] = 'bogus';
+		$_GET['agnosis_result'] = 'bogus'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		try {
 			$this->confirm->handle_result();
@@ -337,7 +459,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_result_reject_returns_200(): void {
-		$_GET['agnosis_result'] = 'reject';
+		$_GET['agnosis_result'] = 'reject'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		try {
 			$this->confirm->handle_result();

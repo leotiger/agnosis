@@ -354,6 +354,95 @@ class SchedulerTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// Clock mixing (security audit §3e) — non-UTC site timezone
+	// =========================================================================
+
+	/**
+	 * is_due()'s elapsed-time math must correctly account for the site's
+	 * configured timezone offset when parsing sent_at (a site-local wall-clock
+	 * string), not silently substitute PHP's own ini timezone for it. Without
+	 * the fix, a bare strtotime($last_sent) double-converts the offset against
+	 * time()'s true UTC epoch.
+	 */
+	public function test_is_due_correctly_accounts_for_non_utc_site_timezone(): void {
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', 5 ); // Site is 5 hours ahead of UTC.
+		update_option( 'agnosis_newsletter_public_frequency_days', 1 ); // 24h cadence.
+
+		// The issue was actually sent 28 real hours ago — genuinely due (past
+		// the 24h cadence). sent_at is stored the way current_time('mysql')
+		// would: the true UTC send instant, formatted after shifting by the
+		// site's +5h offset.
+		$true_utc_send_instant = time() - 28 * HOUR_IN_SECONDS;
+		$site_local_sent_at    = gmdate( 'Y-m-d H:i:s', $true_utc_send_instant + 5 * HOUR_IN_SECONDS );
+		$this->insert_sent_issue( 'public', $site_local_sent_at );
+		$this->create_confirmed_subscriber( 'clockcheck@example.com' );
+
+		$this->scheduler->prepare();
+
+		global $wpdb;
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_newsletter_issues WHERE newsletter_type = 'public'" );
+		$this->assertSame( 2, $count, '28 real hours have elapsed against a 24h cadence — must be due despite the +5h site offset (previously mis-parsed as only ~23h elapsed).' );
+	}
+
+	/**
+	 * since_window()'s never-sent-before fallback must land on the same clock
+	 * as Digest::recent_posts()'s post_date comparison (both site-local), not
+	 * mix in true UTC — otherwise a non-zero site offset silently widens or
+	 * narrows the "since" cutoff against post_date.
+	 */
+	public function test_since_window_fallback_excludes_posts_older_than_the_window_with_non_utc_site_timezone(): void {
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', 5 ); // Site is 5 hours ahead of UTC.
+		update_option( 'agnosis_newsletter_public_frequency_days', 1 ); // 24h window.
+
+		// Published (site-local post_date) 26 real hours ago — outside the 24h
+		// window and must be excluded. Under the pre-fix bug, the fallback used
+		// gmdate(time() - ...) (true UTC) while post_date is site-local,
+		// silently widening the window by the site's +5h offset and wrongly
+		// including a post this old.
+		$post_date = new \DateTime( 'now', wp_timezone() );
+		$post_date->modify( '-26 hours' );
+
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Too Old For The Window',
+			'post_author' => self::factory()->user->create(),
+			'post_date'   => $post_date->format( 'Y-m-d H:i:s' ),
+		] );
+		$this->create_confirmed_subscriber( 'window@example.com' );
+
+		$this->scheduler->prepare();
+
+		$issue = $this->get_latest_issue( 'public' );
+		$this->assertNotNull( $issue );
+		$this->assertStringNotContainsString( 'Too Old For The Window', (string) $issue->digest_html );
+	}
+
+	/**
+	 * prepare() also piggybacks Subscriber::expire_stale_pending() (security
+	 * audit §2d) — confirmed here as an integration point, not a re-test of
+	 * the expiry logic itself (covered in SubscriberTest).
+	 */
+	public function test_prepare_expires_abandoned_pending_subscribers(): void {
+		global $wpdb;
+
+		$result = Subscriber::subscribe( 'abandoned-via-prepare@example.com' );
+		$wpdb->query( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			"UPDATE {$wpdb->prefix}agnosis_newsletter_subscribers SET created_at = ( NOW() - INTERVAL 15 DAY ) WHERE id = %d",
+			$result['id']
+		) );
+
+		update_option( 'agnosis_newsletter_public_enabled', false );
+		update_option( 'agnosis_newsletter_artist_enabled', false );
+
+		$this->scheduler->prepare();
+
+		$this->assertNull( Subscriber::find_by_token( $result['token'] ), 'prepare() must expire abandoned pending rows even when both newsletters are disabled.' );
+	}
+
+	// =========================================================================
 	// last_sent_at() / has_issue_in_flight()
 	// =========================================================================
 

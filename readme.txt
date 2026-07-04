@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.4.2
+Stable tag: 0.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,17 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.4.3 =
+* Fixed: Email action links (review approve/reject/remove, admission votes, newsletter confirm/unsubscribe) previously acted the moment their URL was fetched with a plain GET — corporate mail-security scanners (Outlook SafeLinks, Mimecast, Proofpoint, etc.) prefetch links in incoming email to scan them, which could silently approve/reject/remove artwork, cast a vote, or confirm/unsubscribe a newsletter recipient before the person ever clicked anything, and could also consume a single-use review token so the artist's real click showed "link expired". Every one of these links now renders a confirm page with a single button on GET; the action is only taken once that button is clicked (a POST).
+* Fixed: The newsletter signup block never sent the visitor's language, so every public subscriber's locale was left blank and the newsletter's per-locale rendering (added in 0.4.1) never actually applied to public subscribers in practice. The block now picks up the language of the page the visitor is on automatically — no new form field.
+* Fixed: The community removal-vote link in notification emails was completely dead — no handler was ever registered for it, and there was no other way to cast a removal vote. It now works the same way admission-vote links do: a confirm page on open, the vote recorded only once confirmed.
+* Fixed: A failed newsletter send (transient SMTP hiccup, momentary host rate-limit) was permanently given up on after a single failure. It's now retried on later cron ticks, up to three attempts, before being marked failed for good.
+* Fixed: Newsletter mail now supports RFC 8058 one-click unsubscribe — the `List-Unsubscribe-Post` header is sent alongside `List-Unsubscribe`, and a mail client's automated one-click request unsubscribes immediately with no confirm page, while the visible unsubscribe link in the email body still shows a confirm-button page.
+* Fixed: The newsletter signup form let anyone check whether an email address was already subscribed (a distinguishable error response for existing addresses). It now responds identically either way.
+* Fixed: Unconfirmed newsletter signups never expired, and resubmitting the same address always resent a confirmation email. Abandoned pending signups now expire after 14 days, and resubmitting within 5 minutes no longer sends a repeat email.
+* Fixed: Newsletter scheduling mixed local site time with UTC in a couple of places, which could shift the very first digest's content window and the "is it due yet?" check by the site's UTC offset. Everything now stays on one consistent clock.
+* Fixed: A few small hygiene items — the newsletter signup field's label wasn't properly associated with its input for screen readers; an internal database column name was misleading; and the subscriber email column was narrowed slightly to avoid an index-size limit some older hosting setups impose.
 
 = 0.4.2 =
 * Fixed: A newsletter issue where every recipient's send failed (e.g. a temporary mail delivery problem) could get stuck showing "Sending…" on the Newsletter settings dashboard forever, with "Send Now" disabled — it's now always reconciled to a finished state once the queue drains, even if nothing was successfully delivered.

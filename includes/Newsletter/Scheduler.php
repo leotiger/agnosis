@@ -10,6 +10,19 @@
  * Actual delivery is then handled in small batches by QueueProcessor on its
  * own, more frequent cron tick.
  *
+ * This same daily tick also carries Subscriber::expire_stale_pending(), a
+ * small piece of unrelated subscriber-table housekeeping (security audit
+ * §2d) piggybacked here rather than given its own scheduled event.
+ *
+ * Clock handling (security audit §3e): every timestamp this class writes or
+ * reads for its own scheduling decisions (sent_at, since_window(), is_due())
+ * is a WP site-local wall-clock string/timestamp, the same clock post_date
+ * and resolved_at already use elsewhere in the newsletter/digest pipeline —
+ * never true UTC/gmdate() mixed in. is_due() converts $last_sent to a real
+ * Unix epoch via get_gmt_from_date() (DST-correct, via wp_timezone()) rather
+ * than a bare strtotime(), which would silently substitute PHP's own ini
+ * timezone for the site's configured one.
+ *
  * @package Agnosis\Newsletter
  */
 
@@ -29,6 +42,11 @@ class Scheduler {
 	 * types and prepares any that are due.
 	 */
 	public function prepare(): void {
+		// Unrelated to newsletter issues themselves, but this is the existing
+		// daily tick nearest to the subscribe table it maintains (security
+		// audit §2d) — not worth a dedicated scheduled event of its own.
+		Subscriber::expire_stale_pending();
+
 		foreach ( self::TYPES as $type ) {
 			if ( ! get_option( "agnosis_newsletter_{$type}_enabled" ) ) {
 				continue;
@@ -125,7 +143,18 @@ class Scheduler {
 		}
 
 		$frequency_days = max( 1, (int) get_option( "agnosis_newsletter_{$type}_frequency_days", 30 ) );
-		$elapsed         = time() - strtotime( $last_sent );
+
+		// $last_sent is a WP site-local wall-clock string (sent_at is written via
+		// current_time('mysql')). A bare strtotime($last_sent) would silently
+		// parse it using PHP's own ini date.timezone — a setting that has
+		// nothing to do with, and often differs from, the site's configured
+		// WordPress timezone — double-converting the offset against time()'s
+		// true UTC epoch below (security audit §3e). get_gmt_from_date() is WP
+		// core's own local-wall-clock -> UTC converter (goes through
+		// wp_timezone(), so it's DST-correct for the actual date in question),
+		// making this comparison correct for whatever timezone the site uses.
+		$last_sent_ts = strtotime( get_gmt_from_date( $last_sent ) . ' +0000' );
+		$elapsed      = time() - $last_sent_ts;
 
 		return $elapsed >= $frequency_days * DAY_IN_SECONDS;
 	}
@@ -165,12 +194,33 @@ class Scheduler {
 	/**
 	 * The digest content window: everything since the last sent issue, or
 	 * (for a newsletter that has never sent) one frequency-period back from now.
+	 *
+	 * Both branches return a WP site-local wall-clock string — the same clock
+	 * Digest::recent_posts() compares against post_date (site-local) and
+	 * Digest::newly_admitted_artists() compares against resolved_at (also
+	 * written via current_time('mysql')). Previously the never-sent-before
+	 * fallback used gmdate() (true UTC) while the common case returned
+	 * $last_sent (site-local), so a site with a non-zero UTC offset got its
+	 * very first digest window shifted by that offset against post_date —
+	 * security audit §3e.
 	 */
 	private function since_window( string $type ): string {
 		$frequency_days = max( 1, (int) get_option( "agnosis_newsletter_{$type}_frequency_days", 30 ) );
 		$last_sent      = $this->last_sent_at( $type );
 
-		return $last_sent ?: gmdate( 'Y-m-d H:i:s', time() - $frequency_days * DAY_IN_SECONDS );
+		if ( $last_sent ) {
+			return $last_sent;
+		}
+
+		// wp_timezone() + DateTime gives the site-local wall-clock string
+		// directly, without current_time('timestamp')'s "fake UTC" timestamp
+		// trick (discouraged by WPCS — WordPress.DateTime.CurrentTimeTimestamp
+		// — since it's easy to misuse; here it would need pairing with gmdate(),
+		// not date(), to avoid a second, server-ini-timezone shift on top).
+		$fallback = new \DateTime( 'now', wp_timezone() );
+		$fallback->modify( sprintf( '-%d seconds', $frequency_days * DAY_IN_SECONDS ) );
+
+		return $fallback->format( 'Y-m-d H:i:s' );
 	}
 
 	/**

@@ -24,6 +24,7 @@ use Agnosis\Artist\Departure;
 use Agnosis\Artist\DepartureNotification;
 use Agnosis\Artist\FrontendAccess;
 use Agnosis\Artist\JoinPage;
+use Agnosis\Artist\RemovalVoteConfirm;
 use Agnosis\Artist\VouchConfirm;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
@@ -169,6 +170,11 @@ class Plugin {
 
 		$departure_notification = new DepartureNotification();
 		$departure_notification->register_hooks();
+
+		// Community removal-vote email-link shim — processes ?agnosis_removal_vote=1&…
+		// (mirrors VouchConfirm's admission-vote pattern; see security audit §2e).
+		$removal_vote_confirm = new RemovalVoteConfirm( $departure );
+		$removal_vote_confirm->register_hooks();
 
 		// Member-governed community size-cap vote (Phase 2).
 		$cap_vote = new CommunityCapVote();

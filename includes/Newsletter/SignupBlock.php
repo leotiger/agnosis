@@ -47,11 +47,12 @@ class SignupBlock {
 
 			<form class="agnosis-newsletter-signup__form" novalidate>
 				<div class="agnosis-newsletter-signup__field">
-					<label>
+					<label for="agnosis-newsletter-signup-email">
 						<?php esc_html_e( 'Email address', 'agnosis' ); ?>
 					</label>
 					<input
 						type="email"
+						id="agnosis-newsletter-signup-email"
 						name="email"
 						autocomplete="email"
 						placeholder="<?php esc_attr_e( 'you@example.com', 'agnosis' ); ?>"
