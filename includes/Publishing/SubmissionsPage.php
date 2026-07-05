@@ -20,9 +20,11 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\Core\Turnstile;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
+use WP_User;
 
 class SubmissionsPage {
 
@@ -505,10 +507,54 @@ class SubmissionsPage {
 	 * the current page on success. With COOKIE_DOMAIN set to the root domain
 	 * (e.g. .agnosis.art) the session cookie is valid on all subdomains, so
 	 * logging in here works identically on the main domain or any artist subdomain.
+	 *
+	 * When Turnstile is configured (Settings → General), the widget is appended
+	 * inside wp_login_form()'s own <form> via the login_form_bottom filter —
+	 * that filter is added immediately before the call and removed immediately
+	 * after, scoped to just this one render, so it can never affect any other
+	 * wp_login_form() call elsewhere on the site.
 	 */
 	private function render_login_form(): string {
-		$redirect = get_permalink() ?: home_url( '/my-submissions/' );
+		$redirect       = get_permalink() ?: home_url( '/my-submissions/' );
+		$turnstile_used = Turnstile::is_enabled();
+
+		if ( $turnstile_used ) {
+			Turnstile::enqueue_script();
+			add_filter( 'login_form_bottom', [ $this, 'append_turnstile_to_login_form' ] );
+		}
+
 		ob_start();
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- static CSS, no user data.
+		echo '<style>
+.agnosis-submissions--login { max-width: 28rem; }
+.agnosis-submissions--login form#loginform { display: flex; flex-direction: column; gap: 1.6rem; margin-top: 1.5rem; }
+.agnosis-submissions--login p.login-username,
+.agnosis-submissions--login p.login-password { display: flex; flex-direction: column; gap: .5rem; margin: 0; }
+.agnosis-submissions--login label { font-size: .9rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.agnosis-submissions--login input[type="text"],
+.agnosis-submissions--login input[type="email"],
+.agnosis-submissions--login input[type="password"] {
+	width: 100%; padding: .9rem 1rem; border: 1px solid currentColor; border-radius: 0;
+	background: transparent; color: inherit; font-family: inherit; font-size: 1.1rem;
+	line-height: 1.5; box-sizing: border-box;
+}
+.agnosis-submissions--login input:focus { outline: 2px solid currentColor; outline-offset: 2px; }
+.agnosis-submissions--login p.login-remember { margin: 0; }
+.agnosis-submissions--login p.login-remember label {
+	display: flex; align-items: center; gap: .5rem; text-transform: none;
+	font-weight: 400; letter-spacing: normal; font-size: .95rem;
+}
+.agnosis-submissions--login .agnosis-turnstile { margin: .5rem 0 0; }
+.agnosis-submissions--login p.login-submit { margin: 0; display: flex; align-items: center; gap: 1rem; }
+.agnosis-submissions--login #wp-submit {
+	padding: .85rem 2.2rem; border: 1px solid currentColor; border-radius: 0;
+	background: var(--wp--preset--color--foreground, #000); color: var(--wp--preset--color--background, #fff);
+	font-family: inherit; font-size: .95rem; font-weight: 600; letter-spacing: .05em;
+	text-transform: uppercase; cursor: pointer; transition: opacity .15s ease;
+}
+.agnosis-submissions--login #wp-submit:hover { opacity: .75; }
+</style>';
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 		<div class="agnosis-submissions agnosis-submissions--login">
 			<h2><?php esc_html_e( 'Log in to view your submissions', 'agnosis' ); ?></h2>
@@ -526,6 +572,56 @@ class SubmissionsPage {
 			?>
 		</div>
 		<?php
+		if ( $turnstile_used ) {
+			remove_filter( 'login_form_bottom', [ $this, 'append_turnstile_to_login_form' ] );
+		}
 		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Appends the Turnstile widget, plus a hidden marker field, just before
+	 * `</form>` inside wp_login_form()'s generated markup (login_form_bottom
+	 * filter). The marker is how authenticate_turnstile() recognises this
+	 * specific front-end form — see that method's docblock.
+	 *
+	 * @param string $content Existing login_form_bottom content (empty by default).
+	 * @return string
+	 */
+	public function append_turnstile_to_login_form( string $content ): string {
+		return $content
+			. Turnstile::render_widget()
+			. '<input type="hidden" name="agnosis_login_source" value="submissions" />';
+	}
+
+	/**
+	 * Enforce Turnstile verification on this specific login form only.
+	 *
+	 * Hooked on `authenticate` at priority 30 — after WordPress's own
+	 * username/password check (priority 20) has already resolved $user. Every
+	 * other login path on the site (wp-admin, REST/XML-RPC auth, application
+	 * passwords, a different theme's own login form) never submits the
+	 * `agnosis_login_source` marker this form's Turnstile widget is paired
+	 * with, so this is a complete no-op for all of them regardless of whether
+	 * Turnstile is enabled — only a request that actually came from this form
+	 * is ever subject to the check.
+	 *
+	 * @param WP_User|WP_Error|null $user     Result of prior authenticate callbacks.
+	 * @param string                $username Submitted username (unused).
+	 * @param string                $password Submitted password (unused).
+	 * @return WP_User|WP_Error|null
+	 */
+	public function authenticate_turnstile( $user, string $username, string $password ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- wp-login.php's own core handler owns this POST request; this marker only identifies which front-end form submitted (routing, not a security boundary) — Turnstile::verify() below is the actual security check.
+		$source = isset( $_POST['agnosis_login_source'] ) ? sanitize_key( wp_unslash( (string) $_POST['agnosis_login_source'] ) ) : '';
+
+		if ( 'submissions' !== $source || ! Turnstile::is_enabled() || $user instanceof WP_Error ) {
+			return $user;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- see note above; the token itself is what Turnstile::verify() validates against Cloudflare.
+		$token  = isset( $_POST['cf-turnstile-response'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['cf-turnstile-response'] ) ) : '';
+		$result = Turnstile::verify( $token );
+
+		return is_wp_error( $result ) ? $result : $user;
 	}
 }

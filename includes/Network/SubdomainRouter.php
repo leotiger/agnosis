@@ -104,10 +104,16 @@ class SubdomainRouter {
 		// Scope main query to this artist's content.
 		add_action( 'pre_get_posts',        [ $this, 'scope_query'         ] );
 
-		// Site name: replace blogname with the artist's display name so that
-		// wp:site-title (and anything else reading get_bloginfo('name')) shows
-		// the artist rather than the main portal name.
-		add_filter( 'option_blogname',      [ $this, 'filter_blogname'     ] );
+		// NOTE: blogname is intentionally left unfiltered. It was filtered here
+		// until 0.1.9 so wp:site-title showed the artist's name, but that left
+		// the header showing only the artist with no visible "Agnosis" branding
+		// and no way back to the main portal — site-logo/site-title still link
+		// to home_url(), which rewrite_home() above points at the artist
+		// subdomain either way. The theme now handles the "no way back" problem
+		// directly by pointing the Site Logo/Site Title links at the portal
+		// domain on subdomains (see agnosis_theme_link_to_portal() in the
+		// agnosis-theme functions.php), so the header keeps showing "Agnosis"
+		// and is also a working way home.
 
 		// HTML <title>: replace the site segment with the artist's display name.
 		add_filter( 'document_title_parts', [ $this, 'filter_title_parts'  ] );
@@ -158,18 +164,6 @@ class SubdomainRouter {
 		if ( ! $q->get( 'post_type' ) ) {
 			$q->set( 'post_type', [ 'agnosis_artwork', 'agnosis_biography', 'agnosis_event' ] );
 		}
-	}
-
-	/**
-	 * Replace the `blogname` option with the artist's display name.
-	 *
-	 * This makes the `wp:site-title` block (and any call to `get_bloginfo('name')`)
-	 * show the artist's name rather than the main portal site name.
-	 * Falls back to the nicename slug so the header is never blank.
-	 */
-	public function filter_blogname( string $name ): string {
-		$user = get_user_by( 'id', self::$artist_id );
-		return $user ? ( $user->display_name ?: $user->user_nicename ?: $name ) : $name;
 	}
 
 	/**

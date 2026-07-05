@@ -158,6 +158,19 @@ if ( ! function_exists( 'wp_generate_password' ) ) {
         return bin2hex( random_bytes( (int) ceil( $length / 2 ) ) );
     }
 }
+if ( ! function_exists( 'get_temp_dir' ) ) {
+    // Only reached by MediaAdapter::adapt_video()'s real ffmpeg round-trip —
+    // never exercised in unit tests until ffmpeg is actually installed, since
+    // the `which ffmpeg` check short-circuits before this point otherwise.
+    function get_temp_dir(): string { return rtrim( sys_get_temp_dir(), '/\\' ) . '/'; }
+}
+if ( ! function_exists( 'wp_delete_file' ) ) {
+    function wp_delete_file( string $file ): void {
+        if ( is_file( $file ) ) {
+            unlink( $file );
+        }
+    }
+}
 if ( ! function_exists( '__' ) ) {
     function __( string $text, string $domain = 'default' ): string { return $text; }
 }

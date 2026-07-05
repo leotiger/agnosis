@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\EmailFooter;
+
 class DepartureNotification {
 
 	public function register_hooks(): void {
@@ -171,6 +173,11 @@ class DepartureNotification {
 			);
 		}
 
+		$footer = EmailFooter::plain_text();
+		if ( '' !== $footer ) {
+			$body .= "\n\n" . $footer;
+		}
+
 		wp_mail(
 			$user->user_email,
 			sprintf(
@@ -209,6 +216,18 @@ class DepartureNotification {
 			switch_to_locale( $locale );
 		}
 
+		$body = sprintf(
+			/* translators: 1: artist display name, 2: site name */
+			__( "Hi %1\$s,\n\nYour temporary suspension at %2\$s has ended and your membership has been reinstated. You can now log in and submit work as before.\n\n— %2\$s", 'agnosis' ),
+			$user->display_name,
+			$site_name
+		);
+
+		$footer = EmailFooter::plain_text();
+		if ( '' !== $footer ) {
+			$body .= "\n\n" . $footer;
+		}
+
 		wp_mail(
 			$user->user_email,
 			sprintf(
@@ -216,12 +235,7 @@ class DepartureNotification {
 				__( 'Your membership at %s has been reinstated', 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: 1: artist display name, 2: site name */
-				__( "Hi %1\$s,\n\nYour temporary suspension at %2\$s has ended and your membership has been reinstated. You can now log in and submit work as before.\n\n— %2\$s", 'agnosis' ),
-				$user->display_name,
-				$site_name
-			),
+			$body,
 			$this->text_headers()
 		);
 
@@ -278,6 +292,21 @@ class DepartureNotification {
 			$yes_url = $this->removal_vote_url( $request_id, $voter_id, 'yes' );
 			$no_url  = $this->removal_vote_url( $request_id, $voter_id, 'no' );
 
+			$body = sprintf(
+				/* translators: 1: voter display name, 2: site name, 3: closing date, 4: yes URL, 5: no URL */
+				__( "Hi %1\$s,\n\nThe %2\$s community has opened a vote to remove a member. The vote closes on %3\$s.\n\nCast your vote:\n\nVote YES (remove): %4\$s\n\nVote NO (keep):    %5\$s\n\nA majority of active members (more than 50%%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.\n\n— %2\$s", 'agnosis' ),
+				$artist->display_name,
+				$site_name,
+				$close_formatted,
+				$yes_url,
+				$no_url
+			);
+
+			$footer = EmailFooter::plain_text();
+			if ( '' !== $footer ) {
+				$body .= "\n\n" . $footer;
+			}
+
 			wp_mail(
 				$artist->user_email,
 				sprintf(
@@ -285,15 +314,7 @@ class DepartureNotification {
 					__( 'Community removal vote open at %s', 'agnosis' ),
 					$site_name
 				),
-				sprintf(
-					/* translators: 1: voter display name, 2: site name, 3: closing date, 4: yes URL, 5: no URL */
-					__( "Hi %1\$s,\n\nThe %2\$s community has opened a vote to remove a member. The vote closes on %3\$s.\n\nCast your vote:\n\nVote YES (remove): %4\$s\n\nVote NO (keep):    %5\$s\n\nA majority of active members (more than 50%%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.\n\n— %2\$s", 'agnosis' ),
-					$artist->display_name,
-					$site_name,
-					$close_formatted,
-					$yes_url,
-					$no_url
-				),
+				$body,
 				$this->text_headers()
 			);
 

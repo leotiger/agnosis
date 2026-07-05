@@ -8,11 +8,18 @@
  *
  *   image/*          → passthrough with media_type = 'image' (no conversion needed).
  *   application/pdf  → rasterise each page with Imagick, emit one 'image' entry per page.
- *   video/*          → extract the first frame with ffmpeg, emit one 'image' entry.
+ *   video/*          → extract the first frame with ffmpeg as a poster/description
+ *                       image, but keep the original video file — emit one 'video'
+ *                       entry carrying both. The video itself is what gets published;
+ *                       the frame is only used for AI description and the <video poster>.
  *   audio/*          → passthrough with media_type = 'audio' (pipeline routes to audio branch).
  *
- * Attachments that cannot be converted (Imagick unavailable for PDFs, ffmpeg absent for
- * video) are logged and dropped — the caller receives fewer entries than it passed in.
+ * Attachments that cannot be converted (Imagick unavailable for PDFs) are logged and
+ * dropped — the caller receives fewer entries than it passed in. Video is more
+ * forgiving: if ffmpeg is unavailable or frame extraction fails, the video itself is
+ * still forwarded (with no poster frame) rather than being dropped entirely — Pipeline
+ * falls back to a text-only description in that case, same as it does for audio with
+ * no transcript available.
  *
  * Each attachment array is expected to have at minimum:
  *   'data'       string  Raw binary content.
@@ -20,8 +27,10 @@
  *   'filename'   string  Original filename.
  *
  * Each returned entry carries those same keys plus:
- *   'media_type' string  'image' | 'audio'  — tells Pipeline which branch to use.
- *   'mime'       string  Possibly updated MIME (e.g. 'image/jpeg' after PDF rasterisation).
+ *   'media_type'  string  'image' | 'audio' | 'video' — tells Pipeline which branch to use.
+ *   'mime'        string  Possibly updated MIME (e.g. 'image/jpeg' after PDF rasterisation).
+ *   'poster_data' string  (video only) Extracted first-frame JPEG binary, or '' if unavailable.
+ *   'poster_mime' string  (video only) Always 'image/jpeg' when poster_data is non-empty.
  *
  * @package Agnosis\AI
  */
@@ -53,10 +62,8 @@ class MediaAdapter {
 				array_push( $out, ...self::adapt_pdf( $attachment ) );
 
 			} elseif ( str_starts_with( $mime, 'video/' ) ) {
-				$frame = self::adapt_video( $attachment );
-				if ( null !== $frame ) {
-					$out[] = $frame;
-				}
+				$out[] = self::adapt_video( $attachment );
+
 			} elseif ( str_starts_with( $mime, 'audio/' ) ) {
 				$out[] = array_merge( $attachment, [ 'media_type' => 'audio' ] );
 
@@ -146,26 +153,39 @@ class MediaAdapter {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Extract the first frame of a video file using ffmpeg.
+	 * Adapt a video attachment: keep the original file for publishing, and
+	 * try to extract its first frame with ffmpeg as a poster/description image.
+	 *
+	 * Unlike adapt_pdf(), this never drops the attachment. The original video
+	 * binary is always returned under 'data'/'mime' unchanged; the extracted
+	 * frame (when available) rides alongside as 'poster_data'/'poster_mime'
+	 * for Pipeline to use as the vision-description image and as the
+	 * eventual `<video poster>` attachment. If ffmpeg is missing or
+	 * extraction fails, 'poster_data' is '' and Pipeline falls back to a
+	 * text-only description — the video is still published either way.
 	 *
 	 * Uses a temp-file round-trip because ffmpeg reads and writes files, not
 	 * stdin/stdout, for reliable cross-format frame extraction.
 	 *
-	 * Returns null when ffmpeg is not found or the extraction fails.
-	 *
 	 * @param array<string, mixed> $attachment  Raw attachment with 'data', 'mime', 'filename'.
-	 * @return array<string, mixed>|null  Single image attachment, or null on failure.
+	 * @return array<string, mixed>  Single video entry — always returned, never null.
 	 */
-	private static function adapt_video( array $attachment ): ?array {
+	private static function adapt_video( array $attachment ): array {
+		$base_entry = array_merge( $attachment, [
+			'media_type'  => 'video',
+			'poster_data' => '',
+			'poster_mime' => '',
+		] );
+
 		// Verify ffmpeg is available before touching temp files.
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec -- `which ffmpeg` is a read-only binary probe with no user input; the command is a fixed string literal.
 		$ffmpeg = trim( (string) shell_exec( 'which ffmpeg 2>/dev/null' ) );
 		if ( empty( $ffmpeg ) ) {
 			Logger::warning( sprintf(
-				'MediaAdapter: video "%s" skipped — ffmpeg not found in PATH.',
+				'MediaAdapter: video "%s" — ffmpeg not found in PATH, publishing without a poster frame (description will be text-only).',
 				$attachment['filename'] ?? 'unknown'
 			), 'pipeline' );
-			return null;
+			return $base_entry;
 		}
 
 		$tmp_dir = get_temp_dir();
@@ -202,26 +222,24 @@ class MediaAdapter {
 		// Read extracted frame.
 		$frame_data = is_file( $out_path ) ? file_get_contents( $out_path ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
-		// Clean up temp files regardless of outcome.
+		// Clean up temp files regardless of outcome. The original video binary
+		// itself was only ever held in memory ($attachment['data']) — never
+		// written to $in_path's contents beyond this ffmpeg round-trip.
 		wp_delete_file( $in_path );
 		wp_delete_file( $out_path );
 
 		if ( false === $frame_data || '' === $frame_data ) {
-			Logger::error( sprintf(
-				'MediaAdapter: ffmpeg frame extraction failed for "%s" (exit %d).',
+			Logger::warning( sprintf(
+				'MediaAdapter: ffmpeg frame extraction failed for "%s" (exit %d) — publishing without a poster frame (description will be text-only).',
 				$attachment['filename'] ?? 'unknown',
 				(int) $return
 			), 'pipeline' );
-			return null;
+			return $base_entry;
 		}
 
-		$base_name = pathinfo( (string) ( $attachment['filename'] ?? 'video' ), PATHINFO_FILENAME );
-
-		return [
-			'data'       => $frame_data,
-			'mime'       => 'image/jpeg',
-			'filename'   => $base_name . '-frame.jpg',
-			'media_type' => 'image',
-		];
+		return array_merge( $base_entry, [
+			'poster_data' => $frame_data,
+			'poster_mime' => 'image/jpeg',
+		] );
 	}
 }

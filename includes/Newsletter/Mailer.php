@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\Core\EmailBranding;
+
 class Mailer {
 
 	/**
@@ -39,7 +41,7 @@ class Mailer {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
 
 	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
-		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 		<div style="font-size:13px;color:#ece9ff;margin-top:4px;"><?php echo esc_html( $heading ); ?></div>
 	</td></tr>
 

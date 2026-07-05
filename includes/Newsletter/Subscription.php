@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Agnosis\Newsletter;
 
 use Agnosis\Core\RateLimiter;
+use Agnosis\Core\Turnstile;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -42,6 +43,10 @@ class Subscription {
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_key',
 				],
+				'turnstile_token' => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				],
 			],
 		] );
 	}
@@ -51,6 +56,11 @@ class Subscription {
 	}
 
 	public function subscribe( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$turnstile = Turnstile::verify( (string) ( $request->get_param( 'turnstile_token' ) ?? '' ) );
+		if ( is_wp_error( $turnstile ) ) {
+			return $turnstile;
+		}
+
 		$email    = (string) $request->get_param( 'email' );
 		$language = (string) ( $request->get_param( 'language' ) ?? '' );
 		$locale   = $language ? \Agnosis\Artist\Admission::iso_to_wp_locale( $language ) : '';

@@ -2,9 +2,9 @@
 /**
  * Email parser.
  *
- * Extracts the artist-supplied description (prompt) and attached images
- * from a webklex Message object (IMAP path) or a raw RFC-2822 payload
- * (webhook path).
+ * Extracts the artist-supplied description (prompt) and attached media
+ * (images, audio, video) from a webklex Message object (IMAP path) or a raw
+ * RFC-2822 payload (webhook path).
  *
  * @package Agnosis\Email
  */
@@ -17,18 +17,82 @@ use Webklex\PHPIMAP\Message;
 
 class Parser {
 
-	/** Allowed image MIME types. */
+	/**
+	 * Allowed attachment MIME types.
+	 *
+	 * Images are described and (optionally) enhanced as-is. Audio is
+	 * transcribed and published as-is (MediaAdapter/Pipeline). Video has its
+	 * first frame extracted for AI description and a poster image, but the
+	 * original video file is what actually gets published — see
+	 * MediaAdapter::adapt() and Pipeline::process_video_single().
+	 */
 	private const ALLOWED_MIME = [
+		// Images
 		'image/jpeg',
 		'image/jpg',
 		'image/png',
 		'image/webp',
 		'image/gif',
 		'image/tiff',
+		// Audio
+		'audio/mpeg',
+		'audio/mp3',
+		'audio/wav',
+		'audio/x-wav',
+		'audio/mp4',
+		'audio/x-m4a',
+		'audio/ogg',
+		'audio/flac',
+		// Video
+		'video/mp4',
+		'video/quicktime',
+		'video/x-msvideo',
+		'video/webm',
+		'video/ogg',
+		'video/mpeg',
 	];
 
-	/** Maximum attachment size: 20 MB. */
-	private const MAX_BYTES = 20 * 1024 * 1024;
+	/**
+	 * Maximum attachment size, per media category. Video and audio files are
+	 * naturally much larger than a photograph, so a single flat cap either
+	 * rejects reasonable short clips or lets images through far larger than
+	 * they need to be.
+	 *
+	 * These are ceilings on what Agnosis itself will accept — they do not
+	 * override lower limits imposed upstream: a mail provider's own
+	 * attachment cap (Gmail, for example, tops out around 25 MB), or, on the
+	 * webhook path, this server's own `upload_max_filesize`/`post_max_size`
+	 * PHP settings. A submission can still fail silently below these numbers
+	 * if either of those is more restrictive — check both if large video
+	 * submissions aren't arriving.
+	 */
+	private const MAX_BYTES_IMAGE = 20 * 1024 * 1024;   // 20 MB
+	private const MAX_BYTES_AUDIO = 50 * 1024 * 1024;   // 50 MB
+	private const MAX_BYTES_VIDEO = 150 * 1024 * 1024;  // 150 MB
+
+	/** Fallback file extension per MIME type, used when an attachment arrives with no filename. */
+	private const EXTENSION_FOR_MIME = [
+		'image/jpeg'       => 'jpg',
+		'image/jpg'        => 'jpg',
+		'image/png'        => 'png',
+		'image/webp'       => 'webp',
+		'image/gif'        => 'gif',
+		'image/tiff'       => 'tiff',
+		'audio/mpeg'       => 'mp3',
+		'audio/mp3'        => 'mp3',
+		'audio/wav'        => 'wav',
+		'audio/x-wav'      => 'wav',
+		'audio/mp4'        => 'm4a',
+		'audio/x-m4a'      => 'm4a',
+		'audio/ogg'        => 'ogg',
+		'audio/flac'       => 'flac',
+		'video/mp4'        => 'mp4',
+		'video/quicktime'  => 'mov',
+		'video/x-msvideo'  => 'avi',
+		'video/webm'       => 'webm',
+		'video/ogg'        => 'ogv',
+		'video/mpeg'       => 'mpeg',
+	];
 
 	// -------------------------------------------------------------------------
 	// Public API
@@ -66,7 +130,7 @@ class Parser {
 		// getTextBody() returns string — cast directly, no ?? needed.
 		$text_body = (string) $message->getTextBody();
 
-		// --- Image attachments ---
+		// --- Attachments (image, audio, or video) ---
 		$attachments = [];
 
 		foreach ( $message->getAttachments() as $attachment ) {
@@ -78,21 +142,21 @@ class Parser {
 
 			$data = (string) $attachment->getContent();
 
-			if ( strlen( $data ) > self::MAX_BYTES ) {
+			if ( strlen( $data ) > $this->max_bytes_for( $mime ) ) {
 				continue;
 			}
 
 			$name = (string) ( $attachment->getName() ?? '' );
 
 			$attachments[] = [
-				'filename' => sanitize_file_name( $name ?: 'artwork-' . uniqid() . '.jpg' ),
+				'filename' => sanitize_file_name( $name ?: 'submission-' . uniqid() . '.' . $this->extension_for( $mime ) ),
 				'mime'     => $mime,
 				'data'     => $data,
 			];
 		}
 
 		if ( empty( $attachments ) ) {
-			return null; // No images — skip.
+			return null; // No usable attachments — skip.
 		}
 
 		$artist_id = $this->resolve_artist( $from );
@@ -129,7 +193,7 @@ class Parser {
 			if ( null === $file || ! $this->is_allowed_mime( $file['type'] ) ) {
 				continue;
 			}
-			if ( $file['size'] > self::MAX_BYTES ) {
+			if ( $file['size'] > $this->max_bytes_for( $file['type'] ) ) {
 				continue;
 			}
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -164,6 +228,23 @@ class Parser {
 
 	private function is_allowed_mime( string $mime ): bool {
 		return in_array( strtolower( $mime ), self::ALLOWED_MIME, true );
+	}
+
+	/** Maximum accepted byte size for a given attachment MIME type. */
+	private function max_bytes_for( string $mime ): int {
+		$mime = strtolower( $mime );
+		if ( str_starts_with( $mime, 'video/' ) ) {
+			return self::MAX_BYTES_VIDEO;
+		}
+		if ( str_starts_with( $mime, 'audio/' ) ) {
+			return self::MAX_BYTES_AUDIO;
+		}
+		return self::MAX_BYTES_IMAGE;
+	}
+
+	/** Fallback file extension for an attachment that arrived with no filename. */
+	private function extension_for( string $mime ): string {
+		return self::EXTENSION_FOR_MIME[ strtolower( $mime ) ] ?? 'jpg';
 	}
 
 	private function clean_text( string $text ): string {

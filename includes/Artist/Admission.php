@@ -30,8 +30,10 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
+use Agnosis\Core\Turnstile;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -71,6 +73,10 @@ class Admission {
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_key',
 				],
+				'turnstile_token' => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				],
 			],
 		] );
 
@@ -106,6 +112,11 @@ class Admission {
 	public function apply( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		global $wpdb;
 
+		$turnstile = Turnstile::verify( (string) ( $request->get_param( 'turnstile_token' ) ?? '' ) );
+		if ( is_wp_error( $turnstile ) ) {
+			return $turnstile;
+		}
+
 		$email        = (string) $request->get_param( 'email' );
 		$display_name = (string) $request->get_param( 'display_name' );
 		$bio          = (string) ( $request->get_param( 'bio' ) ?? '' );
@@ -113,16 +124,16 @@ class Admission {
 		$statement    = (string) ( $request->get_param( 'statement' ) ?? '' );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?? '' ) );
 
-		// Fall back to the browser's primary Accept-Language when none submitted.
-		if ( '' === $language ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitize_key() applied immediately.
-			$accept = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) : '';
-			if ( '' !== $accept ) {
-				// "es-ES,es;q=0.9,en;q=0.8" → "es"
-				$primary  = explode( ',', $accept )[0];
-				$primary  = explode( ';', $primary )[0];
-				$language = sanitize_key( strtolower( (string) explode( '-', trim( $primary ) )[0] ) );
-			}
+		// Never guess a language from the browser's Accept-Language header, and
+		// never trust one that isn't in Lingua Forge's actual active-language
+		// configuration for this site — either would risk recording a language
+		// as "the artist's language" that this instance doesn't really support,
+		// which only surfaces as a broken experience later (untranslated
+		// content, no matching locale). The Join form itself only ever submits
+		// a code from that same list, so this is a defensive check against
+		// direct API calls, not the normal path.
+		if ( '' !== $language && ! array_key_exists( $language, SubmissionTranslator::language_names() ) ) {
+			$language = '';
 		}
 
 		// Block if a WP account already exists for this email.

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\Core\Turnstile;
+
 class SignupBlock {
 
 	/**
@@ -59,6 +61,7 @@ class SignupBlock {
 						required
 					/>
 				</div>
+				<?php echo Turnstile::render_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- render_widget() escapes the site key internally. ?>
 				<button type="submit" class="agnosis-newsletter-signup__submit">
 					<span><?php esc_html_e( 'Subscribe', 'agnosis' ); ?></span>
 				</button>
@@ -74,6 +77,8 @@ class SignupBlock {
 	// -------------------------------------------------------------------------
 
 	private function enqueue_assets(): void {
+		Turnstile::enqueue_script();
+
 		wp_enqueue_script(
 			'agnosis-newsletter-signup',
 			AGNOSIS_URL . 'blocks/newsletter-signup/frontend.js',

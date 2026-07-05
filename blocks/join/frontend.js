@@ -37,12 +37,13 @@
 			submit.setAttribute( 'aria-busy', 'true' );
 
 			var payload = {
-				email:         ( form.querySelector( '[name="email"]' )         || {} ).value || '',
-				display_name:  ( form.querySelector( '[name="display_name"]' )  || {} ).value || '',
-				bio:           ( form.querySelector( '[name="bio"]' )           || {} ).value || '',
-				portfolio_url: ( form.querySelector( '[name="portfolio_url"]' ) || {} ).value || '',
-				statement:     ( form.querySelector( '[name="statement"]' )     || {} ).value || '',
-				language:      ( form.querySelector( '[name="language"]' )      || {} ).value || '',
+				email:            ( form.querySelector( '[name="email"]' )               || {} ).value || '',
+				display_name:     ( form.querySelector( '[name="display_name"]' )        || {} ).value || '',
+				bio:              ( form.querySelector( '[name="bio"]' )                 || {} ).value || '',
+				portfolio_url:    ( form.querySelector( '[name="portfolio_url"]' )       || {} ).value || '',
+				statement:        ( form.querySelector( '[name="statement"]' )           || {} ).value || '',
+				language:         ( form.querySelector( '[name="language"]' )            || {} ).value || '',
+				turnstile_token:  ( form.querySelector( '[name="cf-turnstile-response"]' ) || {} ).value || '',
 			};
 
 			fetch( cfg.apiUrl || '', {
@@ -70,6 +71,12 @@
 					notice.hidden         = false;
 					submit.disabled       = false;
 					submit.removeAttribute( 'aria-busy' );
+					// A Turnstile token is single-use — reset the widget so a retry
+					// (e.g. after a validation error unrelated to it) gets a fresh
+					// token instead of silently failing verification again.
+					if ( window.turnstile ) {
+						window.turnstile.reset();
+					}
 				}
 			} )
 			.catch( function () {
@@ -78,6 +85,9 @@
 				notice.hidden         = false;
 				submit.disabled       = false;
 				submit.removeAttribute( 'aria-busy' );
+				if ( window.turnstile ) {
+					window.turnstile.reset();
+				}
 			} );
 		} );
 

@@ -64,6 +64,12 @@ class Settings {
 		wp_add_inline_style( 'wp-admin', $this->admin_css() );
 		// wp-util is always available in the WP admin and provides no-jQuery baseline.
 		wp_add_inline_script( 'wp-util', $this->ai_test_js() );
+
+		// Registers the 'media-editor' handle (and everything else the core
+		// media modal needs) so the Email logo field's "Select Image" button
+		// can open it — only loaded on this settings screen, not site-wide.
+		wp_enqueue_media();
+		wp_add_inline_script( 'media-editor', $this->media_picker_js() );
 	}
 
 	public function render_page(): void {
@@ -238,6 +244,19 @@ class Settings {
 			case 'readonly':
 				echo '<input type="text" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
 				break;
+			case 'media':
+				$attachment_id = (int) $value;
+				$image_src     = $attachment_id ? wp_get_attachment_image_src( $attachment_id, 'medium' ) : false;
+				$image_url     = $image_src ? $image_src[0] : '';
+				echo '<div class="agnosis-media-field">';
+				echo '<input type="hidden" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( (string) $attachment_id ) . '" class="agnosis-media-field__id">';
+				echo '<div class="agnosis-media-field__preview" style="margin-bottom:8px;' . ( $image_url ? '' : 'display:none;' ) . '">';
+				echo '<img src="' . esc_url( $image_url ) . '" alt="" style="display:block;max-width:240px;max-height:120px;border:1px solid #ddd;border-radius:4px;">';
+				echo '</div>';
+				echo '<button type="button" class="button agnosis-media-select">' . esc_html__( 'Select Image', 'agnosis' ) . '</button> ';
+				echo '<button type="button" class="button agnosis-media-remove" style="' . ( $image_url ? '' : 'display:none;' ) . '">' . esc_html__( 'Remove', 'agnosis' ) . '</button>';
+				echo '</div>';
+				break;
 			default:
 				echo '<input type="text" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" class="regular-text">';
 		}
@@ -261,6 +280,31 @@ class Settings {
 				'label'   => __( 'Node label', 'agnosis' ),
 				'desc'    => __( 'How this node introduces itself to the network.', 'agnosis' ),
 				'default' => get_bloginfo( 'name' ),
+			],
+
+			// --- GENERAL: Branding ---
+			'agnosis_email_logo_id' => [
+				'tab'      => 'general',
+				'label'    => __( 'Email logo', 'agnosis' ),
+				'input'    => 'media',
+				'type'     => 'integer',
+				'sanitize' => 'absint',
+				'default'  => 0,
+				'desc'     => __( 'Shown in the header of outgoing HTML emails (submission review, removal confirmation, rejection notice, and both newsletters) in place of the plain "✦ Site Name" text. Leave empty to keep the text wordmark. Displayed at up to 40px tall — any width or aspect ratio works.', 'agnosis' ),
+			],
+
+			// --- GENERAL: Cloudflare Turnstile (bot/spam protection) ---
+			'agnosis_turnstile_site_key' => [
+				'tab'   => 'general',
+				'label' => __( 'Cloudflare Turnstile site key', 'agnosis' ),
+				'desc'  => __( 'From your Cloudflare Turnstile widget (dash.cloudflare.com → Turnstile). Adds a human-verification check to the public Subscribe (newsletter-signup) and Join forms. Leave either key blank to leave both forms exactly as they are today.', 'agnosis' ),
+			],
+			'agnosis_turnstile_secret_key' => [
+				'tab'      => 'general',
+				'label'    => __( 'Cloudflare Turnstile secret key', 'agnosis' ),
+				'input'    => 'password',
+				'sanitize' => fn( $v ) => $v,
+				'desc'     => __( 'Kept server-side only — used to verify each form submission directly with Cloudflare before it is accepted.', 'agnosis' ),
 			],
 
 			// --- EMAIL ---
@@ -1604,6 +1648,53 @@ class Settings {
 			. '});',
 			$ajax_url
 		);
+	}
+
+	/**
+	 * Wires up every `.agnosis-media-field` on the page (currently just the
+	 * Email logo field, but written to support more than one) to the core
+	 * media modal via `wp.media()`. Vanilla JS delegated off document clicks —
+	 * same pattern as ai_test_js() — since wp.media() itself is the only part
+	 * of this that actually needs the media-editor script WordPress core
+	 * already ships, not jQuery directly.
+	 */
+	private function media_picker_js(): string {
+		return "document.addEventListener('click', function (e) {\n"
+			. "\tvar removeBtn = e.target.closest('.agnosis-media-remove');\n"
+			. "\tif (removeBtn) {\n"
+			. "\t\tvar removeWrap = removeBtn.closest('.agnosis-media-field');\n"
+			. "\t\tremoveWrap.querySelector('.agnosis-media-field__id').value = '';\n"
+			. "\t\tremoveWrap.querySelector('.agnosis-media-field__preview').style.display = 'none';\n"
+			. "\t\tremoveBtn.style.display = 'none';\n"
+			. "\t\treturn;\n"
+			. "\t}\n"
+			. "\n"
+			. "\tvar selectBtn = e.target.closest('.agnosis-media-select');\n"
+			. "\tif (!selectBtn) return;\n"
+			. "\te.preventDefault();\n"
+			. "\n"
+			. "\tvar wrap = selectBtn.closest('.agnosis-media-field');\n"
+			. "\tvar frame = wp.media({\n"
+			. "\t\ttitle: 'Select Image',\n"
+			. "\t\tbutton: { text: 'Use this image' },\n"
+			. "\t\tlibrary: { type: 'image' },\n"
+			. "\t\tmultiple: false\n"
+			. "\t});\n"
+			. "\n"
+			. "\tframe.on('select', function () {\n"
+			. "\t\tvar attachment = frame.state().get('selection').first().toJSON();\n"
+			. "\t\twrap.querySelector('.agnosis-media-field__id').value = attachment.id;\n"
+			. "\n"
+			. "\t\tvar previewWrap = wrap.querySelector('.agnosis-media-field__preview');\n"
+			. "\t\tvar img = previewWrap.querySelector('img');\n"
+			. "\t\timg.src = (attachment.sizes && attachment.sizes.medium) ? attachment.sizes.medium.url : attachment.url;\n"
+			. "\t\tpreviewWrap.style.display = 'block';\n"
+			. "\n"
+			. "\t\twrap.querySelector('.agnosis-media-remove').style.display = 'inline-block';\n"
+			. "\t});\n"
+			. "\n"
+			. "\tframe.open();\n"
+			. '});';
 	}
 
 	private function admin_css(): string {

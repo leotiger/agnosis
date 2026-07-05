@@ -1,7 +1,14 @@
 /**
  * Gallery Overview block — editor registration.
  *
- * Server-side rendered; the editor shows a static placeholder.
+ * Server-side rendered — the actual artwork grid can't be shown in the editor
+ * (it depends on live post data), but the *shape* of the grid the Columns
+ * setting controls can be, and should be: a text line saying "3 columns"
+ * doesn't tell an editor whether that's going to look cramped or sparse.
+ * Renders a live CSS-grid mockup of empty tiles that reflows immediately as
+ * the RangeControl changes, same idea as the newsletter-popover block's icon
+ * preview updating live off its own attribute.
+ *
  * No build step: uses wp.* globals enqueued by WordPress core.
  *
  * @package Agnosis\Blocks\GalleryOverview
@@ -21,12 +28,29 @@
 			var columns    = props.attributes.columns;
 			var blockProps = useBlockProps( {
 				style: {
-					padding:    '2rem',
+					padding:    '1.5rem',
 					border:     '1px dashed #555',
-					textAlign:  'center',
 					background: '#111',
 				},
 			} );
+
+			// Two preview rows' worth of empty tiles, reflowed to the current
+			// column count — enough to read as "a grid of this width" without
+			// pretending to show real artwork.
+			var tileCount = columns * 2;
+			var tiles     = [];
+			for ( var i = 0; i < tileCount; i++ ) {
+				tiles.push(
+					el( 'div', {
+						key: i,
+						style: {
+							aspectRatio:     '1 / 1',
+							background:      '#2a2a35',
+							border:          '1px solid #3a3a45',
+						},
+					} )
+				);
+			}
 
 			return el(
 				Fragment,
@@ -53,12 +77,23 @@
 					blockProps,
 					el(
 						'p',
-						{ style: { color: '#ededf0', fontFamily: 'sans-serif', margin: 0 } },
+						{ style: { color: '#ededf0', fontFamily: 'sans-serif', margin: '0 0 1rem' } },
 						__( '✦ Agnosis Gallery Overview — rendered on the server', 'agnosis' )
 					),
 					el(
+						'div',
+						{
+							style: {
+								display:             'grid',
+								gridTemplateColumns: 'repeat(' + columns + ', 1fr)',
+								gap:                 '0.5rem',
+							},
+						},
+						tiles
+					),
+					el(
 						'p',
-						{ style: { color: '#888', fontSize: '0.85rem', margin: '0.5rem 0 0' } },
+						{ style: { color: '#888', fontSize: '0.85rem', margin: '0.75rem 0 0' } },
 						columns + ' ' + __( 'columns · proportional · random daily order', 'agnosis' )
 					)
 				)

@@ -146,7 +146,10 @@ class PipelineAudioBranchTest extends TestCase {
 		$this->assertFalse( $result['enhanced'] );
 		$this->assertSame( 0, $result['photo_quality_score'] );
 		$this->assertSame( [], $result['photo_quality_issues'] );
-		$this->assertSame( '', $result['enhanced_data'] );
+		// enhanced_data mirrors original_data for audio (never enhanced) — see
+		// Pipeline::process_audio_single(), so merge_gallery() can always
+		// upload from 'enhanced_data' uniformly across media types.
+		$this->assertSame( 'binary', $result['enhanced_data'] );
 	}
 
 	public function test_strips_markdown_fences_from_chat_response(): void {

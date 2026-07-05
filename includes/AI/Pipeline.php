@@ -7,8 +7,11 @@
  *
  *   image/*         → describe → optionally enhance  (process_single)
  *   application/pdf → rasterise pages → image branch  (MediaAdapter)
- *   video/*         → extract first frame → image branch  (MediaAdapter)
- *   audio/*         → transcribe → chat describe  (process_audio_single)
+ *   video/*         → describe from extracted poster frame (or text-only if
+ *                     none), original video file published as-is, never
+ *                     enhanced  (process_video_single)
+ *   audio/*         → transcribe → chat describe, original audio file
+ *                     published as-is  (process_audio_single)
  *
  * Provider selection is independent: an operator can use Anthropic for text
  * and OpenAI for image enhancement (and audio transcription), or WordPress AI
@@ -76,11 +79,22 @@ class Pipeline {
 		$adapted = MediaAdapter::adapt( $submission['attachments'] ?? [] );
 
 		foreach ( $adapted as $attachment ) {
-			if ( ( $attachment['media_type'] ?? 'image' ) === 'audio' ) {
+			$media_type = $attachment['media_type'] ?? 'image';
+
+			if ( 'audio' === $media_type ) {
 				$results[] = $this->process_audio_single(
 					$attachment['data'],
 					$attachment['mime'],
 					$attachment['filename'],
+					$artist_context
+				);
+			} elseif ( 'video' === $media_type ) {
+				$results[] = $this->process_video_single(
+					$attachment['data'],
+					$attachment['mime'],
+					$attachment['filename'],
+					$attachment['poster_data'] ?? '',
+					$attachment['poster_mime'] ?? '',
 					$artist_context
 				);
 			} else {
@@ -207,7 +221,8 @@ class Pipeline {
 	 *      description returns (title, excerpt, body, tags, alt_text, medium).
 	 *
 	 * Enhancement is always skipped for audio — there is no image to enhance.
-	 * The result includes media_type = 'audio' so PostCreator can skip upload_image().
+	 * The result includes media_type = 'audio' so PostCreator uploads the
+	 * original audio file itself rather than treating it as an image.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -269,7 +284,12 @@ class Pipeline {
 		return [
 			'filename'             => $filename,
 			'original_data'        => $audio_data,
-			'enhanced_data'        => '', // no image data for audio
+			// Audio is never enhanced — enhanced_data mirrors original_data so
+			// merge_gallery() can always upload from 'enhanced_data' uniformly
+			// across media types, same convention as the image branch (where
+			// enhanced_data only diverges from original_data when enhancement
+			// actually ran and succeeded).
+			'enhanced_data'        => $audio_data,
 			'mime_type'            => $mime_type,
 			'media_type'           => 'audio',
 			'title'                => sanitize_text_field( $json['title']    ?? '' ),
@@ -293,6 +313,185 @@ class Pipeline {
 			'enhanced_data'        => '',
 			'mime_type'            => 'audio/mpeg',
 			'media_type'           => 'audio',
+			'title'                => '',
+			'excerpt'              => '',
+			'body'                 => '',
+			'tags'                 => [],
+			'alt_text'             => '',
+			'description_ok'       => false,
+			'error'                => $error,
+			'photo_quality_score'  => 0,
+			'photo_quality_issues' => [],
+			'enhanced'             => false,
+		];
+	}
+
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Process a single video attachment.
+	 *
+	 * Two description paths depending on whether MediaAdapter managed to
+	 * extract a poster frame via ffmpeg:
+	 *   1. Poster frame available — describe it exactly like a still image
+	 *      (a normal vision call), but the vision call's photo-quality
+	 *      assessment is always discarded: a poster frame's sharpness/lighting
+	 *      says nothing about whether the video itself is good or bad, so the
+	 *      quality-rejection gate and image enhancement must never apply to
+	 *      video (photo_quality_score is hardcoded to 0 below, same signal
+	 *      PostCreator already treats as "not applicable, never reject").
+	 *   2. No poster frame (ffmpeg missing, or the extraction/vision call
+	 *      failed) — fall back to a text-only chat() description built from
+	 *      artist context alone, same pattern as process_audio_single()'s
+	 *      transcript-less fallback.
+	 *
+	 * Unlike process_audio_single(), original_data/enhanced_data are always
+	 * populated with the real video binary — even on total description
+	 * failure — since it is never appropriate to silently drop an artist's
+	 * submitted video just because the AI description step had a bad day;
+	 * worst case it publishes with the plain email-subject title and no AI
+	 * body text, which is strictly better than dropping it.
+	 *
+	 * Enhancement never runs for video — there is no still image to enhance,
+	 * and enhancing only the poster frame would have no effect on what's
+	 * actually published (the original video file).
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function process_video_single(
+		string $video_data,
+		string $mime_type,
+		string $filename,
+		string $poster_data,
+		string $poster_mime,
+		string $artist_context
+	): array {
+		if ( '' !== $poster_data ) {
+			// Describe the extracted poster frame, not the video binary itself —
+			// the description_provider's vision call expects a still image.
+			$description = $this->description_provider->describe( $poster_data, $poster_mime ?: 'image/jpeg', $artist_context );
+
+			if ( $description->success ) {
+				return [
+					'filename'             => $filename,
+					'original_data'        => $video_data,
+					'enhanced_data'        => $video_data, // video is never enhanced
+					'mime_type'            => $mime_type,
+					'media_type'           => 'video',
+					'poster_data'          => $poster_data,
+					'poster_mime'          => $poster_mime ?: 'image/jpeg',
+					'title'                => $description->title,
+					'excerpt'              => $description->excerpt,
+					'body'                 => $description->body,
+					'tags'                 => $description->tags,
+					'alt_text'             => $description->alt_text,
+					'description_ok'       => true,
+					'error'                => '',
+					'photo_quality_score'  => 0,
+					'photo_quality_issues' => [],
+					'enhanced'             => false,
+				];
+			}
+			// Vision call on the poster frame failed — fall through to the
+			// text-only path below rather than giving up on the submission.
+		}
+
+		return $this->describe_video_from_context( $video_data, $mime_type, $filename, $poster_data, $poster_mime, $artist_context );
+	}
+
+	/**
+	 * Text-only video description — used when no poster frame is available,
+	 * or when the poster-frame vision call itself failed. Mirrors
+	 * process_audio_single()'s text-only chat() pattern.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function describe_video_from_context(
+		string $video_data,
+		string $mime_type,
+		string $filename,
+		string $poster_data,
+		string $poster_mime,
+		string $artist_context
+	): array {
+		if ( empty( trim( $artist_context ) ) ) {
+			return $this->video_failure_result(
+				$filename, $video_data, $mime_type, $poster_data, $poster_mime,
+				'No image frame or artist context available for video file.'
+			);
+		}
+
+		$prompt = "You are writing metadata for an artist's video work that will be published on an art platform. No image from the video is available — work only from the context below.\n\n"
+			. "Context about the work:\n"
+			. "---\n"
+			. "{$artist_context}\n"
+			. "---\n\n"
+			. "Produce a JSON object with these keys:\n"
+			. "- \"title\":    Short, evocative title for the work (string).\n"
+			. "- \"excerpt\":  One-sentence teaser (string).\n"
+			. "- \"body\":     Two or three paragraphs of editorial description (string, may contain basic HTML).\n"
+			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n"
+			. "- \"alt_text\": A brief accessible description of what the video shows or conveys, based only on the context given (string).\n"
+			. "- \"medium\":   One of: \"video\", \"animation\", \"video art\", \"performance\", \"documentary\", or \"\" if unclear.\n\n"
+			. 'Return ONLY the JSON object. No markdown fences. No preamble.';
+
+		$response = $this->description_provider->chat( $prompt );
+
+		if ( empty( $response ) ) {
+			return $this->video_failure_result(
+				$filename, $video_data, $mime_type, $poster_data, $poster_mime,
+				'AI returned no response for video description.'
+			);
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$json     = json_decode( $json_str, true );
+
+		if ( ! is_array( $json ) ) {
+			return $this->video_failure_result(
+				$filename, $video_data, $mime_type, $poster_data, $poster_mime,
+				'AI returned non-JSON response for video description.'
+			);
+		}
+
+		return [
+			'filename'             => $filename,
+			'original_data'        => $video_data,
+			'enhanced_data'        => $video_data,
+			'mime_type'            => $mime_type,
+			'media_type'           => 'video',
+			'poster_data'          => $poster_data,
+			'poster_mime'          => $poster_mime,
+			'title'                => sanitize_text_field( $json['title']    ?? '' ),
+			'excerpt'              => sanitize_text_field( $json['excerpt']  ?? '' ),
+			'body'                 => wp_kses_post( $json['body']            ?? '' ),
+			'tags'                 => array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+			'alt_text'             => sanitize_text_field( $json['alt_text'] ?? '' ),
+			'description_ok'       => true,
+			'error'                => '',
+			'photo_quality_score'  => 0,
+			'photo_quality_issues' => [],
+			'enhanced'             => false,
+		];
+	}
+
+	/** @return array<string, mixed> */
+	private function video_failure_result(
+		string $filename,
+		string $video_data,
+		string $mime_type,
+		string $poster_data,
+		string $poster_mime,
+		string $error
+	): array {
+		return [
+			'filename'             => $filename,
+			'original_data'        => $video_data,
+			'enhanced_data'        => $video_data,
+			'mime_type'            => $mime_type,
+			'media_type'           => 'video',
+			'poster_data'          => $poster_data,
+			'poster_mime'          => $poster_mime,
 			'title'                => '',
 			'excerpt'              => '',
 			'body'                 => '',

@@ -1,13 +1,32 @@
 <?php
 /**
- * Integration tests for PostCreator::merge_gallery() audio-skip behaviour.
+ * Integration tests for PostCreator::merge_gallery() audio/video upload behaviour.
  *
- * When the pipeline returns results with media_type = 'audio', merge_gallery()
- * must not attempt to upload anything to the Media Library and must return
- * an empty gallery (no attachment IDs for audio-only submissions).
+ * File name predates a behaviour change and no longer matches what these tests
+ * cover — kept as-is because the file's identity can't be renamed from this
+ * session, only its contents. Originally this asserted that audio results were
+ * SKIPPED entirely (no Media Library upload). That was dead-code-adjacent: the
+ * intake Parser dropped every audio/video attachment before any of this code
+ * could run, so "audio submissions" never actually reached merge_gallery() in
+ * production. Once Parser::ALLOWED_MIME was widened to accept audio and video,
+ * skipping the upload here would have meant an artist's sound or video work
+ * was silently discarded and never published at all — the opposite of what
+ * "supporting" those submission types should mean. merge_gallery() now uploads
+ * the real audio/video binary via upload_media()/upload_video() same as it
+ * always has for images.
  *
  * The method is private and is exercised via ReflectionMethod. A minimal
  * Pipeline stub is injected so no AI calls are made.
+ *
+ * Uses a hand-built, byte-valid, empty WAV file as the audio fixture (not an
+ * arbitrary placeholder string) because upload_media() now runs through the
+ * real wp_handle_sideload()/wp_check_filetype_and_ext() path, which inspects
+ * actual file content — a fake string like "audio binary" would fail real
+ * MIME sniffing and produce a false negative. There is no equivalent
+ * lightweight fixture for video (a minimal valid MP4/MOV container is not a
+ * few bytes of fixed header the way WAV is), so video's real upload path is
+ * better verified by an end-to-end test (send an actual video by email) than
+ * a synthetic fixture here.
  *
  * @package Agnosis\Tests\Integration\Publishing
  */
@@ -39,7 +58,7 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Helper
+	// Helpers
 	// -------------------------------------------------------------------------
 
 	/**
@@ -55,16 +74,31 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 		return $ref->invoke( $this->creator, $existing_post_id, $results );
 	}
 
+	/**
+	 * A byte-valid, empty (zero-sample) WAV file — 44-byte canonical header,
+	 * PCM, mono, 8kHz, 8-bit, no audio data. Passes real MIME sniffing as
+	 * audio/wav via both file extension and content inspection.
+	 */
+	private static function tiny_wav(): string {
+		$data_size = 0;
+		$riff_size = 36 + $data_size;
+		return pack( 'A4Va4', 'RIFF', $riff_size, 'WAVE' )
+			. pack( 'a4VvvVVvv', 'fmt ', 16, 1, 1, 8000, 8000, 1, 8 )
+			. pack( 'a4V', 'data', $data_size );
+	}
+
 	// -------------------------------------------------------------------------
 	// Audio results
 	// -------------------------------------------------------------------------
 
-	public function test_audio_result_produces_empty_gallery(): void {
+	public function test_audio_result_is_uploaded_to_the_media_library(): void {
+		$wav = self::tiny_wav();
+
 		$result = [
-			'filename'             => 'track.mp3',
-			'original_data'        => 'audio binary',
-			'enhanced_data'        => '',
-			'mime_type'            => 'audio/mpeg',
+			'filename'             => 'track.wav',
+			'original_data'        => $wav,
+			'enhanced_data'        => $wav, // audio mirrors original_data — see Pipeline::process_audio_single().
+			'mime_type'            => 'audio/wav',
 			'media_type'           => 'audio',
 			'title'                => 'Resonance',
 			'excerpt'              => 'A meditative soundscape.',
@@ -80,16 +114,19 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 
 		$gallery = $this->call_merge_gallery( 0, [ $result ] );
 
-		// No attachment should be uploaded for an audio result.
-		$this->assertSame( [], $gallery );
+		$this->assertCount( 1, $gallery, 'Audio result should produce exactly one Media Library attachment.' );
+		$this->assertSame( 'audio/wav', get_post_mime_type( $gallery[0] ) );
+		$this->assertSame( md5( $wav ), get_post_meta( $gallery[0], '_agnosis_image_hash', true ) );
 	}
 
-	public function test_multiple_audio_results_produce_empty_gallery(): void {
+	public function test_multiple_audio_results_each_upload(): void {
+		$wav = self::tiny_wav();
+
 		$audio = static fn( string $f ) => [
 			'filename'             => $f,
-			'original_data'        => 'data',
-			'enhanced_data'        => '',
-			'mime_type'            => 'audio/mpeg',
+			'original_data'        => $wav,
+			'enhanced_data'        => $wav,
+			'mime_type'            => 'audio/wav',
 			'media_type'           => 'audio',
 			'title'                => 'Work',
 			'excerpt'              => '',
@@ -103,17 +140,27 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 			'enhanced'             => false,
 		];
 
-		$gallery = $this->call_merge_gallery( 0, [ $audio( 'a.mp3' ), $audio( 'b.mp3' ) ] );
+		// Two DIFFERENT files (append a distinguishing byte to the data chunk so
+		// their hashes differ) — otherwise the second would be deduplicated by
+		// hash against the first, same as it would for two identical images.
+		$a = $audio( 'a.wav' );
+		$b = $audio( 'b.wav' );
+		$b['original_data'] = $wav . "\x00";
+		$b['enhanced_data'] = $wav . "\x00";
 
-		$this->assertSame( [], $gallery );
+		$gallery = $this->call_merge_gallery( 0, [ $a, $b ] );
+
+		$this->assertCount( 2, $gallery, 'Two distinct audio results should produce two attachments.' );
 	}
 
-	public function test_failed_audio_result_also_produces_no_upload(): void {
+	public function test_failed_audio_result_with_no_binary_produces_no_upload(): void {
+		// audio_failure_result() (Pipeline) sets original_data to '' when there
+		// was no transcript or context to work from at all — nothing to upload.
 		$result = [
-			'filename'             => 'silence.mp3',
+			'filename'             => 'silence.wav',
 			'original_data'        => '',
 			'enhanced_data'        => '',
-			'mime_type'            => 'audio/mpeg',
+			'mime_type'            => 'audio/wav',
 			'media_type'           => 'audio',
 			'title'                => '',
 			'excerpt'              => '',
@@ -133,19 +180,20 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Mixed results — audio skipped, image entries still processed
+	// Mixed results — audio and image entries both processed
 	// -------------------------------------------------------------------------
 
-	public function test_audio_entry_skipped_while_image_entry_with_no_data_returns_empty(): void {
-		// An image result with empty enhanced_data will fail upload_image() and
-		// return a WP_Error — it should not appear in the gallery either.
-		// The important assertion is that the audio entry does not cause a crash
-		// or attempt to upload, regardless of the image outcome.
+	public function test_audio_entry_uploaded_alongside_a_failed_image_entry(): void {
+		// An image result with empty enhanced_data will fail upload_media() and
+		// return a WP_Error — it should simply be excluded from the gallery,
+		// without affecting the audio entry's own upload.
+		$wav = self::tiny_wav();
+
 		$audio_result = [
-			'filename'             => 'track.mp3',
-			'original_data'        => 'binary',
-			'enhanced_data'        => '',
-			'mime_type'            => 'audio/mpeg',
+			'filename'             => 'track.wav',
+			'original_data'        => $wav,
+			'enhanced_data'        => $wav,
+			'mime_type'            => 'audio/wav',
 			'media_type'           => 'audio',
 			'title'                => 'Sound',
 			'excerpt'              => '',
@@ -159,8 +207,27 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 			'enhanced'             => false,
 		];
 
-		// No crash — test simply asserts no exception is thrown.
-		$gallery = $this->call_merge_gallery( 0, [ $audio_result ] );
-		$this->assertIsArray( $gallery );
+		$broken_image_result = [
+			'filename'             => 'broken.jpg',
+			'original_data'        => 'not empty so it is attempted',
+			'enhanced_data'        => '', // empty binary — upload_media() will fail on this.
+			'mime_type'            => 'image/jpeg',
+			'media_type'           => 'image',
+			'title'                => 'Broken',
+			'excerpt'              => '',
+			'body'                 => '',
+			'tags'                 => [],
+			'alt_text'             => '',
+			'description_ok'       => false,
+			'error'                => 'x',
+			'photo_quality_score'  => 0,
+			'photo_quality_issues' => [],
+			'enhanced'             => false,
+		];
+
+		$gallery = $this->call_merge_gallery( 0, [ $audio_result, $broken_image_result ] );
+
+		$this->assertCount( 1, $gallery, 'Only the audio entry should have uploaded successfully.' );
+		$this->assertSame( 'audio/wav', get_post_mime_type( $gallery[0] ) );
 	}
 }

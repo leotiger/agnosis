@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Core\Turnstile;
 
 class JoinPage {
 
@@ -125,17 +126,32 @@ class JoinPage {
 
 				<div class="agnosis-join__field">
 					<label for="agnosis-join-language"><?php esc_html_e( 'Language you work in', 'agnosis' ); ?></label>
-					<select id="agnosis-join-language" name="language">
+					<select id="agnosis-join-language" name="language" required>
 						<?php
-						// Auto-detect option always appears first.
+						// No auto-detect option: an artist's language must be one Lingua
+						// Forge is actually configured to support on this site (Settings →
+						// Language Router). Guessing from the browser's Accept-Language and
+						// silently accepting it risks telling an artist their language
+						// works when it doesn't — that only surfaces as a broken experience
+						// later (untranslated content, no matching locale). The artist must
+						// explicitly pick one of the languages this instance really
+						// supports; the placeholder is disabled so it can't be submitted
+						// as-is and the select is required.
 						printf(
-							'<option value="">%s</option>',
-							esc_html__( 'Auto-detect (browser language)', 'agnosis' )
+							'<option value="" disabled selected>%s</option>',
+							esc_html__( 'Select your language', 'agnosis' )
 						);
-						// Language list comes from Lingua Forge when active, otherwise
-						// falls back to SubmissionTranslator's built-in constant —
-						// no hardcoded duplicate maintained here.
-						foreach ( SubmissionTranslator::language_names() as $code => $label ) {
+						// Language list is exactly what Lingua Forge is configured for on
+						// this site — 3 active languages means 3 options here, 50 means 50.
+						// Falls back to just the site's own locale if Lingua Forge isn't
+						// active at all. Sorted alphabetically by ISO code (not display
+						// label — labels come from PHP's intl display-language lookup and
+						// aren't guaranteed sortable together across scripts/alphabets,
+						// while codes always are) so the list reads predictably regardless
+						// of how many languages are configured.
+						$languages = SubmissionTranslator::language_names();
+						ksort( $languages );
+						foreach ( $languages as $code => $label ) {
 							printf(
 								'<option value="%s">%s</option>',
 								esc_attr( (string) $code ),
@@ -148,6 +164,8 @@ class JoinPage {
 						<?php esc_html_e( 'Helps us communicate and translate content in your language.', 'agnosis' ); ?>
 					</span>
 				</div>
+
+				<?php echo Turnstile::render_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- render_widget() escapes the site key internally. ?>
 
 				<button type="submit" class="agnosis-join__submit">
 					<?php esc_html_e( 'Apply', 'agnosis' ); ?>
@@ -165,6 +183,8 @@ class JoinPage {
 	// -------------------------------------------------------------------------
 
 	private function enqueue_assets(): void {
+		Turnstile::enqueue_script();
+
 		wp_enqueue_script(
 			'agnosis-join',
 			AGNOSIS_URL . 'blocks/join/frontend.js',

@@ -20,6 +20,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\EmailFooter;
+
 class CommunityCapNotification {
 
 	public function register_hooks(): void {
@@ -53,6 +55,20 @@ class CommunityCapNotification {
 
 			$close_formatted = date_i18n( get_option( 'date_format' ), (int) strtotime( $closes_at ) );
 
+			$body = sprintf(
+				/* translators: 1: artist name, 2: site name, 3: proposed cap, 4: closing date */
+				__( "Hi %1\$s,\n\nThe %2\$s community has opened a vote to change the membership size cap to %3\$s. The vote closes on %4\$s.\n\nA strict majority of active members (more than 50%%) must vote yes for the new cap to be adopted. Sign in to your account to cast your vote.\n\n— %2\$s", 'agnosis' ),
+				$artist->display_name,
+				$site_name,
+				$cap_label,
+				$close_formatted
+			);
+
+			$footer = EmailFooter::plain_text();
+			if ( '' !== $footer ) {
+				$body .= "\n\n" . $footer;
+			}
+
 			wp_mail(
 				$artist->user_email,
 				sprintf(
@@ -60,14 +76,7 @@ class CommunityCapNotification {
 					__( 'Community size-cap vote open at %s', 'agnosis' ),
 					$site_name
 				),
-				sprintf(
-					/* translators: 1: artist name, 2: site name, 3: proposed cap, 4: closing date */
-					__( "Hi %1\$s,\n\nThe %2\$s community has opened a vote to change the membership size cap to %3\$s. The vote closes on %4\$s.\n\nA strict majority of active members (more than 50%%) must vote yes for the new cap to be adopted. Sign in to your account to cast your vote.\n\n— %2\$s", 'agnosis' ),
-					$artist->display_name,
-					$site_name,
-					$cap_label,
-					$close_formatted
-				),
+				$body,
 				[ 'Content-Type: text/plain; charset=UTF-8' ]
 			);
 

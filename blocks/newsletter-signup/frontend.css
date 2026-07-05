@@ -60,6 +60,10 @@
 	cursor:  not-allowed;
 }
 
+.agnosis-newsletter-signup .agnosis-turnstile {
+	flex-basis: 100%;
+}
+
 .agnosis-newsletter-signup__notice {
 	margin-top:  0.8rem;
 	padding:     1rem 1.2rem;

@@ -6,10 +6,11 @@
  * description of an artist email to the site's primary language before the AI
  * pipeline processes it.
  *
- * WP function calls (get_option, get_locale, apply_filters) are intercepted by
- * the namespace stubs in Stubs/ai_namespace_stubs.php, which read the static
- * properties on this class. All properties are reset in tearDown() so no test
- * bleeds into another.
+ * WP function calls (get_option, get_locale, apply_filters) plus Lingua Forge's
+ * public functions (function_exists, linguaforge_languages,
+ * linguaforge_language_label) are intercepted by the namespace stubs in
+ * Stubs/ai_namespace_stubs.php, which read the static properties on this
+ * class. All properties are reset in tearDown() so no test bleeds into another.
  *
  * @package Agnosis\Tests\Unit\AI
  */
@@ -40,11 +41,23 @@ class SubmissionTranslatorTest extends TestCase {
 	/** @var array<string, string>|null Replacement map for 'agnosis_translation_languages'; null = passthrough. */
 	public static ?array $languages_override = null;
 
+	/** @var bool|null Whether Lingua Forge's functions "exist"; null = true (active by default). */
+	public static ?bool $linguaforge_active = null;
+
+	/** @var string[]|null Codes returned by linguaforge_languages(); null = built-in default. */
+	public static ?array $linguaforge_languages = null;
+
+	/** @var array<string, string>|null Labels read by linguaforge_language_label(); null = built-in default. */
+	public static ?array $linguaforge_labels = null;
+
 	protected function tearDown(): void {
-		self::$options             = null;
-		self::$locale              = null;
-		self::$available_languages = null;
-		self::$languages_override  = null;
+		self::$options              = null;
+		self::$locale               = null;
+		self::$available_languages  = null;
+		self::$languages_override   = null;
+		self::$linguaforge_active   = null;
+		self::$linguaforge_languages = null;
+		self::$linguaforge_labels    = null;
 	}
 
 	// -------------------------------------------------------------------------
@@ -103,7 +116,7 @@ class SubmissionTranslatorTest extends TestCase {
 	}
 
 	public function test_unknown_language_code_returns_original_without_chat_call(): void {
-		// 'xx' is not in LANGUAGE_NAMES and no filter override is set.
+		// 'xx' is not in the active Lingua Forge language list and no filter override is set.
 		self::$options = [ 'linguaforge_primary_language' => 'xx' ];
 
 		$provider = $this->createMock( ProviderInterface::class );
@@ -230,7 +243,7 @@ class SubmissionTranslatorTest extends TestCase {
 	}
 
 	public function test_translate_text_returns_original_for_unknown_code(): void {
-		// 'xx' is not in LANGUAGE_NAMES and no filter override is active.
+		// 'xx' is not in the active Lingua Forge language list and no filter override is active.
 		$provider = $this->createMock( ProviderInterface::class );
 		$provider->expects( $this->never() )->method( 'chat' );
 
@@ -323,83 +336,58 @@ class SubmissionTranslatorTest extends TestCase {
 
 	// -------------------------------------------------------------------------
 	// language_names()
+	//
+	// The active language list is sourced entirely from Lingua Forge
+	// (linguaforge_languages() + linguaforge_language_label()) — however many
+	// languages Lingua Forge is configured for on this site is exactly how many
+	// options appear, nothing curated or intersected on the Agnosis side.
 	// -------------------------------------------------------------------------
 
-	public function test_language_names_contains_site_locale_when_no_packs_installed(): void {
-		// get_available_languages() returns [] (stub default), get_locale() = 'en_US'.
-		// The site locale contributes 'en', so at minimum English must be present.
-		$names = SubmissionTranslator::language_names();
-
-		$this->assertArrayHasKey( 'en', $names );
-		$this->assertSame( 'English', $names['en'] );
-	}
-
-	public function test_language_names_includes_installed_pack_and_site_locale(): void {
-		self::$available_languages = [ 'es_ES' ];
-		self::$locale              = 'en_US';
+	public function test_language_names_returns_exactly_what_lingua_forge_reports(): void {
+		self::$linguaforge_languages = [ 'en', 'ca', 'km' ];
+		self::$linguaforge_labels    = [ 'en' => 'English', 'ca' => 'Catalan', 'km' => 'Khmer' ];
 
 		$names = SubmissionTranslator::language_names();
 
-		$this->assertArrayHasKey( 'en', $names );
-		$this->assertArrayHasKey( 'es', $names );
+		$this->assertSame( [ 'en' => 'English', 'ca' => 'Catalan', 'km' => 'Khmer' ], $names );
 	}
 
-	public function test_language_names_excludes_languages_without_installed_pack(): void {
-		self::$available_languages = [ 'es_ES' ];
-		self::$locale              = 'en_US';
+	public function test_language_names_count_matches_lingua_forge_configured_count(): void {
+		// 3 configured languages → 3 options. Not 28, not a curated subset.
+		self::$linguaforge_languages = [ 'en', 'es', 'ja' ];
+
+		$this->assertCount( 3, SubmissionTranslator::language_names() );
+
+		// Reconfigure to 5 — the count must track it exactly.
+		self::$linguaforge_languages = [ 'en', 'es', 'ja', 'ko', 'th' ];
+
+		$this->assertCount( 5, SubmissionTranslator::language_names() );
+	}
+
+	public function test_language_names_uses_uppercased_code_when_label_missing(): void {
+		self::$linguaforge_languages = [ 'km' ];
+		self::$linguaforge_labels    = []; // No label configured for this code.
 
 		$names = SubmissionTranslator::language_names();
 
-		// French has no pack installed — must not appear.
-		$this->assertArrayNotHasKey( 'fr', $names );
-		$this->assertArrayNotHasKey( 'de', $names );
+		$this->assertSame( 'KM', $names['km'] );
 	}
 
-	public function test_language_names_includes_all_installed_packs(): void {
-		self::$available_languages = [ 'fr_FR', 'de_DE', 'ja' ];
-		self::$locale              = 'en_US';
+	public function test_language_names_falls_back_to_site_locale_when_lingua_forge_inactive(): void {
+		// Lingua Forge not installed — function_exists() reports false for both
+		// of its functions, so there is no multi-language configuration to read.
+		self::$linguaforge_active = false;
+		self::$locale             = 'de_DE';
 
 		$names = SubmissionTranslator::language_names();
 
-		$this->assertArrayHasKey( 'fr', $names );
-		$this->assertArrayHasKey( 'de', $names );
-		$this->assertArrayHasKey( 'ja', $names );
-		$this->assertArrayHasKey( 'en', $names ); // site locale
+		$this->assertSame( [ 'de' => 'DE' ], $names );
 	}
 
-	public function test_language_names_falls_back_to_full_map_when_no_codes_match(): void {
-		// 'oc_FR' (Occitan) is not in LANGUAGE_NAMES — nothing matches the installed pack.
-		// The site locale 'en_US' → 'en' IS in the map, so this tests that at least
-		// one known code exists even with an unknown pack.
-		self::$available_languages = [ 'oc_FR' ];
-		self::$locale              = 'en_US';
-
-		$names = SubmissionTranslator::language_names();
-
-		// 'en' from the site locale is still matched, so not a full-fallback case,
-		// but the result must not be empty and must contain 'en'.
-		$this->assertNotEmpty( $names );
-		$this->assertArrayHasKey( 'en', $names );
-	}
-
-	public function test_language_names_full_fallback_when_site_locale_also_unknown(): void {
-		// Both pack and site locale resolve to unknown codes → full LANGUAGE_NAMES returned.
-		self::$available_languages = [ 'oc_FR' ];
-		self::$locale              = 'oc_FR'; // pretend even site locale is unknown
-
-		$names = SubmissionTranslator::language_names();
-
-		// Full fallback: should contain all known languages (spot-check several).
-		$this->assertArrayHasKey( 'en', $names );
-		$this->assertArrayHasKey( 'es', $names );
-		$this->assertArrayHasKey( 'ja', $names );
-	}
-
-	public function test_language_names_filter_applied_after_intersection(): void {
-		self::$available_languages = [ 'es_ES' ];
-		self::$locale              = 'en_US';
+	public function test_language_names_filter_applied_on_top_of_lingua_forge_list(): void {
+		self::$linguaforge_languages = [ 'en', 'es' ];
 		// Filter replaces the result entirely — tests that apply_filters() is called.
-		self::$languages_override  = [ 'zz' => 'Zeta' ];
+		self::$languages_override   = [ 'zz' => 'Zeta' ];
 
 		$names = SubmissionTranslator::language_names();
 

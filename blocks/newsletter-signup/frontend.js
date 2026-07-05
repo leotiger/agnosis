@@ -43,8 +43,9 @@
 				var htmlLang = ( document.documentElement.lang || '' ).split( '-' )[ 0 ].toLowerCase();
 
 				var payload = {
-					email:    ( form.querySelector( '[name="email"]' ) || {} ).value || '',
-					language: htmlLang,
+					email:            ( form.querySelector( '[name="email"]' ) || {} ).value || '',
+					language:         htmlLang,
+					turnstile_token:  ( form.querySelector( '[name="cf-turnstile-response"]' ) || {} ).value || '',
 				};
 
 				fetch( cfg.apiUrl || '', {
@@ -70,6 +71,12 @@
 						notice.hidden       = false;
 						submit.disabled     = false;
 						submit.removeAttribute( 'aria-busy' );
+						// A Turnstile token is single-use — reset the widget so a
+						// retry (e.g. after a validation error unrelated to it) gets
+						// a fresh token instead of silently failing verification again.
+						if ( window.turnstile ) {
+							window.turnstile.reset();
+						}
 					}
 				} )
 				.catch( function () {
@@ -78,6 +85,9 @@
 					notice.hidden       = false;
 					submit.disabled     = false;
 					submit.removeAttribute( 'aria-busy' );
+					if ( window.turnstile ) {
+						window.turnstile.reset();
+					}
 				} );
 			} );
 		} );

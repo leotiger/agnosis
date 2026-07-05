@@ -21,6 +21,30 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		update_option( 'agnosis_admission_percent', 0 );
 		update_option( 'agnosis_admission_minimum', 2 );
 		update_option( 'agnosis_admission_window_days', 7 );
+
+		// Admission::apply() only keeps a submitted `language` param when it's one
+		// SubmissionTranslator::language_names() reports as active — which, since
+		// that reads from Lingua Forge, is otherwise whatever (if anything) some
+		// unrelated test in this same process happened to leave on
+		// LinguaForgeCompatTest::$lf_languages. Pin a known, stable set here via
+		// the same `agnosis_translation_languages` filter operators use, so this
+		// class's assertions about specific codes ('es', 'de', 'fr') don't depend
+		// on Lingua Forge compat test execution order. Reverted automatically by
+		// WP_UnitTestCase's hook-snapshot teardown, same as everywhere else.
+		add_filter( 'agnosis_translation_languages', [ $this, 'filter_test_language_names' ] );
+	}
+
+	/**
+	 * @param array<string, string> $languages
+	 * @return array<string, string>
+	 */
+	public function filter_test_language_names( array $languages ): array {
+		return array_replace( $languages, [
+			'en' => 'English',
+			'es' => 'Spanish',
+			'de' => 'German',
+			'fr' => 'French',
+		] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -332,7 +356,15 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'es', $stored );
 	}
 
-	public function test_apply_falls_back_to_accept_language_header(): void {
+	/**
+	 * Admission::apply() must never guess a language from the browser's
+	 * Accept-Language header — even a clean, unambiguous one. Guessing risks
+	 * recording a language this WP instance doesn't actually support (per
+	 * Lingua Forge's configuration), which only surfaces later as a broken,
+	 * silently-untranslated experience for the artist. The header is present
+	 * here specifically to prove it's ignored, not consulted.
+	 */
+	public function test_apply_does_not_use_accept_language_header(): void {
 		global $wpdb;
 
 		$saved = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null;
@@ -342,7 +374,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'de@example.com',
 			'display_name' => 'Deutsch Artist',
-			// no language param — should fall back to the header
+			// no language param, header present — must still resolve to null
 		] );
 
 		if ( null !== $saved ) {
@@ -358,13 +390,16 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 				'de@example.com'
 			)
 		);
-		$this->assertSame( 'de', $stored );
+		$this->assertNull( $stored, 'Accept-Language header must never be used to guess a language.' );
 	}
 
-	public function test_apply_parses_complex_accept_language_header(): void {
+	/**
+	 * Same guarantee as above, against a multi-tag header with quality values —
+	 * confirms there's no partial parsing logic left to exercise, complex or not.
+	 */
+	public function test_apply_ignores_complex_accept_language_header(): void {
 		global $wpdb;
 
-		// Primary tag "fr-CH" → first segment "fr".
 		$saved = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null;
 		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr-CH,fr;q=0.9,de;q=0.8,en;q=0.7';
 
@@ -387,7 +422,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 				'fr@example.com'
 			)
 		);
-		$this->assertSame( 'fr', $stored );
+		$this->assertNull( $stored, 'Accept-Language header must never be used to guess a language.' );
 	}
 
 	public function test_apply_stores_null_when_no_language_provided_and_no_header(): void {

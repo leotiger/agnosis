@@ -5,7 +5,82 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [0.4.3]
+## [0.7.0] — 2026-07-05
+
+### Added
+- **Genuine sound and video submission support.** Previously "supported" only in name — the intake `Email\Parser` MIME allowlist blocked all audio/video before anything else could run, and even the description code that did exist would have discarded the actual video file. Now: `Parser::ALLOWED_MIME` accepts 8 audio and 6 video MIME types with type-appropriate size caps (20MB image / 50MB audio / 150MB video); `AI\MediaAdapter::adapt_video()` extracts a poster frame via ffmpeg when available (never drops the original video if it isn't); `AI\Pipeline::process_video_single()` describes the poster frame with the same vision call used for images, falling back to a text-only description from the artist's message when no frame is available; `Publishing\PostCreator` uploads the real audio/video binary through the same Media Library path as images and publishes it with native `core/audio`/`core/video` blocks (zero theme support required), using a video's poster frame as the post's featured thumbnail. Quality-rejection and AI enhancement never apply to audio/video — both are always published as submitted, described only, never altered.
+- **Artist Guide: new "Sound and video" section** explaining that audio/video attachments are sent the same way as images, how AI describes them, and that the file itself is always published untouched.
+- **External links become `wp:embed` blocks.** When an artist's message contains a link — typically a video too large to email — to an allowlisted platform (YouTube, Vimeo, Dailymotion, SoundCloud, Bandcamp, Archive.org), `PostCreator::build_external_link_embeds()` appends it as a native embed block at the bottom of the post. Deliberately allowlist-only, not a content classifier: this pipeline has no way to inspect what a linked page actually shows, so "reject commercial/adult sites" is achieved structurally by only ever trusting a short, maintained list of known platforms rather than trying to detect what to exclude. Extensible via the `agnosis_embed_host_allowlist` filter. Capped at 3 embeds per submission.
+
+## [0.6.4] — 2026-07-05
+
+### Added
+- **Email logo setting.** New `Agnosis\Core\EmailBranding::header_html()` renders the header of every outgoing HTML email — the three `Publishing\Notification` templates (submission ready to review, removal confirmation, quality-rejection) and both `Newsletter\Mailer` digests (artist + public). Settings → General gains an "Email logo" media-library picker (`agnosis_email_logo_id`, new `media` field type in `Admin\Settings`, backed by `wp.media()`); when set, the logo replaces the plain "✦ Site Name" text wordmark everywhere at once, capped at 40px tall regardless of the image's own dimensions. Falls back to the text wordmark when nothing is configured, so this is a no-op until an operator picks an image.
+- **Work-emails footer on artist-facing notifications.** New `Agnosis\Core\EmailFooter` builds a one-line summary of every configured work-submission address (Settings → Email: artwork, biography, events, replace, remove, promote, photo-only) with real `mailto:` links in the HTML templates. Wired into `Publishing\Notification`'s three templates, `Artist\AdmissionNotification` (application acknowledgment, expiry notices, vote-request emails), `Artist\DepartureNotification` (ban/reinstatement notices, community removal-vote emails), and `Artist\CommunityCapNotification` (cap-vote emails) — everywhere except the goodbye/self-removal confirmation email and anything Newsletter-related, and except the welcome email (which already lists every alias address in full). Skips addresses that are blank or invalid, and disappears entirely when nothing is configured.
+- **Artist Guide: photo-only lane isn't just for photographers.** Added a paragraph clarifying that any artist, in any medium, can send through the photo address (or `[Photo]` indicator) whenever they don't want AI touching the image representing their piece — verified against `PostCreator::resolve_indicator()`, which treats `photo_only` purely as a routing flag independent of what the artwork actually is.
+
+### Fixed
+- **Artist Guide wrongly implied someone other than the artist reviews and approves a submission.** "You will receive an email when your piece is reviewed and published" read as if a third party makes the publish decision — in reality the artist themselves gets the review email with Approve/Discard links (`Publishing\Notification::on_post_drafted()`) and is the only one who decides. Corrected to say so explicitly.
+
+## [0.6.3] — 2026-07-05
+
+### Added
+- **`agnosis/newsletter-popover` block — the subscribe trigger + popover chrome, now plugin-owned.** Previously this lived as theme markup (`agnosis-theme`'s `wp:html` trigger button, an anchored `wp:group` panel, and a `render_block_core/group` filter that added `popover="auto"` by regex). Moved here as `Agnosis\Newsletter\PopoverBlock`: a single self-contained dynamic block renders the trigger button, the native-Popover panel, and an `agnosis/newsletter-signup` form inside it (via `render_block()`, same as any other block would), and writes `popover="auto"` directly rather than patching it in after the fact. Any theme gets a working subscribe popover from one `<!-- wp:agnosis/newsletter-popover /-->`, with no CSS or PHP to reimplement. No-ops (renders nothing) when the public newsletter is disabled, same as `newsletter-signup` itself. Requires `agnosis-theme` 0.5.4+.
+- **Trigger icon is now a block option instead of hardcoded markup.** `agnosis/newsletter-popover`'s Inspector panel gets a "Trigger icon" dropdown — Bell (default), Envelope, Star, or Lightning bolt — stored as the block's `icon` attribute and rendered server-side from a small fixed icon map (`PopoverBlock::ICONS`). Lets an operator pick something that won't visually blend into whatever sits next to it (e.g. Social Share icons) without editing CSS or the theme.
+
+## [0.6.2] — 2026-07-05
+
+### Changed
+- **"Log in to view your submissions" form restyled and gained optional Turnstile protection.** `SubmissionsPage::render_login_form()` previously emitted `wp_login_form()` completely unstyled — labels and inputs sat inline, undersized. Added scoped CSS: username/password stack label-above-input on their own lines, inputs are full-width with larger padding/font-size, matching the Join/Subscribe forms' look.
+
+### Added
+- **Turnstile on the login form, scoped so it can't affect any other login on the site.** Since `wp_login_form()` posts straight to `wp-login.php` (WordPress core's own handler, not a plugin REST endpoint), the widget is injected via the `login_form_bottom` filter — added immediately before the call and removed immediately after — alongside a hidden `agnosis_login_source` marker. A new `authenticate` filter (priority 30, after WP's own credential check) only enforces verification when that marker is present, so wp-admin login, REST/XML-RPC auth, and any other login path are completely unaffected regardless of whether Turnstile is configured. No-op entirely until both Turnstile keys are set (Settings → General), same as the Join and Subscribe forms.
+
+## [0.6.1] — 2026-07-05
+
+### Fixed
+- **Join form's "Auto-detect (browser language)" option removed — it could silently promise support for a language this site doesn't actually have.** Selecting it left the language blank, and `Admission::apply()` guessed a code from the visitor's `Accept-Language` header with no check against what Lingua Forge is actually configured for — an artist could end up "recorded" in a language nobody translates into. The dropdown now opens on a disabled "Select your language" placeholder and is `required`, so an artist must explicitly pick one of the languages this instance genuinely supports. `Admission::apply()` no longer guesses from the browser header at all, and defensively discards any submitted `language` not found in `SubmissionTranslator::language_names()` (a direct API call bypassing the form can't sneak one in either).
+
+## [0.6.0] — 2026-07-05
+
+### Changed
+- **Join form's language list — and translation eligibility — now sourced entirely from Lingua Forge.** `SubmissionTranslator::language_names()` no longer maintains its own curated 28-language constant; it reads `linguaforge_languages()` / `linguaforge_language_label()` directly, so however many languages Lingua Forge is configured for on this site (Settings → Language Router) is exactly how many options the Join form offers — 3 configured means 3, 50 means 50. `resolve_language_name()` (used by the AI translation call and by back-translated notification emails) now reuses the same source, so the dropdown, the translation pipeline, and back-translation all agree on what's supported instead of three separately-maintained lists that could drift apart. Falls back to just the site's own locale when Lingua Forge isn't active. Still filterable via `agnosis_translation_languages`.
+
+## [0.5.4] — 2026-07-04
+
+### Added
+- **Cloudflare Turnstile on the public Subscribe and Join forms.** New `Agnosis\Core\Turnstile` helper (widget markup, script loading, `siteverify` check) plus two Settings → General fields (site key, secret key). Opt-in by configuration — until both keys are set, `is_enabled()` is false and neither form's markup, assets, or REST validation change at all. Once configured, `agnosis/newsletter-signup` (0.3.1) and `agnosis/join` (0.2.1) render the widget before their submit button, and `/newsletter/subscribe` / `/admission/apply` reject the request server-side if the token is missing or fails verification. Both blocks' frontend.js read Cloudflare's auto-inserted `cf-turnstile-response` field and reset the widget on any error, since tokens are single-use.
+
+## [0.5.3] — 2026-07-04
+
+### Changed
+- **`agnosis/artist-breadcrumb` name now links to the artist's own subdomain home.** `SubdomainNavigation::render_block()` wraps the artist's display name in an `<a href="...">` pointing at `SubdomainRouter::url_for_artist()`, so the breadcrumb doubles as a way back to the artist's home from any other page on their subdomain (an artwork, biography, or event single), not just an identifying label.
+
+## [0.5.2] — 2026-07-04
+
+### Added
+- **Font weight and font family supports on `agnosis/artist-breadcrumb`.** `block.json`'s `typography` supports gains `fontWeight` and `fontFamily`, alongside the existing `fontSize` — both editable from the block's own Typography inspector panel, picking from the theme's defined font families.
+
+### Changed
+- **`agnosis/artist-breadcrumb` now renders a `<div>` instead of a `<p>`.** `SubdomainNavigation::render_block()`'s output tag changed; the `.agnosis-artist-breadcrumb` class (and any per-instance color/typography attributes) are unaffected, since they target the class/wrapper attributes rather than the tag itself.
+
+## [0.5.1] — 2026-07-04
+
+### Added
+- **Styling options on `agnosis/artist-breadcrumb`.** `block.json` now declares `color` (text + background) and `typography` (font size) supports, so the block's own Color/Typography inspector panels are available in the Site Editor — no code change needed to restyle it per instance. `SubdomainNavigation::render_block()` applies whatever's picked via `get_block_wrapper_attributes()` on the wrapper `<p>`; anything left unset falls back to the theme's own `.agnosis-artist-breadcrumb` CSS, unchanged from 0.5.0.
+
+## [0.5.0] — 2026-07-04
+
+### Added
+- **`agnosis/artist-breadcrumb` block.** A small dynamic block (`blocks/artist-breadcrumb/`, registered by the new `Agnosis\Network\SubdomainNavigation`) that renders `<p class="agnosis-artist-breadcrumb">` with the current artist's display name on an artist subdomain, and nothing at all on the main site. Reintroduces — outside the site title, as its own explicit element — the artist identification that `option_blogname` used to carry before 0.4.3 removed that filter. Any theme can drop the block in wherever it wants the artist identified, rather than reimplementing subdomain-detection itself; agnosis-theme (0.5.0) uses it directly below the header.
+
+### Changed
+- **Site Logo/Site Title portal-link fix moved from agnosis-theme into the plugin.** The `render_block_core/site-logo`/`render_block_core/site-title` filters that point those links at the main Agnosis domain on an artist subdomain (added to agnosis-theme in 0.4.1) are now `Agnosis\Network\SubdomainNavigation::link_to_portal()`, registered here instead. This was Agnosis-platform behaviour tied to `SubdomainRouter`, not anything specific to that theme's markup — any theme using core's Site Logo/Site Title blocks now gets the fix automatically, without needing its own copy of this logic.
+
+## [0.4.3] — 2026-07-04
+
+### Changed
+- **Artist subdomains no longer replace the visible site title with the artist's name.** `SubdomainRouter` filtered `option_blogname` since 0.1.9 so `wp:site-title` showed the artist rather than "Agnosis" — in practice this left the header with no visible Agnosis branding at all and, combined with `wp:site-title`/`wp:site-logo` both linking to `home_url()` (which `rewrite_home()` already points at the artist subdomain), no way to navigate back to the main portal from an artist's page. The `option_blogname` filter is removed; `document_title_parts`/`wp_title` (the HTML `<title>`, used for the browser tab/SEO) still show the artist's name and are unaffected. The actual "no way back" problem is fixed on the theme side: agnosis-theme's `functions.php` now points the Site Logo and Site Title links at the main Agnosis domain (`agnosis_base_domain` option) instead of `home_url()` whenever `SubdomainRouter::is_artist_subdomain()` is true.
 
 ### Fixed
 - **Email action links executed on a plain GET — corporate mail-security scanners could trigger them.** Every one-click link in the platform (`ReviewConfirm` review approve/reject/remove, `VouchConfirm` admission votes, `SubscriptionConfirm` newsletter confirm/unsubscribe for both the public list and artists) mutated state the instant its URL was fetched, at `template_redirect`. Link-scanning mail security layers (Outlook SafeLinks/ATP, Mimecast, Proofpoint, and similar) prefetch GET links in incoming email to scan them — which is indistinguishable, server-side, from the recipient actually clicking. A prefetch alone could consume a single-use review token (the artist's real click then shows "link expired or already used"), silently approve/reject/remove artwork, cast a community admission vote on the artist's behalf, or confirm/unsubscribe a newsletter recipient who never opened the email client. Fixed by splitting every one of these shims into two phases: a GET now only renders a themed confirm page naming the action, with a single POST button; the token travels in that form as a hidden field (never in the form's `action` URL, so it is not logged a second time), and the action itself — REST dispatch, vote recording, or subscriber status change — only runs once that POST arrives. Scanners issue GETs and never submit forms, so prefetching a link is now inert. `VouchConfirm` and `SubscriptionConfirm` also had their response pages moved from raw `echo`+`exit` onto `wp_die()` (matching `ReviewConfirm`'s existing pattern), which incidentally closes a testing gap noted in both suites and lets the whole GET/POST split be verified end-to-end; `VouchConfirm`'s error page also now correctly returns HTTP 400 (previously always 200), consistent with the other two shims.

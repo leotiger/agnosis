@@ -1,0 +1,28 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/newsletter-popover",
+	"version": "0.6.3",
+	"title": "Newsletter Popover",
+	"category": "agnosis",
+	"icon": "email-alt",
+	"description": "Icon button that opens a full-viewport popover containing the newsletter signup form. Self-contained — drop it directly into a header or footer template part; renders nothing when the public newsletter is disabled (Settings → Newsletter).",
+	"keywords": [ "newsletter", "subscribe", "popover", "footer", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"attributes": {
+		"icon": {
+			"type": "string",
+			"default": "bell"
+		}
+	},
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"reusable": false,
+		"spacing": {
+			"margin": true
+		}
+	},
+	"example": {}
+}

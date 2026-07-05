@@ -3,9 +3,15 @@
  * Unit tests for MediaAdapter::adapt().
  *
  * MediaAdapter is a pure static class with no WP dependencies, so these are
- * plain PHPUnit tests. PDF/video paths require Imagick/ffmpeg respectively —
- * tests for those branches assert graceful degradation (empty return) rather
- * than actual conversion, since those tools are not available in CI.
+ * plain PHPUnit tests. The PDF path requires Imagick — its test asserts
+ * graceful degradation (empty return, PDF dropped entirely) since Imagick is
+ * not available in CI. The video path requires ffmpeg only for the optional
+ * poster-frame extraction; the original video attachment itself is never
+ * dropped even when ffmpeg is unavailable — its test asserts that fallback
+ * (video survives, poster_data is simply empty) rather than an empty return.
+ * When ffmpeg IS available, a second test has it synthesise its own minimal
+ * one-frame clip via the `lavfi` test source and asserts real extraction —
+ * no checked-in binary fixture needed.
  *
  * @package Agnosis\Tests\Unit\AI
  */
@@ -133,19 +139,72 @@ class MediaAdapterTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Video — graceful skip when ffmpeg unavailable
+	// Video — original file is always published; poster frame is best-effort
 	// -------------------------------------------------------------------------
 
-	public function test_video_returns_empty_when_ffmpeg_unavailable(): void {
+	public function test_video_without_ffmpeg_still_publishes_original_with_no_poster(): void {
 		$ffmpeg = trim( (string) shell_exec( 'which ffmpeg 2>/dev/null' ) );
 		if ( ! empty( $ffmpeg ) ) {
-			$this->markTestSkipped( 'ffmpeg is available — this test guards the fallback path only.' );
+			$this->markTestSkipped( 'ffmpeg is available — this test guards the no-ffmpeg fallback path only.' );
 		}
 
 		$att    = [ 'data' => 'video_binary', 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
 		$result = MediaAdapter::adapt( [ $att ] );
 
-		$this->assertSame( [], $result );
+		// The original video is never dropped, even without ffmpeg — only the
+		// poster-frame extraction is skipped. Pipeline falls back to a
+		// text-only description when poster_data is empty.
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'video', $result[0]['media_type'] );
+		$this->assertSame( 'video_binary', $result[0]['data'] );
+		$this->assertSame( 'video/mp4', $result[0]['mime'] );
+		$this->assertSame( '', $result[0]['poster_data'] );
+		$this->assertSame( '', $result[0]['poster_mime'] );
+	}
+
+	public function test_video_with_working_ffmpeg_extracts_poster_frame(): void {
+		$ffmpeg = trim( (string) shell_exec( 'which ffmpeg 2>/dev/null' ) );
+		if ( empty( $ffmpeg ) ) {
+			$this->markTestSkipped( 'ffmpeg not available in this environment.' );
+		}
+
+		// A hand-built byte fixture (the way tiny_wav() works for audio in the
+		// PostCreator integration test) isn't possible for a real video codec
+		// bitstream — unlike WAV, there is no fixed, trivial header format.
+		// Instead, ask this same ffmpeg binary to synthesise a minimal,
+		// genuinely decodable one-frame clip from its own `lavfi` test source
+		// (no external fixture file needed at all), then feed that back into
+		// MediaAdapter and assert real extraction happened. Because the same
+		// ffmpeg both encodes and decodes, this is self-consistent regardless
+		// of which codec this particular ffmpeg build defaults to.
+		$video_path = sys_get_temp_dir() . '/agnosis_test_video_' . uniqid( '', true ) . '.mp4';
+
+		exec(
+			sprintf(
+				'%s -y -f lavfi -i color=c=red:size=32x32:rate=1 -frames:v 1 -pix_fmt yuv420p %s 2>/dev/null',
+				escapeshellcmd( $ffmpeg ),
+				escapeshellarg( $video_path )
+			),
+			$output,
+			$return
+		);
+
+		if ( 0 !== $return || ! is_file( $video_path ) ) {
+			$this->markTestSkipped( 'This ffmpeg build could not synthesise a test video (lavfi source unavailable?).' );
+		}
+
+		$video_data = (string) file_get_contents( $video_path );
+		unlink( $video_path );
+
+		$att    = [ 'data' => $video_data, 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'video', $result[0]['media_type'] );
+		$this->assertNotSame( '', $result[0]['poster_data'], 'A real, decodable video should yield an extracted poster frame.' );
+		$this->assertSame( 'image/jpeg', $result[0]['poster_mime'] );
+		// JPEG files start with the SOI marker 0xFFD8.
+		$this->assertSame( "\xFF\xD8", substr( $result[0]['poster_data'], 0, 2 ) );
 	}
 
 	// -------------------------------------------------------------------------

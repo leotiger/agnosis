@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/artist-breadcrumb",
+	"version": "0.5.3",
+	"title": "Artist Breadcrumb",
+	"category": "agnosis",
+	"icon": "admin-users",
+	"description": "Small line identifying the artist whose subdomain is currently being viewed. Renders nothing on the main Agnosis site.",
+	"keywords": [ "artist", "breadcrumb", "subdomain", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"reusable": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": true
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}

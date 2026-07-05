@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.4.3
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,7 +63,50 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.7.0 =
+* Added: Genuine sound and video submission support — audio and video attachments are accepted at intake (widened MIME allowlist, per-type size limits), described by AI (from an automatically extracted poster frame for video, or from the artist's own words when no frame is available), and published with WordPress's native audio/video players — no theme changes needed.
+* Added: Artist Guide now explains sound and video submissions and how they're handled.
+* Added: A link to an external video/audio platform (YouTube, Vimeo, Dailymotion, SoundCloud, Bandcamp, Archive.org) in an artist's message is now embedded at the bottom of the post — for when the actual file was too large to email. Only this small, maintained set of platforms is ever embedded; any other link is silently omitted, never shown as a raw link either.
+
+= 0.6.4 =
+* Added: Email logo setting (Settings → General) — pick an image from the media library to show in the header of every outgoing HTML email (submission review, removal confirmation, rejection notice, both newsletters) instead of the plain "✦ Site Name" text.
+* Added: Artist-facing emails (application, admission, vote requests, suspension/reinstatement, community votes) now close with a one-line summary of every configured work-submission address, so artists always have every address one glance away. Newsletter emails and the goodbye/departure email are unaffected.
+* Fixed: Artist Guide wrongly implied someone else reviews and approves a submission before it publishes — corrected to make clear the artist alone decides.
+* Added: Artist Guide now clarifies the photo-only lane isn't limited to photographers — any artist, in any medium, can use it to stop AI from touching the image representing their piece.
+
+= 0.6.3 =
+* Added: New `agnosis/newsletter-popover` block — the subscribe trigger icon and its full-viewport signup popover, previously theme-only markup, are now a self-contained plugin block any theme can drop in.
+* Added: Trigger icon is now selectable from the block's Inspector panel — Bell (default), Envelope, Star, or Lightning bolt — so it can be changed without touching CSS or templates.
+
+= 0.6.2 =
+* Changed: Restyled the "Log in to view your submissions" form — larger, stacked username/password fields matching the Join/Subscribe forms.
+* Added: Optional Cloudflare Turnstile on that same login form, scoped so it never affects wp-admin or any other login on the site.
+
+= 0.6.1 =
+* Fixed: Removed the Join form's "Auto-detect (browser language)" option and the Accept-Language guessing behind it — an artist's language must now be explicitly picked from what Lingua Forge actually supports on this site, never guessed.
+
+= 0.6.0 =
+* Changed: Join form's language list (and AI translation eligibility) now comes entirely from Lingua Forge's own active-language configuration instead of a hardcoded list — whatever Lingua Forge supports is what appears here.
+
+= 0.5.4 =
+* Added: Cloudflare Turnstile human-verification on the public Subscribe and Join forms — opt-in via two new Settings → General fields (site key, secret key); both forms are unaffected until configured.
+
+= 0.5.3 =
+* Changed: agnosis/artist-breadcrumb's artist name now links to the artist's own subdomain home, so it also works as a way back from artwork/bio/event pages.
+
+= 0.5.2 =
+* Added: agnosis/artist-breadcrumb block now also supports font weight and font family from the Typography inspector panel.
+* Changed: agnosis/artist-breadcrumb now renders a div instead of a p tag.
+
+= 0.5.1 =
+* Added: agnosis/artist-breadcrumb block now supports text color, background color, and font size, editable per-instance from the block's own Color/Typography inspector panels. Falls back to the theme's default styling when nothing is picked.
+
+= 0.5.0 =
+* Added: New agnosis/artist-breadcrumb block — shows the current artist's name, renders nothing on the main site. Lets any theme identify the artist on a subdomain without reimplementing subdomain-detection logic itself.
+* Changed: Moved the "link back to the main Agnosis site" fix (Site Logo/Site Title links on artist subdomains) out of the agnosis-theme repo and into this plugin, as Agnosis\Network\SubdomainNavigation — it now applies automatically to any theme using core's Site Logo/Site Title blocks, not just agnosis-theme.
+
 = 0.4.3 =
+* Changed: Artist subdomains no longer replace the visible site title with the artist's name (removed the option_blogname filter added in 0.1.9) — the header now keeps showing "Agnosis". The browser tab title still shows the artist's name. The actual navigation gap this was covering for is fixed on the theme side: the Site Logo and Site Title now link back to the main Agnosis site from an artist subdomain instead of the artist's own home.
 * Fixed: Email action links (review approve/reject/remove, admission votes, newsletter confirm/unsubscribe) previously acted the moment their URL was fetched with a plain GET — corporate mail-security scanners (Outlook SafeLinks, Mimecast, Proofpoint, etc.) prefetch links in incoming email to scan them, which could silently approve/reject/remove artwork, cast a vote, or confirm/unsubscribe a newsletter recipient before the person ever clicked anything, and could also consume a single-use review token so the artist's real click showed "link expired". Every one of these links now renders a confirm page with a single button on GET; the action is only taken once that button is clicked (a POST).
 * Fixed: The newsletter signup block never sent the visitor's language, so every public subscriber's locale was left blank and the newsletter's per-locale rendering (added in 0.4.1) never actually applied to public subscribers in practice. The block now picks up the language of the page the visitor is on automatically — no new form field.
 * Fixed: The community removal-vote link in notification emails was completely dead — no handler was ever registered for it, and there was no other way to cast a removal vote. It now works the same way admission-vote links do: a confirm page on open, the vote recorded only once confirmed.

@@ -1,0 +1,84 @@
+/* Agnosis Newsletter Popover block — frontend styles.
+ * Moved from agnosis-theme (0.5.3) so the trigger + popover chrome lives with
+ * the block that renders it, not scattered across whichever theme happens to
+ * use it — any theme dropping in agnosis/newsletter-popover gets this styling
+ * for free, no theme-side CSS required.
+ */
+
+/*
+ * Shared icon-button treatment for the trigger + close buttons. Sized and
+ * weighted to sit flush with a Social Icons block placed next to the trigger
+ * (agnosis-theme's footer does exactly this) — themes can override via this
+ * same class name if they want a different treatment.
+ */
+.lf-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	border: 1px solid var(--wp--preset--color--tertiary, currentColor);
+	background: transparent;
+	color: var(--wp--preset--color--foreground, currentColor);
+	cursor: pointer;
+	opacity: 0.6;
+	transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.lf-icon-btn:hover {
+	opacity: 1;
+	border-color: var(--wp--preset--color--foreground, currentColor);
+}
+
+/*
+ * Popover panel — native Popover API (popover="auto" written directly in the
+ * block's own markup), no JavaScript shipped.
+ *
+ * Full-viewport takeover rather than a small card anchored to the trigger: a
+ * card sized/positioned near the trigger is what risks landing off-screen or
+ * needing the *page* (not the panel) scrolled to find it, since the trigger
+ * commonly sits at the very bottom of a footer. `position: fixed; inset: 0`
+ * guarantees the panel always opens flush with whatever part of the page is
+ * currently in view.
+ */
+#lf-newsletter-popover {
+	position: fixed;
+	inset: 0;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	overflow-y: auto;
+	border: none;
+	background: var(--wp--preset--color--background, #fff);
+	color: var(--wp--preset--color--foreground, #111);
+}
+
+/* Centers the message + form column inside the full-bleed panel above. */
+.agnosis-newsletter-popover__inner {
+	max-width: 24rem;
+	margin: 0 auto;
+	padding: var(--wp--preset--spacing--60, 3rem);
+}
+
+.agnosis-newsletter-popover__intro {
+	margin: 0 0 var(--wp--preset--spacing--20, 1rem);
+	font-size: var(--wp--preset--font-size--small, 0.875rem);
+	font-weight: 300;
+	letter-spacing: 0.05em;
+	opacity: 0.6;
+}
+
+/*
+ * Close button pinned to the viewport corner via its own `position: fixed`
+ * (not `absolute`) so it stays put even while the panel's content scrolls —
+ * an `absolute` child would scroll away with the content since the panel
+ * itself is the scroll container.
+ */
+.lf-popover-close {
+	position: fixed;
+	top: var(--wp--preset--spacing--40, 1.5rem);
+	right: var(--wp--preset--spacing--40, 1.5rem);
+}

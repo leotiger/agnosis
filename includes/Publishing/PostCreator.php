@@ -5,7 +5,8 @@
  * Flow:
  *   1. Load queue item.
  *   2. Run AI Pipeline on the submission.
- *   3. Upload enhanced images to the Media Library.
+ *   3. Upload each attachment to the Media Library — enhanced images, or the
+ *      original file as-is for audio and video (see merge_gallery()).
  *   4. Create an 'agnosis_artwork' draft with gallery, title, body, tags + signed review token.
  *   5. Mark queue item as 'published' (meaning: pipeline complete).
  *   6. Fire 'agnosis_post_drafted' → Notification sends the artist a review email.
@@ -50,6 +51,37 @@ class PostCreator {
 		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false ],
 		'photo'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true  ],
 	];
+
+	/**
+	 * Hosts an artist-submitted link is allowed to become a wp:embed block for
+	 * (e.g. a video too large to email, hosted elsewhere instead).
+	 *
+	 * This is a hard allowlist, not a denylist, and that distinction is the
+	 * entire safety mechanism: there is no code anywhere in this pipeline that
+	 * fetches or inspects what a linked page actually contains (no browsing,
+	 * no vision call on the destination), so there is no reliable way to
+	 * detect "this is a commercial site" or "this is pornographic" after the
+	 * fact. Trusting only a short, maintained list of known video/audio
+	 * platforms achieves the same goal by construction — anything not on this
+	 * list, whatever it is, never gets embedded. Filterable so an operator can
+	 * add a platform (e.g. a self-hosted PeerTube instance) without a plugin
+	 * update.
+	 */
+	private const ALLOWED_EMBED_HOSTS = [
+		'youtube.com',
+		'youtu.be',
+		'vimeo.com',
+		'dailymotion.com',
+		'soundcloud.com',
+		'bandcamp.com',
+		'archive.org',
+	];
+
+	/** Video-type (vs. generic "rich") hosts, purely for the block's cosmetic `type` attribute. */
+	private const VIDEO_EMBED_HOSTS = [ 'youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com' ];
+
+	/** Cap on how many external links a single submission can turn into embeds — avoids link-spam in the body. */
+	private const MAX_EMBEDDED_LINKS = 3;
 
 	/** @var Pipeline AI pipeline instance. */
 	private Pipeline $pipeline;
@@ -919,56 +951,67 @@ class PostCreator {
 
 		$new_gallery = [];
 		foreach ( $results as $result ) {
-			// Audio results carry no image binary — skip the Media Library upload entirely.
-			// The AI-generated text (title, body, tags) is still used for the post content.
-			if ( ( $result['media_type'] ?? 'image' ) === 'audio' ) {
+			// A result with no binary at all has nothing to upload — this only
+			// happens for a fully failed description (e.g. audio_failure_result()
+			// when there was no transcript or context to work from).
+			if ( empty( $result['original_data'] ) ) {
 				continue;
 			}
 
-			$hash = ! empty( $result['original_data'] ) ? md5( $result['original_data'] ) : '';
-			if ( $hash && isset( $existing_hash_map[ $hash ] ) ) {
+			$hash = md5( $result['original_data'] );
+			if ( isset( $existing_hash_map[ $hash ] ) ) {
 				$new_gallery[] = $existing_hash_map[ $hash ];
 				continue;
 			}
-			$attachment_id = $this->upload_image(
-				$result['enhanced_data'],
-				$result['mime_type'],
-				$result['filename'],
-				$result['alt_text'],
-				$result['title'],
-				$hash,
-			);
-			if ( ! is_wp_error( $attachment_id ) ) {
-				$new_gallery[] = $attachment_id;
 
-				// Original preservation — when enhancement actually changed the image,
-				// upload the artist's original binary as a sidecar attachment so the
-				// master is always recoverable. Stored as a child of the enhanced
-				// attachment with _agnosis_is_original = '1'; its ID is recorded in
-				// _agnosis_original_attachment_id on the enhanced attachment.
-				if ( ( $result['enhanced'] ?? false )
-					&& ! empty( $result['original_data'] )
-					&& $result['original_data'] !== $result['enhanced_data']
-				) {
-					$base          = pathinfo( $result['filename'], PATHINFO_FILENAME );
-					$ext           = pathinfo( $result['filename'], PATHINFO_EXTENSION );
-					$orig_filename = $base . '-original.' . $ext;
-					$orig_mime     = $this->mime_for_extension( $ext ) ?: 'image/jpeg';
+			$media_type    = $result['media_type'] ?? 'image';
+			$attachment_id = 'video' === $media_type
+				? $this->upload_video( $result, $hash )
+				: $this->upload_media(
+					$result['enhanced_data'],
+					$result['mime_type'],
+					$result['filename'],
+					$result['alt_text'] ?? '',
+					$result['title'],
+					$hash,
+				);
 
-					$orig_id = $this->upload_image(
-						$result['original_data'],
-						$orig_mime,
-						$orig_filename,
-						$result['alt_text'],
-						// translators: %s is the artwork title.
-						sprintf( __( '%s (original)', 'agnosis' ), $result['title'] ),
-						$hash, // same hash — same image before enhancement
-					);
+			if ( is_wp_error( $attachment_id ) ) {
+				continue;
+			}
 
-					if ( ! is_wp_error( $orig_id ) ) {
-						update_post_meta( $orig_id,          '_agnosis_is_original',             '1' );
-						update_post_meta( $attachment_id,    '_agnosis_original_attachment_id',  $orig_id );
-					}
+			$new_gallery[] = $attachment_id;
+
+			// Original preservation — when enhancement actually changed the image,
+			// upload the artist's original binary as a sidecar attachment so the
+			// master is always recoverable. Stored as a child of the enhanced
+			// attachment with _agnosis_is_original = '1'; its ID is recorded in
+			// _agnosis_original_attachment_id on the enhanced attachment.
+			// Audio and video are never enhanced (their pipeline results always
+			// carry 'enhanced' => false), so this never fires for them.
+			// original_data is guaranteed non-empty here — the loop already
+			// `continue`s past any result with an empty original_data above.
+			if ( ( $result['enhanced'] ?? false )
+				&& $result['original_data'] !== $result['enhanced_data']
+			) {
+				$base          = pathinfo( $result['filename'], PATHINFO_FILENAME );
+				$ext           = pathinfo( $result['filename'], PATHINFO_EXTENSION );
+				$orig_filename = $base . '-original.' . $ext;
+				$orig_mime     = $this->mime_for_extension( $ext ) ?: 'image/jpeg';
+
+				$orig_id = $this->upload_media(
+					$result['original_data'],
+					$orig_mime,
+					$orig_filename,
+					$result['alt_text'],
+					// translators: %s is the artwork title.
+					sprintf( __( '%s (original)', 'agnosis' ), $result['title'] ),
+					$hash, // same hash — same image before enhancement
+				);
+
+				if ( ! is_wp_error( $orig_id ) ) {
+					update_post_meta( $orig_id,          '_agnosis_is_original',             '1' );
+					update_post_meta( $attachment_id,    '_agnosis_original_attachment_id',  $orig_id );
 				}
 			}
 		}
@@ -977,14 +1020,70 @@ class PostCreator {
 	}
 
 	/**
-	 * Build Gutenberg post content from the primary AI result and the image gallery.
+	 * Upload a video result: the video binary itself, plus — when MediaAdapter
+	 * managed to extract one — the poster frame as a linked sidecar image
+	 * attachment. The poster is used for the `<video poster>` attribute
+	 * (build_video_block()) and, when this is the post's featured item, as
+	 * the post's thumbnail (write_post_meta() resolves this via
+	 * _agnosis_video_poster_id, since a video attachment itself has no image
+	 * representation wp_get_attachment_image_src() can use).
 	 *
-	 * A single image uses a standalone wp:image block; multiple images use a
-	 * wp:gallery block with each image nested inside. The AI-generated body text
-	 * follows the image block(s).
+	 * @param array<string, mixed> $result Pipeline result for a single video attachment.
+	 * @param string                $hash   MD5 of the original video binary.
+	 * @return int|\WP_Error
+	 */
+	private function upload_video( array $result, string $hash ): int|\WP_Error {
+		$video_id = $this->upload_media(
+			$result['enhanced_data'],
+			$result['mime_type'],
+			$result['filename'],
+			'', // alt text is an image-accessibility concept — not applicable to the video file itself
+			$result['title'],
+			$hash,
+		);
+
+		if ( is_wp_error( $video_id ) || empty( $result['poster_data'] ) ) {
+			return $video_id;
+		}
+
+		$base      = pathinfo( $result['filename'], PATHINFO_FILENAME );
+		$poster_id = $this->upload_media(
+			$result['poster_data'],
+			$result['poster_mime'] ?? 'image/jpeg',
+			$base . '-poster.jpg',
+			$result['alt_text'] ?? '',
+			// translators: %s is the artwork title.
+			sprintf( __( '%s (poster frame)', 'agnosis' ), $result['title'] ),
+		);
+
+		if ( ! is_wp_error( $poster_id ) ) {
+			update_post_meta( $poster_id, '_agnosis_is_video_poster', '1' );
+			update_post_meta( $video_id,  '_agnosis_video_poster_id', $poster_id );
+		}
+
+		return $video_id;
+	}
+
+	/**
+	 * Build Gutenberg post content from the primary AI result and the media gallery.
 	 *
-	 * @param array<string, mixed> $primary Primary AI result.
-	 * @param int[]                $gallery Ordered attachment IDs.
+	 * The gallery can mix images, audio, and video (an artist could, in principle,
+	 * attach more than one kind to a single email, though in practice it's almost
+	 * always one kind). Each attachment's real MIME type (not the pipeline result
+	 * that produced it — that array has already been discarded by this point,
+	 * and reading straight from the uploaded attachment is more robust than
+	 * threading media_type through a second parameter) decides which block it
+	 * becomes: images collapse into a single wp:image or wp:gallery block exactly
+	 * as before; each audio or video attachment gets its own standalone core
+	 * block (wp:audio / wp:video — both render natively, no theme support needed).
+	 * Video/audio blocks are placed first, then the image block, then body text,
+	 * then — last — a wp:embed block for each allowlisted external link found in
+	 * the artist's raw message (see build_external_link_embeds()), for when the
+	 * actual file was too large to email and the artist points to it elsewhere.
+	 *
+	 * @param array<string, mixed> $primary     Primary AI result.
+	 * @param int[]                $gallery     Ordered attachment IDs.
+	 * @param string               $artist_text Raw submitted email body (also scanned for embeddable links).
 	 * @return string Serialised Gutenberg block markup.
 	 */
 	private function build_post_content( array $primary, array $gallery, string $post_type = 'agnosis_artwork', string $artist_text = '' ): string {
@@ -997,13 +1096,166 @@ class PostCreator {
 			? wp_kses_post( $artist_text )
 			: ( $primary['body'] ?? '' );
 
-		if ( count( $gallery ) > 1 ) {
-			return $this->build_gallery_block( $gallery ) . "\n\n" . $body;
+		$embed_blocks = $this->build_external_link_embeds( $artist_text );
+
+		if ( empty( $gallery ) ) {
+			return $body . $embed_blocks;
 		}
-		if ( count( $gallery ) === 1 ) {
-			return $this->build_image_block( $gallery[0] ) . "\n\n" . $body;
+
+		$image_ids    = [];
+		$media_blocks = '';
+
+		foreach ( $gallery as $attachment_id ) {
+			$mime = (string) get_post_mime_type( $attachment_id );
+
+			if ( str_starts_with( $mime, 'video/' ) ) {
+				$media_blocks .= $this->build_video_block( $attachment_id ) . "\n\n";
+			} elseif ( str_starts_with( $mime, 'audio/' ) ) {
+				$media_blocks .= $this->build_audio_block( $attachment_id ) . "\n\n";
+			} else {
+				$image_ids[] = $attachment_id;
+			}
 		}
-		return $body;
+
+		$image_block = '';
+		if ( count( $image_ids ) > 1 ) {
+			$image_block = $this->build_gallery_block( $image_ids ) . "\n\n";
+		} elseif ( count( $image_ids ) === 1 ) {
+			$image_block = $this->build_image_block( $image_ids[0] ) . "\n\n";
+		}
+
+		return $media_blocks . $image_block . $body . $embed_blocks;
+	}
+
+	/**
+	 * Scan the artist's raw submitted text for links and turn each allowlisted
+	 * one into a wp:embed block, for when the actual file (typically a video)
+	 * was too large to email and the artist points to it elsewhere instead
+	 * (YouTube, Vimeo, SoundCloud, Bandcamp, …). Appended at the very bottom
+	 * of the post, after all attached media and body text.
+	 *
+	 * Deliberately allowlist-only — see ALLOWED_EMBED_HOSTS for why. A link
+	 * to anything not on that list (or its filtered extension) is silently
+	 * dropped and logged, never embedded, never shown as a raw link either.
+	 *
+	 * @param string $artist_text Raw submitted email body (pre-translation, pre-AI).
+	 * @return string Zero or more wp:embed blocks, each followed by a blank line; '' if none.
+	 */
+	private function build_external_link_embeds( string $artist_text ): string {
+		if ( '' === trim( $artist_text ) ) {
+			return '';
+		}
+
+		// Bare-URL scan — good enough for an artist typing/pasting a link into
+		// a plain-text email; deliberately excludes trailing quote/bracket/
+		// angle-bracket characters that a mail client's own formatting might
+		// wrap around the URL rather than actual URL characters.
+		preg_match_all( '#\bhttps?://[^\s<>"\')\]]+#i', $artist_text, $matches );
+		// preg_match_all() always populates index 0 (the full-pattern matches),
+		// even when empty — no ?? fallback needed.
+		$urls = array_unique( $matches[0] );
+
+		if ( empty( $urls ) ) {
+			return '';
+		}
+
+		$blocks = '';
+		$count  = 0;
+
+		foreach ( $urls as $url ) {
+			if ( $count >= self::MAX_EMBEDDED_LINKS ) {
+				break;
+			}
+
+			// Trailing sentence punctuation ("check it out: https://vimeo.com/1.")
+			// is not part of the URL.
+			$url  = rtrim( $url, '.,;:!?' );
+			$host = strtolower( (string) ( wp_parse_url( $url, PHP_URL_HOST ) ?: '' ) );
+
+			if ( '' === $host ) {
+				continue;
+			}
+
+			if ( ! $this->is_allowed_embed_host( $host ) ) {
+				Logger::info(
+					sprintf( 'PostCreator: link to "%s" is not on the embeddable-platform allowlist — omitted from post content.', $host ),
+					'publisher'
+				);
+				continue;
+			}
+
+			$blocks .= $this->build_embed_block( $url, $host ) . "\n\n";
+			++$count;
+		}
+
+		return $blocks;
+	}
+
+	/**
+	 * Whether $host is, or is a subdomain of, an allowlisted embed platform
+	 * (e.g. "myname.bandcamp.com" matches the "bandcamp.com" entry).
+	 *
+	 * Filterable via 'agnosis_embed_host_allowlist' so an operator can add a
+	 * platform without a plugin update. Filtering only ever ADDS trust — there
+	 * is no corresponding way to shrink the list at runtime below
+	 * ALLOWED_EMBED_HOSTS from inside this method, by design.
+	 *
+	 * @param string $host Lowercased hostname from the URL (may include "www.").
+	 */
+	private function is_allowed_embed_host( string $host ): bool {
+		if ( str_starts_with( $host, 'www.' ) ) {
+			$host = substr( $host, 4 );
+		}
+
+		/**
+		 * Filters the list of hostnames an artist-submitted link may point to
+		 * in order to become a wp:embed block. Additive to ALLOWED_EMBED_HOSTS.
+		 *
+		 * @param string[] $hosts Base hostnames (subdomains match automatically).
+		 */
+		$allowed = (array) apply_filters( 'agnosis_embed_host_allowlist', self::ALLOWED_EMBED_HOSTS );
+
+		foreach ( $allowed as $allowed_host ) {
+			$allowed_host = strtolower( trim( (string) $allowed_host ) );
+			if ( '' === $allowed_host ) {
+				continue;
+			}
+			if ( $host === $allowed_host || str_ends_with( $host, '.' . $allowed_host ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Build a minimal Gutenberg core/embed block for an allowlisted URL.
+	 *
+	 * Only the URL itself needs to be correct — core/embed is a dynamic block;
+	 * WordPress performs its own oEmbed lookup (and caches the result in post
+	 * meta) at render time using the URL in the wrapper div, regardless of
+	 * what "type"/"providerNameSlug" this markup declares. Those two are
+	 * included only as a best-effort cosmetic hint, not a functional
+	 * requirement.
+	 *
+	 * @param string $url  Already-validated, allowlisted URL.
+	 * @param string $host Lowercased hostname (used only to guess the cosmetic "type").
+	 * @return string Block markup string.
+	 */
+	private function build_embed_block( string $url, string $host ): string {
+		$is_video = false;
+		foreach ( self::VIDEO_EMBED_HOSTS as $video_host ) {
+			if ( $host === $video_host || str_ends_with( $host, '.' . $video_host ) ) {
+				$is_video = true;
+				break;
+			}
+		}
+		$type = $is_video ? 'video' : 'rich';
+
+		$attr    = wp_json_encode( [ 'url' => $url, 'type' => $type ] ) ?: '{}';
+		$esc_url = esc_url( $url );
+
+		return '<!-- wp:embed ' . $attr . ' --><figure class="wp-block-embed is-type-' . $type . '"><div class="wp-block-embed__wrapper">' . "\n" . $esc_url . "\n" . '</div></figure><!-- /wp:embed -->';
 	}
 
 	/**
@@ -1019,9 +1271,12 @@ class PostCreator {
 	 * @param string               $post_type CPT slug.
 	 */
 	private function write_post_meta( int $post_id, array $primary, array $gallery, array $all_tags, string $post_type ): void {
-		// Featured image.
+		// Featured image. A video or audio attachment has no image representation
+		// wp_get_attachment_image_src() can use, so pick_thumbnail_id() prefers a
+		// video's linked poster frame, or the first genuine image attachment in
+		// the gallery, over the raw gallery order.
 		if ( ! empty( $gallery ) ) {
-			set_post_thumbnail( $post_id, $gallery[0] );
+			set_post_thumbnail( $post_id, $this->pick_thumbnail_id( $gallery ) );
 		}
 
 		// Tags.
@@ -1063,16 +1318,45 @@ class PostCreator {
 	}
 
 	/**
-	 * Write image data to the Media Library via wp_handle_sideload.
+	 * Pick the best attachment ID to use as the post's featured image.
 	 *
-	 * @param string $data     Raw image binary data.
-	 * @param string $mime     MIME type (e.g. 'image/jpeg').
+	 * Prefers, in order: a video's linked poster frame, the first genuine
+	 * image attachment in the gallery, or — for an audio-only gallery, where
+	 * nothing visual exists at all — the raw first gallery entry (harmless:
+	 * set_post_thumbnail() just stores the ID; anything that later tries to
+	 * render it as an image gets nothing back and degrades gracefully, same
+	 * as any post with no featured image at all).
+	 *
+	 * @param int[] $gallery Ordered attachment IDs (non-empty — caller checks).
+	 */
+	private function pick_thumbnail_id( array $gallery ): int {
+		foreach ( $gallery as $attachment_id ) {
+			$poster_id = (int) get_post_meta( $attachment_id, '_agnosis_video_poster_id', true );
+			if ( $poster_id ) {
+				return $poster_id;
+			}
+			if ( str_starts_with( (string) get_post_mime_type( $attachment_id ), 'image/' ) ) {
+				return $attachment_id;
+			}
+		}
+		return $gallery[0];
+	}
+
+	/**
+	 * Write media data (image, audio, or video) to the Media Library via
+	 * wp_handle_sideload. WordPress's own sideload/attachment machinery is
+	 * already mime-agnostic — this was named upload_image() when the
+	 * pipeline only ever produced images; renamed once audio and video
+	 * started going through the same path.
+	 *
+	 * @param string $data     Raw binary data.
+	 * @param string $mime     MIME type (e.g. 'image/jpeg', 'audio/mpeg', 'video/mp4').
 	 * @param string $filename Original filename.
-	 * @param string $alt      Alt text for the attachment.
+	 * @param string $alt      Alt text — only actually stored for image attachments.
 	 * @param string $title    Post title for the attachment.
 	 * @return int|\WP_Error Attachment post ID, or WP_Error on failure.
 	 */
-	private function upload_image(
+	private function upload_media(
 		string $data,
 		string $mime,
 		string $filename,
@@ -1129,7 +1413,9 @@ class PostCreator {
 		$meta = wp_generate_attachment_metadata( $attachment_id, $sideload['file'] );
 		wp_update_attachment_metadata( $attachment_id, $meta );
 
-		if ( ! empty( $alt ) ) {
+		// Alt text is an image-accessibility concept — only meaningful, and
+		// only ever read by anything, on image attachments.
+		if ( ! empty( $alt ) && str_starts_with( (string) $sideload['type'], 'image/' ) ) {
 			update_post_meta( $attachment_id, '_wp_attachment_image_alt', $alt );
 		}
 
@@ -1195,6 +1481,51 @@ class PostCreator {
 			'lightbox' => [ 'enabled' => true ],
 		] ) ?: '{}';
 		return '<!-- wp:image ' . $attr . ' --><figure class="wp-block-image size-agnosis-artwork"><img src="' . $src . '" /></figure><!-- /wp:image -->';
+	}
+
+	/**
+	 * Build a Gutenberg core/video block for a video attachment.
+	 *
+	 * Uses core/video rather than a custom block — WordPress already renders
+	 * it correctly on the frontend and in the editor with no theme support
+	 * needed, exactly like build_image_block() relies on core/image. Adds a
+	 * `poster` attribute from the linked poster-frame attachment
+	 * (_agnosis_video_poster_id, set by upload_video()) when one exists, so
+	 * the player shows a real frame instead of a blank/black box before
+	 * playback starts.
+	 *
+	 * @param int $id Video attachment post ID.
+	 * @return string Block markup string.
+	 */
+	private function build_video_block( int $id ): string {
+		$src       = esc_url( (string) wp_get_attachment_url( $id ) );
+		$poster_id = (int) get_post_meta( $id, '_agnosis_video_poster_id', true );
+		$poster    = $poster_id ? wp_get_attachment_image_url( $poster_id, 'agnosis-artwork' ) : '';
+
+		$attr = wp_json_encode( array_filter( [
+			'id'     => $id,
+			'poster' => $poster ?: null,
+		] ) ) ?: '{}';
+
+		$poster_attribute = $poster ? ' poster="' . esc_url( $poster ) . '"' : '';
+
+		return '<!-- wp:video ' . $attr . ' --><figure class="wp-block-video"><video controls src="' . $src . '"' . $poster_attribute . '></video></figure><!-- /wp:video -->';
+	}
+
+	/**
+	 * Build a Gutenberg core/audio block for an audio attachment.
+	 *
+	 * Same rationale as build_video_block() — core/audio already renders a
+	 * working player everywhere with zero theme support required.
+	 *
+	 * @param int $id Audio attachment post ID.
+	 * @return string Block markup string.
+	 */
+	private function build_audio_block( int $id ): string {
+		$src  = esc_url( (string) wp_get_attachment_url( $id ) );
+		$attr = wp_json_encode( [ 'id' => $id ] ) ?: '{}';
+
+		return '<!-- wp:audio ' . $attr . ' --><figure class="wp-block-audio"><audio controls src="' . $src . '"></audio></figure><!-- /wp:audio -->';
 	}
 
 	/**

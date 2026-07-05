@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\Artist\Admission;
+use Agnosis\Core\EmailFooter;
 use Agnosis\Network\SubdomainRouter;
 
 class AdmissionNotification {
@@ -278,7 +279,7 @@ class AdmissionNotification {
 	 * @param object{display_name: string} $application
 	 */
 	private function build_acknowledgment_body( object $application, int $window ): string {
-		return implode( "\n", [
+		return implode( "\n", array_merge( [
 			sprintf(
 				/* translators: %s: applicant display name */
 				__( 'Hi %s,', 'agnosis' ),
@@ -298,7 +299,7 @@ class AdmissionNotification {
 			),
 			'',
 			get_bloginfo( 'name' ),
-		] );
+		], $this->footer_lines() ) );
 	}
 
 	/**
@@ -355,6 +356,7 @@ class AdmissionNotification {
 		$lines[] = sprintf( __( 'Vote NO:  %s', 'agnosis' ), $no_url );
 		$lines[] = '';
 		$lines[] = __( 'You can change your vote at any time within the voting window.', 'agnosis' );
+		$lines   = array_merge( $lines, $this->footer_lines() );
 
 		wp_mail(
 			$voter_email,
@@ -400,7 +402,7 @@ class AdmissionNotification {
 	 * @param object{display_name: string} $application
 	 */
 	private function build_expiry_applicant_body( object $application ): string {
-		return implode( "\n", [
+		return implode( "\n", array_merge( [
 			/* translators: %s: applicant display name */
 			sprintf( __( 'Hi %s,', 'agnosis' ), $application->display_name ),
 			'',
@@ -413,14 +415,14 @@ class AdmissionNotification {
 			__( 'You are welcome to apply again in the future.', 'agnosis' ),
 			'',
 			get_bloginfo( 'name' ),
-		] );
+		], $this->footer_lines() ) );
 	}
 
 	/**
 	 * @param object{display_name: string} $application
 	 */
 	private function build_expiry_community_body( object $application ): string {
-		return implode( "\n", [
+		return implode( "\n", array_merge( [
 			sprintf(
 				/* translators: %s: applicant display name */
 				__( 'The application by %s has closed without reaching the admission threshold. No action required.', 'agnosis' ),
@@ -428,7 +430,7 @@ class AdmissionNotification {
 			),
 			'',
 			get_bloginfo( 'name' ),
-		] );
+		], $this->footer_lines() ) );
 	}
 
 	private function build_welcome_body( \WP_User $user, string $reset_url ): string {
@@ -528,6 +530,24 @@ class AdmissionNotification {
 	/** @return array<string> */
 	private function text_headers(): array {
 		return [ 'Content-Type: text/plain; charset=UTF-8' ];
+	}
+
+	/**
+	 * Blank-line-prefixed work-emails footer for the plain-text bodies above.
+	 *
+	 * Returns an empty array when nothing is configured in Settings → Email,
+	 * so those bodies render exactly as they did before this existed rather
+	 * than gaining a stray trailing blank line. Not used by build_welcome_body()
+	 * — that email already lists every configured alias address in full,
+	 * labelled, right in the body (see alias_lines()), so appending the
+	 * compact one-liner again immediately after would just repeat it. Not
+	 * used by send_admin_summary() either, since that email is admin-only.
+	 *
+	 * @return string[]
+	 */
+	private function footer_lines(): array {
+		$line = EmailFooter::plain_text();
+		return '' !== $line ? [ '', $line ] : [];
 	}
 
 	/**

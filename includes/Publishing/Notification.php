@@ -19,6 +19,8 @@ declare(strict_types=1);
 namespace Agnosis\Publishing;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Core\EmailBranding;
+use Agnosis\Core\EmailFooter;
 
 class Notification {
 
@@ -104,7 +106,7 @@ class Notification {
 		$translated_site_title = ''; // Site title back-translated to artist's language.
 
 		if ( '' !== $artist_locale && $artist_locale !== $site_locale ) {
-			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for LANGUAGE_NAMES lookup).
+			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for SubmissionTranslator::language_names() lookup).
 			$lang_code  = strtolower( substr( $artist_locale, 0, 2 ) );
 			$translator = SubmissionTranslator::from_settings();
 
@@ -194,7 +196,7 @@ class Notification {
 
 	<!-- Header -->
 	<tr><td style="background:#7c6af7;padding:28px 40px;">
-		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
@@ -249,6 +251,12 @@ class Notification {
 			);
 			?>
 		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>
@@ -352,7 +360,7 @@ class Notification {
 
 	<!-- Header -->
 	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
-		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
@@ -454,6 +462,12 @@ class Notification {
 			);
 			?>
 		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>
@@ -644,7 +658,7 @@ class Notification {
 
 	<!-- Header -->
 	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
-		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
@@ -721,6 +735,12 @@ class Notification {
 			);
 			?>
 		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>

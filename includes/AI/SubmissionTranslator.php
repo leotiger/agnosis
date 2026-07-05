@@ -34,46 +34,6 @@ use Agnosis\Core\Logger;
 
 class SubmissionTranslator {
 
-	/**
-	 * ISO 639-1 → human-readable language name used in prompts.
-	 * Mirrors the subset of Lingua Forge's Translation::LANGUAGES that are most
-	 * common among international artists; extended via the `agnosis_translation_languages`
-	 * filter.
-	 *
-	 * @var array<string, string>
-	 */
-	private const LANGUAGE_NAMES = [
-		'en'    => 'English',
-		'es'    => 'Spanish',
-		'pt'    => 'Portuguese',
-		'fr'    => 'French',
-		'it'    => 'Italian',
-		'de'    => 'German',
-		'nl'    => 'Dutch',
-		'ca'    => 'Catalan',
-		'sv'    => 'Swedish',
-		'da'    => 'Danish',
-		'nb'    => 'Norwegian',
-		'fi'    => 'Finnish',
-		'pl'    => 'Polish',
-		'cs'    => 'Czech',
-		'hu'    => 'Hungarian',
-		'ro'    => 'Romanian',
-		'el'    => 'Greek',
-		'uk'    => 'Ukrainian',
-		'ru'    => 'Russian',
-		'ar'    => 'Arabic',
-		'tr'    => 'Turkish',
-		'hi'    => 'Hindi',
-		'id'    => 'Indonesian',
-		'vi'    => 'Vietnamese',
-		'th'    => 'Thai',
-		'zh'    => 'Chinese (Simplified)',
-		'zh-tw' => 'Chinese (Traditional)',
-		'ja'    => 'Japanese',
-		'ko'    => 'Korean',
-	];
-
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
 	// -------------------------------------------------------------------------
@@ -81,38 +41,39 @@ class SubmissionTranslator {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Return the active language map: ISO 639-1 code → English name.
+	 * Return the site's active language map: ISO 639-1 code → display name.
 	 *
-	 * Derives the list from the WordPress language packs installed on this site
-	 * (get_available_languages() + the site locale) so the join form and any
-	 * other language selects only show languages the site can actually handle.
-	 * Falls back to the full LANGUAGE_NAMES constant when no packs are installed
-	 * (a fresh English-only site) so the form is never empty.
+	 * Sourced entirely from Lingua Forge's own configuration — `linguaforge_languages()`
+	 * returns exactly the codes this WP instance is set up to route/translate
+	 * (Settings → Language Router), and `linguaforge_language_label()` gives each
+	 * one a display name. No separate Agnosis-side list is maintained: whatever
+	 * Lingua Forge is configured for is what the Join form offers and what the
+	 * AI pipeline will attempt to translate — 3 configured languages means 3
+	 * options here, 50 means 50. A language enabled in Lingua Forge appears here
+	 * automatically; one that isn't never shows up as a false promise.
+	 *
+	 * Falls back to just the site's own locale when Lingua Forge isn't active,
+	 * since there is then no multi-language configuration anywhere to read from.
 	 *
 	 * Filterable via `agnosis_translation_languages` for operator overrides.
 	 *
-	 * @return array<string, string>  ISO-639-1 code => English name.
+	 * @return array<string, string>  ISO-639-1 code => display name.
 	 */
 	public static function language_names(): array {
-		// Collect every locale the site has a language pack for, plus the site
-		// locale itself (en_US is the WP default and has no separate pack).
-		$locales = array_merge( get_available_languages(), [ get_locale() ] );
-
-		// Reduce to 2-letter primary subtags ('es_ES' → 'es', 'zh_CN' → 'zh').
-		$active_codes = array_unique( array_map(
-			static fn( string $locale ): string => strtolower( substr( $locale, 0, 2 ) ),
-			$locales
-		) );
-
-		// Intersect against our known map to get code → English name pairs.
-		$filtered = array_filter(
-			self::LANGUAGE_NAMES,
-			static fn( string $code ): bool => in_array( $code, $active_codes, true ),
-			ARRAY_FILTER_USE_KEY
-		);
-
-		// If nothing matched (all packs are for unknown scripts) use the full map.
-		$map = ! empty( $filtered ) ? $filtered : self::LANGUAGE_NAMES;
+		if ( function_exists( 'linguaforge_languages' ) ) {
+			$map = [];
+			foreach ( linguaforge_languages() as $code ) {
+				$map[ $code ] = function_exists( 'linguaforge_language_label' )
+					? linguaforge_language_label( $code )
+					: strtoupper( $code );
+			}
+		} else {
+			// Lingua Forge inactive — nothing to read a language configuration
+			// from, so offer just the site's own language rather than an
+			// arbitrary guess at what else might be supported.
+			$code = sanitize_key( substr( get_locale(), 0, 2 ) ) ?: 'en';
+			$map  = [ $code => strtoupper( $code ) ];
+		}
 
 		/** @var array<string, string> */
 		return (array) apply_filters( 'agnosis_translation_languages', $map );
@@ -125,8 +86,8 @@ class SubmissionTranslator {
 	 *
 	 * No-ops when:
 	 *   • Subject and description are both empty.
-	 *   • The resolved target language code is not in the LANGUAGE_NAMES map
-	 *     (prevents sending a prompt with an unknown language name).
+	 *   • The resolved target language code isn't one Lingua Forge is configured
+	 *     for (prevents sending a prompt with an unknown language name).
 	 *
 	 * @param array<string, mixed> $submission  Parsed email submission.
 	 * @return array<string, mixed>             Submission with translated text.
@@ -180,7 +141,7 @@ class SubmissionTranslator {
 	 *
 	 * No-ops (returns original text) when:
 	 *   • $content is empty.
-	 *   • $target_code is not in the LANGUAGE_NAMES map.
+	 *   • $target_code isn't one Lingua Forge is configured for.
 	 *   • The AI call fails.
 	 *
 	 * @param string $content     Plain text to translate.
@@ -270,13 +231,14 @@ class SubmissionTranslator {
 
 	/**
 	 * Return the human-readable name for an ISO code, or null if unknown.
-	 * Filterable via `agnosis_translation_languages` so operators can add
-	 * languages not in the built-in map.
+	 *
+	 * Reuses language_names() so "known language" means exactly the same thing
+	 * everywhere: the Join form dropdown, this translation check, and
+	 * translate_text()'s back-translation all agree with Lingua Forge's own
+	 * active language configuration rather than three separately-maintained lists.
 	 */
 	private function resolve_language_name( string $code ): ?string {
-		/** @var array<string, string> $map */
-		$map = (array) apply_filters( 'agnosis_translation_languages', self::LANGUAGE_NAMES );
-		return $map[ $code ] ?? null;
+		return self::language_names()[ $code ] ?? null;
 	}
 
 	// -------------------------------------------------------------------------

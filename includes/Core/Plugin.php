@@ -32,6 +32,8 @@ use Agnosis\Email\Inbox;
 use Agnosis\Email\Webhook;
 use Agnosis\Network\ActivityPub;
 use Agnosis\Network\Node;
+use Agnosis\Network\SubdomainNavigation;
+use Agnosis\Newsletter\PopoverBlock;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\SignupBlock;
@@ -229,6 +231,10 @@ class Plugin {
 		$this->loader->add_action( 'init',                 $submissions, 'register_block' );
 		$this->loader->add_action( 'rest_api_init',        $submissions, 'register_routes' );
 		$this->loader->add_filter( 'block_categories_all', $submissions, 'add_block_category', 10, 1 );
+		// Turnstile on the "log in to view your submissions" form. Priority 30
+		// runs after WP's own username/password check (20); no-ops for every
+		// login that isn't this specific form — see authenticate_turnstile().
+		$this->loader->add_filter( 'authenticate',         $submissions, 'authenticate_turnstile', 30, 3 );
 
 		// Gallery overview block + featured artwork meta.
 		$gallery_overview = new GalleryOverview();
@@ -247,6 +253,15 @@ class Plugin {
 		$this->loader->add_action( 'rest_api_init',          $activitypub, 'register_routes' );
 		$this->loader->add_action( 'agnosis_post_published', $activitypub, 'broadcast', 10, 1 );
 
+		// Subdomain navigation — artist-breadcrumb block, plus pointing the Site
+		// Logo/Site Title links back at the main site from an artist subdomain.
+		// Lives in the plugin (not a theme) so any Agnosis-compatible theme gets
+		// both just by using core's Site Logo/Site Title blocks.
+		$subdomain_nav = new SubdomainNavigation();
+		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_block' );
+		$this->loader->add_filter( 'render_block_core/site-logo',  $subdomain_nav, 'link_to_portal' );
+		$this->loader->add_filter( 'render_block_core/site-title', $subdomain_nav, 'link_to_portal' );
+
 		// Newsletters — public signup block + double opt-in, self-hosted
 		// scheduling (daily prepare) and batched sending (every 5 minutes,
 		// reusing the interval Inbox already registers below).
@@ -264,6 +279,9 @@ class Plugin {
 
 		$signup_block = new SignupBlock();
 		$this->loader->add_action( 'init', $signup_block, 'register_block' );
+
+		$popover_block = new PopoverBlock();
+		$this->loader->add_action( 'init', $popover_block, 'register_block' );
 
 		// Lingua Forge integration — boots itself only when LF is present;
 		// registers the compat admin notice unconditionally.
