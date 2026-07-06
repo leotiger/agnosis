@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.8.2] — 2026-07-06
+
+### Fixed
+- **A second, independent cause of the "Sending…" freeze fixed in 0.8.1, found while verifying that fix on a live site: the `agnosis_send_newsletter_queue` cron event itself was not scheduled at all** (`wp cron event run agnosis_send_newsletter_queue` failed with "Invalid cron event") — so the queue had never been processed even once, let alone reconciled. The only code path that registers this event, `schedule_events()`, previously ran only from `activate()` or a version-bump-gated `maybe_upgrade()` — so if it's ever lost for a reason unrelated to a version bump (a host's cron-table cleanup, a manual `wp cron event delete`, a migration between servers), nothing would notice or recover until the next plugin update. New `Activator::ensure_newsletter_cron_scheduled()` is called unconditionally from the Newsletter dashboard on every page view, so a missing cron event self-heals the same way a stuck status now does.
+
 ## [0.8.1] — 2026-07-06
 
 ### Fixed

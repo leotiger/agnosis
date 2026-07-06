@@ -473,4 +473,45 @@ class ActivatorTest extends \WP_UnitTestCase {
 
 		$this->assertGreaterThan( 0, has_action( 'init', 'flush_rewrite_rules' ), 'maybe_upgrade() must schedule a rewrite flush on init for existing installs to pick up new rewrite rules.' );
 	}
+
+	// =========================================================================
+	// ensure_newsletter_cron_scheduled() — regression, fixed 2026-07-06
+	// =========================================================================
+
+	/**
+	 * Regression test: a production site was found with `agnosis_send_newsletter_queue`
+	 * entirely unscheduled — `wp cron event run` failed with "Invalid cron
+	 * event" — even though the queue held a real, never-attempted recipient.
+	 * Previously the only code path that (re)registers this event was
+	 * schedule_events(), reachable only via activate() or maybe_upgrade(),
+	 * both gated on a version bump. If the event is ever lost for any other
+	 * reason (host cron-table reset, manual `wp cron event delete`, a
+	 * migration between servers), nothing would notice until the next plugin
+	 * update. ensure_newsletter_cron_scheduled() is public and called
+	 * unconditionally from Settings::render_newsletter_dashboard() on every
+	 * page view specifically so this class of freeze is self-healing.
+	 */
+	public function test_ensure_newsletter_cron_scheduled_registers_missing_events(): void {
+		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
+		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
+		$this->assertFalse( wp_next_scheduled( 'agnosis_send_newsletter_queue' ) );
+
+		$rescheduled = Activator::ensure_newsletter_cron_scheduled();
+
+		$this->assertTrue( $rescheduled, 'Must report that it had to register a missing event.' );
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_prepare_newsletters' ) );
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_send_newsletter_queue' ) );
+	}
+
+	public function test_ensure_newsletter_cron_scheduled_is_a_no_op_when_already_scheduled(): void {
+		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
+		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
+		Activator::ensure_newsletter_cron_scheduled();
+		$first_run_at = wp_next_scheduled( 'agnosis_send_newsletter_queue' );
+
+		$rescheduled = Activator::ensure_newsletter_cron_scheduled();
+
+		$this->assertFalse( $rescheduled, 'Must report nothing was missing when both events are already scheduled.' );
+		$this->assertSame( $first_run_at, wp_next_scheduled( 'agnosis_send_newsletter_queue' ), 'Must not reschedule (and so reset the timer on) an event that already exists.' );
+	}
 }

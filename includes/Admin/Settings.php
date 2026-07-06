@@ -17,6 +17,7 @@ use Agnosis\Artist\Admission;
 use Agnosis\Artist\Departure;
 use Agnosis\Artist\Invitation;
 use Agnosis\Compat\LinguaForge;
+use Agnosis\Core\Activator;
 use Agnosis\Core\Logger;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
@@ -1458,6 +1459,17 @@ class Settings {
 		// QueueProcessor::reconcile_sending_issues()'s docblock. Cheap (a
 		// handful of small COUNT queries, no-op when nothing is 'sending').
 		( new QueueProcessor() )->reconcile_sending_issues();
+
+		// Also re-check the newsletter cron events themselves, unconditionally
+		// (not just on a version bump) — see
+		// Activator::ensure_newsletter_cron_scheduled()'s docblock for why:
+		// found 2026-07-06, a site's agnosis_send_newsletter_queue event was
+		// missing entirely, so nothing had ever reconciled it in the first
+		// place. Logged only when something was actually missing, since a
+		// re-registration happening at all is itself worth knowing about.
+		if ( Activator::ensure_newsletter_cron_scheduled() ) {
+			Logger::warning( 'Newsletter dashboard view found a missing newsletter cron event and re-registered it.', 'newsletter' );
+		}
 
 		$scheduler        = new Scheduler();
 		$sub_counts       = Subscriber::counts();

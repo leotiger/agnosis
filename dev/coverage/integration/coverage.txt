@@ -1,19 +1,19 @@
 
 
 Code Coverage Report:         
-  2026-07-06 18:40:09         
+  2026-07-06 22:30:47         
                               
  Summary:                     
   Classes: 12.12% (8/66)      
-  Methods: 41.32% (238/576)   
-  Lines:   51.17% (5151/10066)
+  Methods: 41.42% (239/577)   
+  Lines:   51.30% (5171/10080)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
 Agnosis\AI\EnhancementResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% (  7/  7)
 Agnosis\AI\MediaAdapter
-  Methods:   0.00% ( 0/ 4)   Lines:  10.32% ( 13/126)
+  Methods:   0.00% ( 0/ 4)   Lines:  16.67% ( 21/126)
 Agnosis\AI\Pipeline
   Methods:   6.67% ( 1/15)   Lines:   5.21% ( 16/307)
 Agnosis\AI\PromptConfig
@@ -31,7 +31,7 @@ Agnosis\Admin\InboxPage
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   5.88% ( 2/34)   Lines:   3.46% ( 49/1416)
+  Methods:   5.88% ( 2/34)   Lines:   3.45% ( 49/1419)
 Agnosis\Artist\Admission
   Methods:  52.38% (11/21)   Lines:  82.80% (361/436)
 Agnosis\Artist\AdmissionNotification
@@ -63,7 +63,7 @@ Agnosis\Artist\VouchConfirm
 Agnosis\Compat\LinguaForge
   Methods:  73.68% (14/19)   Lines:  89.03% (138/155)
 Agnosis\Core\Activator
-  Methods:  56.25% ( 9/16)   Lines:  80.35% (229/285)
+  Methods:  58.82% (10/17)   Lines:  81.03% (235/290)
 Agnosis\Core\EmailBranding
   Methods:   0.00% ( 0/ 1)   Lines:  36.84% (  7/ 19)
 Agnosis\Core\EmailFooter
@@ -113,7 +113,7 @@ Agnosis\Newsletter\Mailer
 Agnosis\Newsletter\PopoverBlock
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 50)
 Agnosis\Newsletter\QueueProcessor
-  Methods: 100.00% ( 6/ 6)   Lines: 100.00% (112/112)
+  Methods: 100.00% ( 6/ 6)   Lines: 100.00% (118/118)
 Agnosis\Newsletter\Scheduler
   Methods:  76.92% (10/13)   Lines:  98.19% (163/166)
 Agnosis\Newsletter\SignupBlock

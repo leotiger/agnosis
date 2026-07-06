@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-06 20:18
+COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 20:18
   ✅ includes/Newsletter/Digest.php                              82%
   ✅ includes/Newsletter/Mailer.php                              98%
   ❌ includes/Newsletter/PopoverBlock.php                         0%
-  🔶 includes/Newsletter/QueueProcessor.php                      64%
+  ✅ includes/Newsletter/QueueProcessor.php                      96%
   ✅ includes/Newsletter/Scheduler.php                           96%
   ✅ includes/Newsletter/SignupBlock.php                         91%
   ✅ includes/Newsletter/Subscriber.php                          94%
@@ -69,4 +69,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 20:18
   ✅ includes/Publishing/ReviewEndpoints.php                     91%
   ❌ includes/Publishing/SubmissionsPage.php                     19%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 53.47%  (5606 / 10485 statements)
+  TOTAL: 55.32%  (5618 / 10155 statements)

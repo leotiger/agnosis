@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.8.1
+Stable tag: 0.8.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.8.2 =
+* Fixed: On some sites the background task that actually sends queued newsletters could end up not scheduled at all, so a queued send would never go out and never self-correct either. Viewing the Newsletter dashboard now also checks for this and re-enables background sending automatically if it's ever missing.
 
 = 0.8.1 =
 * Fixed: A newsletter could get stuck showing "Sending…" with Send Now disabled indefinitely, if any single recipient's email failed to build for an unrelated reason — that one failure was silently blocking the status from ever being corrected, even after the newsletter had actually finished going out to everyone else. The status now also corrects itself the moment you view the Newsletter dashboard, rather than waiting for the next background check.

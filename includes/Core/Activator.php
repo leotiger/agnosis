@@ -785,16 +785,54 @@ class Activator {
 		if ( ! wp_next_scheduled( 'agnosis_check_cap_votes' ) ) {
 			wp_schedule_event( time(), 'daily', 'agnosis_check_cap_votes' );
 		}
-		// Newsletters: daily check for due issues, then a frequent small-batch send.
-		// 'every_five_minutes' is registered by Inbox::register_interval() (see below).
-		if ( ! wp_next_scheduled( 'agnosis_prepare_newsletters' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_prepare_newsletters' );
-		}
-		if ( ! wp_next_scheduled( 'agnosis_send_newsletter_queue' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_send_newsletter_queue' );
-		}
+		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be
 		// registered on every request, not just on activation. It lives in
 		// Inbox::register_interval() and is wired via Plugin::register_services().
+	}
+
+	/**
+	 * Schedule the two newsletter cron events if either is missing, and
+	 * report whether anything had to be (re)registered.
+	 *
+	 * Normally only called from schedule_events() (activate() / maybe_upgrade(),
+	 * both version-gated — see maybe_upgrade()'s docblock). That gating is a
+	 * real gap on its own: if `agnosis_send_newsletter_queue` ever gets
+	 * deregistered on an already-up-to-date site for a reason that has
+	 * nothing to do with a version bump — a host's cron-table reset/cleanup
+	 * tool, a migration between servers, a manual `wp cron event delete`,
+	 * WP-Cron silently losing an entry — nothing would ever re-register it
+	 * again until the next plugin update, and the symptom is invisible
+	 * ("Sending…" stuck forever with no error anywhere). Found 2026-07-06:
+	 * exactly this — production had no `agnosis_send_newsletter_queue` cron
+	 * event scheduled at all, `wp cron event run` failed with "Invalid cron
+	 * event", and the newsletter that had been queued had never been
+	 * attempted even once. Public and called unconditionally (not
+	 * version-gated) from Settings::render_newsletter_dashboard() on every
+	 * page view, so this specific class of silent freeze self-heals the
+	 * moment an admin looks at the dashboard — the same self-healing
+	 * philosophy QueueProcessor::reconcile_sending_issues() already uses for
+	 * a stuck issue *status*, extended to cover a missing cron *event* too.
+	 *
+	 * @return bool True if either event had to be (re)scheduled.
+	 */
+	public static function ensure_newsletter_cron_scheduled(): bool {
+		$rescheduled = false;
+
+		// Newsletters: daily check for due issues, then a frequent small-batch send.
+		// 'every_five_minutes' is registered by Inbox::register_interval(),
+		// wired via Plugin::register_services() — runs on every request, so
+		// it's already in place by the time this executes on 'plugins_loaded'
+		// or an admin page load.
+		if ( ! wp_next_scheduled( 'agnosis_prepare_newsletters' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_prepare_newsletters' );
+			$rescheduled = true;
+		}
+		if ( ! wp_next_scheduled( 'agnosis_send_newsletter_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_send_newsletter_queue' );
+			$rescheduled = true;
+		}
+
+		return $rescheduled;
 	}
 }

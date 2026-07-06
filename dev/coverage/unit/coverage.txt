@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:        
-  2026-07-06 20:16:40        
+  2026-07-06 22:28:47        
                              
  Summary:                    
   Classes:  6.06% (4/66)     
-  Methods:  8.33% (48/576)   
-  Lines:    6.12% (622/10159)
+  Methods:  8.32% (48/577)   
+  Lines:    6.12% (622/10166)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
@@ -31,7 +31,7 @@ Agnosis\Admin\InboxPage
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   0.00% ( 0/34)   Lines:   0.00% (  0/1420)
+  Methods:   0.00% ( 0/34)   Lines:   0.00% (  0/1422)
 Agnosis\Artist\Admission
   Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/445)
 Agnosis\Artist\AdmissionNotification
@@ -63,7 +63,7 @@ Agnosis\Artist\VouchConfirm
 Agnosis\Compat\LinguaForge
   Methods:   0.00% ( 0/19)   Lines:   0.00% (  0/159)
 Agnosis\Core\Activator
-  Methods:   0.00% ( 0/16)   Lines:   0.00% (  0/287)
+  Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/292)
 Agnosis\Core\EmailBranding
   Methods:   0.00% ( 0/ 1)   Lines:   0.00% (  0/ 19)
 Agnosis\Core\EmailFooter
