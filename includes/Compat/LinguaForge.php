@@ -498,6 +498,43 @@ class LinguaForge {
 	}
 
 	/**
+	 * The current request's language, as a joinable URL path segment.
+	 *
+	 * Returns '' when Lingua Forge isn't active, `LF_LANG` isn't defined or
+	 * empty (LF not yet bootstrapped for this request, or a non-routable
+	 * request type), or the current language IS the site's configured source
+	 * language — a source-language URL must never get a redundant prefix.
+	 * Otherwise returns '/xx' (no trailing slash), ready to prepend to a path.
+	 *
+	 * `LF_LANG` is derived purely from the URL path prefix / `lf_lang` cookie /
+	 * `Accept-Language` header (see LF's `Context::detect_lang_safe()`) —
+	 * independent of any post or page — so this is equally correct on a
+	 * singular post and on a "Your latest posts" homepage.
+	 *
+	 * Used to keep artist-subdomain links (breadcrumb, portal back-link,
+	 * gallery-overview artist links) on the visitor's current language instead
+	 * of always dropping back to the subdomain's source-language root. Only
+	 * meaningful in LF's path/subfolder routing mode — the call sites that
+	 * matter here only run when Agnosis's own artist-subdomain routing is
+	 * active, and `SubdomainRouter::boot()` refuses to run at all when LF is
+	 * configured for subdomain routing mode (both would claim the same
+	 * subdomain namespace) — so by the time this runs, LF is guaranteed to be
+	 * either inactive or in path mode.
+	 *
+	 * @return string '' or '/xx'.
+	 */
+	public static function current_lang_path_prefix(): string {
+		if ( ! self::is_active() || ! defined( 'LF_LANG' ) || '' === LF_LANG ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$source = function_exists( 'linguaforge_source_language' ) ? linguaforge_source_language() : '';
+
+		return ( LF_LANG === $source ) ? '' : '/' . LF_LANG;
+	}
+
+	/**
 	 * Return the target language list: all LF-configured languages minus the source.
 	 *
 	 * Uses the linguaforge_languages() global function exposed by LF's language-

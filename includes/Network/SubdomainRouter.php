@@ -206,6 +206,13 @@ class SubdomainRouter {
 	 *
 	 * Prefers `user_nicename` (already URL-safe) over `user_login`.
 	 * Falls back to `home_url()` when no base domain is configured.
+	 *
+	 * Carries the CURRENT request's language (via
+	 * `Compat\LinguaForge::current_lang_path_prefix()`) so that following this
+	 * link from a translated page (e.g. a visitor on `/fr/`) lands on the
+	 * artist's `/fr/` home rather than always dropping back to their
+	 * source-language root — '' when LF isn't active or the current language
+	 * already IS the source language, so the common case is unaffected.
 	 */
 	public static function url_for_artist( int $user_id ): string {
 		$base = (string) get_option( 'agnosis_base_domain', '' );
@@ -220,6 +227,12 @@ class SubdomainRouter {
 
 		$slug   = $user->user_nicename ?: $user->user_login;
 		$scheme = is_ssl() ? 'https' : 'http';
-		return $scheme . '://' . $slug . '.' . $base;
+		$prefix = \Agnosis\Compat\LinguaForge::current_lang_path_prefix();
+
+		// Trailing slash only when a language prefix is actually appended — the
+		// bare-domain case matches WordPress's own home_url() convention (no
+		// trailing slash), while '/fr' must become '/fr/' to be a well-formed
+		// terminal URL and avoid a needless 301 to the slashed form.
+		return $scheme . '://' . $slug . '.' . $base . $prefix . ( '' !== $prefix ? '/' : '' );
 	}
 }

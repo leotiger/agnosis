@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.7.0
+Stable tag: 0.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,20 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.7.3 =
+* Fixed: On an artist's subdomain, the artist-name link (breadcrumb) and the "back to Agnosis" site logo/title link always pointed at the source-language home, even when the visitor was on a translated page (e.g. /fr/). Both now stay on the visitor's current language.
+
+= 0.7.2 =
+* Fixed: On sites using "Your latest posts" as the homepage (Reading Settings), the artist gallery block's pagination count and its actually-rendered artwork could disagree on translated languages — translated posts were counted toward page totals but never shown. The block now filters every query it runs by the current page's language, so the count and the content it produces always agree.
+
+= 0.7.1 =
+* Fixed: Email logo could render far smaller than its configured height — the logo source was requested at WordPress's 'large' size (a 1024×1024 bounding box WordPress never upscales past), so a wide banner-style logo's generated file could already be shorter than the configured height before the display cap even applied. Now uses the attachment's full original resolution.
+* Changed: Email logo height raised to 150px (was 40px) to properly fit a full banner-style logo (wordmark and tagline baked into the image), not just a small icon.
+* Changed: Email header background is now the same dark colour used on the website, replacing the previous purple bar, across every outgoing email (submission review, removal confirmation, rejection notice, subscription confirmation, both newsletters).
+* Changed: The logo now sits on its own white panel inside the header, sized to match the email body's content width — the previous transparent-background logo didn't render cleanly against the new dark header.
+* Changed: Reduced left/right padding in every email's header, body, and footer, giving the content more usable width within the same overall email size.
+* Fixed: The newsletter subscription-confirmation email predated the shared email-branding system and still showed the old plain-text header — it now matches every other outgoing email.
 
 = 0.7.0 =
 * Added: Genuine sound and video submission support — audio and video attachments are accepted at intake (widened MIME allowlist, per-type size limits), described by AI (from an automatically extracted poster frame for video, or from the artist's own words when no frame is available), and published with WordPress's native audio/video players — no theme changes needed.

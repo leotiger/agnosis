@@ -9,9 +9,18 @@
  * poster-frame extraction; the original video attachment itself is never
  * dropped even when ffmpeg is unavailable — its test asserts that fallback
  * (video survives, poster_data is simply empty) rather than an empty return.
- * When ffmpeg IS available, a second test has it synthesise its own minimal
- * one-frame clip via the `lavfi` test source and asserts real extraction —
- * no checked-in binary fixture needed.
+ *
+ * The "ffmpeg not installed" scenario is forced deterministically via
+ * $ffmpeg_path_override (read by a namespace-scoped shell_exec() override in
+ * Stubs/ai_namespace_stubs.php) rather than by asking the real machine —
+ * otherwise that test could only ever run truthfully on a box that genuinely
+ * lacks ffmpeg, and would have to self-skip everywhere else. A second test
+ * covers the opposite, genuinely-available-ffmpeg case by having it
+ * synthesise its own minimal one-frame clip via the `lavfi` test source and
+ * asserting real extraction — no checked-in binary fixture needed. That one
+ * legitimately can't be mocked away, since it exists specifically to prove a
+ * real codec round-trip works, so it still self-skips on a machine with no
+ * ffmpeg at all.
  *
  * @package Agnosis\Tests\Unit\AI
  */
@@ -24,6 +33,22 @@ use Agnosis\AI\MediaAdapter;
 use PHPUnit\Framework\TestCase;
 
 class MediaAdapterTest extends TestCase {
+
+	/**
+	 * Forces the namespace-scoped shell_exec() override (see
+	 * Stubs/ai_namespace_stubs.php) to return this value for MediaAdapter's
+	 * "which ffmpeg" detection probe, instead of asking the real machine.
+	 * null = pass through to the real shell_exec() (genuinely ask the OS).
+	 * '' simulates "ffmpeg not installed" deterministically on any machine.
+	 */
+	public static ?string $ffmpeg_path_override = null;
+
+	protected function tearDown(): void {
+		// Always reset — a failed assertion must not leave this leaking into
+		// unrelated tests run later in the same process.
+		self::$ffmpeg_path_override = null;
+		parent::tearDown();
+	}
 
 	// -------------------------------------------------------------------------
 	// Empty input
@@ -143,10 +168,12 @@ class MediaAdapterTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	public function test_video_without_ffmpeg_still_publishes_original_with_no_poster(): void {
-		$ffmpeg = trim( (string) shell_exec( 'which ffmpeg 2>/dev/null' ) );
-		if ( ! empty( $ffmpeg ) ) {
-			$this->markTestSkipped( 'ffmpeg is available — this test guards the no-ffmpeg fallback path only.' );
-		}
+		// Force the "ffmpeg not installed" branch deterministically — this
+		// must hold true regardless of whether the machine actually running
+		// this suite has ffmpeg or not (previously it could only run for
+		// real on a box genuinely missing ffmpeg, and self-skipped everywhere
+		// else — see Stubs/ai_namespace_stubs.php for how the override works).
+		self::$ffmpeg_path_override = '';
 
 		$att    = [ 'data' => 'video_binary', 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
 		$result = MediaAdapter::adapt( [ $att ] );

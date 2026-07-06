@@ -195,12 +195,12 @@ class Notification {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
 
 	<!-- Header -->
-	<tr><td style="background:#7c6af7;padding:28px 40px;">
+	<tr><td style="background:#0d0d12;padding:28px 24px;">
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
-	<tr><td style="padding:36px 40px;">
+	<tr><td style="padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
@@ -241,7 +241,7 @@ class Notification {
 	</td></tr>
 
 	<!-- Footer -->
-	<tr><td style="padding:20px 40px;border-top:1px solid #eee;">
+	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
 		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
 			<?php
 			printf(
@@ -345,8 +345,9 @@ class Notification {
 		// $translated_site_title is the site title back-translated into the artist's language.
 		// Both are escaped at point of output (esc_html inside printf) — not pre-escaped here.
 
-		$accent   = '#7c6af7';
-		$btn_base = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$accent    = '#7c6af7';
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
@@ -359,12 +360,12 @@ class Notification {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
 
 	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
-	<tr><td style="padding:36px 40px;">
+	<tr><td style="padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
@@ -452,7 +453,7 @@ class Notification {
 	</td></tr>
 
 	<!-- Footer -->
-	<tr><td style="padding:20px 40px;border-top:1px solid #eee;">
+	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
 		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
 			<?php
 			printf(
@@ -641,9 +642,10 @@ class Notification {
 	 * @return string HTML email body.
 	 */
 	private function build_rejection_email( string $artist_name, int $score, array $issues ): string {
-		$site_name      = get_bloginfo( 'name' );
+		$site_name       = get_bloginfo( 'name' );
 		$submissions_url = $this->submissions_page_url();
 		$accent          = '#7c6af7';
+		$header_bg       = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
 		$advice_items    = $this->issues_to_advice( $issues );
 
 		ob_start();
@@ -657,12 +659,12 @@ class Notification {
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
 
 	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
 	<!-- Body -->
-	<tr><td style="padding:36px 40px;">
+	<tr><td style="padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
@@ -725,7 +727,7 @@ class Notification {
 	</td></tr>
 
 	<!-- Footer -->
-	<tr><td style="padding:20px 40px;border-top:1px solid #eee;">
+	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
 		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
 			<?php
 			printf(

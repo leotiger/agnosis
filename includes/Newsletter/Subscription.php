@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\Core\EmailBranding;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Core\Turnstile;
 use WP_REST_Request;
@@ -112,8 +113,9 @@ class Subscription {
 			$site_name
 		);
 
-		$accent   = '#7c6af7';
-		$btn_base = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$accent    = '#7c6af7';
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
@@ -125,11 +127,11 @@ class Subscription {
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
 
-	<tr><td style="background:<?php echo esc_attr( $accent ); ?>;padding:28px 40px;">
-		<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ <?php echo esc_html( $site_name ); ?></span>
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 	</td></tr>
 
-	<tr><td style="padding:36px 40px;">
+	<tr><td style="padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Thanks for signing up! Confirm your email address to start receiving the newsletter.', 'agnosis' ); ?>
 		</p>
@@ -147,7 +149,7 @@ class Subscription {
 		</p>
 	</td></tr>
 
-	<tr><td style="padding:20px 40px;border-top:1px solid #eee;">
+	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
 		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
 			<?php
 			printf(

@@ -5,6 +5,28 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.7.3] — 2026-07-05
+
+### Fixed
+- **Artist-subdomain links dropped the visitor's current language.** `SubdomainRouter::url_for_artist()` and `SubdomainNavigation::portal_home_url()` always built bare source-language URLs (`https://slug.base`), regardless of the page the visitor was actually on. On a translated page (e.g. `ourartist.agnosis.art/fr/...`), this meant the artist-name breadcrumb link and the "back to Agnosis" Site Logo/Site Title link both dropped the visitor back to the English root instead of staying on `/fr/`. Added `Compat\LinguaForge::current_lang_path_prefix()` — resolves the current request's language from LF's `LF_LANG` constant (via `linguaforge_source_language()` for the source-language comparison) and returns a joinable `/xx` path segment, or `''` when Lingua Forge isn't active or the current language already is the source language. Wired into both URL builders; as a side effect this also fixes the same latent bug in `gallery-overview/render.php`'s artist links, since they share `url_for_artist()`.
+
+## [0.7.2] — 2026-07-05
+
+### Fixed
+- **Gallery-overview block's pagination could disagree with what it actually rendered, on sites using "Your latest posts" as the homepage.** The block built its artist/artwork pool via raw SQL and per-artist `get_posts()` calls with no language filtering of its own, computing `$agnosis_max_pages` from that unfiltered pool — while Lingua Forge's `handle_secondary_pre_get_posts()` hook silently language-filtered only the final by-ID fetch. Translated posts counted toward the page total but never rendered. Fixed by explicitly filtering all three `get_posts()` calls (featured artwork, extra/remaining, final by-ID fetch) in `blocks/gallery-overview/render.php` by `_lf_lang` against the current request's `LF_LANG` constant, gated on `Compat\LinguaForge::is_active()`, so pagination math and rendered content are now always computed from the same pool. The distinct-authors discovery query is deliberately left unfiltered by language — it only determines which artists have any published artwork at all, so no artist is dropped from a language's pool for lack of translations yet.
+
+## [0.7.1] — 2026-07-05
+
+### Fixed
+- **Email logo could render far smaller than configured.** `Core\EmailBranding::header_html()` requested the logo at WordPress's `'large'` size — a 1024×1024 *bounding box* WordPress never upscales past. For a wide banner-style logo, the generated `'large'` file could already be shorter than the configured display height before the `max-height` CSS cap even applied, silently undercutting it. Switched to `'full'`, the attachment's actual native resolution, so the cap always has real headroom to work from.
+- **Newsletter subscription-confirmation email (`Newsletter\Subscription.php`) predated `EmailBranding` entirely.** It was missed when the shared email-branding system landed in 0.6.4 and still hardcoded its own plain-text "✦ Site Name" header, old purple color, old padding. Now calls `EmailBranding::header_html()` like every other outgoing email and matches the rest of this changelog entry's changes.
+
+### Changed
+- **Email logo height raised to 150px** (was 40px) so a full banner-style logo (wordmark + tagline baked into the image, not just an icon) actually fits, instead of being compressed to the point of illegibility.
+- **Email header background changed from purple to the same dark colour used on the website** (`#0d0d12`, the theme's own "Background" palette colour) — across all five outgoing HTML email templates (submission review, removal confirmation, rejection notice, subscription confirmation, newsletter digest). Buttons, links, and border accents elsewhere in these emails are unaffected — only the header bar itself changed, via a new `$header_bg` variable kept separate from the existing `$accent` used for interactive elements.
+- **Logo now sits on its own white panel inside the header**, fixed at 552px — the same width as the email body content below (600px card − 24px padding each side) — so it lines up edge-to-edge with the content beneath it. Needed because the newly-created logo file has a white background baked in rather than a transparent one, which didn't render cleanly against the new dark header.
+- **Reduced left/right padding from 40px to 24px** in every header, body, and footer cell across all five templates, giving the content more usable width within the same 600px email card.
+
 ## [0.7.0] — 2026-07-05
 
 ### Added

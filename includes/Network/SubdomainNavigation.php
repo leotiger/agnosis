@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Network;
 
+use Agnosis\Compat\LinguaForge;
+
 class SubdomainNavigation {
 
 	// -------------------------------------------------------------------------
@@ -128,7 +130,13 @@ class SubdomainNavigation {
 		return $user ? (string) ( $user->display_name ?: $user->user_nicename ) : '';
 	}
 
-	/** The main Agnosis site's URL. */
+	/**
+	 * The main Agnosis site's URL, on the visitor's current language.
+	 *
+	 * Same reasoning as `SubdomainRouter::url_for_artist()`: a visitor reading
+	 * `ourartist.agnosis.art/fr/...` who clicks back to the portal should land
+	 * on the portal's `/fr/` home, not always its source-language root.
+	 */
 	private function portal_home_url(): string {
 		$base = (string) get_option( 'agnosis_base_domain', '' );
 
@@ -137,7 +145,10 @@ class SubdomainNavigation {
 		}
 
 		$scheme = is_ssl() ? 'https' : 'http';
+		$prefix = LinguaForge::current_lang_path_prefix();
 
-		return $scheme . '://' . $base;
+		// Trailing slash only when a language prefix is actually appended — see
+		// the matching comment in SubdomainRouter::url_for_artist().
+		return $scheme . '://' . $base . $prefix . ( '' !== $prefix ? '/' : '' );
 	}
 }

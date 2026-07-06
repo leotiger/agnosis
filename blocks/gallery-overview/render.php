@@ -39,6 +39,29 @@ $agnosis_current_page  = isset( $_GET['agnosis_overview_page'] )
 	: 1;
 // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
+// ── Language filter ──────────────────────────────────────────────────────────
+// Every artwork post is tagged with `_lf_lang` at publish time (see
+// Compat\LinguaForge::set_language_meta() — runs unconditionally, including for
+// untranslated originals, so this is never empty/missing on a real post) once
+// Lingua Forge is active. Applied explicitly here, on every query this block
+// runs, rather than relying on LF's own pre_get_posts filtering of secondary
+// queries to catch it incidentally: that produced exactly the bug this fixes
+// (pagination computed from an unfiltered pool while the final page fetch was
+// silently language-filtered out from under it, so translations counted
+// toward page totals but never actually rendered). LF_LANG reflects the
+// CURRENT request's resolved language (e.g. 'es' on /es/), not the site's
+// configured primary language.
+$agnosis_lang_meta_query = ( \Agnosis\Compat\LinguaForge::is_active() && defined( 'LF_LANG' ) && LF_LANG )
+	? [ [ 'key' => '_lf_lang', 'value' => LF_LANG ] ]
+	: [];
+// Note: the distinct-authors query just below is intentionally NOT
+// language-scoped — it only discovers which artists have ANY published
+// artwork, in any language, so every artist is considered for this page's
+// pool. An artist with no artwork yet translated into the current language
+// simply contributes zero posts once the per-artist queries below apply
+// $agnosis_lang_meta_query — a thinner pool for that language rather than
+// wrong-language content, which is the safe default until translations catch up.
+
 // ── Artist pool ─────────────────────────────────────────────────────────────
 $agnosis_cache_key   = 'agnosis_gallery_artist_ids';
 $agnosis_cache_group = 'agnosis_gallery';
@@ -80,7 +103,10 @@ foreach ( $agnosis_artist_ids as $agnosis_raw_id ) {
 		'post_status'    => 'publish',
 		'author'         => $agnosis_artist_id,
 		'posts_per_page' => 1,
-		'meta_query'     => [ [ 'key' => '_agnosis_featured', 'value' => '1' ] ],
+		'meta_query'     => array_merge(
+			[ [ 'key' => '_agnosis_featured', 'value' => '1' ] ],
+			$agnosis_lang_meta_query
+		),
 		'tax_query'      => $agnosis_tax_query,
 		'fields'         => 'ids',
 		'no_found_rows'  => true,
@@ -99,6 +125,7 @@ foreach ( $agnosis_artist_ids as $agnosis_raw_id ) {
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 			'exclude'        => $agnosis_exclude,
+			'meta_query'     => $agnosis_lang_meta_query,
 			'tax_query'      => $agnosis_tax_query,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
@@ -134,6 +161,7 @@ $agnosis_posts = get_posts( [
 	'post__in'       => $agnosis_page_ids,
 	'orderby'        => 'post__in',
 	'posts_per_page' => count( $agnosis_page_ids ),
+	'meta_query'     => $agnosis_lang_meta_query,
 ] );
 
 // ── Medium filter terms ───────────────────────────────────────────────────────

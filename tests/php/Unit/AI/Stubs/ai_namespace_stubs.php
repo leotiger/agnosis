@@ -37,6 +37,11 @@
  * ProviderInterface tests are completely unaffected — the stubs just mirror the
  * global bootstrap behaviour when no overrides are set.
  *
+ * shell_exec() is overridden separately, for MediaAdapterTest rather than
+ * SubmissionTranslatorTest — see its own docblock below. It reads
+ * MediaAdapterTest::$ffmpeg_path_override (null = pass through to the real
+ * shell_exec(), i.e. genuinely ask the machine whether ffmpeg is installed).
+ *
  * @package Agnosis\Tests\Unit\AI\Stubs
  */
 
@@ -44,6 +49,7 @@ declare(strict_types=1);
 
 namespace Agnosis\AI;
 
+use Agnosis\Tests\Unit\AI\MediaAdapterTest;
 use Agnosis\Tests\Unit\AI\SubmissionTranslatorTest;
 
 /**
@@ -144,4 +150,30 @@ function linguaforge_languages(): array {
 function linguaforge_language_label( string $lang ): string {
 	$labels = SubmissionTranslatorTest::$linguaforge_labels ?? LINGUAFORGE_DEFAULT_LABELS;
 	return $labels[ $lang ] ?? strtoupper( $lang );
+}
+
+/**
+ * Namespace-scoped shell_exec override — exists solely so
+ * MediaAdapter::adapt_video()'s ffmpeg-detection probe ("which ffmpeg") can be
+ * forced deterministically in tests, regardless of whether ffmpeg is actually
+ * installed on the machine running the suite.
+ *
+ * Without this, a test asserting "no ffmpeg" behaviour can only run truthfully
+ * on a machine that genuinely lacks ffmpeg — it has to self-skip everywhere
+ * else, since the real shell_exec() would always report ffmpeg as present.
+ * Intercepting only the exact "which ffmpeg" probe (and passing every other
+ * command straight through to the real global shell_exec()) means that
+ * specific test can force the "not installed" branch unconditionally, while
+ * every other use of shell_exec()/exec() elsewhere in MediaAdapter — the
+ * actual frame-extraction command — is completely unaffected and still talks
+ * to the real ffmpeg binary when one is genuinely needed and available.
+ *
+ * @param string $command Shell command, exactly as MediaAdapter builds it.
+ * @return string|null Overridden output for the ffmpeg probe, or the real shell_exec() result for anything else.
+ */
+function shell_exec( string $command ): ?string {
+	if ( MediaAdapterTest::$ffmpeg_path_override !== null && str_starts_with( $command, 'which ffmpeg' ) ) {
+		return MediaAdapterTest::$ffmpeg_path_override;
+	}
+	return \shell_exec( $command );
 }
