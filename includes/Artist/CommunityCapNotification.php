@@ -69,6 +69,11 @@ class CommunityCapNotification {
 				$body .= "\n\n" . $footer;
 			}
 
+			$edit_reminder = EmailFooter::edit_reminder_plain_text( (int) $artist->ID );
+			if ( '' !== $edit_reminder ) {
+				$body .= "\n\n" . $edit_reminder;
+			}
+
 			wp_mail(
 				$artist->user_email,
 				sprintf(

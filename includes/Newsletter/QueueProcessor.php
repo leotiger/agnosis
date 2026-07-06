@@ -140,7 +140,15 @@ class QueueProcessor {
 			switch_to_locale( $locale );
 		}
 
-		$body    = Mailer::build_email( (string) $issue->newsletter_type, $content['intro'], $content['digest_html'], $unsubscribe_url );
+		// "View in browser" only makes sense for the public newsletter — the
+		// artist newsletter's content (open votes, new-member names) is
+		// community-internal and deliberately never published to Archive's
+		// public, unauthenticated pages (see Archive::render_issue()).
+		$view_online_url = 'public' === (string) $issue->newsletter_type
+			? Archive::issue_permalink( (int) $issue->id )
+			: '';
+
+		$body    = Mailer::build_email( (string) $issue->newsletter_type, $content['intro'], $content['digest_html'], $unsubscribe_url, $view_online_url );
 		$subject = Mailer::build_subject( (string) $issue->newsletter_type );
 
 		$headers = [

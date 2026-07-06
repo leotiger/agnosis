@@ -12,8 +12,11 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin;
 
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\Departure;
+use Agnosis\Artist\Invitation;
+use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\Subscriber;
@@ -144,6 +147,10 @@ class Settings {
 				'newsletter_send_failed' => [ 'error', __( 'Could not start this issue — a previous one may still be sending.', 'agnosis' ) ],
 				'newsletter_test_sent'   => [ 'success', __( 'Test email sent — check the inbox you sent it to.', 'agnosis' ) ],
 				'newsletter_test_failed' => [ 'error', __( 'Could not send the test email — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
+				'invitation_sent'        => [ 'success', __( 'Invitation sent.', 'agnosis' ) ],
+				'invitation_failed'      => [ 'error', __( 'Could not send the invitation — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
+				'invitation_test_sent'   => [ 'success', __( 'Test invitation sent — check the inbox you sent it to.', 'agnosis' ) ],
+				'invitation_test_failed' => [ 'error', __( 'Could not send the test invitation — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
 			];
 			$key = sanitize_key( wp_unslash( $_GET['agnosis_message'] ) );
 			if ( isset( $notice_map[ $key ] ) ) {
@@ -461,6 +468,16 @@ class Settings {
 				'label'   => __( 'Anthropic model', 'agnosis' ),
 				'default' => 'claude-opus-4-8',
 				'desc'    => __( 'Model used for artwork description when Anthropic is the description provider. Must support vision input.', 'agnosis' ),
+			],
+			'agnosis_ai_vision_max_width_px' => [
+				'tab'      => 'ai',
+				'label'    => __( 'Vision image max width (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 800,
+				'min'      => 0,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 0, (int) $v ),
+				'desc'     => __( 'Images are downscaled proportionally to this width before being sent to the AI for description — vision token cost scales with resolution, and a description task needs far fewer pixels than the original photo. Applies to artwork photo uploads, rasterised PDF pages, and video poster frames alike. Set to 0 to always send full-resolution images (uses more tokens, no quality difference for typical description tasks). Requires the Imagick PHP extension; images are sent at their original size regardless of this setting when it is unavailable. Default: 800.', 'agnosis' ),
 			],
 
 			// --- AI: Enhancement (image) ---
@@ -823,6 +840,17 @@ class Settings {
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Advisory only — self-hosted sending keeps working above this count. Once confirmed public subscribers pass it, this page shows a reminder to consider an email service provider (e.g. Brevo\'s free tier) instead.', 'agnosis' ),
 			],
+			'agnosis_invitation_intro' => [
+				'tab'     => 'newsletter',
+				'label'   => __( 'Invitation intro', 'agnosis' ),
+				'input'   => 'textarea',
+				'rows'    => 6,
+				'default' => __(
+					"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n\nBeing part of the community is refreshingly simple: once admitted, you submit new work by sending it as an email — no dashboard, no forms. Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.",
+					'agnosis'
+				),
+				'desc'    => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
+			],
 		];
 	}
 
@@ -981,6 +1009,7 @@ class Settings {
 		}
 		if ( 'newsletter' === $tab ) {
 			$this->render_newsletter_dashboard();
+			$this->render_invitation_card();
 			return;
 		}
 		if ( 'email' !== $tab ) {
@@ -1509,6 +1538,18 @@ class Settings {
 								)
 							);
 							?>
+							<?php $locale_breakdown = $this->format_locale_breakdown(); ?>
+							<?php if ( '' !== $locale_breakdown ) : ?>
+								<div style="margin-top:.4rem;font-size:.85em;color:#666">
+									<?php
+									printf(
+										/* translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers */
+										esc_html__( 'By language: %s', 'agnosis' ),
+										esc_html( $locale_breakdown )
+									);
+									?>
+								</div>
+							<?php endif; ?>
 						</td>
 						<td><?php echo esc_html( $this->format_last_sent( $scheduler->last_sent_at( 'public' ) ) ); ?></td>
 						<td><?php echo $scheduler->has_issue_in_flight( 'public' ) ? esc_html__( 'Sending…', 'agnosis' ) : esc_html__( 'Idle', 'agnosis' ); ?></td>
@@ -1537,6 +1578,46 @@ class Settings {
 			return __( 'Never', 'agnosis' );
 		}
 		return date_i18n( get_option( 'date_format' ), strtotime( $mysql_datetime ) );
+	}
+
+	/**
+	 * Locale-coverage metric (audit §8 — "cheap signal for which LF languages
+	 * earn their AI translation spend"), built on Subscriber::counts_by_locale().
+	 * Returns '' when there are no confirmed subscribers to break down yet.
+	 */
+	private function format_locale_breakdown(): string {
+		$by_locale = Subscriber::counts_by_locale();
+		if ( empty( $by_locale ) ) {
+			return '';
+		}
+
+		$parts = [];
+		foreach ( $by_locale as $locale => $count ) {
+			$parts[] = sprintf( '%1$s (%2$d)', $this->locale_label( $locale ), $count );
+		}
+
+		return implode( ', ', $parts );
+	}
+
+	/**
+	 * Human-readable language name for a subscriber's stored WP locale (e.g.
+	 * 'es_ES' -> 'Spanish'). Uses Lingua Forge's own display-name lookup when
+	 * LF is active — the same optional-dependency guard convention as the
+	 * rest of Compat\LinguaForge — falling back to the raw locale code when
+	 * LF isn't installed. An empty locale (never recorded — e.g. a subscriber
+	 * from before the §3c frontend.js fix) is labelled explicitly rather than
+	 * silently dropped, matching Subscriber::counts_by_locale()'s own '' bucket.
+	 */
+	private function locale_label( string $locale ): string {
+		if ( '' === $locale ) {
+			return __( 'Unknown', 'agnosis' );
+		}
+
+		if ( function_exists( 'linguaforge_language_label' ) ) {
+			return (string) linguaforge_language_label( LinguaForge::locale_to_lang( $locale ) );
+		}
+
+		return $locale;
 	}
 
 	/**
@@ -1607,6 +1688,105 @@ class Settings {
 				'page'            => 'agnosis-settings',
 				'tab'             => 'newsletter',
 				'agnosis_message' => true === $result ? 'newsletter_test_sent' : 'newsletter_test_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Invite an artist (Artist\Invitation — separate from the newsletter system:
+	// one ad-hoc recipient, no list, no queue, nothing tracked)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * "Invite an Artist" card — a single-recipient, language-selectable
+	 * invitation email, independent of the newsletter dashboard above it.
+	 */
+	private function render_invitation_card(): void {
+		$languages = SubmissionTranslator::language_names();
+		ksort( $languages );
+		$current_user = wp_get_current_user();
+		?>
+		<div class="card" style="max-width:900px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Invite an Artist', 'agnosis' ); ?></h2>
+			<p class="description" style="margin-top:0">
+				<?php esc_html_e( 'Send a one-off email inviting someone to apply. Nothing is tracked or scheduled — this sends immediately to the address below.', 'agnosis' ); ?>
+			</p>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
+				<input type="hidden" name="action" value="agnosis_send_invitation">
+				<?php wp_nonce_field( 'agnosis_send_invitation' ); ?>
+				<input type="email" name="invitation_email" placeholder="<?php esc_attr_e( 'artist@example.com', 'agnosis' ); ?>" required class="regular-text" style="width:16rem">
+				<select name="invitation_language">
+					<?php foreach ( $languages as $code => $label ) : ?>
+						<option value="<?php echo esc_attr( (string) $code ); ?>"><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<?php submit_button( __( 'Send Invitation', 'agnosis' ), 'primary small', 'submit', false ); ?>
+			</form>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
+				<input type="hidden" name="action" value="agnosis_send_invitation_test">
+				<?php wp_nonce_field( 'agnosis_send_invitation_test' ); ?>
+				<input type="email" name="invitation_test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="regular-text" style="width:16rem">
+				<select name="invitation_language">
+					<?php foreach ( $languages as $code => $label ) : ?>
+						<option value="<?php echo esc_attr( (string) $code ); ?>"><?php echo esc_html( $label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * admin-post handler: send a real invitation.
+	 */
+	public function handle_send_invitation(): void {
+		check_admin_referer( 'agnosis_send_invitation' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$email    = sanitize_email( wp_unslash( $_POST['invitation_email'] ?? '' ) );
+		$language = sanitize_key( wp_unslash( $_POST['invitation_language'] ?? '' ) );
+
+		$result = ( new Invitation() )->send( $email, $language );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'newsletter',
+				'agnosis_message' => true === $result ? 'invitation_sent' : 'invitation_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: send a preview of the invitation to one address.
+	 */
+	public function handle_send_invitation_test(): void {
+		check_admin_referer( 'agnosis_send_invitation_test' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$email    = sanitize_email( wp_unslash( $_POST['invitation_test_email'] ?? '' ) );
+		$language = sanitize_key( wp_unslash( $_POST['invitation_language'] ?? '' ) );
+
+		$result = ( new Invitation() )->send_test( $email, $language );
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'newsletter',
+				'agnosis_message' => true === $result ? 'invitation_test_sent' : 'invitation_test_failed',
 			],
 			admin_url( 'admin.php' )
 		) );

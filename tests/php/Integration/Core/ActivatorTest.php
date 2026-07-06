@@ -454,4 +454,23 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_subscribers LIKE 'email'" );
 		$this->assertStringContainsString( 'varchar(191)', strtolower( (string) $col->Type ) ); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 	}
+
+	// =========================================================================
+	// maybe_upgrade() — rewrite-rule flush for existing installs (2026-07-06)
+	// =========================================================================
+
+	/**
+	 * New rewrite rules (Newsletter\Archive's /newsletter/ routes) only take
+	 * effect on an existing install once WordPress regenerates its rewrite
+	 * rules. Rather than flushing unconditionally on every plugins_loaded
+	 * (expensive), this is deferred to run once on init — same pattern as
+	 * create_managed_pages() just above it in maybe_upgrade().
+	 */
+	public function test_maybe_upgrade_defers_a_rewrite_flush_to_init(): void {
+		remove_all_actions( 'init' );
+
+		Activator::maybe_upgrade();
+
+		$this->assertGreaterThan( 0, has_action( 'init', 'flush_rewrite_rules' ), 'maybe_upgrade() must schedule a rewrite flush on init for existing installs to pick up new rewrite rules.' );
+	}
 }

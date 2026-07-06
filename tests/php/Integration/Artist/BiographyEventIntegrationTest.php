@@ -2,8 +2,12 @@
 /**
  * Integration tests — Biography and Event CPT registration.
  *
- * Verifies that the two singleton CPTs added in 0.1.4 are registered with the
- * correct labels, rewrite slugs, and archive settings.
+ * Verifies that the two CPTs added in 0.1.4 are registered with the correct
+ * labels, rewrite slugs, and archive settings. Biography remains a singleton
+ * per artist (no archive — nothing to list). Event stopped being one on
+ * 2026-07-06: an artist can have several, so it now has an archive
+ * (agnosis-theme's archive-agnosis_event.html) and PostCreator no longer
+ * merges [Event] submissions into a single post.
  *
  * @package Agnosis\Tests\Integration\Artist
  */
@@ -91,14 +95,14 @@ class BiographyEventIntegrationTest extends \WP_UnitTestCase {
 		);
 	}
 
-	public function test_event_cpt_has_no_archive(): void {
+	public function test_event_cpt_has_archive(): void {
+		// 2026-07-06: an artist can have several events, so the CPT now exposes
+		// an archive (agnosis-theme's archive-agnosis_event.html lists them
+		// chronologically) — no longer a singleton with nothing to list.
 		$obj = get_post_type_object( 'agnosis_event' );
 
 		$this->assertNotNull( $obj );
-		$this->assertFalse(
-			(bool) $obj->has_archive,
-			'agnosis_event must not expose a list archive — it is a singleton per artist.'
-		);
+		$this->assertSame( 'events', $obj->has_archive );
 	}
 
 	public function test_event_cpt_is_public(): void {
@@ -165,5 +169,21 @@ class BiographyEventIntegrationTest extends \WP_UnitTestCase {
 		$this->assertNotSame( $id1, $id2 );
 		// Document: application code (PostCreator::find_singleton_post) is
 		// responsible for merging, not the CPT registration.
+	}
+
+	public function test_two_event_posts_for_same_artist_are_both_insertable(): void {
+		// 2026-07-06: unlike biography, agnosis_event is no longer merged by
+		// PostCreator either — an artist can have several events, each its own
+		// post (see PostCreator::handle()'s duplicate/singleton resolution
+		// block). This documents that the CPT itself never enforced a limit,
+		// and now neither does the application layer.
+		$artist = self::factory()->user->create();
+
+		$id1 = wp_insert_post( [ 'post_type' => 'agnosis_event', 'post_status' => 'publish', 'post_title' => 'Solo show — Gallery X', 'post_author' => $artist ] );
+		$id2 = wp_insert_post( [ 'post_type' => 'agnosis_event', 'post_status' => 'publish', 'post_title' => 'Group show — Gallery Y', 'post_author' => $artist ] );
+
+		$this->assertGreaterThan( 0, $id1 );
+		$this->assertGreaterThan( 0, $id2 );
+		$this->assertNotSame( $id1, $id2 );
 	}
 }

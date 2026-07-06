@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Newsletter;
 
+use Agnosis\Newsletter\Archive;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\Subscriber;
@@ -493,5 +494,42 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 
 		$headers = implode( "\n", (array) $calls[0]['headers'] );
 		$this->assertStringNotContainsString( 'uid=', $headers );
+	}
+
+	// =========================================================================
+	// "View in browser" link (Newsletter\Archive, added 2026-07-06)
+	// =========================================================================
+
+	public function test_public_issue_email_includes_view_online_link(): void {
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'View it online', $calls[0]['message'] );
+		$this->assertStringContainsString( Archive::issue_permalink( (int) $issue->id ), $calls[0]['message'] );
+	}
+
+	/**
+	 * The artist newsletter's content is community-internal (open votes,
+	 * new-member names — see Digest::build_artist()) and Newsletter\Archive
+	 * only ever serves newsletter_type='public' issues, so an artist-type
+	 * send must never point recipients at a "view online" link at all.
+	 */
+	public function test_artist_issue_email_omits_view_online_link(): void {
+		$this->create_artist();
+		$this->scheduler->send_now( 'artist' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringNotContainsString( 'View it online', $calls[0]['message'] );
+		$this->assertStringNotContainsString( '/newsletter/', $calls[0]['message'] );
 	}
 }

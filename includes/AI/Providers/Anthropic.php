@@ -15,6 +15,7 @@ namespace Agnosis\AI\Providers;
 
 use Agnosis\AI\DescriptionResult;
 use Agnosis\AI\EnhancementResult;
+use Agnosis\AI\MediaAdapter;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
 
@@ -34,7 +35,13 @@ class Anthropic implements ProviderInterface {
 			return DescriptionResult::failure( 'Anthropic API key not configured.' );
 		}
 
-		$image_b64    = base64_encode( $image_data );
+		// Downscaled copy for THIS request only — never reassign $image_data
+		// itself, since callers (Pipeline::process_single()) reuse that same
+		// variable for image enhancement and for the actual published file.
+		// See MediaAdapter::maybe_downscale_for_vision()'s doc.
+		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
+
+		$image_b64    = base64_encode( $vision_image_data );
 		$system_prompt = $this->config->resolved_system_prompt();
 		$user_content  = $this->config->build_user_message( $artist_prompt );
 

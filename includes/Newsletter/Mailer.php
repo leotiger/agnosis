@@ -15,14 +15,49 @@ use Agnosis\Core\EmailBranding;
 class Mailer {
 
 	/**
-	 * Build the full HTML email body for one newsletter recipient.
-	 *
-	 * @param string $type            'artist' or 'public' — only affects copy.
-	 * @param string $intro           Optional admin-written intro paragraph (plain text, one per issue).
-	 * @param string $digest_html     Pre-rendered digest content (see Digest::build_*()).
-	 * @param string $unsubscribe_url Per-recipient one-click unsubscribe link.
+	 * Build the full HTML email document (doctype/head/body) for one
+	 * newsletter recipient. Thin wrapper around build_body() — see that
+	 * method for the actual branded card markup and its params.
 	 */
-	public static function build_email( string $type, string $intro, string $digest_html, string $unsubscribe_url ): string {
+	public static function build_email( string $type, string $intro, string $digest_html, ?string $unsubscribe_url = null, string $view_online_url = '' ): string {
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( str_replace( '_', '-', get_locale() ) ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+		<?php echo self::build_body( $type, $intro, $digest_html, $unsubscribe_url, $view_online_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- build_body() escapes internally. ?>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Build just the branded "card" markup (the two nested `<table>`s) with
+	 * no surrounding doctype/head/body — a reusable fragment.
+	 *
+	 * Split out from build_email() since 2026-07-06 so Newsletter\Archive's
+	 * "view in browser" pages can reuse the exact same visual card while
+	 * still going through wp_die() for their own document wrapper (title,
+	 * language attributes, HTTP status) — the same convention already used
+	 * by SubscriptionConfirm/VouchConfirm/ReviewConfirm for every other
+	 * render-a-page-and-stop flow in this plugin, chosen specifically so
+	 * those flows stay testable via the 'wp_die_handler' filter instead of a
+	 * raw echo+exit that would kill the PHP process running the test.
+	 *
+	 * @param string      $type             'artist' or 'public' — only affects copy.
+	 * @param string      $intro            Optional admin-written intro paragraph (plain text, one per issue).
+	 * @param string      $digest_html      Pre-rendered digest content (see Digest::build_*()).
+	 * @param string|null $unsubscribe_url  Per-recipient one-click unsubscribe link, or null when
+	 *                                      there is no recipient to unsubscribe (the public archive
+	 *                                      view) — the footer shows a "Subscribe" link instead.
+	 * @param string      $view_online_url  Permalink to this issue's archive page (Newsletter\Archive).
+	 *                                      Shown as a small "having trouble viewing this?" line only
+	 *                                      when non-empty — omitted when rendering the archive page
+	 *                                      itself, since a "view online" link makes no sense there.
+	 */
+	public static function build_body( string $type, string $intro, string $digest_html, ?string $unsubscribe_url = null, string $view_online_url = '' ): string {
 		$site_name = get_bloginfo( 'name' );
 		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
 
@@ -32,10 +67,6 @@ class Mailer {
 
 		ob_start();
 		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( str_replace( '_', '-', get_locale() ) ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
@@ -44,6 +75,15 @@ class Mailer {
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
 		<div style="font-size:13px;color:#ece9ff;margin-top:4px;"><?php echo esc_html( $heading ); ?></div>
 	</td></tr>
+
+		<?php if ( '' !== $view_online_url ) : ?>
+	<tr><td style="padding:10px 24px;background:#f9f9f9;border-bottom:1px solid #eee;">
+		<p style="margin:0;font-size:12px;color:#999;text-align:center;">
+			<?php esc_html_e( 'Having trouble viewing this email?', 'agnosis' ); ?>
+			<a href="<?php echo esc_url( $view_online_url ); ?>" style="color:#7c6af7;"><?php esc_html_e( 'View it online.', 'agnosis' ); ?></a>
+		</p>
+	</td></tr>
+	<?php endif; ?>
 
 	<tr><td style="padding:36px 24px;">
 		<?php if ( '' !== trim( $intro ) ) : ?>
@@ -64,15 +104,17 @@ class Mailer {
 			?>
 		</p>
 		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
-			<a href="<?php echo esc_url( $unsubscribe_url ); ?>" style="color:#bbb;"><?php esc_html_e( 'Unsubscribe', 'agnosis' ); ?></a>
+			<?php if ( null !== $unsubscribe_url ) : ?>
+				<a href="<?php echo esc_url( $unsubscribe_url ); ?>" style="color:#bbb;"><?php esc_html_e( 'Unsubscribe', 'agnosis' ); ?></a>
+			<?php else : ?>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" style="color:#bbb;"><?php esc_html_e( 'Subscribe to get these by email', 'agnosis' ); ?></a>
+			<?php endif; ?>
 		</p>
 	</td></tr>
 
 </table>
 </td></tr>
 </table>
-</body>
-</html>
 		<?php
 		return (string) ob_get_clean();
 	}

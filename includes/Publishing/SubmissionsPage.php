@@ -553,6 +553,8 @@ class SubmissionsPage {
 	text-transform: uppercase; cursor: pointer; transition: opacity .15s ease;
 }
 .agnosis-submissions--login #wp-submit:hover { opacity: .75; }
+.agnosis-submissions--login__lostpassword { margin: 1.2rem 0 0; font-size: .9rem; }
+.agnosis-submissions--login__lostpassword a { color: inherit; text-decoration: underline; }
 </style>';
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
@@ -570,6 +572,11 @@ class SubmissionsPage {
 				]
 			);
 			?>
+			<p class="agnosis-submissions--login__lostpassword">
+				<a href="<?php echo esc_url( wp_lostpassword_url( $redirect ) ); ?>">
+					<?php esc_html_e( 'Forgot your password?', 'agnosis' ); ?>
+				</a>
+			</p>
 		</div>
 		<?php
 		if ( $turnstile_used ) {

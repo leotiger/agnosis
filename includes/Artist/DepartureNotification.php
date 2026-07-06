@@ -178,6 +178,12 @@ class DepartureNotification {
 			$body .= "\n\n" . $footer;
 		}
 
+		// Deliberately no EmailFooter::edit_reminder_plain_text() here — apply_ban()
+		// removes the agnosis_artist role for the duration of the ban, which is the
+		// same capability ContentEditor::check_access() requires, so "you can edit
+		// directly on your page" would be false for as long as this email applies.
+		// See on_artist_reinstated() below, where the reminder returns once access does.
+
 		wp_mail(
 			$user->user_email,
 			sprintf(
@@ -226,6 +232,14 @@ class DepartureNotification {
 		$footer = EmailFooter::plain_text();
 		if ( '' !== $footer ) {
 			$body .= "\n\n" . $footer;
+		}
+
+		// Reinstatement is the moment ContentEditor access comes back (the ban
+		// removed it — see the suspension email above, which deliberately
+		// omits this same reminder for exactly that reason).
+		$edit_reminder = EmailFooter::edit_reminder_plain_text( $user_id );
+		if ( '' !== $edit_reminder ) {
+			$body .= "\n\n" . $edit_reminder;
 		}
 
 		wp_mail(
@@ -305,6 +319,11 @@ class DepartureNotification {
 			$footer = EmailFooter::plain_text();
 			if ( '' !== $footer ) {
 				$body .= "\n\n" . $footer;
+			}
+
+			$edit_reminder = EmailFooter::edit_reminder_plain_text( $voter_id );
+			if ( '' !== $edit_reminder ) {
+				$body .= "\n\n" . $edit_reminder;
 			}
 
 			wp_mail(

@@ -37,10 +37,27 @@
  * ProviderInterface tests are completely unaffected — the stubs just mirror the
  * global bootstrap behaviour when no overrides are set.
  *
- * shell_exec() is overridden separately, for MediaAdapterTest rather than
- * SubmissionTranslatorTest — see its own docblock below. It reads
- * MediaAdapterTest::$ffmpeg_path_override (null = pass through to the real
- * shell_exec(), i.e. genuinely ask the machine whether ffmpeg is installed).
+ * shell_exec() and exec() are overridden separately, for MediaAdapterTest
+ * rather than SubmissionTranslatorTest — see their own docblocks below.
+ * shell_exec() reads MediaAdapterTest::$ffmpeg_path_override (null = pass
+ * through to the real shell_exec(), i.e. genuinely ask the machine whether
+ * ffmpeg is installed); exec() reads MediaAdapterTest::$exec_override (null
+ * = pass through to the real exec()). Together these let every branch of
+ * MediaAdapter::adapt_video()'s ffmpeg handling — not installed, installed
+ * and extraction succeeds, installed but extraction fails — be forced
+ * deterministically on any machine, with no dependency on a real ffmpeg
+ * binary being present at all.
+ *
+ * extension_loaded() is overridden the same way for MediaAdapterTest's
+ * Imagick-dependent tests (PDF rasterisation, vision-input downscaling), via
+ * MediaAdapterTest::$imagick_available_override. Unlike ffmpeg, the "Imagick
+ * available" branch also needs a real \Imagick class to instantiate — see
+ * the conditional fake Imagick/ImagickPixel/ImagickException classes in
+ * dev/bootstrap.php (only defined when the real extension isn't loaded),
+ * which this override is designed to work with: forcing "available" makes
+ * MediaAdapter proceed to `new \Imagick()`, which resolves to the real
+ * extension when installed, or the fake stand-in when not — either way, no
+ * test in this suite depends on which machine it happens to run on.
  *
  * @package Agnosis\Tests\Unit\AI\Stubs
  */
@@ -176,4 +193,112 @@ function shell_exec( string $command ): ?string {
 		return MediaAdapterTest::$ffmpeg_path_override;
 	}
 	return \shell_exec( $command );
+}
+
+/**
+ * Namespace-scoped exec() override — lets MediaAdapterTest deterministically
+ * force the *outcome* of MediaAdapter::adapt_video()'s actual ffmpeg
+ * frame-extraction command (not just the "which ffmpeg" presence probe
+ * shell_exec() fakes above), regardless of whether ffmpeg is genuinely
+ * installed on the machine running the suite.
+ *
+ * Previously this command always hit the real global exec(), which meant the
+ * "ffmpeg present and extraction succeeds" test could only pass truthfully on
+ * a box that genuinely has a working ffmpeg + lavfi, and had to self-skip
+ * everywhere else — and the "ffmpeg present but extraction fails" branch
+ * (a real ffmpeg crash, unsupported codec, etc.) had no test at all, since
+ * there was no way to force a real ffmpeg binary to fail on demand.
+ *
+ * Only intercepts the exact frame-extraction command (identified by its
+ * `-f image2` flag, unique to adapt_video()) when
+ * MediaAdapterTest::$exec_override is set; every other exec() call anywhere
+ * else in the codebase passes straight through to the real global exec().
+ *
+ * MediaAdapterTest::$exec_override:
+ *   null      → pass through to the real exec() (default).
+ *   'success' → write a minimal-but-valid JPEG (SOI + EOI markers) to the
+ *               command's own output path, exactly as a real ffmpeg
+ *               extraction would leave behind; simulates exit code 0.
+ *   'failure' → write nothing (the output path is left absent, matching a
+ *               real ffmpeg crash or "no such filter" failure); simulates a
+ *               non-zero exit code.
+ *
+ * @param string     $command
+ * @param array|null $output
+ * @param int|null   $return_var
+ * @return string|false
+ */
+function exec( string $command, ?array &$output = [], ?int &$return_var = 0 ): string|false {
+	// MediaAdapter::adapt_video() calls exec($cmd, $output, $return) without
+	// pre-initialising $output/$return — harmless for the real internal
+	// exec(), which is lenient about auto-vivifying undefined by-ref
+	// arguments regardless of their target type, but a user-defined function
+	// (this one) enforces its declared parameter types strictly even for an
+	// auto-vivified null. Nullable types here accept that null, matching the
+	// real exec()'s actual leniency instead of erroring on it.
+	if ( MediaAdapterTest::$exec_override !== null && str_contains( $command, '-f image2' )
+		&& preg_match( "/-f\\s+image2\\s+'([^']+)'/", $command, $m ) ) {
+		$out_path = $m[1];
+
+		if ( 'success' === MediaAdapterTest::$exec_override ) {
+			// SOI (0xFFD8) + EOI (0xFFD9) — the smallest byte sequence that is
+			// still unambiguously a JPEG per the file-format markers
+			// adapt_video()'s own caller checks (see MediaAdapterTest's
+			// assertion on the leading two bytes). MediaAdapter never
+			// decodes this frame itself, only passes it through, so a
+			// genuinely renderable image isn't needed for this unit test.
+			file_put_contents( $out_path, "\xFF\xD8\xFF\xD9" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			$output     = [];
+			$return_var = 0;
+			return '';
+		}
+
+		// 'failure' — deliberately leave $out_path absent so adapt_video()'s
+		// is_file() check reports no frame, exactly like a real failed
+		// extraction would.
+		$output     = [];
+		$return_var = 1;
+		return false;
+	}
+
+	return \exec( $command, $output, $return_var );
+}
+
+/**
+ * Namespace-scoped extension_loaded() override — lets MediaAdapterTest force
+ * MediaAdapter's "is Imagick available" check in either direction,
+ * regardless of whether the real `imagick` PHP extension is actually
+ * installed on the machine running the suite.
+ *
+ * Only intercepts the exact 'imagick' argument; every other extension name
+ * (there are none elsewhere in this codebase's extension_loaded() calls, but
+ * this keeps the override narrowly scoped on principle) passes straight
+ * through to the real global extension_loaded() unchanged.
+ *
+ * MediaAdapterTest::$imagick_available_override:
+ *   null  → pass through to the real extension_loaded('imagick') (default) —
+ *           genuinely ask the machine.
+ *   true  → force "available". MediaAdapter then proceeds to `new \Imagick()`,
+ *           which resolves to the real extension when installed, or the
+ *           conditional fake defined in dev/bootstrap.php when it isn't —
+ *           either way this test suite no longer cares which.
+ *   false → force "unavailable", even on a machine where Imagick genuinely
+ *           is installed — lets the fallback-path tests run deterministically
+ *           everywhere instead of self-skipping whenever Imagick happens to
+ *           be present.
+ *
+ * Deliberately doesn't touch class_exists() at all: MediaAdapter's guard is
+ * `!extension_loaded('imagick') || !class_exists(\Imagick::class)`, and since
+ * *some* Imagick class (real or the dev/bootstrap.php fake) is always
+ * defined in a unit-test process, class_exists() is always true on its own —
+ * forcing this one check is sufficient to control both branches.
+ *
+ * @param string $extension
+ * @return bool
+ */
+function extension_loaded( string $extension ): bool {
+	if ( 'imagick' === $extension && MediaAdapterTest::$imagick_available_override !== null ) {
+		return MediaAdapterTest::$imagick_available_override;
+	}
+	return \extension_loaded( $extension );
 }

@@ -32,7 +32,11 @@ use Agnosis\Email\AttachmentStore;
  * Subject-line indicators route submissions to specialised CPTs:
  *
  *   [Biography] → agnosis_biography  (singleton per artist — always updated)
- *   [Event]     → agnosis_event      (singleton per artist — always updated)
+ *   [Event]     → agnosis_event      (an artist can have several; a new email
+ *                                      updates an existing event only if the
+ *                                      subject exactly matches its title,
+ *                                      otherwise it creates a new one — see
+ *                                      the event branch in handle())
  *   (none)      → agnosis_artwork    (per artwork, with full duplicate detection)
  *
  * Indicator matching is case-insensitive; the bracket prefix is stripped from
@@ -42,7 +46,15 @@ class PostCreator {
 
 	/**
 	 * Maps lowercase indicator keywords to CPT slugs.
-	 * Singleton types always merge into the single existing post for that artist.
+	 *
+	 * The 'singleton' flag still gates AI-polish eligibility (see handle()) for
+	 * both biography and event, but as of 2026-07-06 it no longer means "merge
+	 * into the one existing post" for agnosis_event specifically — an artist can
+	 * have several events. A new [Event] email updates an existing one only
+	 * when its subject exactly matches that event's title (find_post_by_subject()
+	 * — the same title-match mechanism replace@ uses); any other subject creates
+	 * a new event post. agnosis_biography is the only type still merged
+	 * unconditionally into a single existing post per artist.
 	 *
 	 * @var array<string, array{post_type: string, singleton: bool}>
 	 */
@@ -291,17 +303,40 @@ class PostCreator {
 			// ---- Duplicate / singleton resolution -------------------------------
 			if ( 'agnosis_replace' === $post_type ) {
 				// Explicit replacement: skip AI fuzzy detection entirely.
-				// Match only by exact subject — the artist named the artwork they want replaced.
-				$post_type  = 'agnosis_artwork';
+				// Match only by exact subject — the artist named the artwork OR
+				// event they want replaced (2026-07-06: searches both types;
+				// $post_type adopts whichever one the match belongs to). No
+				// match falls back to the pre-2026-07-06 default of creating a
+				// new artwork — replace@ was artwork-only until now, so that's
+				// the safest "nothing matched" behaviour to preserve.
 				$singleton  = false;
-				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id );
+				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
+				$post_type  = $merge_into ? (string) get_post_type( $merge_into ) : 'agnosis_artwork';
 				if ( $merge_into ) {
-					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing post #%d.', $queue_id, $merge_into ), 'publisher' );
+					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing %s #%d.', $queue_id, $post_type, $merge_into ), 'publisher' );
 				} else {
 					Logger::info( sprintf( 'Queue #%d: replace@ — no existing post found, creating new artwork.', $queue_id ), 'publisher' );
 				}
+			} elseif ( 'agnosis_event' === $post_type ) {
+				// 2026-07-06: an artist can now have several events, so a new
+				// [Event] email no longer blindly merges into "the" event (there
+				// isn't just one). Instead it mirrors replace@: if the subject
+				// exactly matches an existing event's title, that event is
+				// updated in place (same address, no separate "replace" step);
+				// otherwise a new event post is created. No AI fuzzy detection
+				// here — that's tuned for artwork photo/description matching and
+				// doesn't apply to a plain title match. $singleton stays true for
+				// this type (still gates AI polish above) — only the merge
+				// decision changes.
+				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, 'agnosis_event' );
+				if ( $merge_into ) {
+					Logger::info( sprintf( 'Queue #%d: event@ — subject matches existing event #%d, updating in place.', $queue_id, $merge_into ), 'publisher' );
+				} else {
+					Logger::info( sprintf( 'Queue #%d: event@ — no title match, creating new event.', $queue_id ), 'publisher' );
+				}
 			} elseif ( $singleton ) {
-				// Singleton types always merge into the one existing post for this artist.
+				// Remaining singleton types (biography) always merge into the one
+				// existing post for this artist.
 				$merge_into = $this->find_singleton_post( $post_type, (int) $row->artist_id, $queue_id );
 			} else {
 				// Standard artworks: full three-layer duplicate detection.
@@ -452,8 +487,12 @@ class PostCreator {
 	/**
 	 * Find the single existing post of a singleton type for a given artist.
 	 *
-	 * Singleton types (biography, events) have at most one post per artist.
-	 * If one exists it is always updated; if none exists a new one is created.
+	 * As of 2026-07-06 this is only ever called for 'agnosis_biography' — an
+	 * artist has at most one biography post, always updated in place.
+	 * agnosis_event is no longer routed here: an artist can have several
+	 * events, so instead they're matched by exact title via
+	 * find_post_by_subject() (see the duplicate/singleton resolution block in
+	 * handle()) — the same title-match mechanism replace@ uses.
 	 *
 	 * @param string $post_type CPT slug (e.g. 'agnosis_biography').
 	 * @param int    $artist_id WordPress user ID.
@@ -648,21 +687,27 @@ class PostCreator {
 	}
 
 	/**
-	 * Find a published or draft artwork post by exact title for a given artist.
+	 * Find a published or draft post by exact title for a given artist.
 	 *
-	 * Used by the replace@ path to locate the post to overwrite without running
-	 * the AI fuzzy comparison.
+	 * Used by:
+	 *   - replace@ (2026-07-06: searches ['agnosis_artwork', 'agnosis_event']
+	 *     together — the artist may be replacing either; whichever type the
+	 *     match belongs to is what handle() adopts as $post_type).
+	 *   - event@ (post_type = 'agnosis_event'): resending an email whose
+	 *     subject exactly matches an existing event's title updates that
+	 *     event in place instead of creating a new one.
 	 *
-	 * @param string $subject   Post title to match.
-	 * @param int    $artist_id WordPress user ID.
+	 * @param string          $subject   Post title to match.
+	 * @param int             $artist_id WordPress user ID.
+	 * @param string|string[] $post_type CPT slug, or an array of slugs to search across.
 	 * @return int Post ID, or 0 if not found.
 	 */
-	private function find_post_by_subject( string $subject, int $artist_id ): int {
+	private function find_post_by_subject( string $subject, int $artist_id, string|array $post_type = 'agnosis_artwork' ): int {
 		if ( ! $subject || ! $artist_id ) {
 			return 0;
 		}
 		$matches = get_posts( [
-			'post_type'      => 'agnosis_artwork',
+			'post_type'      => $post_type,
 			'author'         => $artist_id,
 			'title'          => $subject,
 			'post_status'    => [ 'draft', 'pending', 'publish' ],
@@ -676,10 +721,13 @@ class PostCreator {
 	/**
 	 * Handle a takedown request sent to remove@.
 	 *
-	 * Finds the artwork by subject, moves it to draft, records a
-	 * '_agnosis_removal_requested' timestamp, and fires the
-	 * 'agnosis_removal_requested' action so admins can be notified.
-	 * Does NOT auto-delete — the admin reviews and confirms.
+	 * Finds the artwork or event by exact subject/title match (2026-07-06:
+	 * no longer artwork-only), records a removal token, and fires the
+	 * 'agnosis_removal_requested' action so Notification can email the
+	 * artist a confirmation link. Does NOT trash the post itself — that only
+	 * happens once the artist clicks confirm (see RemovalEndpoints::confirm(),
+	 * which also had to stop rejecting non-artwork post types for this to work
+	 * end-to-end).
 	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
@@ -693,11 +741,11 @@ class PostCreator {
 			return;
 		}
 
-		$post_id = $this->find_post_by_subject( $subject, $artist_id );
+		$post_id = $this->find_post_by_subject( $subject, $artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
 
 		if ( ! $post_id ) {
 			Logger::warning(
-				sprintf( 'Queue #%d: remove@ — no artwork titled "%s" found for this artist.', $queue_id, $subject ),
+				sprintf( 'Queue #%d: remove@ — no artwork or event titled "%s" found for this artist.', $queue_id, $subject ),
 				'publisher'
 			);
 			return;
@@ -718,10 +766,10 @@ class PostCreator {
 		);
 
 		/**
-		 * Fires when an artist requests takedown of one of their artworks.
+		 * Fires when an artist requests takedown of one of their artworks or events.
 		 * A signed token has been stored — Notification sends the confirmation email.
 		 *
-		 * @param int $post_id   The artwork post ID (unchanged until confirmed).
+		 * @param int $post_id   The artwork or event post ID (unchanged until confirmed).
 		 * @param int $artist_id The requesting artist's user ID.
 		 */
 		do_action( 'agnosis_removal_requested', $post_id, $artist_id );
@@ -1355,8 +1403,14 @@ class PostCreator {
 	 * @param string $alt      Alt text — only actually stored for image attachments.
 	 * @param string $title    Post title for the attachment.
 	 * @return int|\WP_Error Attachment post ID, or WP_Error on failure.
+	 *
+	 * Public (was private) so Artist\ContentEditor's Phase 2 photo-substitution
+	 * endpoint can reuse the exact same sideload/attachment-metadata conventions
+	 * for a direct artist-uploaded replacement image, instead of duplicating this
+	 * logic (audit §7c: "reuse existing primitives... instead of reinventing
+	 * them"). No other behaviour change.
 	 */
-	private function upload_media(
+	public function upload_media(
 		string $data,
 		string $mime,
 		string $filename,

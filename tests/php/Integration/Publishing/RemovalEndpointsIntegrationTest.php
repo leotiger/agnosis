@@ -165,7 +165,9 @@ class RemovalEndpointsIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'agnosis_removal_not_found', $result->get_error_code() );
 	}
 
-	public function test_confirm_non_artwork_post_type_returns_404(): void {
+	public function test_confirm_non_removable_post_type_returns_404(): void {
+		// 'page' is never removable via this endpoint — only agnosis_artwork
+		// and agnosis_event (REMOVABLE_TYPES) are, since 2026-07-06.
 		$page_id = (int) self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
 		update_post_meta( $page_id, '_agnosis_removal_token',  self::VALID_TOKEN );
 		update_post_meta( $page_id, '_agnosis_removal_expiry', time() + 86400 );
@@ -175,6 +177,29 @@ class RemovalEndpointsIntegrationTest extends \WP_UnitTestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertSame( 'agnosis_removal_not_found', $result->get_error_code() );
+	}
+
+	// -------------------------------------------------------------------------
+	// confirm() — agnosis_event (2026-07-06: remove@ is no longer artwork-only)
+	// -------------------------------------------------------------------------
+
+	public function test_confirm_with_valid_token_trashes_event(): void {
+		$event_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_title'  => 'Event To Remove',
+			'post_author' => $this->artist_id,
+		] );
+		update_post_meta( $event_id, '_agnosis_removal_token',  self::VALID_TOKEN );
+		update_post_meta( $event_id, '_agnosis_removal_expiry', time() + 86400 * 7 );
+
+		$req    = $this->request( [ 'id' => $event_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->confirm( $req );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$this->assertTrue( $result->get_data()['removed'] );
+		$this->assertSame( 'trash', get_post_status( $event_id ) );
+		$this->assertStringContainsString( 'event', $result->get_data()['message'] );
 	}
 
 	// -------------------------------------------------------------------------

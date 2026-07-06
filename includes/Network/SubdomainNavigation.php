@@ -62,6 +62,10 @@ class SubdomainNavigation {
 	 * "back to the artist's home" link from any other page on that subdomain
 	 * (an artwork, biography, or event single), not just an identifying label.
 	 *
+	 * "Biography" and "Events" are appended to the right, pipe-separated, but
+	 * only when the artist actually has that content published — no dangling
+	 * link to an empty page for an artist who's never submitted a bio or event.
+	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 * @return string
 	 */
@@ -81,12 +85,21 @@ class SubdomainNavigation {
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-artist-breadcrumb' ] );
 		$url                = SubdomainRouter::url_for_artist( $artist_id );
 
-		return sprintf(
-			'<div %s><a href="%s">%s</a></div>',
-			$wrapper_attributes,
-			esc_url( $url ),
-			esc_html( $name )
-		);
+		$links = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $name ) );
+
+		$bio_url = $this->biography_permalink( $artist_id );
+		if ( '' !== $bio_url ) {
+			$links .= sprintf( ' | <a href="%s">%s</a>', esc_url( $bio_url ), esc_html__( 'Biography', 'agnosis' ) );
+		}
+
+		if ( $this->has_published_post( 'agnosis_event', $artist_id ) ) {
+			$events_url = (string) get_post_type_archive_link( 'agnosis_event' );
+			if ( '' !== $events_url ) {
+				$links .= sprintf( ' | <a href="%s">%s</a>', esc_url( $events_url ), esc_html__( 'Events', 'agnosis' ) );
+			}
+		}
+
+		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $links );
 	}
 
 	// -------------------------------------------------------------------------
@@ -128,6 +141,38 @@ class SubdomainNavigation {
 		$user = get_user_by( 'id', $artist_id );
 
 		return $user ? (string) ( $user->display_name ?: $user->user_nicename ) : '';
+	}
+
+	/**
+	 * Permalink of the artist's one published biography post, or '' if they
+	 * don't have one (yet). Biography is a singleton CPT — at most one post
+	 * per artist — so the first result is always the right one.
+	 */
+	private function biography_permalink( int $artist_id ): string {
+		$ids = get_posts( [
+			'post_type'      => 'agnosis_biography',
+			'author'         => $artist_id,
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+
+		return $ids ? (string) get_permalink( $ids[0] ) : '';
+	}
+
+	/** True when the artist has at least one published post of the given type. */
+	private function has_published_post( string $post_type, int $artist_id ): bool {
+		$ids = get_posts( [
+			'post_type'      => $post_type,
+			'author'         => $artist_id,
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+
+		return ! empty( $ids );
 	}
 
 	/**

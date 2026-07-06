@@ -3,24 +3,32 @@
  * Unit tests for MediaAdapter::adapt().
  *
  * MediaAdapter is a pure static class with no WP dependencies, so these are
- * plain PHPUnit tests. The PDF path requires Imagick — its test asserts
- * graceful degradation (empty return, PDF dropped entirely) since Imagick is
- * not available in CI. The video path requires ffmpeg only for the optional
+ * plain PHPUnit tests. The video path requires ffmpeg only for the optional
  * poster-frame extraction; the original video attachment itself is never
  * dropped even when ffmpeg is unavailable — its test asserts that fallback
  * (video survives, poster_data is simply empty) rather than an empty return.
  *
- * The "ffmpeg not installed" scenario is forced deterministically via
- * $ffmpeg_path_override (read by a namespace-scoped shell_exec() override in
- * Stubs/ai_namespace_stubs.php) rather than by asking the real machine —
- * otherwise that test could only ever run truthfully on a box that genuinely
- * lacks ffmpeg, and would have to self-skip everywhere else. A second test
- * covers the opposite, genuinely-available-ffmpeg case by having it
- * synthesise its own minimal one-frame clip via the `lavfi` test source and
- * asserting real extraction — no checked-in binary fixture needed. That one
- * legitimately can't be mocked away, since it exists specifically to prove a
- * real codec round-trip works, so it still self-skips on a machine with no
- * ffmpeg at all.
+ * All three branches of MediaAdapter::adapt_video()'s ffmpeg handling — not
+ * installed; installed and extraction succeeds; installed but extraction
+ * fails — are forced deterministically via $ffmpeg_path_override and
+ * $exec_override (read by namespace-scoped shell_exec()/exec() overrides in
+ * Stubs/ai_namespace_stubs.php) rather than by asking the real machine.
+ *
+ * Both branches of MediaAdapter's Imagick usage (PDF rasterisation, vision-
+ * input downscaling) — Imagick unavailable; Imagick available — are forced
+ * the same way via $imagick_available_override (read by a namespace-scoped
+ * extension_loaded() override in the same Stubs file). "Available" resolves
+ * to the real \Imagick class when the extension is genuinely installed, or a
+ * conditional fake defined in dev/bootstrap.php when it isn't.
+ *
+ * 2026-07-06: no test in this file skips for any reason. This used to be only
+ * half-true in two different ways — the ffmpeg "extraction succeeds" test
+ * asked a genuinely-installed ffmpeg to synthesise its own test clip via
+ * `lavfi`, and every Imagick-dependent test could only run whichever one of
+ * its two branches matched whatever happened to be installed on the machine
+ * running the suite, self-skipping the other. Both are now fully
+ * environment-independent: every branch of both dependencies runs
+ * identically and deterministically on every machine, installed or not.
  *
  * @package Agnosis\Tests\Unit\AI
  */
@@ -43,10 +51,38 @@ class MediaAdapterTest extends TestCase {
 	 */
 	public static ?string $ffmpeg_path_override = null;
 
+	/**
+	 * Forces the namespace-scoped exec() override (see Stubs/ai_namespace_stubs.php)
+	 * to fake the outcome of MediaAdapter's ffmpeg frame-extraction command —
+	 * 'success' (writes a minimal valid JPEG to the command's own output path)
+	 * or 'failure' (leaves it absent) — instead of running a real ffmpeg binary.
+	 * null = pass through to the real exec().
+	 */
+	public static ?string $exec_override = null;
+
+	/**
+	 * Forces the namespace-scoped extension_loaded() override (see
+	 * Stubs/ai_namespace_stubs.php) to fake whether Imagick is "available" for
+	 * MediaAdapter's own extension_loaded('imagick') check, instead of asking
+	 * the real machine. true/false force either branch regardless of what's
+	 * actually installed; null passes through to the real check. See
+	 * dev/bootstrap.php for the conditional fake Imagick class this pairs with.
+	 */
+	public static ?bool $imagick_available_override = null;
+
 	protected function tearDown(): void {
 		// Always reset — a failed assertion must not leave this leaking into
 		// unrelated tests run later in the same process.
-		self::$ffmpeg_path_override = null;
+		self::$ffmpeg_path_override         = null;
+		self::$exec_override                = null;
+		self::$imagick_available_override   = null;
+		// maybe_downscale_for_vision()'s get_option() call resolves to the same
+		// namespace-scoped stub SubmissionTranslatorTest uses (both classes
+		// live under Agnosis\AI, and Stubs/ai_namespace_stubs.php intercepts
+		// the whole namespace) — reset it here too so a test that sets a
+		// custom agnosis_ai_vision_max_width_px doesn't leak into
+		// SubmissionTranslatorTest or any other test sharing this stub.
+		SubmissionTranslatorTest::$options = null;
 		parent::tearDown();
 	}
 
@@ -152,15 +188,82 @@ class MediaAdapterTest extends TestCase {
 	// -------------------------------------------------------------------------
 
 	public function test_pdf_returns_empty_when_imagick_unavailable(): void {
-		if ( extension_loaded( 'imagick' ) ) {
-			$this->markTestSkipped( 'Imagick is available — this test guards the fallback path only.' );
-		}
+		self::$imagick_available_override = false;
 
 		$att    = [ 'data' => '%PDF-1.4 fake', 'mime' => 'application/pdf', 'filename' => 'portfolio.pdf' ];
 		$result = MediaAdapter::adapt( [ $att ] );
 
 		// Without Imagick, PDF entries are dropped entirely rather than crashing.
 		$this->assertSame( [], $result );
+	}
+
+	/**
+	 * Previously untested: adapt_pdf()'s actual rasterisation loop (one entry
+	 * per page, correct filenames, correct mime/media_type) had no coverage at
+	 * all before $imagick_available_override existed, since this branch could
+	 * only run for real on a machine with Imagick genuinely installed. Uses
+	 * the fake 'FAKEPDF:...' blob format dev/bootstrap.php's stand-in Imagick
+	 * class understands (see its own docblock) — works identically whether
+	 * this machine has the real extension or not.
+	 */
+	public function test_pdf_rasterizes_each_page_when_imagick_available(): void {
+		self::$imagick_available_override = true;
+
+		$att = [
+			'data'     => $this->make_test_multipage_blob( [ [ 600, 800 ], [ 600, 800 ] ] ),
+			'mime'     => 'application/pdf',
+			'filename' => 'portfolio.pdf',
+		];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 2, $result, 'Each page of a multi-page PDF becomes its own image entry.' );
+		foreach ( $result as $page ) {
+			$this->assertSame( 'image', $page['media_type'] );
+			$this->assertSame( 'image/jpeg', $page['mime'] );
+		}
+		$this->assertSame( 'portfolio-p1.jpg', $result[0]['filename'] );
+		$this->assertSame( 'portfolio-p2.jpg', $result[1]['filename'] );
+	}
+
+	/**
+	 * Builds a blob that adapt_pdf()'s `new \Imagick()` → readImageBlob() →
+	 * getNumberImages() round-trip decodes into exactly the given per-page
+	 * dimensions, on WHICHEVER concrete \Imagick class ends up active for this
+	 * process.
+	 *
+	 * $imagick_available_override only forces MediaAdapter's own
+	 * extension_loaded('imagick') *guard check* — it can't change which
+	 * concrete class a literal `new \Imagick()` resolves to (leading-backslash
+	 * class references always resolve to the true global class; see this
+	 * file's class docblock). So on a machine where the real `imagick`
+	 * extension is genuinely installed, `new \Imagick()` inside adapt_pdf()
+	 * really is the real extension — a hand-rolled 'FAKEPDF:...' string isn't
+	 * decodable image data to it and readImageBlob() would throw. This builds
+	 * a real multi-page TIFF instead in that case (TIFF's multi-page support
+	 * is native to libtiff, unlike PDF which needs an optional Ghostscript
+	 * delegate — one less environment dependency for a test fixture). When
+	 * the real extension is absent, dev/bootstrap.php's fake stand-in is
+	 * active instead and understands the plain 'FAKEPDF:WxH|WxH...' format
+	 * directly — see that class's own docblock.
+	 *
+	 * @param array<int, array{0:int,1:int}> $page_sizes
+	 */
+	private function make_test_multipage_blob( array $page_sizes ): string {
+		if ( \extension_loaded( 'imagick' ) ) {
+			$container = new \Imagick();
+			foreach ( $page_sizes as [ $w, $h ] ) {
+				$page = new \Imagick();
+				$page->newImage( $w, $h, new \ImagickPixel( 'white' ) );
+				$page->setImageFormat( 'tiff' );
+				$container->addImage( $page );
+				$page->destroy();
+			}
+			$blob = $container->getImagesBlob();
+			$container->destroy();
+			return $blob;
+		}
+
+		return 'FAKEPDF:' . implode( '|', array_map( static fn( $p ) => $p[0] . 'x' . $p[1], $page_sizes ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -190,48 +293,46 @@ class MediaAdapterTest extends TestCase {
 	}
 
 	public function test_video_with_working_ffmpeg_extracts_poster_frame(): void {
-		$ffmpeg = trim( (string) shell_exec( 'which ffmpeg 2>/dev/null' ) );
-		if ( empty( $ffmpeg ) ) {
-			$this->markTestSkipped( 'ffmpeg not available in this environment.' );
-		}
+		// Pretend ffmpeg is installed (any non-empty path will do — adapt_video()
+		// only checks it's non-empty before proceeding) and force the
+		// extraction command itself to "succeed", via the namespace-scoped
+		// exec() override. No real ffmpeg binary is invoked at all, so this
+		// runs identically on every machine.
+		self::$ffmpeg_path_override = '/usr/bin/ffmpeg';
+		self::$exec_override        = 'success';
 
-		// A hand-built byte fixture (the way tiny_wav() works for audio in the
-		// PostCreator integration test) isn't possible for a real video codec
-		// bitstream — unlike WAV, there is no fixed, trivial header format.
-		// Instead, ask this same ffmpeg binary to synthesise a minimal,
-		// genuinely decodable one-frame clip from its own `lavfi` test source
-		// (no external fixture file needed at all), then feed that back into
-		// MediaAdapter and assert real extraction happened. Because the same
-		// ffmpeg both encodes and decodes, this is self-consistent regardless
-		// of which codec this particular ffmpeg build defaults to.
-		$video_path = sys_get_temp_dir() . '/agnosis_test_video_' . uniqid( '', true ) . '.mp4';
-
-		exec(
-			sprintf(
-				'%s -y -f lavfi -i color=c=red:size=32x32:rate=1 -frames:v 1 -pix_fmt yuv420p %s 2>/dev/null',
-				escapeshellcmd( $ffmpeg ),
-				escapeshellarg( $video_path )
-			),
-			$output,
-			$return
-		);
-
-		if ( 0 !== $return || ! is_file( $video_path ) ) {
-			$this->markTestSkipped( 'This ffmpeg build could not synthesise a test video (lavfi source unavailable?).' );
-		}
-
-		$video_data = (string) file_get_contents( $video_path );
-		unlink( $video_path );
-
-		$att    = [ 'data' => $video_data, 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
+		$att    = [ 'data' => 'video_binary', 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
 		$result = MediaAdapter::adapt( [ $att ] );
 
 		$this->assertCount( 1, $result );
 		$this->assertSame( 'video', $result[0]['media_type'] );
-		$this->assertNotSame( '', $result[0]['poster_data'], 'A real, decodable video should yield an extracted poster frame.' );
+		$this->assertNotSame( '', $result[0]['poster_data'], 'A successful extraction should yield a non-empty poster frame.' );
 		$this->assertSame( 'image/jpeg', $result[0]['poster_mime'] );
 		// JPEG files start with the SOI marker 0xFFD8.
 		$this->assertSame( "\xFF\xD8", substr( $result[0]['poster_data'], 0, 2 ) );
+	}
+
+	/**
+	 * Previously untested: ffmpeg is present (the "which ffmpeg" probe
+	 * succeeds) but the extraction command itself fails or produces no
+	 * output file — a real crash, an unsupported codec, a corrupt upload,
+	 * etc. Before the exec() override existed there was no way to force a
+	 * real ffmpeg binary to fail on demand, so this branch shipped with no
+	 * coverage at all. adapt_video() must still behave like the "ffmpeg not
+	 * installed" case: publish the video, just without a poster frame.
+	 */
+	public function test_video_with_ffmpeg_present_but_extraction_fails_still_publishes_video(): void {
+		self::$ffmpeg_path_override = '/usr/bin/ffmpeg';
+		self::$exec_override        = 'failure';
+
+		$att    = [ 'data' => 'video_binary', 'mime' => 'video/mp4', 'filename' => 'clip.mp4' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'video', $result[0]['media_type'] );
+		$this->assertSame( 'video_binary', $result[0]['data'], 'The original video must still be published even when frame extraction fails.' );
+		$this->assertSame( '', $result[0]['poster_data'] );
+		$this->assertSame( '', $result[0]['poster_mime'] );
 	}
 
 	// -------------------------------------------------------------------------
@@ -251,5 +352,105 @@ class MediaAdapterTest extends TestCase {
 		$this->assertCount( 2, $result );
 		$this->assertSame( 'image', $result[0]['media_type'] );
 		$this->assertSame( 'audio', $result[1]['media_type'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// maybe_downscale_for_vision() — per-request vision-input downscale
+	//
+	// IMPORTANT: adapt()'s own passthrough is asserted (above,
+	// test_jpeg_passthrough_sets_media_type_image() et al.) to leave 'data'
+	// completely untouched — maybe_downscale_for_vision() is deliberately NOT
+	// wired into adapt()/adapt_pdf()/adapt_video(). It exists only to be
+	// called from inside a ProviderInterface::describe() implementation
+	// (Anthropic, OpenAI) on a local, throwaway copy for that one request —
+	// see the method's own doc for why mutating the attachment data here
+	// would silently shrink published artwork.
+	// -------------------------------------------------------------------------
+
+	public function test_downscale_disabled_via_zero_setting_returns_original(): void {
+		SubmissionTranslatorTest::$options = [ 'agnosis_ai_vision_max_width_px' => 0 ];
+
+		$this->assertSame( 'unchanged-bytes', MediaAdapter::maybe_downscale_for_vision( 'unchanged-bytes', 'image/jpeg' ) );
+	}
+
+	public function test_downscale_returns_original_for_empty_data(): void {
+		$this->assertSame( '', MediaAdapter::maybe_downscale_for_vision( '', 'image/jpeg' ) );
+	}
+
+	public function test_downscale_returns_original_when_imagick_unavailable(): void {
+		self::$imagick_available_override = false;
+
+		// Default width (800) applies (no option override) — the Imagick
+		// guard must still short-circuit before ever trying to read this as
+		// an image, so garbage input is fine here.
+		$this->assertSame( 'not-a-real-image', MediaAdapter::maybe_downscale_for_vision( 'not-a-real-image', 'image/jpeg' ) );
+	}
+
+	public function test_downscale_returns_original_for_corrupt_image_data(): void {
+		self::$imagick_available_override = true;
+
+		$this->assertSame( 'not-a-real-image', MediaAdapter::maybe_downscale_for_vision( 'not-a-real-image', 'image/jpeg' ) );
+	}
+
+	/** Build a real, decodable JPEG blob of the given size using Imagick itself. */
+	private function make_test_jpeg( int $width, int $height ): string {
+		$img = new \Imagick();
+		$img->newImage( $width, $height, new \ImagickPixel( 'red' ) );
+		$img->setImageFormat( 'jpeg' );
+		$data = $img->getImageBlob();
+		$img->destroy();
+		return $data;
+	}
+
+	public function test_downscale_shrinks_an_image_wider_than_the_default_max(): void {
+		self::$imagick_available_override = true;
+
+		$original = $this->make_test_jpeg( 2000, 1000 );
+		$resized  = MediaAdapter::maybe_downscale_for_vision( $original, 'image/jpeg' );
+
+		$this->assertNotSame( $original, $resized );
+
+		$img = new \Imagick();
+		$img->readImageBlob( $resized );
+		$this->assertSame( 800, $img->getImageWidth(), 'Default max width is 800px.' );
+		$this->assertSame( 400, $img->getImageHeight(), 'Height must scale proportionally (2000:1000 = 800:400).' );
+		$img->destroy();
+	}
+
+	public function test_downscale_honours_a_custom_configured_width(): void {
+		self::$imagick_available_override = true;
+
+		SubmissionTranslatorTest::$options = [ 'agnosis_ai_vision_max_width_px' => 400 ];
+
+		$original = $this->make_test_jpeg( 2000, 1000 );
+		$resized  = MediaAdapter::maybe_downscale_for_vision( $original, 'image/jpeg' );
+
+		$img = new \Imagick();
+		$img->readImageBlob( $resized );
+		$this->assertSame( 400, $img->getImageWidth() );
+		$this->assertSame( 200, $img->getImageHeight() );
+		$img->destroy();
+	}
+
+	public function test_downscale_never_upscales_an_already_small_image(): void {
+		self::$imagick_available_override = true;
+
+		$original = $this->make_test_jpeg( 400, 300 ); // narrower than the 800px default
+		$result   = MediaAdapter::maybe_downscale_for_vision( $original, 'image/jpeg' );
+
+		$this->assertSame( $original, $result, 'An image already narrower than the max width must be returned untouched.' );
+	}
+
+	public function test_downscale_disabled_setting_skips_even_a_large_image(): void {
+		// No $imagick_available_override needed here: $max_width <= 0 makes
+		// maybe_downscale_for_vision() short-circuit before it ever reaches the
+		// extension_loaded('imagick') check, so this test runs identically on
+		// any machine regardless of Imagick availability.
+		SubmissionTranslatorTest::$options = [ 'agnosis_ai_vision_max_width_px' => 0 ];
+
+		$original = $this->make_test_jpeg( 2000, 1000 );
+		$result   = MediaAdapter::maybe_downscale_for_vision( $original, 'image/jpeg' );
+
+		$this->assertSame( $original, $result );
 	}
 }

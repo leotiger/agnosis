@@ -27,7 +27,8 @@
 	margin-bottom:  0.4rem;
 }
 
-.agnosis-newsletter-signup__field input[type="email"] {
+.agnosis-newsletter-signup__field input[type="email"],
+.agnosis-newsletter-signup__field select {
 	width:   100%;
 	padding: 0.7rem 0.9rem;
 	border:  1px solid currentColor;
@@ -80,6 +81,16 @@
 .agnosis-newsletter-signup__notice--error {
 	border-color: #c00;
 	color:        #c00;
+}
+
+.agnosis-newsletter-signup__archive-link {
+	margin-top: 0.9rem;
+	font-size:  0.85rem;
+}
+
+.agnosis-newsletter-signup__archive-link a {
+	color:           inherit;
+	text-decoration: underline;
 }
 
 /* Editor placeholder */

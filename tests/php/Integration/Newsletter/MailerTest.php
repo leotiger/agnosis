@@ -61,6 +61,62 @@ class MailerTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// build_email() — "view in browser" (Newsletter\Archive, added 2026-07-06)
+	// =========================================================================
+
+	public function test_build_email_omits_view_online_banner_by_default(): void {
+		$html = Mailer::build_email( 'public', '', '<p>x</p>', 'https://example.com/unsub' );
+
+		$this->assertStringNotContainsString( 'View it online', $html );
+	}
+
+	public function test_build_email_shows_view_online_link_when_provided(): void {
+		$html = Mailer::build_email( 'public', '', '<p>x</p>', 'https://example.com/unsub', 'https://example.com/newsletter/7/' );
+
+		$this->assertStringContainsString( 'View it online', $html );
+		$this->assertStringContainsString( 'https://example.com/newsletter/7/', $html );
+	}
+
+	public function test_build_email_shows_subscribe_link_instead_of_unsubscribe_when_no_recipient(): void {
+		// Newsletter\Archive renders this same body for an anonymous visitor —
+		// there is no recipient/token to unsubscribe, so the footer must not
+		// show a broken/empty Unsubscribe link.
+		$html = Mailer::build_email( 'public', '', '<p>x</p>', null );
+
+		$this->assertStringNotContainsString( 'Unsubscribe<', $html );
+		$this->assertStringContainsString( 'Subscribe to get these by email', $html );
+	}
+
+	public function test_build_email_shows_real_unsubscribe_link_when_recipient_present(): void {
+		$html = Mailer::build_email( 'public', '', '<p>x</p>', 'https://example.com/unsub?token=abc' );
+
+		$this->assertStringContainsString( 'Unsubscribe', $html );
+		$this->assertStringNotContainsString( 'Subscribe to get these by email', $html );
+	}
+
+	// =========================================================================
+	// build_body() — fragment reused by Newsletter\Archive (no doctype/head/body)
+	// =========================================================================
+
+	public function test_build_body_omits_doctype_and_html_wrapper(): void {
+		$fragment = Mailer::build_body( 'public', '', '<p>UNIQUE_FRAGMENT_MARKER</p>', null );
+
+		$this->assertStringNotContainsString( '<!DOCTYPE', $fragment );
+		$this->assertStringNotContainsString( '<html', $fragment );
+		$this->assertStringNotContainsString( '<body', $fragment );
+		$this->assertStringContainsString( 'UNIQUE_FRAGMENT_MARKER', $fragment );
+	}
+
+	public function test_build_email_wraps_build_body_output(): void {
+		// build_email() must still produce a full document containing the
+		// same branded card build_body() returns on its own.
+		$full = Mailer::build_email( 'public', '', '<p>UNIQUE_MARKER_2</p>', 'https://example.com/unsub' );
+
+		$this->assertStringContainsString( '<!DOCTYPE html>', $full );
+		$this->assertStringContainsString( 'UNIQUE_MARKER_2', $full );
+	}
+
+	// =========================================================================
 	// build_subject()
 	// =========================================================================
 

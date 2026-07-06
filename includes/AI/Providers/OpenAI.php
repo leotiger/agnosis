@@ -11,6 +11,7 @@ namespace Agnosis\AI\Providers;
 
 use Agnosis\AI\DescriptionResult;
 use Agnosis\AI\EnhancementResult;
+use Agnosis\AI\MediaAdapter;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
 
@@ -39,7 +40,13 @@ class OpenAI implements ProviderInterface {
 			return DescriptionResult::failure( 'OpenAI API key not configured.' );
 		}
 
-		$image_b64  = base64_encode( $image_data );
+		// Downscaled copy for THIS request only — never reassign $image_data
+		// itself, since callers (Pipeline::process_single()) reuse that same
+		// variable for image enhancement and for the actual published file.
+		// See MediaAdapter::maybe_downscale_for_vision()'s doc.
+		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
+
+		$image_b64  = base64_encode( $vision_image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
 		$system    = $this->config->resolved_system_prompt();

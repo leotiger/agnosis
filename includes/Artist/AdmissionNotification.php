@@ -281,7 +281,7 @@ class AdmissionNotification {
 	private function build_acknowledgment_body( object $application, int $window ): string {
 		return implode( "\n", array_merge( [
 			sprintf(
-				/* translators: %s: applicant display name */
+				/* translators: %s: recipient's display name */
 				__( 'Hi %s,', 'agnosis' ),
 				$application->display_name
 			),
@@ -322,7 +322,7 @@ class AdmissionNotification {
 		$no_url  = self::vote_url( $voter_id, (int) $application->id, 'no' );
 
 		$lines = [];
-		/* translators: %s: voter display name */
+		/* translators: %s: recipient's display name */
 		$lines[] = sprintf( __( 'Hi %s,', 'agnosis' ), $voter_name );
 		$lines[] = '';
 		$lines[] = sprintf(
@@ -357,6 +357,15 @@ class AdmissionNotification {
 		$lines[] = '';
 		$lines[] = __( 'You can change your vote at any time within the voting window.', 'agnosis' );
 		$lines   = array_merge( $lines, $this->footer_lines() );
+
+		// $voter_id may be the fallback admin account (see on_application_received()
+		// above) rather than an artist — edit_reminder_plain_text() simply returns
+		// '' for a non-artist with nothing published, so no extra guard is needed here.
+		$edit_reminder = EmailFooter::edit_reminder_plain_text( $voter_id );
+		if ( '' !== $edit_reminder ) {
+			$lines[] = '';
+			$lines[] = $edit_reminder;
+		}
 
 		wp_mail(
 			$voter_email,
@@ -403,7 +412,7 @@ class AdmissionNotification {
 	 */
 	private function build_expiry_applicant_body( object $application ): string {
 		return implode( "\n", array_merge( [
-			/* translators: %s: applicant display name */
+			/* translators: %s: recipient's display name */
 			sprintf( __( 'Hi %s,', 'agnosis' ), $application->display_name ),
 			'',
 			sprintf(
@@ -439,7 +448,7 @@ class AdmissionNotification {
 		$my_subs_url = home_url( '/my-submissions/' );
 
 		$lines = [
-			/* translators: %s: artist display name */
+			/* translators: %s: recipient's display name */
 			sprintf( __( 'Hi %s,', 'agnosis' ), $user->display_name ),
 			'',
 			sprintf(

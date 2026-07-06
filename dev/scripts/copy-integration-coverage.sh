@@ -31,7 +31,10 @@ if [[ "$ALL_LOCAL" == true ]]; then
 fi
 
 # ------------------------------------------------------------------
-# Scenario B: try docker cp from the tests-cli container.
+# Scenario B: try docker cp from the tests-wordpress container (this is
+# where coverage:run now executes the integration suite — see composer.json;
+# tests-cli's Imagick build registers zero coders at all and can't run this
+# suite, see dev/composer.json's test:integration comment history).
 # ------------------------------------------------------------------
 DOCKER="${DOCKER_BIN:-}"
 if [[ -z "$DOCKER" ]]; then
@@ -50,7 +53,7 @@ fi
 
 CONTAINER=""
 if [[ -n "$DOCKER" ]]; then
-    CONTAINER=$("$DOCKER" ps --filter "name=tests-cli" --format "{{.Names}}" 2>/dev/null | head -1)
+    CONTAINER=$("$DOCKER" ps --filter "name=tests-wordpress" --format "{{.Names}}" 2>/dev/null | head -1)
 fi
 
 CONTAINER_COVERAGE="/var/www/html/wp-content/plugins/agnosis/dev/coverage/integration"

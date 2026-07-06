@@ -97,6 +97,8 @@ composer lint
 composer analyse
 ```
 
+The integration suite (and the integration half of `composer coverage`) runs inside wp-env's **`tests-wordpress`** container, not `tests-cli`. `tests-cli`'s Imagick build registers zero coders at all (`Imagick::queryFormats()` returns an empty array — a documented Alpine issue), so any test touching image handling would fail there regardless of format; `tests-wordpress` (Debian, `wordpress:php8.3-apache`) has a fully working Imagick. Plugin activation still runs on `tests-cli`, since it's the only container with the `wp` CLI binary — both containers share the same WP database, so this split is safe.
+
 ### Coverage
 
 ```bash
@@ -104,7 +106,19 @@ composer coverage
 # → coverage/combined/summary.txt
 ```
 
-Coverage is collected with pcov and merged from unit + integration Clover XMLs via `phpunit/phpcov`.
+Coverage is collected with pcov and merged from unit + integration Clover XMLs via `phpunit/phpcov`. `composer coverage` needs pcov in **two** places:
+
+- **Inside `tests-wordpress`** — installed automatically by `composer coverage:setup` (runs as the first step of `coverage:run`). Lost on container rebuild; the script re-installs it idempotently every run.
+- **On your host PHP** (the unit-test half runs directly via your local `php`, no container) — install manually, matched to your PHP version and CPU architecture:
+  ```bash
+  # Apple Silicon (arm64) — /opt/homebrew
+  brew tap shivammathur/php
+  brew install shivammathur/extensions/pcov@8.3   # match `php -v`
+
+  # Intel — /usr/local
+  arch -x86_64 brew install shivammathur/extensions/pcov@8.3
+  ```
+  Verify with `php -m | grep -i pcov`. If a machine has both an Intel and an Apple Silicon Homebrew install, check `which php` / `file $(which php)` first to be sure you're installing pcov for the one actually on your `PATH`. `merge-coverage.php` only checks that the unit/integration Clover files *exist*, not that they're fresh — if host pcov is missing, PHPUnit silently skips writing `coverage/unit/clover.xml` and the merge step will quietly reuse a stale one from a previous run instead of erroring.
 
 ## Architecture
 

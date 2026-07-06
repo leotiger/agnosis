@@ -32,6 +32,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 	private $http_filter = null;
 
 	protected function tearDown(): void {
+		delete_option( 'agnosis_ai_vision_max_width_px' );
 		if ( $this->http_filter ) {
 			remove_filter( 'pre_http_request', $this->http_filter, 10 );
 			$this->http_filter = null;
@@ -76,6 +77,54 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 			return new \WP_Error( 'http_request_failed', $message );
 		};
 		add_filter( 'pre_http_request', $this->http_filter, 10, 3 );
+	}
+
+	/**
+	 * Same as mock_http(), but also captures the outgoing request $args into
+	 * $captured_args by reference — for asserting on what was actually sent
+	 * (e.g. the base64 image payload), not just the parsed response.
+	 *
+	 * @param array<string, mixed>|null $captured_args
+	 */
+	private function mock_http_capturing( int $code, string $body, ?array &$captured_args ): void {
+		$this->http_filter = function ( $preempt, $args ) use ( $code, $body, &$captured_args ) {
+			$captured_args = $args;
+			return [
+				'response' => [ 'code' => $code, 'message' => 'OK' ],
+				'body'     => $body,
+				'headers'  => [],
+				'cookies'  => [],
+			];
+		};
+		add_filter( 'pre_http_request', $this->http_filter, 10, 3 );
+	}
+
+	/**
+	 * Build a real, decodable JPEG blob of the given size using Imagick itself.
+	 *
+	 * 2026-07-06: this suite now runs PHPUnit inside wp-env's `tests-wordpress`
+	 * container (Debian, `wordpress:php8.3-apache`) rather than the Alpine
+	 * `tests-cli` sidecar — see dev/composer.json's `test:integration` script.
+	 * `tests-cli`'s Imagick build registers zero coders at all
+	 * (`Imagick::queryFormats()` returns an empty array — a documented Alpine
+	 * issue, github.com/Imagick/imagick#328), so no format, JPEG or otherwise,
+	 * ever worked there. `tests-wordpress` has a fully functional Imagick
+	 * (261 registered formats, confirmed 2026-07-06), so plain JPEG is fine
+	 * again.
+	 */
+	private function make_test_jpeg( int $width, int $height ): string {
+		$img = new \Imagick();
+		$img->newImage( $width, $height, new \ImagickPixel( 'blue' ) );
+		$img->setImageFormat( 'jpeg' );
+		$data = $img->getImageBlob();
+		$img->destroy();
+		return $data;
+	}
+
+	private function extract_sent_image_data( array $args ): string {
+		$payload = json_decode( (string) $args['body'], true );
+		$b64     = $payload['messages'][0]['content'][0]['source']['data'] ?? '';
+		return (string) base64_decode( (string) $b64, true );
 	}
 
 	/** Build an Anthropic messages response where content[0].text is the given JSON. */
@@ -238,5 +287,52 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 
 	public function test_supports_enhancement_returns_false(): void {
 		$this->assertFalse( $this->make_provider()->supports_enhancement() );
+	}
+
+	// =========================================================================
+	// Vision-input downscaling (agnosis_ai_vision_max_width_px, added 2026-07-06)
+	//
+	// The critical invariant these guard: describe()'s downscale must be
+	// entirely local to this one request — it must never be observable
+	// anywhere outside the outgoing HTTP body, since Pipeline::process_single()
+	// reuses the exact same $image_data it passes to describe() for image
+	// enhancement and for the actual published file (Pipeline's
+	// 'original_data'). describe() only ever returns a DescriptionResult
+	// (text/metadata, no image bytes), so that invariant holds by
+	// construction — these tests cover the resize behavior itself.
+	// =========================================================================
+
+	public function test_describe_sends_original_image_unchanged_when_downscale_disabled(): void {
+		update_option( 'agnosis_ai_vision_max_width_px', 0 );
+
+		$original = 'raw-unmodified-bytes';
+		$captured = null;
+		$this->mock_http_capturing( 200, $this->make_anthropic_body( [ 'title' => 'T', 'excerpt' => 'E', 'body' => 'B', 'tags' => [], 'alt_text' => 'A', 'medium' => '' ] ), $captured );
+
+		$this->make_provider()->describe( $original, 'image/jpeg', '' );
+
+		$this->assertSame( $original, $this->extract_sent_image_data( $captured ) );
+	}
+
+	public function test_describe_downscales_a_wide_image_before_sending(): void {
+		if ( ! extension_loaded( 'imagick' ) ) {
+			$this->markTestSkipped( 'Requires Imagick.' );
+		}
+
+		update_option( 'agnosis_ai_vision_max_width_px', 400 );
+
+		$original = $this->make_test_jpeg( 2000, 1000 );
+		$captured = null;
+		$this->mock_http_capturing( 200, $this->make_anthropic_body( [ 'title' => 'T', 'excerpt' => 'E', 'body' => 'B', 'tags' => [], 'alt_text' => 'A', 'medium' => '' ] ), $captured );
+
+		$this->make_provider()->describe( $original, 'image/jpeg', '' );
+
+		$sent = $this->extract_sent_image_data( $captured );
+		$this->assertNotSame( $original, $sent, 'The image actually sent must be the downscaled copy, not the original.' );
+
+		$img = new \Imagick();
+		$img->readImageBlob( $sent );
+		$this->assertSame( 400, $img->getImageWidth() );
+		$img->destroy();
 	}
 }

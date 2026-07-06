@@ -117,7 +117,7 @@ class Scheduler {
 		);
 
 		$body    = Mailer::build_email( $type, $combined_intro, $digest_html, $unsubscribe_url );
-		/* translators: %s: real newsletter subject line */
+		/* translators: %s: the actual (non-test) subject line */
 		$subject = sprintf( __( '[TEST] %s', 'agnosis' ), Mailer::build_subject( $type ) );
 
 		$sent = wp_mail( $to_email, $subject, $body, [

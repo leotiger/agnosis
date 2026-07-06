@@ -157,6 +157,59 @@ class SubscriptionTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// Language selector (added alongside JoinPage's) — whitelist + locale mapping
+	// =========================================================================
+
+	/**
+	 * The signup form's language <select> (SubmissionTranslator::language_names())
+	 * only ever offers 'en' in this test bootstrap (Lingua Forge isn't loaded —
+	 * see linguaforge-function-stubs.php's doc), so that's the one real,
+	 * whitelisted code available to exercise the happy path here.
+	 */
+	public function test_subscribe_maps_whitelisted_language_to_wp_locale(): void {
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->subscribe( 'langpick@example.com', 'en' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$row = Subscriber::find_by_token( $this->find_token_for( 'langpick@example.com' ) );
+		$this->assertSame( 'en_US', $row['locale'], "Admission::iso_to_wp_locale('en') must map to 'en_US'." );
+	}
+
+	/**
+	 * Defensive re-check mirroring Admission::apply()'s own whitelist guard:
+	 * a language code that survived sanitize_key() but isn't one of the
+	 * languages the form's own <select> actually offered must never reach
+	 * the subscriber's locale column — it's silently dropped (empty locale),
+	 * not rejected with an error, consistent with this endpoint's
+	 * enumeration-safe/always-201 behavior for every other input.
+	 */
+	public function test_subscribe_ignores_a_non_whitelisted_language_code(): void {
+		$this->subscribe( 'badlang@example.com', 'zz' );
+
+		$row = Subscriber::find_by_token( $this->find_token_for( 'badlang@example.com' ) );
+		$this->assertEmpty( $row['locale'], 'A language code outside SubmissionTranslator::language_names() must not be stored.' );
+	}
+
+	public function test_subscribe_with_no_language_leaves_locale_empty(): void {
+		$this->subscribe( 'nolang@example.com' );
+
+		$row = Subscriber::find_by_token( $this->find_token_for( 'nolang@example.com' ) );
+		$this->assertEmpty( $row['locale'] );
+	}
+
+	private function find_token_for( string $email ): string {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (string) $wpdb->get_var(
+			$wpdb->prepare( "SELECT token FROM {$wpdb->prefix}agnosis_newsletter_subscribers WHERE email = %s", $email )
+		);
+	}
+
+	// =========================================================================
 	// Rate limiting
 	// =========================================================================
 

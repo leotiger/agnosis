@@ -16,8 +16,27 @@
 		var forms = document.querySelectorAll( '.agnosis-newsletter-signup form' );
 
 		forms.forEach( function ( form ) {
-			var wrap   = form.closest( '.agnosis-newsletter-signup' );
-			var notice = wrap.querySelector( '.agnosis-newsletter-signup__notice' );
+			var wrap     = form.closest( '.agnosis-newsletter-signup' );
+			var notice   = wrap.querySelector( '.agnosis-newsletter-signup__notice' );
+			var langSelect = form.querySelector( '[name="language"]' );
+
+			// Pre-select the page's current language as soon as the form
+			// exists — document.documentElement.lang reflects the language
+			// version the visitor is actually on (WordPress/Lingua Forge set
+			// it per language version, e.g. "es-ES" on /es/). Only the
+			// primary subtag is matched — the REST endpoint's
+			// iso_to_wp_locale() map keys on that (mirrors the same
+			// split-on-hyphen logic Admission::apply() uses for
+			// Accept-Language). Left as the select's own first option when
+			// there's no matching <option> (e.g. the page's language isn't
+			// one Lingua Forge is configured for) — the visitor can still
+			// change it before submitting either way.
+			if ( langSelect ) {
+				var htmlLang = ( document.documentElement.lang || '' ).split( '-' )[ 0 ].toLowerCase();
+				if ( htmlLang && langSelect.querySelector( 'option[value="' + htmlLang + '"]' ) ) {
+					langSelect.value = htmlLang;
+				}
+			}
 
 			form.addEventListener( 'submit', function ( e ) {
 				e.preventDefault();
@@ -33,18 +52,9 @@
 				submit.disabled = true;
 				submit.setAttribute( 'aria-busy', 'true' );
 
-				// document.documentElement.lang reflects the language of the page the
-				// visitor is actually on (WordPress/Lingua Forge set it per language
-				// version — e.g. "es-ES" on /es/), so a subscriber signing up from a
-				// translated page gets the right locale for free, with no extra form
-				// field. Only the primary subtag is sent — the REST endpoint's
-				// iso_to_wp_locale() map keys on that (mirrors the same
-				// split-on-hyphen logic Admission::apply() uses for Accept-Language).
-				var htmlLang = ( document.documentElement.lang || '' ).split( '-' )[ 0 ].toLowerCase();
-
 				var payload = {
 					email:            ( form.querySelector( '[name="email"]' ) || {} ).value || '',
-					language:         htmlLang,
+					language:         ( langSelect || {} ).value || '',
 					turnstile_token:  ( form.querySelector( '[name="cf-turnstile-response"]' ) || {} ).value || '',
 				};
 

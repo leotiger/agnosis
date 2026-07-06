@@ -231,4 +231,76 @@ class SubscriberTest extends \WP_UnitTestCase {
 		$this->assertSame( 1, $counts['confirmed'] );
 		$this->assertSame( 1, $counts['unsubscribed'] );
 	}
+
+	// =========================================================================
+	// counts_by_locale() — audit §8 "locale coverage metric"
+	// =========================================================================
+
+	public function test_counts_by_locale_groups_confirmed_subscribers_by_locale(): void {
+		$a = Subscriber::subscribe( 'a@example.com', 'es_ES' );
+		Subscriber::confirm( $a['token'] );
+		$b = Subscriber::subscribe( 'b@example.com', 'es_ES' );
+		Subscriber::confirm( $b['token'] );
+		$c = Subscriber::subscribe( 'c@example.com', 'fr_FR' );
+		Subscriber::confirm( $c['token'] );
+
+		$by_locale = Subscriber::counts_by_locale();
+
+		$this->assertSame( 2, $by_locale['es_ES'] );
+		$this->assertSame( 1, $by_locale['fr_FR'] );
+	}
+
+	public function test_counts_by_locale_orders_highest_count_first(): void {
+		$a = Subscriber::subscribe( 'a@example.com', 'fr_FR' );
+		Subscriber::confirm( $a['token'] );
+		$b = Subscriber::subscribe( 'b@example.com', 'es_ES' );
+		Subscriber::confirm( $b['token'] );
+		$c = Subscriber::subscribe( 'c@example.com', 'es_ES' );
+		Subscriber::confirm( $c['token'] );
+
+		$by_locale = Subscriber::counts_by_locale();
+		$locales   = array_keys( $by_locale );
+
+		$this->assertSame( 'es_ES', $locales[0], 'The locale with more confirmed subscribers must be listed first.' );
+	}
+
+	public function test_counts_by_locale_excludes_pending_and_unsubscribed(): void {
+		$pending = Subscriber::subscribe( 'pending@example.com', 'es_ES' ); // never confirmed
+		unset( $pending );
+		$unsubscribed = Subscriber::subscribe( 'unsub@example.com', 'es_ES' );
+		Subscriber::confirm( $unsubscribed['token'] );
+		Subscriber::unsubscribe( $unsubscribed['token'] );
+		$confirmed = Subscriber::subscribe( 'confirmed@example.com', 'es_ES' );
+		Subscriber::confirm( $confirmed['token'] );
+
+		$by_locale = Subscriber::counts_by_locale();
+
+		$this->assertSame( 1, $by_locale['es_ES'], 'Only the confirmed subscriber should be counted, not the pending or unsubscribed ones.' );
+	}
+
+	public function test_counts_by_locale_buckets_missing_locale_under_empty_string(): void {
+		// A subscriber with no recorded locale (e.g. signed up before the §3c
+		// frontend.js fix) must still be counted, not silently dropped.
+		$no_locale = Subscriber::subscribe( 'no-locale@example.com' );
+		Subscriber::confirm( $no_locale['token'] );
+
+		$by_locale = Subscriber::counts_by_locale();
+
+		$this->assertSame( 1, $by_locale[''] );
+	}
+
+	public function test_counts_by_locale_sums_to_total_confirmed_count(): void {
+		$a = Subscriber::subscribe( 'a@example.com', 'es_ES' );
+		Subscriber::confirm( $a['token'] );
+		$b = Subscriber::subscribe( 'b@example.com', 'fr_FR' );
+		Subscriber::confirm( $b['token'] );
+		$c = Subscriber::subscribe( 'c@example.com' ); // no locale
+		Subscriber::confirm( $c['token'] );
+		$d = Subscriber::subscribe( 'd@example.com', 'es_ES' ); // left pending
+		unset( $d );
+
+		$by_locale = Subscriber::counts_by_locale();
+
+		$this->assertSame( Subscriber::counts()['confirmed'], array_sum( $by_locale ) );
+	}
 }

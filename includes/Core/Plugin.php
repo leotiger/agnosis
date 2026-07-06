@@ -20,6 +20,7 @@ use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\CommunityCap;
 use Agnosis\Artist\CommunityCapVote;
 use Agnosis\Artist\CommunityCapNotification;
+use Agnosis\Artist\ContentEditor;
 use Agnosis\Artist\Departure;
 use Agnosis\Artist\DepartureNotification;
 use Agnosis\Artist\FrontendAccess;
@@ -33,6 +34,7 @@ use Agnosis\Email\Webhook;
 use Agnosis\Network\ActivityPub;
 use Agnosis\Network\Node;
 use Agnosis\Network\SubdomainNavigation;
+use Agnosis\Newsletter\Archive;
 use Agnosis\Newsletter\PopoverBlock;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
@@ -115,6 +117,8 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_initiate_removal_vote', $settings, 'handle_initiate_removal_vote' );
 			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_now',   $settings, 'handle_send_newsletter_now' );
 			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_test', $settings, 'handle_send_newsletter_test' );
+			$this->loader->add_action( 'admin_post_agnosis_send_invitation',      $settings, 'handle_send_invitation' );
+			$this->loader->add_action( 'admin_post_agnosis_send_invitation_test', $settings, 'handle_send_invitation_test' );
 
 			// Queue management handlers.
 			$queue = new QueueController();
@@ -137,6 +141,14 @@ class Plugin {
 		$this->loader->add_filter( 'show_admin_bar', $frontend_access, 'hide_admin_bar', 10, 1 );
 		$this->loader->add_filter( 'login_redirect', $frontend_access, 'redirect_after_login', 10, 3 );
 
+		// Basic wp-login.php branding — the "Forgot your password?" / reset-password
+		// screens are the one part of the login flow SubmissionsPage's own themed
+		// inline form can't cover, since they necessarily leave the front-end page.
+		$login_branding = new LoginBranding();
+		$this->loader->add_filter( 'login_headerurl',        $login_branding, 'header_url', 10, 1 );
+		$this->loader->add_filter( 'login_headertext',       $login_branding, 'header_text', 10, 1 );
+		$this->loader->add_action( 'login_enqueue_scripts',  $login_branding, 'enqueue_styles' );
+
 		// Custom post types & taxonomies.
 		$profile = new Profile();
 		$this->loader->add_action( 'init', $profile, 'register_post_type' );
@@ -144,6 +156,7 @@ class Plugin {
 		$this->loader->add_action( 'init', $profile, 'register_event_post_type' );
 		$this->loader->add_action( 'init', $profile, 'register_taxonomy' );
 		$this->loader->add_action( 'init', $profile, 'register_blocks' );
+		$this->loader->add_action( 'pre_get_posts', $profile, 'order_events_archive' );
 
 		// Artist admission (vouching) + public join form block.
 		$admission = new Admission();
@@ -226,6 +239,15 @@ class Plugin {
 		$this->loader->add_action( 'template_redirect', $review_confirm, 'handle_confirm', 1 );
 		$this->loader->add_action( 'template_redirect', $review_confirm, 'handle_result',  1 );
 
+		// Front-end correction for artists (audit §7, Phase 1 — 0.8.0).
+		$content_editor = new ContentEditor();
+		$this->loader->add_action( 'rest_api_init',    $content_editor, 'register_routes' );
+		$this->loader->add_action( 'wp_enqueue_scripts', $content_editor, 'maybe_enqueue_assets' );
+		$this->loader->add_filter( 'the_content', $content_editor, 'decorate_content', 20, 1 );
+		$this->loader->add_filter( 'the_excerpt', $content_editor, 'decorate_excerpt', 20, 1 );
+		$this->loader->add_filter( 'post_thumbnail_html', $content_editor, 'decorate_thumbnail', 20, 3 );
+		$this->loader->add_filter( 'the_title', $content_editor, 'decorate_title', 20, 2 );
+
 		$submissions = new SubmissionsPage();
 		$this->loader->add_action( 'init',                 $submissions, 'register_shortcode' );
 		$this->loader->add_action( 'init',                 $submissions, 'register_block' );
@@ -282,6 +304,11 @@ class Plugin {
 
 		$popover_block = new PopoverBlock();
 		$this->loader->add_action( 'init', $popover_block, 'register_block' );
+
+		// Public newsletter archive — "view in browser" per-issue permalinks
+		// plus a paginated /newsletter/ index; see Newsletter\Archive.
+		$newsletter_archive = new Archive();
+		$this->loader->add_action( 'init', $newsletter_archive, 'register_routes' );
 
 		// Lingua Forge integration — boots itself only when LF is present;
 		// registers the compat admin notice unconditionally.

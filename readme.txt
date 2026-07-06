@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.7.3
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,22 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.8.0 =
+* Added: Front-end correction for artists (audit §7, Phase 1). Admitted artists can now correct a typo, update an event's location/date, or tighten a bio directly on the published page — no new intake email, no dashboard, no forms. A small pencil affordance appears next to editable text only when you're viewing your own published artwork, biography, or event page while logged in; click it, edit in place, save.
+* Added: Correction is restricted to the language version matching your own account language — never a free language switcher. If your account language differs from the site's primary language, saving your edit automatically translates it into the primary language and re-queues every other configured language in the background, without touching the exact words you wrote.
+* Added: `'revisions'` support on artworks, biographies, and events — every front-end correction is now a WordPress revision, giving admins free undo and an audit trail.
+* Added: Front-end photo substitution (audit §7, Phase 2). Replace the featured image on your biography or event page, or a specific gallery image on an artwork, with a direct upload — no AI enhancement, no quality gate, your photo as you uploaded it. The replaced photo is kept, not deleted, so it can be restored later.
+* Added: Artwork title editing (audit §7, Phase 3). Correct your artwork's title directly on the page — your own words stay exactly as you wrote them on every language version, and the translated subtitle underneath updates automatically to match.
+* Added: "Restore earlier photo" one-click (audit §7, Phase 3) — undo a photo replacement without re-uploading, right from the same pencil affordance.
+* Added: Newsletter archive (audit §8). Every sent public newsletter issue now has its own permanent page at /newsletter/{id}/, and a /newsletter/ page lists past issues. Every sent email includes a "View it online" link to its own archive page, and the newsletter signup form shows a "See past issues" link once at least one issue has gone out.
+* Added: The Newsletter dashboard now shows a subscribers-by-language breakdown for the public newsletter (audit §8) — a quick read on which languages your subscribers actually use.
+* Added: The newsletter signup form now has a language selector, like the join form already does. It defaults to the language of the page you're signing up from, but you can change it before subscribing.
+* Changed: Corrections are rate-limited to 30 saves per artist per hour.
+* Added: Vision-input images are now downscaled before being sent to the AI for description, saving on API cost with no effect on description quality — configurable at AI → "Vision image max width (px)" (default 800px, set to 0 to disable). The photo used for enhancement and the one actually published are never affected, only the copy sent for description.
+* Added: A few artist-facing emails (submission review, removal confirmation, photo-quality notice, admission votes, reinstatement, community votes) now include a short reminder that you can fix typos, text, or photos directly on your published page — but only once you actually have something published to fix.
+* Added: A "Forgot your password?" link on the artist login form, and basic site branding (your logo, matching colours) on the WordPress password-reset screen — previously the only way back in after a forgotten password was an unbranded, unlinked WordPress page.
+* Added: "Invite an Artist" (Settings → Newsletter). Send a one-off invitation email to a prospective artist — pick their language, write (or use the default) intro text about the community, and send. Includes its own test-send button. Separate from the newsletter system: nothing is scheduled or tracked, it just sends.
 
 = 0.7.3 =
 * Fixed: On an artist's subdomain, the artist-name link (breadcrumb) and the "back to Agnosis" site logo/title link always pointed at the source-language home, even when the visitor was on a translated page (e.g. /fr/). Both now stay on the visitor's current language.

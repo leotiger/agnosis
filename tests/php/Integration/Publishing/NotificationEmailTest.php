@@ -125,6 +125,23 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		return [ 'id' => $post_id, 'token' => $token ];
 	}
 
+	/**
+	 * Create a minimal event post with a removal token stored in meta.
+	 * 2026-07-06: remove@ (and its confirmation email) is no longer
+	 * artwork-only — this exercises the same email path for an event.
+	 */
+	private function create_event_with_removal_token( int $artist_id ): array {
+		$post_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $artist_id,
+			'post_title'  => 'Event To Remove',
+		] );
+		$token = bin2hex( random_bytes( 16 ) );
+		update_post_meta( $post_id, '_agnosis_removal_token', $token );
+		return [ 'id' => $post_id, 'token' => $token ];
+	}
+
 	// =========================================================================
 	// on_submission_rejected()
 	// =========================================================================
@@ -450,6 +467,35 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$this->assertSame( 'removal@example.com', $captured['to'] );
 	}
 
+	public function test_on_removal_requested_email_says_artwork_for_artwork_post(): void {
+		$artist  = $this->create_artist( 'removal@example.com' );
+		$data    = $this->create_post_with_removal_token( $artist->ID );
+		$captured = null;
+		$filter  = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_requested( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'artwork', $captured['message'] );
+		$this->assertStringNotContainsString( 'remove this event', $captured['message'] );
+	}
+
+	public function test_on_removal_requested_email_says_event_for_event_post(): void {
+		$artist  = $this->create_artist( 'removal-event@example.com' );
+		$data    = $this->create_event_with_removal_token( $artist->ID );
+		$captured = null;
+		$filter  = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_requested( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertStringContainsString( 'remove this event', $captured['message'] );
+		$this->assertStringNotContainsString( 'remove this artwork', $captured['message'] );
+	}
+
 	public function test_on_removal_requested_skips_when_no_removal_token(): void {
 		$artist  = $this->create_artist();
 		$post_id = self::factory()->post->create( [
@@ -471,5 +517,65 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
 		$this->assertFalse( $called );
+	}
+
+	// =========================================================================
+	// EmailFooter::edit_reminder_html() gating (2026-07-06)
+	// =========================================================================
+
+	/**
+	 * The post being removed is itself published, so has_published_work()
+	 * is already true — the reminder should be present.
+	 */
+	public function test_on_removal_requested_includes_edit_reminder(): void {
+		$artist  = $this->create_artist( 'removal-reminder@example.com' );
+		$data    = $this->create_post_with_removal_token( $artist->ID );
+		$captured = null;
+		$filter  = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_requested( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'pencil icon', $captured['message'] );
+	}
+
+	/**
+	 * on_post_drafted() fires on a fresh, still-unpublished draft — an artist
+	 * with no other published work yet should not see the reminder.
+	 */
+	public function test_on_post_drafted_omits_edit_reminder_for_first_time_artist(): void {
+		$artist  = $this->create_artist( 'first-timer@example.com' );
+		$data    = $this->create_post_with_review_token( $artist->ID );
+		$captured = null;
+		$filter  = $this->capture_mail( $captured );
+
+		$this->notification->on_post_drafted( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringNotContainsString( 'pencil icon', $captured['message'] );
+	}
+
+	/**
+	 * Same review email, but this artist already has a separate published
+	 * artwork from an earlier submission — the reminder should now appear.
+	 */
+	public function test_on_post_drafted_includes_edit_reminder_for_returning_artist(): void {
+		$artist = $this->create_artist( 'returning@example.com' );
+		self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $artist->ID,
+		] );
+		$data     = $this->create_post_with_review_token( $artist->ID );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_post_drafted( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'pencil icon', $captured['message'] );
 	}
 }

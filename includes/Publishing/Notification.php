@@ -30,7 +30,8 @@ class Notification {
 	 * Sends the artist a signed confirmation email. The post is not touched
 	 * until the artist clicks the confirm link — removal is their decision alone.
 	 *
-	 * @param int $post_id   The artwork post ID.
+	 * @param int $post_id   The artwork or event post ID (2026-07-06: remove@
+	 *                       is no longer artwork-only).
 	 * @param int $artist_id WordPress user ID of the requesting artist.
 	 */
 	public function on_removal_requested( int $post_id, int $artist_id ): void {
@@ -56,7 +57,7 @@ class Notification {
 		}
 
 		$subject = sprintf(
-			/* translators: %s: artwork title */
+			/* translators: %s: artwork or event title */
 			__( '[Agnosis] Confirm removal of: %s', 'agnosis' ),
 			$post->post_title
 		);
@@ -66,7 +67,7 @@ class Notification {
 			'From: ' . $this->sender_header(),
 		];
 
-		wp_mail( $artist->user_email, $subject, $this->build_removal_email( $post, $artist->display_name, $token ), $headers );
+		wp_mail( $artist->user_email, $subject, $this->build_removal_email( $post, $artist->display_name, $token, $artist_id ), $headers );
 
 		if ( '' !== $artist_locale ) {
 			restore_current_locale();
@@ -146,7 +147,7 @@ class Notification {
 			'From: ' . $this->sender_header(),
 		];
 
-		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title );
+		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title, $artist_id );
 
 		wp_mail( $to, $subject, $body, $headers );
 
@@ -162,12 +163,13 @@ class Notification {
 	/**
 	 * Build the removal confirmation email body.
 	 *
-	 * @param \WP_Post $post         The artwork post requested for removal.
+	 * @param \WP_Post $post         The artwork or event post requested for removal.
 	 * @param string   $artist_name  Artist's display name.
 	 * @param string   $token        Signed removal token stored in post meta.
+	 * @param int      $artist_id    WP user ID — gates EmailFooter::edit_reminder_html().
 	 * @return string HTML email body.
 	 */
-	private function build_removal_email( \WP_Post $post, string $artist_name, string $token ): string {
+	private function build_removal_email( \WP_Post $post, string $artist_name, string $token, int $artist_id = 0 ): string {
 		// Frontend shim — token stays out of REST logs / browser history.
 		$confirm_url = add_query_arg(
 			[
@@ -183,6 +185,11 @@ class Notification {
 		$title     = esc_html( $post->post_title );
 		$accent    = '#c0392b';
 		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+
+		// 2026-07-06: remove@ covers events as well as artwork — the copy below
+		// says "artwork" or "event" depending on what's actually being removed,
+		// rather than assuming artwork unconditionally.
+		$label = 'agnosis_event' === $post->post_type ? __( 'event', 'agnosis' ) : __( 'artwork', 'agnosis' );
 
 		ob_start();
 		?>
@@ -204,7 +211,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: artist display name */
+				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -212,7 +219,13 @@ class Notification {
 		</p>
 
 		<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#555;">
-			<?php esc_html_e( 'We received a removal request for the following artwork:', 'agnosis' ); ?>
+			<?php
+			printf(
+				/* translators: %s: "artwork" or "event" */
+				esc_html__( 'We received a removal request for the following %s:', 'agnosis' ),
+				esc_html( $label )
+			);
+			?>
 		</p>
 
 		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:17px;font-weight:600;color:#111;">
@@ -220,19 +233,37 @@ class Notification {
 		</p>
 
 		<p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#555;">
-			<?php esc_html_e( 'If you want to permanently remove this artwork from the gallery, click the button below. This action cannot be undone.', 'agnosis' ); ?>
+			<?php
+			printf(
+				/* translators: %s: "artwork" or "event" */
+				esc_html__( 'If you want to permanently remove this %s, click the button below. This action cannot be undone.', 'agnosis' ),
+				esc_html( $label )
+			);
+			?>
 		</p>
 
 		<table cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
 		<tr><td>
 			<a href="<?php echo esc_url( $confirm_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
-				<?php esc_html_e( 'Yes, remove this artwork', 'agnosis' ); ?>
+				<?php
+				printf(
+					/* translators: %s: "artwork" or "event" */
+					esc_html__( 'Yes, remove this %s', 'agnosis' ),
+					esc_html( $label )
+				);
+				?>
 			</a>
 		</td></tr>
 		</table>
 
 		<p style="font-size:13px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
-			<?php esc_html_e( 'If you did not request this removal, simply ignore this email — your artwork will remain published.', 'agnosis' ); ?>
+			<?php
+			printf(
+				/* translators: %s: "artwork" or "event" */
+				esc_html__( 'If you did not request this removal, simply ignore this email — your %s will remain published.', 'agnosis' ),
+				esc_html( $label )
+			);
+			?>
 		</p>
 
 		<p style="font-size:13px;color:#999;margin:0;">
@@ -257,6 +288,12 @@ class Notification {
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
 		</p>
 		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>
@@ -276,7 +313,7 @@ class Notification {
 	 * @param string   $token        Signed review token stored in post meta.
 	 * @return string HTML email body.
 	 */
-	private function build_email( \WP_Post $post, string $artist_name, string $token, string $site_title = '', string $translated_site_title = '' ): string {
+	private function build_email( \WP_Post $post, string $artist_name, string $token, string $site_title = '', string $translated_site_title = '', int $artist_id = 0 ): string {
 		$approve_url      = $this->action_url( $post->ID, 'approve', $token );
 		$reject_url       = $this->action_url( $post->ID, 'reject', $token );
 		$submissions_url  = $this->submissions_page_url();
@@ -369,7 +406,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: artist display name */
+				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -469,6 +506,12 @@ class Notification {
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
 		</p>
 		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>
@@ -554,7 +597,7 @@ class Notification {
 			get_bloginfo( 'name' )
 		);
 
-		$body = $this->build_rejection_email( $artist->display_name, $score, $issues );
+		$body = $this->build_rejection_email( $artist->display_name, $score, $issues, $artist_id );
 
 		wp_mail(
 			$artist->user_email,
@@ -639,9 +682,10 @@ class Notification {
 	 * @param string   $artist_name Artist's display name.
 	 * @param int      $score       Quality score (1–10).
 	 * @param string[] $issues      Issue labels from the vision AI.
+	 * @param int      $artist_id   WP user ID — gates EmailFooter::edit_reminder_html().
 	 * @return string HTML email body.
 	 */
-	private function build_rejection_email( string $artist_name, int $score, array $issues ): string {
+	private function build_rejection_email( string $artist_name, int $score, array $issues, int $artist_id = 0 ): string {
 		$site_name       = get_bloginfo( 'name' );
 		$submissions_url = $this->submissions_page_url();
 		$accent          = '#7c6af7';
@@ -668,7 +712,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:16px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: artist display name */
+				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -741,6 +785,12 @@ class Notification {
 		<?php if ( '' !== $work_emails_html ) : ?>
 		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</p>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
 	</td></tr>

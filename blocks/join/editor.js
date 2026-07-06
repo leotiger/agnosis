@@ -30,21 +30,19 @@
 					{
 						icon:         'admin-users',
 						label:        __( 'Join Agnosis', 'agnosis' ),
-						instructions: __(
-							'Public application form for new artists. ' +
-							'Submits name, email, bio, portfolio URL and a personal statement ' +
-							'to the community for review. Content is rendered live on the frontend.',
-							'agnosis'
-						),
+						// Single string literals, deliberately not built via '+' concatenation
+						// across lines — gettext-style static extractors (WP-CLI's
+						// `wp i18n make-pot`, Loco Translate's scanner, etc.) only recognise
+						// a literal string as a translation function's argument; a
+						// concatenation expression is invisible to them even though it
+						// evaluates to the same value at runtime. Both strings below were
+						// missing from agnosis.pot until this fix (2026-07-06).
+						instructions: __( 'Public application form for new artists. Submits name, email, bio, portfolio URL and a personal statement to the community for review. Content is rendered live on the frontend.', 'agnosis' ),
 					},
 					el(
 						'p',
 						{ className: 'agnosis-join-editor__note' },
-						__(
-							'Place this block on your /join/ page or in a Site Editor page template ' +
-							'assigned to that page.',
-							'agnosis'
-						)
+						__( 'Place this block on your /join/ page or in a Site Editor page template assigned to that page.', 'agnosis' )
 					)
 				)
 			);

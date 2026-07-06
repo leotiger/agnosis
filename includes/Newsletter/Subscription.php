@@ -64,7 +64,16 @@ class Subscription {
 
 		$email    = (string) $request->get_param( 'email' );
 		$language = (string) ( $request->get_param( 'language' ) ?? '' );
-		$locale   = $language ? \Agnosis\Artist\Admission::iso_to_wp_locale( $language ) : '';
+
+		// Same defensive re-check Admission::apply() does for the join form's
+		// language select (audit-style hardening, not just trusting whatever
+		// survived sanitize_key()): never trust a code that isn't one of the
+		// languages the signup form's own <select> actually offered.
+		if ( '' !== $language && ! array_key_exists( $language, \Agnosis\AI\SubmissionTranslator::language_names() ) ) {
+			$language = '';
+		}
+
+		$locale = $language ? \Agnosis\Artist\Admission::iso_to_wp_locale( $language ) : '';
 
 		$result = Subscriber::subscribe( $email, $locale );
 

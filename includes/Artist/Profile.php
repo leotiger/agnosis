@@ -4,7 +4,8 @@
  *
  * agnosis_artwork   — artwork submissions (default, one post per artwork).
  * agnosis_biography — artist biography (singleton per artist, always updated).
- * agnosis_event     — artist events page (singleton per artist, always updated).
+ * agnosis_event     — artist events (has an archive; email-intake still merges
+ *                      into one post per artist — see PostCreator::INDICATORS).
  * agnosis_medium    — taxonomy: painting, photography, sculpture, digital, etc.
  *
  * New CPTs are triggered by subject-line indicators in incoming emails:
@@ -37,7 +38,10 @@ class Profile {
 			'hierarchical'        => false,
 			'menu_position'       => 5,
 			'menu_icon'           => 'dashicons-art',
-			'supports'            => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields' ],
+			// 'revisions' added for front-end correction (audit §7c "safety rails"):
+			// every artist edit through ContentEditor becomes a WP revision, giving
+			// admins free undo/accountability with no extra code.
+			'supports'            => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields', 'revisions' ],
 			'taxonomies'          => [ 'post_tag', 'agnosis_medium' ],
 			'template'            => [
 				[ 'core/image' ],
@@ -75,7 +79,7 @@ class Profile {
 			'hierarchical'       => false,
 			'menu_position'      => 6,
 			'menu_icon'          => 'dashicons-id',
-			'supports'           => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields' ],
+			'supports'           => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields', 'revisions' ],
 			'taxonomies'         => [ 'post_tag' ],
 		] );
 	}
@@ -105,11 +109,19 @@ class Profile {
 			'query_var'          => true,
 			'rewrite'            => [ 'slug' => 'events', 'with_front' => false ],
 			'capability_type'    => 'post',
-			'has_archive'        => false, // one per artist — no archive needed
+			// An artist can have several events (upcoming shows, past exhibitions,
+			// etc.) — an archive is needed so "Events" in the artist breadcrumb has
+			// somewhere to link to. NOTE: PostCreator's email-intake pipeline still
+			// treats [Event] submissions as a singleton (each new email overwrites
+			// the artist's one existing event post) — that's a separate, still-open
+			// question about whether repeated event emails should now create
+			// additional posts instead. See archive-agnosis_event.html (agnosis-theme)
+			// for the chronological listing this archive slug serves.
+			'has_archive'        => 'events',
 			'hierarchical'       => false,
 			'menu_position'      => 7,
 			'menu_icon'          => 'dashicons-calendar-alt',
-			'supports'           => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields' ],
+			'supports'           => [ 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'custom-fields', 'revisions' ],
 			'taxonomies'         => [ 'post_tag' ],
 		] );
 	}
@@ -134,6 +146,30 @@ class Profile {
 			'show_in_rest'      => true,
 			'query_var'         => true,
 			'rewrite'           => [ 'slug' => 'medium' ],
+		] );
+	}
+
+	/**
+	 * Order the agnosis_event archive chronologically by the event's own date
+	 * meta (soonest first) rather than post publish date — a visitor browsing
+	 * an artist's Events page wants to see what's coming up next, not what was
+	 * emailed in most recently. Events with no recorded date sort last rather
+	 * than being dropped from the list.
+	 */
+	public function order_events_archive( \WP_Query $q ): void {
+		if ( ! $q->is_main_query() || is_admin() || ! $q->is_post_type_archive( 'agnosis_event' ) ) {
+			return;
+		}
+
+		$q->set( 'meta_key', '_agnosis_event_date' );
+		$q->set( 'orderby', [ 'meta_value' => 'ASC', 'date' => 'DESC' ] );
+		// meta_key + orderby=>meta_value alone would silently exclude any event
+		// with no _agnosis_event_date at all — the OR below keeps them in the
+		// results (they just sort after every dated event, per 'orderby' above).
+		$q->set( 'meta_query', [
+			'relation' => 'OR',
+			[ 'key' => '_agnosis_event_date', 'compare' => 'EXISTS' ],
+			[ 'key' => '_agnosis_event_date', 'compare' => 'NOT EXISTS' ],
 		] );
 	}
 
@@ -192,8 +228,21 @@ class Profile {
 		$post_id  = (int) ( $block->context['postId'] ?? get_the_ID() );
 		$location = trim( (string) get_post_meta( $post_id, '_agnosis_event_location', true ) );
 
-		if ( ! $location ) {
+		if ( ! $location && ! ContentEditor::is_editable_by_current_user( $post_id ) ) {
 			return '';
+		}
+
+		// When the current viewer may correct this event (audit §7c/§7d Phase 1),
+		// wrap the output in the same editable-region marker ContentEditor's
+		// the_content/the_excerpt filters use, so one frontend.js module can find
+		// every editable field on the page uniformly. An empty location still
+		// renders (as an empty, click-to-fill region) for an eligible artist.
+		if ( ContentEditor::is_editable_by_current_user( $post_id ) ) {
+			return sprintf(
+				'<p class="agnosis-event-location agnosis-editable" data-agnosis-edit-field="event_location" data-agnosis-post-id="%d" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;">%s</p>',
+				$post_id,
+				esc_html( $location )
+			);
 		}
 
 		return sprintf(
@@ -233,6 +282,17 @@ class Profile {
 			? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp )
 			: date_i18n( (string) get_option( 'date_format' ), $timestamp );
 
+		// Editable-region marker for the front-end correction overlay (audit §7c/§7d
+		// Phase 1) — same convention as render_event_location() above.
+		if ( ContentEditor::is_editable_by_current_user( $post_id ) ) {
+			return sprintf(
+				'<p class="agnosis-event-date agnosis-editable" data-agnosis-edit-field="event_date" data-agnosis-post-id="%d" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;"><time datetime="%s">%s</time></p>',
+				$post_id,
+				esc_attr( $event_date ),
+				esc_html( $formatted )
+			);
+		}
+
 		return sprintf(
 			'<p class="agnosis-event-date" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;"><time datetime="%s">%s</time></p>',
 			esc_attr( $event_date ),
@@ -271,21 +331,35 @@ class Profile {
 		$original    = trim( $post->post_title );
 		$translation = trim( (string) get_post_meta( $post_id, '_agnosis_translated_title', true ) );
 
+		// Dual-title editing (Phase 3, audit §7c/§7d): post_title is the artist's
+		// own words — the only part of this block that's ever directly editable.
+		// _agnosis_translated_title is a separate AI-generated value the artist
+		// doesn't type into here; it's regenerated automatically (see
+		// ContentEditor::propagate_title()) whenever the original title changes.
+		$h1 = ContentEditor::is_editable_by_current_user( $post_id )
+			? sprintf(
+				'<h1 class="agnosis-artwork-title__original agnosis-editable" data-agnosis-edit-field="title" data-agnosis-post-id="%d" style="font-style:italic;font-weight:300;%s">%s</h1>',
+				$post_id,
+				'' === $translation || $translation === $original ? '' : 'margin:0 0 0.25em;',
+				esc_html( $original )
+			)
+			: sprintf(
+				'<h1 class="agnosis-artwork-title__original" style="font-style:italic;font-weight:300;%s">%s</h1>',
+				'' === $translation || $translation === $original ? '' : 'margin:0 0 0.25em;',
+				esc_html( $original )
+			);
+
 		// When both strings are identical (same language, no translation stored, or
 		// translation not yet run), render a plain heading — no extra markup.
 		if ( '' === $translation || $translation === $original ) {
-			return sprintf(
-				'<h1 class="agnosis-artwork-title__original" style="font-style:italic;font-weight:300;">%s</h1>',
-				esc_html( $original )
-			);
+			return $h1;
 		}
 
 		return sprintf(
-			'<hgroup class="agnosis-artwork-title" style="margin:0;">'
-			. '<h1 class="agnosis-artwork-title__original" style="font-style:italic;font-weight:300;margin:0 0 0.25em;">%s</h1>'
+			'<hgroup class="agnosis-artwork-title" style="margin:0;">%s'
 			. '<p class="agnosis-artwork-title__translation" style="margin:0;font-size:var(--wp--preset--font-size--small);color:var(--wp--preset--color--secondary);font-style:normal;">%s</p>'
 			. '</hgroup>',
-			esc_html( $original ),
+			$h1,
 			esc_html( $translation )
 		);
 	}

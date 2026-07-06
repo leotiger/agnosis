@@ -159,9 +159,12 @@ if ( ! function_exists( 'wp_generate_password' ) ) {
     }
 }
 if ( ! function_exists( 'get_temp_dir' ) ) {
-    // Only reached by MediaAdapter::adapt_video()'s real ffmpeg round-trip —
-    // never exercised in unit tests until ffmpeg is actually installed, since
-    // the `which ffmpeg` check short-circuits before this point otherwise.
+    // Reached by MediaAdapter::adapt_video()'s ffmpeg round-trip. 2026-07-06:
+    // this now runs deterministically in every unit test run regardless of
+    // whether ffmpeg is actually installed — MediaAdapterTest forces both the
+    // "ffmpeg present" probe and the extraction command's own outcome via the
+    // namespace-scoped shell_exec()/exec() overrides in
+    // tests/php/Unit/AI/Stubs/ai_namespace_stubs.php.
     function get_temp_dir(): string { return rtrim( sys_get_temp_dir(), '/\\' ) . '/'; }
 }
 if ( ! function_exists( 'wp_delete_file' ) ) {
@@ -249,5 +252,133 @@ if ( ! class_exists( 'WP_Error' ) ) {
         ) {}
         public function get_error_message(): string { return $this->message; }
         public function get_error_code(): string { return $this->code; }
+    }
+}
+
+// ---- Fake Imagick, for machines where the real PHP extension isn't installed ----
+//
+// Only defined when the real classes aren't already loaded, so a machine that
+// genuinely has Imagick installed still exercises the real thing end-to-end —
+// this is purely a stand-in for machines/CI runners that don't. Combined with
+// the extension_loaded() override in tests/php/Unit/AI/Stubs/ai_namespace_stubs.php
+// (which lets MediaAdapterTest force MediaAdapter's "is Imagick available?"
+// check in either direction on demand), this means every Imagick-dependent
+// unit test runs deterministically regardless of what's actually installed —
+// no test in MediaAdapterTest ever skips for environment reasons. 2026-07-06:
+// added specifically because the "Imagick unavailable" fallback tests could
+// previously only run for real on a machine that genuinely lacked Imagick,
+// and self-skipped everywhere else — the same class of problem already
+// solved for ffmpeg via the shell_exec()/exec() overrides above.
+//
+// Tracks just enough state — current width/height, and a flat list of "page"
+// dimensions for multi-page PDF rasterisation — to let MediaAdapter's own
+// control flow and resize/rasterise math (proportional scaling, never
+// upscaling, per-page iteration) be verified without any real image codec.
+// Blobs are plain encoded strings, never real image bytes:
+//   'FAKEJPEG:{w}x{h}'                  — a single flat image.
+//   'FAKEPDF:{w1}x{h1}|{w2}x{h2}|...'   — a multi-page source.
+// Anything else fed to readImageBlob() throws ImagickException, mirroring
+// real Imagick's behaviour on unreadable/corrupt data.
+if ( ! class_exists( 'ImagickException' ) ) {
+    // MediaAdapter::adapt_pdf() catches \ImagickException specifically (not
+    // \Throwable), so a plain \Exception wouldn't satisfy that catch block —
+    // this fake needs the exact same class name to be caught correctly.
+    class ImagickException extends \Exception {}
+}
+if ( ! class_exists( 'ImagickPixel' ) ) {
+    // MediaAdapter never calls a method on this — it's only ever constructed
+    // and handed to Imagick::newImage() as a background colour, which the
+    // fake below ignores entirely (colour is irrelevant to the width/height
+    // math these tests actually verify).
+    class ImagickPixel {
+        public function __construct( string $color = '' ) {}
+    }
+}
+if ( ! class_exists( 'Imagick' ) ) {
+    class Imagick {
+        const FILTER_LANCZOS = 1;
+
+        private int $width      = 0;
+        private int $height     = 0;
+        /** @var array<int, array{0:int,1:int}> Parsed page dimensions — PDF sources only. */
+        private array $pages    = [];
+        private int $page_index = 0;
+
+        public function newImage( int $width, int $height, ImagickPixel $background ): bool {
+            $this->width  = $width;
+            $this->height = $height;
+            return true;
+        }
+
+        public function readImageBlob( string $data ): bool {
+            if ( str_starts_with( $data, 'FAKEJPEG:' ) && preg_match( '/^FAKEJPEG:(\d+)x(\d+)$/', $data, $m ) ) {
+                $this->width  = (int) $m[1];
+                $this->height = (int) $m[2];
+                $this->pages  = [ [ $this->width, $this->height ] ];
+                return true;
+            }
+            if ( str_starts_with( $data, 'FAKEPDF:' ) ) {
+                $pages = [];
+                foreach ( explode( '|', substr( $data, strlen( 'FAKEPDF:' ) ) ) as $page ) {
+                    if ( preg_match( '/^(\d+)x(\d+)$/', $page, $m ) ) {
+                        $pages[] = [ (int) $m[1], (int) $m[2] ];
+                    }
+                }
+                if ( empty( $pages ) ) {
+                    throw new ImagickException( 'no decodable pages in fake PDF blob' );
+                }
+                $this->pages                     = $pages;
+                $this->page_index                = 0;
+                [ $this->width, $this->height ]  = $pages[0];
+                return true;
+            }
+            throw new ImagickException( 'unable to decode fake image blob: ' . substr( $data, 0, 20 ) );
+        }
+
+        public function setResolution( int $x, int $y ): bool {
+            return true; // No-op — resolution doesn't affect fake page dimensions.
+        }
+
+        public function setImageFormat( string $format ): bool {
+            return true; // No-op — format is implicit in the fake blob's own prefix.
+        }
+
+        public function setImageCompressionQuality( int $quality ): bool {
+            return true; // No-op.
+        }
+
+        public function getNumberImages(): int {
+            return max( 1, count( $this->pages ) );
+        }
+
+        public function setIteratorIndex( int $index ): bool {
+            $this->page_index = $index;
+            if ( isset( $this->pages[ $index ] ) ) {
+                [ $this->width, $this->height ] = $this->pages[ $index ];
+            }
+            return true;
+        }
+
+        public function getImageWidth(): int {
+            return $this->width;
+        }
+
+        public function getImageHeight(): int {
+            return $this->height;
+        }
+
+        public function resizeImage( int $width, int $height, int $filter, float $blur ): bool {
+            $this->width  = $width;
+            $this->height = $height;
+            return true;
+        }
+
+        public function getImageBlob(): string {
+            return sprintf( 'FAKEJPEG:%dx%d', $this->width, $this->height );
+        }
+
+        public function destroy(): bool {
+            return true;
+        }
     }
 }

@@ -293,4 +293,39 @@ class Subscriber {
 
 		return $counts;
 	}
+
+	/**
+	 * Confirmed-subscriber counts grouped by locale, for the admin dashboard's
+	 * locale-coverage metric (audit §8 — "cheap signal for which LF languages
+	 * earn their AI translation spend"). Only 'confirmed' subscribers are
+	 * counted — pending/unsubscribed rows aren't part of the live send list a
+	 * translation spend would actually be serving.
+	 *
+	 * Rows with no recorded locale (NULL/'' — a visitor who signed up before
+	 * the §3c frontend.js fix, or simply didn't have a browser locale to send)
+	 * are bucketed under the empty-string key rather than dropped, so the
+	 * counts here always sum to Subscriber::counts()['confirmed'].
+	 *
+	 * @return array<string, int> Locale (e.g. 'es_ES', or '' for unknown) => confirmed count, highest first.
+	 */
+	public static function counts_by_locale(): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$rows = $wpdb->get_results(
+			"SELECT locale, COUNT(*) as total FROM {$wpdb->prefix}agnosis_newsletter_subscribers
+			 WHERE status = 'confirmed'
+			 GROUP BY locale
+			 ORDER BY total DESC",
+			ARRAY_A
+		);
+
+		$counts = [];
+		foreach ( (array) $rows as $row ) {
+			$locale             = (string) ( $row['locale'] ?? '' );
+			$counts[ $locale ] = (int) $row['total'];
+		}
+
+		return $counts;
+	}
 }

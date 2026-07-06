@@ -172,6 +172,15 @@ class Activator {
 		self::register_roles();
 		self::schedule_events();
 		add_action( 'init', [ self::class, 'create_managed_pages' ], 99 );
+
+		// New rewrite rules (e.g. Newsletter\Archive's /newsletter/ routes,
+		// added 2026-07-06) only take effect on an existing install once
+		// WordPress's rewrite rules are regenerated. Flushing on every
+		// plugins_loaded would be needlessly expensive, so — like
+		// create_managed_pages() above — this is deferred to run once on
+		// init, after the plugin's own add_rewrite_rule() calls (registered
+		// via Loader at the default init priority) have run.
+		add_action( 'init', 'flush_rewrite_rules', 100 );
 	}
 
 	/**

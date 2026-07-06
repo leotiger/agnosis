@@ -32,6 +32,13 @@
  *   'poster_data' string  (video only) Extracted first-frame JPEG binary, or '' if unavailable.
  *   'poster_mime' string  (video only) Always 'image/jpeg' when poster_data is non-empty.
  *
+ * Also home to maybe_downscale_for_vision() — a per-request image-downscale
+ * helper for vision API calls (cost optimisation), deliberately NOT wired
+ * into adapt()/adapt_pdf()/adapt_video() themselves. See that method's own
+ * doc for why: the attachment 'data'/'poster_data' this class returns is
+ * reused downstream for enhancement and for the actual published file, so
+ * mutating it here would silently shrink published artwork.
+ *
  * @package Agnosis\AI
  */
 
@@ -78,6 +85,89 @@ class MediaAdapter {
 		}
 
 		return $out;
+	}
+
+	// -------------------------------------------------------------------------
+	// Vision-input downscaling
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Downscale an image to the admin-configured max width (agnosis_ai_vision_max_width_px,
+	 * default 800px) for a single vision-API request — a pure cost/latency
+	 * optimisation, since vision-token cost scales with resolution and a
+	 * description task needs nowhere near a photo's original resolution.
+	 *
+	 * IMPORTANT — call this from inside each ProviderInterface::describe()
+	 * implementation, immediately before base64-encoding the request body,
+	 * and use only the return value for that one request. Never call it here
+	 * in MediaAdapter (i.e. never let its output replace an attachment's
+	 * 'data'/'poster_data') and never let its output flow back into
+	 * Pipeline::process_single()'s $image_data / process_video_single()'s
+	 * $poster_data. Those same variables are also used, unmodified, for:
+	 * the image enhancement API call (which needs real resolution to do a
+	 * good job), Pipeline's 'original_data' result (the actual file
+	 * PostCreator publishes when enhancement doesn't run), and — for video —
+	 * the poster frame's own 'poster_data' result (the real `<video poster>`
+	 * attachment). Downscaling any of those in place would silently publish
+	 * artwork/poster images at only agnosis_ai_vision_max_width_px wide,
+	 * which is not what this setting is for.
+	 *
+	 * Deliberately conservative: never upscales (a source already narrower
+	 * than the configured max is returned untouched), and any failure —
+	 * disabled via the '0' setting, Imagick unavailable, or a corrupt/
+	 * unreadable blob — falls back to returning the original image
+	 * unmodified rather than ever blocking a describe() call. Mirrors
+	 * adapt_pdf()'s existing Imagick-availability guard and logging
+	 * convention, since Imagick is already a soft dependency in this class.
+	 *
+	 * @param string $data Raw image binary.
+	 * @param string $mime Image MIME type (informational only — Imagick
+	 *                     preserves the source format on resize).
+	 * @return string Resized image binary, or the original $data unchanged
+	 *                if downscaling is disabled, unnecessary, or unavailable.
+	 */
+	public static function maybe_downscale_for_vision( string $data, string $mime ): string {
+		$max_width = (int) get_option( 'agnosis_ai_vision_max_width_px', 800 );
+
+		if ( $max_width <= 0 || '' === $data ) {
+			return $data; // Disabled via the admin setting, or nothing to resize.
+		}
+
+		if ( ! extension_loaded( 'imagick' ) || ! class_exists( \Imagick::class ) ) {
+			// No warning logged here (unlike adapt_pdf()'s hard failure) —
+			// sending the original, undownscaled image is a silent, harmless
+			// fallback, not a broken feature; PDF rasterisation without
+			// Imagick has no such fallback, which is why that path warns.
+			return $data;
+		}
+
+		try {
+			$imagick = new \Imagick();
+			$imagick->readImageBlob( $data );
+
+			$width = $imagick->getImageWidth();
+			if ( $width <= $max_width ) {
+				$imagick->destroy();
+				return $data; // Already small enough — never upscale.
+			}
+
+			$height     = $imagick->getImageHeight();
+			$new_height = (int) round( $height * ( $max_width / $width ) );
+
+			$imagick->resizeImage( $max_width, max( 1, $new_height ), \Imagick::FILTER_LANCZOS, 1 );
+			$resized = $imagick->getImageBlob();
+			$imagick->destroy();
+
+			return ( false !== $resized && '' !== $resized ) ? $resized : $data;
+
+		} catch ( \Throwable $e ) {
+			Logger::warning( sprintf(
+				'MediaAdapter: vision-downscale failed (%s) — sending the original %s image instead.',
+				$e->getMessage(),
+				$mime
+			), 'pipeline' );
+			return $data;
+		}
 	}
 
 	// -------------------------------------------------------------------------

@@ -33,10 +33,35 @@ if ( ! function_exists( 'linguaforge_languages' ) ) {
 	 * Stub for LF's language-router public API.
 	 * Returns the list configured by the current test via $lf_languages.
 	 *
+	 * Once this file is loaded, `linguaforge_languages()` exists as a real
+	 * global PHP function for the rest of the process — PHP has no mechanism
+	 * to undefine it — so it keeps answering calls from ANY test class that
+	 * runs afterward in the same PHPUnit process, not just LinguaForgeCompatTest.
+	 * SubmissionTranslator::language_names() checks function_exists() (a
+	 * string-name lookup, always global, unaffected by namespaces) and, once
+	 * true, trusts this function's return value completely. $lf_languages is
+	 * null except while a LinguaForgeCompatTest test method is actively
+	 * driving it, so falling back to `[]` here left every *other* Integration
+	 * test class that ran after LinguaForgeCompatTest seeing "Lingua Forge is
+	 * active but configured with zero languages" — silently emptying
+	 * SubmissionTranslator::language_names() and, downstream, both the
+	 * newsletter signup language <select> and Admission's locale mapping
+	 * (SignupBlockTest::test_language_select_lists_at_least_one_language_option,
+	 * SubscriptionTest::test_subscribe_maps_whitelisted_language_to_wp_locale).
+	 * `['en']` is a neutral, always-true default that matches what
+	 * SubmissionTranslator's own no-LF fallback would offer anyway, so
+	 * unrelated tests see one sane language instead of none. Every
+	 * LinguaForgeCompatTest test method that cares sets $lf_languages
+	 * explicitly before exercising the code under test (including the one
+	 * that legitimately wants an empty list — that sets `[]` directly, which
+	 * this null-coalesce doesn't touch), so this default only ever applies
+	 * to the leaked-into-other-classes case, never to LinguaForgeCompatTest's
+	 * own assertions.
+	 *
 	 * @return string[]
 	 */
 	function linguaforge_languages(): array {
-		return \Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest::$lf_languages ?? [];
+		return \Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest::$lf_languages ?? [ 'en' ];
 	}
 }
 

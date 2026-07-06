@@ -108,7 +108,13 @@ class LinguaForge {
 		// dispatch_translations(), so a slow webhook/IMAP intake never blocks on N
 		// (or 2N) AI calls. See schedule_translations() / dispatch_translations().
 		add_action( 'agnosis_post_published',        [ $this, 'schedule_translations' ], 20, 1 );
-		add_action( self::DISPATCH_HOOK,             [ $this, 'dispatch_translations' ], 10, 1 );
+		// accepted_args bumped 1 -> 2: dispatch_translations() now also accepts an
+		// optional $exclude_langs list (see schedule_fanout(), used by
+		// Artist\ContentEditor for front-end corrections — audit §7c, reassessed
+		// 2026-07-06). Cron events scheduled before this change carry only one
+		// stored arg; WP calls the callback with whatever args were stored, so
+		// $exclude_langs simply falls back to its default there — no migration needed.
+		add_action( self::DISPATCH_HOOK,             [ $this, 'dispatch_translations' ], 10, 2 );
 
 		// Dual-title (artwork only): keep the artist's original title on translated
 		// posts. LF would otherwise translate post_title — deliberately kept in the
@@ -166,7 +172,7 @@ class LinguaForge {
 
 		if ( empty( $lang ) ) {
 			// LF primary not configured yet — fall back to the WP site locale.
-			$lang = $this->locale_to_lang( get_locale() );
+			$lang = self::locale_to_lang( get_locale() );
 		}
 
 		update_post_meta( $post_id, '_lf_lang', sanitize_text_field( $lang ) );
@@ -184,15 +190,55 @@ class LinguaForge {
 	 * requests run in a later cron request, never inside the intake (IMAP/webhook)
 	 * request that published the post.
 	 *
-	 * @param int $post_id Source post ID.
+	 * @param int      $post_id       Source post ID.
+	 * @param string[] $exclude_langs Target languages to skip in the fan-out (see
+	 *                                schedule_fanout()). Always empty on the normal
+	 *                                publish path — nothing to exclude at intake.
 	 */
-	public function schedule_translations( int $post_id ): void {
+	public function schedule_translations( int $post_id, array $exclude_langs = [] ): void {
+		self::schedule_fanout( $post_id, $exclude_langs );
+	}
+
+	/**
+	 * Schedule the deferred translation fan-out for a post, optionally excluding
+	 * one or more target languages.
+	 *
+	 * Static and self-contained (touches no instance state) so callers outside the
+	 * single `new LinguaForge()` instance Plugin.php constructs — e.g.
+	 * Artist\ContentEditor after a front-end correction — can trigger a fan-out
+	 * without instantiating a second LinguaForge object, which would re-register
+	 * every constructor hook a second time (double SEO filters, double
+	 * set_language_meta, etc.).
+	 *
+	 * Used two ways:
+	 *   - schedule_translations() calls this with an empty exclusion list on every
+	 *     normal publish.
+	 *   - Artist\ContentEditor calls this directly after translating a front-end
+	 *     correction into the primary language, excluding the artist's own source
+	 *     language — that post already holds the artist's verbatim edit, and
+	 *     re-deriving it via a second AI round-trip (primary -> artist's language
+	 *     again) could drift from what the artist actually wrote (audit §7c,
+	 *     reassessed 2026-07-06).
+	 *
+	 * @param int      $post_id       Source (primary-language) post ID.
+	 * @param string[] $exclude_langs Target language codes to skip.
+	 */
+	public static function schedule_fanout( int $post_id, array $exclude_langs = [] ): void {
 		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
 		}
 
-		if ( ! wp_next_scheduled( self::DISPATCH_HOOK, [ $post_id ] ) ) {
-			wp_schedule_single_event( time(), self::DISPATCH_HOOK, [ $post_id ] );
+		// Preserve the exact single-arg scheduling shape used since before Phase 1
+		// front-end correction existed when there is nothing to exclude — the args
+		// array is part of wp_next_scheduled()'s identity match, so appending an
+		// always-present (even if empty) second element would silently stop
+		// matching every pre-existing 1-arg wp_next_scheduled( DISPATCH_HOOK,
+		// [ $post_id ] ) lookup, including this class's own dedup check on the
+		// normal publish path and existing tests pinned to that signature.
+		$args = empty( $exclude_langs ) ? [ $post_id ] : [ $post_id, $exclude_langs ];
+
+		if ( ! wp_next_scheduled( self::DISPATCH_HOOK, $args ) ) {
+			wp_schedule_single_event( time(), self::DISPATCH_HOOK, $args );
 		}
 	}
 
@@ -204,11 +250,12 @@ class LinguaForge {
 	 * The queued translation jobs run in still-later ticks, by which point the map
 	 * already exists for supply_translated_meta() to read.
 	 *
-	 * @param int $post_id Source post ID.
+	 * @param int      $post_id       Source post ID.
+	 * @param string[] $exclude_langs Target languages to skip (see schedule_fanout()).
 	 */
-	public function dispatch_translations( int $post_id ): void {
+	public function dispatch_translations( int $post_id, array $exclude_langs = [] ): void {
 		$this->build_title_translations( $post_id );
-		$this->request_translations( $post_id );
+		$this->request_translations( $post_id, $exclude_langs );
 	}
 
 	/**
@@ -226,8 +273,13 @@ class LinguaForge {
 	 * the translated excerpt LF already produces is the artwork's description.)
 	 *
 	 * Returns silently when LF is not loaded or there are no target languages.
+	 *
+	 * @param int      $post_id       Source post ID.
+	 * @param string[] $exclude_langs Target language codes to skip in addition to
+	 *                                the source language (already excluded by
+	 *                                get_target_languages()). See schedule_fanout().
 	 */
-	public function request_translations( int $post_id ): void {
+	public function request_translations( int $post_id, array $exclude_langs = [] ): void {
 		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
 		}
@@ -238,6 +290,10 @@ class LinguaForge {
 
 		$source_lang = get_post_meta( $post_id, '_lf_lang', true ) ?: 'en';
 		$languages   = $this->get_target_languages( $source_lang );
+
+		if ( ! empty( $exclude_langs ) ) {
+			$languages = array_values( array_diff( $languages, $exclude_langs ) );
+		}
 
 		if ( empty( $languages ) ) {
 			return;
@@ -565,8 +621,15 @@ class LinguaForge {
 	/**
 	 * Convert a WordPress locale string (e.g. "de_DE") to a BCP-47 language
 	 * tag (e.g. "de") for use with Lingua Forge's language system.
+	 *
+	 * Public + static so callers outside this class can compare a WP user's own
+	 * `locale` field (e.g. an artist's admission-time language choice — see
+	 * `Artist\Admission::apply()`) against a post's `_lf_lang` meta using the same
+	 * conversion `set_language_meta()` itself relies on. Used by
+	 * `Artist\ContentEditor` to restrict front-end correction to the post version
+	 * matching the artist's own declared language (audit §7c, reassessed 2026-07-06).
 	 */
-	private function locale_to_lang( string $locale ): string {
+	public static function locale_to_lang( string $locale ): string {
 		// LF typically uses two-letter primary subtags ("en", "de", "es", "fr"…).
 		return strtolower( explode( '_', $locale )[0] );
 	}
