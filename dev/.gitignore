@@ -18,8 +18,6 @@ package-lock.json
 # WP-CLI phar — downloaded on demand by bin/make-pot.sh.
 wp-cli.phar
 
-# Coverage reports — generated locally.
-coverage/
 
 # Playwright artefacts.
 e2e/.auth/

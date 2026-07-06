@@ -74,7 +74,25 @@ class QueueProcessor {
 					continue;
 				}
 
-				$ok = $this->send_one( $row, $issue, $locale_maps[ (int) $row->issue_id ] ?? [] );
+				// A single recipient's send_one() throwing (a bad locale render, a
+				// branding/Imagick error building the email, etc.) must never abort
+				// the rest of this batch or skip reconcile_sending_issues() below —
+				// that would leave every 'sending' issue, not just the one that
+				// errored, permanently stuck ("Sending…" with Send Now disabled)
+				// since reconcile() would then never run again for any of them.
+				// Found 2026-07-06: an issue stayed stuck even after the cron ran,
+				// because an uncaught exception on one row's send silently killed
+				// the whole tick before reconcile() was ever reached.
+				try {
+					$ok = $this->send_one( $row, $issue, $locale_maps[ (int) $row->issue_id ] ?? [] );
+				} catch ( \Throwable $e ) {
+					Logger::warning(
+						sprintf( 'Newsletter: send_one() threw for issue #%d, recipient %s: %s', $issue->id, $row->recipient_email, $e->getMessage() ),
+						'newsletter'
+					);
+					$ok = false;
+				}
+
 				if ( $ok ) {
 					$this->mark_terminal( (int) $row->id, 'sent' );
 				} else {
@@ -93,8 +111,15 @@ class QueueProcessor {
 		$this->reconcile_sending_issues();
 	}
 
-	/** Mark 'sent' every currently-'sending' issue that has zero pending rows left. */
-	private function reconcile_sending_issues(): void {
+	/**
+	 * Mark 'sent' every currently-'sending' issue that has zero pending rows
+	 * left. Public so Settings::render_newsletter_dashboard() can call it
+	 * directly on page load — self-healing a stuck 'Sending…' status the
+	 * moment an admin looks at the dashboard, rather than waiting on
+	 * WP-Cron's next tick (which, on a low-traffic site with no real system
+	 * cron wired to wp-cron.php, may not run again for a long time).
+	 */
+	public function reconcile_sending_issues(): void {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

@@ -18,6 +18,7 @@ use Agnosis\Artist\Departure;
 use Agnosis\Artist\Invitation;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
+use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\Subscriber;
 
@@ -1452,6 +1453,12 @@ class Settings {
 	// -------------------------------------------------------------------------
 
 	private function render_newsletter_dashboard(): void {
+		// Self-heal a stuck 'Sending…' status the moment an admin views this
+		// page, rather than only on WP-Cron's next tick — see
+		// QueueProcessor::reconcile_sending_issues()'s docblock. Cheap (a
+		// handful of small COUNT queries, no-op when nothing is 'sending').
+		( new QueueProcessor() )->reconcile_sending_issues();
+
 		$scheduler        = new Scheduler();
 		$sub_counts       = Subscriber::counts();
 		$threshold        = (int) get_option( 'agnosis_newsletter_subscriber_warn_threshold', 250 );

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.8.1 =
+* Fixed: A newsletter could get stuck showing "Sending…" with Send Now disabled indefinitely, if any single recipient's email failed to build for an unrelated reason — that one failure was silently blocking the status from ever being corrected, even after the newsletter had actually finished going out to everyone else. The status now also corrects itself the moment you view the Newsletter dashboard, rather than waiting for the next background check.
 
 = 0.8.0 =
 * Added: Front-end correction for artists (audit §7, Phase 1). Admitted artists can now correct a typo, update an event's location/date, or tighten a bio directly on the published page — no new intake email, no dashboard, no forms. A small pencil affordance appears next to editable text only when you're viewing your own published artwork, biography, or event page while logged in; click it, edit in place, save.

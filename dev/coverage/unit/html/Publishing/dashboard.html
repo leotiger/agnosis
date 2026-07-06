@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /Users/tiger/Github/agnosis/includes/Publishing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/Users/tiger/Github/agnosis/includes</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Publishing</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="GalleryOverview.php.html#16">Agnosis\Publishing\GalleryOverview</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#25">Agnosis\Publishing\Notification</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#27">Agnosis\Publishing\RemovalEndpoints</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#42">Agnosis\Publishing\ReviewConfirm</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#27">Agnosis\Publishing\ReviewEndpoints</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#29">Agnosis\Publishing\SubmissionsPage</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#45">Agnosis\Publishing\PostCreator</a></td><td class="text-right">3%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="PostCreator.php.html#45">Agnosis\Publishing\PostCreator</a></td><td class="text-right">39790</td></tr>
+       <tr><td><a href="Notification.php.html#25">Agnosis\Publishing\Notification</a></td><td class="text-right">4692</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#27">Agnosis\Publishing\ReviewEndpoints</a></td><td class="text-right">1806</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#29">Agnosis\Publishing\SubmissionsPage</a></td><td class="text-right">1332</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#16">Agnosis\Publishing\GalleryOverview</a></td><td class="text-right">342</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#42">Agnosis\Publishing\ReviewConfirm</a></td><td class="text-right">306</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#27">Agnosis\Publishing\RemovalEndpoints</a></td><td class="text-right">272</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="GalleryOverview.php.html#32"><abbr title="Agnosis\Publishing\GalleryOverview::flush_artist_cache">flush_artist_cache</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#48"><abbr title="Agnosis\Publishing\GalleryOverview::register_block">register_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#66"><abbr title="Agnosis\Publishing\GalleryOverview::render_block">render_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#96"><abbr title="Agnosis\Publishing\GalleryOverview::register_meta">register_meta</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#120"><abbr title="Agnosis\Publishing\GalleryOverview::register_meta_box">register_meta_box</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#136"><abbr title="Agnosis\Publishing\GalleryOverview::render_meta_box">render_meta_box</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#164"><abbr title="Agnosis\Publishing\GalleryOverview::save_meta_box">save_meta_box</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#37"><abbr title="Agnosis\Publishing\Notification::on_removal_requested">on_removal_requested</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#83"><abbr title="Agnosis\Publishing\Notification::on_post_drafted">on_post_drafted</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#172"><abbr title="Agnosis\Publishing\Notification::build_removal_email">build_removal_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#316"><abbr title="Agnosis\Publishing\Notification::build_email">build_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#534"><abbr title="Agnosis\Publishing\Notification::action_url">action_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#559"><abbr title="Agnosis\Publishing\Notification::submissions_page_url">submissions_page_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#583"><abbr title="Agnosis\Publishing\Notification::on_submission_rejected">on_submission_rejected</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#626"><abbr title="Agnosis\Publishing\Notification::issues_to_advice">issues_to_advice</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#688"><abbr title="Agnosis\Publishing\Notification::build_rejection_email">build_rejection_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#812"><abbr title="Agnosis\Publishing\Notification::sender_header">sender_header</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Notification.php.html#826"><abbr title="Agnosis\Publishing\Notification::html_lang">html_lang</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#120"><abbr title="Agnosis\Publishing\PostCreator::handle">handle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#422"><abbr title="Agnosis\Publishing\PostCreator::resolve_post_type">resolve_post_type</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#501"><abbr title="Agnosis\Publishing\PostCreator::find_singleton_post">find_singleton_post</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#550"><abbr title="Agnosis\Publishing\PostCreator::find_duplicate_post">find_duplicate_post</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#705"><abbr title="Agnosis\Publishing\PostCreator::find_post_by_subject">find_post_by_subject</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#736"><abbr title="Agnosis\Publishing\PostCreator::handle_removal_request">handle_removal_request</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#789"><abbr title="Agnosis\Publishing\PostCreator::handle_promotion_request">handle_promotion_request</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#835"><abbr title="Agnosis\Publishing\PostCreator::set_featured">set_featured</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#866"><abbr title="Agnosis\Publishing\PostCreator::create_post">create_post</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#986"><abbr title="Agnosis\Publishing\PostCreator::merge_gallery">merge_gallery</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1083"><abbr title="Agnosis\Publishing\PostCreator::upload_video">upload_video</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1253"><abbr title="Agnosis\Publishing\PostCreator::is_allowed_embed_host">is_allowed_embed_host</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1293"><abbr title="Agnosis\Publishing\PostCreator::build_embed_block">build_embed_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1321"><abbr title="Agnosis\Publishing\PostCreator::write_post_meta">write_post_meta</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1380"><abbr title="Agnosis\Publishing\PostCreator::pick_thumbnail_id">pick_thumbnail_id</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1413"><abbr title="Agnosis\Publishing\PostCreator::upload_media">upload_media</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1491"><abbr title="Agnosis\Publishing\PostCreator::primary_result">primary_result</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1506"><abbr title="Agnosis\Publishing\PostCreator::build_gallery_block">build_gallery_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1529"><abbr title="Agnosis\Publishing\PostCreator::build_image_block">build_image_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1554"><abbr title="Agnosis\Publishing\PostCreator::build_video_block">build_video_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1578"><abbr title="Agnosis\Publishing\PostCreator::build_audio_block">build_audio_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1620"><abbr title="Agnosis\Publishing\PostCreator::make_slug">make_slug</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1664"><abbr title="Agnosis\Publishing\PostCreator::mime_for_extension">mime_for_extension</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1675"><abbr title="Agnosis\Publishing\PostCreator::filesystem">filesystem</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1690"><abbr title="Agnosis\Publishing\PostCreator::mark">mark</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#44"><abbr title="Agnosis\Publishing\RemovalEndpoints::register_routes">register_routes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#81"><abbr title="Agnosis\Publishing\RemovalEndpoints::confirm">confirm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#142"><abbr title="Agnosis\Publishing\RemovalEndpoints::type_label">type_label</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#174"><abbr title="Agnosis\Publishing\RemovalEndpoints::check_permission">check_permission</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#185"><abbr title="Agnosis\Publishing\RemovalEndpoints::verify_token">verify_token</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#57"><abbr title="Agnosis\Publishing\ReviewConfirm::handle_confirm">handle_confirm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#117"><abbr title="Agnosis\Publishing\ReviewConfirm::handle_result">handle_result</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#174"><abbr title="Agnosis\Publishing\ReviewConfirm::render_confirm">render_confirm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#224"><abbr title="Agnosis\Publishing\ReviewConfirm::is_post_request">is_post_request</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#29"><abbr title="Agnosis\Publishing\ReviewEndpoints::register_routes">register_routes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#80"><abbr title="Agnosis\Publishing\ReviewEndpoints::save">save</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#141"><abbr title="Agnosis\Publishing\ReviewEndpoints::approve">approve</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#180"><abbr title="Agnosis\Publishing\ReviewEndpoints::reject">reject</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#220"><abbr title="Agnosis\Publishing\ReviewEndpoints::extract_image_blocks">extract_image_blocks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#252"><abbr title="Agnosis\Publishing\ReviewEndpoints::check_permission">check_permission</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#266"><abbr title="Agnosis\Publishing\ReviewEndpoints::check_access">check_access</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#306"><abbr title="Agnosis\Publishing\ReviewEndpoints::verify_token">verify_token</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#34"><abbr title="Agnosis\Publishing\SubmissionsPage::register_shortcode">register_shortcode</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#45"><abbr title="Agnosis\Publishing\SubmissionsPage::register_block">register_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#59"><abbr title="Agnosis\Publishing\SubmissionsPage::add_block_category">add_block_category</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#68"><abbr title="Agnosis\Publishing\SubmissionsPage::register_routes">register_routes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#86"><abbr title="Agnosis\Publishing\SubmissionsPage::render_shortcode">render_shortcode</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#97"><abbr title="Agnosis\Publishing\SubmissionsPage::render_block">render_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#110"><abbr title="Agnosis\Publishing\SubmissionsPage::render">render</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#139"><abbr title="Agnosis\Publishing\SubmissionsPage::get_mine">get_mine</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#159"><abbr title="Agnosis\Publishing\SubmissionsPage::require_logged_in">require_logged_in</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#175"><abbr title="Agnosis\Publishing\SubmissionsPage::fetch_drafts">fetch_drafts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#199"><abbr title="Agnosis\Publishing\SubmissionsPage::render_card">render_card</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#307"><abbr title="Agnosis\Publishing\SubmissionsPage::enqueue_assets">enqueue_assets</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#517"><abbr title="Agnosis\Publishing\SubmissionsPage::render_login_form">render_login_form</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#597"><abbr title="Agnosis\Publishing\SubmissionsPage::append_turnstile_to_login_form">append_turnstile_to_login_form</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#620"><abbr title="Agnosis\Publishing\SubmissionsPage::authenticate_turnstile">authenticate_turnstile</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1192"><abbr title="Agnosis\Publishing\PostCreator::build_external_link_embeds">build_external_link_embeds</abbr></a></td><td class="text-right">25%</td></tr>
+       <tr><td><a href="PostCreator.php.html#1137"><abbr title="Agnosis\Publishing\PostCreator::build_post_content">build_post_content</abbr></a></td><td class="text-right">28%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="PostCreator.php.html#120"><abbr title="Agnosis\Publishing\PostCreator::handle">handle</abbr></a></td><td class="text-right">1980</td></tr>
+       <tr><td><a href="Notification.php.html#316"><abbr title="Agnosis\Publishing\Notification::build_email">build_email</abbr></a></td><td class="text-right">462</td></tr>
+       <tr><td><a href="PostCreator.php.html#866"><abbr title="Agnosis\Publishing\PostCreator::create_post">create_post</abbr></a></td><td class="text-right">420</td></tr>
+       <tr><td><a href="PostCreator.php.html#550"><abbr title="Agnosis\Publishing\PostCreator::find_duplicate_post">find_duplicate_post</abbr></a></td><td class="text-right">380</td></tr>
+       <tr><td><a href="Notification.php.html#83"><abbr title="Agnosis\Publishing\Notification::on_post_drafted">on_post_drafted</abbr></a></td><td class="text-right">210</td></tr>
+       <tr><td><a href="PostCreator.php.html#422"><abbr title="Agnosis\Publishing\PostCreator::resolve_post_type">resolve_post_type</abbr></a></td><td class="text-right">210</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#80"><abbr title="Agnosis\Publishing\ReviewEndpoints::save">save</abbr></a></td><td class="text-right">210</td></tr>
+       <tr><td><a href="PostCreator.php.html#986"><abbr title="Agnosis\Publishing\PostCreator::merge_gallery">merge_gallery</abbr></a></td><td class="text-right">182</td></tr>
+       <tr><td><a href="PostCreator.php.html#1321"><abbr title="Agnosis\Publishing\PostCreator::write_post_meta">write_post_meta</abbr></a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#57"><abbr title="Agnosis\Publishing\ReviewConfirm::handle_confirm">handle_confirm</abbr></a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#164"><abbr title="Agnosis\Publishing\GalleryOverview::save_meta_box">save_meta_box</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="PostCreator.php.html#1413"><abbr title="Agnosis\Publishing\PostCreator::upload_media">upload_media</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#620"><abbr title="Agnosis\Publishing\SubmissionsPage::authenticate_turnstile">authenticate_turnstile</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Notification.php.html#37"><abbr title="Agnosis\Publishing\Notification::on_removal_requested">on_removal_requested</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="Notification.php.html#626"><abbr title="Agnosis\Publishing\Notification::issues_to_advice">issues_to_advice</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="Notification.php.html#688"><abbr title="Agnosis\Publishing\Notification::build_rejection_email">build_rejection_email</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="PostCreator.php.html#1253"><abbr title="Agnosis\Publishing\PostCreator::is_allowed_embed_host">is_allowed_embed_host</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="PostCreator.php.html#1293"><abbr title="Agnosis\Publishing\PostCreator::build_embed_block">build_embed_block</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="PostCreator.php.html#1620"><abbr title="Agnosis\Publishing\PostCreator::make_slug">make_slug</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#81"><abbr title="Agnosis\Publishing\RemovalEndpoints::confirm">confirm</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#141"><abbr title="Agnosis\Publishing\ReviewEndpoints::approve">approve</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#266"><abbr title="Agnosis\Publishing\ReviewEndpoints::check_access">check_access</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="PostCreator.php.html#1192"><abbr title="Agnosis\Publishing\PostCreator::build_external_link_embeds">build_external_link_embeds</abbr></a></td><td class="text-right">35</td></tr>
+       <tr><td><a href="PostCreator.php.html#1137"><abbr title="Agnosis\Publishing\PostCreator::build_post_content">build_post_content</abbr></a></td><td class="text-right">31</td></tr>
+       <tr><td><a href="Notification.php.html#583"><abbr title="Agnosis\Publishing\Notification::on_submission_rejected">on_submission_rejected</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="PostCreator.php.html#1554"><abbr title="Agnosis\Publishing\PostCreator::build_video_block">build_video_block</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#117"><abbr title="Agnosis\Publishing\ReviewConfirm::handle_result">handle_result</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#180"><abbr title="Agnosis\Publishing\ReviewEndpoints::reject">reject</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#306"><abbr title="Agnosis\Publishing\ReviewEndpoints::verify_token">verify_token</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#139"><abbr title="Agnosis\Publishing\SubmissionsPage::get_mine">get_mine</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#199"><abbr title="Agnosis\Publishing\SubmissionsPage::render_card">render_card</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#32"><abbr title="Agnosis\Publishing\GalleryOverview::flush_artist_cache">flush_artist_cache</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Notification.php.html#172"><abbr title="Agnosis\Publishing\Notification::build_removal_email">build_removal_email</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="PostCreator.php.html#705"><abbr title="Agnosis\Publishing\PostCreator::find_post_by_subject">find_post_by_subject</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="PostCreator.php.html#1083"><abbr title="Agnosis\Publishing\PostCreator::upload_video">upload_video</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="PostCreator.php.html#1380"><abbr title="Agnosis\Publishing\PostCreator::pick_thumbnail_id">pick_thumbnail_id</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="PostCreator.php.html#1529"><abbr title="Agnosis\Publishing\PostCreator::build_image_block">build_image_block</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#185"><abbr title="Agnosis\Publishing\RemovalEndpoints::verify_token">verify_token</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#110"><abbr title="Agnosis\Publishing\SubmissionsPage::render">render</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#517"><abbr title="Agnosis\Publishing\SubmissionsPage::render_login_form">render_login_form</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="GalleryOverview.php.html#66"><abbr title="Agnosis\Publishing\GalleryOverview::render_block">render_block</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#501"><abbr title="Agnosis\Publishing\PostCreator::find_singleton_post">find_singleton_post</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#736"><abbr title="Agnosis\Publishing\PostCreator::handle_removal_request">handle_removal_request</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#789"><abbr title="Agnosis\Publishing\PostCreator::handle_promotion_request">handle_promotion_request</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#1491"><abbr title="Agnosis\Publishing\PostCreator::primary_result">primary_result</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#1506"><abbr title="Agnosis\Publishing\PostCreator::build_gallery_block">build_gallery_block</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="PostCreator.php.html#1690"><abbr title="Agnosis\Publishing\PostCreator::mark">mark</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#44"><abbr title="Agnosis\Publishing\RemovalEndpoints::register_routes">register_routes</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#252"><abbr title="Agnosis\Publishing\ReviewEndpoints::check_permission">check_permission</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Notification.php.html#559"><abbr title="Agnosis\Publishing\Notification::submissions_page_url">submissions_page_url</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Notification.php.html#826"><abbr title="Agnosis\Publishing\Notification::html_lang">html_lang</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="PostCreator.php.html#835"><abbr title="Agnosis\Publishing\PostCreator::set_featured">set_featured</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="PostCreator.php.html#1578"><abbr title="Agnosis\Publishing\PostCreator::build_audio_block">build_audio_block</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="PostCreator.php.html#1675"><abbr title="Agnosis\Publishing\PostCreator::filesystem">filesystem</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="RemovalEndpoints.php.html#174"><abbr title="Agnosis\Publishing\RemovalEndpoints::check_permission">check_permission</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="ReviewConfirm.php.html#224"><abbr title="Agnosis\Publishing\ReviewConfirm::is_post_request">is_post_request</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="ReviewEndpoints.php.html#220"><abbr title="Agnosis\Publishing\ReviewEndpoints::extract_image_blocks">extract_image_blocks</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="SubmissionsPage.php.html#159"><abbr title="Agnosis\Publishing\SubmissionsPage::require_logged_in">require_logged_in</abbr></a></td><td class="text-right">6</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.3.32</a> and <a href="https://phpunit.de/">PHPUnit 9.6.34</a> at Mon Jul 6 20:16:40 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([6,1,0,0,0,0,0,0,0,0,0,0], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([75,0,0,2,0,0,0,0,0,0,0,3], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[0,18,"<a href=\"GalleryOverview.php.html#16\">Agnosis\\Publishing\\GalleryOverview<\/a>"],[0,68,"<a href=\"Notification.php.html#25\">Agnosis\\Publishing\\Notification<\/a>"],[3.8461538461538463,211,"<a href=\"PostCreator.php.html#45\">Agnosis\\Publishing\\PostCreator<\/a>"],[0,16,"<a href=\"RemovalEndpoints.php.html#27\">Agnosis\\Publishing\\RemovalEndpoints<\/a>"],[0,17,"<a href=\"ReviewConfirm.php.html#42\">Agnosis\\Publishing\\ReviewConfirm<\/a>"],[0,42,"<a href=\"ReviewEndpoints.php.html#27\">Agnosis\\Publishing\\ReviewEndpoints<\/a>"],[0,36,"<a href=\"SubmissionsPage.php.html#29\">Agnosis\\Publishing\\SubmissionsPage<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[0,4,"<a href=\"GalleryOverview.php.html#32\">Agnosis\\Publishing\\GalleryOverview::flush_artist_cache<\/a>"],[0,1,"<a href=\"GalleryOverview.php.html#48\">Agnosis\\Publishing\\GalleryOverview::register_block<\/a>"],[0,3,"<a href=\"GalleryOverview.php.html#66\">Agnosis\\Publishing\\GalleryOverview::render_block<\/a>"],[0,1,"<a href=\"GalleryOverview.php.html#96\">Agnosis\\Publishing\\GalleryOverview::register_meta<\/a>"],[0,1,"<a href=\"GalleryOverview.php.html#120\">Agnosis\\Publishing\\GalleryOverview::register_meta_box<\/a>"],[0,1,"<a href=\"GalleryOverview.php.html#136\">Agnosis\\Publishing\\GalleryOverview::render_meta_box<\/a>"],[0,7,"<a href=\"GalleryOverview.php.html#164\">Agnosis\\Publishing\\GalleryOverview::save_meta_box<\/a>"],[0,6,"<a href=\"Notification.php.html#37\">Agnosis\\Publishing\\Notification::on_removal_requested<\/a>"],[0,14,"<a href=\"Notification.php.html#83\">Agnosis\\Publishing\\Notification::on_post_drafted<\/a>"],[0,4,"<a href=\"Notification.php.html#172\">Agnosis\\Publishing\\Notification::build_removal_email<\/a>"],[0,21,"<a href=\"Notification.php.html#316\">Agnosis\\Publishing\\Notification::build_email<\/a>"],[0,1,"<a href=\"Notification.php.html#534\">Agnosis\\Publishing\\Notification::action_url<\/a>"],[0,2,"<a href=\"Notification.php.html#559\">Agnosis\\Publishing\\Notification::submissions_page_url<\/a>"],[0,5,"<a href=\"Notification.php.html#583\">Agnosis\\Publishing\\Notification::on_submission_rejected<\/a>"],[0,6,"<a href=\"Notification.php.html#626\">Agnosis\\Publishing\\Notification::issues_to_advice<\/a>"],[0,6,"<a href=\"Notification.php.html#688\">Agnosis\\Publishing\\Notification::build_rejection_email<\/a>"],[0,1,"<a href=\"Notification.php.html#812\">Agnosis\\Publishing\\Notification::sender_header<\/a>"],[0,2,"<a href=\"Notification.php.html#826\">Agnosis\\Publishing\\Notification::html_lang<\/a>"],[100,1,"<a href=\"PostCreator.php.html#110\">Agnosis\\Publishing\\PostCreator::__construct<\/a>"],[0,44,"<a href=\"PostCreator.php.html#120\">Agnosis\\Publishing\\PostCreator::handle<\/a>"],[0,14,"<a href=\"PostCreator.php.html#422\">Agnosis\\Publishing\\PostCreator::resolve_post_type<\/a>"],[100,3,"<a href=\"PostCreator.php.html#470\">Agnosis\\Publishing\\PostCreator::resolve_indicator<\/a>"],[0,3,"<a href=\"PostCreator.php.html#501\">Agnosis\\Publishing\\PostCreator::find_singleton_post<\/a>"],[0,19,"<a href=\"PostCreator.php.html#550\">Agnosis\\Publishing\\PostCreator::find_duplicate_post<\/a>"],[0,4,"<a href=\"PostCreator.php.html#705\">Agnosis\\Publishing\\PostCreator::find_post_by_subject<\/a>"],[0,3,"<a href=\"PostCreator.php.html#736\">Agnosis\\Publishing\\PostCreator::handle_removal_request<\/a>"],[0,3,"<a href=\"PostCreator.php.html#789\">Agnosis\\Publishing\\PostCreator::handle_promotion_request<\/a>"],[0,2,"<a href=\"PostCreator.php.html#835\">Agnosis\\Publishing\\PostCreator::set_featured<\/a>"],[0,20,"<a href=\"PostCreator.php.html#866\">Agnosis\\Publishing\\PostCreator::create_post<\/a>"],[0,13,"<a href=\"PostCreator.php.html#986\">Agnosis\\Publishing\\PostCreator::merge_gallery<\/a>"],[0,4,"<a href=\"PostCreator.php.html#1083\">Agnosis\\Publishing\\PostCreator::upload_video<\/a>"],[28.57142857142857,8,"<a href=\"PostCreator.php.html#1137\">Agnosis\\Publishing\\PostCreator::build_post_content<\/a>"],[25,8,"<a href=\"PostCreator.php.html#1192\">Agnosis\\Publishing\\PostCreator::build_external_link_embeds<\/a>"],[0,6,"<a href=\"PostCreator.php.html#1253\">Agnosis\\Publishing\\PostCreator::is_allowed_embed_host<\/a>"],[0,6,"<a href=\"PostCreator.php.html#1293\">Agnosis\\Publishing\\PostCreator::build_embed_block<\/a>"],[0,9,"<a href=\"PostCreator.php.html#1321\">Agnosis\\Publishing\\PostCreator::write_post_meta<\/a>"],[0,4,"<a href=\"PostCreator.php.html#1380\">Agnosis\\Publishing\\PostCreator::pick_thumbnail_id<\/a>"],[0,7,"<a href=\"PostCreator.php.html#1413\">Agnosis\\Publishing\\PostCreator::upload_media<\/a>"],[0,3,"<a href=\"PostCreator.php.html#1491\">Agnosis\\Publishing\\PostCreator::primary_result<\/a>"],[0,3,"<a href=\"PostCreator.php.html#1506\">Agnosis\\Publishing\\PostCreator::build_gallery_block<\/a>"],[0,4,"<a href=\"PostCreator.php.html#1529\">Agnosis\\Publishing\\PostCreator::build_image_block<\/a>"],[0,5,"<a href=\"PostCreator.php.html#1554\">Agnosis\\Publishing\\PostCreator::build_video_block<\/a>"],[0,2,"<a href=\"PostCreator.php.html#1578\">Agnosis\\Publishing\\PostCreator::build_audio_block<\/a>"],[0,6,"<a href=\"PostCreator.php.html#1620\">Agnosis\\Publishing\\PostCreator::make_slug<\/a>"],[100,1,"<a href=\"PostCreator.php.html#1649\">Agnosis\\Publishing\\PostCreator::generate_token<\/a>"],[0,1,"<a href=\"PostCreator.php.html#1664\">Agnosis\\Publishing\\PostCreator::mime_for_extension<\/a>"],[0,2,"<a href=\"PostCreator.php.html#1675\">Agnosis\\Publishing\\PostCreator::filesystem<\/a>"],[0,3,"<a href=\"PostCreator.php.html#1690\">Agnosis\\Publishing\\PostCreator::mark<\/a>"],[0,3,"<a href=\"RemovalEndpoints.php.html#44\">Agnosis\\Publishing\\RemovalEndpoints::register_routes<\/a>"],[0,6,"<a href=\"RemovalEndpoints.php.html#81\">Agnosis\\Publishing\\RemovalEndpoints::confirm<\/a>"],[0,1,"<a href=\"RemovalEndpoints.php.html#142\">Agnosis\\Publishing\\RemovalEndpoints::type_label<\/a>"],[0,2,"<a href=\"RemovalEndpoints.php.html#174\">Agnosis\\Publishing\\RemovalEndpoints::check_permission<\/a>"],[0,4,"<a href=\"RemovalEndpoints.php.html#185\">Agnosis\\Publishing\\RemovalEndpoints::verify_token<\/a>"],[0,9,"<a href=\"ReviewConfirm.php.html#57\">Agnosis\\Publishing\\ReviewConfirm::handle_confirm<\/a>"],[0,5,"<a href=\"ReviewConfirm.php.html#117\">Agnosis\\Publishing\\ReviewConfirm::handle_result<\/a>"],[0,1,"<a href=\"ReviewConfirm.php.html#174\">Agnosis\\Publishing\\ReviewConfirm::render_confirm<\/a>"],[0,2,"<a href=\"ReviewConfirm.php.html#224\">Agnosis\\Publishing\\ReviewConfirm::is_post_request<\/a>"],[0,1,"<a href=\"ReviewEndpoints.php.html#29\">Agnosis\\Publishing\\ReviewEndpoints::register_routes<\/a>"],[0,14,"<a href=\"ReviewEndpoints.php.html#80\">Agnosis\\Publishing\\ReviewEndpoints::save<\/a>"],[0,6,"<a href=\"ReviewEndpoints.php.html#141\">Agnosis\\Publishing\\ReviewEndpoints::approve<\/a>"],[0,5,"<a href=\"ReviewEndpoints.php.html#180\">Agnosis\\Publishing\\ReviewEndpoints::reject<\/a>"],[0,2,"<a href=\"ReviewEndpoints.php.html#220\">Agnosis\\Publishing\\ReviewEndpoints::extract_image_blocks<\/a>"],[0,3,"<a href=\"ReviewEndpoints.php.html#252\">Agnosis\\Publishing\\ReviewEndpoints::check_permission<\/a>"],[0,6,"<a href=\"ReviewEndpoints.php.html#266\">Agnosis\\Publishing\\ReviewEndpoints::check_access<\/a>"],[0,5,"<a href=\"ReviewEndpoints.php.html#306\">Agnosis\\Publishing\\ReviewEndpoints::verify_token<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#34\">Agnosis\\Publishing\\SubmissionsPage::register_shortcode<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#45\">Agnosis\\Publishing\\SubmissionsPage::register_block<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#59\">Agnosis\\Publishing\\SubmissionsPage::add_block_category<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#68\">Agnosis\\Publishing\\SubmissionsPage::register_routes<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#86\">Agnosis\\Publishing\\SubmissionsPage::render_shortcode<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#97\">Agnosis\\Publishing\\SubmissionsPage::render_block<\/a>"],[0,4,"<a href=\"SubmissionsPage.php.html#110\">Agnosis\\Publishing\\SubmissionsPage::render<\/a>"],[0,5,"<a href=\"SubmissionsPage.php.html#139\">Agnosis\\Publishing\\SubmissionsPage::get_mine<\/a>"],[0,2,"<a href=\"SubmissionsPage.php.html#159\">Agnosis\\Publishing\\SubmissionsPage::require_logged_in<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#175\">Agnosis\\Publishing\\SubmissionsPage::fetch_drafts<\/a>"],[0,5,"<a href=\"SubmissionsPage.php.html#199\">Agnosis\\Publishing\\SubmissionsPage::render_card<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#307\">Agnosis\\Publishing\\SubmissionsPage::enqueue_assets<\/a>"],[0,4,"<a href=\"SubmissionsPage.php.html#517\">Agnosis\\Publishing\\SubmissionsPage::render_login_form<\/a>"],[0,1,"<a href=\"SubmissionsPage.php.html#597\">Agnosis\\Publishing\\SubmissionsPage::append_turnstile_to_login_form<\/a>"],[0,7,"<a href=\"SubmissionsPage.php.html#620\">Agnosis\\Publishing\\SubmissionsPage::authenticate_turnstile<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>

@@ -332,6 +332,80 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// Uncaught exceptions during send (regression, fixed 2026-07-06)
+	// =========================================================================
+
+	/**
+	 * Regression test: a single recipient's send_one() throwing (a bad locale
+	 * render, a branding/image error building that particular email, etc.)
+	 * previously killed the whole batch loop before reconcile_sending_issues()
+	 * at the end of process() was ever reached — leaving every currently-
+	 * 'sending' issue, not just the one whose recipient errored, permanently
+	 * stuck ("Sending…" with Send Now disabled on the admin dashboard), since
+	 * the exact same failure recurred on every subsequent cron tick before
+	 * reconcile ever ran again. send_one() is now called inside a try/catch,
+	 * so a throw is treated exactly like a normal wp_mail() failure (retried,
+	 * bounded) and never blocks the rest of the batch or reconciliation.
+	 */
+	public function test_one_recipient_throwing_does_not_abort_the_rest_of_the_batch(): void {
+		$this->create_confirmed_subscriber( 'throws@example.com' );
+		$this->create_confirmed_subscriber( 'ok@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$filter = function ( $pre, array $atts ) {
+			if ( 'throws@example.com' === $atts['to'] ) {
+				throw new \RuntimeException( 'simulated failure building this recipient\'s email' );
+			}
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 2 );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		global $wpdb;
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT recipient_email, status, attempts FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d",
+				$issue->id
+			),
+			ARRAY_A
+		);
+		$by_email = array_column( $rows, null, 'recipient_email' );
+
+		$this->assertSame( 'sent', $by_email['ok@example.com']['status'], 'A throwing sibling recipient must not prevent this one from sending.' );
+		$this->assertSame( 'pending', $by_email['throws@example.com']['status'], 'A thrown exception must be treated as a retryable failure, not lost.' );
+		$this->assertSame( 1, (int) $by_email['throws@example.com']['attempts'] );
+	}
+
+	/**
+	 * Once the throwing recipient exhausts MAX_ATTEMPTS and becomes terminally
+	 * 'failed', the issue must still be reconciled to 'sent' — reconcile_sending_issues()
+	 * must never be skipped just because every tick's loop encountered a throw.
+	 */
+	public function test_issue_completes_after_a_persistently_throwing_recipient_exhausts_retries(): void {
+		$this->create_confirmed_subscriber( 'throws@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$filter = function () {
+			throw new \RuntimeException( 'simulated persistent failure' );
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 2 );
+		$this->processor->process();
+		$this->processor->process();
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$issue_after = $this->latest_issue( 'public' );
+		$this->assertSame( 'sent', $issue_after->status, 'The issue must still be reconciled even though every tick threw.' );
+
+		$row = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'failed', $row->status );
+		$this->assertSame( 3, (int) $row->attempts );
+	}
+
+	// =========================================================================
 	// Orphaned rows (issue deleted mid-send)
 	// =========================================================================
 

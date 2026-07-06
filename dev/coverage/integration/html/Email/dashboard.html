@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /var/www/html/wp-content/plugins/agnosis/includes/Email</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/var/www/html/wp-content/plugins/agnosis/includes</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Email</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="EmailAuth.php.html#24">Agnosis\Email\EmailAuth</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#18">Agnosis\Email\Parser</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Webhook.php.html#25">Agnosis\Email\Webhook</a></td><td class="text-right">10%</td></tr>
+       <tr><td><a href="Inbox.php.html#27">Agnosis\Email\Inbox</a></td><td class="text-right">17%</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#31">Agnosis\Email\AttachmentStore</a></td><td class="text-right">82%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Inbox.php.html#27">Agnosis\Email\Inbox</a></td><td class="text-right">5081</td></tr>
+       <tr><td><a href="Parser.php.html#18">Agnosis\Email\Parser</a></td><td class="text-right">600</td></tr>
+       <tr><td><a href="Webhook.php.html#25">Agnosis\Email\Webhook</a></td><td class="text-right">404</td></tr>
+       <tr><td><a href="EmailAuth.php.html#24">Agnosis\Email\EmailAuth</a></td><td class="text-right">182</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#31">Agnosis\Email\AttachmentStore</a></td><td class="text-right">37</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="EmailAuth.php.html#36"><abbr title="Agnosis\Email\EmailAuth::check_header">check_header</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailAuth.php.html#56"><abbr title="Agnosis\Email\EmailAuth::extract_from_mailgun_payload">extract_from_mailgun_payload</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailAuth.php.html#92"><abbr title="Agnosis\Email\EmailAuth::passes">passes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailAuth.php.html#108"><abbr title="Agnosis\Email\EmailAuth::extract_verdict">extract_verdict</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#61"><abbr title="Agnosis\Email\Inbox::schedule_poll">schedule_poll</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#68"><abbr title="Agnosis\Email\Inbox::schedule_cleanup">schedule_cleanup</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#81"><abbr title="Agnosis\Email\Inbox::cleanup">cleanup</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#103"><abbr title="Agnosis\Email\Inbox::force_reprocess">force_reprocess</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#163"><abbr title="Agnosis\Email\Inbox::test_connection">test_connection</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#283"><abbr title="Agnosis\Email\Inbox::get_inbox_folder">get_inbox_folder</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#313"><abbr title="Agnosis\Email\Inbox::exception_chain">exception_chain</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#351"><abbr title="Agnosis\Email\Inbox::make_client">make_client</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#535"><abbr title="Agnosis\Email\Inbox::query_messages">query_messages</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#566"><abbr title="Agnosis\Email\Inbox::handle_goodbye_email">handle_goodbye_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#624"><abbr title="Agnosis\Email\Inbox::is_admitted_artist">is_admitted_artist</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#722"><abbr title="Agnosis\Email\Inbox::reset_queue_row">reset_queue_row</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#740"><abbr title="Agnosis\Email\Inbox::enqueue">enqueue</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#812"><abbr title="Agnosis\Email\Inbox::cleanup_imap">cleanup_imap</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#850"><abbr title="Agnosis\Email\Inbox::cleanup_queue">cleanup_queue</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#110"><abbr title="Agnosis\Email\Parser::parse_imap_message">parse_imap_message</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#181"><abbr title="Agnosis\Email\Parser::parse_webhook_payload">parse_webhook_payload</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#229"><abbr title="Agnosis\Email\Parser::is_allowed_mime">is_allowed_mime</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#234"><abbr title="Agnosis\Email\Parser::max_bytes_for">max_bytes_for</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#246"><abbr title="Agnosis\Email\Parser::extension_for">extension_for</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#250"><abbr title="Agnosis\Email\Parser::clean_text">clean_text</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Parser.php.html#260"><abbr title="Agnosis\Email\Parser::resolve_artist">resolve_artist</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Webhook.php.html#39"><abbr title="Agnosis\Email\Webhook::handle">handle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Webhook.php.html#154"><abbr title="Agnosis\Email\Webhook::verify_signature">verify_signature</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Inbox.php.html#648"><abbr title="Agnosis\Email\Inbox::is_already_queued">is_already_queued</abbr></a></td><td class="text-right">17%</td></tr>
+       <tr><td><a href="Inbox.php.html#210"><abbr title="Agnosis\Email\Inbox::poll">poll</abbr></a></td><td class="text-right">25%</td></tr>
+       <tr><td><a href="Inbox.php.html#390"><abbr title="Agnosis\Email\Inbox::process_messages">process_messages</abbr></a></td><td class="text-right">35%</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#53"><abbr title="Agnosis\Email\AttachmentStore::store">store</abbr></a></td><td class="text-right">63%</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#153"><abbr title="Agnosis\Email\AttachmentStore::ensure_protected">ensure_protected</abbr></a></td><td class="text-right">66%</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#220"><abbr title="Agnosis\Email\AttachmentStore::rmdir_recursive">rmdir_recursive</abbr></a></td><td class="text-right">80%</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#204"><abbr title="Agnosis\Email\AttachmentStore::filesystem">filesystem</abbr></a></td><td class="text-right">87%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Webhook.php.html#39"><abbr title="Agnosis\Email\Webhook::handle">handle</abbr></a></td><td class="text-right">240</td></tr>
+       <tr><td><a href="Inbox.php.html#390"><abbr title="Agnosis\Email\Inbox::process_messages">process_messages</abbr></a></td><td class="text-right">151</td></tr>
+       <tr><td><a href="EmailAuth.php.html#56"><abbr title="Agnosis\Email\EmailAuth::extract_from_mailgun_payload">extract_from_mailgun_payload</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Inbox.php.html#740"><abbr title="Agnosis\Email\Inbox::enqueue">enqueue</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Parser.php.html#110"><abbr title="Agnosis\Email\Parser::parse_imap_message">parse_imap_message</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Inbox.php.html#648"><abbr title="Agnosis\Email\Inbox::is_already_queued">is_already_queued</abbr></a></td><td class="text-right">65</td></tr>
+       <tr><td><a href="Parser.php.html#181"><abbr title="Agnosis\Email\Parser::parse_webhook_payload">parse_webhook_payload</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Webhook.php.html#154"><abbr title="Agnosis\Email\Webhook::verify_signature">verify_signature</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Inbox.php.html#163"><abbr title="Agnosis\Email\Inbox::test_connection">test_connection</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="Inbox.php.html#812"><abbr title="Agnosis\Email\Inbox::cleanup_imap">cleanup_imap</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Inbox.php.html#103"><abbr title="Agnosis\Email\Inbox::force_reprocess">force_reprocess</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Inbox.php.html#283"><abbr title="Agnosis\Email\Inbox::get_inbox_folder">get_inbox_folder</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Inbox.php.html#313"><abbr title="Agnosis\Email\Inbox::exception_chain">exception_chain</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Inbox.php.html#566"><abbr title="Agnosis\Email\Inbox::handle_goodbye_email">handle_goodbye_email</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Inbox.php.html#850"><abbr title="Agnosis\Email\Inbox::cleanup_queue">cleanup_queue</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Parser.php.html#234"><abbr title="Agnosis\Email\Parser::max_bytes_for">max_bytes_for</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Parser.php.html#260"><abbr title="Agnosis\Email\Parser::resolve_artist">resolve_artist</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Inbox.php.html#210"><abbr title="Agnosis\Email\Inbox::poll">poll</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#220"><abbr title="Agnosis\Email\AttachmentStore::rmdir_recursive">rmdir_recursive</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#53"><abbr title="Agnosis\Email\AttachmentStore::store">store</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="EmailAuth.php.html#92"><abbr title="Agnosis\Email\EmailAuth::passes">passes</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="EmailAuth.php.html#108"><abbr title="Agnosis\Email\EmailAuth::extract_verdict">extract_verdict</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Inbox.php.html#61"><abbr title="Agnosis\Email\Inbox::schedule_poll">schedule_poll</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Inbox.php.html#68"><abbr title="Agnosis\Email\Inbox::schedule_cleanup">schedule_cleanup</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Inbox.php.html#351"><abbr title="Agnosis\Email\Inbox::make_client">make_client</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Inbox.php.html#535"><abbr title="Agnosis\Email\Inbox::query_messages">query_messages</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#153"><abbr title="Agnosis\Email\AttachmentStore::ensure_protected">ensure_protected</abbr></a></td><td class="text-right">5</td></tr>
+       <tr><td><a href="AttachmentStore.php.html#204"><abbr title="Agnosis\Email\AttachmentStore::filesystem">filesystem</abbr></a></td><td class="text-right">3</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.3.31</a> and <a href="https://phpunit.de/">PHPUnit 9.6.34</a> at Mon Jul 6 18:40:08 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([2,0,2,0,0,0,0,0,0,1,0,0], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([28,0,1,1,1,0,0,2,0,2,1,9], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[82.43243243243244,32,"<a href=\"AttachmentStore.php.html#31\">Agnosis\\Email\\AttachmentStore<\/a>"],[0,13,"<a href=\"EmailAuth.php.html#24\">Agnosis\\Email\\EmailAuth<\/a>"],[17.355371900826448,94,"<a href=\"Inbox.php.html#27\">Agnosis\\Email\\Inbox<\/a>"],[0,24,"<a href=\"Parser.php.html#18\">Agnosis\\Email\\Parser<\/a>"],[10.344827586206897,23,"<a href=\"Webhook.php.html#25\">Agnosis\\Email\\Webhook<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[63.63636363636363,5,"<a href=\"AttachmentStore.php.html#53\">Agnosis\\Email\\AttachmentStore::store<\/a>"],[100,2,"<a href=\"AttachmentStore.php.html#80\">Agnosis\\Email\\AttachmentStore::delete_dir<\/a>"],[92.3076923076923,9,"<a href=\"AttachmentStore.php.html#96\">Agnosis\\Email\\AttachmentStore::sweep_orphans<\/a>"],[66.66666666666666,5,"<a href=\"AttachmentStore.php.html#153\">Agnosis\\Email\\AttachmentStore::ensure_protected<\/a>"],[100,1,"<a href=\"AttachmentStore.php.html#183\">Agnosis\\Email\\AttachmentStore::queue_base_dir<\/a>"],[100,1,"<a href=\"AttachmentStore.php.html#189\">Agnosis\\Email\\AttachmentStore::uid_dir<\/a>"],[87.5,3,"<a href=\"AttachmentStore.php.html#204\">Agnosis\\Email\\AttachmentStore::filesystem<\/a>"],[80,6,"<a href=\"AttachmentStore.php.html#220\">Agnosis\\Email\\AttachmentStore::rmdir_recursive<\/a>"],[0,1,"<a href=\"EmailAuth.php.html#36\">Agnosis\\Email\\EmailAuth::check_header<\/a>"],[0,8,"<a href=\"EmailAuth.php.html#56\">Agnosis\\Email\\EmailAuth::extract_from_mailgun_payload<\/a>"],[0,2,"<a href=\"EmailAuth.php.html#92\">Agnosis\\Email\\EmailAuth::passes<\/a>"],[0,2,"<a href=\"EmailAuth.php.html#108\">Agnosis\\Email\\EmailAuth::extract_verdict<\/a>"],[100,1,"<a href=\"Inbox.php.html#31\">Agnosis\\Email\\Inbox::__construct<\/a>"],[100,2,"<a href=\"Inbox.php.html#49\">Agnosis\\Email\\Inbox::register_interval<\/a>"],[0,2,"<a href=\"Inbox.php.html#61\">Agnosis\\Email\\Inbox::schedule_poll<\/a>"],[0,2,"<a href=\"Inbox.php.html#68\">Agnosis\\Email\\Inbox::schedule_cleanup<\/a>"],[0,1,"<a href=\"Inbox.php.html#81\">Agnosis\\Email\\Inbox::cleanup<\/a>"],[0,4,"<a href=\"Inbox.php.html#103\">Agnosis\\Email\\Inbox::force_reprocess<\/a>"],[0,6,"<a href=\"Inbox.php.html#163\">Agnosis\\Email\\Inbox::test_connection<\/a>"],[25,3,"<a href=\"Inbox.php.html#210\">Agnosis\\Email\\Inbox::poll<\/a>"],[100,3,"<a href=\"Inbox.php.html#238\">Agnosis\\Email\\Inbox::drain_pending<\/a>"],[0,4,"<a href=\"Inbox.php.html#283\">Agnosis\\Email\\Inbox::get_inbox_folder<\/a>"],[0,4,"<a href=\"Inbox.php.html#313\">Agnosis\\Email\\Inbox::exception_chain<\/a>"],[100,3,"<a href=\"Inbox.php.html#328\">Agnosis\\Email\\Inbox::is_configured<\/a>"],[0,2,"<a href=\"Inbox.php.html#351\">Agnosis\\Email\\Inbox::make_client<\/a>"],[35.483870967741936,22,"<a href=\"Inbox.php.html#390\">Agnosis\\Email\\Inbox::process_messages<\/a>"],[0,2,"<a href=\"Inbox.php.html#535\">Agnosis\\Email\\Inbox::query_messages<\/a>"],[0,4,"<a href=\"Inbox.php.html#566\">Agnosis\\Email\\Inbox::handle_goodbye_email<\/a>"],[100,1,"<a href=\"Inbox.php.html#605\">Agnosis\\Email\\Inbox::mark_no_artwork<\/a>"],[0,1,"<a href=\"Inbox.php.html#624\">Agnosis\\Email\\Inbox::is_admitted_artist<\/a>"],[17.77777777777778,10,"<a href=\"Inbox.php.html#648\">Agnosis\\Email\\Inbox::is_already_queued<\/a>"],[0,1,"<a href=\"Inbox.php.html#722\">Agnosis\\Email\\Inbox::reset_queue_row<\/a>"],[0,8,"<a href=\"Inbox.php.html#740\">Agnosis\\Email\\Inbox::enqueue<\/a>"],[0,5,"<a href=\"Inbox.php.html#812\">Agnosis\\Email\\Inbox::cleanup_imap<\/a>"],[0,3,"<a href=\"Inbox.php.html#850\">Agnosis\\Email\\Inbox::cleanup_queue<\/a>"],[0,8,"<a href=\"Parser.php.html#110\">Agnosis\\Email\\Parser::parse_imap_message<\/a>"],[0,7,"<a href=\"Parser.php.html#181\">Agnosis\\Email\\Parser::parse_webhook_payload<\/a>"],[0,1,"<a href=\"Parser.php.html#229\">Agnosis\\Email\\Parser::is_allowed_mime<\/a>"],[0,3,"<a href=\"Parser.php.html#234\">Agnosis\\Email\\Parser::max_bytes_for<\/a>"],[0,1,"<a href=\"Parser.php.html#246\">Agnosis\\Email\\Parser::extension_for<\/a>"],[0,1,"<a href=\"Parser.php.html#250\">Agnosis\\Email\\Parser::clean_text<\/a>"],[0,3,"<a href=\"Parser.php.html#260\">Agnosis\\Email\\Parser::resolve_artist<\/a>"],[100,1,"<a href=\"Webhook.php.html#27\">Agnosis\\Email\\Webhook::register_routes<\/a>"],[0,15,"<a href=\"Webhook.php.html#39\">Agnosis\\Email\\Webhook::handle<\/a>"],[0,7,"<a href=\"Webhook.php.html#154\">Agnosis\\Email\\Webhook::verify_signature<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>

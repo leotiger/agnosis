@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /Users/tiger/Github/agnosis/includes/Newsletter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/Users/tiger/Github/agnosis/includes</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Newsletter</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Archive.php.html#35">Agnosis\Newsletter\Archive</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#27">Agnosis\Newsletter\Digest</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Mailer.php.html#15">Agnosis\Newsletter\Mailer</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#26">Agnosis\Newsletter\PopoverBlock</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#25">Agnosis\Newsletter\QueueProcessor</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#36">Agnosis\Newsletter\Scheduler</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SignupBlock.php.html#23">Agnosis\Newsletter\SignupBlock</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#22">Agnosis\Newsletter\Subscriber</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscription.php.html#29">Agnosis\Newsletter\Subscription</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#43">Agnosis\Newsletter\SubscriptionConfirm</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Tokens.php.html#18">Agnosis\Newsletter\Tokens</a></td><td class="text-right">0%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Scheduler.php.html#36">Agnosis\Newsletter\Scheduler</a></td><td class="text-right">1806</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#43">Agnosis\Newsletter\SubscriptionConfirm</a></td><td class="text-right">1406</td></tr>
+       <tr><td><a href="Digest.php.html#27">Agnosis\Newsletter\Digest</a></td><td class="text-right">812</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#25">Agnosis\Newsletter\QueueProcessor</a></td><td class="text-right">702</td></tr>
+       <tr><td><a href="Archive.php.html#35">Agnosis\Newsletter\Archive</a></td><td class="text-right">650</td></tr>
+       <tr><td><a href="Subscriber.php.html#22">Agnosis\Newsletter\Subscriber</a></td><td class="text-right">552</td></tr>
+       <tr><td><a href="Subscription.php.html#29">Agnosis\Newsletter\Subscription</a></td><td class="text-right">182</td></tr>
+       <tr><td><a href="Mailer.php.html#15">Agnosis\Newsletter\Mailer</a></td><td class="text-right">156</td></tr>
+       <tr><td><a href="SignupBlock.php.html#23">Agnosis\Newsletter\SignupBlock</a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#26">Agnosis\Newsletter\PopoverBlock</a></td><td class="text-right">20</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Archive.php.html#48"><abbr title="Agnosis\Newsletter\Archive::register_routes">register_routes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#63"><abbr title="Agnosis\Newsletter\Archive::dispatch">dispatch</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#81"><abbr title="Agnosis\Newsletter\Archive::archive_url">archive_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#86"><abbr title="Agnosis\Newsletter\Archive::issue_permalink">issue_permalink</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#94"><abbr title="Agnosis\Newsletter\Archive::render_issue">render_issue</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#142"><abbr title="Agnosis\Newsletter\Archive::render_index">render_index</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#225"><abbr title="Agnosis\Newsletter\Archive::index_page_url">index_page_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#234"><abbr title="Agnosis\Newsletter\Archive::issue_title">issue_title</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Archive.php.html#253"><abbr title="Agnosis\Newsletter\Archive::issue_description">issue_description</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#41"><abbr title="Agnosis\Newsletter\Digest::build_public">build_public</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#75"><abbr title="Agnosis\Newsletter\Digest::build_artist">build_artist</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#126"><abbr title="Agnosis\Newsletter\Digest::recent_posts">recent_posts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#168"><abbr title="Agnosis\Newsletter\Digest::localized_post">localized_post</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#191"><abbr title="Agnosis\Newsletter\Digest::render_post_list">render_post_list</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#239"><abbr title="Agnosis\Newsletter\Digest::newly_admitted_artists">newly_admitted_artists</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Digest.php.html#255"><abbr title="Agnosis\Newsletter\Digest::open_vote_count">open_vote_count</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Mailer.php.html#22"><abbr title="Agnosis\Newsletter\Mailer::build_email">build_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Mailer.php.html#60"><abbr title="Agnosis\Newsletter\Mailer::build_body">build_body</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Mailer.php.html#125"><abbr title="Agnosis\Newsletter\Mailer::build_subject">build_subject</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Mailer.php.html#145"><abbr title="Agnosis\Newsletter\Mailer::sender_header">sender_header</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#51"><abbr title="Agnosis\Newsletter\PopoverBlock::register_block">register_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#69"><abbr title="Agnosis\Newsletter\PopoverBlock::render_block">render_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#141"><abbr title="Agnosis\Newsletter\PopoverBlock::enqueue_assets">enqueue_assets</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#37"><abbr title="Agnosis\Newsletter\QueueProcessor::process">process</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#122"><abbr title="Agnosis\Newsletter\QueueProcessor::reconcile_sending_issues">reconcile_sending_issues</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#140"><abbr title="Agnosis\Newsletter\QueueProcessor::send_one">send_one</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#209"><abbr title="Agnosis\Newsletter\QueueProcessor::mark_terminal">mark_terminal</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#227"><abbr title="Agnosis\Newsletter\QueueProcessor::record_failed_attempt">record_failed_attempt</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#253"><abbr title="Agnosis\Newsletter\QueueProcessor::maybe_complete_issue">maybe_complete_issue</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#44"><abbr title="Agnosis\Newsletter\Scheduler::prepare">prepare</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#69"><abbr title="Agnosis\Newsletter\Scheduler::send_now">send_now</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#92"><abbr title="Agnosis\Newsletter\Scheduler::send_test">send_test</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#135"><abbr title="Agnosis\Newsletter\Scheduler::is_due">is_due</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#163"><abbr title="Agnosis\Newsletter\Scheduler::has_issue_in_flight">has_issue_in_flight</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#178"><abbr title="Agnosis\Newsletter\Scheduler::last_sent_at">last_sent_at</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#207"><abbr title="Agnosis\Newsletter\Scheduler::since_window">since_window</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#237"><abbr title="Agnosis\Newsletter\Scheduler::prepare_type">prepare_type</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#320"><abbr title="Agnosis\Newsletter\Scheduler::effective_locale">effective_locale</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#329"><abbr title="Agnosis\Newsletter\Scheduler::render_locale_content">render_locale_content</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#369"><abbr title="Agnosis\Newsletter\Scheduler::resolve_lf_lang">resolve_lf_lang</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#380"><abbr title="Agnosis\Newsletter\Scheduler::artist_recipients">artist_recipients</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Scheduler.php.html#408"><abbr title="Agnosis\Newsletter\Scheduler::public_recipients">public_recipients</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SignupBlock.php.html#30"><abbr title="Agnosis\Newsletter\SignupBlock::register_block">register_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SignupBlock.php.html#42"><abbr title="Agnosis\Newsletter\SignupBlock::render_block">render_block</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SignupBlock.php.html#125"><abbr title="Agnosis\Newsletter\SignupBlock::enqueue_assets">enqueue_assets</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#60"><abbr title="Agnosis\Newsletter\Subscriber::subscribe">subscribe</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#167"><abbr title="Agnosis\Newsletter\Subscriber::expire_stale_pending">expire_stale_pending</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#191"><abbr title="Agnosis\Newsletter\Subscriber::confirm">confirm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#214"><abbr title="Agnosis\Newsletter\Subscriber::unsubscribe">unsubscribe</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#236"><abbr title="Agnosis\Newsletter\Subscriber::find_by_token">find_by_token</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#260"><abbr title="Agnosis\Newsletter\Subscriber::confirmed_recipients">confirmed_recipients</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#277"><abbr title="Agnosis\Newsletter\Subscriber::counts">counts</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscriber.php.html#311"><abbr title="Agnosis\Newsletter\Subscriber::counts_by_locale">counts_by_locale</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscription.php.html#31"><abbr title="Agnosis\Newsletter\Subscription::register_routes">register_routes</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscription.php.html#55"><abbr title="Agnosis\Newsletter\Subscription::rate_limit">rate_limit</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscription.php.html#59"><abbr title="Agnosis\Newsletter\Subscription::subscribe">subscribe</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Subscription.php.html#103"><abbr title="Agnosis\Newsletter\Subscription::send_confirmation_email">send_confirmation_email</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#45"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::register_hooks">register_hooks</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#51"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle">handle</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#110"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::is_post_request">is_post_request</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#120"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::is_one_click_post">is_one_click_post</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#131"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_one_click_unsubscribe">handle_one_click_unsubscribe</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#153"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_public">handle_public</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#170"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_artist_unsubscribe">handle_artist_unsubscribe</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#200"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_confirm">render_confirm</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#245"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_success">render_success</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#249"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_error">render_error</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#253"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_page">render_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Tokens.php.html#21"><abbr title="Agnosis\Newsletter\Tokens::artist_unsubscribe_token">artist_unsubscribe_token</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Tokens.php.html#26"><abbr title="Agnosis\Newsletter\Tokens::verify_artist_unsubscribe_token">verify_artist_unsubscribe_token</abbr></a></td><td class="text-right">0%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="SubscriptionConfirm.php.html#51"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle">handle</abbr></a></td><td class="text-right">156</td></tr>
+       <tr><td><a href="Subscriber.php.html#60"><abbr title="Agnosis\Newsletter\Subscriber::subscribe">subscribe</abbr></a></td><td class="text-right">110</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#37"><abbr title="Agnosis\Newsletter\QueueProcessor::process">process</abbr></a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#140"><abbr title="Agnosis\Newsletter\QueueProcessor::send_one">send_one</abbr></a></td><td class="text-right">90</td></tr>
+       <tr><td><a href="Digest.php.html#168"><abbr title="Agnosis\Newsletter\Digest::localized_post">localized_post</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Scheduler.php.html#329"><abbr title="Agnosis\Newsletter\Scheduler::render_locale_content">render_locale_content</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Subscription.php.html#59"><abbr title="Agnosis\Newsletter\Subscription::subscribe">subscribe</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Archive.php.html#142"><abbr title="Agnosis\Newsletter\Archive::render_index">render_index</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Digest.php.html#191"><abbr title="Agnosis\Newsletter\Digest::render_post_list">render_post_list</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Scheduler.php.html#237"><abbr title="Agnosis\Newsletter\Scheduler::prepare_type">prepare_type</abbr></a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="Digest.php.html#41"><abbr title="Agnosis\Newsletter\Digest::build_public">build_public</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Mailer.php.html#60"><abbr title="Agnosis\Newsletter\Mailer::build_body">build_body</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Scheduler.php.html#92"><abbr title="Agnosis\Newsletter\Scheduler::send_test">send_test</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Archive.php.html#94"><abbr title="Agnosis\Newsletter\Archive::render_issue">render_issue</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Digest.php.html#75"><abbr title="Agnosis\Newsletter\Digest::build_artist">build_artist</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Mailer.php.html#145"><abbr title="Agnosis\Newsletter\Mailer::sender_header">sender_header</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Scheduler.php.html#44"><abbr title="Agnosis\Newsletter\Scheduler::prepare">prepare</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SignupBlock.php.html#42"><abbr title="Agnosis\Newsletter\SignupBlock::render_block">render_block</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#131"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_one_click_unsubscribe">handle_one_click_unsubscribe</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#153"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_public">handle_public</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#170"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::handle_artist_unsubscribe">handle_artist_unsubscribe</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#253"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_page">render_page</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Archive.php.html#63"><abbr title="Agnosis\Newsletter\Archive::dispatch">dispatch</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Archive.php.html#234"><abbr title="Agnosis\Newsletter\Archive::issue_title">issue_title</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Archive.php.html#253"><abbr title="Agnosis\Newsletter\Archive::issue_description">issue_description</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#227"><abbr title="Agnosis\Newsletter\QueueProcessor::record_failed_attempt">record_failed_attempt</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Scheduler.php.html#69"><abbr title="Agnosis\Newsletter\Scheduler::send_now">send_now</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Scheduler.php.html#135"><abbr title="Agnosis\Newsletter\Scheduler::is_due">is_due</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Subscriber.php.html#277"><abbr title="Agnosis\Newsletter\Subscriber::counts">counts</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Subscription.php.html#103"><abbr title="Agnosis\Newsletter\Subscription::send_confirmation_email">send_confirmation_email</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Archive.php.html#225"><abbr title="Agnosis\Newsletter\Archive::index_page_url">index_page_url</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Digest.php.html#126"><abbr title="Agnosis\Newsletter\Digest::recent_posts">recent_posts</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Mailer.php.html#125"><abbr title="Agnosis\Newsletter\Mailer::build_subject">build_subject</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="PopoverBlock.php.html#69"><abbr title="Agnosis\Newsletter\PopoverBlock::render_block">render_block</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#122"><abbr title="Agnosis\Newsletter\QueueProcessor::reconcile_sending_issues">reconcile_sending_issues</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="QueueProcessor.php.html#253"><abbr title="Agnosis\Newsletter\QueueProcessor::maybe_complete_issue">maybe_complete_issue</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#178"><abbr title="Agnosis\Newsletter\Scheduler::last_sent_at">last_sent_at</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#207"><abbr title="Agnosis\Newsletter\Scheduler::since_window">since_window</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#320"><abbr title="Agnosis\Newsletter\Scheduler::effective_locale">effective_locale</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#369"><abbr title="Agnosis\Newsletter\Scheduler::resolve_lf_lang">resolve_lf_lang</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#380"><abbr title="Agnosis\Newsletter\Scheduler::artist_recipients">artist_recipients</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Scheduler.php.html#408"><abbr title="Agnosis\Newsletter\Scheduler::public_recipients">public_recipients</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Subscriber.php.html#167"><abbr title="Agnosis\Newsletter\Subscriber::expire_stale_pending">expire_stale_pending</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Subscriber.php.html#236"><abbr title="Agnosis\Newsletter\Subscriber::find_by_token">find_by_token</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Subscriber.php.html#260"><abbr title="Agnosis\Newsletter\Subscriber::confirmed_recipients">confirmed_recipients</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Subscriber.php.html#311"><abbr title="Agnosis\Newsletter\Subscriber::counts_by_locale">counts_by_locale</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#110"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::is_post_request">is_post_request</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#120"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::is_one_click_post">is_one_click_post</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="SubscriptionConfirm.php.html#200"><abbr title="Agnosis\Newsletter\SubscriptionConfirm::render_confirm">render_confirm</abbr></a></td><td class="text-right">6</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.3.32</a> and <a href="https://phpunit.de/">PHPUnit 9.6.34</a> at Mon Jul 6 20:16:40 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([11,0,0,0,0,0,0,0,0,0,0,0], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([70,0,0,0,0,0,0,0,0,0,0,0], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[0,25,"<a href=\"Archive.php.html#35\">Agnosis\\Newsletter\\Archive<\/a>"],[0,28,"<a href=\"Digest.php.html#27\">Agnosis\\Newsletter\\Digest<\/a>"],[0,12,"<a href=\"Mailer.php.html#15\">Agnosis\\Newsletter\\Mailer<\/a>"],[0,4,"<a href=\"PopoverBlock.php.html#26\">Agnosis\\Newsletter\\PopoverBlock<\/a>"],[0,26,"<a href=\"QueueProcessor.php.html#25\">Agnosis\\Newsletter\\QueueProcessor<\/a>"],[0,42,"<a href=\"Scheduler.php.html#36\">Agnosis\\Newsletter\\Scheduler<\/a>"],[0,6,"<a href=\"SignupBlock.php.html#23\">Agnosis\\Newsletter\\SignupBlock<\/a>"],[0,23,"<a href=\"Subscriber.php.html#22\">Agnosis\\Newsletter\\Subscriber<\/a>"],[0,13,"<a href=\"Subscription.php.html#29\">Agnosis\\Newsletter\\Subscription<\/a>"],[0,37,"<a href=\"SubscriptionConfirm.php.html#43\">Agnosis\\Newsletter\\SubscriptionConfirm<\/a>"],[0,2,"<a href=\"Tokens.php.html#18\">Agnosis\\Newsletter\\Tokens<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[0,1,"<a href=\"Archive.php.html#48\">Agnosis\\Newsletter\\Archive::register_routes<\/a>"],[0,3,"<a href=\"Archive.php.html#63\">Agnosis\\Newsletter\\Archive::dispatch<\/a>"],[0,1,"<a href=\"Archive.php.html#81\">Agnosis\\Newsletter\\Archive::archive_url<\/a>"],[0,1,"<a href=\"Archive.php.html#86\">Agnosis\\Newsletter\\Archive::issue_permalink<\/a>"],[0,4,"<a href=\"Archive.php.html#94\">Agnosis\\Newsletter\\Archive::render_issue<\/a>"],[0,7,"<a href=\"Archive.php.html#142\">Agnosis\\Newsletter\\Archive::render_index<\/a>"],[0,2,"<a href=\"Archive.php.html#225\">Agnosis\\Newsletter\\Archive::index_page_url<\/a>"],[0,3,"<a href=\"Archive.php.html#234\">Agnosis\\Newsletter\\Archive::issue_title<\/a>"],[0,3,"<a href=\"Archive.php.html#253\">Agnosis\\Newsletter\\Archive::issue_description<\/a>"],[0,5,"<a href=\"Digest.php.html#41\">Agnosis\\Newsletter\\Digest::build_public<\/a>"],[0,4,"<a href=\"Digest.php.html#75\">Agnosis\\Newsletter\\Digest::build_artist<\/a>"],[0,2,"<a href=\"Digest.php.html#126\">Agnosis\\Newsletter\\Digest::recent_posts<\/a>"],[0,8,"<a href=\"Digest.php.html#168\">Agnosis\\Newsletter\\Digest::localized_post<\/a>"],[0,7,"<a href=\"Digest.php.html#191\">Agnosis\\Newsletter\\Digest::render_post_list<\/a>"],[0,1,"<a href=\"Digest.php.html#239\">Agnosis\\Newsletter\\Digest::newly_admitted_artists<\/a>"],[0,1,"<a href=\"Digest.php.html#255\">Agnosis\\Newsletter\\Digest::open_vote_count<\/a>"],[0,1,"<a href=\"Mailer.php.html#22\">Agnosis\\Newsletter\\Mailer::build_email<\/a>"],[0,5,"<a href=\"Mailer.php.html#60\">Agnosis\\Newsletter\\Mailer::build_body<\/a>"],[0,2,"<a href=\"Mailer.php.html#125\">Agnosis\\Newsletter\\Mailer::build_subject<\/a>"],[0,4,"<a href=\"Mailer.php.html#145\">Agnosis\\Newsletter\\Mailer::sender_header<\/a>"],[0,1,"<a href=\"PopoverBlock.php.html#51\">Agnosis\\Newsletter\\PopoverBlock::register_block<\/a>"],[0,2,"<a href=\"PopoverBlock.php.html#69\">Agnosis\\Newsletter\\PopoverBlock::render_block<\/a>"],[0,1,"<a href=\"PopoverBlock.php.html#141\">Agnosis\\Newsletter\\PopoverBlock::enqueue_assets<\/a>"],[0,9,"<a href=\"QueueProcessor.php.html#37\">Agnosis\\Newsletter\\QueueProcessor::process<\/a>"],[0,2,"<a href=\"QueueProcessor.php.html#122\">Agnosis\\Newsletter\\QueueProcessor::reconcile_sending_issues<\/a>"],[0,9,"<a href=\"QueueProcessor.php.html#140\">Agnosis\\Newsletter\\QueueProcessor::send_one<\/a>"],[0,1,"<a href=\"QueueProcessor.php.html#209\">Agnosis\\Newsletter\\QueueProcessor::mark_terminal<\/a>"],[0,3,"<a href=\"QueueProcessor.php.html#227\">Agnosis\\Newsletter\\QueueProcessor::record_failed_attempt<\/a>"],[0,2,"<a href=\"QueueProcessor.php.html#253\">Agnosis\\Newsletter\\QueueProcessor::maybe_complete_issue<\/a>"],[0,4,"<a href=\"Scheduler.php.html#44\">Agnosis\\Newsletter\\Scheduler::prepare<\/a>"],[0,3,"<a href=\"Scheduler.php.html#69\">Agnosis\\Newsletter\\Scheduler::send_now<\/a>"],[0,5,"<a href=\"Scheduler.php.html#92\">Agnosis\\Newsletter\\Scheduler::send_test<\/a>"],[0,3,"<a href=\"Scheduler.php.html#135\">Agnosis\\Newsletter\\Scheduler::is_due<\/a>"],[0,1,"<a href=\"Scheduler.php.html#163\">Agnosis\\Newsletter\\Scheduler::has_issue_in_flight<\/a>"],[0,2,"<a href=\"Scheduler.php.html#178\">Agnosis\\Newsletter\\Scheduler::last_sent_at<\/a>"],[0,2,"<a href=\"Scheduler.php.html#207\">Agnosis\\Newsletter\\Scheduler::since_window<\/a>"],[0,6,"<a href=\"Scheduler.php.html#237\">Agnosis\\Newsletter\\Scheduler::prepare_type<\/a>"],[0,2,"<a href=\"Scheduler.php.html#320\">Agnosis\\Newsletter\\Scheduler::effective_locale<\/a>"],[0,8,"<a href=\"Scheduler.php.html#329\">Agnosis\\Newsletter\\Scheduler::render_locale_content<\/a>"],[0,2,"<a href=\"Scheduler.php.html#369\">Agnosis\\Newsletter\\Scheduler::resolve_lf_lang<\/a>"],[0,2,"<a href=\"Scheduler.php.html#380\">Agnosis\\Newsletter\\Scheduler::artist_recipients<\/a>"],[0,2,"<a href=\"Scheduler.php.html#408\">Agnosis\\Newsletter\\Scheduler::public_recipients<\/a>"],[0,1,"<a href=\"SignupBlock.php.html#30\">Agnosis\\Newsletter\\SignupBlock::register_block<\/a>"],[0,4,"<a href=\"SignupBlock.php.html#42\">Agnosis\\Newsletter\\SignupBlock::render_block<\/a>"],[0,1,"<a href=\"SignupBlock.php.html#125\">Agnosis\\Newsletter\\SignupBlock::enqueue_assets<\/a>"],[0,10,"<a href=\"Subscriber.php.html#60\">Agnosis\\Newsletter\\Subscriber::subscribe<\/a>"],[0,2,"<a href=\"Subscriber.php.html#167\">Agnosis\\Newsletter\\Subscriber::expire_stale_pending<\/a>"],[0,1,"<a href=\"Subscriber.php.html#191\">Agnosis\\Newsletter\\Subscriber::confirm<\/a>"],[0,1,"<a href=\"Subscriber.php.html#214\">Agnosis\\Newsletter\\Subscriber::unsubscribe<\/a>"],[0,2,"<a href=\"Subscriber.php.html#236\">Agnosis\\Newsletter\\Subscriber::find_by_token<\/a>"],[0,2,"<a href=\"Subscriber.php.html#260\">Agnosis\\Newsletter\\Subscriber::confirmed_recipients<\/a>"],[0,3,"<a href=\"Subscriber.php.html#277\">Agnosis\\Newsletter\\Subscriber::counts<\/a>"],[0,2,"<a href=\"Subscriber.php.html#311\">Agnosis\\Newsletter\\Subscriber::counts_by_locale<\/a>"],[0,1,"<a href=\"Subscription.php.html#31\">Agnosis\\Newsletter\\Subscription::register_routes<\/a>"],[0,1,"<a href=\"Subscription.php.html#55\">Agnosis\\Newsletter\\Subscription::rate_limit<\/a>"],[0,8,"<a href=\"Subscription.php.html#59\">Agnosis\\Newsletter\\Subscription::subscribe<\/a>"],[0,3,"<a href=\"Subscription.php.html#103\">Agnosis\\Newsletter\\Subscription::send_confirmation_email<\/a>"],[0,1,"<a href=\"SubscriptionConfirm.php.html#45\">Agnosis\\Newsletter\\SubscriptionConfirm::register_hooks<\/a>"],[0,12,"<a href=\"SubscriptionConfirm.php.html#51\">Agnosis\\Newsletter\\SubscriptionConfirm::handle<\/a>"],[0,2,"<a href=\"SubscriptionConfirm.php.html#110\">Agnosis\\Newsletter\\SubscriptionConfirm::is_post_request<\/a>"],[0,2,"<a href=\"SubscriptionConfirm.php.html#120\">Agnosis\\Newsletter\\SubscriptionConfirm::is_one_click_post<\/a>"],[0,4,"<a href=\"SubscriptionConfirm.php.html#131\">Agnosis\\Newsletter\\SubscriptionConfirm::handle_one_click_unsubscribe<\/a>"],[0,4,"<a href=\"SubscriptionConfirm.php.html#153\">Agnosis\\Newsletter\\SubscriptionConfirm::handle_public<\/a>"],[0,4,"<a href=\"SubscriptionConfirm.php.html#170\">Agnosis\\Newsletter\\SubscriptionConfirm::handle_artist_unsubscribe<\/a>"],[0,2,"<a href=\"SubscriptionConfirm.php.html#200\">Agnosis\\Newsletter\\SubscriptionConfirm::render_confirm<\/a>"],[0,1,"<a href=\"SubscriptionConfirm.php.html#245\">Agnosis\\Newsletter\\SubscriptionConfirm::render_success<\/a>"],[0,1,"<a href=\"SubscriptionConfirm.php.html#249\">Agnosis\\Newsletter\\SubscriptionConfirm::render_error<\/a>"],[0,4,"<a href=\"SubscriptionConfirm.php.html#253\">Agnosis\\Newsletter\\SubscriptionConfirm::render_page<\/a>"],[0,1,"<a href=\"Tokens.php.html#21\">Agnosis\\Newsletter\\Tokens::artist_unsubscribe_token<\/a>"],[0,1,"<a href=\"Tokens.php.html#26\">Agnosis\\Newsletter\\Tokens::verify_artist_unsubscribe_token<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>

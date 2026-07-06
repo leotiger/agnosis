@@ -5,6 +5,12 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.8.1] — 2026-07-06
+
+### Fixed
+- **A newsletter issue could get stuck showing "Sending…" (Send Now disabled) forever, even well past the next scheduled cron tick.** `QueueProcessor::process()`'s per-recipient send loop had no exception handling — if `send_one()` threw for any single recipient (a bad locale render, a branding/image error building that particular email, etc.), the uncaught error killed the entire cron tick before reaching `reconcile_sending_issues()`, which runs once per tick after the loop. That meant *every* currently-"sending" issue, not just the one that errored, silently stopped being reconciled — indefinitely, since the exact same failure recurred on every subsequent tick before ever reaching the reconcile step. `send_one()` is now wrapped in a try/catch per recipient: a failure is logged and that row is retried/eventually marked terminally 'failed' exactly as a normal `wp_mail()` failure already was, and reconciliation always runs regardless of what happened to any individual recipient.
+- **The Newsletter Status dashboard (Settings → Newsletter) now self-heals a stuck "Sending…" status the moment an admin views the page**, instead of only reflecting reality on WP-Cron's next tick. On a low-traffic install with no real system cron wired to `wp-cron.php`, that tick may not happen again for a long time. `QueueProcessor::reconcile_sending_issues()` is now public and called at the top of `render_newsletter_dashboard()` — cheap (a few `COUNT` queries), a no-op when nothing is actually "sending".
+
 ## [0.8.0] — 2026-07-06
 
 ### Added

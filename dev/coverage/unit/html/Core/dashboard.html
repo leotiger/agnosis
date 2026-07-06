@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <title>Dashboard for /Users/tiger/Github/agnosis/includes/Core</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="../_css/bootstrap.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/nv.d3.min.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/style.css?v=9.2.32" rel="stylesheet" type="text/css">
+  <link href="../_css/custom.css" rel="stylesheet" type="text/css">
+ </head>
+ <body>
+  <header>
+   <div class="container-fluid">
+    <div class="row">
+     <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+       <ol class="breadcrumb">
+         <li class="breadcrumb-item"><a href="../index.html">/Users/tiger/Github/agnosis/includes</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Core</a></li>
+         <li class="breadcrumb-item active">(Dashboard)</li>
+
+       </ol>
+      </nav>
+     </div>
+    </div>
+   </div>
+  </header>
+  <div class="container-fluid">
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Classes</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="classCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="classComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Activator.php.html#14">Agnosis\Core\Activator</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailBranding.php.html#16">Agnosis\Core\EmailBranding</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#39">Agnosis\Core\EmailFooter</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ImageSizes.php.html#20">Agnosis\Core\ImageSizes</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LoginBranding.php.html#25">Agnosis\Core\LoginBranding</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#52">Agnosis\Core\Plugin</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Roles.php.html#15">Agnosis\Core\Roles</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#24">Agnosis\Core\Turnstile</a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#16">Agnosis\Core\Logger</a></td><td class="text-right">10%</td></tr>
+       <tr><td><a href="RateLimiter.php.html#29">Agnosis\Core\RateLimiter</a></td><td class="text-right">34%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Class</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Activator.php.html#14">Agnosis\Core\Activator</a></td><td class="text-right">3540</td></tr>
+       <tr><td><a href="EmailFooter.php.html#39">Agnosis\Core\EmailFooter</a></td><td class="text-right">342</td></tr>
+       <tr><td><a href="Turnstile.php.html#24">Agnosis\Core\Turnstile</a></td><td class="text-right">272</td></tr>
+       <tr><td><a href="Logger.php.html#16">Agnosis\Core\Logger</a></td><td class="text-right">114</td></tr>
+       <tr><td><a href="Plugin.php.html#52">Agnosis\Core\Plugin</a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="RateLimiter.php.html#29">Agnosis\Core\RateLimiter</a></td><td class="text-right">52</td></tr>
+       <tr><td><a href="LoginBranding.php.html#25">Agnosis\Core\LoginBranding</a></td><td class="text-right">42</td></tr>
+       <tr><td><a href="EmailBranding.php.html#16">Agnosis\Core\EmailBranding</a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Roles.php.html#15">Agnosis\Core\Roles</a></td><td class="text-right">6</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-12">
+     <h2>Methods</h2>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Coverage Distribution</h3>
+     <div id="methodCoverageDistribution" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Complexity</h3>
+     <div id="methodComplexity" style="height: 300px;">
+       <svg></svg>
+     </div>
+    </div>
+   </div>
+   <div class="row">
+    <div class="col-md-6">
+     <h3>Insufficient Coverage</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right">Coverage</th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Activator.php.html#24"><abbr title="Agnosis\Core\Activator::maybe_upgrade">maybe_upgrade</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#193"><abbr title="Agnosis\Core\Activator::create_managed_pages">create_managed_pages</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#201"><abbr title="Agnosis\Core\Activator::activate">activate</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#217"><abbr title="Agnosis\Core\Activator::deactivate">deactivate</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#231"><abbr title="Agnosis\Core\Activator::create_tables">create_tables</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#504"><abbr title="Agnosis\Core\Activator::register_roles">register_roles</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#519"><abbr title="Agnosis\Core\Activator::seed_options">seed_options</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#582"><abbr title="Agnosis\Core\Activator::seed_medium_terms">seed_medium_terms</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#604"><abbr title="Agnosis\Core\Activator::create_submissions_page">create_submissions_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#637"><abbr title="Agnosis\Core\Activator::create_about_page">create_about_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#646"><abbr title="Agnosis\Core\Activator::create_help_page">create_help_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#660"><abbr title="Agnosis\Core\Activator::create_managed_page">create_managed_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#685"><abbr title="Agnosis\Core\Activator::about_page_content">about_page_content</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#702"><abbr title="Agnosis\Core\Activator::help_page_content">help_page_content</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#747"><abbr title="Agnosis\Core\Activator::create_join_page">create_join_page</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Activator.php.html#772"><abbr title="Agnosis\Core\Activator::schedule_events">schedule_events</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailBranding.php.html#34"><abbr title="Agnosis\Core\EmailBranding::header_html">header_html</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#64"><abbr title="Agnosis\Core\EmailFooter::addresses">addresses</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#87"><abbr title="Agnosis\Core\EmailFooter::plain_text">plain_text</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#109"><abbr title="Agnosis\Core\EmailFooter::html">html</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#141"><abbr title="Agnosis\Core\EmailFooter::edit_reminder_plain_text">edit_reminder_plain_text</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#155"><abbr title="Agnosis\Core\EmailFooter::edit_reminder_html">edit_reminder_html</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="EmailFooter.php.html#172"><abbr title="Agnosis\Core\EmailFooter::has_published_work">has_published_work</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="ImageSizes.php.html#23"><abbr title="Agnosis\Core\ImageSizes::register">register</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#30"><abbr title="Agnosis\Core\Logger::error">error</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#43"><abbr title="Agnosis\Core\Logger::get_entries">get_entries</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#63"><abbr title="Agnosis\Core\Logger::count">count</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#71"><abbr title="Agnosis\Core\Logger::clear">clear</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#83"><abbr title="Agnosis\Core\Logger::prune">prune</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LoginBranding.php.html#32"><abbr title="Agnosis\Core\LoginBranding::header_url">header_url</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LoginBranding.php.html#41"><abbr title="Agnosis\Core\LoginBranding::header_text">header_text</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="LoginBranding.php.html#54"><abbr title="Agnosis\Core\LoginBranding::enqueue_styles">enqueue_styles</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#60"><abbr title="Agnosis\Core\Plugin::__construct">__construct</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#65"><abbr title="Agnosis\Core\Plugin::instance">instance</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#73"><abbr title="Agnosis\Core\Plugin::run">run</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#83"><abbr title="Agnosis\Core\Plugin::load_textdomain">load_textdomain</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Plugin.php.html#92"><abbr title="Agnosis\Core\Plugin::register_services">register_services</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RateLimiter.php.html#84"><abbr title="Agnosis\Core\RateLimiter::check_sender">check_sender</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RateLimiter.php.html#118"><abbr title="Agnosis\Core\RateLimiter::reset">reset</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="RateLimiter.php.html#129"><abbr title="Agnosis\Core\RateLimiter::reset_sender">reset_sender</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Roles.php.html#23"><abbr title="Agnosis\Core\Roles::ensure">ensure</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#31"><abbr title="Agnosis\Core\Turnstile::is_enabled">is_enabled</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#35"><abbr title="Agnosis\Core\Turnstile::site_key">site_key</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#39"><abbr title="Agnosis\Core\Turnstile::secret_key">secret_key</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#53"><abbr title="Agnosis\Core\Turnstile::enqueue_script">enqueue_script</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#75"><abbr title="Agnosis\Core\Turnstile::render_widget">render_widget</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Turnstile.php.html#96"><abbr title="Agnosis\Core\Turnstile::verify">verify</abbr></a></td><td class="text-right">0%</td></tr>
+       <tr><td><a href="Logger.php.html#98"><abbr title="Agnosis\Core\Logger::write">write</abbr></a></td><td class="text-right">15%</td></tr>
+       <tr><td><a href="RateLimiter.php.html#39"><abbr title="Agnosis\Core\RateLimiter::check">check</abbr></a></td><td class="text-right">56%</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+    <div class="col-md-6">
+     <h3>Project Risks</h3>
+     <div class="scrollbox">
+      <table class="table">
+       <thead>
+        <tr>
+         <th>Method</th>
+         <th class="text-right"><abbr title="Change Risk Anti-Patterns (CRAP) Index">CRAP</abbr></th>
+        </tr>
+       </thead>
+       <tbody>
+       <tr><td><a href="Activator.php.html#24"><abbr title="Agnosis\Core\Activator::maybe_upgrade">maybe_upgrade</abbr></a></td><td class="text-right">420</td></tr>
+       <tr><td><a href="Activator.php.html#772"><abbr title="Agnosis\Core\Activator::schedule_events">schedule_events</abbr></a></td><td class="text-right">72</td></tr>
+       <tr><td><a href="Turnstile.php.html#96"><abbr title="Agnosis\Core\Turnstile::verify">verify</abbr></a></td><td class="text-right">56</td></tr>
+       <tr><td><a href="Activator.php.html#604"><abbr title="Agnosis\Core\Activator::create_submissions_page">create_submissions_page</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Activator.php.html#660"><abbr title="Agnosis\Core\Activator::create_managed_page">create_managed_page</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Activator.php.html#747"><abbr title="Agnosis\Core\Activator::create_join_page">create_join_page</abbr></a></td><td class="text-right">30</td></tr>
+       <tr><td><a href="Activator.php.html#582"><abbr title="Agnosis\Core\Activator::seed_medium_terms">seed_medium_terms</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="EmailFooter.php.html#64"><abbr title="Agnosis\Core\EmailFooter::addresses">addresses</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="EmailFooter.php.html#172"><abbr title="Agnosis\Core\EmailFooter::has_published_work">has_published_work</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="LoginBranding.php.html#54"><abbr title="Agnosis\Core\LoginBranding::enqueue_styles">enqueue_styles</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="RateLimiter.php.html#84"><abbr title="Agnosis\Core\RateLimiter::check_sender">check_sender</abbr></a></td><td class="text-right">20</td></tr>
+       <tr><td><a href="Logger.php.html#98"><abbr title="Agnosis\Core\Logger::write">write</abbr></a></td><td class="text-right">13</td></tr>
+       <tr><td><a href="EmailBranding.php.html#34"><abbr title="Agnosis\Core\EmailBranding::header_html">header_html</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="EmailFooter.php.html#87"><abbr title="Agnosis\Core\EmailFooter::plain_text">plain_text</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="EmailFooter.php.html#109"><abbr title="Agnosis\Core\EmailFooter::html">html</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Turnstile.php.html#53"><abbr title="Agnosis\Core\Turnstile::enqueue_script">enqueue_script</abbr></a></td><td class="text-right">12</td></tr>
+       <tr><td><a href="Activator.php.html#504"><abbr title="Agnosis\Core\Activator::register_roles">register_roles</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Activator.php.html#519"><abbr title="Agnosis\Core\Activator::seed_options">seed_options</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="EmailFooter.php.html#141"><abbr title="Agnosis\Core\EmailFooter::edit_reminder_plain_text">edit_reminder_plain_text</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="EmailFooter.php.html#155"><abbr title="Agnosis\Core\EmailFooter::edit_reminder_html">edit_reminder_html</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Logger.php.html#43"><abbr title="Agnosis\Core\Logger::get_entries">get_entries</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Plugin.php.html#65"><abbr title="Agnosis\Core\Plugin::instance">instance</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Plugin.php.html#92"><abbr title="Agnosis\Core\Plugin::register_services">register_services</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Roles.php.html#23"><abbr title="Agnosis\Core\Roles::ensure">ensure</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Turnstile.php.html#31"><abbr title="Agnosis\Core\Turnstile::is_enabled">is_enabled</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="Turnstile.php.html#75"><abbr title="Agnosis\Core\Turnstile::render_widget">render_widget</abbr></a></td><td class="text-right">6</td></tr>
+       <tr><td><a href="RateLimiter.php.html#39"><abbr title="Agnosis\Core\RateLimiter::check">check</abbr></a></td><td class="text-right">5</td></tr>
+
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <footer>
+    <hr/>
+    <p>
+     <small>Generated by <a href="https://github.com/sebastianbergmann/php-code-coverage" target="_top">php-code-coverage 9.2.32</a> using <a href="https://secure.php.net/" target="_top">PHP 8.3.32</a> and <a href="https://phpunit.de/">PHPUnit 9.6.34</a> at Mon Jul 6 20:16:40 UTC 2026.</small>
+    </p>
+   </footer>
+  </div>
+  <script src="../_js/jquery.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script src="../_js/nv.d3.min.js?v=9.2.32" type="text/javascript"></script>
+  <script type="text/javascript">
+$(document).ready(function() {
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#classCoverageDistribution svg')
+      .datum(getCoverageDistributionData([8,0,1,0,1,0,0,0,0,0,0,1], "Class Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.multiBarChart();
+    chart.tooltips(false)
+      .showControls(false)
+      .showLegend(false)
+      .reduceXTicks(false)
+      .staggerLabels(true)
+      .yAxis.tickFormat(d3.format('d'));
+
+    d3.select('#methodCoverageDistribution svg')
+      .datum(getCoverageDistributionData([47,0,1,0,0,0,1,0,0,0,0,7], "Method Coverage"))
+      .transition().duration(500).call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getCoverageDistributionData(data, label) {
+    var labels = [
+      '0%',
+      '0-10%',
+      '10-20%',
+      '20-30%',
+      '30-40%',
+      '40-50%',
+      '50-60%',
+      '60-70%',
+      '70-80%',
+      '80-90%',
+      '90-100%',
+      '100%'
+    ];
+    var values = [];
+    $.each(labels, function(key) {
+      values.push({x: labels[key], y: data[key]});
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Cyclomatic Complexity');
+
+    d3.select('#classComplexity svg')
+      .datum(getComplexityData([[0,59,"<a href=\"Activator.php.html#14\">Agnosis\\Core\\Activator<\/a>"],[0,3,"<a href=\"EmailBranding.php.html#16\">Agnosis\\Core\\EmailBranding<\/a>"],[0,18,"<a href=\"EmailFooter.php.html#39\">Agnosis\\Core\\EmailFooter<\/a>"],[0,1,"<a href=\"ImageSizes.php.html#20\">Agnosis\\Core\\ImageSizes<\/a>"],[100,5,"<a href=\"Loader.php.html#15\">Agnosis\\Core\\Loader<\/a>"],[10.81081081081081,12,"<a href=\"Logger.php.html#16\">Agnosis\\Core\\Logger<\/a>"],[0,6,"<a href=\"LoginBranding.php.html#25\">Agnosis\\Core\\LoginBranding<\/a>"],[0,7,"<a href=\"Plugin.php.html#52\">Agnosis\\Core\\Plugin<\/a>"],[34.285714285714285,12,"<a href=\"RateLimiter.php.html#29\">Agnosis\\Core\\RateLimiter<\/a>"],[0,2,"<a href=\"Roles.php.html#15\">Agnosis\\Core\\Roles<\/a>"],[0,16,"<a href=\"Turnstile.php.html#24\">Agnosis\\Core\\Turnstile<\/a>"]], 'Class Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  nv.addGraph(function() {
+    var chart = nv.models.scatterChart()
+      .showDistX(true)
+      .showDistY(true)
+      .showLegend(false)
+      .forceX([0, 100]);
+    chart.tooltipContent(function(graph) {
+      return '<p>' + graph.point.class + '</p>';
+    });
+
+    chart.xAxis.axisLabel('Code Coverage (in percent)');
+    chart.yAxis.axisLabel('Method Complexity');
+
+    d3.select('#methodComplexity svg')
+      .datum(getComplexityData([[0,20,"<a href=\"Activator.php.html#24\">Agnosis\\Core\\Activator::maybe_upgrade<\/a>"],[0,1,"<a href=\"Activator.php.html#193\">Agnosis\\Core\\Activator::create_managed_pages<\/a>"],[0,1,"<a href=\"Activator.php.html#201\">Agnosis\\Core\\Activator::activate<\/a>"],[0,1,"<a href=\"Activator.php.html#217\">Agnosis\\Core\\Activator::deactivate<\/a>"],[0,1,"<a href=\"Activator.php.html#231\">Agnosis\\Core\\Activator::create_tables<\/a>"],[0,2,"<a href=\"Activator.php.html#504\">Agnosis\\Core\\Activator::register_roles<\/a>"],[0,2,"<a href=\"Activator.php.html#519\">Agnosis\\Core\\Activator::seed_options<\/a>"],[0,4,"<a href=\"Activator.php.html#582\">Agnosis\\Core\\Activator::seed_medium_terms<\/a>"],[0,5,"<a href=\"Activator.php.html#604\">Agnosis\\Core\\Activator::create_submissions_page<\/a>"],[0,1,"<a href=\"Activator.php.html#637\">Agnosis\\Core\\Activator::create_about_page<\/a>"],[0,1,"<a href=\"Activator.php.html#646\">Agnosis\\Core\\Activator::create_help_page<\/a>"],[0,5,"<a href=\"Activator.php.html#660\">Agnosis\\Core\\Activator::create_managed_page<\/a>"],[0,1,"<a href=\"Activator.php.html#685\">Agnosis\\Core\\Activator::about_page_content<\/a>"],[0,1,"<a href=\"Activator.php.html#702\">Agnosis\\Core\\Activator::help_page_content<\/a>"],[0,5,"<a href=\"Activator.php.html#747\">Agnosis\\Core\\Activator::create_join_page<\/a>"],[0,8,"<a href=\"Activator.php.html#772\">Agnosis\\Core\\Activator::schedule_events<\/a>"],[0,3,"<a href=\"EmailBranding.php.html#34\">Agnosis\\Core\\EmailBranding::header_html<\/a>"],[0,4,"<a href=\"EmailFooter.php.html#64\">Agnosis\\Core\\EmailFooter::addresses<\/a>"],[0,3,"<a href=\"EmailFooter.php.html#87\">Agnosis\\Core\\EmailFooter::plain_text<\/a>"],[0,3,"<a href=\"EmailFooter.php.html#109\">Agnosis\\Core\\EmailFooter::html<\/a>"],[0,2,"<a href=\"EmailFooter.php.html#141\">Agnosis\\Core\\EmailFooter::edit_reminder_plain_text<\/a>"],[0,2,"<a href=\"EmailFooter.php.html#155\">Agnosis\\Core\\EmailFooter::edit_reminder_html<\/a>"],[0,4,"<a href=\"EmailFooter.php.html#172\">Agnosis\\Core\\EmailFooter::has_published_work<\/a>"],[0,1,"<a href=\"ImageSizes.php.html#23\">Agnosis\\Core\\ImageSizes::register<\/a>"],[100,1,"<a href=\"Loader.php.html#23\">Agnosis\\Core\\Loader::add_action<\/a>"],[100,1,"<a href=\"Loader.php.html#33\">Agnosis\\Core\\Loader::add_filter<\/a>"],[100,3,"<a href=\"Loader.php.html#44\">Agnosis\\Core\\Loader::run<\/a>"],[100,1,"<a href=\"Logger.php.html#22\">Agnosis\\Core\\Logger::info<\/a>"],[100,1,"<a href=\"Logger.php.html#26\">Agnosis\\Core\\Logger::warning<\/a>"],[0,1,"<a href=\"Logger.php.html#30\">Agnosis\\Core\\Logger::error<\/a>"],[0,2,"<a href=\"Logger.php.html#43\">Agnosis\\Core\\Logger::get_entries<\/a>"],[0,1,"<a href=\"Logger.php.html#63\">Agnosis\\Core\\Logger::count<\/a>"],[0,1,"<a href=\"Logger.php.html#71\">Agnosis\\Core\\Logger::clear<\/a>"],[0,1,"<a href=\"Logger.php.html#83\">Agnosis\\Core\\Logger::prune<\/a>"],[15.384615384615385,4,"<a href=\"Logger.php.html#98\">Agnosis\\Core\\Logger::write<\/a>"],[0,1,"<a href=\"LoginBranding.php.html#32\">Agnosis\\Core\\LoginBranding::header_url<\/a>"],[0,1,"<a href=\"LoginBranding.php.html#41\">Agnosis\\Core\\LoginBranding::header_text<\/a>"],[0,4,"<a href=\"LoginBranding.php.html#54\">Agnosis\\Core\\LoginBranding::enqueue_styles<\/a>"],[0,1,"<a href=\"Plugin.php.html#60\">Agnosis\\Core\\Plugin::__construct<\/a>"],[0,2,"<a href=\"Plugin.php.html#65\">Agnosis\\Core\\Plugin::instance<\/a>"],[0,1,"<a href=\"Plugin.php.html#73\">Agnosis\\Core\\Plugin::run<\/a>"],[0,1,"<a href=\"Plugin.php.html#83\">Agnosis\\Core\\Plugin::load_textdomain<\/a>"],[0,2,"<a href=\"Plugin.php.html#92\">Agnosis\\Core\\Plugin::register_services<\/a>"],[56.25,4,"<a href=\"RateLimiter.php.html#39\">Agnosis\\Core\\RateLimiter::check<\/a>"],[0,4,"<a href=\"RateLimiter.php.html#84\">Agnosis\\Core\\RateLimiter::check_sender<\/a>"],[0,1,"<a href=\"RateLimiter.php.html#118\">Agnosis\\Core\\RateLimiter::reset<\/a>"],[0,1,"<a href=\"RateLimiter.php.html#129\">Agnosis\\Core\\RateLimiter::reset_sender<\/a>"],[100,1,"<a href=\"RateLimiter.php.html#141\">Agnosis\\Core\\RateLimiter::client_ip<\/a>"],[100,1,"<a href=\"RateLimiter.php.html#164\">Agnosis\\Core\\RateLimiter::transient_key<\/a>"],[0,2,"<a href=\"Roles.php.html#23\">Agnosis\\Core\\Roles::ensure<\/a>"],[0,2,"<a href=\"Turnstile.php.html#31\">Agnosis\\Core\\Turnstile::is_enabled<\/a>"],[0,1,"<a href=\"Turnstile.php.html#35\">Agnosis\\Core\\Turnstile::site_key<\/a>"],[0,1,"<a href=\"Turnstile.php.html#39\">Agnosis\\Core\\Turnstile::secret_key<\/a>"],[0,3,"<a href=\"Turnstile.php.html#53\">Agnosis\\Core\\Turnstile::enqueue_script<\/a>"],[0,2,"<a href=\"Turnstile.php.html#75\">Agnosis\\Core\\Turnstile::render_widget<\/a>"],[0,7,"<a href=\"Turnstile.php.html#96\">Agnosis\\Core\\Turnstile::verify<\/a>"]], 'Method Complexity'))
+      .transition()
+      .duration(500)
+      .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    return chart;
+  });
+
+  function getComplexityData(data, label) {
+    var values = [];
+    $.each(data, function(key) {
+      var value = Math.round(data[key][0]*100) / 100;
+      values.push({
+        x: value,
+        y: data[key][1],
+        class: data[key][2],
+        size: 0.05,
+        shape: 'diamond'
+      });
+    });
+
+    return [
+      {
+        key: label,
+        values: values,
+        color: "#4572A7"
+      }
+    ];
+  }
+});
+  </script>
+ </body>
+</html>
