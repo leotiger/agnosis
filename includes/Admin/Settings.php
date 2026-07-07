@@ -792,11 +792,12 @@ class Settings {
 				'desc'     => __( 'Default 30 ≈ monthly. A new issue is prepared once this many days have passed since the last one was sent.', 'agnosis' ),
 			],
 			'agnosis_newsletter_artist_intro' => [
-				'tab'   => 'newsletter',
-				'label' => __( 'Artist newsletter intro', 'agnosis' ),
-				'input' => 'textarea',
-				'rows'  => 4,
-				'desc'  => __( 'Optional note prepended to the next artist issue only — cleared automatically once that issue is queued. Leave blank to send the auto-digest with no intro.', 'agnosis' ),
+				'tab'      => 'newsletter',
+				'label'    => __( 'Artist newsletter intro', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 4,
+				'sanitize' => 'sanitize_textarea_field',
+				'desc'     => __( 'Optional note prepended to the next artist issue only — cleared automatically once that issue is queued. Leave blank to send the auto-digest with no intro.', 'agnosis' ),
 			],
 			'agnosis_newsletter_public_enabled' => [
 				'tab'     => 'newsletter',
@@ -816,11 +817,12 @@ class Settings {
 				'desc'     => __( 'Default 30 ≈ monthly.', 'agnosis' ),
 			],
 			'agnosis_newsletter_public_intro' => [
-				'tab'   => 'newsletter',
-				'label' => __( 'Public newsletter intro', 'agnosis' ),
-				'input' => 'textarea',
-				'rows'  => 4,
-				'desc'  => __( 'Optional note prepended to the next public issue only — cleared automatically once that issue is queued.', 'agnosis' ),
+				'tab'      => 'newsletter',
+				'label'    => __( 'Public newsletter intro', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 4,
+				'sanitize' => 'sanitize_textarea_field',
+				'desc'     => __( 'Optional note prepended to the next public issue only — cleared automatically once that issue is queued.', 'agnosis' ),
 			],
 			'agnosis_newsletter_batch_size' => [
 				'tab'      => 'newsletter',
@@ -843,15 +845,16 @@ class Settings {
 				'desc'     => __( 'Advisory only — self-hosted sending keeps working above this count. Once confirmed public subscribers pass it, this page shows a reminder to consider an email service provider (e.g. Brevo\'s free tier) instead.', 'agnosis' ),
 			],
 			'agnosis_invitation_intro' => [
-				'tab'     => 'newsletter',
-				'label'   => __( 'Invitation intro', 'agnosis' ),
-				'input'   => 'textarea',
-				'rows'    => 6,
-				'default' => __(
+				'tab'      => 'newsletter',
+				'label'    => __( 'Invitation intro', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 6,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => __(
 					"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n\nBeing part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n\nOnce admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website.",
 					'agnosis'
 				),
-				'desc'    => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
+				'desc'     => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
 			],
 		];
 	}
