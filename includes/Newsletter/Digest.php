@@ -43,7 +43,7 @@ class Digest {
 		$events   = self::recent_posts( 'agnosis_event', $since );
 
 		if ( empty( $artworks ) && empty( $events ) ) {
-			return '<p style="margin:0 0 20px;font-size:15px;color:#666;">'
+			return '<p style="margin:0 0 20px;font-size:17px;color:#666;">'
 				. esc_html__( 'Nothing new to report this time — but the community is still here, and the next issue will have more.', 'agnosis' )
 				. '</p>';
 		}
@@ -51,12 +51,12 @@ class Digest {
 		$html = '';
 
 		if ( ! empty( $artworks ) ) {
-			$html .= '<h2 style="margin:0 0 16px;font-size:18px;color:#111;">' . esc_html__( 'New artwork', 'agnosis' ) . '</h2>';
+			$html .= '<h2 style="margin:0 0 16px;font-size:20px;color:#111;">' . esc_html__( 'New artwork', 'agnosis' ) . '</h2>';
 			$html .= self::render_post_list( $artworks, false, $lf_lang );
 		}
 
 		if ( ! empty( $events ) ) {
-			$html .= '<h2 style="margin:28px 0 16px;font-size:18px;color:#111;">' . esc_html__( 'Upcoming events', 'agnosis' ) . '</h2>';
+			$html .= '<h2 style="margin:28px 0 16px;font-size:20px;color:#111;">' . esc_html__( 'Upcoming events', 'agnosis' ) . '</h2>';
 			$html .= self::render_post_list( $events, true, $lf_lang );
 		}
 
@@ -78,7 +78,7 @@ class Digest {
 		$new_members  = self::newly_admitted_artists( $since );
 		$open_votes   = self::open_vote_count();
 
-		$html = '<ul style="margin:0 0 20px;padding-left:20px;font-size:15px;line-height:1.8;color:#444;">';
+		$html = '<ul style="margin:0 0 20px;padding-left:20px;font-size:17px;line-height:1.8;color:#444;">';
 		$html .= '<li>' . sprintf(
 			/* translators: %d: number of new artworks published */
 			esc_html( _n( '%d new artwork published', '%d new artworks published', count( $artworks ), 'agnosis' ) ),
@@ -109,7 +109,7 @@ class Digest {
 		$html .= '</ul>';
 
 		if ( ! empty( $artworks ) ) {
-			$html .= '<h2 style="margin:0 0 16px;font-size:18px;color:#111;">' . esc_html__( 'Recent work from the community', 'agnosis' ) . '</h2>';
+			$html .= '<h2 style="margin:0 0 16px;font-size:20px;color:#111;">' . esc_html__( 'Recent work from the community', 'agnosis' ) . '</h2>';
 			$html .= self::render_post_list( $artworks, false, $lf_lang );
 		}
 
@@ -207,13 +207,13 @@ class Digest {
 					. '</td>';
 			}
 			$html .= '<td style="vertical-align:top;">'
-				. '<a href="' . esc_url( $permalink ) . '" style="font-size:16px;font-weight:600;color:#111;text-decoration:none;">' . esc_html( $title ) . '</a>';
+				. '<a href="' . esc_url( $permalink ) . '" style="font-size:18px;font-weight:600;color:#111;text-decoration:none;">' . esc_html( $title ) . '</a>';
 			if ( $show_date ) {
 				$event_date = get_post_meta( $display->ID, '_agnosis_event_date', true );
 				if ( $event_date ) {
 					$formatted = (string) mysql2date( (string) get_option( 'date_format' ), (string) $event_date );
 					if ( '' !== $formatted ) {
-						$html .= '<br><span style="font-size:13px;color:#888;">' . esc_html( $formatted ) . '</span>';
+						$html .= '<br><span style="font-size:15px;color:#888;">' . esc_html( $formatted ) . '</span>';
 					}
 				}
 			}
@@ -221,7 +221,7 @@ class Digest {
 		}
 
 		if ( $overflow > 0 ) {
-			$html .= '<p style="margin:0 0 16px;font-size:14px;color:#888;">'
+			$html .= '<p style="margin:0 0 16px;font-size:16px;color:#888;">'
 				. sprintf(
 					/* translators: %d: number of additional items not individually listed */
 					esc_html( _n( '…and %d more.', '…and %d more.', $overflow, 'agnosis' ) ),

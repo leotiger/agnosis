@@ -319,6 +319,29 @@ class DepartureTest extends \WP_UnitTestCase {
 			'Non-Agnosis posts by the same user must not be deleted.' );
 	}
 
+	/**
+	 * WP_Query's 'post_status' => 'any' silently excludes 'trash' (and
+	 * 'auto-draft'/'inherit') — a well-documented core behaviour, not a bug in
+	 * WordPress, but easy to miss when the intent is "every post this user
+	 * has, in whatever state". Found 2026-07-08: an artwork already trashed
+	 * (e.g. individually removed via remove@ shortly before the artist
+	 * departed, still inside WP's default 30-day trash retention) previously
+	 * survived delete_artist_content() untouched — a "permanent and cannot be
+	 * undone" departure silently left it recoverable. 'post_status' is now an
+	 * explicit list including 'trash' rather than 'any'.
+	 */
+	public function test_delete_artist_content_removes_already_trashed_posts(): void {
+		[ $user_id, ] = $this->create_admitted_artist( 'content4@example.com' );
+
+		$post_id = $this->create_artwork( $user_id );
+		wp_trash_post( $post_id );
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'Sanity check: post must actually be trashed before the real assertion.' );
+
+		$this->departure->delete_artist_content( $user_id );
+
+		$this->assertNull( get_post( $post_id ), 'An already-trashed artwork must still be permanently deleted on departure.' );
+	}
+
 	// -------------------------------------------------------------------------
 	// check_expired_bans()
 	// -------------------------------------------------------------------------

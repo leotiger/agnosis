@@ -79,7 +79,7 @@ class EmailBranding {
 		}
 
 		return sprintf(
-			'<span style="font-size:22px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ %s</span>',
+			'<span style="font-size:24px;font-weight:700;color:#fff;letter-spacing:.02em;">✦ %s</span>',
 			esc_html( $site_name )
 		);
 	}

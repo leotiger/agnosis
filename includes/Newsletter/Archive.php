@@ -165,8 +165,8 @@ class Archive {
 		ob_start();
 		?>
 <div style="max-width:600px;margin:60px auto;font-family:Georgia,serif;color:#222;padding:0 20px;">
-	<h1 style="margin:0 0 8px;font-size:28px;color:#111;"><?php esc_html_e( 'Newsletter archive', 'agnosis' ); ?></h1>
-	<p style="margin:0 0 32px;font-size:15px;color:#666;">
+	<h1 style="margin:0 0 8px;font-size:30px;color:#111;"><?php esc_html_e( 'Newsletter archive', 'agnosis' ); ?></h1>
+	<p style="margin:0 0 32px;font-size:17px;color:#666;">
 		<?php
 		printf(
 			/* translators: %s: site name */
@@ -177,24 +177,24 @@ class Archive {
 	</p>
 
 		<?php if ( empty( $issues ) ) : ?>
-		<p style="font-size:15px;color:#666;"><?php esc_html_e( 'No issues have gone out yet — check back soon.', 'agnosis' ); ?></p>
+		<p style="font-size:17px;color:#666;"><?php esc_html_e( 'No issues have gone out yet — check back soon.', 'agnosis' ); ?></p>
 	<?php else : ?>
 		<ul style="list-style:none;margin:0;padding:0;">
 			<?php foreach ( $issues as $issue ) : ?>
 				<li style="margin:0 0 24px;padding-bottom:24px;border-bottom:1px solid #eee;">
-					<a href="<?php echo esc_url( self::issue_permalink( (int) $issue->id ) ); ?>" style="font-size:18px;font-weight:600;color:#111;text-decoration:none;">
+					<a href="<?php echo esc_url( self::issue_permalink( (int) $issue->id ) ); ?>" style="font-size:20px;font-weight:600;color:#111;text-decoration:none;">
 						<?php echo esc_html( $this->issue_title( $issue ) ); ?>
 					</a>
 					<?php $snippet = $this->issue_description( (string) $issue->intro, '' ); ?>
 					<?php if ( '' !== $snippet ) : ?>
-						<p style="margin:6px 0 0;font-size:14px;color:#888;"><?php echo esc_html( $snippet ); ?></p>
+						<p style="margin:6px 0 0;font-size:16px;color:#888;"><?php echo esc_html( $snippet ); ?></p>
 					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
 		</ul>
 
 		<?php if ( $total > self::PER_PAGE ) : ?>
-			<p style="font-size:14px;color:#888;">
+			<p style="font-size:16px;color:#888;">
 				<?php if ( $paged > 1 ) : ?>
 					<a href="<?php echo esc_url( $this->index_page_url( $paged - 1 ) ); ?>" style="color:#7c6af7;"><?php esc_html_e( '← Newer', 'agnosis' ); ?></a>
 				<?php endif; ?>

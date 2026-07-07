@@ -59,6 +59,30 @@ class VouchConfirm {
 		$token          = sanitize_text_field( wp_unslash( $source['token'] ?? '' ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
+		// Switch to the voter's own language before rendering anything below —
+		// they reached this page by clicking a link in an email that was itself
+		// already sent in their language (see AdmissionNotification::send_vote_email()).
+		// Without this, the vote-confirm/thank-you page reverts to the site's
+		// default language even for a voter whose email arrived fully localised.
+		$locale = $voter_id ? (string) get_user_meta( $voter_id, 'locale', true ) : '';
+		if ( '' !== $locale ) {
+			switch_to_locale( $locale );
+		}
+
+		$this->dispatch( $is_post, $voter_id, $application_id, $vote, $token );
+
+		if ( '' !== $locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * The actual token-verify / render dispatch, split out from handle() so the
+	 * locale switch above wraps every render_*() call below (each of which ends
+	 * in wp_die()) with a single switch/restore pair rather than needing one at
+	 * every early return.
+	 */
+	private function dispatch( bool $is_post, int $voter_id, int $application_id, string $vote, string $token ): void {
 		if ( ! $voter_id || ! $application_id || ! in_array( $vote, [ 'yes', 'no' ], true ) || ! $token ) {
 			$this->render_error( __( 'Invalid vote link.', 'agnosis' ) );
 			return;
@@ -138,18 +162,18 @@ class VouchConfirm {
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
-			. '<p style="font-size:32px;color:#7c6af7;margin:0 0 16px;">✦</p>'
-			. '<h1 style="font-size:22px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
-			. '<p style="font-size:16px;color:#555;margin:0 0 32px;">%2$s</p>'
+			. '<p style="font-size:34px;color:#7c6af7;margin:0 0 16px;">✦</p>'
+			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
+			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%2$s</p>'
 			. '<form method="post" action="%3$s">'
 			. '<input type="hidden" name="agnosis_vouch" value="1">'
 			. '<input type="hidden" name="voter" value="%4$s">'
 			. '<input type="hidden" name="app" value="%5$s">'
 			. '<input type="hidden" name="vote" value="%6$s">'
 			. '<input type="hidden" name="token" value="%7$s">'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:15px;font-family:inherit;cursor:pointer;">%8$s</button>'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%8$s</button>'
 			. '</form>'
-			. '<p style="margin:24px 0 0;"><a href="%9$s" style="color:#999;font-size:14px;text-decoration:none;">&larr; %10$s</a></p>'
+			. '<p style="margin:24px 0 0;"><a href="%9$s" style="color:#999;font-size:16px;text-decoration:none;">&larr; %10$s</a></p>'
 			. '</div>',
 			esc_html( $title ),
 			esc_html( $description ),
@@ -200,17 +224,17 @@ class VouchConfirm {
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
-			. '<p style="font-size:32px;color:%1$s;margin:0 0 16px;">%2$s</p>'
-			. '<h1 style="font-size:22px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
-			. '<p style="font-size:16px;color:#555;margin:0 0 8px;">%4$s</p>'
+			. '<p style="font-size:34px;color:%1$s;margin:0 0 16px;">%2$s</p>'
+			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
+			. '<p style="font-size:18px;color:#555;margin:0 0 8px;">%4$s</p>'
 			. '%5$s'
-			. '<p style="margin:32px 0 0;"><a href="%6$s" style="color:%1$s;font-size:14px;text-decoration:none;">&larr; %7$s</a></p>'
+			. '<p style="margin:32px 0 0;"><a href="%6$s" style="color:%1$s;font-size:16px;text-decoration:none;">&larr; %7$s</a></p>'
 			. '</div>',
 			esc_attr( $color ),
 			esc_html( $icon ),
 			esc_html( $title ),
 			esc_html( $line1 ),
-			'' !== $line2 ? '<p style="font-size:16px;color:#555;margin:0 0 32px;">' . esc_html( $line2 ) . '</p>' : '',
+			'' !== $line2 ? '<p style="font-size:18px;color:#555;margin:0 0 32px;">' . esc_html( $line2 ) . '</p>' : '',
 			esc_url( home_url( '/' ) ),
 			esc_html( get_bloginfo( 'name' ) )
 		);

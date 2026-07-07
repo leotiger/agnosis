@@ -145,10 +145,10 @@ class ReviewConfirm {
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
-			. '<p style="font-size:32px;color:%1$s;margin:0 0 16px;">%2$s</p>'
-			. '<h1 style="font-size:22px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
-			. '<p style="font-size:16px;color:#555;margin:0 0 32px;">%4$s</p>'
-			. '<a href="%5$s" style="color:%1$s;font-size:14px;text-decoration:none;">&larr; %6$s</a>'
+			. '<p style="font-size:34px;color:%1$s;margin:0 0 16px;">%2$s</p>'
+			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
+			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%4$s</p>'
+			. '<a href="%5$s" style="color:%1$s;font-size:16px;text-decoration:none;">&larr; %6$s</a>'
 			. '</div>',
 			esc_attr( $color ),
 			esc_html( $icon ),
@@ -194,17 +194,17 @@ class ReviewConfirm {
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
-			. '<p style="font-size:32px;color:#7c6af7;margin:0 0 16px;">✦</p>'
-			. '<h1 style="font-size:22px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
-			. '<p style="font-size:16px;color:#555;margin:0 0 32px;">%2$s</p>'
+			. '<p style="font-size:34px;color:#7c6af7;margin:0 0 16px;">✦</p>'
+			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
+			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%2$s</p>'
 			. '<form method="post" action="%3$s">'
 			. '<input type="hidden" name="agnosis_review" value="1">'
 			. '<input type="hidden" name="id" value="%4$s">'
 			. '<input type="hidden" name="action" value="%5$s">'
 			. '<input type="hidden" name="token" value="%6$s">'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:15px;font-family:inherit;cursor:pointer;">%7$s</button>'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%7$s</button>'
 			. '</form>'
-			. '<p style="margin:24px 0 0;"><a href="%8$s" style="color:#999;font-size:14px;text-decoration:none;">&larr; %9$s</a></p>'
+			. '<p style="margin:24px 0 0;"><a href="%8$s" style="color:#999;font-size:16px;text-decoration:none;">&larr; %9$s</a></p>'
 			. '</div>',
 			esc_html( $title ),
 			esc_html( $description ),

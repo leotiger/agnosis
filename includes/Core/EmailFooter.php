@@ -46,38 +46,49 @@ class EmailFooter {
 	 * actually does — this is meant to stand alone as a quick-reference card,
 	 * not require them to remember or dig up the original settings/onboarding copy.
 	 *
-	 * @var array<string, array{option: string, desc: string}>
+	 * A method, NOT a class constant: PHP constant expressions must be
+	 * compile-time-evaluable, so `__()` cannot appear inside a `const` array —
+	 * previously these labels and descriptions were plain hardcoded English
+	 * strings despite the docblock calling them "Translatable", silently
+	 * bypassing every switch_to_locale() call every caller wraps this in.
+	 * Evaluated fresh on every call so it always reflects whatever locale is
+	 * currently active (via switch_to_locale()) at the time the caller — every
+	 * artist-facing notification email — builds its footer.
+	 *
+	 * @return array<string, array{option: string, desc: string}>
 	 */
-	private const ADDRESS_OPTIONS = [
-		'Artwork'    => [
-			'option' => 'agnosis_email_submit',
-			'desc'   => 'Send new artwork to be published.',
-		],
-		'Biography'  => [
-			'option' => 'agnosis_email_bio',
-			'desc'   => 'Update your artist biography.',
-		],
-		'Events'     => [
-			'option' => 'agnosis_email_event',
-			'desc'   => 'Announce an upcoming event.',
-		],
-		'Replace'    => [
-			'option' => 'agnosis_email_replace',
-			'desc'   => 'Send a new version of an existing artwork — subject must match its title.',
-		],
-		'Remove'     => [
-			'option' => 'agnosis_email_remove',
-			'desc'   => 'Request an existing artwork or event be taken down — subject must match its title.',
-		],
-		'Promote'    => [
-			'option' => 'agnosis_email_promote',
-			'desc'   => 'Mark an artwork as featured in your gallery — subject must match its title.',
-		],
-		'Photo-only' => [
-			'option' => 'agnosis_email_photo',
-			'desc'   => 'Publish a photo exactly as sent — no AI enhancement, no quality check.',
-		],
-	];
+	private static function address_options(): array {
+		return [
+			__( 'Artwork', 'agnosis' )    => [
+				'option' => 'agnosis_email_submit',
+				'desc'   => __( 'Send new artwork to be published.', 'agnosis' ),
+			],
+			__( 'Biography', 'agnosis' )  => [
+				'option' => 'agnosis_email_bio',
+				'desc'   => __( 'Update your artist biography.', 'agnosis' ),
+			],
+			__( 'Events', 'agnosis' )     => [
+				'option' => 'agnosis_email_event',
+				'desc'   => __( 'Announce an upcoming event.', 'agnosis' ),
+			],
+			__( 'Replace', 'agnosis' )    => [
+				'option' => 'agnosis_email_replace',
+				'desc'   => __( 'Send a new version of an existing artwork — subject must match its title.', 'agnosis' ),
+			],
+			__( 'Remove', 'agnosis' )     => [
+				'option' => 'agnosis_email_remove',
+				'desc'   => __( 'Request an existing artwork or event be taken down — subject must match its title.', 'agnosis' ),
+			],
+			__( 'Promote', 'agnosis' )    => [
+				'option' => 'agnosis_email_promote',
+				'desc'   => __( 'Mark an artwork as featured in your gallery — subject must match its title.', 'agnosis' ),
+			],
+			__( 'Photo-only', 'agnosis' ) => [
+				'option' => 'agnosis_email_photo',
+				'desc'   => __( 'Publish a photo exactly as sent — no AI enhancement, no quality check.', 'agnosis' ),
+			],
+		];
+	}
 
 	/**
 	 * Every configured work address, label => [address, desc]. Addresses left
@@ -89,7 +100,7 @@ class EmailFooter {
 	 */
 	public static function addresses(): array {
 		$addresses = [];
-		foreach ( self::ADDRESS_OPTIONS as $label => $info ) {
+		foreach ( self::address_options() as $label => $info ) {
 			$address = trim( (string) get_option( $info['option'], '' ) );
 			if ( '' !== $address && is_email( $address ) ) {
 				$addresses[ $label ] = [
@@ -152,7 +163,7 @@ class EmailFooter {
 		$rows = '';
 		foreach ( $addresses as $label => $info ) {
 			$rows .= sprintf(
-				'<p style="margin:0 0 10px;font-size:13px;line-height:1.5;text-align:left;">'
+				'<p style="margin:0 0 10px;font-size:15px;line-height:1.5;text-align:left;">'
 				. '<strong style="color:#555;">%s:</strong> '
 				. '<a href="mailto:%s" style="color:#7c6af7;text-decoration:underline;">%s</a>'
 				. '<br><span style="color:#888;">%s</span>'

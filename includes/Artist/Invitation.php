@@ -147,31 +147,31 @@ class Invitation {
 
 	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-		<div style="font-size:13px;color:#ece9ff;margin-top:4px;"><?php esc_html_e( "You're invited", 'agnosis' ); ?></div>
+		<div style="font-size:15px;color:#ece9ff;margin-top:4px;"><?php esc_html_e( "You're invited", 'agnosis' ); ?></div>
 	</td></tr>
 
 	<tr><td style="background:#ffffff;padding:36px 24px;">
 		<?php if ( '' !== trim( $intro ) ) : ?>
-		<div style="margin:0 0 28px;font-size:16px;line-height:1.7;color:#333;">
+		<div style="margin:0 0 28px;font-size:18px;line-height:1.7;color:#333;">
 			<?php echo wp_kses_post( wpautop( $intro ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_kses_post() escapes/strips internally. ?>
 		</div>
 		<?php endif; ?>
 
 		<table cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
 		<tr><td>
-			<a href="<?php echo esc_url( $this->join_url() ); ?>" style="display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
+			<a href="<?php echo esc_url( $this->join_url() ); ?>" style="display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
 				<?php esc_html_e( 'Apply to join', 'agnosis' ); ?>
 			</a>
 		</td></tr>
 		</table>
 
-		<p style="margin:0;font-size:13px;color:#999;">
+		<p style="margin:0;font-size:15px;color:#999;">
 			<?php esc_html_e( 'No account needed to apply — the community reviews and votes on every application.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */

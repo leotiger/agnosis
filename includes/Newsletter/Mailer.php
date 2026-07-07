@@ -73,12 +73,12 @@ class Mailer {
 
 	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
 		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-		<div style="font-size:13px;color:#ece9ff;margin-top:4px;"><?php echo esc_html( $heading ); ?></div>
+		<div style="font-size:15px;color:#ece9ff;margin-top:4px;"><?php echo esc_html( $heading ); ?></div>
 	</td></tr>
 
 		<?php if ( '' !== $view_online_url ) : ?>
 	<tr><td style="padding:10px 24px;background:#f9f9f9;border-bottom:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#999;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#999;text-align:center;">
 			<?php esc_html_e( 'Having trouble viewing this email?', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $view_online_url ); ?>" style="color:#7c6af7;"><?php esc_html_e( 'View it online.', 'agnosis' ); ?></a>
 		</p>
@@ -87,14 +87,14 @@ class Mailer {
 
 	<tr><td style="background:#ffffff;padding:36px 24px;">
 		<?php if ( '' !== trim( $intro ) ) : ?>
-		<p style="margin:0 0 28px;font-size:16px;line-height:1.7;color:#333;"><?php echo wp_kses_post( wpautop( $intro ) ); ?></p>
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.7;color:#333;"><?php echo wp_kses_post( wpautop( $intro ) ); ?></p>
 		<?php endif; ?>
 
 		<?php echo $digest_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped in Digest::build_*(). ?>
 	</td></tr>
 
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0 0 8px;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0 0 8px;font-size:14px;color:#bbb;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -103,7 +103,7 @@ class Mailer {
 			);
 			?>
 		</p>
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
 			<?php if ( null !== $unsubscribe_url ) : ?>
 				<a href="<?php echo esc_url( $unsubscribe_url ); ?>" style="color:#bbb;"><?php esc_html_e( 'Unsubscribe', 'agnosis' ); ?></a>
 			<?php else : ?>

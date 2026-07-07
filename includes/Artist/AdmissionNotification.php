@@ -316,7 +316,7 @@ class AdmissionNotification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -325,7 +325,7 @@ class AdmissionNotification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: community name */
@@ -335,7 +335,7 @@ class AdmissionNotification {
 			?>
 		</p>
 
-		<p style="margin:0;font-size:15px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;">
+		<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;">
 			<?php
 			printf(
 				/* translators: %d: number of days */
@@ -348,7 +348,7 @@ class AdmissionNotification {
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -552,7 +552,7 @@ class AdmissionNotification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -561,7 +561,7 @@ class AdmissionNotification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: community name */
@@ -571,11 +571,11 @@ class AdmissionNotification {
 			?>
 		</p>
 
-		<p style="margin:0 0 6px;font-size:15px;color:#555;">
+		<p style="margin:0 0 6px;font-size:17px;color:#555;">
 			<?php esc_html_e( 'Your gallery:', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $gallery_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $gallery_url ); ?></a>
 		</p>
-		<p style="margin:0 0 28px;font-size:15px;color:#555;">
+		<p style="margin:0 0 28px;font-size:17px;color:#555;">
 			<?php esc_html_e( 'Your submissions:', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $my_subs_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $my_subs_url ); ?></a>
 		</p>
@@ -583,17 +583,17 @@ class AdmissionNotification {
 		<?php if ( ! empty( $aliases ) ) : ?>
 		<!-- How to share work -->
 		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 20px;">
-			<p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#333;"><?php esc_html_e( 'How to share your work — send an email to:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#333;"><?php esc_html_e( 'How to share your work — send an email to:', 'agnosis' ); ?></p>
 			<table cellpadding="0" cellspacing="0" width="100%">
 				<?php foreach ( $aliases as $label => $address ) : ?>
 				<tr>
-					<td style="font-size:14px;color:#555;padding:0 0 6px;"><?php echo esc_html( $label ); ?>:</td>
-					<td style="font-size:14px;padding:0 0 6px;"><a href="mailto:<?php echo esc_attr( $address ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $address ); ?></a></td>
+					<td style="font-size:16px;color:#555;padding:0 0 6px;"><?php echo esc_html( $label ); ?>:</td>
+					<td style="font-size:16px;padding:0 0 6px;"><a href="mailto:<?php echo esc_attr( $address ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $address ); ?></a></td>
 				</tr>
 				<?php endforeach; ?>
 			</table>
-			<p style="margin:12px 0 4px;font-size:13px;font-weight:700;color:#333;"><?php esc_html_e( 'Subject line conventions:', 'agnosis' ); ?></p>
-			<p style="margin:0;font-size:13px;color:#666;line-height:1.6;">
+			<p style="margin:12px 0 4px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Subject line conventions:', 'agnosis' ); ?></p>
+			<p style="margin:0;font-size:15px;color:#666;line-height:1.6;">
 				<?php esc_html_e( 'Artwork (default) — any subject', 'agnosis' ); ?><br>
 				<?php esc_html_e( '[Biography] — biography update', 'agnosis' ); ?><br>
 				<?php esc_html_e( '[Event] — event announcement', 'agnosis' ); ?>
@@ -604,16 +604,16 @@ class AdmissionNotification {
 		<?php if ( '' !== $goodbye_address ) : ?>
 		<!-- Leave the network -->
 		<div style="background:#fef9f9;padding:16px 20px;border-radius:4px;border:1px solid #fad7d7;">
-			<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#b34a4a;"><?php esc_html_e( 'To leave the network and delete your account:', 'agnosis' ); ?></p>
-			<p style="margin:0 0 6px;font-size:13px;"><a href="mailto:<?php echo esc_attr( $goodbye_address ); ?>" style="color:#b34a4a;"><?php echo esc_html( $goodbye_address ); ?></a></p>
-			<p style="margin:0;font-size:13px;color:#999;line-height:1.5;">
+			<p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#b34a4a;"><?php esc_html_e( 'To leave the network and delete your account:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 6px;font-size:15px;"><a href="mailto:<?php echo esc_attr( $goodbye_address ); ?>" style="color:#b34a4a;"><?php echo esc_html( $goodbye_address ); ?></a></p>
+			<p style="margin:0;font-size:15px;color:#999;line-height:1.5;">
 				<?php esc_html_e( 'Send any email (no attachment needed). You will receive a confirmation link — nothing is deleted until you click it.', 'agnosis' ); ?>
 			</p>
 		</div>
 		<?php endif; ?>
 
 		<!-- No login needed — password recovery is opt-in, mentioned last on purpose -->
-		<p style="margin:24px 0 0;font-size:13px;color:#999;line-height:1.6;">
+		<p style="margin:24px 0 0;font-size:15px;color:#999;line-height:1.6;">
 			<?php esc_html_e( "No login is needed to work with Agnosis — everything above happens by email. If you'd also like to use the site's optional online features (like previewing a submission before it publishes), you can set up a password whenever you like using", 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $lostpassword_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php esc_html_e( 'password recovery', 'agnosis' ); ?></a>.
 		</p>
@@ -621,7 +621,7 @@ class AdmissionNotification {
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */

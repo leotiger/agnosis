@@ -10,6 +10,11 @@
  *   • Idempotency: already-trashed post returns success without re-trashing.
  *   • Guard: non-existent post returns 404; wrong post type returns 404.
  *   • Permission gate: confirm() is unreachable without a non-empty token.
+ *   • Translation cascade: when Lingua Forge is active,
+ *     linguaforge_trash_translation_group() is called (not a bare
+ *     wp_trash_post()) with check_caps left at its trusted-caller default of
+ *     false; a cascade that reports nothing trashed surfaces as a 500,
+ *     matching the pre-cascade wp_trash_post()-returned-false behaviour.
  *
  * @package Agnosis\Tests\Integration\Publishing
  */
@@ -19,6 +24,12 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Publishing;
 
 use Agnosis\Publishing\RemovalEndpoints;
+
+// LF's linguaforge_trash_translation_group() global stub lives in a separate
+// file to satisfy Universal.Files.SeparateFunctionsFromOO (no function
+// declarations alongside OO) — same convention as
+// tests/php/Integration/Compat/Stubs/lf_global_stubs.php.
+require_once __DIR__ . '/Stubs/lf_trash_cascade_stub.php';
 
 class RemovalEndpointsIntegrationTest extends \WP_UnitTestCase {
 
@@ -32,12 +43,23 @@ class RemovalEndpointsIntegrationTest extends \WP_UnitTestCase {
 
 	private const VALID_TOKEN = 'removal-integ-token-abc123456789';
 
+	// ── linguaforge_trash_translation_group() stub state (reset in setUp) ──────
+
+	/** @var array<int, array{post_id:int, check_caps:bool}> */
+	public static array $trash_cascade_calls = [];
+
+	/** @var array{trashed:int,skipped:int}|null Non-null forces the stub's return value instead of actually trashing. */
+	public static ?array $trash_cascade_return_override = null;
+
 	// -------------------------------------------------------------------------
 	// Set-up
 	// -------------------------------------------------------------------------
 
 	protected function setUp(): void {
 		parent::setUp();
+
+		self::$trash_cascade_calls           = [];
+		self::$trash_cascade_return_override = null;
 
 		$this->endpoints = new RemovalEndpoints();
 		$this->artist_id = self::factory()->user->create( [ 'role' => 'subscriber' ] );
@@ -90,6 +112,47 @@ class RemovalEndpointsIntegrationTest extends \WP_UnitTestCase {
 		$this->endpoints->confirm( $req );
 
 		$this->assertEmpty( get_post_meta( $this->post_id, '_agnosis_removal_expiry', true ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// confirm() — translation cascade (Lingua Forge active)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Without this, only the primary-language post was ever trashed — every
+	 * translation linked into its TRID group stayed live and publicly
+	 * visible after an artist's removal request. Asserts the endpoint calls
+	 * the LF cascade (not a bare wp_trash_post()) with check_caps left at
+	 * its trusted-caller default of false — this is a token-authenticated
+	 * REST request that frequently has no logged-in WP session at all for
+	 * current_user_can() to check against, same convention already used by
+	 * linguaforge_trigger_translation()/linguaforge_queue_translation().
+	 */
+	public function test_confirm_calls_lf_trash_cascade_with_check_caps_false(): void {
+		$req    = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->confirm( $req );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$this->assertCount( 1, self::$trash_cascade_calls );
+		$this->assertSame( $this->post_id, self::$trash_cascade_calls[0]['post_id'] );
+		$this->assertFalse( self::$trash_cascade_calls[0]['check_caps'] );
+		$this->assertSame( 'trash', get_post_status( $this->post_id ) );
+	}
+
+	/**
+	 * A cascade that reports nothing trashed (e.g. every post in the group
+	 * was skipped) must surface the same 500 a failed bare wp_trash_post()
+	 * always did — not a false "removed" success.
+	 */
+	public function test_confirm_returns_500_when_cascade_trashes_nothing(): void {
+		self::$trash_cascade_return_override = [ 'trashed' => 0, 'skipped' => 1 ];
+
+		$req    = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->confirm( $req );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_removal_failed', $result->get_error_code() );
+		$this->assertSame( [ 'status' => 500 ], $result->get_error_data() );
 	}
 
 	// -------------------------------------------------------------------------

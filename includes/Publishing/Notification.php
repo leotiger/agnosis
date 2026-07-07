@@ -197,7 +197,7 @@ class Notification {
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$accent    = '#c0392b';
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:18px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		// 2026-07-06: remove@ covers events as well as artwork — the copy below
 		// says "artwork" or "event" depending on what's actually being removed,
@@ -221,7 +221,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -231,7 +231,7 @@ class Notification {
 			?>
 		</p>
 
-		<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 16px;font-size:20px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -241,11 +241,11 @@ class Notification {
 			?>
 		</p>
 
-		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:19px;font-weight:600;color:#111;">
+		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:21px;font-weight:600;color:#111;">
 			<?php echo esc_html( $title ); ?>
 		</p>
 
-		<p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -269,7 +269,7 @@ class Notification {
 		</td></tr>
 		</table>
 
-		<p style="font-size:14px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
+		<p style="font-size:16px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -279,14 +279,14 @@ class Notification {
 			?>
 		</p>
 
-		<p style="font-size:14px;color:#999;margin:0;">
+		<p style="font-size:16px;color:#999;margin:0;">
 			<?php esc_html_e( 'This confirmation link expires in 7 days.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -303,7 +303,7 @@ class Notification {
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
@@ -363,7 +363,7 @@ class Notification {
 				'',
 				array_map( fn( string $i ) => '<li style="margin:0 0 4px;">' . esc_html( $i ) . '</li>', $quality_issues )
 			);
-			$quality_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:15px;color:#555;">'
+			$quality_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:17px;color:#555;">'
 				. '<strong style="color:#8a6200;">'
 				. esc_html__( '📷 Photo enhanced automatically', 'agnosis' )
 				. '</strong>'
@@ -371,12 +371,12 @@ class Notification {
 				. esc_html__( 'We detected some photographic issues and applied AI correction to improve visibility of your artwork:', 'agnosis' )
 				. '</p>'
 				. '<ul style="margin:0;padding-left:18px;">' . $issue_items . '</ul>'
-				. '<p style="margin:8px 0 0;font-size:14px;color:#888;">'
+				. '<p style="margin:8px 0 0;font-size:16px;color:#888;">'
 				. esc_html__( 'The artwork itself has not been altered — only the photograph quality was corrected.', 'agnosis' )
 				. '</p>'
 				. '</div>';
 		} elseif ( $quality_score > 0 && ! $was_enhanced ) {
-			$quality_html = '<p style="font-size:14px;color:#888;margin:0 0 20px;">'
+			$quality_html = '<p style="font-size:16px;color:#888;margin:0 0 20px;">'
 				. sprintf(
 					/* translators: %d: photo quality score out of 10 */
 					esc_html__( '📷 Photo quality score: %d/10', 'agnosis' ),
@@ -409,7 +409,7 @@ class Notification {
 
 		$accent    = '#7c6af7';
 		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:18px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
@@ -428,7 +428,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -437,7 +437,7 @@ class Notification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:20px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "Your submission has been processed. Here's what our AI curator came up with — take a look and let us know if it's ready to publish.", 'agnosis' ); ?>
 		</p>
 
@@ -450,11 +450,11 @@ class Notification {
 		<?php endif; ?>
 
 		<!-- Original title (artist's language) — the canonical name of the work -->
-		<h2 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#111;"><?php echo esc_html( $title ); ?></h2>
+		<h2 style="margin:0 0 8px;font-size:28px;font-weight:700;color:#111;"><?php echo esc_html( $title ); ?></h2>
 
 		<?php if ( $site_title && $site_title !== $title ) : ?>
 		<!-- AI-generated site title (site language) — what visitors will see -->
-		<p style="margin:0 0 4px;font-size:15px;color:#888;">
+		<p style="margin:0 0 4px;font-size:17px;color:#888;">
 			<?php
 			printf(
 				/* translators: %s: the AI-generated site title in the site's primary language */
@@ -467,7 +467,7 @@ class Notification {
 
 		<?php if ( $translated_site_title ) : ?>
 		<!-- Back-translation of the site title into the artist's language — clarity hint -->
-		<p style="margin:0 0 16px;font-size:14px;font-style:italic;color:#999;">
+		<p style="margin:0 0 16px;font-size:16px;font-style:italic;color:#999;">
 			<?php
 			printf(
 				/* translators: %s: the site title translated back into the artist's language */
@@ -481,11 +481,11 @@ class Notification {
 		<?php endif; ?>
 
 		<?php if ( $excerpt ) : ?>
-		<p style="margin:0 0 16px;font-size:16px;font-style:italic;color:#666;border-left:3px solid <?php echo esc_attr( $accent ); ?>;padding-left:14px;"><?php echo esc_html( $excerpt ); ?></p>
+		<p style="margin:0 0 16px;font-size:18px;font-style:italic;color:#666;border-left:3px solid <?php echo esc_attr( $accent ); ?>;padding-left:14px;"><?php echo esc_html( $excerpt ); ?></p>
 		<?php endif; ?>
 
 		<?php if ( $body_preview ) : ?>
-		<p style="margin:0 0 32px;font-size:16px;line-height:1.7;color:#444;"><?php echo esc_html( $body_preview ); ?>&hellip;</p>
+		<p style="margin:0 0 32px;font-size:18px;line-height:1.7;color:#444;"><?php echo esc_html( $body_preview ); ?>&hellip;</p>
 		<?php endif; ?>
 
 		<!-- Primary CTAs -->
@@ -501,7 +501,7 @@ class Notification {
 		</table>
 
 		<?php if ( $submissions_url ) : ?>
-		<p style="font-size:15px;color:#666;margin:0 0 24px;padding:14px 16px;background:#f9f9f9;border-radius:6px;">
+		<p style="font-size:17px;color:#666;margin:0 0 24px;padding:14px 16px;background:#f9f9f9;border-radius:6px;">
 			<?php esc_html_e( 'Want to tweak the title, text or tags before publishing?', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $submissions_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;">
 				<?php esc_html_e( 'Open your submissions page →', 'agnosis' ); ?>
@@ -509,14 +509,14 @@ class Notification {
 		</p>
 		<?php endif; ?>
 
-		<p style="font-size:14px;color:#999;margin:0;">
+		<p style="font-size:16px;color:#999;margin:0;">
 			<?php esc_html_e( 'The Publish and Discard links above expire in 7 days. Your submission stays as a draft until you decide.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -533,7 +533,7 @@ class Notification {
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
@@ -722,7 +722,7 @@ class Notification {
 	</td></tr>
 
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -731,26 +731,26 @@ class Notification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 24px;font-size:20px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "We received your email, but couldn't process a usable photo, audio, or video file from it — so nothing was published. This can happen when an image is pasted or inserted inline rather than added as a proper attachment, or when a file arrives in a format this server can't convert (for example, an iPhone photo saved in HEIC/HEIF format).", 'agnosis' ); ?>
 		</p>
 
 		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
-			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'To resend correctly:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 10px;font-size:17px;font-weight:700;color:#333;"><?php esc_html_e( 'To resend correctly:', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
-				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Use your mail app\'s "Attach file" (usually a paperclip icon) rather than "Insert photo" or pasting the image directly into the message body.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'If your photo was taken on an iPhone, try switching Settings → Camera → Formats to "Most Compatible" before taking or sending it, or use "Options" in Mail to send it as a JPEG.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 0;font-size:15px;color:#555;"><?php esc_html_e( 'Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for video.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Use your mail app\'s "Attach file" (usually a paperclip icon) rather than "Insert photo" or pasting the image directly into the message body.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'If your photo was taken on an iPhone, try switching Settings → Camera → Formats to "Most Compatible" before taking or sending it, or use "Options" in Mail to send it as a JPEG.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:17px;color:#555;"><?php esc_html_e( 'Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for video.', 'agnosis' ); ?></li>
 			</ul>
 		</div>
 
-		<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Once it\'s properly attached, just send it to the same address again — we\'ll pick it up automatically.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -767,7 +767,7 @@ class Notification {
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
@@ -877,7 +877,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -886,13 +886,13 @@ class Notification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 24px;font-size:20px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "We received your submission, but unfortunately the photo quality is too low for us to show your artwork clearly. We didn't publish it — but please don't be discouraged! A simple retake is usually all it takes.", 'agnosis' ); ?>
 		</p>
 
 		<!-- Issue panel -->
 		<div style="background:#fff8f0;border-left:3px solid #e07b00;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
-			<p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#b35900;">
+			<p style="margin:0 0 10px;font-size:18px;font-weight:700;color:#b35900;">
 				<?php
 				printf(
 					/* translators: %d: quality score out of 10 */
@@ -902,34 +902,34 @@ class Notification {
 				?>
 			</p>
 			<?php if ( ! empty( $advice_items ) ) : ?>
-			<p style="margin:0 0 10px;font-size:15px;color:#555;"><?php esc_html_e( 'Here\'s what our AI detected and how to fix it:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 10px;font-size:17px;color:#555;"><?php esc_html_e( 'Here\'s what our AI detected and how to fix it:', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
 				<?php foreach ( $advice_items as $advice ) : ?>
-				<li style="margin:0 0 8px;font-size:15px;line-height:1.5;color:#444;"><?php echo wp_kses_post( $advice ); ?></li>
+				<li style="margin:0 0 8px;font-size:17px;line-height:1.5;color:#444;"><?php echo wp_kses_post( $advice ); ?></li>
 				<?php endforeach; ?>
 			</ul>
 			<?php else : ?>
-			<p style="margin:0;font-size:15px;color:#555;"><?php esc_html_e( 'The overall photo quality was too low for our AI to process the artwork clearly.', 'agnosis' ); ?></p>
+			<p style="margin:0;font-size:17px;color:#555;"><?php esc_html_e( 'The overall photo quality was too low for our AI to process the artwork clearly.', 'agnosis' ); ?></p>
 			<?php endif; ?>
 		</div>
 
 		<!-- Tips -->
 		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
-			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( '💡 Quick tips for a great artwork photo', 'agnosis' ); ?></p>
+			<p style="margin:0 0 10px;font-size:17px;font-weight:700;color:#333;"><?php esc_html_e( '💡 Quick tips for a great artwork photo', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
-				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Use natural light — position the artwork near a window on a cloudy day for even, soft light.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Shoot straight on — hold your phone parallel to the canvas to avoid perspective distortion.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Fill the frame — let the artwork take up most of the shot; crop out distracting backgrounds.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 0;font-size:15px;color:#555;"><?php esc_html_e( 'Hold still — tap the artwork on your screen to focus, then press the shutter gently or use a self-timer.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Use natural light — position the artwork near a window on a cloudy day for even, soft light.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Shoot straight on — hold your phone parallel to the canvas to avoid perspective distortion.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Fill the frame — let the artwork take up most of the shot; crop out distracting backgrounds.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:17px;color:#555;"><?php esc_html_e( 'Hold still — tap the artwork on your screen to focus, then press the shutter gently or use a self-timer.', 'agnosis' ); ?></li>
 			</ul>
 		</div>
 
-		<p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Once you have a clearer photo, just email it to the same address as before — we\'ll pick it up automatically.', 'agnosis' ); ?>
 		</p>
 
 		<?php if ( $submissions_url ) : ?>
-		<p style="font-size:15px;color:#666;margin:0 0 0;padding:14px 16px;background:#f0eeff;border-radius:6px;">
+		<p style="font-size:17px;color:#666;margin:0 0 0;padding:14px 16px;background:#f0eeff;border-radius:6px;">
 			<?php esc_html_e( 'Your previous submission is saved in your submissions page in case you want to review what was sent.', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $submissions_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;">
 				<?php esc_html_e( 'View submissions →', 'agnosis' ); ?>
@@ -940,7 +940,7 @@ class Notification {
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -957,7 +957,7 @@ class Notification {
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>

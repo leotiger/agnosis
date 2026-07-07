@@ -678,12 +678,23 @@ class Departure {
 	 *
 	 * Uses get_posts() with a high limit rather than a direct DB query so WP
 	 * fires the correct action hooks (delete_post, etc.) for each deletion.
+	 *
+	 * 'post_status' is deliberately NOT 'any': WP_Query's 'any' silently
+	 * excludes 'trash' (and 'auto-draft'/'inherit') — see
+	 * https://developer.wordpress.org/reference/classes/wp_query/#status-parameters.
+	 * Found 2026-07-08 auditing the self-departure flow: an artwork the artist
+	 * had individually removed via remove@ shortly before departing (still
+	 * inside WordPress's default 30-day trash retention) — along with any of
+	 * its Lingua Forge translations, also left in the trash by that same
+	 * cascade — would silently survive a "this action is permanent and cannot
+	 * be undone" departure, recoverable until WP's own trash-empty cron ran.
+	 * Explicitly including 'trash' here closes that gap.
 	 */
 	public function delete_artist_content( int $user_id ): void {
 		$posts = get_posts( [
 			'post_type'      => self::AGNOSIS_POST_TYPES,
 			'author'         => $user_id,
-			'post_status'    => 'any',
+			'post_status'    => [ 'publish', 'future', 'draft', 'pending', 'private', 'trash' ],
 			'posts_per_page' => -1,
 			'no_found_rows'  => true,
 			'fields'         => 'ids',

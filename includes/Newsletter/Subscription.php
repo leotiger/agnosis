@@ -124,7 +124,7 @@ class Subscription {
 
 		$accent    = '#7c6af7';
 		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
@@ -141,7 +141,7 @@ class Subscription {
 	</td></tr>
 
 	<tr><td style="padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Thanks for signing up! Confirm your email address to start receiving the newsletter.', 'agnosis' ); ?>
 		</p>
 
@@ -153,13 +153,13 @@ class Subscription {
 		</td></tr>
 		</table>
 
-		<p style="font-size:13px;color:#999;margin:0;">
+		<p style="font-size:15px;color:#999;margin:0;">
 			<?php esc_html_e( "If you didn't request this, simply ignore this email — you will not be subscribed.", 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */

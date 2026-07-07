@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.2
+Stable tag: 0.9.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,15 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.9.4 =
+* Fixed: When an artist requested that a piece of art or an event be taken down (via the remove link in their email), only the original-language version was actually removed — any translated copies of it stayed live and visible. Removal now takes every translated version down along with it.
+* Fixed: If an artist said goodbye and asked for their account and work to be deleted, a piece they'd already individually removed shortly beforehand (and was still sitting in the trash) could be missed — technically not deleted despite the confirmation saying "this cannot be undone." Departure now removes everything regardless of what state it was already in.
+
+= 0.9.3 =
+* Fixed: The list of work-submission addresses (artwork@, biography@, etc.) at the bottom of your emails — added in 0.9.2 with a one-line explanation for each — turned out to never actually translate into an artist's language, even though everything else in the same email correctly did. It's now translatable like the rest of the email. (Note: if you use Loco Translate to provide translations, you'll need to re-scan for translatable text once to pick up these newly-fixable strings.)
+* Fixed: After clicking a vote link in an email (voting on a new applicant or on removing a member), the confirmation page you land on showed in the site's default language instead of your own — even though the email you clicked from was correctly in your language. It now matches.
+* Changed: Increased the text size further across all outbound emails and their matching confirmation pages, on top of the size increase already made in 0.9.2 — it still read a bit small overall.
 
 = 0.9.1 =
 * Fixed: An artist's own subdomain (e.g. artistx.agnosis.art) showed every artist's work on its homepage, instead of just that artist's own. It now correctly shows only their own gallery.
