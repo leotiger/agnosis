@@ -109,6 +109,7 @@ class Plugin {
 			$this->loader->add_action( 'admin_init',            $settings, 'register_settings' );
 			$this->loader->add_action( 'admin_enqueue_scripts', $settings, 'enqueue_assets' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_logs',         $settings, 'handle_clear_logs' );
+			$this->loader->add_action( 'admin_post_agnosis_clear_debug_files', $settings, 'handle_clear_debug_files' );
 			$this->loader->add_action( 'wp_ajax_agnosis_test_ai',              $settings, 'handle_test_ai' );
 			$this->loader->add_action( 'admin_post_agnosis_admit_application',    $settings, 'handle_admit_application' );
 			$this->loader->add_action( 'admin_post_agnosis_reject_application',   $settings, 'handle_reject_application' );
@@ -157,6 +158,14 @@ class Plugin {
 		$this->loader->add_action( 'init', $profile, 'register_taxonomy' );
 		$this->loader->add_action( 'init', $profile, 'register_blocks' );
 		$this->loader->add_action( 'pre_get_posts', $profile, 'order_events_archive' );
+		$this->loader->add_filter( 'query_loop_block_query_vars', $profile, 'scope_more_works_query', 10, 1 );
+
+		// Locale-natural dates: every core/post-date block (artwork, biography,
+		// event pages, the newsletter archive, etc.) renders through this filter
+		// site-wide instead of a fixed date() format string that never actually
+		// adapts its structure per language — see DateFormatter's own docblock.
+		$date_formatter = new DateFormatter();
+		$this->loader->add_filter( 'render_block_core/post-date', $date_formatter, 'filter_post_date_block', 10, 3 );
 
 		// Artist admission (vouching) + public join form block.
 		$admission = new Admission();
@@ -226,6 +235,7 @@ class Plugin {
 		$this->loader->add_action( 'agnosis_post_drafted',         $notification, 'on_post_drafted',         10, 2 );
 		$this->loader->add_action( 'agnosis_removal_requested',    $notification, 'on_removal_requested',    10, 2 );
 		$this->loader->add_action( 'agnosis_submission_rejected',  $notification, 'on_submission_rejected',  10, 4 );
+		$this->loader->add_action( 'agnosis_submission_no_attachment', $notification, 'on_submission_no_attachment', 10, 2 );
 
 		$review = new ReviewEndpoints();
 		$this->loader->add_action( 'rest_api_init', $review, 'register_routes' );

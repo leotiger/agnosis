@@ -1,10 +1,10 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
+COMBINED COVERAGE  (unit + integration)  —  2026-07-07 17:24
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
   ✅ includes/AI/DescriptionResult.php                          100%
   ✅ includes/AI/EnhancementResult.php                          100%
-  ✅ includes/AI/MediaAdapter.php                                94%
+  ✅ includes/AI/MediaAdapter.php                                80%
   🔶 includes/AI/Pipeline.php                                    61%
   ✅ includes/AI/PromptConfig.php                               100%
   🔶 includes/AI/Providers/Anthropic.php                         71%
@@ -14,8 +14,8 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
   ❌ includes/Admin/InboxPage.php                                 0%
   ❌ includes/Admin/QueueController.php                           0%
   ❌ includes/Admin/Settings.php                                  3%
-  ✅ includes/Artist/Admission.php                               81%
-  ✅ includes/Artist/AdmissionNotification.php                   96%
+  ✅ includes/Artist/Admission.php                               82%
+  ✅ includes/Artist/AdmissionNotification.php                   97%
   ✅ includes/Artist/CommunityCap.php                            95%
   ✅ includes/Artist/CommunityCapNotification.php                88%
   ✅ includes/Artist/CommunityCapVote.php                        91%
@@ -24,14 +24,16 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
   🔶 includes/Artist/DepartureNotification.php                   62%
   🔶 includes/Artist/FrontendAccess.php                          69%
   ✅ includes/Artist/Invitation.php                              88%
-  ❌ includes/Artist/JoinPage.php                                 0%
-  ❌ includes/Artist/Profile.php                                 13%
+  ✅ includes/Artist/JoinPage.php                                87%
+  ❌ includes/Artist/Profile.php                                 12%
   ✅ includes/Artist/RemovalVoteConfirm.php                      92%
   ✅ includes/Artist/VouchConfirm.php                            89%
   ✅ includes/Compat/LinguaForge.php                             89%
   ✅ includes/Core/Activator.php                                 80%
+  ❌ includes/Core/DateFormatter.php                              0%
+  ❌ includes/Core/Debug.php                                      5%
   ❌ includes/Core/EmailBranding.php                             37%
-  ✅ includes/Core/EmailFooter.php                               89%
+  ✅ includes/Core/EmailFooter.php                               91%
   ❌ includes/Core/ImageSizes.php                                 0%
   ✅ includes/Core/Loader.php                                   100%
   ✅ includes/Core/Logger.php                                   100%
@@ -43,7 +45,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
   ✅ includes/Email/AttachmentStore.php                          80%
   ✅ includes/Email/EmailAuth.php                                95%
   ❌ includes/Email/Inbox.php                                    17%
-  🔶 includes/Email/Parser.php                                   50%
+  ❌ includes/Email/Parser.php                                   23%
   ❌ includes/Email/Webhook.php                                  30%
   ❌ includes/Network/ActivityPub.php                            23%
   ✅ includes/Network/HttpSignature.php                          86%
@@ -62,11 +64,11 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-06 22:30
   ✅ includes/Newsletter/SubscriptionConfirm.php                 86%
   ✅ includes/Newsletter/Tokens.php                             100%
   ❌ includes/Publishing/GalleryOverview.php                     43%
-  ✅ includes/Publishing/Notification.php                        85%
-  🔶 includes/Publishing/PostCreator.php                         61%
+  ✅ includes/Publishing/Notification.php                        84%
+  🔶 includes/Publishing/PostCreator.php                         60%
   ✅ includes/Publishing/RemovalEndpoints.php                    94%
   ✅ includes/Publishing/ReviewConfirm.php                       97%
   ✅ includes/Publishing/ReviewEndpoints.php                     91%
   ❌ includes/Publishing/SubmissionsPage.php                     19%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 55.32%  (5618 / 10155 statements)
+  TOTAL: 54.96%  (5919 / 10770 statements)

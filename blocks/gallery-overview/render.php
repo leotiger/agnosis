@@ -63,18 +63,37 @@ $agnosis_lang_meta_query = ( \Agnosis\Compat\LinguaForge::is_active() && defined
 // wrong-language content, which is the safe default until translations catch up.
 
 // ── Artist pool ─────────────────────────────────────────────────────────────
-$agnosis_cache_key   = 'agnosis_gallery_artist_ids';
-$agnosis_cache_group = 'agnosis_gallery';
-$agnosis_artist_ids  = wp_cache_get( $agnosis_cache_key, $agnosis_cache_group );
+// On an artist's own subdomain (artistx.agnosis.art) this block is that
+// artist's personal gallery, not the cross-artist portal directory — it must
+// show ONLY their own work. This block never touches the main WP_Query (it
+// builds its own pool via independent get_posts()/wpdb calls below), so
+// SubdomainRouter::scope_query()'s pre_get_posts filtering — which only
+// touches is_main_query() — never applies here on its own; it has to be
+// checked explicitly. The per-artist pool-building logic just below already
+// degenerates correctly to "just this artist's own artworks" when the
+// artist-ID pool contains exactly one ID, so no separate rendering path is
+// needed — just skip the sitewide "every artist who has ever published"
+// discovery query in that case.
+$agnosis_subdomain_artist_id = ( class_exists( '\Agnosis\Network\SubdomainRouter' ) && \Agnosis\Network\SubdomainRouter::is_artist_subdomain() )
+	? \Agnosis\Network\SubdomainRouter::current_artist_id()
+	: null;
 
-if ( false === $agnosis_artist_ids ) {
-	global $wpdb;
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- result cached via wp_cache_set() immediately below.
-	$agnosis_artist_ids = $wpdb->get_col(
-		"SELECT DISTINCT post_author FROM {$wpdb->posts}
-		 WHERE post_type = 'agnosis_artwork' AND post_status = 'publish'"
-	);
-	wp_cache_set( $agnosis_cache_key, $agnosis_artist_ids, $agnosis_cache_group, 5 * MINUTE_IN_SECONDS );
+if ( null !== $agnosis_subdomain_artist_id ) {
+	$agnosis_artist_ids = [ $agnosis_subdomain_artist_id ];
+} else {
+	$agnosis_cache_key   = 'agnosis_gallery_artist_ids';
+	$agnosis_cache_group = 'agnosis_gallery';
+	$agnosis_artist_ids  = wp_cache_get( $agnosis_cache_key, $agnosis_cache_group );
+
+	if ( false === $agnosis_artist_ids ) {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- result cached via wp_cache_set() immediately below.
+		$agnosis_artist_ids = $wpdb->get_col(
+			"SELECT DISTINCT post_author FROM {$wpdb->posts}
+			 WHERE post_type = 'agnosis_artwork' AND post_status = 'publish'"
+		);
+		wp_cache_set( $agnosis_cache_key, $agnosis_artist_ids, $agnosis_cache_group, 5 * MINUTE_IN_SECONDS );
+	}
 }
 
 if ( empty( $agnosis_artist_ids ) ) {

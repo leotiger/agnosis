@@ -23,6 +23,7 @@ namespace Agnosis\Publishing;
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\PromptConfig;
 use Agnosis\Artist\Admission;
+use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 use Agnosis\Email\AttachmentStore;
 
@@ -168,6 +169,33 @@ class PostCreator {
 				'publisher'
 			);
 
+			if ( Debug::enabled() ) {
+				$dbg_atts = [];
+				foreach ( (array) ( $submission['attachments'] ?? [] ) as $i => $a ) {
+					$dbg_atts[] = sprintf(
+						'  [%d] filename=%s mime=%s has_data=%s has_file_ref=%s bytes=%d',
+						$i,
+						(string) ( $a['filename'] ?? '(none)' ),
+						(string) ( $a['mime'] ?? '(none)' ),
+						isset( $a['data'] ) ? 'yes' : 'no',
+						isset( $a['file'] ) ? 'yes' : 'no',
+						isset( $a['data'] ) ? strlen( (string) $a['data'] ) : 0
+					);
+				}
+				Debug::write(
+					'post-creator-entry',
+					implode( "\n", array_merge(
+						[
+							sprintf( 'Queue #%d, artist #%s', $queue_id, (string) ( $row->artist_id ?? '?' ) ),
+							sprintf( 'post_type=%s singleton=%s photo_only=%s', $post_type, $singleton ? 'yes' : 'no', $photo_only ? 'yes' : 'no' ),
+							sprintf( 'description length=%d', strlen( (string) ( $submission['description'] ?? '' ) ) ),
+							sprintf( 'Attachments in decoded submission: %d', count( $dbg_atts ) ),
+						],
+						$dbg_atts
+					) )
+				);
+			}
+
 			// ---- Special handlers (no AI pipeline) ------------------------------
 
 			if ( 'agnosis_remove' === $post_type ) {
@@ -226,8 +254,66 @@ class PostCreator {
 						Logger::warning( sprintf( 'Queue #%d: attachment %d description failed — %s', $queue_id, $i + 1, $r['error'] ?? 'unknown' ), 'publisher' );
 					}
 				}
+
+				// The submission arrived with attachment(s), but MediaAdapter
+				// couldn't turn any of them into something the pipeline can use —
+				// e.g. a HEIC/HEIF photo on a server whose ImageMagick build lacks
+				// the libheif delegate (see MediaAdapter::adapt_heic()), or a PDF
+				// with Imagick unavailable at all. Without this guard, an artwork
+				// submission would silently continue into create_post() with an
+				// empty gallery and no AI-generated content — a bare draft with no
+				// image and no explanation. Reuse the same "no usable attachment"
+				// notification the intake gate fires for an unrecognized/empty
+				// attachment, since the artist-facing outcome is identical: nothing
+				// was published, and they should resend.
+				//
+				// Scoped to agnosis_artwork only, same as the quality gate below —
+				// an artwork submission's whole point is the image(s), but a
+				// biography/event email's attachment is supplementary; its body
+				// text is still perfectly publishable on its own even if an
+				// accompanying photo failed to convert.
+				if ( 'agnosis_artwork' === $post_type && empty( $results ) ) {
+					Logger::warning(
+						sprintf(
+							'Queue #%d: all %d attachment(s) failed to convert/process — nothing to publish.',
+							$queue_id, $attach_count
+						),
+						'publisher'
+					);
+
+					do_action( 'agnosis_submission_no_attachment', (int) $row->artist_id, $row->message_uid );
+
+					$this->mark( $queue_id, 'failed', 'Rejected: none of the submitted file(s) could be processed (unsupported or corrupt format). Artist notified.' );
+					return;
+				}
 			} else {
 				$results = []; // Biography/event emails may have no attachments.
+
+				// Defensive backstop: a genuinely new agnosis_artwork submission can
+				// never reach this branch with zero attachments AND no text — Parser
+				// itself refuses to enqueue an attachment-less email in the first
+				// place (parse_imap_message()/parse_webhook_payload() return null).
+				// The one way this shape CAN occur is a stale/resurrected queue row:
+				// is_already_queued() auto-retries a 'failed' row, and a row recorded
+				// by Inbox::mark_no_artwork() (unregistered sender, not admitted,
+				// throttled, etc.) stores raw_email = '{}' — no attachments, no
+				// description, nothing. (as of 2026-07-07 those specific rows are no
+				// longer auto-retried either, but this guard stays as a second,
+				// independent line of defense rather than relying on that alone.)
+				// Silent — no artist notification here, unlike the guard above: the
+				// original intake skip already told the artist their email didn't go
+				// through, if that's genuinely what happened. Firing it again here
+				// would just be a duplicate.
+				if ( 'agnosis_artwork' === $post_type
+					&& '' === trim( (string) ( $submission['description'] ?? '' ) )
+				) {
+					Logger::warning(
+						sprintf( 'Queue #%d: empty artwork submission (no attachments, no text) — nothing to publish.', $queue_id ),
+						'publisher'
+					);
+					$this->mark( $queue_id, 'failed', 'Rejected: empty submission — nothing to publish.' );
+					return;
+				}
 			}
 
 			// ---- Quality rejection gate -----------------------------------------
@@ -236,35 +322,69 @@ class PostCreator {
 			// Rejection threshold must be > 0 (setting to 0 disables the gate).
 			// photo_only submissions bypass this gate entirely: a deliberately low-fi
 			// or stylised photograph is an artistic choice, not a defect.
+			//
+			// Evaluated per attachment, not just the first: a gallery submission
+			// (several images in one email) previously lived or died on
+			// $results[0] alone — a bad first photo rejected otherwise-fine images
+			// sitting right behind it, and a bad 2nd+ photo was never checked at
+			// all and got published unreviewed. Each image is now judged on its
+			// own merits: individually-failing images are dropped from the
+			// gallery and only the survivors are published; the whole submission
+			// is rejected only when every image fails.
 			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) && ! $photo_only ) {
-				$primary_score  = (int) ( $results[0]['photo_quality_score']  ?? 0 );
-				$primary_issues = (array) ( $results[0]['photo_quality_issues'] ?? [] );
-				$reject_below   = (int) get_option( 'agnosis_quality_rejection_threshold', 3 );
+				$reject_below = (int) get_option( 'agnosis_quality_rejection_threshold', 3 );
 
-				if ( $reject_below > 0 && $primary_score > 0 && $primary_score <= $reject_below ) {
-					Logger::warning(
-						sprintf(
-							'Queue #%d: primary image quality score %d ≤ rejection threshold %d — rejecting submission.',
-							$queue_id, $primary_score, $reject_below
-						),
-						'publisher'
-					);
+				if ( $reject_below > 0 ) {
+					[ $kept, $rejected ] = $this->apply_quality_gate( $results, $reject_below );
 
-					/**
-					 * Fires when a submission is automatically rejected due to low image quality.
-					 *
-					 * @param int      $queue_id  Queue row ID.
-					 * @param int      $artist_id WordPress user ID of the submitting artist.
-					 * @param int      $score     Detected quality score (1–10).
-					 * @param string[] $issues    Array of human-readable issue labels from the AI.
-					 */
-					do_action( 'agnosis_submission_rejected', $queue_id, (int) $row->artist_id, $primary_score, $primary_issues );
+					foreach ( $rejected as $r ) {
+						Logger::warning(
+							sprintf(
+								'Queue #%d: attachment %d quality score %d ≤ rejection threshold %d — dropped from gallery.',
+								$queue_id, $r['index'] + 1, $r['score'], $reject_below
+							),
+							'publisher'
+						);
+					}
 
-					$this->mark( $queue_id, 'failed', sprintf(
-						'Rejected: image quality score %d is at or below the rejection threshold (%d). Artist notified.',
-						$primary_score, $reject_below
-					) );
-					return;
+					if ( empty( $kept ) ) {
+						// Every image failed — nothing left to publish, reject the whole submission.
+						$worst = $rejected[0];
+						foreach ( $rejected as $r ) {
+							if ( $r['score'] < $worst['score'] ) {
+								$worst = $r;
+							}
+						}
+						$all_issues = array_values( array_unique( array_merge( ...array_column( $rejected, 'issues' ) ) ) );
+
+						Logger::warning(
+							sprintf(
+								'Queue #%d: all %d attachment(s) failed quality (worst score %d ≤ threshold %d) — rejecting submission.',
+								$queue_id, count( $rejected ), $worst['score'], $reject_below
+							),
+							'publisher'
+						);
+
+						/**
+						 * Fires when a submission is automatically rejected due to low image quality.
+						 *
+						 * @param int      $queue_id  Queue row ID.
+						 * @param int      $artist_id WordPress user ID of the submitting artist.
+						 * @param int      $score     Detected quality score (1–10) — the worst among the rejected images.
+						 * @param string[] $issues    Array of human-readable issue labels from the AI, merged across every rejected image.
+						 */
+						do_action( 'agnosis_submission_rejected', $queue_id, (int) $row->artist_id, $worst['score'], $all_issues );
+
+						$this->mark( $queue_id, 'failed', sprintf(
+							'Rejected: all %d image(s) scored at or below the rejection threshold (%d). Artist notified.',
+							count( $rejected ), $reject_below
+						) );
+						return;
+					}
+
+					// Continue with only the images that passed — this is what
+					// primary_result()/merge_gallery()/write_post_meta() below will see.
+					$results = $kept;
 				}
 			}
 
@@ -1495,6 +1615,39 @@ class PostCreator {
 			}
 		}
 		return $results[0] ?? [];
+	}
+
+	/**
+	 * Split pipeline results into those that pass the quality-rejection
+	 * threshold and those that don't, evaluating each attachment on its own
+	 * score rather than only the first.
+	 *
+	 * A result with no assessable score (0 — the provider couldn't judge it,
+	 * e.g. audio/video, which carry no photo_quality_score at all) always
+	 * passes: absence of a score is never treated as a failure.
+	 *
+	 * @param array<int, array<string, mixed>> $results      Pipeline results, one per attachment.
+	 * @param int                               $reject_below Threshold — scores at or below this fail. Caller guarantees > 0.
+	 * @return array{0: array<int, array<string, mixed>>, 1: array<int, array{index: int, score: int, issues: string[]}>}
+	 *         [ kept results (re-indexed), rejected entries (original index, score, issues) ].
+	 */
+	private function apply_quality_gate( array $results, int $reject_below ): array {
+		$kept     = [];
+		$rejected = [];
+
+		foreach ( array_values( $results ) as $i => $r ) {
+			$score  = (int) ( $r['photo_quality_score']  ?? 0 );
+			$issues = (array) ( $r['photo_quality_issues'] ?? [] );
+
+			if ( $score > 0 && $score <= $reject_below ) {
+				$rejected[] = [ 'index' => $i, 'score' => $score, 'issues' => $issues ];
+				continue;
+			}
+
+			$kept[] = $r;
+		}
+
+		return [ $kept, $rejected ];
 	}
 
 	/**

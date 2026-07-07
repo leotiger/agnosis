@@ -17,6 +17,7 @@ namespace Agnosis\Email;
 
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\Departure;
+use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
 use Webklex\PHPIMAP\Client;
@@ -450,13 +451,13 @@ class Inbox {
 
 				if ( null === $artist_id ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': unregistered sender <' . $from_email . '>.', 'inbox' );
-					$this->mark_no_artwork( $uid );
+					$this->mark_no_artwork( $uid, null, 'unregistered_sender' );
 					continue;
 				}
 
 				if ( ! $this->is_admitted_artist( $artist_id ) ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> (user #' . $artist_id . ') is not admitted.', 'inbox' );
-					$this->mark_no_artwork( $uid );
+					$this->mark_no_artwork( $uid, $artist_id, 'not_admitted' );
 					continue;
 				}
 
@@ -465,7 +466,7 @@ class Inbox {
 				$throttle      = RateLimiter::check_sender( 'email_intake', $from_email, $sender_limit, HOUR_IN_SECONDS );
 				if ( is_wp_error( $throttle ) ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> throttled (' . $sender_limit . '/hour limit).', 'inbox' );
-					$this->mark_no_artwork( $uid );
+					$this->mark_no_artwork( $uid, $artist_id, 'throttled' );
 					continue;
 				}
 
@@ -483,12 +484,12 @@ class Inbox {
 								sprintf( 'Skipped UID ' . $uid . ': <' . $from_email . '> failed auth — SPF=%s DKIM=%s.', $verdicts['spf'] ?: 'none', $verdicts['dkim'] ?: 'none' ),
 								'inbox'
 							);
-							$this->mark_no_artwork( $uid );
+							$this->mark_no_artwork( $uid, $artist_id, 'auth_failed' );
 							continue;
 						}
 					} else {
 						Logger::warning( 'Skipped UID ' . $uid . ': auth required but no Authentication-Results header.', 'inbox' );
-						$this->mark_no_artwork( $uid );
+						$this->mark_no_artwork( $uid, $artist_id, 'auth_failed' );
 						continue;
 					}
 				}
@@ -497,9 +498,46 @@ class Inbox {
 				$submission = $this->parser->parse_imap_message( $message );
 
 				if ( null === $submission ) {
-					// No valid image attachments — mark it so we don't re-check it.
+					// No valid image attachments — mark it so we don't re-check it. The
+					// sender IS a known, admitted artist here (both gates above already
+					// passed) — persist $artist_id so the Inbox admin table shows who
+					// this was instead of "unregistered sender", and so a later
+					// auto-retry (is_already_queued()'s 'failed' branch) doesn't have
+					// PostCreator wrongly re-reject a real artist as unadmitted.
 					Logger::info( 'Skipped UID ' . $uid . ': no valid image attachments.', 'inbox' );
-					$this->mark_no_artwork( $uid );
+
+					if ( Debug::enabled() ) {
+						// Parser::parse_imap_message() already wrote a detailed
+						// 'parser-attachments-*' dump (raw MIME structure, per-
+						// attachment MIME sniff/declared/disposition/size, and
+						// why each one was accepted or rejected) for this exact
+						// UID just above, in the call this branch is reacting
+						// to. This companion file just makes that dump easy to
+						// find from a directory listing sorted by time — the
+						// two should have matching timestamps.
+						Debug::write(
+							'inbox-skip-no-attachments',
+							sprintf(
+								"UID: %s\nFrom: %s\nSubject: %s\nArtist user ID: %d\n\nSee the parser-attachments-* dump written immediately before this one (same poll cycle) for the full MIME/attachment trace.",
+								$uid,
+								$from_email,
+								(string) $message->getSubject(),
+								$artist_id
+							)
+						);
+					}
+
+					$this->mark_no_artwork( $uid, $artist_id, 'no_attachments' );
+
+					/**
+					 * Fires when an admitted artist's email was received but contained no
+					 * recognizable image/audio/video attachment (e.g. a photo inserted
+					 * inline rather than properly attached).
+					 *
+					 * @param int    $artist_id WordPress user ID of the sender.
+					 * @param string $uid       IMAP message UID (for logging/reference only).
+					 */
+					do_action( 'agnosis_submission_no_attachment', $artist_id, $uid );
 					continue;
 				}
 
@@ -571,7 +609,7 @@ class Inbox {
 				'Goodbye email from non-artist <' . $from_email . '> — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid );
+			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'goodbye_non_artist' );
 			return;
 		}
 
@@ -590,27 +628,71 @@ class Inbox {
 			);
 		}
 
-		$this->mark_no_artwork( $uid );
+		$this->mark_no_artwork( $uid, $user->ID, 'goodbye_handled' );
 	}
+
+	/**
+	 * Human-readable error text per skip reason — shown in the Inbox admin
+	 * table's Error column, and (via $reason) drives whether the sender's
+	 * identity is worth keeping on the row.
+	 *
+	 * Every reason gets its own accurate string. Previously every call site
+	 * shared one generic "no valid artwork or unregistered sender" message,
+	 * which made a content problem (no attachment) indistinguishable from an
+	 * identity problem (unknown sender) — see mark_no_artwork() below.
+	 *
+	 * @var array<string, string>
+	 */
+	private const SKIP_REASONS = [
+		'unregistered_sender'  => 'Skipped: sender is not a registered WordPress user.',
+		'not_admitted'         => 'Skipped: sender is registered but not an admitted artist.',
+		'throttled'            => 'Skipped: sender exceeded the per-hour intake limit.',
+		'auth_failed'          => 'Skipped: message failed SPF/DKIM authentication.',
+		'no_attachments'       => 'Skipped: no valid image, audio, or video attachment found in the message.',
+		'goodbye_non_artist'   => 'Skipped: goodbye request from a non-artist sender.',
+		'goodbye_handled'      => 'Goodbye request processed — self-removal confirmation sent.',
+	];
 
 	/**
 	 * Record a skipped message in the queue table so we never re-check it.
 	 *
-	 * Uses status 'failed' with a descriptive error so it appears in the queue
-	 * and can be inspected, but won't be picked up by PostCreator.
+	 * Uses status 'failed' with a reason-specific error so it appears in the
+	 * queue and can be inspected, but won't be picked up by PostCreator.
 	 * INSERT IGNORE is used because a row may already exist (e.g. previous skip).
 	 *
-	 * @param string $uid IMAP message UID.
+	 * $artist_id is persisted whenever it's already known (i.e. the sender did
+	 * resolve to a WP user, even if not an admitted artist) purely so the Inbox
+	 * admin table can show who actually sent it instead of always falling back
+	 * to "unregistered sender". These rows are stored with raw_email = '{}' —
+	 * there was never a real submission to preserve — and is_already_queued()
+	 * deliberately does NOT auto-retry them (unlike a genuine PostCreator
+	 * processing failure, which keeps the full original submission and is
+	 * worth retrying): the underlying email never changes, so a retry can't
+	 * produce a different outcome, and resetting one of these to 'pending'
+	 * previously handed PostCreator::handle() a genuinely empty submission —
+	 * which slipped past every "no attachment" guard and published a blank,
+	 * untitled draft. If a sender is later admitted, they simply need to
+	 * resend their email — see is_already_queued()'s 'failed' case.
+	 *
+	 * @param string   $uid       IMAP message UID.
+	 * @param int|null $artist_id WP user ID of the sender, if resolved. Null when
+	 *                            the sender never matched a WP account at all.
+	 * @param string   $reason    Key into self::SKIP_REASONS.
 	 */
-	private function mark_no_artwork( string $uid ): void {
+	private function mark_no_artwork( string $uid, ?int $artist_id = null, string $reason = 'unregistered_sender' ): void {
 		global $wpdb;
+
+		$error = self::SKIP_REASONS[ $reason ] ?? self::SKIP_REASONS['unregistered_sender'];
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table insert; INSERT IGNORE is idempotent.
 		$wpdb->query(
 			$wpdb->prepare(
 				"INSERT IGNORE INTO {$wpdb->prefix}agnosis_queue
-				 (message_uid, status, raw_email, error)
-				 VALUES (%s, 'failed', '{}', 'Skipped: no valid artwork or unregistered sender.')",
-				$uid
+				 (message_uid, artist_id, status, raw_email, error)
+				 VALUES (%s, %s, 'failed', '{}', %s)",
+				$uid,
+				null !== $artist_id ? (string) $artist_id : null,
+				$error
 			)
 		);
 	}
@@ -650,10 +732,12 @@ class Inbox {
 
 		// NOTE: Do NOT select post_id here — it may not exist on older table schemas.
 		// The post_id check for 'published' rows is done via a separate query below.
+		// raw_email IS selected — the 'failed' branch below needs it to tell a real
+		// processing failure apart from an intake-gate skip (see that branch).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- idempotency check on custom table; must be real-time.
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, status, updated_at FROM {$wpdb->prefix}agnosis_queue WHERE message_uid = %s LIMIT 1",
+				"SELECT id, status, updated_at, raw_email FROM {$wpdb->prefix}agnosis_queue WHERE message_uid = %s LIMIT 1",
 				$uid
 			)
 		);
@@ -704,6 +788,30 @@ class Inbox {
 				return true; // Reset — pipeline will re-run.
 
 			case 'failed':
+				// Two very different things share the 'failed' status:
+				//   - A real PostCreator::handle() processing failure (AI timeout,
+				//     provider error, etc.) — mark() only ever touches status/error/
+				//     post_id, so raw_email still holds the full original submission.
+				//     Retrying this is exactly the point: the same content might
+				//     succeed on a second attempt.
+				//   - An intake-gate skip recorded by mark_no_artwork() (unregistered
+				//     sender, not admitted, throttled, auth failed, or — critically —
+				//     no valid attachment found) — these rows are inserted with
+				//     raw_email = '{}' on purpose, since there was never a real
+				//     submission to store. The underlying email never changes, so
+				//     retrying can't produce a different outcome; worse, resetting
+				//     one of these to 'pending' hands PostCreator::handle() a
+				//     genuinely empty submission, which previously slipped past every
+				//     "no attachment" guard (those only checked the attach_count > 0
+				//     branch) and published a blank, untitled draft. Recognise that
+				//     shape here and leave the row alone instead of resurrecting it.
+				$decoded     = json_decode( (string) $row->raw_email, true );
+				$nothing_to_retry = empty( $decoded )
+					|| ( empty( $decoded['attachments'] ?? null ) && empty( $decoded['description'] ?? '' ) );
+				if ( $nothing_to_retry ) {
+					return true; // Nothing retriable here — already correctly marked failed/skipped.
+				}
+
 				Logger::info( sprintf( 'Queue #%d: resetting failed row to pending for retry.', $queue_id ), 'inbox' );
 				$this->reset_queue_row( $queue_id );
 				wp_schedule_single_event( time(), 'agnosis_publish_submission', [ $queue_id ] );

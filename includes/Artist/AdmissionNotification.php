@@ -19,8 +19,10 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\Artist\Admission;
+use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
 use Agnosis\Network\SubdomainRouter;
+use Agnosis\Newsletter\Mailer;
 
 class AdmissionNotification {
 
@@ -168,7 +170,15 @@ class AdmissionNotification {
 	}
 
 	/**
-	 * Welcome the newly admitted artist with a password-reset link.
+	 * Welcome the newly admitted artist.
+	 *
+	 * No account credentials are pushed on the artist here — working with
+	 * Agnosis (submitting, editing, removing work) is entirely email-based
+	 * and needs no login at all. This only points to WordPress's own
+	 * self-service "Forgot your password?" flow (wp_lostpassword_url()) for
+	 * the artist to use later, entirely at their own option, if they want the
+	 * optional online features (e.g. previewing a submission before it
+	 * publishes). See build_welcome_body()'s docblock for the reasoning.
 	 *
 	 * @param int $user_id        WP user ID of the newly created artist.
 	 * @param int $application_id Row ID in agnosis_applications.
@@ -179,10 +189,7 @@ class AdmissionNotification {
 			return;
 		}
 
-		$reset_key  = get_password_reset_key( $user );
-		$reset_url  = is_wp_error( $reset_key )
-			? wp_login_url()
-			: network_site_url( "wp-login.php?action=rp&key={$reset_key}&login=" . rawurlencode( $user->user_login ) );
+		$lostpassword_url = wp_lostpassword_url( home_url( '/my-submissions/' ) );
 
 		// maybe_admit() has already set the user locale — read it fresh from meta.
 		$artist_locale = (string) get_user_meta( $user_id, 'locale', true );
@@ -197,8 +204,8 @@ class AdmissionNotification {
 				__( 'Welcome to %s', 'agnosis' ),
 				get_bloginfo( 'name' )
 			),
-			$this->build_welcome_body( $user, $reset_url ),
-			$this->text_headers()
+			$this->build_welcome_body( $user, $lostpassword_url ),
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -267,7 +274,7 @@ class AdmissionNotification {
 				get_bloginfo( 'name' )
 			),
 			$this->build_acknowledgment_body( $application, $window ),
-			$this->text_headers()
+			$this->html_headers()
 		);
 
 		if ( '' !== $applicant_locale ) {
@@ -276,30 +283,89 @@ class AdmissionNotification {
 	}
 
 	/**
+	 * Build the HTML "application received" acknowledgment email.
+	 *
+	 * Deliberately does NOT include EmailFooter::html()/plain_text() — those
+	 * work-submission addresses (artwork@, bio@, replace@, etc.) are only
+	 * usable by an admitted artist. At this point the applicant is still
+	 * pending community review and has no account yet, so listing them here
+	 * previously just showed a confusing wall of addresses that would bounce
+	 * or go nowhere useful if used. See build_welcome_body() below, where the
+	 * same addresses legitimately belong once the applicant is actually admitted.
+	 *
 	 * @param object{display_name: string} $application
 	 */
 	private function build_acknowledgment_body( object $application, int $window ): string {
-		return implode( "\n", array_merge( [
-			sprintf(
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+			<?php
+			printf(
 				/* translators: %s: recipient's display name */
-				__( 'Hi %s,', 'agnosis' ),
-				$application->display_name
-			),
-			'',
-			sprintf(
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $application->display_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 20px;font-size:16px;line-height:1.6;color:#555;">
+			<?php
+			printf(
 				/* translators: %s: community name */
-				__( 'Thank you for applying to %s. Your application has been received and is now open for community review.', 'agnosis' ),
-				get_bloginfo( 'name' )
-			),
-			'',
-			sprintf(
+				esc_html__( 'Thank you for applying to %s. Your application has been received and is now open for community review.', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+
+		<p style="margin:0;font-size:15px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;">
+			<?php
+			printf(
 				/* translators: %d: number of days */
-				__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
-				$window
-			),
-			'',
-			get_bloginfo( 'name' ),
-		], $this->footer_lines() ) );
+				esc_html__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
+				absint( $window )
+			);
+			?>
+		</p>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -408,10 +474,14 @@ class AdmissionNotification {
 	}
 
 	/**
+	 * Same reasoning as build_acknowledgment_body() above: this recipient was
+	 * never admitted, so the work-submission address footer doesn't apply to
+	 * them either — omitted here for the same reason.
+	 *
 	 * @param object{display_name: string} $application
 	 */
 	private function build_expiry_applicant_body( object $application ): string {
-		return implode( "\n", array_merge( [
+		return implode( "\n", [
 			/* translators: %s: recipient's display name */
 			sprintf( __( 'Hi %s,', 'agnosis' ), $application->display_name ),
 			'',
@@ -424,7 +494,7 @@ class AdmissionNotification {
 			__( 'You are welcome to apply again in the future.', 'agnosis' ),
 			'',
 			get_bloginfo( 'name' ),
-		], $this->footer_lines() ) );
+		] );
 	}
 
 	/**
@@ -442,68 +512,146 @@ class AdmissionNotification {
 		], $this->footer_lines() ) );
 	}
 
-	private function build_welcome_body( \WP_User $user, string $reset_url ): string {
+	/**
+	 * Build the HTML welcome email sent once the community admits a new artist.
+	 *
+	 * Deliberately does NOT push credentials or a password-reset action as the
+	 * headline of this email: working with Agnosis (submitting, editing,
+	 * removing work) is entirely email-based and needs no WP account at all —
+	 * see the alias addresses below. A login only unlocks optional extras
+	 * (e.g. previewing a submission before it publishes at /my-submissions/),
+	 * so it's mentioned last, as a low-key opt-in note pointing at WordPress's
+	 * own self-service "Forgot your password?" flow — not a pre-generated,
+	 * single-use reset link baked into the email. Keeping this last also keeps
+	 * the email's main message simple: no login needed.
+	 */
+	private function build_welcome_body( \WP_User $user, string $lostpassword_url ): string {
 		$site_name   = get_bloginfo( 'name' );
 		$gallery_url = SubdomainRouter::url_for_artist( $user->ID );
 		$my_subs_url = home_url( '/my-submissions/' );
+		$accent      = '#7c6af7';
+		$header_bg   = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
 
-		$lines = [
-			/* translators: %s: recipient's display name */
-			sprintf( __( 'Hi %s,', 'agnosis' ), $user->display_name ),
-			'',
-			sprintf(
+		$aliases         = $this->configured_aliases();
+		$goodbye_address = (string) get_option( 'agnosis_email_goodbye', '' );
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $user->display_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#555;">
+			<?php
+			printf(
 				/* translators: %s: community name */
-				__( 'The %s community has admitted you as an artist. Welcome!', 'agnosis' ),
-				$site_name
-			),
-			'',
-			__( 'Set your password and log in here:', 'agnosis' ),
-			$reset_url,
-			'',
-			/* translators: %s: URL of the artist's personal gallery */
-			sprintf( __( 'Your gallery: %s', 'agnosis' ), $gallery_url ),
-			/* translators: %s: URL of the submissions dashboard */
-			sprintf( __( 'Your submissions: %s', 'agnosis' ), $my_subs_url ),
-		];
+				esc_html__( 'The %s community has admitted you as an artist. Welcome!', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
 
-		[ $content_alias_lines, $goodbye_line ] = $this->alias_lines();
-		if ( ! empty( $content_alias_lines ) ) {
-			$lines[] = '';
-			$lines[] = __( 'How to share your work — send an email to:', 'agnosis' );
-			$lines[] = '';
-			foreach ( $content_alias_lines as $line ) {
-				$lines[] = $line;
-			}
-			$lines[] = '';
-			$lines[] = __( 'Subject line conventions:', 'agnosis' );
-			$lines[] = '  ' . __( 'Artwork (default) — any subject', 'agnosis' );
-			$lines[] = '  ' . __( '[Biography]       — biography update', 'agnosis' );
-			$lines[] = '  ' . __( '[Event]           — event announcement', 'agnosis' );
-		}
-		if ( '' !== $goodbye_line ) {
-			$lines[] = '';
-			$lines[] = __( 'To leave the network and delete your account:', 'agnosis' );
-			$lines[] = $goodbye_line;
-			$lines[] = '  ' . __( 'Send any email (no attachment needed). You will receive a', 'agnosis' );
-			$lines[] = '  ' . __( 'confirmation link — nothing is deleted until you click it.', 'agnosis' );
-		}
+		<p style="margin:0 0 6px;font-size:15px;color:#555;">
+			<?php esc_html_e( 'Your gallery:', 'agnosis' ); ?>
+			<a href="<?php echo esc_url( $gallery_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $gallery_url ); ?></a>
+		</p>
+		<p style="margin:0 0 28px;font-size:15px;color:#555;">
+			<?php esc_html_e( 'Your submissions:', 'agnosis' ); ?>
+			<a href="<?php echo esc_url( $my_subs_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $my_subs_url ); ?></a>
+		</p>
 
-		$lines[] = '';
-		$lines[] = $site_name;
+		<?php if ( ! empty( $aliases ) ) : ?>
+		<!-- How to share work -->
+		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 20px;">
+			<p style="margin:0 0 12px;font-size:14px;font-weight:700;color:#333;"><?php esc_html_e( 'How to share your work — send an email to:', 'agnosis' ); ?></p>
+			<table cellpadding="0" cellspacing="0" width="100%">
+				<?php foreach ( $aliases as $label => $address ) : ?>
+				<tr>
+					<td style="font-size:14px;color:#555;padding:0 0 6px;"><?php echo esc_html( $label ); ?>:</td>
+					<td style="font-size:14px;padding:0 0 6px;"><a href="mailto:<?php echo esc_attr( $address ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $address ); ?></a></td>
+				</tr>
+				<?php endforeach; ?>
+			</table>
+			<p style="margin:12px 0 4px;font-size:13px;font-weight:700;color:#333;"><?php esc_html_e( 'Subject line conventions:', 'agnosis' ); ?></p>
+			<p style="margin:0;font-size:13px;color:#666;line-height:1.6;">
+				<?php esc_html_e( 'Artwork (default) — any subject', 'agnosis' ); ?><br>
+				<?php esc_html_e( '[Biography] — biography update', 'agnosis' ); ?><br>
+				<?php esc_html_e( '[Event] — event announcement', 'agnosis' ); ?>
+			</p>
+		</div>
+		<?php endif; ?>
 
-		return implode( "\n", $lines );
+		<?php if ( '' !== $goodbye_address ) : ?>
+		<!-- Leave the network -->
+		<div style="background:#fef9f9;padding:16px 20px;border-radius:4px;border:1px solid #fad7d7;">
+			<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#b34a4a;"><?php esc_html_e( 'To leave the network and delete your account:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 6px;font-size:13px;"><a href="mailto:<?php echo esc_attr( $goodbye_address ); ?>" style="color:#b34a4a;"><?php echo esc_html( $goodbye_address ); ?></a></p>
+			<p style="margin:0;font-size:13px;color:#999;line-height:1.5;">
+				<?php esc_html_e( 'Send any email (no attachment needed). You will receive a confirmation link — nothing is deleted until you click it.', 'agnosis' ); ?>
+			</p>
+		</div>
+		<?php endif; ?>
+
+		<!-- No login needed — password recovery is opt-in, mentioned last on purpose -->
+		<p style="margin:24px 0 0;font-size:13px;color:#999;line-height:1.6;">
+			<?php esc_html_e( "No login is needed to work with Agnosis — everything above happens by email. If you'd also like to use the site's optional online features (like previewing a submission before it publishes), you can set up a password whenever you like using", 'agnosis' ); ?>
+			<a href="<?php echo esc_url( $lostpassword_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php esc_html_e( 'password recovery', 'agnosis' ); ?></a>.
+		</p>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**
-	 * Build the alias-email reference lines for the welcome email.
+	 * Every configured work-submission alias, label => address, for the
+	 * welcome email's "how to share your work" section. Unconfigured aliases
+	 * (empty option value) are silently omitted so the email stays clean even
+	 * during partial setups. Unlike the acknowledgment email above, these
+	 * addresses ARE legitimate here — this recipient has just been admitted
+	 * as an artist and can actually use them.
 	 *
-	 * Each configured alias is included with a short localised description.
-	 * Unconfigured aliases (empty option value) are silently omitted so the
-	 * email stays clean even during partial setups.
-	 *
-	 * @return array{0: string[], 1: string} [ content_alias_lines, goodbye_line ]
+	 * @return array<string, string>
 	 */
-	private function alias_lines(): array {
+	private function configured_aliases(): array {
 		/** @var array<string, string> $content_aliases Option key → translatable label */
 		$content_aliases = [
 			'agnosis_email_submit'  => __( 'Submit artwork', 'agnosis' ),
@@ -514,22 +662,14 @@ class AdmissionNotification {
 			'agnosis_email_promote' => __( 'Feature artwork (subject: exact title)', 'agnosis' ),
 		];
 
-		$lines = [];
+		$aliases = [];
 		foreach ( $content_aliases as $option => $label ) {
 			$address = (string) get_option( $option, '' );
-			if ( '' === $address ) {
-				continue;
+			if ( '' !== $address ) {
+				$aliases[ $label ] = $address;
 			}
-			// Pad label to 42 chars so addresses left-align cleanly in a monospace client.
-			$lines[] = sprintf( '  %-42s %s', $label . ':', $address );
 		}
-
-		$goodbye_address = (string) get_option( 'agnosis_email_goodbye', '' );
-		$goodbye_line    = '' !== $goodbye_address
-			? sprintf( '  %s', $goodbye_address )
-			: '';
-
-		return [ $lines, $goodbye_line ];
+		return $aliases;
 	}
 
 	// -------------------------------------------------------------------------
@@ -542,13 +682,43 @@ class AdmissionNotification {
 	}
 
 	/**
+	 * Headers for the two HTML emails above (acknowledgment + welcome).
+	 * Mirrors Publishing\Notification's own HTML headers; delegates the From
+	 * header to Newsletter\Mailer::sender_header() (a general-purpose "site
+	 * name <admin_email>, or the configured override" builder despite its
+	 * namespace — the same helper Artist\Invitation already reuses) rather
+	 * than duplicating that logic a third time in this class.
+	 *
+	 * @return array<string>
+	 */
+	private function html_headers(): array {
+		return [
+			'Content-Type: text/html; charset=UTF-8',
+			'From: ' . Mailer::sender_header(),
+		];
+	}
+
+	/**
+	 * Return the BCP 47 language tag for use in the HTML <html lang="…">
+	 * attribute. Must be called AFTER switch_to_locale() so get_locale()
+	 * returns the recipient's locale, not the site locale — mirrors
+	 * Publishing\Notification::html_lang().
+	 */
+	private function html_lang(): string {
+		$locale = get_locale();
+		return $locale ? str_replace( '_', '-', $locale ) : 'en';
+	}
+
+	/**
 	 * Blank-line-prefixed work-emails footer for the plain-text bodies above.
 	 *
 	 * Returns an empty array when nothing is configured in Settings → Email,
 	 * so those bodies render exactly as they did before this existed rather
-	 * than gaining a stray trailing blank line. Not used by build_welcome_body()
-	 * — that email already lists every configured alias address in full,
-	 * labelled, right in the body (see alias_lines()), so appending the
+	 * than gaining a stray trailing blank line. Not used by build_acknowledgment_body()
+	 * or build_expiry_applicant_body() — the recipient there was never admitted,
+	 * so these addresses don't apply to them. Not used by build_welcome_body()
+	 * either — that email already lists every configured alias address in full,
+	 * labelled, right in the body (see configured_aliases()), so appending the
 	 * compact one-liner again immediately after would just repeat it. Not
 	 * used by send_admin_summary() either, since that email is admin-only.
 	 *

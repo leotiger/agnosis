@@ -18,6 +18,7 @@ use Agnosis\Artist\Departure;
 use Agnosis\Artist\Invitation;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Activator;
+use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
@@ -102,6 +103,16 @@ class Settings {
 		if ( isset( $_GET['cleared'] ) ) {
 			echo '<div class="notice notice-success is-dismissible"><p>'
 				. esc_html__( 'Log cleared.', 'agnosis' )
+				. '</p></div>';
+		}
+		if ( isset( $_GET['debug_cleared'] ) ) {
+			$removed = (int) $_GET['debug_cleared'];
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html( sprintf(
+					/* translators: %d: number of debug files removed */
+					_n( 'Debug files cleared. %d file was removed.', 'Debug files cleared. %d files were removed.', $removed, 'agnosis' ),
+					$removed
+				) )
 				. '</p></div>';
 		}
 		if ( isset( $_GET['processed'] ) ) {
@@ -289,6 +300,17 @@ class Settings {
 				'label'   => __( 'Node label', 'agnosis' ),
 				'desc'    => __( 'How this node introduces itself to the network.', 'agnosis' ),
 				'default' => get_bloginfo( 'name' ),
+			],
+
+			// --- GENERAL: Debug ---
+			'agnosis_debug_enabled' => [
+				'tab'      => 'general',
+				'label'    => __( 'Debug logging', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => '0',
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'Writes raw diagnostic dumps of the email intake pipeline (message structure, attachment MIME detection, media conversion, post creation) to a dedicated debug directory — far more detail than the Logs tab keeps, for tracing exactly where a submission was rejected or lost. Turn off once you have what you need; files can accumulate quickly. Can also be forced from wp-config.php with `define( \'AGNOSIS_DEBUG\', true );`, which overrides this toggle. See the Debug Files panel below for the directory location and a clear-files button.', 'agnosis' ),
 			],
 
 			// --- GENERAL: Branding ---
@@ -704,6 +726,14 @@ class Settings {
 				'min'     => 1,
 				'desc'    => __( 'Days an application stays open. If the threshold is not reached within this window the application is rejected.', 'agnosis' ),
 			],
+			'agnosis_join_success_url' => [
+				'tab'      => 'network',
+				'label'    => __( 'After applying, send artists to', 'agnosis' ),
+				'input'    => 'text',
+				'default'  => '',
+				'sanitize' => 'esc_url_raw',
+				'desc'     => __( 'Optional URL — e.g. a page explaining the vouching process and what happens next. When the application is submitted successfully, the artist is redirected here instead of just seeing an inline confirmation message. Leave blank to keep the inline message only.', 'agnosis' ),
+			],
 			'agnosis_community_max_artists' => [
 				'tab'     => 'network',
 				'label'   => __( 'Community size cap', 'agnosis' ),
@@ -905,6 +935,78 @@ class Settings {
 		<?php
 	}
 
+	/**
+	 * Debug Files panel — shown under Settings → General, below the Save
+	 * Changes button. The debug on/off toggle itself is a normal Settings
+	 * API field (agnosis_debug_enabled, saved via options.php); this panel
+	 * only surfaces read-only state (directory, file count, wp-config
+	 * override) and the destructive "Clear Debug Files" action, which needs
+	 * its own admin-post round trip rather than the shared settings form.
+	 */
+	private function render_debug_panel(): void {
+		$debug_enabled  = Debug::enabled();
+		$debug_dir      = Debug::dir();
+		$debug_count    = Debug::file_count();
+		$const_defined  = Debug::constant_defined();
+		$const_value    = Debug::constant_value();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Debug Files', 'agnosis' ); ?></h2>
+
+			<table class="form-table" role="presentation" style="margin-bottom:0"><tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Currently', 'agnosis' ); ?></th>
+					<td>
+						<?php if ( $debug_enabled ) : ?>
+							<strong style="color:#0a7c48">✓ <?php esc_html_e( 'Enabled', 'agnosis' ); ?></strong>
+						<?php else : ?>
+							<strong style="color:#c0392b">✗ <?php esc_html_e( 'Disabled', 'agnosis' ); ?></strong>
+						<?php endif; ?>
+						<?php if ( $const_defined ) : ?>
+							<p class="description">
+								<?php
+								if ( $const_value ) {
+									esc_html_e( 'Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox above has no effect until that line is removed.', 'agnosis' );
+								} else {
+									esc_html_e( 'Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox above has no effect until that line is removed.', 'agnosis' );
+								}
+								?>
+							</p>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Directory', 'agnosis' ); ?></th>
+					<td>
+						<code><?php echo esc_html( $debug_dir ); ?></code>
+						<p class="description"><?php esc_html_e( 'Filter with agnosis_debug_dir to redirect debug output elsewhere.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Files', 'agnosis' ); ?></th>
+					<td>
+						<strong><?php echo esc_html( number_format_i18n( $debug_count ) ); ?></strong>
+						<?php esc_html_e( '.txt file(s) in the directory', 'agnosis' ); ?>
+					</td>
+				</tr>
+			</tbody></table>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:1rem"
+				  onsubmit="return confirm('<?php echo esc_js( __( 'Delete all .txt files in the debug directory? The directory itself stays in place so future debug writes still land cleanly.', 'agnosis' ) ); ?>');">
+				<input type="hidden" name="action" value="agnosis_clear_debug_files">
+				<?php wp_nonce_field( 'agnosis_clear_debug_files' ); ?>
+				<?php
+				submit_button(
+					__( 'Clear Debug Files', 'agnosis' ),
+					'secondary', 'submit', false,
+					$debug_count > 0 ? [] : [ 'disabled' => 'disabled' ]
+				);
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
 	private function render_logs_tab(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- integer page offset for display only.
 		$page    = max( 1, (int) sanitize_key( wp_unslash( $_GET['log_page'] ?? '1' ) ) );
@@ -1003,6 +1105,10 @@ class Settings {
 	}
 
 	private function render_tab_tools( string $tab ): void {
+		if ( 'general' === $tab ) {
+			$this->render_debug_panel();
+			return;
+		}
 		if ( 'ai' === $tab ) {
 			$this->render_ai_test_tools();
 			return;
@@ -2016,6 +2122,25 @@ class Settings {
 		wp_safe_redirect(
 			add_query_arg(
 				[ 'page' => 'agnosis-settings', 'tab' => 'logs', 'cleared' => '1' ],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/** admin_post handler — delete all debug-directory dumps. */
+	public function handle_clear_debug_files(): void {
+		check_admin_referer( 'agnosis_clear_debug_files' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$removed = Debug::clear();
+
+		wp_safe_redirect(
+			add_query_arg(
+				[ 'page' => 'agnosis-settings', 'tab' => 'general', 'debug_cleared' => (string) $removed ],
 				admin_url( 'admin.php' )
 			)
 		);

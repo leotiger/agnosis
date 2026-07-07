@@ -43,6 +43,7 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$req->set_param( 'email', $email );
 		$req->set_param( 'display_name', $name );
 		$req->set_param( 'bio', 'I paint seascapes.' );
+		$req->set_param( 'language', 'en' ); // now required — see Admission::apply().
 		/** @var \WP_REST_Response $res */
 		$res = rest_do_request( $req );
 		return $res;

@@ -73,14 +73,23 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		return rest_do_request( new \WP_REST_Request( 'GET', $route ) );
 	}
 
-	/** Submit a valid application and return the application_id. */
-	private function apply( string $email = 'applicant@example.com', string $name = 'Test Artist' ): int {
+	/**
+	 * Submit a valid application and return the application_id.
+	 *
+	 * Always includes a recognized `language` — apply() now rejects (400) any
+	 * request that omits it or sends one Lingua Forge isn't configured for
+	 * (see test_apply_requires_language() and friends below), so every other
+	 * test in this file that just needs a normal, successful application uses
+	 * this default rather than repeating 'language' => 'en' everywhere.
+	 */
+	private function apply( string $email = 'applicant@example.com', string $name = 'Test Artist', string $language = 'en' ): int {
 		wp_set_current_user( 0 );
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => $email,
 			'display_name' => $name,
 			'bio'          => 'I paint seascapes.',
 			'statement'    => 'I want to share my work.',
+			'language'     => $language,
 		] );
 		return (int) ( $response->get_data()['application_id'] ?? 0 );
 	}
@@ -94,6 +103,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'new@example.com',
 			'display_name' => 'New Artist',
+			'language'     => 'en',
 		] );
 
 		$this->assertSame( 201, $response->get_status() );
@@ -105,6 +115,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'artist@example.com',
 			'display_name' => 'Some Artist',
+			'language'     => 'en',
 		] );
 		$data = $response->get_data();
 
@@ -116,6 +127,30 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'display_name' => 'No Email',
+			'language'     => 'en',
+		] );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	public function test_apply_requires_language(): void {
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'nolang-required@example.com',
+			'display_name' => 'No Language',
+			// 'language' omitted entirely.
+		] );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	public function test_apply_rejects_unrecognized_language(): void {
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'badlang@example.com',
+			'display_name' => 'Bad Language',
+			// 'xx' is not in the language_names() map filtered in setUp().
+			'language'     => 'xx',
 		] );
 
 		$this->assertSame( 400, $response->get_status() );
@@ -127,6 +162,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'existing@example.com',
 			'display_name' => 'Duplicate',
+			'language'     => 'en',
 		] );
 
 		$this->assertSame( 409, $response->get_status() );
@@ -138,6 +174,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'pending@example.com',
 			'display_name' => 'Duplicate',
+			'language'     => 'en',
 		] );
 
 		$this->assertSame( 409, $response->get_status() );
@@ -150,6 +187,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'artist3@example.com',
 			'display_name' => 'Triple',
+			'language'     => 'en',
 		] );
 
 		$this->assertSame( 3, $response->get_data()['vouches_required'] );
@@ -361,8 +399,11 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 	 * Accept-Language header — even a clean, unambiguous one. Guessing risks
 	 * recording a language this WP instance doesn't actually support (per
 	 * Lingua Forge's configuration), which only surfaces later as a broken,
-	 * silently-untranslated experience for the artist. The header is present
-	 * here specifically to prove it's ignored, not consulted.
+	 * silently-untranslated experience for the artist. Language is now
+	 * required outright (see test_apply_requires_language()), so the header
+	 * being present alongside a missing 'language' param must still be
+	 * rejected — not rescued by falling back to the header.  The header is
+	 * present here specifically to prove it's ignored, not consulted.
 	 */
 	public function test_apply_does_not_use_accept_language_header(): void {
 		global $wpdb;
@@ -371,10 +412,10 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'de-DE,de;q=0.9,en;q=0.8';
 
 		wp_set_current_user( 0 );
-		$this->rest_post( '/agnosis/v1/admission/apply', [
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'de@example.com',
 			'display_name' => 'Deutsch Artist',
-			// no language param, header present — must still resolve to null
+			// no language param, header present — must still be rejected, not rescued.
 		] );
 
 		if ( null !== $saved ) {
@@ -383,6 +424,8 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 			unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
 		}
 
+		$this->assertSame( 400, $response->get_status(), 'A missing language param must be rejected, not filled in from the Accept-Language header.' );
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$stored = $wpdb->get_var(
 			$wpdb->prepare(
@@ -390,7 +433,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 				'de@example.com'
 			)
 		);
-		$this->assertNull( $stored, 'Accept-Language header must never be used to guess a language.' );
+		$this->assertNull( $stored, 'No application row should be created at all when language is rejected.' );
 	}
 
 	/**
@@ -404,7 +447,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$_SERVER['HTTP_ACCEPT_LANGUAGE'] = 'fr-CH,fr;q=0.9,de;q=0.8,en;q=0.7';
 
 		wp_set_current_user( 0 );
-		$this->rest_post( '/agnosis/v1/admission/apply', [
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'fr@example.com',
 			'display_name' => 'French Artist',
 		] );
@@ -414,6 +457,8 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		} else {
 			unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
 		}
+
+		$this->assertSame( 400, $response->get_status() );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$stored = $wpdb->get_var(
@@ -425,14 +470,14 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$this->assertNull( $stored, 'Accept-Language header must never be used to guess a language.' );
 	}
 
-	public function test_apply_stores_null_when_no_language_provided_and_no_header(): void {
+	public function test_apply_rejects_when_no_language_provided_and_no_header(): void {
 		global $wpdb;
 
 		$saved = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null;
 		unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
 
 		wp_set_current_user( 0 );
-		$this->rest_post( '/agnosis/v1/admission/apply', [
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'nolang@example.com',
 			'display_name' => 'No Lang Artist',
 		] );
@@ -440,6 +485,8 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		if ( null !== $saved ) {
 			$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $saved;
 		}
+
+		$this->assertSame( 400, $response->get_status() );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$stored = $wpdb->get_var(
@@ -481,37 +528,38 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'es_ES', $locale, 'WP locale must be mapped from the ISO code on admission.' );
 	}
 
-	public function test_admitted_artist_without_language_gets_no_locale_set(): void {
+	/**
+	 * Language is now required at apply() time (see test_apply_requires_language()),
+	 * so "admit an artist who never supplied a language" is no longer a reachable
+	 * state via the normal flow — apply() rejects the request before an
+	 * application row (and therefore any later WP account) can ever exist.
+	 * This replaces the old test that verified admission still worked with an
+	 * empty locale; that path is gone by design now.
+	 */
+	public function test_apply_without_language_never_reaches_admission(): void {
 		update_option( 'agnosis_admission_minimum', 2 );
 		update_option( 'agnosis_admission_percent', 0 );
-
-		$saved = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null;
-		unset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] );
 
 		$artist1 = $this->create_artist();
 		$artist2 = $this->create_artist();
 
 		wp_set_current_user( 0 );
-		$response       = $this->rest_post( '/agnosis/v1/admission/apply', [
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
 			'email'        => 'nolocaleset@example.com',
 			'display_name' => 'No Locale Artist',
-			// no language param, no header
+			// no language param
 		] );
-		$application_id = (int) $response->get_data()['application_id'];
 
-		$this->rest_post( "/agnosis/v1/admission/vouch/{$application_id}", [], $artist1 );
-		$this->rest_post( "/agnosis/v1/admission/vouch/{$application_id}", [], $artist2 );
+		$this->assertSame( 400, $response->get_status() );
 
-		if ( null !== $saved ) {
-			$_SERVER['HTTP_ACCEPT_LANGUAGE'] = $saved;
-		}
+		$application_id = (int) ( $response->get_data()['application_id'] ?? 0 );
+		$this->assertSame( 0, $application_id, 'A rejected apply() must not produce an application_id.' );
 
-		$user = get_user_by( 'email', 'nolocaleset@example.com' );
-		$this->assertNotFalse( $user );
+		// Vouching against a non-existent application is a 404, not a path to admission.
+		$vouch_response = $this->rest_post( "/agnosis/v1/admission/vouch/{$application_id}", [], $artist1 );
+		$this->assertSame( 404, $vouch_response->get_status() );
 
-		// WP default when no locale meta: empty string.
-		$locale = get_user_meta( $user->ID, 'locale', true );
-		$this->assertSame( '', $locale, 'Locale meta must be empty when no language was captured.' );
+		$this->assertFalse( get_user_by( 'email', 'nolocaleset@example.com' ), 'No WP account should ever be created from a rejected application.' );
 	}
 
 	// -------------------------------------------------------------------------

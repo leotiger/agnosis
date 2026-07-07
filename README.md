@@ -16,14 +16,17 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 ## Features
 
 - **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, removal, and account departure (`goodbye@`)
+- **Zero-login workflow** — submitting, editing, and removing work all happen by email; no WordPress account is required. A login is optional, only needed for the online submissions-preview dashboard, and is set up via WordPress's own self-service password recovery whenever an artist wants it
 - **AI pipeline** — pluggable provider interface; OpenAI, Anthropic, and Stability AI out of the box
-- **Photo quality gate** — vision AI scores each photograph; enhancement only runs below a configurable threshold; targeted correction from detected issues
+- **HEIC/HEIF support** — the default photo format on modern iPhones is accepted at intake and converted to JPEG before AI processing, instead of being silently dropped; degrades gracefully when the server's ImageMagick build can't decode it
+- **Photo quality gate** — vision AI scores each photograph independently, even across a multi-photo gallery submission; enhancement only runs below a configurable threshold; targeted correction from detected issues
+- **Submission-failure notifications** — an artist is emailed if their message couldn't be turned into a post at all (no usable attachment found, or every attachment failed to convert), instead of it silently vanishing
 - **Medium taxonomy** — 8 canonical terms (Oil, Acrylic, Watercolour, Drawing, Digital, Photography, Sculpture, Mixed Media); AI assigns one per artwork; seeded on activation
 - **Artist review workflow** — draft posted, artist reviews via email link (approve / edit / discard)
 - **Artist-driven removal** — `remove@` email triggers a signed confirmation link; artist trashes their own artwork; no admin needed
 - **Artist departure** — three independent paths: self-removal (`goodbye@` alias or REST), admin suspend/delete, community vote; confirmation required before any deletion
-- **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard
-- **Multilingual** — language captured at application; per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language
+- **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard; an optional configurable page can greet applicants right after they apply, explaining what happens next
+- **Multilingual** — language is a required field at application (enforced client- and server-side); per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language
 - **Dual-title artwork** — `post_title` is always the artist's original title; AI-generated site-language title stored separately in `_agnosis_translated_title` meta
 - **ActivityPub federation** — each installation is a Fediverse actor; peers discover each other via `/.well-known/agnosis-node`
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication

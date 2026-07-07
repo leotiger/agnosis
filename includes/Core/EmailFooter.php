@@ -39,42 +39,73 @@ namespace Agnosis\Core;
 class EmailFooter {
 
 	/**
-	 * Translatable label => option name, in display order.
+	 * Translatable label => [option name, one-line explanation], in display order.
 	 *
-	 * @var array<string, string>
+	 * The description exists because the address alone ("Replace:
+	 * replace@example.art") doesn't tell an artist what sending mail there
+	 * actually does — this is meant to stand alone as a quick-reference card,
+	 * not require them to remember or dig up the original settings/onboarding copy.
+	 *
+	 * @var array<string, array{option: string, desc: string}>
 	 */
 	private const ADDRESS_OPTIONS = [
-		'Artwork'    => 'agnosis_email_submit',
-		'Biography'  => 'agnosis_email_bio',
-		'Events'     => 'agnosis_email_event',
-		'Replace'    => 'agnosis_email_replace',
-		'Remove'     => 'agnosis_email_remove',
-		'Promote'    => 'agnosis_email_promote',
-		'Photo-only' => 'agnosis_email_photo',
+		'Artwork'    => [
+			'option' => 'agnosis_email_submit',
+			'desc'   => 'Send new artwork to be published.',
+		],
+		'Biography'  => [
+			'option' => 'agnosis_email_bio',
+			'desc'   => 'Update your artist biography.',
+		],
+		'Events'     => [
+			'option' => 'agnosis_email_event',
+			'desc'   => 'Announce an upcoming event.',
+		],
+		'Replace'    => [
+			'option' => 'agnosis_email_replace',
+			'desc'   => 'Send a new version of an existing artwork — subject must match its title.',
+		],
+		'Remove'     => [
+			'option' => 'agnosis_email_remove',
+			'desc'   => 'Request an existing artwork or event be taken down — subject must match its title.',
+		],
+		'Promote'    => [
+			'option' => 'agnosis_email_promote',
+			'desc'   => 'Mark an artwork as featured in your gallery — subject must match its title.',
+		],
+		'Photo-only' => [
+			'option' => 'agnosis_email_photo',
+			'desc'   => 'Publish a photo exactly as sent — no AI enhancement, no quality check.',
+		],
 	];
 
 	/**
-	 * Every configured work address, label => address. Addresses left blank in
-	 * Settings → Email (or holding something that isn't a valid email) are
-	 * silently skipped, so the line stays clean on a partial setup instead of
-	 * printing "Events: " with nothing after it.
+	 * Every configured work address, label => [address, desc]. Addresses left
+	 * blank in Settings → Email (or holding something that isn't a valid
+	 * email) are silently skipped, so the footer stays clean on a partial
+	 * setup instead of printing an entry with nothing after it.
 	 *
-	 * @return array<string, string>
+	 * @return array<string, array{address: string, desc: string}>
 	 */
 	public static function addresses(): array {
 		$addresses = [];
-		foreach ( self::ADDRESS_OPTIONS as $label => $option ) {
-			$address = trim( (string) get_option( $option, '' ) );
+		foreach ( self::ADDRESS_OPTIONS as $label => $info ) {
+			$address = trim( (string) get_option( $info['option'], '' ) );
 			if ( '' !== $address && is_email( $address ) ) {
-				$addresses[ $label ] = $address;
+				$addresses[ $label ] = [
+					'address' => $address,
+					'desc'    => $info['desc'],
+				];
 			}
 		}
 		return $addresses;
 	}
 
 	/**
-	 * Plain-text one-line summary, e.g.:
-	 *   "Artwork: art@example.art   ·   Biography: bio@example.art"
+	 * Plain-text summary, one address per line, each followed by its one-line
+	 * explanation — e.g.:
+	 *   "Artwork: art@example.art — Send new artwork to be published."
+	 *   "Biography: bio@example.art — Update your artist biography."
 	 *
 	 * No markup — most mail clients auto-link recognisable email addresses on
 	 * their own even inside a plain-text body, so these read as "directly
@@ -90,19 +121,25 @@ class EmailFooter {
 			return '';
 		}
 
-		$parts = [];
-		foreach ( $addresses as $label => $address ) {
-			$parts[] = sprintf( '%s: %s', $label, $address );
+		$lines = [];
+		foreach ( $addresses as $label => $info ) {
+			$lines[] = sprintf( '%s: %s — %s', $label, $info['address'], $info['desc'] );
 		}
 
-		return implode( '   ·   ', $parts );
+		return implode( "\n", $lines );
 	}
 
 	/**
-	 * HTML one-line summary with real `mailto:` links, for the HTML templates
-	 * in Publishing\Notification. `color:inherit` keeps the links visually
-	 * consistent with each template's own footer text color rather than
-	 * falling back to the client's default link blue.
+	 * HTML summary with real `mailto:` links, one address per line with its
+	 * one-line explanation underneath — for the HTML templates in
+	 * Publishing\Notification.
+	 *
+	 * Fully self-styled (address label, link colour, and description colour
+	 * are all set here) rather than relying on `color:inherit` from whatever
+	 * footer wrapper the caller uses — this is meant to be legible on its
+	 * own, since it's the reference card for exactly which address does what.
+	 * Callers should NOT wrap the return value in a low-contrast/small-font
+	 * `<p>` — just place it directly in the footer area.
 	 *
 	 * Returns '' when nothing is configured.
 	 */
@@ -112,17 +149,22 @@ class EmailFooter {
 			return '';
 		}
 
-		$parts = [];
-		foreach ( $addresses as $label => $address ) {
-			$parts[] = sprintf(
-				'%s: <a href="mailto:%s" style="color:inherit;text-decoration:underline;">%s</a>',
+		$rows = '';
+		foreach ( $addresses as $label => $info ) {
+			$rows .= sprintf(
+				'<p style="margin:0 0 10px;font-size:13px;line-height:1.5;text-align:left;">'
+				. '<strong style="color:#555;">%s:</strong> '
+				. '<a href="mailto:%s" style="color:#7c6af7;text-decoration:underline;">%s</a>'
+				. '<br><span style="color:#888;">%s</span>'
+				. '</p>',
 				esc_html( $label ),
-				esc_attr( $address ),
-				esc_html( $address )
+				esc_attr( $info['address'] ),
+				esc_html( $info['address'] ),
+				esc_html( $info['desc'] )
 			);
 		}
 
-		return implode( '&nbsp;&nbsp;&middot;&nbsp;&nbsp;', $parts );
+		return $rows;
 	}
 
 	// -------------------------------------------------------------------------

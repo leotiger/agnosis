@@ -267,6 +267,108 @@ class MediaAdapterTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// HEIC/HEIF — graceful skip when Imagick (or its libheif delegate) can't decode it
+	// -------------------------------------------------------------------------
+
+	public function test_heic_returns_empty_when_imagick_unavailable(): void {
+		self::$imagick_available_override = false;
+
+		$att    = [ 'data' => 'FAKEHEIC:1200x900', 'mime' => 'image/heic', 'filename' => 'photo.heic' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_heic_converts_to_jpeg_when_imagick_available(): void {
+		self::$imagick_available_override = true;
+
+		$att    = [ 'data' => $this->make_test_heic_blob( 1200, 900 ), 'mime' => 'image/heic', 'filename' => 'photo.heic' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'image', $result[0]['media_type'] );
+		$this->assertSame( 'image/jpeg', $result[0]['mime'] );
+		$this->assertSame( 'photo.jpg', $result[0]['filename'], 'The .heic extension must be replaced with .jpg.' );
+		$this->assertNotSame( '', $result[0]['data'] );
+	}
+
+	public function test_heif_mime_also_converts(): void {
+		self::$imagick_available_override = true;
+
+		$att    = [ 'data' => $this->make_test_heic_blob( 640, 480 ), 'mime' => 'image/heif', 'filename' => 'photo.heif' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'image/jpeg', $result[0]['mime'] );
+	}
+
+	public function test_heic_sequence_mime_also_converts(): void {
+		self::$imagick_available_override = true;
+
+		// Only the primary (first) image of a burst/Live Photo sequence is used.
+		$att    = [ 'data' => $this->make_test_heic_blob( 640, 480 ), 'mime' => 'image/heic-sequence', 'filename' => 'burst.heic' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'image/jpeg', $result[0]['mime'] );
+	}
+
+	/**
+	 * The single most common real-world failure: Imagick is installed, but the
+	 * ImageMagick build lacks the libheif delegate, so it can't actually
+	 * decode a HEIC/HEIF blob even though the extension itself is present.
+	 * Indistinguishable from any other corrupt/undecodable blob at the
+	 * catch( \ImagickException ) level — see dev/bootstrap.php's fake Imagick
+	 * for why "unable to decode" covers both causes identically.
+	 */
+	public function test_heic_returns_empty_when_conversion_throws(): void {
+		self::$imagick_available_override = true;
+
+		$att    = [ 'data' => 'not-a-real-heic-file', 'mime' => 'image/heic', 'filename' => 'photo.heic' ];
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_heic_filename_falls_back_when_missing(): void {
+		self::$imagick_available_override = true;
+
+		$att    = [ 'data' => $this->make_test_heic_blob( 300, 200 ), 'mime' => 'image/heic' ]; // no 'filename' key
+		$result = MediaAdapter::adapt( [ $att ] );
+
+		$this->assertCount( 1, $result );
+		$this->assertSame( 'photo.jpg', $result[0]['filename'] );
+	}
+
+	/**
+	 * Builds a blob that adapt_heic()'s `new \Imagick()` → readImageBlob() →
+	 * getImageBlob() round-trip can decode successfully, on WHICHEVER concrete
+	 * \Imagick class ends up active for this process — same rationale as
+	 * make_test_multipage_blob() above. On a machine where the real `imagick`
+	 * extension is genuinely installed, a hand-rolled 'FAKEHEIC:...' string
+	 * isn't decodable image data to it and readImageBlob() would throw, so
+	 * this builds a real JPEG blob instead in that case (adapt_heic() doesn't
+	 * care what format the *source* bytes are — it only asserts control flow
+	 * here, not genuine HEIC decoding, which depends on the server's libheif
+	 * delegate and is covered separately by
+	 * test_heic_returns_empty_when_conversion_throws). When the real
+	 * extension is absent, dev/bootstrap.php's fake stand-in is active
+	 * instead and understands the plain 'FAKEHEIC:WxH' format directly.
+	 */
+	private function make_test_heic_blob( int $width, int $height ): string {
+		if ( \extension_loaded( 'imagick' ) ) {
+			$img = new \Imagick();
+			$img->newImage( $width, $height, new \ImagickPixel( 'white' ) );
+			$img->setImageFormat( 'jpeg' );
+			$blob = $img->getImageBlob();
+			$img->destroy();
+			return $blob;
+		}
+
+		return sprintf( 'FAKEHEIC:%dx%d', $width, $height );
+	}
+
+	// -------------------------------------------------------------------------
 	// Video — original file is always published; poster frame is best-effort
 	// -------------------------------------------------------------------------
 

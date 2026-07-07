@@ -276,9 +276,16 @@ if ( ! class_exists( 'WP_Error' ) ) {
 // upscaling, per-page iteration) be verified without any real image codec.
 // Blobs are plain encoded strings, never real image bytes:
 //   'FAKEJPEG:{w}x{h}'                  — a single flat image.
+//   'FAKEHEIC:{w}x{h}'                  — a single flat image, same shape as
+//                                         FAKEJPEG; a distinct prefix only for
+//                                         test readability (MediaAdapter::
+//                                         adapt_heic() doesn't care what the
+//                                         source format was).
 //   'FAKEPDF:{w1}x{h1}|{w2}x{h2}|...'   — a multi-page source.
 // Anything else fed to readImageBlob() throws ImagickException, mirroring
-// real Imagick's behaviour on unreadable/corrupt data.
+// real Imagick's behaviour on unreadable/corrupt data — including a
+// "libheif delegate not compiled in" failure, which looks identical to any
+// other undecodable blob from the caller's point of view.
 if ( ! class_exists( 'ImagickException' ) ) {
     // MediaAdapter::adapt_pdf() catches \ImagickException specifically (not
     // \Throwable), so a plain \Exception wouldn't satisfy that catch block —
@@ -312,6 +319,12 @@ if ( ! class_exists( 'Imagick' ) ) {
 
         public function readImageBlob( string $data ): bool {
             if ( str_starts_with( $data, 'FAKEJPEG:' ) && preg_match( '/^FAKEJPEG:(\d+)x(\d+)$/', $data, $m ) ) {
+                $this->width  = (int) $m[1];
+                $this->height = (int) $m[2];
+                $this->pages  = [ [ $this->width, $this->height ] ];
+                return true;
+            }
+            if ( str_starts_with( $data, 'FAKEHEIC:' ) && preg_match( '/^FAKEHEIC:(\d+)x(\d+)$/', $data, $m ) ) {
                 $this->width  = (int) $m[1];
                 $this->height = (int) $m[2];
                 $this->pages  = [ [ $this->width, $this->height ] ];

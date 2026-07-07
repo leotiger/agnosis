@@ -102,9 +102,10 @@ class Notification {
 		// published, even if they don't speak the site's primary language.
 		$site_title = (string) get_post_meta( $post_id, '_agnosis_translated_title', true );
 
-		$artist_locale         = (string) get_user_meta( $artist_id, 'locale', true );
-		$site_locale           = get_locale();
-		$translated_site_title = ''; // Site title back-translated to artist's language.
+		$artist_locale           = (string) get_user_meta( $artist_id, 'locale', true );
+		$site_locale             = get_locale();
+		$translated_site_title   = ''; // Site title back-translated to artist's language.
+		$translated_body_preview = ''; // Body preview back-translated to artist's language.
 
 		if ( '' !== $artist_locale && $artist_locale !== $site_locale ) {
 			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for SubmissionTranslator::language_names() lookup).
@@ -124,6 +125,18 @@ class Notification {
 				// Back-translate the AI-generated excerpt — 100% AI text the artist never wrote.
 				if ( '' !== trim( $post->post_excerpt ) ) {
 					$post->post_excerpt = $translator->translate_text( $post->post_excerpt, $lang_code ) ?: $post->post_excerpt;
+				}
+				// Back-translate the AI-generated body preview — same rationale as the
+				// excerpt above: post_content at this stage is the AI's own writing in
+				// the site's primary language, not the artist's words, so an artist who
+				// doesn't read that language couldn't actually review what they were
+				// about to approve for publication (only the title and excerpt were
+				// being back-translated before this fix). Translate the same trimmed
+				// preview build_email() shows, not the full body, to keep this a single
+				// short AI call rather than translating text the artist never sees.
+				$plain_body_preview = wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 );
+				if ( '' !== trim( $plain_body_preview ) ) {
+					$translated_body_preview = $translator->translate_text( $plain_body_preview, $lang_code ) ?: '';
 				}
 			}
 		}
@@ -147,7 +160,7 @@ class Notification {
 			'From: ' . $this->sender_header(),
 		];
 
-		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title, $artist_id );
+		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title, $artist_id, $translated_body_preview );
 
 		wp_mail( $to, $subject, $body, $headers );
 
@@ -184,7 +197,7 @@ class Notification {
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$accent    = '#c0392b';
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		// 2026-07-06: remove@ covers events as well as artwork — the copy below
 		// says "artwork" or "event" depending on what's actually being removed,
@@ -208,7 +221,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -218,7 +231,7 @@ class Notification {
 			?>
 		</p>
 
-		<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -228,11 +241,11 @@ class Notification {
 			?>
 		</p>
 
-		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:17px;font-weight:600;color:#111;">
+		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:19px;font-weight:600;color:#111;">
 			<?php echo esc_html( $title ); ?>
 		</p>
 
-		<p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -256,7 +269,7 @@ class Notification {
 		</td></tr>
 		</table>
 
-		<p style="font-size:13px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
+		<p style="font-size:14px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
 			<?php
 			printf(
 				/* translators: %s: "artwork" or "event" */
@@ -266,14 +279,14 @@ class Notification {
 			?>
 		</p>
 
-		<p style="font-size:13px;color:#999;margin:0;">
+		<p style="font-size:14px;color:#999;margin:0;">
 			<?php esc_html_e( 'This confirmation link expires in 7 days.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -284,13 +297,13 @@ class Notification {
 		</p>
 		<?php $work_emails_html = EmailFooter::html(); ?>
 		<?php if ( '' !== $work_emails_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
-		</p>
+		</div>
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
@@ -313,7 +326,7 @@ class Notification {
 	 * @param string   $token        Signed review token stored in post meta.
 	 * @return string HTML email body.
 	 */
-	private function build_email( \WP_Post $post, string $artist_name, string $token, string $site_title = '', string $translated_site_title = '', int $artist_id = 0 ): string {
+	private function build_email( \WP_Post $post, string $artist_name, string $token, string $site_title = '', string $translated_site_title = '', int $artist_id = 0, string $translated_body_preview = '' ): string {
 		$approve_url      = $this->action_url( $post->ID, 'approve', $token );
 		$reject_url       = $this->action_url( $post->ID, 'reject', $token );
 		$submissions_url  = $this->submissions_page_url();
@@ -350,7 +363,7 @@ class Notification {
 				'',
 				array_map( fn( string $i ) => '<li style="margin:0 0 4px;">' . esc_html( $i ) . '</li>', $quality_issues )
 			);
-			$quality_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:14px;color:#555;">'
+			$quality_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:15px;color:#555;">'
 				. '<strong style="color:#8a6200;">'
 				. esc_html__( '📷 Photo enhanced automatically', 'agnosis' )
 				. '</strong>'
@@ -358,12 +371,12 @@ class Notification {
 				. esc_html__( 'We detected some photographic issues and applied AI correction to improve visibility of your artwork:', 'agnosis' )
 				. '</p>'
 				. '<ul style="margin:0;padding-left:18px;">' . $issue_items . '</ul>'
-				. '<p style="margin:8px 0 0;font-size:13px;color:#888;">'
+				. '<p style="margin:8px 0 0;font-size:14px;color:#888;">'
 				. esc_html__( 'The artwork itself has not been altered — only the photograph quality was corrected.', 'agnosis' )
 				. '</p>'
 				. '</div>';
 		} elseif ( $quality_score > 0 && ! $was_enhanced ) {
-			$quality_html = '<p style="font-size:13px;color:#888;margin:0 0 20px;">'
+			$quality_html = '<p style="font-size:14px;color:#888;margin:0 0 20px;">'
 				. sprintf(
 					/* translators: %d: photo quality score out of 10 */
 					esc_html__( '📷 Photo quality score: %d/10', 'agnosis' ),
@@ -375,8 +388,20 @@ class Notification {
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$excerpt   = esc_html( $post->post_excerpt );
-		// Strip blocks / shortcodes for the email body preview.
-		$body_preview   = esc_html( wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 ) );
+		// Strip blocks / shortcodes for the email body preview. When the artist's
+		// language differs from the site's primary language, on_post_drafted()
+		// already back-translated this same trimmed preview via SubmissionTranslator
+		// (post_content at this stage is 100% AI-authored text in the site's
+		// primary language, not the artist's own words — the artist could not
+		// otherwise read what they're about to approve). Fall back to the
+		// site-language preview when no back-translation was produced (same
+		// locale, no AI provider configured, or the translate call returned
+		// empty) so the email never renders with an empty body.
+		$body_preview = esc_html(
+			'' !== $translated_body_preview
+				? $translated_body_preview
+				: wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 )
+		);
 		// post_title is the artist's original title (their language).
 		// $site_title is the AI-generated title for the site (site language).
 		// $translated_site_title is the site title back-translated into the artist's language.
@@ -384,7 +409,7 @@ class Notification {
 
 		$accent    = '#7c6af7';
 		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
@@ -403,7 +428,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -412,7 +437,7 @@ class Notification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "Your submission has been processed. Here's what our AI curator came up with — take a look and let us know if it's ready to publish.", 'agnosis' ); ?>
 		</p>
 
@@ -425,11 +450,11 @@ class Notification {
 		<?php endif; ?>
 
 		<!-- Original title (artist's language) — the canonical name of the work -->
-		<h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111;"><?php echo esc_html( $title ); ?></h2>
+		<h2 style="margin:0 0 8px;font-size:26px;font-weight:700;color:#111;"><?php echo esc_html( $title ); ?></h2>
 
 		<?php if ( $site_title && $site_title !== $title ) : ?>
 		<!-- AI-generated site title (site language) — what visitors will see -->
-		<p style="margin:0 0 4px;font-size:14px;color:#888;">
+		<p style="margin:0 0 4px;font-size:15px;color:#888;">
 			<?php
 			printf(
 				/* translators: %s: the AI-generated site title in the site's primary language */
@@ -442,7 +467,7 @@ class Notification {
 
 		<?php if ( $translated_site_title ) : ?>
 		<!-- Back-translation of the site title into the artist's language — clarity hint -->
-		<p style="margin:0 0 16px;font-size:13px;font-style:italic;color:#bbb;">
+		<p style="margin:0 0 16px;font-size:14px;font-style:italic;color:#999;">
 			<?php
 			printf(
 				/* translators: %s: the site title translated back into the artist's language */
@@ -456,11 +481,11 @@ class Notification {
 		<?php endif; ?>
 
 		<?php if ( $excerpt ) : ?>
-		<p style="margin:0 0 16px;font-size:15px;font-style:italic;color:#666;border-left:3px solid <?php echo esc_attr( $accent ); ?>;padding-left:14px;"><?php echo esc_html( $excerpt ); ?></p>
+		<p style="margin:0 0 16px;font-size:16px;font-style:italic;color:#666;border-left:3px solid <?php echo esc_attr( $accent ); ?>;padding-left:14px;"><?php echo esc_html( $excerpt ); ?></p>
 		<?php endif; ?>
 
 		<?php if ( $body_preview ) : ?>
-		<p style="margin:0 0 32px;font-size:15px;line-height:1.7;color:#444;"><?php echo esc_html( $body_preview ); ?>&hellip;</p>
+		<p style="margin:0 0 32px;font-size:16px;line-height:1.7;color:#444;"><?php echo esc_html( $body_preview ); ?>&hellip;</p>
 		<?php endif; ?>
 
 		<!-- Primary CTAs -->
@@ -476,7 +501,7 @@ class Notification {
 		</table>
 
 		<?php if ( $submissions_url ) : ?>
-		<p style="font-size:14px;color:#666;margin:0 0 24px;padding:14px 16px;background:#f9f9f9;border-radius:6px;">
+		<p style="font-size:15px;color:#666;margin:0 0 24px;padding:14px 16px;background:#f9f9f9;border-radius:6px;">
 			<?php esc_html_e( 'Want to tweak the title, text or tags before publishing?', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $submissions_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;">
 				<?php esc_html_e( 'Open your submissions page →', 'agnosis' ); ?>
@@ -484,14 +509,14 @@ class Notification {
 		</p>
 		<?php endif; ?>
 
-		<p style="font-size:13px;color:#999;margin:0;">
+		<p style="font-size:14px;color:#999;margin:0;">
 			<?php esc_html_e( 'The Publish and Discard links above expire in 7 days. Your submission stays as a draft until you decide.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -502,13 +527,13 @@ class Notification {
 		</p>
 		<?php $work_emails_html = EmailFooter::html(); ?>
 		<?php if ( '' !== $work_emails_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
-		</p>
+		</div>
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
@@ -614,6 +639,149 @@ class Notification {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// Submission with no recognizable attachment
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hook callback for 'agnosis_submission_no_attachment'.
+	 *
+	 * Fired from two places, both meaning the same thing to the artist —
+	 * nothing was published because there was no usable file to work with:
+	 *
+	 *   - Inbox::process_messages(), when Parser can't find any recognizable
+	 *     attachment at all (e.g. a photo pasted/inserted inline rather than
+	 *     properly attached).
+	 *   - PostCreator::handle(), when attachment(s) WERE found and queued but
+	 *     every one of them failed to convert into something the pipeline can
+	 *     use (e.g. a HEIC/HEIF photo on a server whose ImageMagick build
+	 *     can't decode it — see MediaAdapter::adapt_heic()).
+	 *
+	 * Previously both failures were completely silent: the artist had no way
+	 * to know their email didn't go through. This sends a short, friendly
+	 * explanation covering both causes so they know to resend.
+	 *
+	 * @param int    $artist_id WordPress user ID of the sender.
+	 * @param string $uid       IMAP message UID or queue message_uid (logging only).
+	 */
+	public function on_submission_no_attachment( int $artist_id, string $uid ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$subject = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] We couldn\'t find a photo in your email', 'agnosis' ),
+			get_bloginfo( 'name' )
+		);
+
+		wp_mail(
+			$artist->user_email,
+			$subject,
+			$this->build_no_attachment_email( $artist->display_name, $artist_id ),
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			]
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Build the HTML "no attachment found" email body.
+	 *
+	 * @param string $artist_name Artist's display name.
+	 * @param int    $artist_id   WP user ID — gates EmailFooter::edit_reminder_html().
+	 * @return string HTML email body.
+	 */
+	private function build_no_attachment_email( string $artist_name, int $artist_id ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
+			<?php esc_html_e( "We received your email, but couldn't process a usable photo, audio, or video file from it — so nothing was published. This can happen when an image is pasted or inserted inline rather than added as a proper attachment, or when a file arrives in a format this server can't convert (for example, an iPhone photo saved in HEIC/HEIF format).", 'agnosis' ); ?>
+		</p>
+
+		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
+			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'To resend correctly:', 'agnosis' ); ?></p>
+			<ul style="margin:0;padding-left:20px;">
+				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Use your mail app\'s "Attach file" (usually a paperclip icon) rather than "Insert photo" or pasting the image directly into the message body.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'If your photo was taken on an iPhone, try switching Settings → Camera → Formats to "Most Compatible" before taking or sending it, or use "Options" in Mail to send it as a JPEG.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:15px;color:#555;"><?php esc_html_e( 'Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for video.', 'agnosis' ); ?></li>
+			</ul>
+		</div>
+
+		<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'Once it\'s properly attached, just send it to the same address again — we\'ll pick it up automatically.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
 	/**
 	 * Map a list of AI-detected quality issues to actionable advice sentences.
 	 *
@@ -709,7 +877,7 @@ class Notification {
 
 	<!-- Body -->
 	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:16px;color:#555;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
 				/* translators: %s: recipient's display name */
@@ -718,13 +886,13 @@ class Notification {
 			);
 			?>
 		</p>
-		<p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "We received your submission, but unfortunately the photo quality is too low for us to show your artwork clearly. We didn't publish it — but please don't be discouraged! A simple retake is usually all it takes.", 'agnosis' ); ?>
 		</p>
 
 		<!-- Issue panel -->
 		<div style="background:#fff8f0;border-left:3px solid #e07b00;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
-			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#b35900;">
+			<p style="margin:0 0 10px;font-size:16px;font-weight:700;color:#b35900;">
 				<?php
 				printf(
 					/* translators: %d: quality score out of 10 */
@@ -734,34 +902,34 @@ class Notification {
 				?>
 			</p>
 			<?php if ( ! empty( $advice_items ) ) : ?>
-			<p style="margin:0 0 10px;font-size:14px;color:#555;"><?php esc_html_e( 'Here\'s what our AI detected and how to fix it:', 'agnosis' ); ?></p>
+			<p style="margin:0 0 10px;font-size:15px;color:#555;"><?php esc_html_e( 'Here\'s what our AI detected and how to fix it:', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
 				<?php foreach ( $advice_items as $advice ) : ?>
-				<li style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#444;"><?php echo wp_kses_post( $advice ); ?></li>
+				<li style="margin:0 0 8px;font-size:15px;line-height:1.5;color:#444;"><?php echo wp_kses_post( $advice ); ?></li>
 				<?php endforeach; ?>
 			</ul>
 			<?php else : ?>
-			<p style="margin:0;font-size:14px;color:#555;"><?php esc_html_e( 'The overall photo quality was too low for our AI to process the artwork clearly.', 'agnosis' ); ?></p>
+			<p style="margin:0;font-size:15px;color:#555;"><?php esc_html_e( 'The overall photo quality was too low for our AI to process the artwork clearly.', 'agnosis' ); ?></p>
 			<?php endif; ?>
 		</div>
 
 		<!-- Tips -->
 		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
-			<p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#333;"><?php esc_html_e( '💡 Quick tips for a great artwork photo', 'agnosis' ); ?></p>
+			<p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( '💡 Quick tips for a great artwork photo', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
-				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Use natural light — position the artwork near a window on a cloudy day for even, soft light.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Shoot straight on — hold your phone parallel to the canvas to avoid perspective distortion.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 6px;font-size:14px;color:#555;"><?php esc_html_e( 'Fill the frame — let the artwork take up most of the shot; crop out distracting backgrounds.', 'agnosis' ); ?></li>
-				<li style="margin:0 0 0;font-size:14px;color:#555;"><?php esc_html_e( 'Hold still — tap the artwork on your screen to focus, then press the shutter gently or use a self-timer.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Use natural light — position the artwork near a window on a cloudy day for even, soft light.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Shoot straight on — hold your phone parallel to the canvas to avoid perspective distortion.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:15px;color:#555;"><?php esc_html_e( 'Fill the frame — let the artwork take up most of the shot; crop out distracting backgrounds.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:15px;color:#555;"><?php esc_html_e( 'Hold still — tap the artwork on your screen to focus, then press the shutter gently or use a self-timer.', 'agnosis' ); ?></li>
 			</ul>
 		</div>
 
-		<p style="margin:0 0 28px;font-size:15px;line-height:1.6;color:#555;">
+		<p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Once you have a clearer photo, just email it to the same address as before — we\'ll pick it up automatically.', 'agnosis' ); ?>
 		</p>
 
 		<?php if ( $submissions_url ) : ?>
-		<p style="font-size:14px;color:#666;margin:0 0 0;padding:14px 16px;background:#f0eeff;border-radius:6px;">
+		<p style="font-size:15px;color:#666;margin:0 0 0;padding:14px 16px;background:#f0eeff;border-radius:6px;">
 			<?php esc_html_e( 'Your previous submission is saved in your submissions page in case you want to review what was sent.', 'agnosis' ); ?>
 			<a href="<?php echo esc_url( $submissions_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;">
 				<?php esc_html_e( 'View submissions →', 'agnosis' ); ?>
@@ -772,7 +940,7 @@ class Notification {
 
 	<!-- Footer -->
 	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:12px;color:#bbb;text-align:center;">
+		<p style="margin:0;font-size:13px;color:#999;text-align:center;">
 			<?php
 			printf(
 				/* translators: %s: site name */
@@ -783,13 +951,13 @@ class Notification {
 		</p>
 		<?php $work_emails_html = EmailFooter::html(); ?>
 		<?php if ( '' !== $work_emails_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
 			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
-		</p>
+		</div>
 		<?php endif; ?>
 		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
 		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:8px 0 0;font-size:11px;color:#ccc;text-align:center;">
+		<p style="margin:12px 0 0;font-size:13px;color:#888;text-align:center;">
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>

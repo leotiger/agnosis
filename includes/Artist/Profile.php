@@ -174,6 +174,54 @@ class Profile {
 	}
 
 	/**
+	 * Scope an unscoped "agnosis_artwork" Query Loop block to the current
+	 * artwork's own author, when rendered on a single artwork page.
+	 *
+	 * agnosis-theme's single-agnosis_artwork.html template has a "More works"
+	 * Query Loop block (postType: agnosis_artwork, inherit: false, author: "")
+	 * meant to show more of the SAME artist's own work. A non-inheriting Query
+	 * Loop with no author configured queries every artwork from every artist
+	 * site-wide instead — the exact "shows everyone's work instead of just
+	 * this artist's" bug SubdomainRouter::scope_query() already fixes for the
+	 * main query. That fix only touches is_main_query() though, and this
+	 * Query Loop is deliberately a secondary query (inherit: false), so it
+	 * needs its own. Also excludes the current artwork from its own "more
+	 * works" list.
+	 *
+	 * Deliberately leaves any block alone that already has an explicit author
+	 * set — this only corrects the specific "unscoped agnosis_artwork loop on
+	 * an agnosis_artwork singular page" shape, not every Query Loop on the site.
+	 *
+	 * Hooked to: query_loop_block_query_vars (core filter, WP 6.1+)
+	 *
+	 * @param array<string, mixed> $query Query args the Query Loop block is about to run with.
+	 * @return array<string, mixed>
+	 */
+	public function scope_more_works_query( array $query ): array {
+		if ( ! is_singular( 'agnosis_artwork' ) ) {
+			return $query;
+		}
+
+		$post_type       = $query['post_type'] ?? '';
+		$is_artwork_loop = 'agnosis_artwork' === $post_type
+			|| ( is_array( $post_type ) && in_array( 'agnosis_artwork', $post_type, true ) );
+
+		if ( ! $is_artwork_loop || ! empty( $query['author'] ) ) {
+			return $query;
+		}
+
+		$current_id = get_queried_object_id();
+		$author_id  = (int) get_post_field( 'post_author', $current_id );
+
+		if ( $author_id > 0 ) {
+			$query['author'] = $author_id;
+		}
+		$query['post__not_in'] = array_merge( (array) ( $query['post__not_in'] ?? [] ), [ $current_id ] );
+
+		return $query;
+	}
+
+	/**
 	 * Register server-side-rendered blocks that surface CPT meta in FSE templates.
 	 *
 	 * agnosis/event-location — renders the _agnosis_event_location meta value for
@@ -355,9 +403,21 @@ class Profile {
 			return $h1;
 		}
 
+		// Colour: NOT --wp--preset--color--secondary — that token is a ~6%-opacity
+		// background wash (theme.json), not a text colour, and rendered this
+		// translated title all but invisible against the dark artwork-page
+		// header (reported 2026-07-07). The theme's own established pattern for
+		// legible-but-muted text over that same dark header (post-date block,
+		// breadcrumb, pagination — see agnosis-theme's single-agnosis_artwork.html
+		// and style.css) is full-strength --foreground at reduced opacity, not a
+		// separate low-alpha colour token. Using a higher opacity (0.75) than
+		// those nav-ish elements (0.4-0.5) since this is actual translated
+		// content — the work's official site-language title — not incidental
+		// chrome, and should be comfortably readable, not merely present.
+		// Font-size bumped one step (small -> medium) per the same report.
 		return sprintf(
 			'<hgroup class="agnosis-artwork-title" style="margin:0;">%s'
-			. '<p class="agnosis-artwork-title__translation" style="margin:0;font-size:var(--wp--preset--font-size--small);color:var(--wp--preset--color--secondary);font-style:normal;">%s</p>'
+			. '<p class="agnosis-artwork-title__translation" style="margin:0.15em 0 0;font-size:var(--wp--preset--font-size--medium);color:var(--wp--preset--color--foreground);opacity:0.75;font-style:normal;">%s</p>'
 			. '</hgroup>',
 			$h1,
 			esc_html( $translation )

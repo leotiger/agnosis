@@ -71,6 +71,7 @@ class Admission {
 				],
 				'language'      => [
 					'type'              => 'string',
+					'required'          => true,
 					'sanitize_callback' => 'sanitize_key',
 				],
 				'turnstile_token' => [
@@ -124,16 +125,30 @@ class Admission {
 		$statement    = (string) ( $request->get_param( 'statement' ) ?? '' );
 		$language     = sanitize_key( (string) ( $request->get_param( 'language' ) ?? '' ) );
 
-		// Never guess a language from the browser's Accept-Language header, and
-		// never trust one that isn't in Lingua Forge's actual active-language
-		// configuration for this site — either would risk recording a language
-		// as "the artist's language" that this instance doesn't really support,
-		// which only surfaces as a broken experience later (untranslated
-		// content, no matching locale). The Join form itself only ever submits
-		// a code from that same list, so this is a defensive check against
-		// direct API calls, not the normal path.
-		if ( '' !== $language && ! array_key_exists( $language, SubmissionTranslator::language_names() ) ) {
-			$language = '';
+		// Language is required, not merely preferred: an artist's language
+		// gates their own downstream experience (the acknowledgment email's
+		// locale, and the WP account locale set on admission — see
+		// AdmissionNotification and maybe_admit()/admin_admit() below). It must
+		// also be one Lingua Forge is actually configured to support on this
+		// site — never guessed from the browser's Accept-Language header, and
+		// never trusted if it isn't in that active-language list, since either
+		// would risk recording a language this instance doesn't really support,
+		// which only surfaces later as a silently broken experience.
+		//
+		// This used to fail open: an empty or unrecognized code was quietly
+		// blanked to '' and the application proceeded anyway. That meant a
+		// client that skipped the field (the Join form's <form> uses
+		// `novalidate` and, until now, ran no validation of its own before
+		// submitting) could create an application with no language at all,
+		// which is exactly what silently produced acknowledgment emails and
+		// WP accounts in the site's default language regardless of what the
+		// artist actually picked. Reject outright instead.
+		if ( '' === $language || ! array_key_exists( $language, SubmissionTranslator::language_names() ) ) {
+			return new WP_Error(
+				'agnosis_language_required',
+				__( 'Please select your language.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
 		}
 
 		// Block if a WP account already exists for this email.
@@ -202,7 +217,9 @@ class Admission {
 					'bio'           => $bio,
 					'portfolio_url' => $portfolio,
 					'statement'     => $statement,
-					'language'      => '' !== $language ? $language : null,
+					// $language is guaranteed non-empty here — apply() returns a 400
+					// WP_Error earlier when it's missing or unrecognized (see above).
+					'language'      => $language,
 					'status'        => $new_status,
 				],
 				[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]

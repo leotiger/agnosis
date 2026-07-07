@@ -6,6 +6,10 @@
  * This adapter sits in front of the pipeline loop and converts other media types
  * into a form the pipeline can process:
  *
+ *   image/heic,       → converted to JPEG with Imagick (see adapt_heic()) — neither
+ *   image/heif          the vision AI providers nor most non-Safari browsers can read
+ *                        HEIC/HEIF directly, so unlike plain image/* this format needs
+ *                        an actual pixel conversion, not just a passthrough.
  *   image/*          → passthrough with media_type = 'image' (no conversion needed).
  *   application/pdf  → rasterise each page with Imagick, emit one 'image' entry per page.
  *   video/*          → extract the first frame with ffmpeg as a poster/description
@@ -14,12 +18,13 @@
  *                       the frame is only used for AI description and the <video poster>.
  *   audio/*          → passthrough with media_type = 'audio' (pipeline routes to audio branch).
  *
- * Attachments that cannot be converted (Imagick unavailable for PDFs) are logged and
- * dropped — the caller receives fewer entries than it passed in. Video is more
- * forgiving: if ffmpeg is unavailable or frame extraction fails, the video itself is
- * still forwarded (with no poster frame) rather than being dropped entirely — Pipeline
- * falls back to a text-only description in that case, same as it does for audio with
- * no transcript available.
+ * Attachments that cannot be converted (Imagick unavailable for PDFs or HEIC/HEIF —
+ * the latter also requires the libheif delegate, which isn't bundled with every
+ * ImageMagick build) are logged and dropped — the caller receives fewer entries than
+ * it passed in. Video is more forgiving: if ffmpeg is unavailable or frame extraction
+ * fails, the video itself is still forwarded (with no poster frame) rather than being
+ * dropped entirely — Pipeline falls back to a text-only description in that case, same
+ * as it does for audio with no transcript available.
  *
  * Each attachment array is expected to have at minimum:
  *   'data'       string  Raw binary content.
@@ -46,6 +51,7 @@ declare(strict_types=1);
 
 namespace Agnosis\AI;
 
+use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 
 class MediaAdapter {
@@ -57,12 +63,34 @@ class MediaAdapter {
 	 * @return array<int, array<string, mixed>>              Adapted records, flat list.
 	 */
 	public static function adapt( array $attachments ): array {
-		$out = [];
+		$out           = [];
+		$debug_enabled = Debug::enabled();
+		$debug_lines   = [];
+
+		if ( $debug_enabled ) {
+			$debug_lines[] = sprintf( 'Input: %d attachment(s).', count( $attachments ) );
+			foreach ( $attachments as $i => $a ) {
+				$debug_lines[] = sprintf(
+					'  in[%d] filename=%s mime=%s bytes=%d',
+					$i,
+					(string) ( $a['filename'] ?? '(none)' ),
+					(string) ( $a['mime'] ?? '(none)' ),
+					strlen( (string) ( $a['data'] ?? '' ) )
+				);
+			}
+		}
 
 		foreach ( $attachments as $attachment ) {
 			$mime = (string) ( $attachment['mime'] ?? '' );
 
-			if ( str_starts_with( $mime, 'image/' ) ) {
+			// Checked before the generic image/* passthrough below — HEIC/HEIF
+			// also starts with "image/" but, unlike JPEG/PNG/WebP/GIF/TIFF,
+			// needs an actual pixel conversion before anything downstream can
+			// use it (see adapt_heic()).
+			if ( in_array( $mime, [ 'image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence' ], true ) ) {
+				array_push( $out, ...self::adapt_heic( $attachment ) );
+
+			} elseif ( str_starts_with( $mime, 'image/' ) ) {
 				$out[] = array_merge( $attachment, [ 'media_type' => 'image' ] );
 
 			} elseif ( $mime === 'application/pdf' ) {
@@ -81,7 +109,30 @@ class MediaAdapter {
 					$mime,
 					$attachment['filename'] ?? 'unknown'
 				), 'pipeline' );
+
+				if ( $debug_enabled ) {
+					$debug_lines[] = sprintf(
+						'  DROPPED: filename=%s mime=%s (no matching branch: not image/*, application/pdf, video/*, or audio/*)',
+						(string) ( $attachment['filename'] ?? '(none)' ),
+						$mime
+					);
+				}
 			}
+		}
+
+		if ( $debug_enabled ) {
+			$debug_lines[] = sprintf( 'Output: %d entr(y/ies).', count( $out ) );
+			foreach ( $out as $i => $o ) {
+				$debug_lines[] = sprintf(
+					'  out[%d] filename=%s mime=%s media_type=%s bytes=%d',
+					$i,
+					(string) ( $o['filename'] ?? '(none)' ),
+					(string) ( $o['mime'] ?? '(none)' ),
+					(string) ( $o['media_type'] ?? '(none)' ),
+					strlen( (string) ( $o['data'] ?? '' ) )
+				);
+			}
+			Debug::write( 'media-adapter', implode( "\n", $debug_lines ) );
 		}
 
 		return $out;
@@ -231,6 +282,88 @@ class MediaAdapter {
 		} catch ( \ImagickException $e ) {
 			Logger::error( sprintf(
 				'MediaAdapter: Imagick failed for PDF "%s": %s',
+				$attachment['filename'] ?? 'unknown',
+				$e->getMessage()
+			), 'pipeline' );
+			return [];
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// HEIC/HEIF → JPEG
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Convert a HEIC/HEIF photo to JPEG with Imagick.
+	 *
+	 * iPhones default to HEIC ("High Efficiency") for photos unless the artist
+	 * switched Settings → Camera → Formats to "Most Compatible". Unlike the
+	 * generic image/* passthrough in adapt(), this format can't just ride
+	 * through unchanged: the vision AI providers (OpenAI/Anthropic accept
+	 * JPEG/PNG/WebP/GIF, not HEIC/HEIF) and most non-Safari browsers can't
+	 * read it, so a real pixel conversion has to happen before the file
+	 * reaches either.
+	 *
+	 * This needs more than "Imagick is installed" (adapt_pdf()'s guard) —
+	 * decoding HEIC/HEIF specifically requires the ImageMagick build to have
+	 * been compiled with the libheif delegate, which plenty of hosts don't
+	 * include (licensing). Rather than probing for the delegate separately,
+	 * the read is simply attempted and any \ImagickException — missing
+	 * delegate, corrupt file, anything else — is treated the same as Imagick
+	 * being absent: log a specific reason and drop the attachment, exactly
+	 * like adapt_pdf() does, rather than ever letting raw HEIC bytes through.
+	 *
+	 * A HEIC/HEIF container can hold a burst or Live Photo sequence; only the
+	 * first (primary) image is used — the same "one artwork, one photo" shape
+	 * every other image path in this pipeline assumes.
+	 *
+	 * @param array<string, mixed> $attachment  Raw attachment with 'data', 'mime', 'filename'.
+	 * @return array<int, array<string, mixed>>  Zero or one entries — empty on any failure.
+	 */
+	private static function adapt_heic( array $attachment ): array {
+		if ( ! extension_loaded( 'imagick' ) || ! class_exists( \Imagick::class ) ) {
+			Logger::warning( sprintf(
+				'MediaAdapter: HEIC/HEIF "%s" skipped — Imagick PHP extension not available.',
+				$attachment['filename'] ?? 'unknown'
+			), 'pipeline' );
+			return [];
+		}
+
+		try {
+			$imagick = new \Imagick();
+			$imagick->readImageBlob( $attachment['data'] );
+			$imagick->setIteratorIndex( 0 ); // Primary image only — ignore any burst/sequence frames.
+			$imagick->setImageFormat( 'jpeg' );
+			$imagick->setImageCompressionQuality( 90 );
+
+			$jpeg_data = $imagick->getImageBlob();
+			$imagick->destroy();
+
+			if ( ! $jpeg_data ) {
+				Logger::warning( sprintf(
+					'MediaAdapter: HEIC/HEIF "%s" — Imagick produced no output, skipping.',
+					$attachment['filename'] ?? 'unknown'
+				), 'pipeline' );
+				return [];
+			}
+
+			$base_name = pathinfo( (string) ( $attachment['filename'] ?? 'photo' ), PATHINFO_FILENAME );
+
+			$entry = [
+				'data'       => $jpeg_data,
+				'mime'       => 'image/jpeg',
+				'filename'   => $base_name . '.jpg',
+				'media_type' => 'image',
+			];
+
+			return [ $entry ];
+
+		} catch ( \ImagickException $e ) {
+			// The single most common cause on real hosts: ImageMagick was built
+			// without the libheif delegate, so it can list HEIC as a known
+			// format but can't actually decode one.
+			Logger::warning( sprintf(
+				'MediaAdapter: HEIC/HEIF "%s" skipped — this server\'s ImageMagick build could not decode it (%s). Likely missing the libheif delegate.',
 				$attachment['filename'] ?? 'unknown',
 				$e->getMessage()
 			), 'pipeline' );

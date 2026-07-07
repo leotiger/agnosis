@@ -6,7 +6,20 @@
  * a page reload.
  *
  * Expects window.agnosisJoin to be localised by JoinPage::enqueue_assets():
- *   { apiUrl: string, i18n: { success: string, error: string, duplicate: string } }
+ *   {
+ *     apiUrl: string,
+ *     redirectUrl: string,  // optional — page to send the artist to on success
+ *     i18n: { success, error, requiredField, languageRequired }
+ *   }
+ *
+ * The <form> is marked `novalidate` deliberately (see JoinPage::render()) so
+ * this handler — not the browser's native bubble UI — owns error display,
+ * consistent with the rest of this form's custom #agnosis-join-notice
+ * styling. That means required fields (name, email, language) are NOT
+ * enforced by the browser at all and must be checked here before the
+ * request is ever sent; the server enforces the same rules independently
+ * (Admission::apply() rejects a missing/unrecognized language with a 400),
+ * so this is a fast-path UX improvement, not the only guard.
  */
 ( function () {
 
@@ -20,6 +33,31 @@
 			return;
 		}
 
+		function showNotice( message, isError ) {
+			notice.textContent = message;
+			notice.className   = 'agnosis-join__notice' + ( isError ? ' agnosis-join__notice--error' : ' agnosis-join__notice--success' );
+			notice.hidden      = false;
+		}
+
+		/**
+		 * Validate the required fields this form's markup marks with `required`
+		 * (name, email, language). Returns the first invalid field element, or
+		 * null when everything required is filled in.
+		 */
+		function firstInvalidField() {
+			var fields = [
+				form.querySelector( '[name="display_name"]' ),
+				form.querySelector( '[name="email"]' ),
+				form.querySelector( '[name="language"]' ),
+			];
+			for ( var i = 0; i < fields.length; i++ ) {
+				if ( fields[ i ] && ! fields[ i ].value ) {
+					return fields[ i ];
+				}
+			}
+			return null;
+		}
+
 		form.addEventListener( 'submit', function ( e ) {
 			e.preventDefault();
 
@@ -31,6 +69,16 @@
 			notice.hidden    = true;
 			notice.className = 'agnosis-join__notice';
 			notice.textContent = '';
+
+			// Client-side required-field check — see the handler's docblock above
+			// for why this can't just rely on the browser's native validation.
+			var invalidField = firstInvalidField();
+			if ( invalidField ) {
+				var isLanguage = invalidField.getAttribute( 'name' ) === 'language';
+				showNotice( isLanguage ? ( i18n.languageRequired || 'Please select your language.' ) : ( i18n.requiredField || 'Please fill in all required fields.' ), true );
+				invalidField.focus();
+				return;
+			}
 
 			// Disable submit while in flight.
 			submit.disabled = true;
@@ -59,16 +107,20 @@
 			.then( function ( result ) {
 				if ( result.ok && result.data.status === 'applied' ) {
 					// Hide form, show success.
-					form.hidden           = true;
-					notice.textContent    = i18n.success || result.data.status;
-					notice.className      = 'agnosis-join__notice agnosis-join__notice--success';
-					notice.hidden         = false;
+					form.hidden = true;
+					showNotice( i18n.success || result.data.status, false );
+
+					// If the operator configured a "what happens next" page
+					// (Settings → Network → "After applying, send artists to"),
+					// send the artist there instead of leaving them on the
+					// inline confirmation message alone.
+					if ( cfg.redirectUrl ) {
+						window.location.assign( cfg.redirectUrl );
+					}
 				} else {
 					// Surface the server error message.
 					var msg = ( result.data && result.data.message ) ? result.data.message : ( i18n.error || 'Error.' );
-					notice.textContent    = msg;
-					notice.className      = 'agnosis-join__notice agnosis-join__notice--error';
-					notice.hidden         = false;
+					showNotice( msg, true );
 					submit.disabled       = false;
 					submit.removeAttribute( 'aria-busy' );
 					// A Turnstile token is single-use — reset the widget so a retry
@@ -80,9 +132,7 @@
 				}
 			} )
 			.catch( function () {
-				notice.textContent    = i18n.error || 'Something went wrong.';
-				notice.className      = 'agnosis-join__notice agnosis-join__notice--error';
-				notice.hidden         = false;
+				showNotice( i18n.error || 'Something went wrong.', true );
 				submit.disabled       = false;
 				submit.removeAttribute( 'aria-busy' );
 				if ( window.turnstile ) {

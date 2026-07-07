@@ -117,6 +117,99 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 		};
 	}
 
+	/** Insert a pending artwork queue row with $count attachments. */
+	private function insert_artwork_queue_row_multi( int $count, string $uid ): int {
+		global $wpdb;
+
+		$attachments = [];
+		for ( $i = 0; $i < $count; $i++ ) {
+			$attachments[] = [
+				'filename' => "art-{$i}.jpg",
+				'mime'     => 'image/jpeg',
+				'data'     => base64_encode( 'fake-image-data-' . $i ),
+				'encoding' => 'base64',
+			];
+		}
+
+		$submission = wp_json_encode( [
+			'from'        => 'artist@example.com',
+			'subject'     => 'Test gallery',
+			'description' => 'A test gallery.',
+			'attachments' => $attachments,
+			'artist_id'   => $this->artist_id,
+			'to_address'  => '',
+			'source'      => 'test',
+		] );
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_queue',
+			[
+				'message_uid' => $uid,
+				'artist_id'   => $this->artist_id,
+				'raw_email'   => $submission,
+				'status'      => 'pending',
+			],
+			[ '%s', '%d', '%s', '%s' ]
+		);
+		return (int) $wpdb->insert_id;
+	}
+
+	/**
+	 * Stub pipeline returning a distinct quality score per attachment index —
+	 * for exercising the per-image quality gate rather than the single,
+	 * every-attachment-gets-the-same-score stub above.
+	 *
+	 * @param int[] $scores Score for attachment 0, 1, 2, … in submission order.
+	 */
+	private function make_stub_pipeline_per_image( array $scores ): Pipeline {
+		return new class( $scores ) extends Pipeline {
+			public function __construct( private array $scores ) {
+				// Skip parent constructor — no real providers needed.
+			}
+
+			/** @return array<string, mixed>[] */
+			public function process( array $submission, bool $skip_enhancement = false ): array {
+				$results = [];
+				foreach ( array_values( $submission['attachments'] ?? [] ) as $i => $att ) {
+					$score       = $this->scores[ $i ] ?? 0;
+					$results[]   = [
+						'filename'             => $att['filename'] ?? 'art.jpg',
+						'original_data'        => $att['data'] ?? '',
+						'enhanced_data'        => $att['data'] ?? '',
+						'mime_type'            => $att['mime'] ?? 'image/jpeg',
+						'title'                => 'Test Artwork ' . $i,
+						'excerpt'              => 'A test piece.',
+						'body'                 => '<p>A test piece.</p>',
+						'tags'                 => [ 'test' ],
+						'alt_text'             => 'A test artwork.',
+						'description_ok'       => true,
+						'error'                => null,
+						'photo_quality_score'  => $score,
+						'photo_quality_issues' => $score > 0 ? [ 'issue-' . $i ] : [],
+						'enhanced'             => false,
+					];
+				}
+				return $results;
+			}
+
+			public function chat( string $prompt ): string {
+				return '';
+			}
+		};
+	}
+
+	/** Count Logger entries recording a per-attachment "dropped from gallery" decision for this queue row. */
+	private function count_dropped_log_entries( int $queue_id ): int {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_log WHERE context = %s AND message LIKE %s",
+				'publisher',
+				'%Queue #' . $queue_id . ':%dropped from gallery.%'
+			)
+		);
+	}
+
 	private function clear_queue(): void {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -213,5 +306,103 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 		$creator->handle( $queue_id );
 
 		$this->assertFalse( $fired );
+	}
+
+	// -------------------------------------------------------------------------
+	// Per-image gate (galleries — multiple attachments in one submission)
+	// -------------------------------------------------------------------------
+
+	public function test_gallery_partial_rejection_drops_only_failing_images(): void {
+		$queue_id = $this->insert_artwork_queue_row_multi( 3, 'test-gallery-partial' );
+		$fired    = false;
+
+		add_action( 'agnosis_submission_rejected', function () use ( &$fired ) {
+			$fired = true;
+		} );
+
+		// Threshold is 3 (setUp). Scores 1 and 2 fail, 5 passes — one survivor,
+		// so the whole submission must NOT be rejected.
+		$creator = new PostCreator( $this->make_stub_pipeline_per_image( [ 1, 5, 2 ] ) );
+		$creator->handle( $queue_id );
+
+		$this->assertFalse( $fired, 'Whole-submission rejection must not fire while at least one image passes.' );
+		$this->assertSame(
+			2,
+			$this->count_dropped_log_entries( $queue_id ),
+			'Each individually-failing image should be logged as dropped from the gallery.'
+		);
+	}
+
+	public function test_gallery_full_rejection_when_every_image_fails(): void {
+		$queue_id   = $this->insert_artwork_queue_row_multi( 3, 'test-gallery-full-reject' );
+		$fired_args = null;
+
+		add_action( 'agnosis_submission_rejected', function ( ...$args ) use ( &$fired_args ) {
+			$fired_args = $args;
+		}, 10, 4 );
+
+		// Threshold is 3 (setUp). All three scores (3, 1, 2) are at or below it.
+		$creator = new PostCreator( $this->make_stub_pipeline_per_image( [ 3, 1, 2 ] ) );
+		$creator->handle( $queue_id );
+
+		$this->assertNotNull( $fired_args, 'agnosis_submission_rejected should fire when every image fails.' );
+		$this->assertSame( $queue_id, $fired_args[0] );
+		$this->assertSame( $this->artist_id, $fired_args[1] );
+		$this->assertSame( 1, $fired_args[2], 'Reported score should be the worst among the rejected images.' );
+		$this->assertSame( 'failed', $this->get_queue_status( $queue_id ) );
+	}
+
+	public function test_gallery_none_rejected_when_all_pass(): void {
+		$queue_id = $this->insert_artwork_queue_row_multi( 3, 'test-gallery-all-pass' );
+		$fired    = false;
+
+		add_action( 'agnosis_submission_rejected', function () use ( &$fired ) {
+			$fired = true;
+		} );
+
+		// All three scores (4, 5, 10) are above the threshold of 3.
+		$creator = new PostCreator( $this->make_stub_pipeline_per_image( [ 4, 5, 10 ] ) );
+		$creator->handle( $queue_id );
+
+		$this->assertFalse( $fired );
+		$this->assertSame( 0, $this->count_dropped_log_entries( $queue_id ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Every attachment fails to convert (e.g. HEIC without a libheif-capable
+	// Imagick build) — distinct from the quality gate above: the pipeline
+	// never even produces a score to judge, because MediaAdapter dropped the
+	// attachment before Pipeline got that far.
+	// -------------------------------------------------------------------------
+
+	public function test_all_attachments_failing_conversion_notifies_artist_and_fails_queue(): void {
+		$queue_id   = $this->insert_artwork_queue_row( 'test-all-convert-fail' );
+		$fired_args = null;
+
+		add_action( 'agnosis_submission_no_attachment', function ( ...$args ) use ( &$fired_args ) {
+			$fired_args = $args;
+		}, 10, 2 );
+
+		// Simulate MediaAdapter dropping every attachment (e.g. a HEIC photo on
+		// a server whose ImageMagick build lacks the libheif delegate) —
+		// Pipeline::process() then returns no results at all even though the
+		// submission itself had an attachment.
+		$creator = new PostCreator( new class() extends Pipeline {
+			public function __construct() {}
+
+			/** @return array<string, mixed>[] */
+			public function process( array $submission, bool $skip_enhancement = false ): array {
+				return [];
+			}
+
+			public function chat( string $prompt ): string {
+				return '';
+			}
+		} );
+		$creator->handle( $queue_id );
+
+		$this->assertNotNull( $fired_args, 'agnosis_submission_no_attachment should fire when every attachment fails to convert.' );
+		$this->assertSame( $this->artist_id, $fired_args[0] );
+		$this->assertSame( 'failed', $this->get_queue_status( $queue_id ) );
 	}
 }

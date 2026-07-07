@@ -103,6 +103,63 @@ class ParserTest extends TestCase {
 		$this->assertNull( $result ); // No valid image → null
 	}
 
+	/**
+	 * HEIC/HEIF (the default iPhone photo format) must be accepted at intake
+	 * rather than silently dropped — MediaAdapter::adapt_heic() converts it to
+	 * JPEG later, before it reaches the AI vision call or gets published, but
+	 * only if it survives this gate in the first place.
+	 */
+	public function test_parse_webhook_accepts_heic_attachments(): void {
+		$tmp = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
+		file_put_contents( $tmp, 'fake heic content' );
+
+		$_FILES['attachment-1'] = [
+			'name'     => 'photo.heic',
+			'type'     => 'image/heic',
+			'tmp_name' => $tmp,
+			'error'    => UPLOAD_ERR_OK,
+			'size'     => 18,
+		];
+
+		$result = $this->parser->parse_webhook_payload( [
+			'sender'           => 'artist@example.com',
+			'subject'          => 'iPhone photo',
+			'attachment-count' => 1,
+		] );
+
+		unlink( $tmp );
+		unset( $_FILES['attachment-1'] );
+
+		$this->assertIsArray( $result, 'A HEIC attachment must no longer be silently dropped at intake.' );
+		$this->assertCount( 1, $result['attachments'] );
+		$this->assertSame( 'image/heic', $result['attachments'][0]['mime'] );
+	}
+
+	public function test_parse_webhook_accepts_heif_attachments(): void {
+		$tmp = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
+		file_put_contents( $tmp, 'fake heif content' );
+
+		$_FILES['attachment-1'] = [
+			'name'     => 'photo.heif',
+			'type'     => 'image/heif',
+			'tmp_name' => $tmp,
+			'error'    => UPLOAD_ERR_OK,
+			'size'     => 18,
+		];
+
+		$result = $this->parser->parse_webhook_payload( [
+			'sender'           => 'artist@example.com',
+			'subject'          => 'iPhone photo',
+			'attachment-count' => 1,
+		] );
+
+		unlink( $tmp );
+		unset( $_FILES['attachment-1'] );
+
+		$this->assertIsArray( $result );
+		$this->assertCount( 1, $result['attachments'] );
+	}
+
 	public function test_parse_webhook_skips_oversized_attachments(): void {
 		$tmp  = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
 		$data = str_repeat( 'x', 100 ); // tiny file on disk, but we lie about size

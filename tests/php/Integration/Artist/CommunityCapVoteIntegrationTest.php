@@ -162,6 +162,7 @@ class CommunityCapVoteIntegrationTest extends \WP_UnitTestCase {
 			$req->set_param( 'email', $email );
 			$req->set_param( 'display_name', 'WL' );
 			$req->set_param( 'bio', 'Bio' );
+			$req->set_param( 'language', 'en' );
 			wp_set_current_user( 0 );
 			rest_do_request( $req );
 		}

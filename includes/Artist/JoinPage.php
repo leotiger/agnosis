@@ -194,10 +194,13 @@ class JoinPage {
 		);
 
 		wp_localize_script( 'agnosis-join', 'agnosisJoin', [
-			'apiUrl' => rest_url( 'agnosis/v1/admission/apply' ),
-			'i18n'   => [
-				'success'   => __( 'Your application has been received. The community will be in touch!', 'agnosis' ),
-				'error'     => __( 'Something went wrong. Please try again.', 'agnosis' ),
+			'apiUrl'      => rest_url( 'agnosis/v1/admission/apply' ),
+			'redirectUrl' => $this->success_redirect_url(),
+			'i18n'        => [
+				'success'          => __( 'Your application has been received. The community will be in touch!', 'agnosis' ),
+				'error'            => __( 'Something went wrong. Please try again.', 'agnosis' ),
+				'requiredField'    => __( 'Please fill in all required fields.', 'agnosis' ),
+				'languageRequired' => __( 'Please select your language.', 'agnosis' ),
 			],
 		] );
 
@@ -207,6 +210,18 @@ class JoinPage {
 			[],
 			AGNOSIS_VERSION
 		);
+	}
+
+	/**
+	 * Optional post-success redirect URL (Settings → Network → "After applying,
+	 * send artists to"). Lets the operator point a successful applicant at a
+	 * page explaining the vouching process / voting window / what happens
+	 * next, instead of just the inline confirmation message. Empty string
+	 * when unconfigured — frontend.js then falls back to the inline message
+	 * only, exactly as before this setting existed.
+	 */
+	private function success_redirect_url(): string {
+		return (string) get_option( 'agnosis_join_success_url', '' );
 	}
 
 	// -------------------------------------------------------------------------

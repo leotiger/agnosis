@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.8.2
+Stable tag: 0.9.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,30 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.9.1 =
+* Fixed: An artist's own subdomain (e.g. artistx.agnosis.art) showed every artist's work on its homepage, instead of just that artist's own. It now correctly shows only their own gallery.
+* Fixed: The "More works" section on a single artwork page also showed other artists' work — now fixed the same way, showing only more of that same artist's own work.
+* Fixed: A submission with no usable photo could still create an empty, untitled post with nothing in it. Empty submissions are now rejected outright instead of being silently published blank.
+
+= 0.9.2 =
+* Fixed: Dates shown on artwork, biography, and event pages didn't read naturally in languages other than English — the day/month/year order and connecting words (like Portuguese's "de") weren't adapting to the page's language, only the month name itself was translated. Dates are now formatted natively for whatever language the page is being viewed in.
+* Fixed: On an artwork's page, the translated title shown under the artist's own title (e.g. the site-language version) was nearly impossible to read against the dark header — it's now a legible size and brightness.
+* Fixed: A genuinely attached photo (JPG or PNG) could still be rejected as "no valid image attachment found." The actual cause: the plugin's speed optimization for checking incoming mail (reading just the sender/subject before downloading the whole message) never went back to download the full message when it needed to — so attachments were never actually seen, no matter the file. Fixed, and a rejection is now logged with enough detail to diagnose if it ever happens again.
+* Fixed: The review email you receive after submitting showed the title and short excerpt in your own language, but the longer description below them stayed in the site's main language — so if that wasn't a language you read, you couldn't actually tell what you were about to approve. That description is now translated into your language too.
+* Fixed: The list of work-submission addresses (artwork@, biography@, etc.) at the bottom of your emails was tiny, low-contrast, and gave no hint of what each address actually does. Each address is now on its own line with a short explanation, in a readable size and color. Also increased the text size throughout these emails — it read too small overall.
+* Added: A "Debug logging" option under Settings → General, with its own Debug Files panel. When turned on, it writes detailed diagnostic files about how each incoming email was processed — useful for troubleshooting a submission that didn't come through as expected, without needing developer access to the server.
+
+= 0.9.0 =
+* Fixed: Submitting the join form in a language other than the site's default could silently fall back to English — the confirmation email arrived untranslated and your WordPress account ended up in the wrong language once admitted. Language is now a required field on the join form, checked both in your browser and on the server, so this can no longer happen.
+* Fixed: The Inbox admin page could mislabel a real, registered artist's email as coming from an "unregistered sender," and could separately show a false "not admitted" message for an artist who clearly was admitted. The admin log now always shows the actual reason a submission was skipped.
+* Fixed: When an email included several photos, only the first one was checked for quality — a bad first photo could reject the whole submission even though the others were fine, or a bad later photo could slip through unnoticed. Every photo in a submission is now checked individually.
+* Fixed: The "we received your application" and "your application was declined" emails no longer show a list of work-submission addresses that don't apply yet — those only make sense once you're actually admitted.
+* Added: You can now set a page artists are sent to after applying (Settings → Network → "After applying, send artists to") — handy for explaining what happens next and how long voting takes.
+* Added: You're now emailed if a submission couldn't be processed at all — for example, a photo pasted into the message instead of properly attached, or a file in a format the server couldn't convert — so you know to resend it instead of wondering why it never appeared.
+* Added: HEIC/HEIF support — the default photo format on modern iPhones. These photos are now accepted and automatically converted before publishing, instead of being silently rejected.
+* Added: The "application received" and "welcome, you're admitted" emails are now nicely formatted, matching the look of every other email Agnosis sends.
+* Changed: The welcome email no longer leads with "set your password." Working with Agnosis needs no login at all — everything happens by email. Setting a password is now mentioned only as an optional extra, for artists who also want to use the site's online features (like previewing a submission before it publishes).
 
 = 0.8.2 =
 * Fixed: On some sites the background task that actually sends queued newsletters could end up not scheduled at all, so a queued send would never go out and never self-correct either. Viewing the Newsletter dashboard now also checks for this and re-enables background sending automatically if it's ever missing.
