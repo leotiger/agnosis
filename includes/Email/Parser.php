@@ -361,6 +361,41 @@ class Parser {
 	}
 
 	/**
+	 * Parse a webklex IMAP Message for its subject + plain-text body only —
+	 * no attachment handling, no artist resolution.
+	 *
+	 * Used solely by the community-broadcast alias
+	 * (Inbox::handle_community_email()), which relays a message as-is rather
+	 * than treating it as an artwork/bio/event submission, so none of
+	 * parse_imap_message()'s attachment logic applies. Mirrors that method's
+	 * body-fetch guard: Inbox::query_messages() fetches headers only, so the
+	 * body must be pulled explicitly for any message that needs one.
+	 *
+	 * @param Message $message Webklex message object from a connected folder query.
+	 * @return array{subject: string, body: string}
+	 */
+	public function parse_broadcast_body( Message $message ): array {
+		$structure   = $message->getStructure();
+		$needs_fetch = ( null === $structure || empty( $structure->parts ) );
+
+		if ( $needs_fetch ) {
+			try {
+				$message->parseBody();
+			} catch ( \Throwable $e ) {
+				Logger::error(
+					'Parser: parse_broadcast_body() parseBody() threw for UID ' . (string) $message->getUid() . ': ' . $e->getMessage(),
+					'inbox'
+				);
+			}
+		}
+
+		return [
+			'subject' => sanitize_text_field( (string) $message->getSubject() ),
+			'body'    => $this->clean_text( (string) $message->getTextBody() ),
+		];
+	}
+
+	/**
 	 * Parse a raw email payload forwarded by a webhook provider (Mailgun, SendGrid…).
 	 *
 	 * @param array<string, mixed> $payload POST data from webhook.

@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Compat;
 
+use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 
 // LF constants and global function stubs live in a separate file to satisfy
@@ -62,6 +63,15 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
+		// Belt-and-suspenders: agnosis_medium is registered globally by
+		// Profile::register_taxonomy() on 'init', which should already have
+		// fired long before any test class runs — explicit here anyway (2026-07-08,
+		// same reasoning as ActivatorTest's own defensive registration) since the
+		// sync_translated_terms() medium tests below need real term assignment.
+		if ( ! taxonomy_exists( 'agnosis_medium' ) ) {
+			( new Profile() )->register_taxonomy();
+		}
+
 		self::$lf_languages  = null;
 		self::$trigger_calls = [];
 		self::$queue_calls   = [];
@@ -84,6 +94,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		self::$trigger_calls  = [];
 		self::$queue_calls    = [];
 		self::$trigger_return = null;
+		delete_option( 'agnosis_term_translations' );
 		parent::tearDown();
 	}
 
@@ -512,5 +523,151 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 			$this->assertSame( '', (string) get_post_meta( $id, '_agnosis_title_i18n', true ), $type );
 		}
+	}
+
+	// ── Tag / medium term translation: sync_translated_terms() (§5) ───────────
+	// No agnosis_*_api_key is configured in the test env, so
+	// SubmissionTranslator::from_settings() is null and translated_term_name()
+	// falls back to the original term name — this exercises the "never block
+	// the sync on a missing provider" path. The cache-hit test below exercises
+	// the translated-name path without needing a real provider, since a cache
+	// hit short-circuits before from_settings() is ever consulted.
+	//
+	// Every wp_get_post_terms() call below passes 'hide_empty' => false: WP's
+	// default (true) filters by term_taxonomy.count, which a term freshly
+	// assigned via wp_set_object_terms() within the same request can still
+	// read back as 0 — a stale-count false negative, not a real "no
+	// relationship" case (found the hard way: the assign-a-real-term tests
+	// failed with an empty array without this; the expect-empty tests were
+	// unaffected either way).
+
+	public function test_sync_translated_terms_skips_non_agnosis_post_types(): void {
+		wp_set_object_terms( $this->page_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->page_id, 'es' );
+
+		$this->assertSame( [], wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ) );
+	}
+
+	public function test_sync_translated_terms_copies_tags_for_artwork(): void {
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape', 'Coastal' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		// No AI provider configured — falls back to the original names.
+		$names = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$this->assertCount( 2, $names );
+		$this->assertContains( 'Landscape', $names );
+		$this->assertContains( 'Coastal', $names );
+	}
+
+	public function test_sync_translated_terms_copies_tags_for_biography_and_event(): void {
+		foreach ( [ 'agnosis_biography', 'agnosis_event' ] as $type ) {
+			$source_id = self::factory()->post->create( [ 'post_type' => $type, 'post_status' => 'publish' ] );
+			wp_set_object_terms( $source_id, [ 'Interview' ], 'post_tag' );
+			$translated_id = self::factory()->post->create( [ 'post_type' => $type, 'post_status' => 'publish' ] );
+
+			( new LinguaForge() )->sync_translated_terms( $translated_id, $source_id, 'fr' );
+
+			$this->assertSame(
+				[ 'Interview' ],
+				wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
+				$type
+			);
+		}
+	}
+
+	public function test_sync_translated_terms_copies_medium_for_artwork(): void {
+		wp_set_object_terms( $this->artwork_id, [ 'Oil Painting' ], 'agnosis_medium' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'de' );
+
+		$this->assertSame(
+			[ 'Oil Painting' ],
+			wp_get_post_terms( $translated_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+	}
+
+	public function test_sync_translated_terms_skips_medium_for_biography_and_event(): void {
+		// agnosis_medium isn't even registered against these post types, but
+		// this confirms sync_translated_terms() only ever attempts it for
+		// agnosis_artwork (see the post-type guard in the method itself).
+		foreach ( [ 'agnosis_biography', 'agnosis_event' ] as $type ) {
+			$source_id     = self::factory()->post->create( [ 'post_type' => $type, 'post_status' => 'publish' ] );
+			$translated_id = self::factory()->post->create( [ 'post_type' => $type, 'post_status' => 'publish' ] );
+
+			( new LinguaForge() )->sync_translated_terms( $translated_id, $source_id, 'fr' );
+
+			$this->assertSame(
+				[],
+				wp_get_post_terms( $translated_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
+				$type
+			);
+		}
+	}
+
+	public function test_sync_translated_terms_clears_translated_terms_when_source_has_none(): void {
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		wp_set_object_terms( $translated_id, [ 'Stale Tag' ], 'post_tag' );
+
+		// Source artwork has no tags at all.
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertSame( [], wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ) );
+	}
+
+	public function test_sync_translated_terms_overwrites_stale_terms_on_retranslation(): void {
+		wp_set_object_terms( $this->artwork_id, [ 'Coastal' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		wp_set_object_terms( $translated_id, [ 'Old Stale Tag' ], 'post_tag' );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$names = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$this->assertSame( [ 'Coastal' ], $names );
+		$this->assertNotContains( 'Old Stale Tag', $names );
+	}
+
+	public function test_sync_translated_terms_uses_cached_translation(): void {
+		// Pre-seed the cache so translated_term_name() short-circuits before
+		// ever consulting SubmissionTranslator::from_settings() — this is how
+		// the translated (non-fallback) path is exercised without a real AI
+		// provider configured in the test env.
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertSame(
+			[ 'Paisaje' ],
+			wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_translated_terms_cache_is_scoped_per_language(): void {
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		// Requesting 'fr' — no cache entry for that language — falls back to
+		// the original name (no provider configured), NOT the Spanish cache hit.
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'fr' );
+
+		$this->assertSame(
+			[ 'Landscape' ],
+			wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+
+		delete_option( 'agnosis_term_translations' );
 	}
 }

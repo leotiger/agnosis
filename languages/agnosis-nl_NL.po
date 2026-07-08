@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-08T13:29+00:00\n"
-"PO-Revision-Date: 2026-07-07 19:54+0000\n"
+"POT-Creation-Date: 2026-07-08T18:07+00:00\n"
+"PO-Revision-Date: 2026-07-08 13:55+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -84,7 +84,7 @@ msgstr "Galerijpagina's"
 msgid "Prev"
 msgstr "Vorige"
 
-#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:215
+#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:216
 msgid "Next"
 msgstr "Volgende"
 
@@ -117,12 +117,12 @@ msgstr "Van"
 msgid "Subject"
 msgstr "Onderwerp"
 
-#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:1165
+#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:1214
 msgid "Files"
 msgstr "Bestanden"
 
-#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1561
-#: includes/Admin/Settings.php:1808
+#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1610
+#: includes/Admin/Settings.php:1857
 msgid "Status"
 msgstr "Status"
 
@@ -134,56 +134,56 @@ msgstr "Ontvangen"
 msgid "Error"
 msgstr "Fout"
 
-#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1409
-#: includes/Admin/Settings.php:1563
+#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1458
+#: includes/Admin/Settings.php:1612
 msgid "Actions"
 msgstr "Acties"
 
-#: includes/Admin/InboxPage.php:142
+#: includes/Admin/InboxPage.php:143
 msgid "unregistered sender"
 msgstr "afzender niet geregistreerd"
 
-#: includes/Admin/InboxPage.php:170
+#: includes/Admin/InboxPage.php:171
 msgid "Old row — delete and re-poll to preview"
 msgstr "Oude rij — verwijderen en opnieuw ophalen om te bekijken"
 
-#: includes/Admin/InboxPage.php:199
+#: includes/Admin/InboxPage.php:200
 msgid "Showing the 100 most recent queue entries."
 msgstr "De 100 meest recente wachtrij-items worden weergegeven."
 
-#: includes/Admin/InboxPage.php:206
+#: includes/Admin/InboxPage.php:207
 msgid "Attachment viewer"
 msgstr "Bijlageviewer"
 
-#: includes/Admin/InboxPage.php:209 includes/Newsletter/PopoverBlock.php:121
+#: includes/Admin/InboxPage.php:210 includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
 msgstr "Sluiten"
 
-#: includes/Admin/InboxPage.php:210
+#: includes/Admin/InboxPage.php:211
 msgid "Previous"
 msgstr "Vorige"
 
-#: includes/Admin/InboxPage.php:287
+#: includes/Admin/InboxPage.php:288
 msgid "Queue row deleted. Poll Inbox to re-fetch the message."
 msgstr ""
 "Wachtrijrij verwijderd. Klik op Inbox ophalen om het bericht opnieuw op te "
 "halen."
 
 #. translators: %d: queue row ID
-#: includes/Admin/InboxPage.php:295
+#: includes/Admin/InboxPage.php:296
 #, php-format
 msgid "Queue #%d sent to pipeline. Check back in a few seconds."
 msgstr ""
 "Wachtrij #%d naar de pijplijn gestuurd. Kijk over een paar seconden nog eens."
 
 #. translators: %d: new messages enqueued
-#: includes/Admin/InboxPage.php:305
+#: includes/Admin/InboxPage.php:306
 #, php-format
 msgid "Poll complete. %d new message(s) added to the queue."
 msgstr "Ophalen voltooid. %d nieuw(e) bericht(en) aan de wachtrij toegevoegd."
 
 #. translators: 1: rows reset 2: newly enqueued
-#: includes/Admin/InboxPage.php:316
+#: includes/Admin/InboxPage.php:317
 #, php-format
 msgid "Force-reprocess: %1$d row(s) reset, %2$d new message(s) enqueued."
 msgstr ""
@@ -191,100 +191,114 @@ msgstr ""
 "bericht(en) aan de wachtrij toegevoegd."
 
 #. translators: %d: items processed
-#: includes/Admin/InboxPage.php:326
+#: includes/Admin/InboxPage.php:327
 #, php-format
 msgid "Processed %d pending item(s)."
 msgstr "%d in behandeling zijnde item(s) verwerkt."
 
-#: includes/Admin/InboxPage.php:343
+#: includes/Admin/InboxPage.php:344
 msgid "Poll Inbox"
 msgstr "Inbox ophalen"
 
-#: includes/Admin/InboxPage.php:352
+#: includes/Admin/InboxPage.php:353
 msgid "Force Reprocess"
 msgstr "Opnieuw verwerken forceren"
 
-#: includes/Admin/InboxPage.php:361
+#: includes/Admin/InboxPage.php:362
 msgid "Process All Pending"
 msgstr "Alle in behandeling zijnde items verwerken"
 
-#: includes/Admin/InboxPage.php:374
+#: includes/Admin/InboxPage.php:375
 msgid "Awaiting Review"
 msgstr "In afwachting van beoordeling"
 
-#: includes/Admin/InboxPage.php:377
+#: includes/Admin/InboxPage.php:378
 msgid "Live"
 msgstr "Live"
 
-#: includes/Admin/InboxPage.php:380
+#: includes/Admin/InboxPage.php:381
 msgid "Processed"
 msgstr "Verwerkt"
 
-#: includes/Admin/InboxPage.php:385
+#: includes/Admin/InboxPage.php:394
+#, fuzzy
+msgid "Member Removed"
+msgstr "Onthoud mij"
+
+#: includes/Admin/InboxPage.php:395
+#, fuzzy
+msgid "Broadcast Sent"
+msgstr "Laatst verzonden"
+
+#: includes/Admin/InboxPage.php:396
+msgid "Bounced (too long)"
+msgstr ""
+
+#: includes/Admin/InboxPage.php:398
+msgid "Handled"
+msgstr ""
+
+#: includes/Admin/InboxPage.php:401
 msgid "Pending"
 msgstr "In afwachting"
 
-#: includes/Admin/InboxPage.php:386
+#: includes/Admin/InboxPage.php:402
 msgid "Processing"
 msgstr "Wordt verwerkt"
 
-#: includes/Admin/InboxPage.php:387
+#: includes/Admin/InboxPage.php:403
 msgid "Failed"
 msgstr "Mislukt"
 
-#: includes/Admin/InboxPage.php:391
-msgid "Skipped"
-msgstr ""
-
-#: includes/Admin/InboxPage.php:412
+#: includes/Admin/InboxPage.php:424
 msgid "Process"
 msgstr "Verwerken"
 
-#: includes/Admin/InboxPage.php:432
+#: includes/Admin/InboxPage.php:444
 msgid "View Post"
 msgstr "Bericht bekijken"
 
-#: includes/Admin/InboxPage.php:442
+#: includes/Admin/InboxPage.php:454
 msgid "Reprocess"
 msgstr "Opnieuw verwerken"
 
-#: includes/Admin/InboxPage.php:447
+#: includes/Admin/InboxPage.php:459
 msgid "Running…"
 msgstr "Bezig…"
 
-#: includes/Admin/InboxPage.php:453
+#: includes/Admin/InboxPage.php:465
 msgid "Delete this queue row?"
 msgstr "Deze wachtrijrij verwijderen?"
 
-#: includes/Admin/InboxPage.php:458 includes/Admin/Settings.php:1618
+#: includes/Admin/InboxPage.php:470 includes/Admin/Settings.php:1667
 msgid "Delete"
 msgstr "Verwijderen"
 
-#: includes/Admin/InboxPage.php:469
+#: includes/Admin/InboxPage.php:481
 msgid "just now"
 msgstr "zojuist"
 
 #. translators: %d: number of minutes
-#: includes/Admin/InboxPage.php:474
+#: includes/Admin/InboxPage.php:486
 #, php-format
 msgid "%dm ago"
 msgstr "%d min geleden"
 
 #. translators: %d: number of hours
-#: includes/Admin/InboxPage.php:479
+#: includes/Admin/InboxPage.php:491
 #, php-format
 msgid "%dh ago"
 msgstr "%d uur geleden"
 
-#: includes/Admin/InboxPage.php:552 includes/Admin/QueueController.php:31
+#: includes/Admin/InboxPage.php:564 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1482
-#: includes/Admin/Settings.php:1511 includes/Admin/Settings.php:1650
-#: includes/Admin/Settings.php:1682 includes/Admin/Settings.php:1709
-#: includes/Admin/Settings.php:1963 includes/Admin/Settings.php:1990
-#: includes/Admin/Settings.php:2064 includes/Admin/Settings.php:2091
-#: includes/Admin/Settings.php:2328 includes/Admin/Settings.php:2347
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1531
+#: includes/Admin/Settings.php:1560 includes/Admin/Settings.php:1699
+#: includes/Admin/Settings.php:1731 includes/Admin/Settings.php:1758
+#: includes/Admin/Settings.php:2012 includes/Admin/Settings.php:2039
+#: includes/Admin/Settings.php:2113 includes/Admin/Settings.php:2140
+#: includes/Admin/Settings.php:2377 includes/Admin/Settings.php:2396
 msgid "You do not have permission to perform this action."
 msgstr "Je hebt geen toestemming om deze actie uit te voeren."
 
@@ -440,13 +454,13 @@ msgstr "Kunst die uit de vergetelheid opbloeit"
 msgid "Save Changes"
 msgstr "Wijzigingen opslaan"
 
-#: includes/Admin/Settings.php:227 includes/Admin/Settings.php:1552
+#: includes/Admin/Settings.php:227 includes/Admin/Settings.php:1601
 msgid "Members"
 msgstr "Leden"
 
 #: includes/Admin/Settings.php:228
 msgid "Rules"
-msgstr ""
+msgstr "Regels"
 
 #: includes/Admin/Settings.php:284
 msgid "General"
@@ -469,15 +483,14 @@ msgid "Network"
 msgstr "Netwerk"
 
 #: includes/Admin/Settings.php:289
-#, fuzzy
 msgid "Community"
-msgstr "Maximumgrootte van de community"
+msgstr "Community"
 
 #: includes/Admin/Settings.php:290
 msgid "Commerce"
 msgstr "Commercie"
 
-#: includes/Admin/Settings.php:291 includes/Admin/Settings.php:1805
+#: includes/Admin/Settings.php:291 includes/Admin/Settings.php:1854
 #: includes/Newsletter/Mailer.php:66
 msgid "Newsletter"
 msgstr "Nieuwsbrief"
@@ -488,13 +501,15 @@ msgstr "Logs"
 
 #: includes/Admin/Settings.php:337
 msgid "Reset to default"
-msgstr ""
+msgstr "Terugzetten naar standaard"
 
 #: includes/Admin/Settings.php:338
 msgid ""
 "Replaces the text above with the plugin's built-in default — click Save "
 "Changes below to keep it."
 msgstr ""
+"Vervangt de tekst hierboven door de ingebouwde standaard van de plugin — "
+"klik hieronder op Wijzigingen opslaan om het te behouden."
 
 #: includes/Admin/Settings.php:353
 msgid "Select Image"
@@ -690,7 +705,7 @@ msgstr ""
 
 #: includes/Admin/Settings.php:458
 msgid "Pure address (no AI at all)"
-msgstr ""
+msgstr "Zuiver adres (helemaal geen AI)"
 
 #: includes/Admin/Settings.php:459
 msgid ""
@@ -702,6 +717,14 @@ msgid ""
 "subject indicator as a fallback for mail clients that do not support To: "
 "aliases — e.g. pure@agnosis.art"
 msgstr ""
+"Strengste opt-out-route: wat hierheen wordt gestuurd, wordt door geen enkele "
+"AI aangeraakt — geen verrijking, geen visuele beschrijving, geen "
+"herschrijving. De gepubliceerde posttitel, body en vertaalde-titel-subtitel "
+"worden letterlijk genomen uit de eigen onderwerp- en berichttekst van de "
+"artiest; de bijgevoegde bestand(en) worden precies zo gepubliceerd als "
+"verzonden. De kwaliteitsafwijzingscontrole wordt overgeslagen, net als bij "
+"Alleen foto. Gebruik de [Zuiver]-onderwerpindicator als terugvaloptie voor "
+"mailclients die geen To:-aliassen ondersteunen — bv. pure@agnosis.art"
 
 #: includes/Admin/Settings.php:463
 msgid "Goodbye / self-removal address"
@@ -718,27 +741,42 @@ msgstr ""
 "teruggestuurd voordat er iets wordt verwijderd — bijvoorbeeld "
 "goodbye@agnosis.art"
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:468
+msgid "Community announcement address"
+msgstr ""
+
+#: includes/Admin/Settings.php:469
+msgid ""
+"Any active artist emails here (any subject, no attachment needed) to send a "
+"message to every other community member — e.g. community@agnosis.art. Never "
+"processed as a submission and never becomes a post: each recipient gets the "
+"subject and message translated into their own language, with the sender's "
+"name and email included so they can reply directly. Sent from the address "
+"configured under Settings → Community → Rules, which can be different from "
+"this one. Only works for a message sent by an active, admitted artist."
+msgstr ""
+
+#: includes/Admin/Settings.php:475
 msgid "IMAP host"
 msgstr "IMAP-host"
 
-#: includes/Admin/Settings.php:471
+#: includes/Admin/Settings.php:476
 msgid "e.g. imap.yourhost.com"
 msgstr "bijv. imap.yourhost.com"
 
-#: includes/Admin/Settings.php:475
+#: includes/Admin/Settings.php:480
 msgid "IMAP port"
 msgstr "IMAP-poort"
 
-#: includes/Admin/Settings.php:482
+#: includes/Admin/Settings.php:487
 msgid "Use SSL"
 msgstr "SSL gebruiken"
 
-#: includes/Admin/Settings.php:490
+#: includes/Admin/Settings.php:495
 msgid "Skip SSL certificate validation"
 msgstr "SSL-certificaatvalidatie overslaan"
 
-#: includes/Admin/Settings.php:495
+#: includes/Admin/Settings.php:500
 msgid ""
 "⚠ Use only as a temporary workaround when your mail server's certificate is "
 "not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
@@ -750,11 +788,11 @@ msgstr ""
 "certificaat voordat Let's Encrypt op de maildaemon is toegepast). Zet dit "
 "uit zodra de mailserver een geldig certificaat presenteert."
 
-#: includes/Admin/Settings.php:499
+#: includes/Admin/Settings.php:504
 msgid "IMAP username"
 msgstr "IMAP-gebruikersnaam"
 
-#: includes/Admin/Settings.php:500
+#: includes/Admin/Settings.php:505
 msgid ""
 "Login username for the IMAP account — typically the catch-all mailbox "
 "address."
@@ -762,23 +800,23 @@ msgstr ""
 "Inloggebruikersnaam voor het IMAP-account — meestal het catch-all "
 "mailboxadres."
 
-#: includes/Admin/Settings.php:504
+#: includes/Admin/Settings.php:509
 msgid "Submission email password"
 msgstr "Wachtwoord voor inzend-e-mail"
 
-#: includes/Admin/Settings.php:510
+#: includes/Admin/Settings.php:515
 msgid "Webhook secret"
 msgstr "Webhook-geheim"
 
-#: includes/Admin/Settings.php:511
+#: includes/Admin/Settings.php:516
 msgid "HMAC secret shared with your webhook provider (Mailgun, SendGrid…)."
 msgstr "HMAC-geheim gedeeld met je webhookprovider (Mailgun, SendGrid…)."
 
-#: includes/Admin/Settings.php:517
+#: includes/Admin/Settings.php:522
 msgid "Inbox retention (days)"
 msgstr "Bewaring inbox (dagen)"
 
-#: includes/Admin/Settings.php:523
+#: includes/Admin/Settings.php:528
 msgid ""
 "Seen IMAP messages and processed/failed queue rows older than this are "
 "permanently deleted by the daily cleanup. Default: 7 days."
@@ -787,11 +825,11 @@ msgstr ""
 "worden permanent verwijderd door de dagelijkse opschoning. Standaard: 7 "
 "dagen."
 
-#: includes/Admin/Settings.php:529
+#: includes/Admin/Settings.php:534
 msgid "Per-sender hourly submission limit"
 msgstr "Uurlijkse inzendlimiet per afzender"
 
-#: includes/Admin/Settings.php:536
+#: includes/Admin/Settings.php:541
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -801,11 +839,11 @@ msgstr ""
 "over zowel IMAP als webhook-invoer heen. Overschrijding van deze limiet laat "
 "het bericht stilzwijgend vallen (geen herhaling door ESP's). Standaard: 5."
 
-#: includes/Admin/Settings.php:541
+#: includes/Admin/Settings.php:546
 msgid "Require SPF/DKIM authentication"
 msgstr "SPF/DKIM-authenticatie vereisen"
 
-#: includes/Admin/Settings.php:544
+#: includes/Admin/Settings.php:549
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -820,11 +858,11 @@ msgstr ""
 "je het niet zeker weet — geweigerde legitieme mail blijft stil. Standaard: "
 "uit."
 
-#: includes/Admin/Settings.php:550
+#: includes/Admin/Settings.php:555
 msgid "Description provider"
 msgstr "Beschrijvingprovider"
 
-#: includes/Admin/Settings.php:558
+#: includes/Admin/Settings.php:563
 msgid ""
 "Analyses the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -834,11 +872,11 @@ msgstr ""
 "en alt-tekst. WordPress AI Services laat dit over aan welke provider de site "
 "ook heeft ingesteld via de AI Services-plugin."
 
-#: includes/Admin/Settings.php:562
+#: includes/Admin/Settings.php:567
 msgid "OpenAI vision model"
 msgstr "OpenAI-visiemodel"
 
-#: includes/Admin/Settings.php:564
+#: includes/Admin/Settings.php:569
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -846,11 +884,11 @@ msgstr ""
 "Model dat wordt gebruikt voor de beschrijving van kunstwerken wanneer OpenAI "
 "de beschrijvingprovider is. Moet vision-invoer ondersteunen."
 
-#: includes/Admin/Settings.php:568
+#: includes/Admin/Settings.php:573
 msgid "Anthropic model"
 msgstr "Anthropic-model"
 
-#: includes/Admin/Settings.php:570
+#: includes/Admin/Settings.php:575
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -858,11 +896,11 @@ msgstr ""
 "Model dat wordt gebruikt voor de beschrijving van kunstwerken wanneer "
 "Anthropic de beschrijvingprovider is. Moet vision-invoer ondersteunen."
 
-#: includes/Admin/Settings.php:574
+#: includes/Admin/Settings.php:579
 msgid "Vision image max width (px)"
 msgstr "Maximale breedte van visuele afbeelding (px)"
 
-#: includes/Admin/Settings.php:580
+#: includes/Admin/Settings.php:585
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -883,19 +921,19 @@ msgstr ""
 "PHP-extensie; afbeeldingen worden ongeacht deze instelling op hun originele "
 "grootte verzonden wanneer die niet beschikbaar is. Standaard: 800."
 
-#: includes/Admin/Settings.php:586
+#: includes/Admin/Settings.php:591
 msgid "Enhancement provider"
 msgstr "Verrijkingsprovider"
 
-#: includes/Admin/Settings.php:589
+#: includes/Admin/Settings.php:594
 msgid "Auto (OpenAI if key is set)"
 msgstr "Automatisch (OpenAI als de sleutel is ingesteld)"
 
-#: includes/Admin/Settings.php:591
+#: includes/Admin/Settings.php:596
 msgid "Disabled — use original image"
 msgstr "Uitgeschakeld — gebruik originele afbeelding"
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:599
 msgid ""
 "Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
 "to Disabled to skip enhancement and publish the original."
@@ -904,22 +942,22 @@ msgstr ""
 "Gebruikt OpenAI gpt-image-1. Zet op Uitgeschakeld om verrijking over te "
 "slaan en het origineel te publiceren."
 
-#: includes/Admin/Settings.php:598
+#: includes/Admin/Settings.php:603
 msgid "OpenAI image model"
 msgstr "OpenAI-beeldmodel"
 
-#: includes/Admin/Settings.php:600
+#: includes/Admin/Settings.php:605
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "Model dat wordt gebruikt voor beeldverrijking wanneer OpenAI de "
 "verrijkingsprovider is."
 
-#: includes/Admin/Settings.php:606
+#: includes/Admin/Settings.php:611
 msgid "Polish biography with AI"
 msgstr "Biografie met AI redigeren"
 
-#: includes/Admin/Settings.php:609
+#: includes/Admin/Settings.php:614
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -928,11 +966,11 @@ msgstr ""
 "spelfouten te corrigeren en kleine tekstverbeteringen aan te brengen voordat "
 "ze worden opgeslagen."
 
-#: includes/Admin/Settings.php:613
+#: includes/Admin/Settings.php:618
 msgid "Polish events with AI"
 msgstr "Evenementen polijsten met AI"
 
-#: includes/Admin/Settings.php:616
+#: includes/Admin/Settings.php:621
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -941,11 +979,11 @@ msgstr ""
 "om spelling te corrigeren en kleine tekstverbeteringen aan te brengen "
 "voordat ze worden opgeslagen."
 
-#: includes/Admin/Settings.php:622
+#: includes/Admin/Settings.php:627
 msgid "Merge biography updates with AI"
 msgstr "Biografie-updates samenvoegen met AI"
 
-#: includes/Admin/Settings.php:625
+#: includes/Admin/Settings.php:630
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -960,11 +998,11 @@ msgstr ""
 "opnieuw in te dienen. Schakel uit om de biografie altijd te vervangen door "
 "de nieuwste inzending."
 
-#: includes/Admin/Settings.php:631
+#: includes/Admin/Settings.php:636
 msgid "Rejection threshold (quality score)"
 msgstr "Afwijsdrempel (kwaliteitsscore)"
 
-#: includes/Admin/Settings.php:639
+#: includes/Admin/Settings.php:644
 msgid ""
 "Photos scoring at or below this value (1–10) are automatically rejected — "
 "the artist receives a friendly email explaining the issue and is invited to "
@@ -977,11 +1015,11 @@ msgstr ""
 "automatische afwijzing uit. Moet lager zijn dan de verbeterdrempel. "
 "Standaard: 3."
 
-#: includes/Admin/Settings.php:644
+#: includes/Admin/Settings.php:649
 msgid "Enhancement threshold (quality score)"
 msgstr "Verbeterdrempel (kwaliteitsscore)"
 
-#: includes/Admin/Settings.php:652
+#: includes/Admin/Settings.php:657
 msgid ""
 "Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
 "= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
@@ -993,28 +1031,28 @@ msgstr ""
 "— alleen zichtbaar problematische foto’s worden verwerkt. Zet op 1 om "
 "automatische verbetering helemaal uit te schakelen."
 
-#: includes/Admin/Settings.php:658
+#: includes/Admin/Settings.php:663
 msgid "OpenAI API key"
 msgstr "OpenAI-API-sleutel"
 
-#: includes/Admin/Settings.php:661
+#: includes/Admin/Settings.php:666
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr ""
 "Vereist wanneer OpenAI de provider voor beschrijvingen of verbeteringen is."
 
-#: includes/Admin/Settings.php:665
+#: includes/Admin/Settings.php:670
 msgid "Anthropic API key"
 msgstr "Anthropic-API-sleutel"
 
-#: includes/Admin/Settings.php:668
+#: includes/Admin/Settings.php:673
 msgid "Required when Anthropic is the description provider."
 msgstr "Vereist wanneer Anthropic de provider voor beschrijvingen is."
 
-#: includes/Admin/Settings.php:674
+#: includes/Admin/Settings.php:679
 msgid "Artwork display width (px)"
 msgstr "Breedte van kunstwerkweergave (px)"
 
-#: includes/Admin/Settings.php:680
+#: includes/Admin/Settings.php:685
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -1025,11 +1063,11 @@ msgstr ""
 "Bestaande afbeeldingen moeten opnieuw worden gegenereerd nadat je deze "
 "waarde hebt aangepast."
 
-#: includes/Admin/Settings.php:684
+#: includes/Admin/Settings.php:689
 msgid "Thumbnail size (px)"
 msgstr "Miniatuurgrootte (px)"
 
-#: includes/Admin/Settings.php:690
+#: includes/Admin/Settings.php:695
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -1039,11 +1077,11 @@ msgstr ""
 "inzendkaarten en dashboard. Standaard: 512. Bestaande afbeeldingen moeten "
 "opnieuw worden gegenereerd nadat je deze waarde hebt aangepast."
 
-#: includes/Admin/Settings.php:694
+#: includes/Admin/Settings.php:699
 msgid "Email image width (px)"
 msgstr "Breedte van e-mailafbeelding (px)"
 
-#: includes/Admin/Settings.php:700
+#: includes/Admin/Settings.php:705
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -1054,11 +1092,11 @@ msgstr ""
 "Standaard: 420. Bestaande afbeeldingen moeten opnieuw worden gegenereerd "
 "nadat je deze waarde hebt aangepast."
 
-#: includes/Admin/Settings.php:706
+#: includes/Admin/Settings.php:711
 msgid "Gallery overview — items per page"
 msgstr "Galerijoverzicht — items per pagina"
 
-#: includes/Admin/Settings.php:712
+#: includes/Admin/Settings.php:717
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -1068,11 +1106,22 @@ msgstr ""
 "wordt proportioneel opgebouwd over alle artiesten; uitgelichte kunstwerken "
 "krijgen voorrang. Standaard: 12."
 
-#: includes/Admin/Settings.php:718
+#: includes/Admin/Settings.php:723
+msgid "Review link expiry (days)"
+msgstr ""
+
+#: includes/Admin/Settings.php:729
+msgid ""
+"How long the Approve & Publish / Discard links in a submission review email "
+"stay valid before an artist has to log in to manage the item instead. "
+"Applies uniformly to artwork, biography, and event drafts. Default: 7."
+msgstr ""
+
+#: includes/Admin/Settings.php:735
 msgid "System prompt"
 msgstr "Systeemprompt"
 
-#: includes/Admin/Settings.php:724
+#: includes/Admin/Settings.php:741
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -1080,11 +1129,11 @@ msgstr ""
 "Wordt als systeeminstructie naar de AI gestuurd. Gebruik {tag_count} en "
 "{excerpt_words} als tokens — die worden vervangen door de waarden hieronder."
 
-#: includes/Admin/Settings.php:728
+#: includes/Admin/Settings.php:745
 msgid "Artist prompt template"
 msgstr "Sjabloon voor artiestprompt"
 
-#: includes/Admin/Settings.php:734
+#: includes/Admin/Settings.php:751
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -1093,11 +1142,11 @@ msgstr ""
 "{artist_prompt} waar de eigen beschrijving van de artiest moet komen te "
 "staan."
 
-#: includes/Admin/Settings.php:738
+#: includes/Admin/Settings.php:755
 msgid "Enhancement instructions"
 msgstr "Instructies voor verbetering"
 
-#: includes/Admin/Settings.php:744
+#: includes/Admin/Settings.php:761
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -1106,11 +1155,11 @@ msgstr ""
 "afbeeldingsverbetering. De door AI gegenereerde beschrijving van het "
 "kunstwerk wordt automatisch als context toegevoegd."
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:765
 msgid "Number of tags"
 msgstr "Aantal tags"
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:771
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -1118,11 +1167,11 @@ msgstr ""
 "Hoeveel tags de AI per kunstwerk moet genereren. Wordt in de systeemprompt "
 "aangeroepen als {tag_count}."
 
-#: includes/Admin/Settings.php:758
+#: includes/Admin/Settings.php:775
 msgid "Excerpt word limit"
 msgstr "Woordlimiet voor fragment"
 
-#: includes/Admin/Settings.php:764
+#: includes/Admin/Settings.php:781
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -1130,11 +1179,11 @@ msgstr ""
 "Maximaal aantal woorden voor het fragment in één zin. Wordt in de "
 "systeemprompt aangeroepen als {excerpt_words}."
 
-#: includes/Admin/Settings.php:777
+#: includes/Admin/Settings.php:794
 msgid "Trust all admitted artists (skip link review entirely)"
-msgstr ""
+msgstr "Vertrouw alle toegelaten artiesten (sla linkbeoordeling volledig over)"
 
-#: includes/Admin/Settings.php:782
+#: includes/Admin/Settings.php:799
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -1143,23 +1192,33 @@ msgid ""
 "this if you are comfortable that a bad actor who made it through admission "
 "could embed a link to anything."
 msgstr ""
+"Elke artiest hier is al door de community vertrouwd verklaard — als dat "
+"vertrouwen genoeg voor je is, zet dit dan aan om elke link die een artiest "
+"instuurt meteen in te sluiten, zonder allowlist-check en helemaal zonder AI-"
+"beoordeling (de instellingen hieronder worden dan volledig overgeslagen). "
+"Standaard uit. Zet dit alleen aan als je er oké mee bent dat een "
+"kwaadwillende die door de toelating is gekomen een link naar van alles kan "
+"insluiten."
 
-#: includes/Admin/Settings.php:786
+#: includes/Admin/Settings.php:803
 msgid "Trusted embed platforms"
-msgstr ""
+msgstr "Vertrouwde embedplatforms"
 
-#: includes/Admin/Settings.php:792
+#: includes/Admin/Settings.php:809
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
 "network request made to the link itself."
 msgstr ""
+"Eén hostnaam per regel. Een ingestuurde link wordt meteen een rijke embed "
+"als die overeenkomt met een van deze (of een subdomein daarvan) — geen AI-"
+"beoordeling nodig, geen netwerkverzoek naar de link zelf."
 
-#: includes/Admin/Settings.php:796
+#: includes/Admin/Settings.php:813
 msgid "Let artists submit other links too (AI-reviewed)"
-msgstr ""
+msgstr "Laat artiesten ook andere links insturen (AI-beoordeeld)"
 
-#: includes/Admin/Settings.php:801
+#: includes/Admin/Settings.php:818
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -1169,73 +1228,150 @@ msgid ""
 "fails safe. When disabled (the default), only the trusted platforms above "
 "are ever embedded."
 msgstr ""
+"Wanneer ingeschakeld, wordt een link naar een site die niet op de vertrouwde "
+"lijst hierboven staat niet zomaar weggegooid: de doelpagina wordt opgehaald "
+"en beoordeeld door je ingestelde AI-provider (Instellingen → AI-providers) "
+"aan de hand van de onderstaande categorieën voordat besloten wordt of hij "
+"ingebed wordt. Als de AI niet bereikbaar is, het verzoek time-out krijgt, of "
+"de pagina niet veilig kan worden opgehaald, wordt de link niet ingebed — hij "
+"faalt veilig. Wanneer uitgeschakeld (de standaard), worden alleen de "
+"vertrouwde platforms hierboven ooit ingebed."
 
-#: includes/Admin/Settings.php:805
+#: includes/Admin/Settings.php:822
 msgid "Block pornographic / sexually explicit content"
-msgstr ""
+msgstr "Blokkeer pornografische / seksueel expliciete inhoud"
 
-#: includes/Admin/Settings.php:810 includes/Admin/Settings.php:828
+#: includes/Admin/Settings.php:827 includes/Admin/Settings.php:845
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr ""
+"Treedt alleen in werking wanneer AI-beoordeling (hierboven) is ingeschakeld."
 
-#: includes/Admin/Settings.php:814
+#: includes/Admin/Settings.php:831
 msgid "Block primarily commercial / promotional sites"
-msgstr ""
+msgstr "Blokkeer vooral commerciële / promotionele sites"
 
-#: includes/Admin/Settings.php:819
+#: includes/Admin/Settings.php:836
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
 "inherently unwanted. Only takes effect when AI review (above) is enabled."
 msgstr ""
+"Webwinkels, advertenties, marketing-landingspagina's. Standaard uit — een "
+"artiest die linkt naar een shop met hun eigen prints is normaal en niet per "
+"se ongewenst. Treedt alleen in werking wanneer AI-beoordeling (hierboven) is "
+"ingeschakeld."
 
-#: includes/Admin/Settings.php:823
+#: includes/Admin/Settings.php:840
 msgid "Block gambling / betting sites"
-msgstr ""
+msgstr "Blokkeer gok- / wedsites"
 
-#: includes/Admin/Settings.php:832
+#: includes/Admin/Settings.php:849
 msgid "Additional disallowed categories"
-msgstr ""
+msgstr "Aanvullende verboden categorieën"
 
-#: includes/Admin/Settings.php:837
+#: includes/Admin/Settings.php:854
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
 "scam pages\"). Only takes effect when AI review (above) is enabled."
 msgstr ""
+"Optioneel — beschrijf in gewone taal elk ander soort inhoud dat de AI moet "
+"afwijzen (bijv. \"haatzaaiende of gewelddadig-extremistische inhoud\", "
+"\"phishing- of scam-pagina's\"). Treedt alleen in werking wanneer AI-"
+"beoordeling (hierboven) is ingeschakeld."
 
-#: includes/Admin/Settings.php:843
+#: includes/Admin/Settings.php:860
 msgid "Node label"
 msgstr "Nodenaam"
 
-#: includes/Admin/Settings.php:844
+#: includes/Admin/Settings.php:861
 msgid "How this node introduces itself to the network."
 msgstr "Hoe dit knooppunt zichzelf voorstelt aan het netwerk."
 
-#: includes/Admin/Settings.php:849
+#: includes/Admin/Settings.php:866
 msgid "Enable ActivityPub federation"
 msgstr "ActivityPub-federatie inschakelen"
 
-#: includes/Admin/Settings.php:853
+#: includes/Admin/Settings.php:870
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Nieuwe kunstwerken uitzenden naar Mastodon, Pixelfed en de Fediverse."
 
-#: includes/Admin/Settings.php:858
+#: includes/Admin/Settings.php:875
 msgid "Node public key"
 msgstr "Publieke nodesleutel"
 
-#: includes/Admin/Settings.php:860
+#: includes/Admin/Settings.php:877
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Automatisch gegenereerde RSA-publieke sleutel voor deze node. Deel deze met "
 "peer-nodes."
 
-#: includes/Admin/Settings.php:865
+#: includes/Admin/Settings.php:882 includes/Admin/Settings.php:1019
+msgid "Sender name"
+msgstr "Naam afzender"
+
+#: includes/Admin/Settings.php:883
+#, fuzzy
+msgid ""
+"Name shown as the sender of admission, vote, welcome, departure, and other "
+"workflow emails. Leave blank to use the site name."
+msgstr ""
+"Naam die wordt getoond als afzender van digest-e-mails. Laat leeg om de "
+"sitenaam te gebruiken."
+
+#: includes/Admin/Settings.php:887 includes/Admin/Settings.php:1024
+msgid "Sender email address"
+msgstr "E-mailadres afzender"
+
+#: includes/Admin/Settings.php:889
+#, fuzzy
+msgid ""
+"Dedicated From: address for admission, vote, welcome, departure, invitation, "
+"and submission-review emails — e.g. hello@agnosis.art. Deliberately separate "
+"from the Settings → Newsletter sender: these are one-off actions (a vote "
+"link, a review link), not digest mail. Leave blank to use the admin email. "
+"Must be a valid, deliverable address on your domain (SPF/DKIM configured) or "
+"messages may be marked as spam."
+msgstr ""
+"Speciaal Van:-adres voor beide nieuwsbrieven, bijvoorbeeld "
+"newsletter@agnosis.art — houdt de digest-mail los van het admin-e-mailadres "
+"van de site voor betere afleverbaarheid en zodat kunstenaars het kunnen "
+"filteren. Laat leeg om het admin-e-mailadres te gebruiken. Moet een geldig, "
+"afleverbaar adres op jouw domein zijn (SPF/DKIM ingesteld), anders kunnen "
+"berichten als spam worden gemarkeerd."
+
+#: includes/Admin/Settings.php:893
+msgid "Community broadcasts per artist per day"
+msgstr ""
+
+#: includes/Admin/Settings.php:899
+msgid ""
+"Maximum number of messages a single artist can send to the Community "
+"announcement address (Settings → Email) per day. Prevents one member from "
+"flooding every other member's inbox. Default: 3."
+msgstr ""
+
+#: includes/Admin/Settings.php:903
+msgid "Community broadcast max length (characters)"
+msgstr ""
+
+#: includes/Admin/Settings.php:910
+msgid ""
+"Longer messages to the Community announcement address are bounced back to "
+"the sender instead of being broadcast — the sender is told to shorten it and "
+"resend. Measured in characters, not words, so it applies fairly across "
+"languages that don't use spaces between words (Chinese, Japanese, Thai, "
+"etc.). Every recipient's copy is translated individually, so this also caps "
+"how much a single message can cost in AI translation calls. Default: 2000. "
+"Hard maximum: 20000, regardless of this setting."
+msgstr ""
+
+#: includes/Admin/Settings.php:914
 msgid "Admission vote threshold (%)"
 msgstr "Drempel voor toelatingsstemmen (%)"
 
-#: includes/Admin/Settings.php:870
+#: includes/Admin/Settings.php:919
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -1243,22 +1379,22 @@ msgstr ""
 "Percentage actieve artiesten dat ja moet stemmen voor toelating. "
 "Gecombineerd met de minimale ondergrens hieronder."
 
-#: includes/Admin/Settings.php:874
+#: includes/Admin/Settings.php:923
 msgid "Admission minimum votes"
 msgstr "Minimaal aantal toelatingsstemmen"
 
-#: includes/Admin/Settings.php:878
+#: includes/Admin/Settings.php:927
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Absoluut minimum aan positieve stemmen vereist, ongeacht het percentage "
 "hierboven."
 
-#: includes/Admin/Settings.php:882
+#: includes/Admin/Settings.php:931
 msgid "Voting window (days)"
 msgstr "Stemperiode (dagen)"
 
-#: includes/Admin/Settings.php:886
+#: includes/Admin/Settings.php:935
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -1266,11 +1402,11 @@ msgstr ""
 "Aantal dagen dat een aanvraag open blijft. Als de drempel binnen deze "
 "periode niet wordt gehaald, wordt de aanvraag afgewezen."
 
-#: includes/Admin/Settings.php:890
+#: includes/Admin/Settings.php:939
 msgid "After applying, send artists to"
 msgstr "Na het toepassen, stuur artiesten naar"
 
-#: includes/Admin/Settings.php:894
+#: includes/Admin/Settings.php:943
 msgid ""
 "Optional URL — e.g. a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -1283,11 +1419,11 @@ msgstr ""
 "bevestigingsbericht te zien. Laat leeg om alleen het inline bericht te "
 "behouden."
 
-#: includes/Admin/Settings.php:898
+#: includes/Admin/Settings.php:947
 msgid "Community size cap"
 msgstr "Maximumgrootte van de community"
 
-#: includes/Admin/Settings.php:902
+#: includes/Admin/Settings.php:951
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -1298,11 +1434,11 @@ msgstr ""
 "vrijgekomen plek laat de volgende in de rij toe. Zet op 0 voor geen limiet. "
 "De community kan dit ook via stemming aanpassen."
 
-#: includes/Admin/Settings.php:906
+#: includes/Admin/Settings.php:955
 msgid "Cap-change co-signers required"
 msgstr "Aantal medeondertekenaars vereist voor wijziging van de limiet"
 
-#: includes/Admin/Settings.php:910
+#: includes/Admin/Settings.php:959
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -1311,11 +1447,11 @@ msgstr ""
 "communitygrootte-limiet te wijzigen voordat het als volledige "
 "communitystemming wordt geopend."
 
-#: includes/Admin/Settings.php:914
+#: includes/Admin/Settings.php:963
 msgid "Cap-change vote window (days)"
 msgstr "Stemperiode voor wijziging van de limiet (dagen)"
 
-#: includes/Admin/Settings.php:918
+#: includes/Admin/Settings.php:967
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -1324,11 +1460,11 @@ msgstr ""
 "blijft. Een strikte meerderheid van de actieve artiesten die ja stemmen, "
 "neemt de nieuwe limiet aan."
 
-#: includes/Admin/Settings.php:922
+#: includes/Admin/Settings.php:971
 msgid "Removal nominations required"
 msgstr "Vereiste nominaties voor verwijdering"
 
-#: includes/Admin/Settings.php:928
+#: includes/Admin/Settings.php:977
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -1336,11 +1472,11 @@ msgstr ""
 "Aantal nominaties van artiesten dat nodig is voordat een communitystemming "
 "over verwijdering wordt geopend. Beheerders kunnen deze drempel omzeilen."
 
-#: includes/Admin/Settings.php:932
+#: includes/Admin/Settings.php:981
 msgid "Removal vote window (days)"
 msgstr "Stemperiode voor verwijdering (dagen)"
 
-#: includes/Admin/Settings.php:938
+#: includes/Admin/Settings.php:987
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -1349,11 +1485,11 @@ msgstr ""
 "meerderheid (>50%) van de actieve artiesten moet ja stemmen om de "
 "verwijdering door te laten gaan."
 
-#: includes/Admin/Settings.php:942
+#: includes/Admin/Settings.php:991
 msgid "Invitation intro"
 msgstr "Intro uitnodiging"
 
-#: includes/Admin/Settings.php:946
+#: includes/Admin/Settings.php:995
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -1383,7 +1519,7 @@ msgstr ""
 "bijwerken, promoten of verwijderen door een e-mail te sturen. Je kunt meer "
 "informatie vinden op de agnosis.art website."
 
-#: includes/Admin/Settings.php:951
+#: includes/Admin/Settings.php:1000
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
 "join\" link and site name follow automatically — no need to add either "
@@ -1398,11 +1534,11 @@ msgstr ""
 "hierboven — wordt automatisch vertaald wanneer een uitnodiging in een andere "
 "taal dan die van de site wordt verstuurd."
 
-#: includes/Admin/Settings.php:957
+#: includes/Admin/Settings.php:1006
 msgid "Transaction fee (%)"
 msgstr "Transactiekosten (%)"
 
-#: includes/Admin/Settings.php:962
+#: includes/Admin/Settings.php:1011
 msgid ""
 "Percentage retained by this node on donations and art sales. Artists pay "
 "nothing up front."
@@ -1410,22 +1546,14 @@ msgstr ""
 "Percentage dat deze node inhoudt op donaties en kunstverkopen. Kunstenaars "
 "betalen vooraf niets."
 
-#: includes/Admin/Settings.php:970
-msgid "Sender name"
-msgstr "Naam afzender"
-
-#: includes/Admin/Settings.php:971
+#: includes/Admin/Settings.php:1020
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "Naam die wordt getoond als afzender van digest-e-mails. Laat leeg om de "
 "sitenaam te gebruiken."
 
-#: includes/Admin/Settings.php:975
-msgid "Sender email address"
-msgstr "E-mailadres afzender"
-
-#: includes/Admin/Settings.php:977
+#: includes/Admin/Settings.php:1026
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -1440,34 +1568,41 @@ msgstr ""
 "afleverbaar adres op jouw domein zijn (SPF/DKIM ingesteld), anders kunnen "
 "berichten als spam worden gemarkeerd."
 
-#: includes/Admin/Settings.php:981
-#, fuzzy
+#: includes/Admin/Settings.php:1030
 msgid "Auto-draft newsletter intros"
-msgstr "Intro nieuwsbrief voor kunstenaars"
+msgstr "Automatisch opgeslagen nieuwsbrief-intros"
 
-#: includes/Admin/Settings.php:986
+#: includes/Admin/Settings.php:1035
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
 "to review it — unless you've already written one for that cycle. Disable to "
 "leave both intro fields exactly as you left them, always."
 msgstr ""
+"Wanneer ingeschakeld, stelt Agnosis via AI voorafgaand aan elk nummer een "
+"intro op (zie de doorlooptijd hieronder), slaat het op in het intro-veld van "
+"die nieuwsbrief en mailt je om het te bekijken — tenzij je er voor die "
+"cyclus al zelf een hebt geschreven. Zet uit om beide introvelden altijd "
+"precies te laten zoals je ze hebt achtergelaten."
 
-#: includes/Admin/Settings.php:990
+#: includes/Admin/Settings.php:1039
 msgid "Draft intro this many hours ahead"
-msgstr ""
+msgstr "Stel het intro zoveel uur van tevoren op"
 
-#: includes/Admin/Settings.php:996
+#: includes/Admin/Settings.php:1045
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
 msgstr ""
+"Hoe lang voordat een issue moet worden verzonden Agnosis een AI-opgesteld "
+"intro voorstelt. Treedt alleen in werking als automatisch opstellen "
+"(hierboven) is ingeschakeld. Standaard: 24."
 
-#: includes/Admin/Settings.php:1000 includes/Newsletter/Scheduler.php:341
+#: includes/Admin/Settings.php:1049 includes/Newsletter/Scheduler.php:341
 msgid "Artist newsletter"
 msgstr "Nieuwsbrief voor kunstenaars"
 
-#: includes/Admin/Settings.php:1003
+#: includes/Admin/Settings.php:1052
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -1476,11 +1611,11 @@ msgstr ""
 "één klik voor elk nummer afmelden). Communitydigest: recente activiteit, "
 "nieuwe leden, open stemmen."
 
-#: includes/Admin/Settings.php:1007
+#: includes/Admin/Settings.php:1056
 msgid "Artist newsletter frequency (days)"
 msgstr "Frequentie nieuwsbrief voor kunstenaars (dagen)"
 
-#: includes/Admin/Settings.php:1013
+#: includes/Admin/Settings.php:1062
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -1488,12 +1623,11 @@ msgstr ""
 "Standaard 30 ≈ maandelijks. Een nieuw nummer wordt klaargezet zodra er "
 "zoveel dagen zijn verstreken sinds het vorige is verstuurd."
 
-#: includes/Admin/Settings.php:1017
+#: includes/Admin/Settings.php:1066
 msgid "Artist newsletter intro"
 msgstr "Intro nieuwsbrief voor kunstenaars"
 
-#: includes/Admin/Settings.php:1021
-#, fuzzy
+#: includes/Admin/Settings.php:1070
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -1501,15 +1635,18 @@ msgid ""
 "new about a day before the issue sends, and emails you to review it first — "
 "write your own here any time to skip that."
 msgstr ""
-"Optionele noot die alleen vóór het volgende nummer voor kunstenaars wordt "
-"geplaatst — wordt automatisch gewist zodra dat nummer in de wachtrij staat. "
-"Laat leeg om de auto-digest zonder intro te versturen."
+"Optionele opmerking voorafgaand aan het volgende artistieke nummer alleen — "
+"automatisch gewist zodra dat nummer in de wachtrij staat. Laat leeg om de "
+"auto-digest zonder intro te verzenden. Indien leeg gelaten, stelt Agnosis er "
+"ongeveer een dag voor verzending automatisch een op basis van wat er nieuw "
+"is, en stuurt het je ter controle — schrijf hier op elk moment je eigen "
+"versie om dat over te slaan."
 
-#: includes/Admin/Settings.php:1025 includes/Newsletter/Scheduler.php:341
+#: includes/Admin/Settings.php:1074 includes/Newsletter/Scheduler.php:341
 msgid "Public newsletter"
 msgstr "Publieke nieuwsbrief"
 
-#: includes/Admin/Settings.php:1028
+#: includes/Admin/Settings.php:1077
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -1518,35 +1655,36 @@ msgstr ""
 "opt-in). Digest: nieuw werk en evenementen die sinds het vorige nummer zijn "
 "gepubliceerd."
 
-#: includes/Admin/Settings.php:1032
+#: includes/Admin/Settings.php:1081
 msgid "Public newsletter frequency (days)"
 msgstr "Frequentie publieke nieuwsbrief (dagen)"
 
-#: includes/Admin/Settings.php:1038
+#: includes/Admin/Settings.php:1087
 msgid "Default 30 ≈ monthly."
 msgstr "Standaard 30 ≈ maandelijks."
 
-#: includes/Admin/Settings.php:1042
+#: includes/Admin/Settings.php:1091
 msgid "Public newsletter intro"
 msgstr "Intro publieke nieuwsbrief"
 
-#: includes/Admin/Settings.php:1046
-#, fuzzy
+#: includes/Admin/Settings.php:1095
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
 "automatically from what's new about a day before the issue sends, and emails "
 "you to review it first — write your own here any time to skip that."
 msgstr ""
-"Optionele noot die alleen vóór het volgende nummer voor kunstenaars wordt "
-"geplaatst — wordt automatisch gewist zodra dat nummer in de wachtrij staat. "
-"Laat leeg om de auto-digest zonder intro te versturen."
+"Optionele opmerking die alleen aan de volgende openbare uitgave wordt "
+"toegevoegd — wordt automatisch gewist zodra die uitgave in de wachtrij "
+"staat. Indien leeg gelaten, stelt Agnosis ongeveer een dag voor verzending "
+"automatisch een concept op van wat er nieuw is en stuurt dit naar u ter "
+"controle — schrijf hier op elk moment uw eigen versie om dat over te slaan."
 
-#: includes/Admin/Settings.php:1050
+#: includes/Admin/Settings.php:1099
 msgid "Send batch size"
 msgstr "Batchgrootte voor verzenden"
 
-#: includes/Admin/Settings.php:1056
+#: includes/Admin/Settings.php:1105
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -1555,11 +1693,11 @@ msgstr ""
 "uitgaande mail beperkt; verhoog het voor snellere bezorging op hosts met "
 "ruime limieten."
 
-#: includes/Admin/Settings.php:1060
+#: includes/Admin/Settings.php:1109
 msgid "Self-hosting comfort threshold"
 msgstr "Drempel voor comfortabel zelf hosten"
 
-#: includes/Admin/Settings.php:1066
+#: includes/Admin/Settings.php:1115
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -1570,7 +1708,7 @@ msgstr ""
 "herinnering om in plaats daarvan een e-maildienstverlener te overwegen "
 "(bijv. het gratis pakket van Brevo)."
 
-#: includes/Admin/Settings.php:1075
+#: includes/Admin/Settings.php:1124
 msgid ""
 "Sends a minimal ping (\"Reply with the word: ping\") using the configured "
 "API key."
@@ -1578,15 +1716,15 @@ msgstr ""
 "Stuurt een minimale ping (\"Reageer met het woord: ping\") met de "
 "geconfigureerde API-sleutel."
 
-#: includes/Admin/Settings.php:1079
+#: includes/Admin/Settings.php:1128
 msgid "Sends a minimal ping using the configured API key."
 msgstr "Stuurt een minimale ping met de geconfigureerde API-sleutel."
 
-#: includes/Admin/Settings.php:1082
+#: includes/Admin/Settings.php:1131
 msgid "WordPress AI Client"
 msgstr "WordPress AI-client"
 
-#: includes/Admin/Settings.php:1083
+#: includes/Admin/Settings.php:1132
 msgid ""
 "Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
 "generation model is configured."
@@ -1594,33 +1732,33 @@ msgstr ""
 "Controleert of wp_ai_client_prompt() beschikbaar is (WordPress 7.0+) en of "
 "er een tekstgeneratiemodel is ingesteld."
 
-#: includes/Admin/Settings.php:1088
+#: includes/Admin/Settings.php:1137
 msgid "Test AI Providers"
 msgstr "Test AI-providers"
 
 #. translators: %s: provider label
-#: includes/Admin/Settings.php:1101
+#: includes/Admin/Settings.php:1150
 #, php-format
 msgid "Test %s"
 msgstr "Test %s"
 
-#: includes/Admin/Settings.php:1133
+#: includes/Admin/Settings.php:1182
 msgid "Debug Files"
 msgstr "Debug-bestanden"
 
-#: includes/Admin/Settings.php:1137
+#: includes/Admin/Settings.php:1186
 msgid "Currently"
 msgstr "Momenteel"
 
-#: includes/Admin/Settings.php:1140
+#: includes/Admin/Settings.php:1189
 msgid "Enabled"
 msgstr "Ingeschakeld"
 
-#: includes/Admin/Settings.php:1142
+#: includes/Admin/Settings.php:1191
 msgid "Disabled"
 msgstr "Uitgeschakeld"
 
-#: includes/Admin/Settings.php:1148
+#: includes/Admin/Settings.php:1197
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1628,7 +1766,7 @@ msgstr ""
 "Geforceerd AAN door de AGNOSIS_DEBUG-constante in wp-config.php — het "
 "selectievakje hierboven heeft geen effect totdat die regel is verwijderd."
 
-#: includes/Admin/Settings.php:1150
+#: includes/Admin/Settings.php:1199
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1636,21 +1774,21 @@ msgstr ""
 "Geforceerd UIT door de AGNOSIS_DEBUG-constante in wp-config.php — het "
 "selectievakje hierboven heeft geen effect totdat die regel is verwijderd."
 
-#: includes/Admin/Settings.php:1158
+#: includes/Admin/Settings.php:1207
 msgid "Directory"
 msgstr "Map"
 
-#: includes/Admin/Settings.php:1161
+#: includes/Admin/Settings.php:1210
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Filter met agnosis_debug_dir om debug-uitvoer ergens anders naartoe te "
 "sturen."
 
-#: includes/Admin/Settings.php:1168
+#: includes/Admin/Settings.php:1217
 msgid ".txt file(s) in the directory"
 msgstr ".txt-bestand(en) in de map"
 
-#: includes/Admin/Settings.php:1174
+#: includes/Admin/Settings.php:1223
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1658,24 +1796,24 @@ msgstr ""
 "Alle .txt-bestanden in de debugmap verwijderen? De map zelf blijft bestaan, "
 "zodat toekomstige debugschrijvingen daar nog steeds netjes terechtkomen."
 
-#: includes/Admin/Settings.php:1179
+#: includes/Admin/Settings.php:1228
 msgid "Clear Debug Files"
 msgstr "Debugbestanden wissen"
 
-#: includes/Admin/Settings.php:1211
+#: includes/Admin/Settings.php:1260
 msgid "Pipeline Logs"
 msgstr "Pipeline-logboeken"
 
-#: includes/Admin/Settings.php:1216
+#: includes/Admin/Settings.php:1265
 msgid "Clear all log entries?"
 msgstr "Alle logregels wissen?"
 
-#: includes/Admin/Settings.php:1217
+#: includes/Admin/Settings.php:1266
 msgid "Clear All"
 msgstr "Alles wissen"
 
 #. translators: %d: total log entry count
-#: includes/Admin/Settings.php:1226
+#: includes/Admin/Settings.php:1275
 #, php-format
 msgid ""
 "%d entries total. Logs are pruned automatically according to the Inbox "
@@ -1684,39 +1822,39 @@ msgstr ""
 "%d items in totaal. Logboeken worden automatisch opgeschoond volgens de "
 "bewaartermijn van Inbox."
 
-#: includes/Admin/Settings.php:1233
+#: includes/Admin/Settings.php:1282
 msgid "No log entries yet."
 msgstr "Nog geen logregels."
 
-#: includes/Admin/Settings.php:1238
+#: includes/Admin/Settings.php:1287
 msgid "Time"
 msgstr "Tijd"
 
-#: includes/Admin/Settings.php:1239
+#: includes/Admin/Settings.php:1288
 msgid "Level"
 msgstr "Niveau"
 
-#: includes/Admin/Settings.php:1240
+#: includes/Admin/Settings.php:1289
 msgid "Context"
 msgstr "Context"
 
-#: includes/Admin/Settings.php:1241
+#: includes/Admin/Settings.php:1290
 msgid "Message"
 msgstr "Bericht"
 
-#: includes/Admin/Settings.php:1310
+#: includes/Admin/Settings.php:1359
 msgid "Inbox Tools"
 msgstr "Inbox-tools"
 
-#: includes/Admin/Settings.php:1314
+#: includes/Admin/Settings.php:1363
 msgid "Test connection"
 msgstr "Verbinding testen"
 
-#: includes/Admin/Settings.php:1319
+#: includes/Admin/Settings.php:1368
 msgid "Test IMAP Connection"
 msgstr "IMAP-verbinding testen"
 
-#: includes/Admin/Settings.php:1321
+#: includes/Admin/Settings.php:1370
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -1724,15 +1862,15 @@ msgstr ""
 "Maakt verbinding met de geconfigureerde mailbox en geeft het totale aantal "
 "berichten en het aantal ongelezen berichten weer."
 
-#: includes/Admin/Settings.php:1325
+#: includes/Admin/Settings.php:1374
 msgid "Poll inbox now"
 msgstr "Inbox nu ophalen"
 
-#: includes/Admin/Settings.php:1330
+#: includes/Admin/Settings.php:1379
 msgid "Poll Inbox Now"
 msgstr "Inbox nu ophalen"
 
-#: includes/Admin/Settings.php:1332
+#: includes/Admin/Settings.php:1381
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -1740,15 +1878,15 @@ msgstr ""
 "Haalt ongelezen berichten direct op zonder te wachten op WP-Cron. Klik "
 "daarna op \"Verwerken van wachtrij\" om de AI-pijplijn uit te voeren."
 
-#: includes/Admin/Settings.php:1336
+#: includes/Admin/Settings.php:1385
 msgid "Process queue"
 msgstr "Wachtrij verwerken"
 
-#: includes/Admin/Settings.php:1341
+#: includes/Admin/Settings.php:1390
 msgid "Process Pending Queue"
 msgstr "Verwerken van wachtrij"
 
-#: includes/Admin/Settings.php:1343
+#: includes/Admin/Settings.php:1392
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -1757,15 +1895,15 @@ msgstr ""
 "wachten op WP-Cron. Gebruik dit om de end-to-endflow na een polling te "
 "testen."
 
-#: includes/Admin/Settings.php:1347
+#: includes/Admin/Settings.php:1396
 msgid "Force reprocess"
 msgstr "Forcerenprocessen"
 
-#: includes/Admin/Settings.php:1352
+#: includes/Admin/Settings.php:1401
 msgid "Force Reprocess Inbox"
 msgstr "Inbox forceren herverwerken"
 
-#: includes/Admin/Settings.php:1354
+#: includes/Admin/Settings.php:1403
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -1777,116 +1915,116 @@ msgstr ""
 "\"Wachtende wachtrij verwerken\" om de AI-pijplijn uit te voeren. Eerder "
 "gepubliceerde werken met geldige posts worden nooit opnieuw verwerkt."
 
-#: includes/Admin/Settings.php:1388
+#: includes/Admin/Settings.php:1437
 msgid "Pending Applications"
 msgstr "Openstaande aanvragen"
 
-#: includes/Admin/Settings.php:1391
+#: includes/Admin/Settings.php:1440
 msgid "No pending applications."
 msgstr "Geen openstaande aanvragen."
 
 #. translators: %d: number of positive votes currently required for admission
-#: includes/Admin/Settings.php:1397
+#: includes/Admin/Settings.php:1446
 #, php-format
 msgid "%d positive vote(s) currently required for admission."
 msgstr "%d positieve stem(men) vereist voor toelating."
 
-#: includes/Admin/Settings.php:1405
+#: includes/Admin/Settings.php:1454
 msgid "Applicant"
 msgstr "Aanvrager"
 
-#: includes/Admin/Settings.php:1406
+#: includes/Admin/Settings.php:1455
 msgid "Applied"
 msgstr "Aangevraagd"
 
-#: includes/Admin/Settings.php:1407
+#: includes/Admin/Settings.php:1456
 msgid "Votes"
 msgstr "Stemmen"
 
-#: includes/Admin/Settings.php:1408
+#: includes/Admin/Settings.php:1457
 msgid "Bio / Portfolio"
 msgstr "Bio / Portfolio"
 
 #. translators: 1: yes votes received, 2: total votes required
-#: includes/Admin/Settings.php:1434
+#: includes/Admin/Settings.php:1483
 #, php-format
 msgid "%1$d / %2$d"
 msgstr "%1$d / %2$d"
 
-#: includes/Admin/Settings.php:1445
+#: includes/Admin/Settings.php:1494
 msgid "Portfolio ↗"
 msgstr "Portfolio ↗"
 
-#: includes/Admin/Settings.php:1454
+#: includes/Admin/Settings.php:1503
 msgid "Admit"
 msgstr "Toelaten"
 
-#: includes/Admin/Settings.php:1461
+#: includes/Admin/Settings.php:1510
 msgid "Reject"
 msgstr "Afwijzen"
 
-#: includes/Admin/Settings.php:1555
+#: includes/Admin/Settings.php:1604
 msgid "No admitted members yet."
 msgstr "Nog geen toegelaten leden."
 
-#: includes/Admin/Settings.php:1560 includes/Admin/Settings.php:1814
+#: includes/Admin/Settings.php:1609 includes/Admin/Settings.php:1863
 msgid "Artist"
 msgstr "Artiest"
 
-#: includes/Admin/Settings.php:1562
+#: includes/Admin/Settings.php:1611
 msgid "Joined"
 msgstr "Lid sinds"
 
 #. translators: %s: date until which the artist is banned
-#: includes/Admin/Settings.php:1577
+#: includes/Admin/Settings.php:1626
 #, php-format
 msgid "Banned until %s"
 msgstr "Verbannen tot %s"
 
-#: includes/Admin/Settings.php:1580
+#: includes/Admin/Settings.php:1629
 msgid "Banned"
 msgstr "Verbannen"
 
-#: includes/Admin/Settings.php:1581
+#: includes/Admin/Settings.php:1630
 msgid "Active"
 msgstr "Actief"
 
-#: includes/Admin/Settings.php:1601
+#: includes/Admin/Settings.php:1650
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "Laat de datum leeg om voor onbepaalde tijd te verbannen. Doorgaan?"
 
-#: includes/Admin/Settings.php:1606
+#: includes/Admin/Settings.php:1655
 msgid "Leave blank to ban indefinitely"
 msgstr "Laat leeg om voor onbepaalde tijd te verbannen"
 
-#: includes/Admin/Settings.php:1608
+#: includes/Admin/Settings.php:1657
 msgid "Suspend"
 msgstr "Opschorten"
 
-#: includes/Admin/Settings.php:1614
+#: includes/Admin/Settings.php:1663
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr ""
 "Deze artiest en al hun content permanent verwijderen? Dit kan niet ongedaan "
 "worden gemaakt."
 
-#: includes/Admin/Settings.php:1624
+#: includes/Admin/Settings.php:1673
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr ""
 "Een stemming voor verwijdering door de community openen voor deze artiest? "
 "Alle leden krijgen een e-mail."
 
-#: includes/Admin/Settings.php:1628
+#: includes/Admin/Settings.php:1677
 msgid "Open Vote"
 msgstr "Stemming openen"
 
-#: includes/Admin/Settings.php:1784
+#: includes/Admin/Settings.php:1833
 msgid "Newsletter Status"
 msgstr "Nieuwsbriefstatus"
 
 #. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
-#: includes/Admin/Settings.php:1793
+#: includes/Admin/Settings.php:1842
 #, php-format
 msgid ""
 "You have %1$d confirmed public subscribers, above the configured comfort "
@@ -1899,57 +2037,57 @@ msgstr ""
 "wilt misschien een e-mailserviceprovider koppelen (bijv. de gratis laag van "
 "Brevo) voor betere bezorgbaarheid op deze schaal."
 
-#: includes/Admin/Settings.php:1806
+#: includes/Admin/Settings.php:1855
 msgid "Audience"
 msgstr "Publiek"
 
-#: includes/Admin/Settings.php:1807
+#: includes/Admin/Settings.php:1856
 msgid "Last sent"
 msgstr "Laatst verzonden"
 
-#: includes/Admin/Settings.php:1809
+#: includes/Admin/Settings.php:1858
 msgid "Action"
 msgstr "Actie"
 
-#: includes/Admin/Settings.php:1810
+#: includes/Admin/Settings.php:1859
 msgid "Send a test"
 msgstr "Een test versturen"
 
 #. translators: 1: admitted artist count, 2: how many of them opted out
-#: includes/Admin/Settings.php:1820
+#: includes/Admin/Settings.php:1869
 #, php-format
 msgid "%1$d admitted (%2$d opted out)"
 msgstr "%1$d toegelaten (%2$d afgemeld)"
 
-#: includes/Admin/Settings.php:1828 includes/Admin/Settings.php:1867
+#: includes/Admin/Settings.php:1877 includes/Admin/Settings.php:1916
 msgid "Sending…"
 msgstr "Bezig met verzenden…"
 
-#: includes/Admin/Settings.php:1828 includes/Admin/Settings.php:1867
+#: includes/Admin/Settings.php:1877 includes/Admin/Settings.php:1916
 msgid "Idle"
 msgstr "Inactief"
 
-#: includes/Admin/Settings.php:1834 includes/Admin/Settings.php:1873
+#: includes/Admin/Settings.php:1883 includes/Admin/Settings.php:1922
 msgid "Send Now"
 msgstr "Nu verzenden"
 
-#: includes/Admin/Settings.php:1840
+#: includes/Admin/Settings.php:1889
 msgid "Public"
 msgstr "Openbaar"
 
 #. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count
-#: includes/Admin/Settings.php:1846
+#: includes/Admin/Settings.php:1895
 #, php-format
 msgid "%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed"
 msgstr "%1$d bevestigd, %2$d wacht op bevestiging, %3$d uitgeschreven"
 
 #. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
-#: includes/Admin/Settings.php:1859
+#: includes/Admin/Settings.php:1908
 #, php-format
 msgid "By language: %s"
 msgstr "Per taal: %s"
 
-#: includes/Admin/Settings.php:1882
+#: includes/Admin/Settings.php:1931
 msgid ""
 "Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
 "the public newsletter. Artists are enrolled automatically and can "
@@ -1959,23 +2097,23 @@ msgstr ""
 "bezoekers in te laten schrijven op de openbare nieuwsbrief. Artiesten worden "
 "automatisch toegevoegd en kunnen zich met één klik afmelden van elke editie."
 
-#: includes/Admin/Settings.php:1890
+#: includes/Admin/Settings.php:1939
 msgid "Never"
 msgstr "Nooit"
 
-#: includes/Admin/Settings.php:1925
+#: includes/Admin/Settings.php:1974
 msgid "Unknown"
 msgstr "Onbekend"
 
-#: includes/Admin/Settings.php:1949 includes/Admin/Settings.php:2051
+#: includes/Admin/Settings.php:1998 includes/Admin/Settings.php:2100
 msgid "Send Test"
 msgstr "Test versturen"
 
-#: includes/Admin/Settings.php:2025
+#: includes/Admin/Settings.php:2074
 msgid "Invite an Artist"
 msgstr "Een artiest uitnodigen"
 
-#: includes/Admin/Settings.php:2027
+#: includes/Admin/Settings.php:2076
 msgid ""
 "Send a one-off email inviting someone to apply. Nothing is tracked or "
 "scheduled — this sends immediately to the address below."
@@ -1984,63 +2122,63 @@ msgstr ""
 "wordt niets bijgehouden of ingepland — dit wordt meteen verstuurd naar het "
 "onderstaande adres."
 
-#: includes/Admin/Settings.php:2033
+#: includes/Admin/Settings.php:2082
 msgid "artist@example.com"
 msgstr "artiest@voorbeeld.nl"
 
-#: includes/Admin/Settings.php:2039
+#: includes/Admin/Settings.php:2088
 msgid "Send Invitation"
 msgstr "Uitnodiging versturen"
 
-#: includes/Admin/Settings.php:2235
+#: includes/Admin/Settings.php:2284
 msgid "Permission denied."
 msgstr "Geen toestemming."
 
-#: includes/Admin/Settings.php:2245
+#: includes/Admin/Settings.php:2294
 msgid "OpenAI API key not configured."
 msgstr "OpenAI API-sleutel niet geconfigureerd."
 
-#: includes/Admin/Settings.php:2251
+#: includes/Admin/Settings.php:2300
 msgid "OpenAI connection successful."
 msgstr "OpenAI-verbinding geslaagd."
 
-#: includes/Admin/Settings.php:2258
+#: includes/Admin/Settings.php:2307
 msgid "Anthropic API key not configured."
 msgstr "Anthropic API-sleutel niet geconfigureerd."
 
-#: includes/Admin/Settings.php:2264
+#: includes/Admin/Settings.php:2313
 msgid "Anthropic connection successful."
 msgstr "Anthropic-verbinding geslaagd."
 
-#: includes/Admin/Settings.php:2270
+#: includes/Admin/Settings.php:2319
 msgid "WordPress AI Client requires WordPress 7.0 or later."
 msgstr "WordPress AI Client vereist WordPress 7.0 of hoger."
 
-#: includes/Admin/Settings.php:2276
+#: includes/Admin/Settings.php:2325
 msgid ""
 "No text-generation model configured. Set one up under Settings → Connectors."
 msgstr ""
 "Er is geen tekstgeneratiemodel geconfigureerd. Stel er een in via "
 "Instellingen → Connectoren."
 
-#: includes/Admin/Settings.php:2278
+#: includes/Admin/Settings.php:2327
 msgid ""
 "WordPress AI Client is available and a text-generation model is configured."
 msgstr ""
 "WordPress AI Client is beschikbaar en er is een tekstgeneratiemodel "
 "geconfigureerd."
 
-#: includes/Admin/Settings.php:2282
+#: includes/Admin/Settings.php:2331
 msgid "Unknown provider."
 msgstr "Onbekende provider."
 
 #. translators: %d: HTTP response status code
-#: includes/Admin/Settings.php:2316
+#: includes/Admin/Settings.php:2365
 #, php-format
 msgid "HTTP %d"
 msgstr "HTTP %d"
 
-#: includes/AI/PromptConfig.php:86
+#: includes/AI/PromptConfig.php:138
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -2119,10 +2257,10 @@ msgstr "We hebben je aanvraag voor %s ontvangen"
 #: includes/Artist/AdmissionNotification.php:392
 #: includes/Artist/AdmissionNotification.php:486
 #: includes/Artist/AdmissionNotification.php:559
-#: includes/Publishing/Notification.php:228
-#: includes/Publishing/Notification.php:435
-#: includes/Publishing/Notification.php:729
-#: includes/Publishing/Notification.php:884
+#: includes/Publishing/Notification.php:231
+#: includes/Publishing/Notification.php:438
+#: includes/Publishing/Notification.php:745
+#: includes/Publishing/Notification.php:900
 #, php-format
 msgid "Hi %s,"
 msgstr "Hoi %s,"
@@ -2149,12 +2287,12 @@ msgstr ""
 #. translators: %s: site name
 #: includes/Artist/AdmissionNotification.php:355
 #: includes/Artist/AdmissionNotification.php:630
-#: includes/Artist/Invitation.php:178 includes/Newsletter/Mailer.php:101
+#: includes/Artist/Invitation.php:177 includes/Newsletter/Mailer.php:101
 #: includes/Newsletter/Subscription.php:166
-#: includes/Publishing/Notification.php:293
-#: includes/Publishing/Notification.php:523
-#: includes/Publishing/Notification.php:757
-#: includes/Publishing/Notification.php:947
+#: includes/Publishing/Notification.php:296
+#: includes/Publishing/Notification.php:539
+#: includes/Publishing/Notification.php:773
+#: includes/Publishing/Notification.php:963
 #, php-format
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — kunst die opbloeit uit de vergetelheid"
@@ -2266,12 +2404,16 @@ msgid ""
 "[Photo] — publish as-is, no AI enhancement (fallback for mail apps without "
 "To: aliases)"
 msgstr ""
+"[Foto] — publiceer zoals het is, geen AI-verrijking (terugval voor mailapps "
+"zonder To:-aliassen)"
 
 #: includes/Artist/AdmissionNotification.php:601
 msgid ""
 "[Pure] — publish exactly as sent, no AI at all (fallback for mail apps "
 "without To: aliases)"
 msgstr ""
+"[Zuiver] — publiceer precies zoals verstuurd, helemaal geen AI (terugval "
+"voor mailapps zonder To:-aliassen)"
 
 #: includes/Artist/AdmissionNotification.php:609
 msgid "To leave the network and delete your account:"
@@ -2327,25 +2469,83 @@ msgstr "Kunstwerk uitlichten (onderwerp: exacte titel)"
 
 #: includes/Artist/AdmissionNotification.php:665
 msgid "Photo-only — publish as-is, no AI enhancement"
-msgstr ""
+msgstr "Alleen foto — publiceer zoals het is, geen AI-verrijking"
 
 #: includes/Artist/AdmissionNotification.php:666
 msgid "Pure — publish exactly as sent, no AI at all"
-msgstr ""
+msgstr "Zuiver — publiceer precies zoals verstuurd, helemaal geen AI"
 
 #. translators: %s: artist display name
-#: includes/Artist/ApplicationBiography.php:151
+#: includes/Artist/ApplicationBiography.php:164
 #, php-format
 msgid "About %s"
+msgstr "Over %s"
+
+#. translators: %s: site name
+#: includes/Artist/CommunityBroadcast.php:138
+#, php-format
+msgid "[%s] Your community message was not sent — too long"
 msgstr ""
 
-#: includes/Artist/CommunityCapNotification.php:43
-#: includes/Artist/CommunityCapNotification.php:96
+#. translators: 1: sender's display name, 2: character count of their message, 3: configured character limit, 4: site name
+#: includes/Artist/CommunityBroadcast.php:144
+#, php-format
+msgid ""
+"Hi %1$s,\n"
+"\n"
+"Your message to the community was %2$d characters long — the current limit "
+"is %3$d. It was not sent to anyone.\n"
+"\n"
+"Every recipient's copy is translated individually into their own language, "
+"so a very long message is costly to translate for the whole community. "
+"Please shorten it and send it again.\n"
+"\n"
+"— %4$s"
+msgstr ""
+
+#. translators: 1: site name, 2: sender's display name
+#: includes/Artist/CommunityBroadcast.php:275
+#, fuzzy, php-format
+msgid "[%1$s] Community message from %2$s"
+msgstr "[%s] Communitynieuwsbrief"
+
+#. translators: 1: sender's display name, 2: sender's email address
+#: includes/Artist/CommunityBroadcast.php:283
+#, php-format
+msgid "%1$s <%2$s> sent a message to the community:"
+msgstr ""
+
+#. translators: %s: message subject
+#: includes/Artist/CommunityBroadcast.php:291
+#, fuzzy, php-format
+msgid "Subject: %s"
+msgstr "Onderwerp"
+
+#: includes/Artist/CommunityBroadcast.php:303
+msgid ""
+"Hit reply to respond — your reply goes back to the whole community, "
+"translated automatically, just like this message."
+msgstr ""
+
+#. translators: %s: sender's display name
+#: includes/Artist/CommunityBroadcast.php:309
+#, php-format
+msgid "This message was sent by %s."
+msgstr ""
+
+#. translators: 1: sender's display name, 2: site name
+#: includes/Artist/CommunityBroadcast.php:325
+#, fuzzy, php-format
+msgid "%1$s via %2$s"
+msgstr "%1$d / %2$d"
+
+#: includes/Artist/CommunityCapNotification.php:44
+#: includes/Artist/CommunityCapNotification.php:97
 msgid "no limit"
 msgstr "geen limiet"
 
 #. translators: 1: artist name, 2: site name, 3: proposed cap, 4: closing date
-#: includes/Artist/CommunityCapNotification.php:60
+#: includes/Artist/CommunityCapNotification.php:61
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2370,19 +2570,19 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/CommunityCapNotification.php:81
+#: includes/Artist/CommunityCapNotification.php:82
 #, php-format
 msgid "Community size-cap vote open at %s"
 msgstr "Stemming over community-limiet geopend op %s"
 
 #. translators: %s: site name
-#: includes/Artist/CommunityCapNotification.php:102
+#: includes/Artist/CommunityCapNotification.php:103
 #, php-format
 msgid "Community size cap changed at %s"
 msgstr "Community-limiet gewijzigd op %s"
 
 #. translators: 1: proposed cap, 2: proposal id
-#: includes/Artist/CommunityCapNotification.php:107
+#: includes/Artist/CommunityCapNotification.php:108
 #, php-format
 msgid ""
 "The community voted to change the membership size cap to %1$s (proposal "
@@ -2392,13 +2592,13 @@ msgstr ""
 "(voorstel #%2$d). De nieuwe limiet is nu van kracht."
 
 #. translators: %s: site name
-#: includes/Artist/CommunityCapNotification.php:121
+#: includes/Artist/CommunityCapNotification.php:122
 #, php-format
 msgid "Community size-cap proposal did not pass at %s"
 msgstr "Voorstel voor community-limiet niet aangenomen op %s"
 
 #. translators: 1: proposal id
-#: includes/Artist/CommunityCapNotification.php:126
+#: includes/Artist/CommunityCapNotification.php:127
 #, php-format
 msgid ""
 "A community vote to change the membership size cap (proposal #%1$d) closed "
@@ -2435,13 +2635,13 @@ msgstr "Er is geen actief voorstel om mee te tekenen."
 msgid "Proposal not found."
 msgstr "Voorstel niet gevonden."
 
-#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:527
+#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:594
 msgid "This vote is not currently open."
 msgstr "Deze stemming is momenteel niet geopend."
 
 #: includes/Artist/ContentEditor.php:187 includes/Artist/ContentEditor.php:550
-#: includes/Publishing/ReviewEndpoints.php:261
-#: includes/Publishing/ReviewEndpoints.php:278
+#: includes/Publishing/ReviewEndpoints.php:277
+#: includes/Publishing/ReviewEndpoints.php:294
 msgid "Authentication required."
 msgstr "Aanmelding vereist."
 
@@ -2474,7 +2674,7 @@ msgid "The uploaded file could not be read."
 msgstr "Het geüploade bestand kon niet worden gelezen."
 
 #: includes/Artist/ContentEditor.php:340
-#: includes/Publishing/PostCreator.php:1068
+#: includes/Publishing/PostCreator.php:1072
 msgid "Untitled"
 msgstr "Zonder titel"
 
@@ -2557,43 +2757,65 @@ msgstr "Eerdere foto terugzetten"
 msgid "Restoring…"
 msgstr "Aan het terugzetten…"
 
-#: includes/Artist/Departure.php:133
+#: includes/Artist/Departure.php:110
+msgid "You have left"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/Artist/Departure.php:113
+#, php-format
+msgid ""
+"Your account and everything you published on %s have been permanently "
+"deleted. Nothing tied to you is stored here anymore."
+msgstr ""
+
+#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:266
+msgid "Link expired or already used"
+msgstr "Link verlopen of al gebruikt"
+
+#: includes/Artist/Departure.php:121
+msgid ""
+"This confirmation link has already been used or is no longer valid. If you "
+"still want to leave, please request removal again from your account."
+msgstr ""
+
+#: includes/Artist/Departure.php:185
 #: includes/Publishing/SubmissionsPage.php:162
 msgid "You must be logged in."
 msgstr "Je moet ingelogd zijn."
 
-#: includes/Artist/Departure.php:137
+#: includes/Artist/Departure.php:189
 msgid "Artist access required."
 msgstr "Kunstenaarsrechten vereist."
 
-#: includes/Artist/Departure.php:161
+#: includes/Artist/Departure.php:213
 msgid "No active membership found for this account."
 msgstr "Er is geen actief lidmaatschap gevonden voor dit account."
 
-#: includes/Artist/Departure.php:418
+#: includes/Artist/Departure.php:485
 msgid "You cannot nominate yourself for removal."
 msgstr "Je kunt jezelf niet voordragen voor verwijdering."
 
-#: includes/Artist/Departure.php:428
+#: includes/Artist/Departure.php:495
 msgid "Artist not found."
 msgstr "Kunstaar niet gevonden."
 
-#: includes/Artist/Departure.php:523
+#: includes/Artist/Departure.php:590
 msgid "Removal request not found."
 msgstr "Verwijderingsverzoek niet gevonden."
 
-#: includes/Artist/Departure.php:531
+#: includes/Artist/Departure.php:598
 msgid "You cannot vote on your own removal."
 msgstr "Je kunt niet stemmen over je eigen verwijdering."
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:68
+#: includes/Artist/DepartureNotification.php:69
 #, php-format
 msgid "Confirm your departure from %s"
 msgstr "Bevestig je vertrek van %s"
 
 #. translators: 1: artist display name, 2: site name, 3: confirmation URL
-#: includes/Artist/DepartureNotification.php:73
+#: includes/Artist/DepartureNotification.php:74
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2627,13 +2849,13 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:121
+#: includes/Artist/DepartureNotification.php:137
 #, php-format
 msgid "An artist has left %s"
 msgstr "Een kunstenaar heeft %s verlaten"
 
 #. translators: 1: artist display name, 2: site name
-#: includes/Artist/DepartureNotification.php:126
+#: includes/Artist/DepartureNotification.php:142
 #, php-format
 msgid ""
 "%1$s has confirmed their departure from %2$s.\n"
@@ -2648,8 +2870,31 @@ msgstr ""
 "\n"
 "— %2$s"
 
+#. translators: %s: site name
+#: includes/Artist/DepartureNotification.php:166
+#, php-format
+msgid "You've left %s"
+msgstr ""
+
+#. translators: 1: artist display name, 2: site name
+#: includes/Artist/DepartureNotification.php:171
+#, php-format
+msgid ""
+"Hi %1$s,\n"
+"\n"
+"This confirms that your account and everything you published on %2$s have "
+"been permanently deleted, as you requested.\n"
+"\n"
+"Nothing tied to you — your artwork, biography, events, or account details — "
+"is stored on %2$s anymore.\n"
+"\n"
+"If you didn't request this, please contact the site admin right away.\n"
+"\n"
+"— %2$s"
+msgstr ""
+
 #. translators: 1: artist display name, 2: site name, 3: date
-#: includes/Artist/DepartureNotification.php:162
+#: includes/Artist/DepartureNotification.php:211
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2671,7 +2916,7 @@ msgstr ""
 "— %2$s"
 
 #. translators: 1: artist display name, 2: site name
-#: includes/Artist/DepartureNotification.php:170
+#: includes/Artist/DepartureNotification.php:219
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2691,13 +2936,13 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:191
+#: includes/Artist/DepartureNotification.php:240
 #, php-format
 msgid "Your membership at %s has been suspended"
 msgstr "Je lidmaatschap bij %s is opgeschort"
 
 #. translators: 1: artist display name, 2: site name
-#: includes/Artist/DepartureNotification.php:227
+#: includes/Artist/DepartureNotification.php:276
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2715,13 +2960,13 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:249
+#: includes/Artist/DepartureNotification.php:298
 #, php-format
 msgid "Your membership at %s has been reinstated"
 msgstr "Je lidmaatschap bij %s is weer geactiveerd"
 
 #. translators: 1: voter display name, 2: site name, 3: closing date, 4: yes URL, 5: no URL
-#: includes/Artist/DepartureNotification.php:311
+#: includes/Artist/DepartureNotification.php:360
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2759,19 +3004,19 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:333
+#: includes/Artist/DepartureNotification.php:382
 #, php-format
 msgid "Community removal vote open at %s"
 msgstr "Stemming over communityverwijdering geopend bij %s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:363
+#: includes/Artist/DepartureNotification.php:412
 #, php-format
 msgid "Community removal vote passed at %s"
 msgstr "Stemming over communityverwijdering geslaagd bij %s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:368
+#: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
 "The community removal vote has closed with a majority in favour.\n"
@@ -2790,13 +3035,13 @@ msgstr ""
 "— %2$s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:389
+#: includes/Artist/DepartureNotification.php:438
 #, php-format
 msgid "Community removal vote did not pass at %s"
 msgstr "Stemming over communityverwijdering niet geslaagd bij %s"
 
 #. translators: %s: site name
-#: includes/Artist/DepartureNotification.php:394
+#: includes/Artist/DepartureNotification.php:443
 #, php-format
 msgid ""
 "The community removal vote has closed. The required majority was not reached "
@@ -2813,7 +3058,7 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr "Voer een geldig e-mailadres in."
 
-#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:147
+#: includes/Artist/Invitation.php:88 includes/Newsletter/Scheduler.php:147
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
@@ -2821,26 +3066,26 @@ msgstr ""
 "je site."
 
 #. translators: %s: community name
-#: includes/Artist/Invitation.php:125
+#: includes/Artist/Invitation.php:124
 #, php-format
 msgid "You're invited to join %s"
 msgstr "Je bent uitgenodigd om lid te worden van %s"
 
 #. translators: %s: the actual (non-test) subject line
-#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:140
+#: includes/Artist/Invitation.php:129 includes/Newsletter/Scheduler.php:140
 #, php-format
 msgid "[TEST] %s"
 msgstr "[TEST] %s"
 
-#: includes/Artist/Invitation.php:150
+#: includes/Artist/Invitation.php:149
 msgid "You're invited"
 msgstr "Je bent uitgenodigd"
 
-#: includes/Artist/Invitation.php:163
+#: includes/Artist/Invitation.php:162
 msgid "Apply to join"
 msgstr "Aanmelden om lid te worden"
 
-#: includes/Artist/Invitation.php:169
+#: includes/Artist/Invitation.php:168
 msgid ""
 "No account needed to apply — the community reviews and votes on every "
 "application."
@@ -3161,19 +3406,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "%d positieve stem tot nu toe geregistreerd."
 msgstr[1] "%d positieve stemmen tot nu toe geregistreerd."
 
-#: includes/Compat/LinguaForge.php:685
+#: includes/Compat/LinguaForge.php:829
 msgid "is active and configured for"
 msgstr "is actief en geconfigureerd voor"
 
-#: includes/Compat/LinguaForge.php:686
+#: includes/Compat/LinguaForge.php:830
 msgid "Subdomain"
 msgstr "Subdomein"
 
-#: includes/Compat/LinguaForge.php:687
+#: includes/Compat/LinguaForge.php:831
 msgid "routing mode"
 msgstr "routermodus"
 
-#: includes/Compat/LinguaForge.php:689
+#: includes/Compat/LinguaForge.php:833
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -3181,39 +3426,39 @@ msgstr ""
 "Dit botst met de Agnosis-artiest-subdomeinen — beide plugins zouden dezelfde "
 "subdomeinnaamruimte claimen."
 
-#: includes/Compat/LinguaForge.php:690
+#: includes/Compat/LinguaForge.php:834
 msgid "Artist subdomain routing is"
 msgstr "Routing van artiest-subdomeinen is"
 
-#: includes/Compat/LinguaForge.php:691
+#: includes/Compat/LinguaForge.php:835
 msgid "completely inactive"
 msgstr "volledig uitgeschakeld"
 
-#: includes/Compat/LinguaForge.php:692
+#: includes/Compat/LinguaForge.php:836
 msgid "until this is resolved."
 msgstr "tot dit is opgelost."
 
-#: includes/Compat/LinguaForge.php:694
+#: includes/Compat/LinguaForge.php:838
 msgid "Fix: open"
 msgstr "Oplossen: open"
 
-#: includes/Compat/LinguaForge.php:695
+#: includes/Compat/LinguaForge.php:839
 msgid "Settings"
 msgstr "Instellingen"
 
-#: includes/Compat/LinguaForge.php:695
+#: includes/Compat/LinguaForge.php:839
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:696
+#: includes/Compat/LinguaForge.php:840
 msgid "and switch the URL strategy to"
 msgstr "en zet de URL-strategie op"
 
-#: includes/Compat/LinguaForge.php:697
+#: includes/Compat/LinguaForge.php:841
 msgid "Path prefix (subfolder)"
 msgstr "Padprefix (submap)"
 
-#: includes/Compat/LinguaForge.php:698
+#: includes/Compat/LinguaForge.php:842
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -3221,11 +3466,11 @@ msgstr ""
 "Dit is de standaardinstelling van LinguaForge en zorgt ervoor dat artiest-"
 "subdomeinen naast taal-submappen kunnen bestaan"
 
-#: includes/Compat/LinguaForge.php:703
+#: includes/Compat/LinguaForge.php:847
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Routing van artiest-subdomeinen is uitgeschakeld"
 
-#: includes/Compat/LinguaForge.php:713
+#: includes/Compat/LinguaForge.php:857
 msgid "Open LinguaForge Settings"
 msgstr "Open LinguaForge-instellingen"
 
@@ -3233,11 +3478,11 @@ msgstr "Open LinguaForge-instellingen"
 msgid "Agnosis Artist"
 msgstr "Agnosis-artiest"
 
-#: includes/Core/Activator.php:633
+#: includes/Core/Activator.php:640
 msgid "My Submissions"
 msgstr "Mijn inzendingen"
 
-#: includes/Core/Activator.php:775
+#: includes/Core/Activator.php:782
 msgid "Join"
 msgstr "Meedoen"
 
@@ -3295,15 +3540,14 @@ msgstr ""
 
 #: includes/Core/EmailFooter.php:90
 msgid "Pure"
-msgstr ""
+msgstr "Zuiver"
 
 #: includes/Core/EmailFooter.php:92
-#, fuzzy
 msgid ""
 "Publish exactly as sent — no AI at all, not even the title/description pass."
 msgstr ""
-"Publiceer een foto precies zoals verzonden — geen AI-verrijking, geen "
-"kwaliteitscontrole."
+"Publiceer exact zoals verzonden — geen AI helemaal niet, niet eens de titel/"
+"beschrijving pass."
 
 #: includes/Core/EmailFooter.php:203 includes/Core/EmailFooter.php:217
 msgid ""
@@ -3340,25 +3584,25 @@ msgstr ""
 msgid "Verification failed. Please try again."
 msgstr "Verificatie mislukt. Probeer het opnieuw."
 
-#: includes/Email/Inbox.php:55
+#: includes/Email/Inbox.php:57
 msgid "Every 5 minutes"
 msgstr "Elke 5 minuten"
 
-#: includes/Email/Inbox.php:168
+#: includes/Email/Inbox.php:170
 msgid "IMAP credentials are not configured."
 msgstr "IMAP-gegevens zijn niet ingesteld."
 
 #. translators: 1: total message count, 2: unseen message count
-#: includes/Email/Inbox.php:195
+#: includes/Email/Inbox.php:197
 #, php-format
 msgid "Connected successfully. %1$d message(s) in inbox, %2$d unseen."
 msgstr "Succesvol verbonden. %1$d bericht(en) in de inbox, %2$d ongelezen."
 
-#: includes/Email/Webhook.php:164
+#: includes/Email/Webhook.php:211
 msgid "Webhook secret not configured."
 msgstr "Webhookgeheim is niet ingesteld."
 
-#: includes/Email/Webhook.php:185
+#: includes/Email/Webhook.php:232
 msgid "Invalid or missing webhook signature."
 msgstr "Ongeldige of ontbrekende webhooksignatuur."
 
@@ -3602,18 +3846,23 @@ msgid ""
 "The %1$s at %2$s is due to send in about a day. Agnosis drafted an intro "
 "from what's new since the last issue:"
 msgstr ""
+"De %1$s bij %2$s moet over ongeveer een dag verstuurd worden. Agnosis heeft "
+"een intro opgesteld op basis van wat er nieuw is sinds het vorige nummer:"
 
 #: includes/Newsletter/Scheduler.php:351
 msgid ""
 "It's already saved and will be used as-is if you don't act — review it, "
 "rewrite it, or clear it back to blank here:"
 msgstr ""
+"Het is al opgeslagen en wordt zo gebruikt als je niets doet — bekijk het, "
+"herschrijf het of maak het hier weer leeg:"
 
 #. translators: 1: newsletter label, 2: site name
 #: includes/Newsletter/Scheduler.php:358
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr ""
+"%1$s intro opgesteld voor %2$s — bekijk het voordat het verstuurd wordt"
 
 #: includes/Newsletter/SignupBlock.php:65
 msgid "you@example.com"
@@ -3756,35 +4005,37 @@ msgstr ""
 "kunstenaar één werk wordt geselecteerd voor het homepageoverzicht."
 
 #. translators: %s: artwork or event title
-#: includes/Publishing/Notification.php:61
+#: includes/Publishing/Notification.php:64
 #, php-format
 msgid "[Agnosis] Confirm removal of: %s"
 msgstr "[Agnosis] Bevestig verwijdering van: %s"
 
 #. translators: %s: artwork title (in the artist's own language)
-#: includes/Publishing/Notification.php:154
+#: includes/Publishing/Notification.php:157
 #, php-format
 msgid "[Agnosis] Your submission is ready to review: %s"
 msgstr "[Agnosis] Je inzending is klaar om te beoordelen: %s"
 
-#: includes/Publishing/Notification.php:205
+#: includes/Publishing/Notification.php:208
 #: includes/Publishing/RemovalEndpoints.php:152
+#: includes/Publishing/ReviewConfirm.php:660
 msgid "event"
 msgstr "evenement"
 
-#: includes/Publishing/Notification.php:205
+#: includes/Publishing/Notification.php:208
 #: includes/Publishing/RemovalEndpoints.php:153
+#: includes/Publishing/ReviewConfirm.php:661
 msgid "artwork"
 msgstr "kunstwerk"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:238
+#: includes/Publishing/Notification.php:241
 #, php-format
 msgid "We received a removal request for the following %s:"
 msgstr "We hebben een verzoek ontvangen om het volgende %s te verwijderen:"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:252
+#: includes/Publishing/Notification.php:255
 #, php-format
 msgid ""
 "If you want to permanently remove this %s, click the button below. This "
@@ -3794,13 +4045,13 @@ msgstr ""
 "Deze actie kan niet ongedaan worden gemaakt."
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:264
+#: includes/Publishing/Notification.php:267
 #, php-format
 msgid "Yes, remove this %s"
 msgstr "Ja, verwijder dit %s"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:276
+#: includes/Publishing/Notification.php:279
 #, php-format
 msgid ""
 "If you did not request this removal, simply ignore this email — your %s will "
@@ -3809,15 +4060,15 @@ msgstr ""
 "Als je dit verwijderingsverzoek niet hebt gedaan, kun je deze e-mail gewoon "
 "negeren — je %s blijft gepubliceerd."
 
-#: includes/Publishing/Notification.php:283
+#: includes/Publishing/Notification.php:286
 msgid "This confirmation link expires in 7 days."
 msgstr "Deze bevestigingslink verloopt over 7 dagen."
 
-#: includes/Publishing/Notification.php:368
+#: includes/Publishing/Notification.php:371
 msgid "📷 Photo enhanced automatically"
 msgstr "📷 Foto automatisch verbeterd"
 
-#: includes/Publishing/Notification.php:371
+#: includes/Publishing/Notification.php:374
 msgid ""
 "We detected some photographic issues and applied AI correction to improve "
 "visibility of your artwork:"
@@ -3825,7 +4076,7 @@ msgstr ""
 "We hebben een aantal fotografische problemen vastgesteld en AI-correctie "
 "toegepast om de zichtbaarheid van je kunstwerk te verbeteren:"
 
-#: includes/Publishing/Notification.php:375
+#: includes/Publishing/Notification.php:378
 msgid ""
 "The artwork itself has not been altered — only the photograph quality was "
 "corrected."
@@ -3834,12 +4085,12 @@ msgstr ""
 "gecorrigeerd."
 
 #. translators: %d: photo quality score out of 10
-#: includes/Publishing/Notification.php:382
+#: includes/Publishing/Notification.php:385
 #, php-format
 msgid "📷 Photo quality score: %d/10"
 msgstr "📷 Fotokwaliteitsscore: %d/10"
 
-#: includes/Publishing/Notification.php:441
+#: includes/Publishing/Notification.php:444
 msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
@@ -3848,55 +4099,63 @@ msgstr ""
 "neem even een kijkje en laat ons weten of het klaar is om te publiceren."
 
 #. translators: %s: the AI-generated site title in the site's primary language
-#: includes/Publishing/Notification.php:461
+#: includes/Publishing/Notification.php:464
 #, php-format
 msgid "On the site: %s"
 msgstr "Op de site: %s"
 
 #. translators: %s: the site title translated back into the artist's language
-#: includes/Publishing/Notification.php:474
+#: includes/Publishing/Notification.php:477
 #, php-format
 msgid "In your language: %s"
 msgstr "In jouw taal: %s"
 
-#: includes/Publishing/Notification.php:495
+#: includes/Publishing/Notification.php:498
 msgid "Looks great — Publish it"
 msgstr "Ziet er goed uit — publiceer het"
 
-#: includes/Publishing/Notification.php:498
+#: includes/Publishing/Notification.php:501
 #: includes/Publishing/SubmissionsPage.php:242
 msgid "Discard"
 msgstr "Verwerpen"
 
-#: includes/Publishing/Notification.php:505
+#: includes/Publishing/Notification.php:508
 msgid "Want to tweak the title, text or tags before publishing?"
 msgstr "Wil je de titel, tekst of tags nog aanpassen voordat je publiceert?"
 
-#: includes/Publishing/Notification.php:507
+#: includes/Publishing/Notification.php:510
 msgid "Open your submissions page →"
 msgstr "Open je inzendingenpagina →"
 
-#: includes/Publishing/Notification.php:513
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#: includes/Publishing/Notification.php:520
+#, fuzzy, php-format
 msgid ""
-"The Publish and Discard links above expire in 7 days. Your submission stays "
+"The Publish and Discard links above expire in %d day. Your submission stays "
 "as a draft until you decide."
-msgstr ""
+msgid_plural ""
+"The Publish and Discard links above expire in %d days. Your submission stays "
+"as a draft until you decide."
+msgstr[0] ""
+"De bovenstaande links Publiceren en Verwerpen verlopen over 7 dagen. Je "
+"inzending blijft als concept staan tot jij een keuze maakt."
+msgstr[1] ""
 "De bovenstaande links Publiceren en Verwerpen verlopen over 7 dagen. Je "
 "inzending blijft als concept staan tot jij een keuze maakt."
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:621
+#: includes/Publishing/Notification.php:637
 #, php-format
 msgid "[%s] We couldn't process your submission"
 msgstr "[%s] We konden je inzending niet verwerken"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:680
+#: includes/Publishing/Notification.php:696
 #, php-format
 msgid "[%s] We couldn't find a photo in your email"
 msgstr "[%s] We konden geen foto in uw e-mail vinden"
 
-#: includes/Publishing/Notification.php:735
+#: includes/Publishing/Notification.php:751
 msgid ""
 "We received your email, but couldn't process a usable photo, audio, or video "
 "file from it — so nothing was published. This can happen when an image is "
@@ -3911,11 +4170,11 @@ msgstr ""
 "formaat dat deze server niet kan omzetten (bijvoorbeeld een iPhone-foto "
 "opgeslagen in HEIC/HEIF-formaat)."
 
-#: includes/Publishing/Notification.php:739
+#: includes/Publishing/Notification.php:755
 msgid "To resend correctly:"
 msgstr "Om opnieuw correct te verzenden:"
 
-#: includes/Publishing/Notification.php:741
+#: includes/Publishing/Notification.php:757
 msgid ""
 "Use your mail app's \"Attach file\" (usually a paperclip icon) rather than "
 "\"Insert photo\" or pasting the image directly into the message body."
@@ -3924,7 +4183,7 @@ msgstr ""
 "in plaats van 'Foto invoegen' of de afbeelding direct in de berichttekst te "
 "plakken."
 
-#: includes/Publishing/Notification.php:742
+#: includes/Publishing/Notification.php:758
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
 "Formats to \"Most Compatible\" before taking or sending it, or use "
@@ -3934,7 +4193,7 @@ msgstr ""
 "Indelingen over te schakelen naar 'Meest compatibel' voordat je hem maakt of "
 "verstuurt, of gebruik 'Opties' in Mail om hem als JPEG te versturen."
 
-#: includes/Publishing/Notification.php:743
+#: includes/Publishing/Notification.php:759
 msgid ""
 "Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
@@ -3944,7 +4203,7 @@ msgstr ""
 "afbeeldingen; MP3, WAV, M4A, OGG of FLAC voor audio; MP4, MOV, AVI, WebM, "
 "OGG of MPEG voor video."
 
-#: includes/Publishing/Notification.php:748
+#: includes/Publishing/Notification.php:764
 msgid ""
 "Once it's properly attached, just send it to the same address again — we'll "
 "pick it up automatically."
@@ -3952,7 +4211,7 @@ msgstr ""
 "Zodra het goed is bevestigd, stuur het gewoon naar hetzelfde adres — we "
 "pakken het automatisch op."
 
-#: includes/Publishing/Notification.php:799
+#: includes/Publishing/Notification.php:815
 msgid ""
 "The photo is too dark to show your artwork clearly. Try photographing near a "
 "large window in daylight, or use a soft lamp aimed at the work from the side."
@@ -3961,7 +4220,7 @@ msgstr ""
 "fotograferen bij een groot raam in daglicht, of gebruik een zachte lamp die "
 "vanaf de zijkant op het werk gericht is."
 
-#: includes/Publishing/Notification.php:800
+#: includes/Publishing/Notification.php:816
 msgid ""
 "The photo is underexposed (too dark). Try photographing near a large window "
 "in daylight, or use a soft lamp aimed at the work from the side."
@@ -3970,7 +4229,7 @@ msgstr ""
 "raam in daglicht, of gebruik een zachte lamp die vanaf de zijkant op het "
 "werk gericht is."
 
-#: includes/Publishing/Notification.php:801
+#: includes/Publishing/Notification.php:817
 msgid ""
 "The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
 "flash pointed straight at the artwork — diffuse or indirect light works best."
@@ -3978,7 +4237,7 @@ msgstr ""
 "De foto is overbelicht (te helder / uitgebleekt). Vermijd direct zonlicht of "
 "flits recht op het kunstwerk — diffuus of indirect licht werkt het best."
 
-#: includes/Publishing/Notification.php:802
+#: includes/Publishing/Notification.php:818
 msgid ""
 "The photo is too bright or washed out. Avoid direct sunlight or flash — "
 "diffuse light or shade gives more even tones."
@@ -3986,7 +4245,7 @@ msgstr ""
 "De foto is te helder of uitgebleekt. Vermijd direct zonlicht of flits — "
 "diffuus licht of schaduw geeft gelijkmatigere tinten."
 
-#: includes/Publishing/Notification.php:803
+#: includes/Publishing/Notification.php:819
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
 "slightly or photograph at an angle to eliminate reflections from the surface."
@@ -3995,7 +4254,7 @@ msgstr ""
 "licht of fotografeer onder een hoek om reflecties van het oppervlak te "
 "voorkomen."
 
-#: includes/Publishing/Notification.php:804
+#: includes/Publishing/Notification.php:820
 msgid ""
 "There is a reflection on the artwork surface. Tilt the canvas slightly or "
 "change your angle to eliminate it."
@@ -4003,7 +4262,7 @@ msgstr ""
 "Er is een reflectie op het oppervlak van het kunstwerk. Kantel het doek "
 "licht of verander je hoek om die te verwijderen."
 
-#: includes/Publishing/Notification.php:806
+#: includes/Publishing/Notification.php:822
 msgid ""
 "The image is blurry. Rest your phone or camera on a stable surface, use the "
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
@@ -4013,7 +4272,7 @@ msgstr ""
 "ondergrond, gebruik de zelfontspanner en zorg dat het kunstwerk het grootste "
 "deel van het beeld vult zodat de autofocus erop kan scherpstellen."
 
-#: includes/Publishing/Notification.php:807
+#: includes/Publishing/Notification.php:823
 msgid ""
 "The image is out of focus. Tap on the artwork on your phone screen before "
 "shooting to make sure autofocus locks on it, and hold the camera still."
@@ -4022,7 +4281,7 @@ msgstr ""
 "telefoon voordat je de foto maakt, zodat de autofocus erop vastklikt, en "
 "houd de camera stil."
 
-#: includes/Publishing/Notification.php:808
+#: includes/Publishing/Notification.php:824
 msgid ""
 "There is motion blur. Hold the camera very still or use a tripod; press the "
 "shutter gently or use the self-timer to avoid shake."
@@ -4031,7 +4290,7 @@ msgstr ""
 "druk de sluiter voorzichtig in of gebruik de zelfontspanner om beweging te "
 "voorkomen."
 
-#: includes/Publishing/Notification.php:809
+#: includes/Publishing/Notification.php:825
 msgid ""
 "Camera shake is visible. Use a tripod or rest the camera on a flat surface "
 "and use the self-timer to avoid movement when pressing the shutter."
@@ -4040,7 +4299,7 @@ msgstr ""
 "vlakke ondergrond en gebruik de zelfontspanner om beweging te voorkomen "
 "wanneer je de sluiter indrukt."
 
-#: includes/Publishing/Notification.php:811
+#: includes/Publishing/Notification.php:827
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and make sure you're close enough that the artwork fills the frame."
@@ -4049,7 +4308,7 @@ msgstr ""
 "telefoon en zorg dat je dichtbij genoeg bent zodat het kunstwerk het beeld "
 "vult."
 
-#: includes/Publishing/Notification.php:812
+#: includes/Publishing/Notification.php:828
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and fill the frame with the artwork."
@@ -4057,7 +4316,7 @@ msgstr ""
 "De beeldresolutie is te laag. Gebruik de hoogste kwaliteitsinstelling van je "
 "telefoon en vul het beeld met het kunstwerk."
 
-#: includes/Publishing/Notification.php:813
+#: includes/Publishing/Notification.php:829
 msgid ""
 "The image is pixelated. Shoot from closer or use a higher resolution setting "
 "on your camera."
@@ -4065,8 +4324,8 @@ msgstr ""
 "De afbeelding is gepixeld. Fotografeer van dichterbij of gebruik een hogere "
 "resolutie-instelling op je camera."
 
-#: includes/Publishing/Notification.php:815
-#: includes/Publishing/Notification.php:816
+#: includes/Publishing/Notification.php:831
+#: includes/Publishing/Notification.php:832
 msgid ""
 "The photo has a strong colour cast. Shoot under neutral daylight or use your "
 "phone's Auto White Balance setting for more accurate colours."
@@ -4075,7 +4334,7 @@ msgstr ""
 "gebruik de instelling Auto-witbalans van je telefoon voor nauwkeurigere "
 "kleuren."
 
-#: includes/Publishing/Notification.php:817
+#: includes/Publishing/Notification.php:833
 msgid ""
 "The photo looks too yellow or warm. Shoot under natural daylight or switch "
 "your phone's white balance to Daylight / Cloudy."
@@ -4083,7 +4342,7 @@ msgstr ""
 "De foto ziet er te geel of warm uit. Fotografeer onder natuurlijk daglicht "
 "of zet de witbalans van je telefoon op Daglicht / Bewolkt."
 
-#: includes/Publishing/Notification.php:818
+#: includes/Publishing/Notification.php:834
 msgid ""
 "The photo has a cold blue tint. Move the artwork to a warmer, more natural "
 "light source or adjust your camera's white balance."
@@ -4091,7 +4350,7 @@ msgstr ""
 "De foto heeft een koele blauwe tint. Verplaats het kunstwerk naar een "
 "warmere, natuurlijkere lichtbron of pas de witbalans van je camera aan."
 
-#: includes/Publishing/Notification.php:820
+#: includes/Publishing/Notification.php:836
 msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
@@ -4099,7 +4358,7 @@ msgstr ""
 "Een deel van het kunstwerk lijkt buiten beeld te zijn afgesneden. Stap "
 "achteruit en zorg dat het hele werk zichtbaar is voordat je fotografeert."
 
-#: includes/Publishing/Notification.php:821
+#: includes/Publishing/Notification.php:837
 msgid ""
 "The artwork is photographed at an angle, causing distortion. Shoot straight "
 "on, with the camera parallel to the canvas."
@@ -4107,7 +4366,7 @@ msgstr ""
 "Het kunstwerk is schuin gefotografeerd, wat vervorming veroorzaakt. "
 "Fotografeer recht van voren, met de camera parallel aan het doek."
 
-#: includes/Publishing/Notification.php:822
+#: includes/Publishing/Notification.php:838
 msgid ""
 "The artwork looks distorted or skewed. Position your camera directly in "
 "front of the artwork, parallel to its surface."
@@ -4115,7 +4374,7 @@ msgstr ""
 "Het kunstwerk ziet er vervormd of scheef uit. Plaats je camera recht voor "
 "het kunstwerk, parallel aan het oppervlak."
 
-#: includes/Publishing/Notification.php:823
+#: includes/Publishing/Notification.php:839
 msgid ""
 "There is a shadow across part of the artwork. Reposition your light source "
 "or move the artwork so no shadows fall on the surface."
@@ -4123,7 +4382,7 @@ msgstr ""
 "Er valt een schaduw over een deel van het kunstwerk. Verplaats je lichtbron "
 "of het kunstwerk zodat er geen schaduwen op het oppervlak vallen."
 
-#: includes/Publishing/Notification.php:890
+#: includes/Publishing/Notification.php:906
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
 "for us to show your artwork clearly. We didn't publish it — but please don't "
@@ -4134,16 +4393,16 @@ msgstr ""
 "je niet ontmoedigen! Meestal is een nieuwe foto maken al genoeg."
 
 #. translators: %d: quality score out of 10
-#: includes/Publishing/Notification.php:899
+#: includes/Publishing/Notification.php:915
 #, php-format
 msgid "📷 Photo quality score: %d / 10"
 msgstr "📷 Fotokwaliteitsscore: %d / 10"
 
-#: includes/Publishing/Notification.php:905
+#: includes/Publishing/Notification.php:921
 msgid "Here's what our AI detected and how to fix it:"
 msgstr "Dit hebben onze AI gedetecteerd en zo kun je het oplossen:"
 
-#: includes/Publishing/Notification.php:912
+#: includes/Publishing/Notification.php:928
 msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
@@ -4151,11 +4410,11 @@ msgstr ""
 "De algehele fotokwaliteit was te laag voor onze AI om het kunstwerk "
 "duidelijk te verwerken."
 
-#: includes/Publishing/Notification.php:918
+#: includes/Publishing/Notification.php:934
 msgid "💡 Quick tips for a great artwork photo"
 msgstr "💡 Snelle tips voor een goede foto van je kunstwerk"
 
-#: includes/Publishing/Notification.php:920
+#: includes/Publishing/Notification.php:936
 msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
@@ -4163,7 +4422,7 @@ msgstr ""
 "Gebruik natuurlijk licht — zet het kunstwerk op een bewolkte dag bij een "
 "raam voor gelijkmatig, zacht licht."
 
-#: includes/Publishing/Notification.php:921
+#: includes/Publishing/Notification.php:937
 msgid ""
 "Shoot straight on — hold your phone parallel to the canvas to avoid "
 "perspective distortion."
@@ -4171,7 +4430,7 @@ msgstr ""
 "Fotografeer recht van voren — houd je telefoon parallel aan het canvas om "
 "perspectiefvertekening te voorkomen."
 
-#: includes/Publishing/Notification.php:922
+#: includes/Publishing/Notification.php:938
 msgid ""
 "Fill the frame — let the artwork take up most of the shot; crop out "
 "distracting backgrounds."
@@ -4179,7 +4438,7 @@ msgstr ""
 "Vul het beeld — laat het kunstwerk het grootste deel van de foto innemen; "
 "snijd afleidende achtergronden weg."
 
-#: includes/Publishing/Notification.php:923
+#: includes/Publishing/Notification.php:939
 msgid ""
 "Hold still — tap the artwork on your screen to focus, then press the shutter "
 "gently or use a self-timer."
@@ -4187,7 +4446,7 @@ msgstr ""
 "Blijf stil — tik op het kunstwerk op je scherm om scherp te stellen en druk "
 "dan rustig op de sluiter of gebruik een zelfontspanner."
 
-#: includes/Publishing/Notification.php:928
+#: includes/Publishing/Notification.php:944
 msgid ""
 "Once you have a clearer photo, just email it to the same address as before — "
 "we'll pick it up automatically."
@@ -4195,7 +4454,7 @@ msgstr ""
 "Zodra je een duidelijkere foto hebt, mail je die gewoon naar hetzelfde adres "
 "als daarvoor — we halen ’m automatisch op."
 
-#: includes/Publishing/Notification.php:933
+#: includes/Publishing/Notification.php:949
 msgid ""
 "Your previous submission is saved in your submissions page in case you want "
 "to review what was sent."
@@ -4203,23 +4462,23 @@ msgstr ""
 "Je vorige inzending staat opgeslagen op je inzendingenpagina, voor als je "
 "wilt terugkijken wat er is verstuurd."
 
-#: includes/Publishing/Notification.php:935
+#: includes/Publishing/Notification.php:951
 msgid "View submissions →"
 msgstr "Inzendingen bekijken →"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1229
+#: includes/Publishing/PostCreator.php:1233
 #, php-format
 msgid "%s (original)"
 msgstr "%s (origineel)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1277
+#: includes/Publishing/PostCreator.php:1281
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (posterframe)"
 
-#: includes/Publishing/PostCreator.php:1600
+#: includes/Publishing/PostCreator.php:1610
 msgid "Failed to insert attachment."
 msgstr "Bijlage invoegen mislukt."
 
@@ -4261,35 +4520,71 @@ msgstr "De verwijderlink is verlopen. Stuur een nieuw verwijderverzoek."
 msgid "Invalid removal token."
 msgstr "Ongeldig verwijdertoken."
 
-#: includes/Publishing/ReviewConfirm.php:126
+#: includes/Publishing/ReviewConfirm.php:259
+#, fuzzy
+msgid "Biography published"
+msgstr "Kunstwerk gepubliceerd"
+
+#: includes/Publishing/ReviewConfirm.php:259
+#, fuzzy
+msgid "Your biography has been published."
+msgstr "Je %s is verwijderd."
+
+#: includes/Publishing/ReviewConfirm.php:260
+#, fuzzy
+msgid "Event published"
+msgstr "Kunstwerk gepubliceerd"
+
+#: includes/Publishing/ReviewConfirm.php:260
+#, fuzzy
+msgid "The event has been published."
+msgstr "Het kunstwerk is gepubliceerd in de galerij."
+
+#: includes/Publishing/ReviewConfirm.php:261
 msgid "Artwork published"
 msgstr "Kunstwerk gepubliceerd"
 
-#: includes/Publishing/ReviewConfirm.php:127
-msgid "Submission discarded"
-msgstr "Inzending weggegooid"
-
-#: includes/Publishing/ReviewConfirm.php:128
-msgid "Artwork removed"
-msgstr "Kunstwerk verwijderd"
-
-#: includes/Publishing/ReviewConfirm.php:129
-msgid "Link expired or already used"
-msgstr "Link verlopen of al gebruikt"
-
-#: includes/Publishing/ReviewConfirm.php:133
+#: includes/Publishing/ReviewConfirm.php:261
 msgid "The artwork has been published to the gallery."
 msgstr "Het kunstwerk is gepubliceerd in de galerij."
 
-#: includes/Publishing/ReviewConfirm.php:134
+#: includes/Publishing/ReviewConfirm.php:262
+msgid "Submission discarded"
+msgstr "Inzending weggegooid"
+
+#: includes/Publishing/ReviewConfirm.php:262
 msgid "The submission has been discarded."
 msgstr "De inzending is weggegooid."
 
-#: includes/Publishing/ReviewConfirm.php:135
+#: includes/Publishing/ReviewConfirm.php:263
+#, fuzzy
+msgid "Biography removed"
+msgstr "Biografie"
+
+#: includes/Publishing/ReviewConfirm.php:263
+#, fuzzy
+msgid "Your biography has been removed."
+msgstr "Je %s is verwijderd."
+
+#: includes/Publishing/ReviewConfirm.php:264
+#, fuzzy
+msgid "Event removed"
+msgstr "Kunstwerk verwijderd"
+
+#: includes/Publishing/ReviewConfirm.php:264
+#, fuzzy
+msgid "The event has been removed."
+msgstr "Je %s is verwijderd."
+
+#: includes/Publishing/ReviewConfirm.php:265
+msgid "Artwork removed"
+msgstr "Kunstwerk verwijderd"
+
+#: includes/Publishing/ReviewConfirm.php:265
 msgid "Your artwork has been removed from the gallery."
 msgstr "Je kunstwerk is uit de galerij verwijderd."
 
-#: includes/Publishing/ReviewConfirm.php:136
+#: includes/Publishing/ReviewConfirm.php:266
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -4297,70 +4592,106 @@ msgstr ""
 "Deze link is mogelijk al gebruikt of verlopen. Log in om je inzendingen te "
 "beheren."
 
-#: includes/Publishing/ReviewConfirm.php:177
-msgid "Publish this artwork?"
-msgstr "Dit kunstwerk publiceren?"
+#: includes/Publishing/ReviewConfirm.php:342
+msgid ""
+"Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
+"from the original email instead."
+msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:178
-msgid "This will make the submission visible in the gallery."
-msgstr "Hierdoor wordt de inzending zichtbaar in de galerij."
+#: includes/Publishing/ReviewConfirm.php:343
+msgid ""
+"The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
+"original email instead."
+msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:179
-msgid "Yes, publish it"
-msgstr "Ja, publiceren"
-
-#: includes/Publishing/ReviewConfirm.php:182
+#: includes/Publishing/ReviewConfirm.php:510
 msgid "Discard this submission?"
 msgstr "Deze inzending weggooien?"
 
-#: includes/Publishing/ReviewConfirm.php:183
+#: includes/Publishing/ReviewConfirm.php:511
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr ""
 "Hierdoor wordt de inzending definitief weggegooid — hij wordt niet "
 "gepubliceerd."
 
-#: includes/Publishing/ReviewConfirm.php:184
+#: includes/Publishing/ReviewConfirm.php:512
 msgid "Yes, discard it"
 msgstr "Ja, weggooien"
 
-#: includes/Publishing/ReviewConfirm.php:187
+#: includes/Publishing/ReviewConfirm.php:515
 msgid "Remove this artwork?"
 msgstr "Dit kunstwerk verwijderen?"
 
-#: includes/Publishing/ReviewConfirm.php:188
+#: includes/Publishing/ReviewConfirm.php:516
 msgid "This will remove the published artwork from the gallery."
 msgstr "Hierdoor wordt het gepubliceerde kunstwerk uit de galerij verwijderd."
 
-#: includes/Publishing/ReviewConfirm.php:189
+#: includes/Publishing/ReviewConfirm.php:517
 msgid "Yes, remove it"
 msgstr "Ja, verwijderen"
 
-#: includes/Publishing/ReviewEndpoints.php:85
-#: includes/Publishing/ReviewEndpoints.php:146
-#: includes/Publishing/ReviewEndpoints.php:185
+#: includes/Publishing/ReviewConfirm.php:601
+#: includes/Publishing/SubmissionsPage.php:253
+msgid "Title"
+msgstr "Titel"
+
+#: includes/Publishing/ReviewConfirm.php:609
+#, fuzzy
+msgid "Short description"
+msgstr "Beschrijving"
+
+#: includes/Publishing/ReviewConfirm.php:614
+msgid "Full text"
+msgstr ""
+
+#. translators: %s is the content type — artwork, biography, or event
+#: includes/Publishing/ReviewConfirm.php:619
+#, fuzzy, php-format
+msgid "Publish this %s?"
+msgstr "Dit kunstwerk publiceren?"
+
+#: includes/Publishing/ReviewConfirm.php:642
+msgid ""
+"Make any final changes below, or leave everything as-is to publish exactly "
+"what was drafted."
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:648
+#: includes/Publishing/SubmissionsPage.php:233
+msgid "Publish it"
+msgstr "Publiceren"
+
+#: includes/Publishing/ReviewConfirm.php:659
+#, fuzzy
+msgid "biography"
+msgstr "Biografie"
+
+#: includes/Publishing/ReviewEndpoints.php:98
+#: includes/Publishing/ReviewEndpoints.php:160
+#: includes/Publishing/ReviewEndpoints.php:200
 msgid "Submission not found."
 msgstr "Inzending niet gevonden."
 
-#: includes/Publishing/ReviewEndpoints.php:94
-#: includes/Publishing/ReviewEndpoints.php:155
-#: includes/Publishing/ReviewEndpoints.php:194
+#: includes/Publishing/ReviewEndpoints.php:107
+#: includes/Publishing/ReviewEndpoints.php:169
+#: includes/Publishing/ReviewEndpoints.php:209
 msgid "This submission is not awaiting review."
 msgstr "Deze inzending wacht niet op beoordeling."
 
-#: includes/Publishing/ReviewEndpoints.php:294
+#: includes/Publishing/ReviewEndpoints.php:310
 msgid "You do not have permission to review this submission."
 msgstr "Je hebt geen toestemming om deze inzending te beoordelen."
 
-#: includes/Publishing/ReviewEndpoints.php:313
+#: includes/Publishing/ReviewEndpoints.php:329
 msgid "Review link not found or already used."
 msgstr "Beoordelingslink niet gevonden of al gebruikt."
 
-#: includes/Publishing/ReviewEndpoints.php:321
+#: includes/Publishing/ReviewEndpoints.php:337
 msgid "Invalid review token."
 msgstr "Ongeldig beoordelings-token."
 
-#: includes/Publishing/ReviewEndpoints.php:329
+#: includes/Publishing/ReviewEndpoints.php:345
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Deze beoordelingslink is verlopen. Log in om je inzendingen te beheren."
@@ -4369,17 +4700,9 @@ msgstr ""
 msgid "No submissions awaiting review."
 msgstr "Geen inzendingen wachten op beoordeling."
 
-#: includes/Publishing/SubmissionsPage.php:233
-msgid "Publish it"
-msgstr "Publiceren"
-
 #: includes/Publishing/SubmissionsPage.php:237
 msgid "Make changes"
 msgstr "Wijzigingen aanbrengen"
-
-#: includes/Publishing/SubmissionsPage.php:253
-msgid "Title"
-msgstr "Titel"
 
 #: includes/Publishing/SubmissionsPage.php:261
 msgid "One-line description"
@@ -4746,10 +5069,11 @@ msgctxt "block keyword"
 msgid "review"
 msgstr "beoordeling"
 
-#~ msgid ""
-#~ "Optional note prepended to the next public issue only — cleared "
-#~ "automatically once that issue is queued."
-#~ msgstr ""
-#~ "Optionele noot die alleen vóór het volgende openbare nummer wordt "
-#~ "geplaatst — wordt automatisch gewist zodra dat nummer in de wachtrij "
-#~ "staat."
+#~ msgid "Skipped"
+#~ msgstr "Overgeslagen"
+
+#~ msgid "This will make the submission visible in the gallery."
+#~ msgstr "Hierdoor wordt de inzending zichtbaar in de galerij."
+
+#~ msgid "Yes, publish it"
+#~ msgstr "Ja, publiceren"

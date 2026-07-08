@@ -96,8 +96,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	protected function tearDown(): void {
-		unset( $_GET['agnosis_review'], $_GET['id'], $_GET['action'], $_GET['token'], $_GET['agnosis_result'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_POST['agnosis_review'], $_POST['id'], $_POST['action'], $_POST['token'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_GET['agnosis_review'], $_GET['id'], $_GET['action'], $_GET['token'], $_GET['agnosis_result'], $_GET['agnosis_type'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset(
+			$_POST['agnosis_review'], $_POST['id'], $_POST['action'], $_POST['token'],
+			$_POST['title'], $_POST['excerpt'], $_POST['body'],
+			$_POST['orig_title'], $_POST['orig_excerpt'], $_POST['orig_body']
+		); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'] );
 
 		parent::tearDown();
@@ -232,13 +236,31 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	// handle_confirm() — POST approve happy path
 	// -------------------------------------------------------------------------
 
-	public function test_handle_confirm_approve_redirects_to_clean_url(): void {
-		$this->simulate_post( [
+	/**
+	 * Unedited approve POST — title/excerpt/body match orig_* exactly, so this
+	 * is the "artist left the form as-is" path: no translation call, routes to
+	 * the plain POST /approve REST endpoint exactly as before the editable-form
+	 * feature existed.
+	 *
+	 * @return array<string,string>
+	 */
+	private function unedited_approve_params(): array {
+		return [
 			'agnosis_review' => '1',
 			'id'             => (string) $this->post_id,
 			'action'         => 'approve',
 			'token'          => self::VALID_TOKEN,
-		] );
+			'title'          => 'Shim Test Artwork',
+			'excerpt'        => '',
+			'body'           => '',
+			'orig_title'     => 'Shim Test Artwork',
+			'orig_excerpt'   => '',
+			'orig_body'      => '',
+		];
+	}
+
+	public function test_handle_confirm_approve_redirects_to_clean_url(): void {
+		$this->simulate_post( $this->unedited_approve_params() );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -250,12 +272,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_approve_publishes_the_post(): void {
-		$this->simulate_post( [
-			'agnosis_review' => '1',
-			'id'             => (string) $this->post_id,
-			'action'         => 'approve',
-			'token'          => self::VALID_TOKEN,
-		] );
+		$this->simulate_post( $this->unedited_approve_params() );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -267,12 +284,7 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	public function test_handle_confirm_approve_consumes_token(): void {
-		$this->simulate_post( [
-			'agnosis_review' => '1',
-			'id'             => (string) $this->post_id,
-			'action'         => 'approve',
-			'token'          => self::VALID_TOKEN,
-		] );
+		$this->simulate_post( $this->unedited_approve_params() );
 
 		try {
 			$this->confirm->handle_confirm();
@@ -281,6 +293,94 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		}
 
 		$this->assertEmpty( get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_confirm() — POST approve WITH final text edits
+	// -------------------------------------------------------------------------
+
+	public function test_handle_confirm_approve_with_edited_text_saves_and_publishes(): void {
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+			'title'          => 'Shim Test Artwork',
+			'excerpt'        => 'A short corrected description.',
+			'body'           => 'The artist tightened up the wording right before publishing.',
+			'orig_title'     => 'Shim Test Artwork',
+			'orig_excerpt'   => '',
+			'orig_body'      => '',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=approve', $e->url );
+		}
+
+		$post = get_post( $this->post_id );
+		$this->assertSame( 'publish', $post->post_status );
+		$this->assertSame( 'A short corrected description.', $post->post_excerpt );
+		$this->assertStringContainsString( 'tightened up the wording', $post->post_content );
+		$this->assertEmpty( get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_confirm() — POST approve blank-submission safeguard
+	// -------------------------------------------------------------------------
+
+	public function test_handle_confirm_approve_blank_body_cancels_without_publishing(): void {
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+			'title'          => 'Shim Test Artwork',
+			'excerpt'        => '',
+			'body'           => '', // Artist accidentally cleared the body.
+			'orig_title'     => 'Shim Test Artwork',
+			'orig_excerpt'   => '',
+			'orig_body'      => 'Some original body text.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial to re-render (wp_die), not a redirect.' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'cannot be empty', $e->body );
+		}
+
+		// Nothing changed: draft stays a draft, and — crucially — the token is
+		// NOT consumed, so the same email link still works for a retry.
+		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
+		$this->assertSame( self::VALID_TOKEN, get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
+	}
+
+	public function test_handle_confirm_approve_blank_title_cancels_without_publishing(): void {
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+			'title'          => '   ', // Whitespace-only — must count as blank.
+			'excerpt'        => '',
+			'body'           => 'Body text is present.',
+			'orig_title'     => 'Shim Test Artwork',
+			'orig_excerpt'   => '',
+			'orig_body'      => 'Body text is present.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial to re-render (wp_die), not a redirect.' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+		}
+
+		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
+		$this->assertSame( self::VALID_TOKEN, get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -467,5 +567,119 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		} catch ( DieCapture $e ) {
 			$this->assertSame( 200, $e->http_status );
 		}
+	}
+
+	public function test_handle_result_approve_biography_shows_biography_wording(): void {
+		$_GET['agnosis_result'] = 'approve'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_type']   = 'agnosis_biography'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->confirm->handle_result();
+			$this->fail( 'Expected wp_die.' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'Biography published', $e->body );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Non-artwork reviewable CPTs (2026-07-08) — the approve confirm form's
+	// field set is CPT-aware (ReviewConfirm::APPROVE_FIELDS): biography has no
+	// excerpt field, event has neither title nor excerpt editable. These tests
+	// exercise that alongside the same ReviewEndpoints artwork-only gate fix
+	// covered in ReviewEndpointsIntegrationTest.
+	// -------------------------------------------------------------------------
+
+	/** @return int Draft post ID of the given type, with a valid review token. */
+	private function create_reviewable_draft( string $post_type, string $token ): int {
+		$post_id = (int) wp_insert_post( [
+			'post_type'    => $post_type,
+			'post_status'  => 'draft',
+			'post_title'   => 'Shim Test ' . $post_type,
+			'post_content' => 'Original body text.', // body is always required — see the safeguard.
+			'post_author'  => $this->artist_id,
+		] );
+
+		update_post_meta( $post_id, '_agnosis_review_token', $token );
+		update_post_meta( $post_id, '_agnosis_review_expiry', time() + 86400 * 7 );
+
+		return $post_id;
+	}
+
+	public function test_handle_confirm_get_renders_interstitial_for_biography(): void {
+		$token   = 'bio-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography', $token );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'Publish this biography?', $e->body );
+		}
+
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	public function test_handle_confirm_approve_biography_unedited_publishes(): void {
+		$token   = 'bio-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography', $token );
+
+		// Biography has no excerpt field (APPROVE_FIELDS) — only title/body are
+		// part of the diff, so no excerpt/orig_excerpt is sent at all.
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+			'title'          => 'Shim Test agnosis_biography',
+			'body'           => 'Original body text.',
+			'orig_title'     => 'Shim Test agnosis_biography',
+			'orig_body'      => 'Original body text.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=approve', $e->url );
+			$this->assertStringContainsString( 'agnosis_type=agnosis_biography', $e->url );
+		}
+
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	public function test_handle_confirm_approve_event_blank_body_cancels_without_publishing(): void {
+		// Event has neither title nor excerpt editable (APPROVE_FIELDS) — the
+		// blank-submission safeguard must still fire on body alone.
+		$token   = 'event-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_event', $token );
+
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+			'body'           => '', // Cleared by mistake — no title field exists for events at all.
+			'orig_body'      => 'Some original body text.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial to re-render (wp_die), not a redirect.' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+			$this->assertStringContainsString( 'cannot be empty', $e->body );
+		}
+
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+		$this->assertSame( $token, get_post_meta( $post_id, '_agnosis_review_token', true ) );
 	}
 }

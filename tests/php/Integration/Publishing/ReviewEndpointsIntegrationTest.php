@@ -178,7 +178,13 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'agnosis_not_found', $result->get_error_code() );
 	}
 
-	public function test_approve_non_artwork_post_returns_404(): void {
+	public function test_approve_non_reviewable_post_type_returns_404(): void {
+		// A generic WP 'page' — never a CPT PostCreator drafts with a review
+		// token, so it must still 404. This is the actual boundary
+		// REVIEWABLE_POST_TYPES draws now: not "artwork only" (see the
+		// biography/event tests below, which must succeed), but "one of the
+		// three CPTs PostCreator::create_post()/ApplicationBiography actually
+		// hands a review token to".
 		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'draft' ] );
 		update_post_meta( $page_id, '_agnosis_review_token', self::VALID_TOKEN );
 		update_post_meta( $page_id, '_agnosis_review_expiry', time() + 86400 );
@@ -188,6 +194,81 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 		$this->assertSame( 'agnosis_not_found', $result->get_error_code() );
+	}
+
+	// -------------------------------------------------------------------------
+	// Non-artwork reviewable CPTs (2026-07-08 regression coverage) — biography
+	// and event drafts have always carried the same _agnosis_review_token/
+	// _agnosis_review_expiry pair (PostCreator::create_post(),
+	// Artist\ApplicationBiography), but approve()/reject()/save() rejected them
+	// with a 404 regardless of token validity until this fix.
+	// -------------------------------------------------------------------------
+
+	/** @return int Draft post ID of the given type, with a valid review token. */
+	private function create_reviewable_draft( string $post_type ): int {
+		$post_id = (int) wp_insert_post( [
+			'post_type'    => $post_type,
+			'post_status'  => 'draft',
+			'post_title'   => 'Test ' . $post_type,
+			'post_excerpt' => 'A short excerpt.',
+			'post_content' => 'Original body.',
+			'post_author'  => $this->artist_id,
+		] );
+
+		update_post_meta( $post_id, '_agnosis_review_token', self::VALID_TOKEN );
+		update_post_meta( $post_id, '_agnosis_review_expiry', time() + 86400 * 7 );
+
+		return $post_id;
+	}
+
+	public function test_approve_biography_with_valid_token_publishes_post(): void {
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography' );
+
+		$req    = $this->request( [ 'id' => $post_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->approve( $req );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	public function test_approve_event_with_valid_token_publishes_post(): void {
+		$post_id = $this->create_reviewable_draft( 'agnosis_event' );
+
+		$req    = $this->request( [ 'id' => $post_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->approve( $req );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+	}
+
+	public function test_reject_biography_with_valid_token_trashes_post(): void {
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography' );
+
+		$req    = $this->request( [ 'id' => $post_id, 'token' => self::VALID_TOKEN ] );
+		$result = $this->endpoints->reject( $req );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'trash', get_post_status( $post_id ) );
+	}
+
+	public function test_save_with_publish_true_publishes_biography(): void {
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography' );
+
+		$req = $this->request( [
+			'id'      => $post_id,
+			'token'   => self::VALID_TOKEN,
+			'title'   => 'Updated Biography Title',
+			'body'    => 'Updated biography text.',
+			'publish' => true,
+		] );
+
+		$result = $this->endpoints->save( $req );
+
+		$this->assertSame( 'published', $result->get_data()['status'] );
+		$post = get_post( $post_id );
+		$this->assertSame( 'publish', $post->post_status );
+		$this->assertSame( 'Updated Biography Title', $post->post_title );
+		$this->assertStringContainsString( 'Updated biography text.', $post->post_content );
 	}
 
 	// -------------------------------------------------------------------------

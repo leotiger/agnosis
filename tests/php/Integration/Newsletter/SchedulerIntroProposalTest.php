@@ -103,6 +103,19 @@ class SchedulerIntroProposalTest extends \WP_UnitTestCase {
 		$this->assertNotNull( $captured );
 		$this->assertSame( 'owner@example.com', $captured['to'] );
 		$this->assertStringContainsString( 'A new season of work has arrived.', $captured['message'] );
+
+		// 2026-07-08: this carried no From header at all until a follow-up audit
+		// caught it — wp_mail() would have fallen through to WordPress's own
+		// "WordPress <wordpress@$domain>" default, the same leftover issue fixed
+		// everywhere else in 0.9.9.
+		$from_header = null;
+		foreach ( (array) $captured['headers'] as $header ) {
+			if ( str_starts_with( $header, 'From:' ) ) {
+				$from_header = $header;
+			}
+		}
+		$this->assertNotNull( $from_header, 'A From header must be present.' );
+		$this->assertStringNotContainsString( 'wordpress@', $from_header );
 	}
 
 	// =========================================================================

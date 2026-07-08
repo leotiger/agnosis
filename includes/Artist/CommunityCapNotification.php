@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailFooter;
 
 class CommunityCapNotification {
@@ -82,7 +83,7 @@ class CommunityCapNotification {
 					$site_name
 				),
 				$body,
-				[ 'Content-Type: text/plain; charset=UTF-8' ]
+				$this->text_headers()
 			);
 
 			if ( '' !== $locale ) {
@@ -108,7 +109,7 @@ class CommunityCapNotification {
 				$cap_label,
 				$proposal_id
 			),
-			[ 'Content-Type: text/plain; charset=UTF-8' ]
+			$this->text_headers()
 		);
 	}
 
@@ -126,7 +127,20 @@ class CommunityCapNotification {
 				__( 'A community vote to change the membership size cap (proposal #%1$d) closed without a majority. The cap is unchanged.', 'agnosis' ),
 				$proposal_id
 			),
-			[ 'Content-Type: text/plain; charset=UTF-8' ]
+			$this->text_headers()
 		);
+	}
+
+	/**
+	 * Previously carried no From header, so wp_mail() fell through to
+	 * WordPress's own "WordPress <wordpress@$domain>" default rather than a
+	 * real, deliverable address (found 2026-07-08 — same issue as the vouch
+	 * vote email in AdmissionNotification). Now delegates to
+	 * Core\CommunityMailer, the shared workflow sender identity.
+	 *
+	 * @return array<string>
+	 */
+	private function text_headers(): array {
+		return CommunityMailer::text_headers();
 	}
 }

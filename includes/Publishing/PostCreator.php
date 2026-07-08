@@ -1057,7 +1057,11 @@ class PostCreator {
 		$review_token  = $existing_id
 			? ( get_post_meta( $existing_id, '_agnosis_review_token', true ) ?: $this->generate_token() )
 			: $this->generate_token();
-		$review_expiry = time() + ( 7 * DAY_IN_SECONDS );
+		// Settings → Behaviour → "Review link expiry (days)" (agnosis_review_token_expiry_days,
+		// default 7). max( 1, ... ) guards a raw get_option() read against a
+		// corrupted/pre-upgrade option value slipping past the settings page's
+		// own sanitize_callback clamp.
+		$review_expiry = time() + ( max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) ) * DAY_IN_SECONDS );
 
 		// The artist's original submitted title is the canonical post title — it is
 		// the name the artist gave their work, in their own language.  The AI-generated
@@ -1470,12 +1474,18 @@ class PostCreator {
 		}
 
 		// Medium taxonomy term — only for artwork posts.
-		// Validate against the canonical list to prevent AI hallucinations from
-		// creating rogue terms. Empty or unrecognised values are silently skipped;
+		// Validate against the LIVE medium vocabulary (PromptConfig::medium_terms()),
+		// not just the built-in CANONICAL_MEDIUMS seed list — an admin can add,
+		// rename, or remove terms under Artwork → Mediums same as Categories, and
+		// the AI is already prompted with that same live list (see the providers'
+		// resolved_system_prompt() calls), so this guard has to accept whatever
+		// it was actually offered. This still exists to prevent AI hallucinations
+		// (a term the AI invents that isn't in the live list either) from creating
+		// rogue taxonomy terms. Empty or unrecognised values are silently skipped;
 		// the admin can assign manually from the edit screen.
 		if ( 'agnosis_artwork' === $post_type ) {
 			$medium = trim( $primary['medium'] ?? '' );
-			if ( $medium && in_array( $medium, PromptConfig::CANONICAL_MEDIUMS, true ) ) {
+			if ( $medium && in_array( $medium, PromptConfig::medium_terms(), true ) ) {
 				wp_set_object_terms( $post_id, $medium, 'agnosis_medium' );
 			}
 		}

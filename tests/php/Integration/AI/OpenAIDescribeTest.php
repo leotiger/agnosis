@@ -60,6 +60,12 @@ class OpenAIDescribeTest extends \WP_UnitTestCase {
 		return new OpenAI( $api_key, $this->make_config() );
 	}
 
+	/** Extract the system message content actually sent to OpenAI. */
+	private function extract_sent_system_prompt( array $args ): string {
+		$payload = json_decode( (string) $args['body'], true );
+		return (string) ( $payload['messages'][0]['content'] ?? '' );
+	}
+
 	/**
 	 * Register a pre_http_request filter that returns a canned response.
 	 *
@@ -326,6 +332,41 @@ class OpenAIDescribeTest extends \WP_UnitTestCase {
 		$this->make_provider()->describe( $original, 'image/jpeg', '' );
 
 		$this->assertSame( $original, $this->extract_sent_image_data( $captured ) );
+	}
+
+	// =========================================================================
+	// Live medium vocabulary reaches the AI prompt (2026-07-08)
+	// =========================================================================
+
+	public function test_describe_sends_live_medium_vocabulary_including_admin_added_term(): void {
+		// An admin has added a Medium term via Artwork → Mediums that isn't in
+		// the built-in CANONICAL_MEDIUMS seed list — confirms describe() actually
+		// calls resolved_system_prompt( PromptConfig::medium_terms() ), not the
+		// no-argument (seed-only) form.
+		wp_insert_term( 'Ceramics', 'agnosis_medium' );
+
+		$config = new PromptConfig(
+			system_prompt:            'Pick a medium from: {medium_list}',
+			user_template:            '{artist_prompt}',
+			enhancement_instructions: 'Enhance',
+			tag_count:                5,
+			excerpt_words:            30,
+		);
+		$provider = new OpenAI( 'sk-test-key', $config );
+
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_openai_body( [ 'title' => 'T', 'excerpt' => 'E', 'body' => 'B', 'tags' => [], 'alt_text' => 'A', 'medium' => 'Ceramics' ] ),
+			$captured
+		);
+
+		$provider->describe( 'imagedata', 'image/jpeg', '' );
+
+		$sent_system = $this->extract_sent_system_prompt( $captured );
+		$this->assertStringContainsString( 'Ceramics', $sent_system );
+
+		wp_delete_term( (int) get_term_by( 'name', 'Ceramics', 'agnosis_medium' )->term_id, 'agnosis_medium' );
 	}
 
 	public function test_describe_downscales_a_wide_image_before_sending(): void {

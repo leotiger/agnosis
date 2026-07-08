@@ -3,17 +3,23 @@
  * Integration tests — ApplicationBiography (auto-created first biography draft).
  *
  * Covers on_artist_admitted():
- *   - Creates a agnosis_biography draft from bio + statement + portfolio_url
- *   - Content order: bio before statement
+ *   - Creates a agnosis_biography draft from bio + portfolio_url
+ *   - The application's "why do you want to join?" statement is NEVER included
+ *     in the biography content or the _agnosis_artist_prompt merge-context meta
+ *     (2026-07-08 correction) — it's addressed to the community/admin
+ *     reviewing admission, not biographical/artistic information about the
+ *     artist, and doesn't belong on a public profile by nature
  *   - Trusted-platform portfolio URL becomes a wp:embed block
  *   - Non-trusted portfolio URL is rejected by default (AI review is off)
  *   - Non-trusted portfolio URL embeds/rejects per the AI's verdict once AI review is enabled
- *   - Works with only a portfolio_url and no bio/statement text
- *   - Skips entirely when bio, statement, and portfolio_url are all empty (or portfolio is rejected)
+ *   - Works with only a portfolio_url and no bio text
+ *   - Skips entirely when bio and portfolio_url are both empty (or portfolio is
+ *     rejected) — even if a statement alone was provided, since it never
+ *     contributes content
  *   - Skips when the application row does not exist
  *   - Skips when $user_id does not resolve to a real WP user
  *   - Skips (no duplicate) when a biography post already exists for the artist
- *   - _agnosis_artist_prompt is set to the raw bio+statement text (biography-merge compat)
+ *   - _agnosis_artist_prompt is set to the raw bio text only (biography-merge compat)
  *   - _agnosis_review_token / _agnosis_review_expiry are set (review pipeline compat)
  *   - Fires 'agnosis_post_drafted', triggering the real review email
  *
@@ -186,7 +192,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Happy path — bio + statement + portfolio_url
+	// Happy path — bio + portfolio_url
 	// -------------------------------------------------------------------------
 
 	public function test_creates_biography_draft_from_application_data(): void {
@@ -205,7 +211,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		);
 	}
 
-	public function test_biography_content_includes_bio_and_statement(): void {
+	public function test_biography_content_includes_bio_but_not_statement(): void {
 		$user_id        = $this->create_user( 'content@example.com' );
 		$application_id = $this->insert_application(
 			'content@example.com',
@@ -220,30 +226,11 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$post = $this->get_biography_post( $user_id );
 		$this->assertNotNull( $post );
 		$this->assertStringContainsString( 'My bio text here.', $post->post_content );
-		$this->assertStringContainsString( 'My statement text here.', $post->post_content );
-	}
-
-	public function test_biography_content_orders_bio_before_statement(): void {
-		$user_id        = $this->create_user( 'order@example.com' );
-		$application_id = $this->insert_application(
-			'order@example.com',
-			'Order Artist',
-			'BIO-MARKER',
-			'https://myportfolio.example/order',
-			'STATEMENT-MARKER'
+		$this->assertStringNotContainsString(
+			'My statement text here.',
+			$post->post_content,
+			'The "why do you want to join?" statement is not biographical content and must never appear in the auto-created biography.'
 		);
-
-		$this->listener->on_artist_admitted( $user_id, $application_id );
-
-		$post = $this->get_biography_post( $user_id );
-		$this->assertNotNull( $post );
-
-		$bio_pos       = strpos( $post->post_content, 'BIO-MARKER' );
-		$statement_pos = strpos( $post->post_content, 'STATEMENT-MARKER' );
-
-		$this->assertNotFalse( $bio_pos );
-		$this->assertNotFalse( $statement_pos );
-		$this->assertLessThan( $statement_pos, $bio_pos, 'bio must appear before statement in the biography content.' );
 	}
 
 	public function test_biography_title_defaults_to_about_display_name(): void {
@@ -306,7 +293,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$this->listener->on_artist_admitted( $user_id, $application_id );
 
 		$post = $this->get_biography_post( $user_id );
-		$this->assertNotNull( $post, 'The biography is still created from bio+statement even when the portfolio link is rejected.' );
+		$this->assertNotNull( $post, 'The biography is still created from bio alone even when the portfolio link is rejected.' );
 		$this->assertStringNotContainsString( 'a-completely-random-personal-site.example', $post->post_content );
 		$this->assertStringNotContainsString( '<!-- wp:embed', $post->post_content );
 	}
@@ -350,7 +337,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$listener->on_artist_admitted( $user_id, $application_id );
 
 		$post = $this->get_biography_post( $user_id );
-		$this->assertNotNull( $post, 'The biography is still created from bio+statement even when the AI rejects the portfolio link.' );
+		$this->assertNotNull( $post, 'The biography is still created from bio alone even when the AI rejects the portfolio link.' );
 		$this->assertStringNotContainsString( 'a-completely-random-personal-site.example', $post->post_content );
 	}
 
@@ -401,6 +388,31 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$this->assertNull(
 			$this->get_biography_post( $user_id ),
 			'No biography should be created when the application has nothing to show.'
+		);
+	}
+
+	/**
+	 * Regression coverage for the 2026-07-08 correction: before it, a
+	 * statement-only application (no bio, no portfolio) still produced a
+	 * biography draft — its entire content was the "why do you want to join?"
+	 * text. Since that text no longer contributes to the biography at all,
+	 * this must now skip exactly like an entirely-empty application.
+	 */
+	public function test_skips_when_only_statement_is_provided(): void {
+		$user_id        = $this->create_user( 'statementonly@example.com' );
+		$application_id = $this->insert_application(
+			'statementonly@example.com',
+			'Statement Only Artist',
+			'', // no bio
+			'', // no portfolio
+			'I really want to join because I love this community.'
+		);
+
+		$this->listener->on_artist_admitted( $user_id, $application_id );
+
+		$this->assertNull(
+			$this->get_biography_post( $user_id ),
+			'A statement alone must not produce a biography draft — it has no biographical content to show.'
 		);
 	}
 
@@ -490,6 +502,29 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Settings → Behaviour → "Review link expiry (days)"
+	 * (agnosis_review_token_expiry_days) must actually change how long a
+	 * biography's review link lasts, not just artwork/event — this listener
+	 * writes its own _agnosis_review_expiry directly rather than going through
+	 * PostCreator::create_post(), so it needs its own coverage of the setting.
+	 */
+	public function test_review_expiry_honours_configured_days_option(): void {
+		update_option( 'agnosis_review_token_expiry_days', 3 );
+
+		$user_id        = $this->create_user( 'shortexpiry@example.com' );
+		$application_id = $this->insert_application( 'shortexpiry@example.com', 'Short Expiry Artist' );
+
+		$this->listener->on_artist_admitted( $user_id, $application_id );
+
+		$post   = $this->get_biography_post( $user_id );
+		$this->assertNotNull( $post );
+		$expiry = (int) get_post_meta( $post->ID, '_agnosis_review_expiry', true );
+
+		$this->assertGreaterThan( time() + ( 2 * DAY_IN_SECONDS ), $expiry, 'Expiry must reflect the configured 3 days, not the default 7.' );
+		$this->assertLessThanOrEqual( time() + ( 3 * DAY_IN_SECONDS ) + 5, $expiry );
+	}
+
 	public function test_sets_artist_prompt_meta_for_future_bio_merge(): void {
 		$user_id        = $this->create_user( 'prompt@example.com' );
 		$application_id = $this->insert_application(
@@ -507,20 +542,27 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 
 		$prompt = get_post_meta( $post->ID, '_agnosis_artist_prompt', true );
 		$this->assertSame(
-			"Bio prompt text.\n\nStatement prompt text.",
+			'Bio prompt text.',
 			$prompt,
-			'_agnosis_artist_prompt must hold the raw bio+statement text so a later bio@ update merges correctly (PostCreator::handle()).'
+			'_agnosis_artist_prompt must hold the raw bio text only so a later bio@ update merges correctly (PostCreator::handle()).'
 		);
 	}
 
-	public function test_artist_prompt_meta_omits_missing_statement(): void {
+	/**
+	 * Regression coverage for the 2026-07-08 correction: the "why do you want
+	 * to join?" statement must never leak into _agnosis_artist_prompt either,
+	 * even when it's present on the application — this meta seeds future AI
+	 * merges of the artist's biography, and admission motivation isn't
+	 * biographical material any more than it belongs in the post content.
+	 */
+	public function test_artist_prompt_meta_never_includes_statement(): void {
 		$user_id        = $this->create_user( 'promptbio@example.com' );
 		$application_id = $this->insert_application(
 			'promptbio@example.com',
 			'Prompt Bio Artist',
 			'Only bio here.',
 			'https://myportfolio.example/promptbio',
-			''
+			'This statement must not leak into the prompt.'
 		);
 
 		$this->listener->on_artist_admitted( $user_id, $application_id );

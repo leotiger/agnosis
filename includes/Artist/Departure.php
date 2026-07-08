@@ -68,26 +68,78 @@ class Departure {
 	 * Hooked to template_redirect (priority 1).
 	 *
 	 * Processes ?agnosis_departure=1&token={token} links from the confirmation
-	 * email. On success: executes removal and redirects to /?agnosis_departure=confirmed.
-	 * On failure: redirects to /?agnosis_departure=invalid.
+	 * email and renders the outcome directly (render_departure_result()) — no
+	 * redirect.
+	 *
+	 * 2026-07-08 fix: this used to redirect to /?agnosis_departure=confirmed or
+	 * /?agnosis_departure=invalid on completion. But the guard above only
+	 * checked isset( $_GET['agnosis_departure'] ), not its value — so loading
+	 * that very redirect target re-entered this same method (agnosis_departure
+	 * is still set, just now to 'confirmed'/'invalid' instead of '1'), found no
+	 * token, and redirected to /?agnosis_departure=invalid again... which
+	 * re-triggers itself the same way, forever. Reported live as Safari's "Too
+	 * many redirects" on that exact URL. Checking for the literal value '1' and
+	 * rendering the result in the same request instead of redirecting closes
+	 * this off at the root: there is no second request left for anything to
+	 * re-trigger on.
 	 */
 	public function handle_departure_confirm(): void {
-		if ( ! isset( $_GET['agnosis_departure'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$requested = isset( $_GET['agnosis_departure'] ) ? sanitize_text_field( wp_unslash( $_GET['agnosis_departure'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( '1' !== $requested ) {
 			return;
 		}
 
 		$token = isset( $_GET['token'] ) ? sanitize_text_field( wp_unslash( $_GET['token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-		if ( '' === $token ) {
-			wp_safe_redirect( add_query_arg( 'agnosis_departure', 'invalid', home_url( '/' ) ) );
-			exit;
+		$success = '' !== $token && $this->confirm_self_removal( $token );
+
+		$this->render_departure_result( $success );
+	}
+
+	/**
+	 * Render the outcome of a self-removal confirmation link directly, in the
+	 * same request — see handle_departure_confirm()'s docblock for why a
+	 * redirect (the pre-2026-07-08 design) caused an infinite loop here.
+	 * Mirrors the wp_die()-based result page Publishing\ReviewConfirm already
+	 * uses for its own review-link outcomes.
+	 */
+	private function render_departure_result( bool $success ): void {
+		$site_name = get_bloginfo( 'name' );
+
+		if ( $success ) {
+			$label   = __( 'You have left', 'agnosis' );
+			$message = sprintf(
+				/* translators: %s: site name */
+				__( 'Your account and everything you published on %s have been permanently deleted. Nothing tied to you is stored here anymore.', 'agnosis' ),
+				$site_name
+			);
+			$status = 200;
+			$icon   = '✦';
+			$color  = '#7c6af7';
+		} else {
+			$label   = __( 'Link expired or already used', 'agnosis' );
+			$message = __( 'This confirmation link has already been used or is no longer valid. If you still want to leave, please request removal again from your account.', 'agnosis' );
+			$status = 400;
+			$icon   = '✕';
+			$color  = '#c0392b';
 		}
 
-		$result = $this->confirm_self_removal( $token );
+		$html = sprintf(
+			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
+			. '<p style="font-size:34px;color:%1$s;margin:0 0 16px;">%2$s</p>'
+			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
+			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%4$s</p>'
+			. '<a href="%5$s" style="color:%1$s;font-size:16px;text-decoration:none;">&larr; %6$s</a>'
+			. '</div>',
+			esc_attr( $color ),
+			esc_html( $icon ),
+			esc_html( $label ),
+			esc_html( $message ),
+			esc_url( home_url( '/' ) ),
+			esc_html( $site_name )
+		);
 
-		$outcome = $result ? 'confirmed' : 'invalid';
-		wp_safe_redirect( add_query_arg( 'agnosis_departure', $outcome, home_url( '/' ) ) );
-		exit;
+		wp_die( $html, esc_html( $label ), [ 'response' => $status ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $html is fully escaped above.
 	}
 
 	// -------------------------------------------------------------------------
@@ -239,15 +291,30 @@ class Departure {
 		$user_id        = (int) $row->wp_user_id;
 		$application_id = (int) $row->id;
 
+		// Captured BEFORE execute_removal() deletes the WP account — afterward
+		// get_user_by() can no longer resolve this ID at all, but
+		// DepartureNotification::on_artist_left() still needs the artist's own
+		// email/locale to send them their own removal-confirmation email
+		// (added 2026-07-08 — previously only the admin was notified that a
+		// self-removal had completed).
+		$user          = get_user_by( 'id', $user_id );
+		$artist_email  = $user ? $user->user_email : '';
+		$artist_locale = $user ? (string) get_user_meta( $user_id, 'locale', true ) : '';
+
 		$this->execute_removal( $user_id, $application_id, 'left' );
 
 		/**
 		 * Fires after an artist has confirmed and completed self-removal.
 		 *
-		 * @param int $user_id        WP user ID (account is now deleted).
-		 * @param int $application_id Membership row ID.
+		 * @param int    $user_id        WP user ID (account is now deleted).
+		 * @param int    $application_id Membership row ID.
+		 * @param string $artist_email   The artist's email, captured before the
+		 *                               account was deleted. Empty if it
+		 *                               couldn't be resolved.
+		 * @param string $artist_locale  The artist's WP locale, captured before
+		 *                               the account was deleted. Empty if unset.
 		 */
-		do_action( 'agnosis_artist_left', $user_id, $application_id );
+		do_action( 'agnosis_artist_left', $user_id, $application_id, $artist_email, $artist_locale );
 
 		return true;
 	}

@@ -591,7 +591,14 @@ class Activator {
 	}
 
 	/**
-	 * Seed the agnosis_medium taxonomy with the canonical list from PromptConfig.
+	 * Seed the agnosis_medium taxonomy with the default list from
+	 * PromptConfig::CANONICAL_MEDIUMS.
+	 *
+	 * This only ever ADDS these terms if missing — it never removes, renames, or
+	 * resets a term an admin has since changed under Artwork → Mediums. Once
+	 * seeded, the taxonomy itself is the live vocabulary from here on: the AI
+	 * prompt and PostCreator's hallucination guard both read the current term
+	 * list at runtime (PromptConfig::medium_terms()), not this constant.
 	 *
 	 * Idempotent — uses wp_insert_term() which is a no-op when the slug already
 	 * exists. Safe to call on every activation or upgrade.

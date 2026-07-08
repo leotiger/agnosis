@@ -19,16 +19,24 @@ use Agnosis\Core\Logger;
 use Agnosis\Publishing\EmbedPolicy;
 
 /**
- * An applicant already writes a short bio, an artist statement, and
- * (optionally) a portfolio URL on the application form — see
- * Admission::apply(). Today none of that ever becomes visible to a site
- * visitor unless the artist separately emails bio@ after being admitted;
- * it just sits in agnosis_applications. This class surfaces it: the moment
- * an application is admitted (either path — Admission::admin_admit() or the
- * community vouch-threshold path, Admission::maybe_admit() — both fire the
- * same 'agnosis_artist_admitted' action), it builds a first agnosis_biography
- * draft from that data, so a newly admitted artist starts with something
- * rather than a blank profile.
+ * An applicant already writes a short bio and (optionally) a portfolio URL
+ * on the application form — see Admission::apply(). Today the bio never
+ * becomes visible to a site visitor unless the artist separately emails
+ * bio@ after being admitted; it just sits in agnosis_applications. This
+ * class surfaces it: the moment an application is admitted (either path —
+ * Admission::admin_admit() or the community vouch-threshold path,
+ * Admission::maybe_admit() — both fire the same 'agnosis_artist_admitted'
+ * action), it builds a first agnosis_biography draft from that data, so a
+ * newly admitted artist starts with something rather than a blank profile.
+ *
+ * The application form also collects a "Why do you want to join?" statement
+ * (its `statement` column) — deliberately excluded from the biography draft
+ * (2026-07-08 correction): it's the applicant's pitch to the
+ * community/admin reviewing admission, not biographical or artistic
+ * information about the artist, and doesn't belong on their public profile
+ * by nature. It remains stored on the application row for admission review;
+ * this class simply never reads it into anything artist-facing. See
+ * build_content()'s docblock.
  *
  * The draft goes through the exact same review pipeline every other Agnosis
  * post uses: a '_agnosis_review_token'/'_agnosis_review_expiry' pair and the
@@ -70,10 +78,13 @@ class ApplicationBiography {
 	public function on_artist_admitted( int $user_id, int $application_id ): void {
 		global $wpdb;
 
+		// Note: the application's `statement` column ("Why do you want to
+		// join?") is intentionally not selected here — see class docblock and
+		// build_content(). It plays no part in the biography draft.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$application = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT bio, statement, portfolio_url, display_name FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				"SELECT bio, portfolio_url, display_name FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
 				$application_id
 			)
 		);
@@ -91,10 +102,9 @@ class ApplicationBiography {
 		}
 
 		$bio       = trim( (string) $application->bio );
-		$statement = trim( (string) $application->statement );
 		$portfolio = trim( (string) $application->portfolio_url );
 
-		if ( '' === $bio && '' === $statement && '' === $portfolio ) {
+		if ( '' === $bio && '' === $portfolio ) {
 			return; // Nothing on the application to build a biography from.
 		}
 
@@ -132,18 +142,21 @@ class ApplicationBiography {
 			);
 		}
 
-		if ( '' === $bio && '' === $statement && ! $portfolio_approved ) {
+		if ( '' === $bio && ! $portfolio_approved ) {
 			return; // Nothing left to show once the portfolio link didn't clear policy either.
 		}
 
-		$post_content = $this->build_content( $bio, $statement, $portfolio_approved ? $portfolio : '' );
+		$post_content = $this->build_content( $bio, $portfolio_approved ? $portfolio : '' );
 
 		// Raw, unmarked-up text — this is exactly what PostCreator's own biography
 		// posts store in _agnosis_artist_prompt, and what its AI merge pass reads
 		// back out to merge with a future bio@ update (PostCreator::handle()'s
 		// biography-merge branch) — so a later email update merges with this
 		// application-derived text instead of silently starting from nothing.
-		$raw_prompt = implode( "\n\n", array_filter( [ $bio, $statement ] ) );
+		// Bio only, same reasoning as build_content(): the "why join" statement
+		// isn't biographical material, so it shouldn't seed future AI merges of
+		// the artist's biography either.
+		$raw_prompt = $bio;
 
 		$post_data = [
 			'post_title'   => sprintf(
@@ -160,7 +173,12 @@ class ApplicationBiography {
 				'_agnosis_source'        => 'application',
 				'_agnosis_artist_prompt' => $raw_prompt,
 				'_agnosis_review_token'  => bin2hex( random_bytes( 32 ) ),
-				'_agnosis_review_expiry' => time() + ( 7 * DAY_IN_SECONDS ),
+				// Settings → Behaviour → "Review link expiry (days)"
+				// (agnosis_review_token_expiry_days, default 7) — same option
+				// PostCreator::create_post() reads for artwork/event, so every
+				// review email link expires on the same configurable schedule
+				// regardless of which CPT it's for.
+				'_agnosis_review_expiry' => time() + ( max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) ) * DAY_IN_SECONDS ),
 				'_agnosis_queue_id'      => 0,
 			],
 		];
@@ -188,23 +206,28 @@ class ApplicationBiography {
 	}
 
 	/**
-	 * Assemble the draft's content: the bio text, then the statement text (each
-	 * as plain, unmarked-up text — mirroring exactly how PostCreator builds a
-	 * biography post's content from an email submission, see
-	 * PostCreator::build_post_content()), then the portfolio link as a wp:embed
-	 * block at the very end.
+	 * Assemble the draft's content: the bio text (plain, unmarked-up text —
+	 * mirroring exactly how PostCreator builds a biography post's content from
+	 * an email submission, see PostCreator::build_post_content()), then the
+	 * portfolio link as a wp:embed block at the end.
+	 *
+	 * The application's "Why do you want to join?" statement is deliberately
+	 * NOT included here (2026-07-08 correction) — it's the applicant's pitch
+	 * to the community/admin reviewing admission, not biographical or artistic
+	 * information about the artist, and doesn't belong in a public-facing
+	 * biography by nature. It's still stored on the application row itself
+	 * (agnosis_applications.statement) for admission-review purposes; this
+	 * class simply never surfaces it to the artist's profile or its AI
+	 * merge-context prompt (see on_artist_admitted()'s $raw_prompt).
 	 *
 	 * @param string $portfolio Already EmbedPolicy-approved, or '' — the caller
 	 *                          (on_artist_admitted()) is responsible for that check.
 	 */
-	private function build_content( string $bio, string $statement, string $portfolio ): string {
+	private function build_content( string $bio, string $portfolio ): string {
 		$body = '';
 
 		if ( '' !== $bio ) {
 			$body .= wp_kses_post( $bio ) . "\n\n";
-		}
-		if ( '' !== $statement ) {
-			$body .= wp_kses_post( $statement ) . "\n\n";
 		}
 
 		if ( '' !== $portfolio ) {

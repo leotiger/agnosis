@@ -5,7 +5,7 @@
  * Hooks into actions fired by Departure.php:
  *
  *  agnosis_departure_confirmation_requested → artist receives a confirmation link
- *  agnosis_artist_left                      → community is notified (self-removal)
+ *  agnosis_artist_left                      → admin AND the artist are notified (self-removal)
  *  agnosis_artist_banned                    → artist is notified of the ban
  *  agnosis_artist_reinstated                → artist is notified of reinstatement
  *  agnosis_artist_deleted_by_admin          → (no email — account is gone)
@@ -20,13 +20,14 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailFooter;
 
 class DepartureNotification {
 
 	public function register_hooks(): void {
 		add_action( 'agnosis_departure_confirmation_requested', [ $this, 'on_confirmation_requested' ], 10, 2 );
-		add_action( 'agnosis_artist_left',                      [ $this, 'on_artist_left'             ], 10, 2 );
+		add_action( 'agnosis_artist_left',                      [ $this, 'on_artist_left'             ], 10, 4 );
 		add_action( 'agnosis_artist_banned',                    [ $this, 'on_artist_banned'           ], 10, 3 );
 		add_action( 'agnosis_artist_reinstated',                [ $this, 'on_artist_reinstated'       ], 10, 1 );
 		add_action( 'agnosis_removal_vote_opened',              [ $this, 'on_vote_opened'             ], 10, 2 );
@@ -88,15 +89,30 @@ class DepartureNotification {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Notify the community that an artist has left voluntarily.
+	 * Notify the community that an artist has left voluntarily, and separately
+	 * confirm to the artist themselves that their account and content are gone.
 	 *
 	 * We do not name the artist in the community email — a simple notice
 	 * that membership numbers have changed is sufficient.
 	 *
-	 * @param int $user_id        WP user ID (account now deleted — display_name only via membership row).
-	 * @param int $application_id Membership row ID.
+	 * The artist-facing confirmation (added 2026-07-08) was the one thing this
+	 * flow was missing: an artist who clicks the confirmation link now sees a
+	 * result page (Departure::render_departure_result()), but had no lasting
+	 * record that the deletion actually happened, or explicit reassurance that
+	 * nothing of theirs is stored here anymore. $artist_email/$artist_locale
+	 * are passed in rather than looked up here because by the time this fires
+	 * the WP user account is already deleted — see
+	 * Departure::confirm_self_removal()'s docblock.
+	 *
+	 * @param int    $user_id        WP user ID (account now deleted — display_name only via membership row).
+	 * @param int    $application_id Membership row ID.
+	 * @param string $artist_email   The artist's email, captured before account
+	 *                               deletion. Empty when unavailable — the
+	 *                               artist-facing email is skipped in that case.
+	 * @param string $artist_locale  The artist's WP locale, captured before
+	 *                               account deletion. Empty when unset.
 	 */
-	public function on_artist_left( int $user_id, int $application_id ): void {
+	public function on_artist_left( int $user_id, int $application_id, string $artist_email = '', string $artist_locale = '' ): void {
 		global $wpdb;
 
 		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -129,6 +145,39 @@ class DepartureNotification {
 			),
 			$this->text_headers()
 		);
+
+		// Confirm to the artist themselves that the deletion actually happened.
+		// Best-effort: silently skipped if we have no address at all (e.g. this
+		// action fired from something other than confirm_self_removal() without
+		// supplying one) — never treated as an error, since the removal itself
+		// already succeeded regardless of whether this email can be sent.
+		if ( '' === $artist_email ) {
+			return;
+		}
+
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		wp_mail(
+			$artist_email,
+			sprintf(
+				/* translators: %s: site name */
+				__( "You've left %s", 'agnosis' ),
+				$site_name
+			),
+			sprintf(
+				/* translators: 1: artist display name, 2: site name */
+				__( "Hi %1\$s,\n\nThis confirms that your account and everything you published on %2\$s have been permanently deleted, as you requested.\n\nNothing tied to you — your artwork, biography, events, or account details — is stored on %2\$s anymore.\n\nIf you didn't request this, please contact the site admin right away.\n\n— %2\$s", 'agnosis' ),
+				$display_name,
+				$site_name
+			),
+			$this->text_headers()
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -427,8 +476,16 @@ class DepartureNotification {
 		);
 	}
 
-	/** @return array<string> */
+	/**
+	 * Previously carried no From header, so wp_mail() fell through to
+	 * WordPress's own "WordPress <wordpress@$domain>" default rather than a
+	 * real, deliverable address (found 2026-07-08 — same issue as the vouch
+	 * vote email in AdmissionNotification). Now delegates to
+	 * Core\CommunityMailer, the shared workflow sender identity.
+	 *
+	 * @return array<string>
+	 */
 	private function text_headers(): array {
-		return [ 'Content-Type: text/plain; charset=UTF-8' ];
+		return CommunityMailer::text_headers();
 	}
 }

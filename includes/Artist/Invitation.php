@@ -29,7 +29,7 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\AI\SubmissionTranslator;
-use Agnosis\Newsletter\Mailer;
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailBranding;
 use Agnosis\Core\Logger;
 
@@ -75,10 +75,9 @@ class Invitation {
 		$subject = $this->build_subject( $is_test );
 		$body    = $this->build_body( $this->localized_intro( $language ) );
 
-		$sent = wp_mail( $email, $subject, $body, [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . Mailer::sender_header(),
-		] );
+		// Community sender, not the newsletter's — an invitation is a one-off
+		// action, not digest mail (2026-07-08).
+		$sent = wp_mail( $email, $subject, $body, CommunityMailer::html_headers() );
 
 		if ( $switched ) {
 			restore_current_locale();

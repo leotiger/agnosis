@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Agnosis\Email;
 
 use Agnosis\Artist\Admission;
+use Agnosis\Artist\CommunityBroadcast;
 use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
@@ -51,6 +52,52 @@ class Webhook {
 					$departure->initiate_removal_for_user( $user->ID );
 				}
 				return new WP_REST_Response( [ 'status' => 'goodbye_received' ], 200 );
+			}
+		}
+
+		// --- Community alias: broadcast to all other artists (no attachment required) ---
+		// Mirrors the goodbye alias above and Email\Inbox::handle_community_email() —
+		// never reaches the artwork/bio/event pipeline below, and requires an
+		// admitted-artist sender within their daily broadcast limit.
+		$community_addr = strtolower( trim( (string) get_option( 'agnosis_email_community', '' ) ) );
+		if ( $community_addr ) {
+			$recipient = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
+			if ( $recipient === $community_addr ) {
+				$from_email = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
+				$user       = get_user_by( 'email', $from_email );
+
+				if ( ! $user || ! Admission::is_admitted_artist( $user->ID ) ) {
+					Logger::warning( 'Webhook: community broadcast from non-artist <' . $from_email . '> — ignored.', 'webhook' );
+					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_not_admitted' ], 200 );
+				}
+
+				$limit    = max( 1, (int) get_option( 'agnosis_community_broadcast_limit', 3 ) );
+				$throttle = RateLimiter::check_sender( 'community_broadcast', $from_email, $limit, DAY_IN_SECONDS );
+				if ( is_wp_error( $throttle ) ) {
+					Logger::warning( 'Webhook: community broadcast from <' . $from_email . '> throttled (' . $limit . '/day limit).', 'webhook' );
+					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_throttled' ], 200 );
+				}
+
+				$subject = sanitize_text_field( $payload['subject'] ?? '' );
+				$body    = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
+
+				if ( '' === trim( $subject ) && '' === trim( $body ) ) {
+					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_empty' ], 200 );
+				}
+
+				$broadcast = new CommunityBroadcast();
+
+				// Checked BEFORE broadcast() — bail out before any AI translation
+				// calls are made (one per recipient), not after.
+				if ( $broadcast->exceeds_max_length( $subject, $body ) ) {
+					$length = mb_strlen( $subject ) + mb_strlen( $body );
+					Logger::warning( 'Webhook: community broadcast from <' . $from_email . '> was ' . $length . ' characters — exceeds the configured limit, bounced.', 'webhook' );
+					$broadcast->send_too_long_bounce( $user->ID, $length );
+					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_too_long' ], 200 );
+				}
+
+				$sent = $broadcast->broadcast( $user->ID, $subject, $body );
+				return new WP_REST_Response( [ 'status' => 'community_broadcast', 'sent' => $sent ], 200 );
 			}
 		}
 

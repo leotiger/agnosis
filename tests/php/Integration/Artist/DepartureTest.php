@@ -17,6 +17,8 @@
  *   confirm_self_removal():
  *     - Returns false for an unknown / already-used token
  *     - Returns true and sets status='left' for a valid token
+ *     - agnosis_artist_left fires with the artist's email/locale, captured
+ *       before the account is deleted (2026-07-08)
  *
  *   delete_artist_content():
  *     - Permanently deletes all agnosis CPT posts by the artist
@@ -258,6 +260,74 @@ class DepartureTest extends \WP_UnitTestCase {
 			$app_id
 		) );
 		$this->assertSame( 'left', $status );
+	}
+
+	/**
+	 * 2026-07-08: confirm_self_removal() now captures the artist's email/locale
+	 * BEFORE execute_removal() deletes the WP account, and passes them through
+	 * agnosis_artist_left — DepartureNotification::on_artist_left() needs them
+	 * to send the artist their own removal-confirmation email, since the
+	 * account (and therefore get_user_by()) no longer exists by the time that
+	 * action fires.
+	 */
+	public function test_confirm_self_removal_action_includes_artist_email_and_locale(): void {
+		global $wpdb;
+
+		[ $user_id, $app_id ] = $this->create_admitted_artist( 'self3@example.com' );
+		update_user_meta( $user_id, 'locale', 'es_ES' );
+
+		$token = bin2hex( random_bytes( 32 ) );
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prefix . 'agnosis_applications',
+			[ 'removal_token' => $token ],
+			[ 'id' => $app_id ],
+			[ '%s' ], [ '%d' ]
+		);
+
+		$fired_email  = null;
+		$fired_locale = null;
+		add_action(
+			'agnosis_artist_left',
+			static function ( int $uid, int $aid, string $email, string $locale ) use ( &$fired_email, &$fired_locale ): void {
+				$fired_email  = $email;
+				$fired_locale = $locale;
+			},
+			10,
+			4
+		);
+
+		$this->departure->confirm_self_removal( $token );
+
+		$this->assertSame( 'self3@example.com', $fired_email );
+		$this->assertSame( 'es_ES', $fired_locale );
+	}
+
+	public function test_confirm_self_removal_action_email_empty_when_locale_unset(): void {
+		global $wpdb;
+
+		[ , $app_id ] = $this->create_admitted_artist( 'self4@example.com' );
+
+		$token = bin2hex( random_bytes( 32 ) );
+		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prefix . 'agnosis_applications',
+			[ 'removal_token' => $token ],
+			[ 'id' => $app_id ],
+			[ '%s' ], [ '%d' ]
+		);
+
+		$fired_locale = 'not-set';
+		add_action(
+			'agnosis_artist_left',
+			static function ( int $uid, int $aid, string $email, string $locale ) use ( &$fired_locale ): void {
+				$fired_locale = $locale;
+			},
+			10,
+			4
+		);
+
+		$this->departure->confirm_self_removal( $token );
+
+		$this->assertSame( '', $fired_locale, 'No locale meta set — must fire with an empty string, not a stale default.' );
 	}
 
 	public function test_confirm_self_removal_token_cannot_be_reused(): void {

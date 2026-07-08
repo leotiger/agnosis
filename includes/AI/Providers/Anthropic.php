@@ -42,7 +42,7 @@ class Anthropic implements ProviderInterface {
 		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
 
 		$image_b64    = base64_encode( $vision_image_data );
-		$system_prompt = $this->config->resolved_system_prompt();
+		$system_prompt = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
 		$user_content  = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [

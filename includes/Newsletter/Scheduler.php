@@ -360,7 +360,15 @@ class Scheduler {
 				$site_name
 			),
 			$body,
-			[ 'Content-Type: text/plain; charset=UTF-8' ]
+			[
+				'Content-Type: text/plain; charset=UTF-8',
+				// Previously carried no From header at all, so wp_mail() fell through to
+				// WordPress's own "WordPress <wordpress@$domain>" default — the same
+				// leftover issue already fixed everywhere else in 0.9.9 (found 2026-07-08
+				// during a follow-up audit for exactly this pattern). Newsletter-specific
+				// content, so the Newsletter sender identity, not Community's.
+				'From: ' . Mailer::sender_header(),
+			]
 		);
 	}
 

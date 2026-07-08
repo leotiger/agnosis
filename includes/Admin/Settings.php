@@ -463,6 +463,11 @@ class Settings {
 				'label' => __( 'Goodbye / self-removal address', 'agnosis' ),
 				'desc'  => __( 'Artist emails here (any subject, no attachment needed) to request account deletion. A confirmation link is emailed back before anything is deleted — e.g. goodbye@agnosis.art', 'agnosis' ),
 			],
+			'agnosis_email_community' => [
+				'tab'   => 'email',
+				'label' => __( 'Community announcement address', 'agnosis' ),
+				'desc'  => __( 'Any active artist emails here (any subject, no attachment needed) to send a message to every other community member — e.g. community@agnosis.art. Never processed as a submission and never becomes a post: each recipient gets the subject and message translated into their own language, with the sender\'s name and email included so they can reply directly. Sent from the address configured under Settings → Community → Rules, which can be different from this one. Only works for a message sent by an active, admitted artist.', 'agnosis' ),
+			],
 
 			// --- IMAP connection ---
 			'agnosis_imap_host' => [
@@ -712,6 +717,18 @@ class Settings {
 				'desc'     => __( 'How many artwork cards the gallery overview shows per page. Pool is built proportionally across all artists; featured artworks are preferred. Default: 12.', 'agnosis' ),
 			],
 
+			// --- BEHAVIOUR: Submission review ---
+			'agnosis_review_token_expiry_days' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Review link expiry (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 7,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'How long the Approve & Publish / Discard links in a submission review email stay valid before an artist has to log in to manage the item instead. Applies uniformly to artwork, biography, and event drafts. Default: 7.', 'agnosis' ),
+			],
+
 			// --- BEHAVIOUR: AI prompts ---
 			'agnosis_prompt_system' => [
 				'tab'         => 'behavior',
@@ -860,6 +877,38 @@ class Settings {
 				'desc'  => __( 'Auto-generated RSA public key for this node. Share this with peer nodes.', 'agnosis' ),
 			],
 			// --- COMMUNITY ---
+			'agnosis_community_from_name' => [
+				'tab'   => 'community',
+				'label' => __( 'Sender name', 'agnosis' ),
+				'desc'  => __( 'Name shown as the sender of admission, vote, welcome, departure, and other workflow emails. Leave blank to use the site name.', 'agnosis' ),
+			],
+			'agnosis_community_from_email' => [
+				'tab'      => 'community',
+				'label'    => __( 'Sender email address', 'agnosis' ),
+				'sanitize' => 'sanitize_email',
+				'desc'     => __( 'Dedicated From: address for admission, vote, welcome, departure, invitation, and submission-review emails — e.g. hello@agnosis.art. Deliberately separate from the Settings → Newsletter sender: these are one-off actions (a vote link, a review link), not digest mail. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
+			],
+			'agnosis_community_broadcast_limit' => [
+				'tab'      => 'community',
+				'label'    => __( 'Community broadcasts per artist per day', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 3,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum number of messages a single artist can send to the Community announcement address (Settings → Email) per day. Prevents one member from flooding every other member\'s inbox. Default: 3.', 'agnosis' ),
+			],
+			'agnosis_community_broadcast_max_chars' => [
+				'tab'      => 'community',
+				'label'    => __( 'Community broadcast max length (characters)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 2000,
+				'min'      => 1,
+				'max'      => 20000,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, min( 20000, (int) $v ) ),
+				'desc'     => __( 'Longer messages to the Community announcement address are bounced back to the sender instead of being broadcast — the sender is told to shorten it and resend. Measured in characters, not words, so it applies fairly across languages that don\'t use spaces between words (Chinese, Japanese, Thai, etc.). Every recipient\'s copy is translated individually, so this also caps how much a single message can cost in AI translation calls. Default: 2000. Hard maximum: 20000, regardless of this setting.', 'agnosis' ),
+			],
 			'agnosis_admission_percent' => [
 				'tab'     => 'community',
 				'label'   => __( 'Admission vote threshold (%)', 'agnosis' ),

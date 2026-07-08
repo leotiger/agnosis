@@ -22,6 +22,14 @@
  *  4. ARTWORK SCHEMA — hooks into LF's `linguaforge_seo_schema_data` filter
  *     to annotate artwork posts as `VisualArtwork` rather than generic `Article`.
  *
+ *  5. TAG / MEDIUM TRANSLATION — LF's own translation pipeline never touches
+ *     taxonomy terms at all, so a translated post is otherwise created with no
+ *     tags and no medium term whatsoever. sync_translated_terms() translates
+ *     and assigns both onto every translated sibling, cached per (taxonomy,
+ *     term name, language) so a recurring value (a common tag, or one of
+ *     `agnosis_medium`'s built-in options) gets the same translated label
+ *     every time rather than a fresh AI phrasing per post.
+ *
  * When Lingua Forge is NOT active, this class does nothing — all hooks are
  * registered conditionally. No hard dependency.
  *
@@ -92,6 +100,13 @@ class LinguaForge {
 	/** WP-Cron hook that runs the deferred translation kickoff (off the intake request). */
 	private const DISPATCH_HOOK = 'agnosis_dispatch_lf_translations';
 
+	/**
+	 * Cache of translated taxonomy term names: taxonomy => source name => lang
+	 * => translated name. See translated_term_name()'s docblock for why this
+	 * exists (cost + cross-post consistency for a repeated tag/medium value).
+	 */
+	private const TERM_TRANSLATIONS_OPTION = 'agnosis_term_translations';
+
 	// -------------------------------------------------------------------------
 	// Boot
 	// -------------------------------------------------------------------------
@@ -147,6 +162,16 @@ class LinguaForge {
 		} else {
 			add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 		}
+
+		// Tag / medium translation (2026-07-08). Unlike the meta-propagation
+		// above, this is NOT forked by LF version: LF 2.4.0's born-with filter
+		// (linguaforge_translated_post_meta) fires before the translated post is
+		// inserted and has no ID yet, so there is nothing to attach taxonomy
+		// relationships to at that point regardless of version — term
+		// assignment can only ever happen after insert. Always hooked on
+		// linguaforge_translation_complete, which — per copy_translated_meta()'s
+		// own docblock above — fires on both creation and re-translation either way.
+		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_terms' ], 10, 3 );
 
 		// SEO: Open Graph image override for artwork posts.
 		add_filter( 'linguaforge_seo_og_image',      [ $this, 'filter_og_image'       ], 10, 1 );
@@ -397,6 +422,125 @@ class LinguaForge {
 		foreach ( $all as $key => $value ) {
 			update_post_meta( $translated_id, $key, $value );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Taxonomy term translation (tags + medium)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Translate and assign the source post's `post_tag` (all Agnosis CPTs) and
+	 * `agnosis_medium` (artwork only) terms onto its newly created or
+	 * re-translated sibling.
+	 *
+	 * Without this, a translated post has NO tags and NO medium term at all —
+	 * not wrong-language, simply absent (2026-07-08 fix). Neither LF core nor
+	 * this class's own meta-propagation methods above ever touch taxonomy:
+	 * LF's `TranslationTrigger::create_translated_post()`/`update_translated_post()`
+	 * only ever set `post_title`/`post_content`/`post_excerpt` plus whatever
+	 * `linguaforge_translated_post_meta` supplies, and postmeta (`meta_input`)
+	 * cannot carry a taxonomy relationship — assigning one requires the post to
+	 * already have an ID, i.e. it can only happen after insert, which is
+	 * exactly why this is NOT forked by LF version the way supply_translated_meta()
+	 * / copy_translated_meta() are (see the constructor).
+	 *
+	 * `agnosis_medium` is a controlled vocabulary at AI-generation time — as of
+	 * 2026-07-08, `PromptConfig::medium_terms()` (live taxonomy terms, not the
+	 * fixed `CANONICAL_MEDIUMS` seed list) is what both the AI prompt and
+	 * PostCreator's hallucination guard actually validate against, so admins can
+	 * freely rename or add terms and have them be AI-assignable immediately. This
+	 * method treats a medium term exactly like a tag either way: translate the
+	 * term name via AI and assign it, with no re-validation against any English
+	 * source list on the translated side (which would never match once translated).
+	 *
+	 * @param int    $translated_id Newly created/updated translated post ID.
+	 * @param int    $source_id     Source post ID.
+	 * @param string $target_lang   Target language code.
+	 */
+	public function sync_translated_terms( int $translated_id, int $source_id, string $target_lang ): void {
+		$post_type = get_post_type( $source_id );
+		if ( ! in_array( $post_type, self::AGNOSIS_POST_TYPES, true ) ) {
+			return;
+		}
+
+		$this->sync_taxonomy( $source_id, $translated_id, 'post_tag', $target_lang );
+
+		if ( 'agnosis_artwork' === $post_type ) {
+			$this->sync_taxonomy( $source_id, $translated_id, 'agnosis_medium', $target_lang );
+		}
+	}
+
+	/**
+	 * Translate every term name a source post holds in $taxonomy and assign the
+	 * translated set to the translated post, replacing whatever it had before
+	 * (wp_set_object_terms()'s default $append = false) — the same "full,
+	 * blunt overwrite on re-translation" behaviour LF's own
+	 * update_translated_post() already applies to post_content/post_title, so
+	 * this isn't introducing a new class of surprise on re-translation.
+	 *
+	 * A source post with no terms in $taxonomy clears the translated post's own
+	 * terms too, rather than leaving a stale set behind from a previous
+	 * translation pass.
+	 */
+	private function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
+		$names = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'names' ] );
+
+		if ( is_wp_error( $names ) ) {
+			return;
+		}
+
+		if ( empty( $names ) ) {
+			wp_set_object_terms( $translated_id, [], $taxonomy );
+			return;
+		}
+
+		$translated_names = array_map(
+			fn( string $name ) => $this->translated_term_name( $name, $taxonomy, $target_lang ),
+			$names
+		);
+
+		wp_set_object_terms( $translated_id, $translated_names, $taxonomy );
+	}
+
+	/**
+	 * Resolve (and cache) the $target_lang name for a taxonomy term.
+	 *
+	 * Cached in `agnosis_term_translations` (taxonomy → source name → lang →
+	 * translated name) rather than translated fresh every time the same term
+	 * recurs — both for cost (an AI call per unique (term, language) pair
+	 * instead of per post) and for consistency: a controlled vocabulary like
+	 * medium needs the SAME translated label every time "Oil Painting"
+	 * appears, not a slightly different AI phrasing per artwork, or tag-based
+	 * browsing/filtering would silently fragment across near-duplicate terms.
+	 *
+	 * Falls back to the untranslated name — never blocks the sync — when no AI
+	 * provider is configured or a translation call returns empty.
+	 */
+	private function translated_term_name( string $name, string $taxonomy, string $target_lang ): string {
+		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
+
+		$cached = $cache[ $taxonomy ][ $name ][ $target_lang ] ?? '';
+		if ( '' !== $cached ) {
+			return $cached;
+		}
+
+		$translator = SubmissionTranslator::from_settings();
+		if ( null === $translator ) {
+			return $name;
+		}
+
+		$translated = trim( $translator->translate_text( $name, $target_lang ) );
+		if ( '' === $translated ) {
+			return $name;
+		}
+
+		$cache[ $taxonomy ][ $name ][ $target_lang ] = $translated;
+		// autoload=false: this can grow into a genuinely large map on a busy,
+		// many-language site — no reason to load it on every request when only
+		// the (rare) translation dispatch cron tick ever reads it.
+		update_option( self::TERM_TRANSLATIONS_OPTION, $cache, false );
+
+		return $translated;
 	}
 
 	/**

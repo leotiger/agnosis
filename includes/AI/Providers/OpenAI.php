@@ -49,7 +49,7 @@ class OpenAI implements ProviderInterface {
 		$image_b64  = base64_encode( $vision_image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
-		$system    = $this->config->resolved_system_prompt();
+		$system    = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
 		$user_text = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [

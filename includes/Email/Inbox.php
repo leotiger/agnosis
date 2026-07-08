@@ -16,6 +16,7 @@ declare(strict_types=1);
 namespace Agnosis\Email;
 
 use Agnosis\Artist\Admission;
+use Agnosis\Artist\CommunityBroadcast;
 use Agnosis\Artist\Departure;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
@@ -24,6 +25,7 @@ use Webklex\PHPIMAP\Client;
 use Webklex\PHPIMAP\ClientManager;
 use Webklex\PHPIMAP\Folder;
 use Webklex\PHPIMAP\IMAP;
+use Webklex\PHPIMAP\Message;
 
 class Inbox {
 
@@ -409,7 +411,8 @@ class Inbox {
 		$messages = $this->query_messages( $folder, $last_uid );
 		$max_uid_seen = $last_uid;
 
-		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
+		$goodbye_addr   = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
+		$community_addr = strtolower( trim( (string) get_option( 'agnosis_email_community', '' ) ) );
 
 		foreach ( $messages as $message ) {
 			try {
@@ -441,6 +444,16 @@ class Inbox {
 					$msg_to  = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
 					if ( $msg_to === $goodbye_addr ) {
 						$this->handle_goodbye_email( $from_email, $uid );
+						continue;
+					}
+				}
+
+				// --- Community alias: broadcast to all other artists (no attachment required) ---
+				if ( $community_addr ) {
+					$to_list = $message->getTo()->toArray();
+					$msg_to  = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
+					if ( $msg_to === $community_addr ) {
+						$this->handle_community_email( $message, $from_email, $uid );
 						continue;
 					}
 				}
@@ -640,6 +653,72 @@ class Inbox {
 	}
 
 	/**
+	 * Handle a community-broadcast email: verify the sender is an admitted
+	 * artist and within their daily send limit, relay it to every other
+	 * admitted artist via CommunityBroadcast, then mark the message so it
+	 * won't be re-processed. Never reaches the artwork/bio/event pipeline.
+	 *
+	 * @param Message $message    Full webklex message (needed for subject/body — unlike
+	 *                            the goodbye alias above, which needs neither).
+	 * @param string  $from_email Sender email address.
+	 * @param string  $uid        IMAP message UID (used for deduplication).
+	 */
+	private function handle_community_email( Message $message, string $from_email, string $uid ): void {
+		$user = get_user_by( 'email', $from_email );
+
+		if ( ! $user || ! $this->is_admitted_artist( $user->ID ) ) {
+			Logger::warning(
+				'Community broadcast from non-artist <' . $from_email . '> — ignored.',
+				'inbox'
+			);
+			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'community_non_artist', $from_email );
+			return;
+		}
+
+		$limit    = max( 1, (int) get_option( 'agnosis_community_broadcast_limit', 3 ) );
+		$throttle = RateLimiter::check_sender( 'community_broadcast', $from_email, $limit, DAY_IN_SECONDS );
+		if ( is_wp_error( $throttle ) ) {
+			Logger::warning(
+				'Community broadcast from <' . $from_email . '> (user #' . $user->ID . '): daily limit (' . $limit . ') reached — ignored.',
+				'inbox'
+			);
+			$this->mark_no_artwork( $uid, $user->ID, 'community_throttled', $from_email );
+			return;
+		}
+
+		$parsed = $this->parser->parse_broadcast_body( $message );
+
+		if ( '' === trim( $parsed['subject'] ) && '' === trim( $parsed['body'] ) ) {
+			Logger::warning( 'Community broadcast from <' . $from_email . '> was empty — ignored.', 'inbox' );
+			$this->mark_no_artwork( $uid, $user->ID, 'community_empty', $from_email );
+			return;
+		}
+
+		$broadcast = new CommunityBroadcast();
+
+		// Checked BEFORE broadcast() — the whole point is to bail out before
+		// any AI translation calls are made (one per recipient), not after.
+		if ( $broadcast->exceeds_max_length( $parsed['subject'], $parsed['body'] ) ) {
+			$length = mb_strlen( $parsed['subject'] ) + mb_strlen( $parsed['body'] );
+			Logger::warning(
+				'Community broadcast from <' . $from_email . '> (user #' . $user->ID . '): ' . $length . ' characters exceeds the configured limit — bounced.',
+				'inbox'
+			);
+			$broadcast->send_too_long_bounce( $user->ID, $length );
+			$this->mark_no_artwork( $uid, $user->ID, 'community_too_long', $from_email );
+			return;
+		}
+
+		$sent = $broadcast->broadcast( $user->ID, $parsed['subject'], $parsed['body'] );
+
+		Logger::info(
+			'Community broadcast from <' . $from_email . '> (user #' . $user->ID . '): sent to ' . $sent . ' recipient(s).',
+			'inbox'
+		);
+		$this->mark_no_artwork( $uid, $user->ID, 'community_handled', $from_email );
+	}
+
+	/**
 	 * Human-readable error text per skip reason — shown in the Inbox admin
 	 * table's Error column, and (via $reason) drives whether the sender's
 	 * identity is worth keeping on the row.
@@ -660,6 +739,11 @@ class Inbox {
 		'goodbye_non_artist'     => 'Skipped: goodbye request from a non-artist sender.',
 		'goodbye_handled'        => 'Goodbye request processed — self-removal confirmation sent.',
 		'goodbye_no_membership'  => 'Goodbye request could not be processed — no active membership found for this sender.',
+		'community_non_artist'   => 'Skipped: community broadcast request from a non-artist sender.',
+		'community_throttled'    => 'Skipped: sender exceeded the daily community broadcast limit.',
+		'community_empty'        => 'Skipped: community broadcast had no subject or body text.',
+		'community_too_long'     => 'Community broadcast exceeded the configured length limit — bounced back to sender, not broadcast.',
+		'community_handled'      => 'Community broadcast processed — sent to every other community member.',
 	];
 
 	/**
@@ -673,7 +757,9 @@ class Inbox {
 	 * @var array<string, string>
 	 */
 	private const SKIP_STATUSES = [
-		'goodbye_handled' => 'skipped',
+		'goodbye_handled'    => 'skipped',
+		'community_handled'  => 'skipped',
+		'community_too_long' => 'skipped',
 	];
 
 	/**
@@ -716,7 +802,22 @@ class Inbox {
 
 		$error  = self::SKIP_REASONS[ $reason ] ?? self::SKIP_REASONS['unregistered_sender'];
 		$status = self::SKIP_STATUSES[ $reason ] ?? 'failed';
-		$raw    = '' !== $from_email ? wp_json_encode( [ 'from' => $from_email ] ) : '{}';
+
+		// Stash the raw reason key (not just its prose $error text) alongside
+		// the sender address already persisted here, but only for the
+		// genuine-success skips — lets InboxPage::render_status_badge() show
+		// something more specific than a flat gray "Skipped" for e.g. a
+		// completed self-removal (2026-07-08: a "Skipped" badge on a request
+		// that permanently deleted an artist's account and content read as if
+		// nothing had happened).
+		$meta = [];
+		if ( '' !== $from_email ) {
+			$meta['from'] = $from_email;
+		}
+		if ( 'skipped' === $status ) {
+			$meta['skip_reason'] = $reason;
+		}
+		$raw = ! empty( $meta ) ? wp_json_encode( $meta ) : '{}';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table insert; INSERT IGNORE is idempotent.
 		$wpdb->query(

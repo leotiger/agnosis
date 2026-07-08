@@ -290,6 +290,37 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// Live medium vocabulary reaches the AI prompt (2026-07-08)
+	// =========================================================================
+
+	public function test_describe_sends_live_medium_vocabulary_including_admin_added_term(): void {
+		wp_insert_term( 'Ceramics', 'agnosis_medium' );
+
+		$config = new PromptConfig(
+			system_prompt:            'Pick a medium from: {medium_list}',
+			user_template:            '{artist_prompt}',
+			enhancement_instructions: 'Enhance',
+			tag_count:                5,
+			excerpt_words:            30,
+		);
+		$provider = new Anthropic( 'sk-ant-test', $config );
+
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_anthropic_body( [ 'title' => 'T', 'excerpt' => 'E', 'body' => 'B', 'tags' => [], 'alt_text' => 'A', 'medium' => 'Ceramics' ] ),
+			$captured
+		);
+
+		$provider->describe( 'imagedata', 'image/jpeg', '' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertStringContainsString( 'Ceramics', (string) ( $payload['system'] ?? '' ) );
+
+		wp_delete_term( (int) get_term_by( 'name', 'Ceramics', 'agnosis_medium' )->term_id, 'agnosis_medium' );
+	}
+
+	// =========================================================================
 	// Vision-input downscaling (agnosis_ai_vision_max_width_px, added 2026-07-06)
 	//
 	// The critical invariant these guard: describe()'s downscale must be

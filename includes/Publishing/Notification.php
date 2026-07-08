@@ -9,7 +9,9 @@
  *   • Edit before publishing — link to WP admin post editor.
  *   • Discard — token-signed REST call, trashes the draft.
  *
- * Tokens expire after 7 days (same window as the review_expiry meta).
+ * Tokens expire after Settings → Behaviour → "Review link expiry (days)"
+ * (agnosis_review_token_expiry_days, default 7 — same window as the
+ * review_expiry meta PostCreator/ApplicationBiography write).
  *
  * @package Agnosis\Publishing
  */
@@ -19,6 +21,7 @@ declare(strict_types=1);
 namespace Agnosis\Publishing;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
 
@@ -510,7 +513,20 @@ class Notification {
 		<?php endif; ?>
 
 		<p style="font-size:16px;color:#999;margin:0;">
-			<?php esc_html_e( 'The Publish and Discard links above expire in 7 days. Your submission stays as a draft until you decide.', 'agnosis' ); ?>
+			<?php
+			$review_expiry_days = max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) );
+			$review_expiry_text = sprintf(
+				/* translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab */
+				_n(
+					'The Publish and Discard links above expire in %d day. Your submission stays as a draft until you decide.',
+					'The Publish and Discard links above expire in %d days. Your submission stays as a draft until you decide.',
+					$review_expiry_days,
+					'agnosis'
+				),
+				$review_expiry_days
+			);
+			echo esc_html( $review_expiry_text );
+			?>
 		</p>
 	</td></tr>
 
@@ -973,12 +989,18 @@ class Notification {
 	}
 
 	/**
-	 * Build the From header using the site's admin email and name.
+	 * Build the From header for a submission-review email.
 	 *
-	 * @return string e.g. "My Site <noreply@example.com>"
+	 * Delegates to Core\CommunityMailer — the shared workflow/transactional
+	 * sender identity (Settings → Community → Rules), configured independently
+	 * from the Newsletter sender since this is one-off action mail (a review
+	 * link), not digest mail. Previously hardcoded to the site name and
+	 * admin_email with no way to configure it (2026-07-08).
+	 *
+	 * @return string e.g. "Agnosis <hello@agnosis.art>"
 	 */
 	private function sender_header(): string {
-		return sprintf( '%s <%s>', get_bloginfo( 'name' ), get_option( 'admin_email' ) );
+		return CommunityMailer::sender_header();
 	}
 
 	/**

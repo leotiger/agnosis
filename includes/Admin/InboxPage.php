@@ -110,6 +110,7 @@ class InboxPage {
 							$subject    = $data['subject'] ?? ( 'UID ' . esc_html( $row->message_uid ) );
 							$attach_n   = count( $data['attachments'] ?? [] );
 							$status     = $row->status;
+							$skip_reason = $data['skip_reason'] ?? '';
 							$error      = $row->error ?? '';
 							$created    = $row->created_at;
 							$artist_id  = (int) $row->artist_id;
@@ -174,7 +175,7 @@ class InboxPage {
 										<span style="color:#999">—</span>
 									<?php endif; ?>
 								</td>
-								<td><?php $this->render_status_badge( $status, $wp_post_status ); ?></td>
+								<td><?php $this->render_status_badge( $status, $wp_post_status, $skip_reason ); ?></td>
 								<td>
 									<span title="<?php echo esc_attr( $created ); ?>">
 										<?php echo esc_html( $this->human_date( $created ) ); ?>
@@ -365,7 +366,7 @@ class InboxPage {
 		<?php
 	}
 
-	private function render_status_badge( string $status, ?string $wp_post_status = null ): void {
+	private function render_status_badge( string $status, ?string $wp_post_status = null, string $skip_reason = '' ): void {
 		// For queue rows that completed the pipeline, show the *post's* actual status
 		// rather than the misleading "Published" queue label.
 		if ( 'published' === $status ) {
@@ -380,15 +381,26 @@ class InboxPage {
 					$b = [ 'bg' => '#e0e7ff', 'color' => '#3730a3', 'label' => __( 'Processed', 'agnosis' ) ];
 					break;
 			}
+		} elseif ( 'skipped' === $status ) {
+			// A flat gray "Skipped" reads as "nothing happened" — wrong for a
+			// reason like goodbye_handled, which (once the artist confirms via
+			// the emailed link) permanently deletes their entire account and
+			// content. Reason-specific labels (2026-07-08) replace that with
+			// wording that reflects what actually happened. $skip_reason is
+			// only populated for rows created after this fix (see
+			// Inbox::mark_no_artwork()) — an older row falls through to the
+			// generic 'Handled' label below, still accurate, just less specific.
+			$map = [
+				'goodbye_handled'    => [ 'bg' => '#ede9fe', 'color' => '#5b21b6', 'label' => __( 'Member Removed', 'agnosis' ) ],
+				'community_handled'  => [ 'bg' => '#dbeafe', 'color' => '#1d4ed8', 'label' => __( 'Broadcast Sent', 'agnosis' ) ],
+				'community_too_long' => [ 'bg' => '#fef3c7', 'color' => '#92400e', 'label' => __( 'Bounced (too long)', 'agnosis' ) ],
+			];
+			$b = $map[ $skip_reason ] ?? [ 'bg' => '#e5e7eb', 'color' => '#4b5563', 'label' => __( 'Handled', 'agnosis' ) ];
 		} else {
 			$map = [
 				'pending'    => [ 'bg' => '#dbeafe', 'color' => '#1d4ed8', 'label' => __( 'Pending',    'agnosis' ) ],
 				'processing' => [ 'bg' => '#fef3c7', 'color' => '#92400e', 'label' => __( 'Processing', 'agnosis' ) ],
 				'failed'     => [ 'bg' => '#fee2e2', 'color' => '#991b1b', 'label' => __( 'Failed',     'agnosis' ) ],
-				// Not an error — a message that was handled outside the artwork pipeline
-				// on purpose (e.g. a goodbye@ self-removal request). Deliberately not
-				// red/alarming like 'failed'.
-				'skipped'    => [ 'bg' => '#e5e7eb', 'color' => '#4b5563', 'label' => __( 'Skipped',    'agnosis' ) ],
 			];
 			$b = $map[ $status ] ?? [ 'bg' => '#f3f4f6', 'color' => '#374151', 'label' => ucfirst( $status ) ];
 		}

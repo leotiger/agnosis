@@ -24,11 +24,17 @@ namespace Agnosis\AI;
 class PromptConfig {
 
 	/**
-	 * Canonical medium taxonomy terms.
+	 * Default medium taxonomy terms, seeded into `agnosis_medium` on activation.
 	 *
-	 * This is the single source of truth — used both in the AI prompt (so the
-	 * model picks from exactly this list) and by Activator to seed the taxonomy.
-	 * Keep it between 8–10 entries; broad categories only.
+	 * This is a SEED list only, not the live vocabulary — Activator::seed_medium_terms()
+	 * inserts these once (idempotently) so a fresh install starts with a sensible
+	 * set, and medium_terms() below (not this constant) is what the AI prompt and
+	 * PostCreator's hallucination guard actually read at runtime. An admin can
+	 * freely add, rename, or remove terms under Artwork → Mediums afterwards —
+	 * same as WordPress Categories — and every change is picked up immediately,
+	 * with no code change or deploy. Kept here (rather than only in Activator)
+	 * since it's still the fallback medium_terms() itself uses when the taxonomy
+	 * is unregistered or has no terms at all.
 	 *
 	 * @var array<string>
 	 */
@@ -67,14 +73,60 @@ class PromptConfig {
 	}
 
 	/**
-	 * Resolve {tag_count} and {excerpt_words} tokens in the system prompt.
+	 * Resolve {tag_count}, {excerpt_words} and {medium_list} tokens in the system prompt.
+	 *
+	 * $medium_terms is injectable rather than looked up internally (via
+	 * medium_terms() below) so this stays a pure, WP-function-free value object —
+	 * PromptConfigTest exercises it under plain PHPUnit with no WordPress loaded
+	 * at all. Real callers (the OpenAI/Anthropic/WordPressAI providers) pass
+	 * PromptConfig::medium_terms() explicitly; omitting it falls back to the
+	 * CANONICAL_MEDIUMS seed list, which is what every existing caller/test that
+	 * doesn't pass this argument continues to see.
+	 *
+	 * @param array<string>|null $medium_terms Live medium vocabulary, or null for the seed default.
 	 */
-	public function resolved_system_prompt(): string {
+	public function resolved_system_prompt( ?array $medium_terms = null ): string {
 		return str_replace(
 			[ '{tag_count}', '{excerpt_words}', '{medium_list}' ],
-			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', self::CANONICAL_MEDIUMS ) ],
+			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', $medium_terms ?? self::CANONICAL_MEDIUMS ) ],
 			$this->system_prompt
 		);
+	}
+
+	/**
+	 * Live, current medium vocabulary — the term names an admin can add,
+	 * rename, or remove under Artwork → Mediums, exactly like WordPress
+	 * Categories. This — not the CANONICAL_MEDIUMS constant — is the source of
+	 * truth every real caller should read: the AI prompt's {medium_list} and
+	 * PostCreator::write_post_meta()'s hallucination guard both need to accept
+	 * whatever the admin has actually configured, not just the eight seed terms.
+	 *
+	 * Falls back to CANONICAL_MEDIUMS when the taxonomy isn't registered yet
+	 * (e.g. mid-activation, before Profile::register_taxonomy() has run on
+	 * `init`) or has no terms at all — never leaves the AI prompt or the
+	 * validation guard looking at an empty vocabulary.
+	 *
+	 * Calls the live WordPress term API (get_terms()), so this is NOT called
+	 * from resolved_system_prompt() itself — see that method's docblock for why.
+	 *
+	 * @return array<string>
+	 */
+	public static function medium_terms(): array {
+		if ( ! taxonomy_exists( 'agnosis_medium' ) ) {
+			return self::CANONICAL_MEDIUMS;
+		}
+
+		$terms = get_terms( [
+			'taxonomy'   => 'agnosis_medium',
+			'fields'     => 'names',
+			'hide_empty' => false,
+		] );
+
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return self::CANONICAL_MEDIUMS;
+		}
+
+		return $terms;
 	}
 
 	/**

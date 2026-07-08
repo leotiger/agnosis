@@ -47,7 +47,7 @@ class WordPressAI implements ProviderInterface {
 			);
 		}
 
-		$system = $this->config->resolved_system_prompt();
+		$system = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
 		// Append a note since we have no image to send.
 		$user = $this->config->build_user_message( $artist_prompt )
 			. "\n\n(Note: no image is available — generate artwork metadata solely from the artist's text above.)";

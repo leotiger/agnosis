@@ -19,10 +19,10 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\Artist\Admission;
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
 use Agnosis\Network\SubdomainRouter;
-use Agnosis\Newsletter\Mailer;
 
 class AdmissionNotification {
 
@@ -680,26 +680,36 @@ class AdmissionNotification {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	/** @return array<string> */
+	/**
+	 * Plain-text headers for the vote email, admin summary, and expiry
+	 * notices below.
+	 *
+	 * Previously carried no From header at all, so wp_mail() fell through to
+	 * WordPress's own PHPMailer default — "WordPress <wordpress@$domain>", an
+	 * address that doesn't exist and has no outbound mail configured, which is
+	 * exactly why a vouch-vote email could arrive looking like it came from
+	 * "WordPress" rather than the community (found 2026-07-08). Now delegates
+	 * to Core\CommunityMailer, the same workflow sender identity html_headers()
+	 * uses below.
+	 *
+	 * @return array<string>
+	 */
 	private function text_headers(): array {
-		return [ 'Content-Type: text/plain; charset=UTF-8' ];
+		return CommunityMailer::text_headers();
 	}
 
 	/**
 	 * Headers for the two HTML emails above (acknowledgment + welcome).
-	 * Mirrors Publishing\Notification's own HTML headers; delegates the From
-	 * header to Newsletter\Mailer::sender_header() (a general-purpose "site
-	 * name <admin_email>, or the configured override" builder despite its
-	 * namespace — the same helper Artist\Invitation already reuses) rather
-	 * than duplicating that logic a third time in this class.
+	 *
+	 * Delegates to Core\CommunityMailer — the shared workflow/transactional
+	 * sender identity (Settings → Community → Rules). Previously borrowed
+	 * Newsletter\Mailer::sender_header(), the wrong identity: an admission
+	 * acknowledgment or welcome email isn't digest mail (2026-07-08).
 	 *
 	 * @return array<string>
 	 */
 	private function html_headers(): array {
-		return [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . Mailer::sender_header(),
-		];
+		return CommunityMailer::html_headers();
 	}
 
 	/**

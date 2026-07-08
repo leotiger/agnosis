@@ -13,6 +13,16 @@
  *             (triggers ActivityPub broadcast).
  * On reject:  post moved to trash.
  *
+ * Post types (2026-07-08 fix): every method here used to hard-check
+ * `'agnosis_artwork' !== $post->post_type`, rejecting any biography or event
+ * draft with a 404 ("Submission not found") regardless of token validity —
+ * even though PostCreator::create_post() has always written the same
+ * `_agnosis_review_token`/`_agnosis_review_expiry` pair for all three CPTs,
+ * and Artist\ApplicationBiography explicitly documents biography drafts going
+ * through "the exact same review pipeline every other Agnosis post uses"
+ * (this class). RemovalEndpoints was already fixed for this (2026-07-06); this
+ * class was missed. Now gated on REVIEWABLE_POST_TYPES instead.
+ *
  * @package Agnosis\Publishing
  */
 
@@ -25,6 +35,9 @@ use WP_REST_Response;
 use WP_Error;
 
 class ReviewEndpoints {
+
+	/** Every CPT PostCreator::create_post() can draft with a review token. */
+	public const REVIEWABLE_POST_TYPES = [ 'agnosis_artwork', 'agnosis_biography', 'agnosis_event' ];
 
 	public function register_routes(): void {
 		$id_arg = [
@@ -81,7 +94,7 @@ class ReviewEndpoints {
 		$post_id = (int) $request->get_param( 'id' );
 
 		$post = get_post( $post_id );
-		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+		if ( ! $post || ! in_array( $post->post_type, self::REVIEWABLE_POST_TYPES, true ) ) {
 			return new WP_Error( 'agnosis_not_found', __( 'Submission not found.', 'agnosis' ), [ 'status' => 404 ] );
 		}
 
@@ -125,6 +138,7 @@ class ReviewEndpoints {
 		if ( $should_publish ) {
 			delete_post_meta( $post_id, '_agnosis_review_token' );
 			delete_post_meta( $post_id, '_agnosis_review_expiry' );
+			delete_post_meta( $post_id, '_agnosis_review_backtranslation' );
 			do_action( 'agnosis_post_published', $post_id );
 		}
 
@@ -142,7 +156,7 @@ class ReviewEndpoints {
 		$post_id = (int) $request->get_param( 'id' );
 
 		$post = get_post( $post_id );
-		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+		if ( ! $post || ! in_array( $post->post_type, self::REVIEWABLE_POST_TYPES, true ) ) {
 			return new WP_Error( 'agnosis_not_found', __( 'Submission not found.', 'agnosis' ), [ 'status' => 404 ] );
 		}
 
@@ -163,6 +177,7 @@ class ReviewEndpoints {
 		// Invalidate the token so the email link cannot be reused.
 		delete_post_meta( $post_id, '_agnosis_review_token' );
 		delete_post_meta( $post_id, '_agnosis_review_expiry' );
+		delete_post_meta( $post_id, '_agnosis_review_backtranslation' );
 
 		// Trigger ActivityPub broadcast and any other publish subscribers.
 		do_action( 'agnosis_post_published', $post_id );
@@ -181,7 +196,7 @@ class ReviewEndpoints {
 		$post_id = (int) $request->get_param( 'id' );
 
 		$post = get_post( $post_id );
-		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+		if ( ! $post || ! in_array( $post->post_type, self::REVIEWABLE_POST_TYPES, true ) ) {
 			return new WP_Error( 'agnosis_not_found', __( 'Submission not found.', 'agnosis' ), [ 'status' => 404 ] );
 		}
 
@@ -198,6 +213,7 @@ class ReviewEndpoints {
 
 		delete_post_meta( $post_id, '_agnosis_review_token' );
 		delete_post_meta( $post_id, '_agnosis_review_expiry' );
+		delete_post_meta( $post_id, '_agnosis_review_backtranslation' );
 
 		do_action( 'agnosis_submission_rejected', $post_id, (int) $post->post_author, 0, [] );
 
