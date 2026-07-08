@@ -329,6 +329,15 @@ class Settings {
 				}
 				echo '</select>';
 				break;
+			case 'page':
+				wp_dropdown_pages( [
+					'name'              => esc_attr( $key ),
+					'id'                => esc_attr( $key ),
+					'selected'          => (int) $value,
+					'show_option_none'  => esc_html__( '— None (inline message only) —', 'agnosis' ),
+					'option_none_value' => 0,
+				] );
+				break;
 			case 'textarea':
 				$rows = $field['rows'] ?? 6;
 				echo '<textarea id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" rows="' . esc_attr( (string) $rows ) . '" class="large-text code">' . esc_textarea( $value ) . '</textarea>';
@@ -937,10 +946,10 @@ class Settings {
 			'agnosis_join_success_url' => [
 				'tab'      => 'community',
 				'label'    => __( 'After applying, send artists to', 'agnosis' ),
-				'input'    => 'text',
-				'default'  => '',
-				'sanitize' => 'esc_url_raw',
-				'desc'     => __( 'Optional URL — e.g. a page explaining the vouching process and what happens next. When the application is submitted successfully, the artist is redirected here instead of just seeing an inline confirmation message. Leave blank to keep the inline message only.', 'agnosis' ),
+				'input'    => 'page',
+				'default'  => 0,
+				'sanitize' => 'absint',
+				'desc'     => __( 'Optional — pick a page explaining the vouching process and what happens next. When the application is submitted successfully, the artist is redirected there instead of just seeing an inline confirmation message. Leave as "None" to keep the inline message only.', 'agnosis' ),
 			],
 			'agnosis_community_max_artists' => [
 				'tab'     => 'community',

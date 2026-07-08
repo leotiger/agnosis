@@ -213,15 +213,34 @@ class JoinPage {
 	}
 
 	/**
-	 * Optional post-success redirect URL (Settings → Network → "After applying,
-	 * send artists to"). Lets the operator point a successful applicant at a
-	 * page explaining the vouching process / voting window / what happens
-	 * next, instead of just the inline confirmation message. Empty string
-	 * when unconfigured — frontend.js then falls back to the inline message
-	 * only, exactly as before this setting existed.
+	 * Optional post-success redirect URL (Settings → Community → "After
+	 * applying, send artists to"). Lets the operator point a successful
+	 * applicant at a page explaining the vouching process / voting window /
+	 * what happens next, instead of just the inline confirmation message.
+	 * Empty string when unconfigured — frontend.js then falls back to the
+	 * inline message only, exactly as before this setting existed.
+	 *
+	 * 2026-07-08: this setting is now a WP page selector (a dropdown of the
+	 * site's own pages) rather than a free-text URL field, so the option
+	 * normally holds a page ID — resolved to its permalink here. Sites that
+	 * configured this before the change still have a raw URL string stored;
+	 * that is honoured as-is until the setting is next saved through the new
+	 * dropdown (at which point it becomes a page ID like everyone else's).
 	 */
 	private function success_redirect_url(): string {
-		return (string) get_option( 'agnosis_join_success_url', '' );
+		$value = get_option( 'agnosis_join_success_url', '' );
+
+		if ( is_numeric( $value ) ) {
+			$page_id = (int) $value;
+			if ( $page_id <= 0 ) {
+				return '';
+			}
+			$permalink = get_permalink( $page_id );
+			return $permalink ?: '';
+		}
+
+		// Back-compat: pre-existing raw URL string (see docblock above).
+		return (string) $value;
 	}
 
 	// -------------------------------------------------------------------------

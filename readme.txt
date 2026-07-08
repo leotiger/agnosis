@@ -64,6 +64,7 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 == Changelog ==
 
 = 0.9.9 =
+* Added: The "After applying, send artists to" setting under Settings → Community is now a page picker — choose a page from a dropdown of your site's own pages instead of hand-typing its URL. A previously typed-in URL keeps working until you next save that setting.
 * Fixed: One more email missed by the "WordPress" sender fix below — the admin notice reviewing an AI-drafted newsletter intro before it sends. Now uses the Newsletter sender address like the rest of the newsletter's mail.
 * Fixed: Clicking the self-removal confirmation link in the "goodbye" email could send your browser into an endless redirect loop ("Too many redirects"), even though the removal itself had already gone through. You'll now see a plain confirmation page instead.
 * Fixed: An artist who confirmed self-removal was never actually told their account and content were gone for good — only the site admin was notified. They now get their own confirmation email, in their own language, spelling out that nothing of theirs is stored on the site anymore.
