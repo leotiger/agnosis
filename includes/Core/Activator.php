@@ -40,6 +40,23 @@ class Activator {
 			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue ADD INDEX idx_post_id (post_id)" );
 		}
 
+		// Extend agnosis_queue.status ENUM to include 'skipped' (0.9.7). Needed for
+		// two independent reasons that both landed at the same time: (1) an intake-
+		// gate skip that represents a genuine success (e.g. a goodbye@ self-removal
+		// request) was previously forced into 'failed', showing a false "Failed"
+		// badge in the Inbox admin table; (2) PostCreator::handle() already called
+		// $this->mark($queue_id, 'skipped') when an artist's admission status changed
+		// between enqueue and processing, but 'skipped' was never a valid ENUM value
+		// for this column — that write silently failed (or was coerced to '' under
+		// non-strict SQL modes). dbDelta cannot modify ENUMs, so — same as the
+		// agnosis_applications.status extensions below — this is done via ALTER TABLE.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$queue_status_col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_queue LIKE 'status'" );
+		if ( $queue_status_col && false === strpos( (string) $queue_status_col->Type, 'skipped' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_queue MODIFY COLUMN status ENUM('pending','processing','published','failed','skipped') NOT NULL DEFAULT 'pending'" );
+		}
+
 		// Add revoked_at to agnosis_vouches if missing (column added in 0.1.8).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$has_revoked_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_vouches LIKE 'revoked_at'" );
@@ -240,7 +257,7 @@ class Activator {
 			artist_id    BIGINT UNSIGNED DEFAULT NULL,
 			post_id      BIGINT UNSIGNED DEFAULT NULL,
 			raw_email    LONGTEXT        NOT NULL,
-			status       ENUM('pending','processing','published','failed') NOT NULL DEFAULT 'pending',
+			status       ENUM('pending','processing','published','failed','skipped') NOT NULL DEFAULT 'pending',
 			error        TEXT            DEFAULT NULL,
 			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

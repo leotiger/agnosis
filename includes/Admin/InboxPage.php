@@ -385,6 +385,10 @@ class InboxPage {
 				'pending'    => [ 'bg' => '#dbeafe', 'color' => '#1d4ed8', 'label' => __( 'Pending',    'agnosis' ) ],
 				'processing' => [ 'bg' => '#fef3c7', 'color' => '#92400e', 'label' => __( 'Processing', 'agnosis' ) ],
 				'failed'     => [ 'bg' => '#fee2e2', 'color' => '#991b1b', 'label' => __( 'Failed',     'agnosis' ) ],
+				// Not an error — a message that was handled outside the artwork pipeline
+				// on purpose (e.g. a goodbye@ self-removal request). Deliberately not
+				// red/alarming like 'failed'.
+				'skipped'    => [ 'bg' => '#e5e7eb', 'color' => '#4b5563', 'label' => __( 'Skipped',    'agnosis' ) ],
 			];
 			$b = $map[ $status ] ?? [ 'bg' => '#f3f4f6', 'color' => '#374151', 'label' => ucfirst( $status ) ];
 		}
