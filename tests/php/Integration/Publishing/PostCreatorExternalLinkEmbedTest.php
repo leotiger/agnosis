@@ -4,21 +4,31 @@
  *
  * When an artist's file is too large to email (typically a video), the guide
  * tells them to include a link to their preferred platform instead. This
- * covers build_external_link_embeds() / is_allowed_embed_host() /
- * build_embed_block() — the private methods that scan the artist's raw
- * submitted text for links and turn each allowlisted one into a wp:embed
- * block appended at the bottom of the post.
+ * covers build_external_link_embeds() / build_embed_block() — the private
+ * methods that scan the artist's raw submitted text for links and turn each
+ * allowlisted one into a wp:embed block appended at the bottom of the post.
  *
- * The allowlist is a hard safety boundary (see ALLOWED_EMBED_HOSTS's
- * docblock in PostCreator.php): this pipeline never fetches or inspects what
- * a linked page actually contains, so "reject commercial/adult sites" is
- * achieved structurally, by only ever trusting a short list of known
- * video/audio platforms — not by trying to detect what to exclude. These
- * tests exist mainly to prove that boundary actually holds.
+ * As of 0.9.8, trust is decided by Publishing\EmbedPolicy, shared with
+ * Artist\ApplicationBiography's portfolio-URL embed. The curated host list
+ * (formerly the hardcoded ALLOWED_EMBED_HOSTS constant here, now the
+ * settings-driven, still-filterable EmbedPolicy::is_trusted_host(), called
+ * directly by build_external_link_embeds() — PostCreator no longer has its
+ * own is_allowed_embed_host() wrapper) remains a fast path requiring no
+ * network access; everything below in this file that predates 0.9.8
+ * exercises exactly that path, with AI review left at its default
+ * (disabled), so a non-trusted host is still always rejected — these tests
+ * exist mainly to prove that boundary still holds. The AI-review escalation
+ * path itself (fetch + classify, admin-configurable categories, fail-closed
+ * behaviour) is covered in depth by EmbedPolicyTest; the two tests at the
+ * bottom of this file only confirm PostCreator actually wires up to it
+ * correctly end-to-end.
  *
- * Methods are private and exercised via ReflectionMethod, same pattern as
- * PostCreatorGalleryAudioSkipTest. No AI calls are made — a minimal Pipeline
- * stub is injected.
+ * build_external_link_embeds()/build_post_content() are private and
+ * exercised via ReflectionMethod, same pattern as
+ * PostCreatorGalleryAudioSkipTest; call_is_allowed_host() below calls
+ * EmbedPolicy::is_trusted_host() directly since that method is public.
+ * No real AI calls or network requests are ever made — Pipeline and, where
+ * needed, HTTP fetches are stubbed/mocked.
  *
  * @package Agnosis\Tests\Integration\Publishing
  */
@@ -28,17 +38,24 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Publishing;
 
 use Agnosis\AI\Pipeline;
+use Agnosis\Publishing\EmbedPolicy;
 use Agnosis\Publishing\PostCreator;
 
 class PostCreatorExternalLinkEmbedTest extends \WP_UnitTestCase {
 
 	private PostCreator $creator;
 
+	/** The no-AI Pipeline stub used by $this->creator — reused by tests that need a fresh PostCreator with a custom EmbedPolicy. */
+	private Pipeline $pipeline;
+
+	/** The pre_http_request filter closure registered for the current test, if any. */
+	private ?\Closure $http_filter = null;
+
 	protected function setUp(): void {
 		parent::setUp();
 
 		// Minimal Pipeline stub — no AI calls, no WP option resolution.
-		$pipeline = new class() extends Pipeline {
+		$this->pipeline = new class() extends Pipeline {
 			public function __construct() {}
 			/** @param array<string, mixed> $submission */
 			public function process( array $submission, bool $skip_enhancement = false ): array {
@@ -46,7 +63,33 @@ class PostCreatorExternalLinkEmbedTest extends \WP_UnitTestCase {
 			}
 		};
 
-		$this->creator = new PostCreator( $pipeline );
+		$this->creator = new PostCreator( $this->pipeline );
+	}
+
+	protected function tearDown(): void {
+		$this->remove_http_mock();
+		parent::tearDown();
+	}
+
+	/** Short-circuit wp_safe_remote_get() with a canned successful HTML response — no real network access. */
+	private function mock_http_success( string $html = '<html><head><title>Some Page</title></head><body>Body text.</body></html>' ): void {
+		$this->http_filter = function () use ( $html ) {
+			return [
+				'headers'  => [],
+				'body'     => $html,
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'cookies'  => [],
+				'filename' => null,
+			];
+		};
+		add_filter( 'pre_http_request', $this->http_filter, 10, 3 );
+	}
+
+	private function remove_http_mock(): void {
+		if ( $this->http_filter ) {
+			remove_filter( 'pre_http_request', $this->http_filter, 10 );
+			$this->http_filter = null;
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -59,10 +102,15 @@ class PostCreatorExternalLinkEmbedTest extends \WP_UnitTestCase {
 		return $ref->invoke( $this->creator, $artist_text );
 	}
 
+	/**
+	 * PostCreator no longer has its own is_allowed_embed_host() wrapper — it
+	 * calls EmbedPolicy::is_trusted_host() directly at its one call site in
+	 * build_external_link_embeds() (the wrapper was dead code once nothing
+	 * else referenced it). EmbedPolicy::is_trusted_host() is public and
+	 * static, so no ReflectionMethod is needed here any more either.
+	 */
 	private function call_is_allowed_host( string $host ): bool {
-		$ref = new \ReflectionMethod( PostCreator::class, 'is_allowed_embed_host' );
-		$ref->setAccessible( true );
-		return $ref->invoke( $this->creator, $host );
+		return EmbedPolicy::is_trusted_host( $host );
 	}
 
 	private function call_build_post_content( array $primary, array $gallery, string $post_type, string $artist_text ): string {
@@ -197,5 +245,53 @@ class PostCreatorExternalLinkEmbedTest extends \WP_UnitTestCase {
 		$content = $this->call_build_post_content( $primary, [], 'agnosis_artwork', 'No links in this message.' );
 
 		$this->assertSame( '<p>AI-written description.</p>', $content );
+	}
+
+	// -------------------------------------------------------------------------
+	// AI review escalation — confirms build_external_link_embeds() actually
+	// wires up to EmbedPolicy end-to-end (the AI-review mechanics themselves —
+	// fetch failure, inconclusive response, category configuration — are
+	// covered in depth by EmbedPolicyTest, not repeated here).
+	// -------------------------------------------------------------------------
+
+	public function test_ai_approved_link_produces_embed_when_ai_vetting_enabled(): void {
+		update_option( 'agnosis_embed_ai_vetting_enabled', 1 );
+		update_option( 'agnosis_embed_block_adult', 1 );
+		$this->mock_http_success();
+
+		$ai_pipeline = new class() extends Pipeline {
+			public function __construct() {}
+			public function classify_link( string $title, string $description, string $snippet, array $disallowed_categories ): ?bool {
+				return true; // AI approves.
+			}
+		};
+		$creator = new PostCreator( $this->pipeline, new EmbedPolicy( $ai_pipeline ) );
+
+		$ref = new \ReflectionMethod( PostCreator::class, 'build_external_link_embeds' );
+		$ref->setAccessible( true );
+		$result = $ref->invoke( $creator, 'Check my other work: https://a-random-personal-site.example/gallery' );
+
+		$this->assertStringContainsString( '<!-- wp:embed', $result );
+		$this->assertStringContainsString( 'a-random-personal-site.example', $result );
+	}
+
+	public function test_ai_rejected_link_produces_no_embed(): void {
+		update_option( 'agnosis_embed_ai_vetting_enabled', 1 );
+		update_option( 'agnosis_embed_block_adult', 1 );
+		$this->mock_http_success();
+
+		$ai_pipeline = new class() extends Pipeline {
+			public function __construct() {}
+			public function classify_link( string $title, string $description, string $snippet, array $disallowed_categories ): ?bool {
+				return false; // AI rejects.
+			}
+		};
+		$creator = new PostCreator( $this->pipeline, new EmbedPolicy( $ai_pipeline ) );
+
+		$ref = new \ReflectionMethod( PostCreator::class, 'build_external_link_embeds' );
+		$ref->setAccessible( true );
+		$result = $ref->invoke( $creator, 'Check my other work: https://a-random-personal-site.example/gallery' );
+
+		$this->assertSame( '', $result );
 	}
 }

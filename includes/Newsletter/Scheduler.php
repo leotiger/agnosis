@@ -12,7 +12,12 @@
  *
  * This same daily tick also carries Subscriber::expire_stale_pending(), a
  * small piece of unrelated subscriber-table housekeeping (security audit
- * §2d) piggybacked here rather than given its own scheduled event.
+ * §2d) piggybacked here rather than given its own scheduled event, and (see
+ * propose_intro_if_due()) an AI-drafted intro proposal roughly 24 hours
+ * before an issue is actually due — an admin no longer has to hand-write the
+ * "Artist/Public newsletter intro" field from scratch every cycle; a draft
+ * is waiting for them to review, edit, or clear, and they're emailed once
+ * when it's ready.
  *
  * Clock handling (security audit §3e): every timestamp this class writes or
  * reads for its own scheduling decisions (sent_at, since_window(), is_due())
@@ -21,7 +26,8 @@
  * never true UTC/gmdate() mixed in. is_due() converts $last_sent to a real
  * Unix epoch via get_gmt_from_date() (DST-correct, via wp_timezone()) rather
  * than a bare strtotime(), which would silently substitute PHP's own ini
- * timezone for the site's configured one.
+ * timezone for the site's configured one. next_due_at() (used by the intro
+ * proposal) reuses the same conversion for the same reason.
  *
  * @package Agnosis\Newsletter
  */
@@ -30,6 +36,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\AI\Pipeline;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
 
@@ -37,9 +44,20 @@ class Scheduler {
 
 	private const TYPES = [ 'artist', 'public' ];
 
+	private Pipeline $pipeline;
+
+	/**
+	 * @param Pipeline|null $pipeline Injectable for tests; production callers
+	 *                                get a fully-configured Pipeline automatically.
+	 */
+	public function __construct( ?Pipeline $pipeline = null ) {
+		$this->pipeline = $pipeline ?? new Pipeline();
+	}
+
 	/**
 	 * Hook callback for 'agnosis_prepare_newsletters' — checks both newsletter
-	 * types and prepares any that are due.
+	 * types and prepares any that are due, and proposes an AI-drafted intro
+	 * for any about to become due (see propose_intro_if_due()).
 	 */
 	public function prepare(): void {
 		// Unrelated to newsletter issues themselves, but this is the existing
@@ -51,6 +69,7 @@ class Scheduler {
 			if ( ! get_option( "agnosis_newsletter_{$type}_enabled" ) ) {
 				continue;
 			}
+			$this->propose_intro_if_due( $type );
 			if ( $this->is_due( $type ) ) {
 				$this->prepare_type( $type );
 			}
@@ -221,6 +240,128 @@ class Scheduler {
 		$fallback->modify( sprintf( '-%d seconds', $frequency_days * DAY_IN_SECONDS ) );
 
 		return $fallback->format( 'Y-m-d H:i:s' );
+	}
+
+	/**
+	 * Unix timestamp of when $type's next issue is due, or null when it has
+	 * never been sent — there is no established cadence yet to look ahead of,
+	 * so propose_intro_if_due() simply does nothing for a newsletter's very
+	 * first cycle (the admin writes that one by hand, same as today).
+	 *
+	 * Same get_gmt_from_date() conversion as is_due(), for the same reason —
+	 * see the class docblock (security audit §3e).
+	 */
+	private function next_due_at( string $type ): ?int {
+		$last_sent = $this->last_sent_at( $type );
+		if ( null === $last_sent ) {
+			return null;
+		}
+
+		$frequency_days = max( 1, (int) get_option( "agnosis_newsletter_{$type}_frequency_days", 30 ) );
+		$last_sent_ts   = strtotime( get_gmt_from_date( $last_sent ) . ' +0000' );
+
+		return $last_sent_ts + $frequency_days * DAY_IN_SECONDS;
+	}
+
+	/** Admin-configurable lead time (agnosis_newsletter_intro_proposal_lead_hours, default 24) in seconds. */
+	private function intro_proposal_lead_seconds(): int {
+		return max( 1, (int) get_option( 'agnosis_newsletter_intro_proposal_lead_hours', 24 ) ) * HOUR_IN_SECONDS;
+	}
+
+	/**
+	 * Draft an AI intro and email the admin a proposal, roughly
+	 * intro_proposal_lead_seconds() (default ~24h, admin-configurable) before
+	 * $type's next issue is due.
+	 *
+	 * Self-deduplicating without any extra cleanup: the "already proposed"
+	 * marker is keyed to the specific due timestamp it was generated for, and
+	 * that timestamp moves forward the moment the real issue actually sends
+	 * (last_sent_at() changes), so the next cycle's check naturally no longer
+	 * matches the old marker — nothing needs to be reset after a send.
+	 *
+	 * Does nothing (no generation, no email) when: the feature is disabled
+	 * entirely (agnosis_newsletter_intro_proposal_enabled); the newsletter has
+	 * never sent before (see next_due_at()); the next issue isn't within the
+	 * lead window yet; a proposal was already generated for this specific due
+	 * date; or the admin already has non-empty intro text saved for this
+	 * cycle (their own text, or an already-proposed draft — either way,
+	 * nothing to add, and overwriting it would risk clobbering an edit made
+	 * since).
+	 */
+	private function propose_intro_if_due( string $type ): void {
+		if ( ! (bool) get_option( 'agnosis_newsletter_intro_proposal_enabled', true ) ) {
+			return;
+		}
+
+		$due_at = $this->next_due_at( $type );
+		if ( null === $due_at ) {
+			return;
+		}
+
+		$lead = $due_at - time();
+		if ( $lead <= 0 || $lead > $this->intro_proposal_lead_seconds() ) {
+			return;
+		}
+
+		$marker_key = "agnosis_newsletter_{$type}_intro_proposed_for";
+		if ( (string) $due_at === (string) get_option( $marker_key, '' ) ) {
+			return; // Already proposed for this specific cycle.
+		}
+
+		if ( '' !== trim( (string) get_option( "agnosis_newsletter_{$type}_intro", '' ) ) ) {
+			// The admin already has something written for this cycle — mark
+			// this due date as handled so we stop checking, but don't touch
+			// their text or send a redundant email.
+			update_option( $marker_key, (string) $due_at );
+			return;
+		}
+
+		$context = Digest::build_intro_context( $type, $this->since_window( $type ) );
+		$draft   = trim( $this->pipeline->generate_newsletter_intro( $type, get_bloginfo( 'name' ), $context ) );
+
+		// Mark this cycle handled regardless of outcome — a provider failure
+		// or "nothing to summarise" should not be retried every single day
+		// until the lead window closes; the admin can still write one by hand.
+		update_option( $marker_key, (string) $due_at );
+
+		if ( '' === $draft ) {
+			Logger::info( sprintf( 'Newsletter (%s): no intro proposal generated (nothing new to summarise, or the AI provider failed).', $type ), 'newsletter' );
+			return;
+		}
+
+		update_option( "agnosis_newsletter_{$type}_intro", $draft );
+		$this->notify_admin_of_proposed_intro( $type, $draft );
+
+		Logger::info( sprintf( 'Newsletter (%s): AI-drafted intro proposed and saved — admin notified.', $type ), 'newsletter' );
+	}
+
+	/** Email the admin the AI-drafted intro, with a link to review/edit it before it sends. */
+	private function notify_admin_of_proposed_intro( string $type, string $draft ): void {
+		$site_name  = get_bloginfo( 'name' );
+		$label      = 'artist' === $type ? __( 'Artist newsletter', 'agnosis' ) : __( 'Public newsletter', 'agnosis' );
+		$settings_url = admin_url( 'admin.php?page=agnosis-settings&tab=newsletter' );
+
+		$body = sprintf(
+			/* translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name */
+			__( "The %1\$s at %2\$s is due to send in about a day. Agnosis drafted an intro from what's new since the last issue:", 'agnosis' ),
+			$label,
+			$site_name
+		) . "\n\n"
+			. '"' . $draft . '"' . "\n\n"
+			. __( "It's already saved and will be used as-is if you don't act — review it, rewrite it, or clear it back to blank here:", 'agnosis' ) . "\n"
+			. $settings_url;
+
+		wp_mail(
+			get_option( 'admin_email' ),
+			sprintf(
+				/* translators: 1: newsletter label, 2: site name */
+				__( '%1$s intro drafted for %2$s — review before it sends', 'agnosis' ),
+				$label,
+				$site_name
+			),
+			$body,
+			[ 'Content-Type: text/plain; charset=UTF-8' ]
+		);
 	}
 
 	/**

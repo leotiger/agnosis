@@ -67,6 +67,19 @@ class PipelineMergeBiographyTest extends TestCase {
 		);
 	}
 
+	public function test_prompt_instructs_disregarding_mail_footers(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->stringContains( 'mail-client footers' ) )
+			->willReturn( 'merged' );
+
+		$this->make_pipeline( $provider )->merge_biography(
+			'Ana is a sculptor based in Madrid.',
+			'I just won the Premio Nacional.'
+		);
+	}
+
 	// -------------------------------------------------------------------------
 	// Short-circuit on empty input
 	// -------------------------------------------------------------------------

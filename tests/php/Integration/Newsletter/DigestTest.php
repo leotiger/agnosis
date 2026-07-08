@@ -163,4 +163,81 @@ class DigestTest extends \WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Nova Artist', $html );
 	}
+
+	// =========================================================================
+	// build_intro_context() — structured summary for the AI intro drafter
+	// =========================================================================
+
+	public function test_intro_context_includes_artwork_title_excerpt_tags_and_medium(): void {
+		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+
+		$id = $this->make_artwork( 'Context Piece', gmdate( 'Y-m-d H:i:s' ) );
+		wp_update_post( [ 'ID' => $id, 'post_excerpt' => 'A striking new work.' ] );
+		wp_set_post_tags( $id, [ 'blue', 'abstract' ] );
+		wp_set_object_terms( $id, 'Oil Painting', 'agnosis_medium' );
+
+		$context = Digest::build_intro_context( 'public', $since );
+
+		$this->assertCount( 1, $context['artworks'] );
+		$item = $context['artworks'][0];
+		$this->assertSame( 'Context Piece', $item['title'] );
+		$this->assertSame( 'A striking new work.', $item['excerpt'] );
+		$this->assertContains( 'blue', $item['tags'] );
+		$this->assertContains( 'abstract', $item['tags'] );
+		$this->assertContains( 'Oil Painting', $item['medium'] );
+	}
+
+	public function test_intro_context_events_have_no_medium_key_value(): void {
+		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+
+		wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_title'  => 'Context Event',
+			'post_date'   => gmdate( 'Y-m-d H:i:s' ),
+			'post_author' => self::factory()->user->create(),
+		] );
+
+		$context = Digest::build_intro_context( 'public', $since );
+
+		$this->assertCount( 1, $context['events'] );
+		$this->assertSame( [], $context['events'][0]['medium'] ?? [], 'Events carry no agnosis_medium terms — the key must be absent or empty, never populated from an unrelated artwork.' );
+	}
+
+	public function test_intro_context_public_type_omits_members_and_votes(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$context = Digest::build_intro_context( 'public', $since );
+
+		$this->assertArrayNotHasKey( 'new_members', $context );
+		$this->assertArrayNotHasKey( 'open_votes', $context );
+	}
+
+	public function test_intro_context_artist_type_includes_new_members(): void {
+		global $wpdb;
+		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'email'        => 'context-member@example.com',
+				'display_name' => 'Context Artist',
+				'status'       => 'admitted',
+				'resolved_at'  => current_time( 'mysql' ),
+			],
+			[ '%s', '%s', '%s', '%s' ]
+		);
+
+		$context = Digest::build_intro_context( 'artist', $since );
+
+		$this->assertContains( 'Context Artist', $context['new_members'] );
+		$this->assertSame( 0, $context['open_votes'] );
+	}
+
+	public function test_intro_context_empty_when_nothing_new(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$context = Digest::build_intro_context( 'public', $since );
+
+		$this->assertSame( [], $context['artworks'] );
+		$this->assertSame( [], $context['events'] );
+	}
 }

@@ -78,31 +78,10 @@ class PostCreator {
 	private const ENDPOINT_PURE    = 'pure';
 
 	/**
-	 * Hosts an artist-submitted link is allowed to become a wp:embed block for
-	 * (e.g. a video too large to email, hosted elsewhere instead).
-	 *
-	 * This is a hard allowlist, not a denylist, and that distinction is the
-	 * entire safety mechanism: there is no code anywhere in this pipeline that
-	 * fetches or inspects what a linked page actually contains (no browsing,
-	 * no vision call on the destination), so there is no reliable way to
-	 * detect "this is a commercial site" or "this is pornographic" after the
-	 * fact. Trusting only a short, maintained list of known video/audio
-	 * platforms achieves the same goal by construction — anything not on this
-	 * list, whatever it is, never gets embedded. Filterable so an operator can
-	 * add a platform (e.g. a self-hosted PeerTube instance) without a plugin
-	 * update.
+	 * Video-type (vs. generic "rich") hosts, purely for the block's cosmetic
+	 * `type` attribute — see build_embed_block(). Whether a host is trusted
+	 * enough to embed at all is decided by EmbedPolicy, not this list.
 	 */
-	private const ALLOWED_EMBED_HOSTS = [
-		'youtube.com',
-		'youtu.be',
-		'vimeo.com',
-		'dailymotion.com',
-		'soundcloud.com',
-		'bandcamp.com',
-		'archive.org',
-	];
-
-	/** Video-type (vs. generic "rich") hosts, purely for the block's cosmetic `type` attribute. */
 	private const VIDEO_EMBED_HOSTS = [ 'youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com' ];
 
 	/** Cap on how many external links a single submission can turn into embeds — avoids link-spam in the body. */
@@ -111,17 +90,24 @@ class PostCreator {
 	/** @var Pipeline AI pipeline instance. */
 	private Pipeline $pipeline;
 
+	/** @var EmbedPolicy Decides whether a submitted link may become a wp:embed block. */
+	private EmbedPolicy $embed_policy;
+
 	/**
-	 * Inject or auto-create the AI pipeline.
+	 * Inject or auto-create the AI pipeline (and, from it, the embed policy).
 	 *
-	 * Accepts an optional Pipeline so tests can pass a lightweight stub without
-	 * hitting real AI endpoints. Production code calls `new PostCreator()` and
-	 * gets a fully-configured pipeline automatically.
+	 * Accepts optional collaborators so tests can pass lightweight stubs
+	 * without hitting real AI endpoints or the network. Production code calls
+	 * `new PostCreator()` and gets fully-configured ones automatically.
 	 *
-	 * @param Pipeline|null $pipeline Pipeline instance, or null to create one.
+	 * @param Pipeline|null    $pipeline     Pipeline instance, or null to create one.
+	 * @param EmbedPolicy|null $embed_policy EmbedPolicy instance, or null to create one
+	 *                                       (reusing $pipeline, so an injected AI stub
+	 *                                       covers both artwork description and link review).
 	 */
-	public function __construct( ?Pipeline $pipeline = null ) {
-		$this->pipeline = $pipeline ?? new Pipeline();
+	public function __construct( ?Pipeline $pipeline = null, ?EmbedPolicy $embed_policy = null ) {
+		$this->pipeline     = $pipeline ?? new Pipeline();
+		$this->embed_policy = $embed_policy ?? new EmbedPolicy( $this->pipeline );
 	}
 
 	/**
@@ -1363,15 +1349,16 @@ class PostCreator {
 	}
 
 	/**
-	 * Scan the artist's raw submitted text for links and turn each allowlisted
-	 * one into a wp:embed block, for when the actual file (typically a video)
-	 * was too large to email and the artist points to it elsewhere instead
-	 * (YouTube, Vimeo, SoundCloud, Bandcamp, …). Appended at the very bottom
-	 * of the post, after all attached media and body text.
+	 * Scan the artist's raw submitted text for links and turn each one
+	 * EmbedPolicy approves into a wp:embed block, for when the actual file
+	 * (typically a video) was too large to email and the artist points to it
+	 * elsewhere instead (YouTube, Vimeo, SoundCloud, Bandcamp, … or, if the
+	 * admin has enabled AI review, any other site the AI doesn't reject — see
+	 * EmbedPolicy::is_allowed()). Appended at the very bottom of the post,
+	 * after all attached media and body text.
 	 *
-	 * Deliberately allowlist-only — see ALLOWED_EMBED_HOSTS for why. A link
-	 * to anything not on that list (or its filtered extension) is silently
-	 * dropped and logged, never embedded, never shown as a raw link either.
+	 * A link EmbedPolicy does not approve is silently dropped and logged,
+	 * never embedded, never shown as a raw link either.
 	 *
 	 * @param string $artist_text Raw submitted email body (pre-translation, pre-AI).
 	 * @return string Zero or more wp:embed blocks, each followed by a blank line; '' if none.
@@ -1411,9 +1398,9 @@ class PostCreator {
 				continue;
 			}
 
-			if ( ! $this->is_allowed_embed_host( $host ) ) {
+			if ( ! $this->embed_policy->is_allowed( $url ) ) {
 				Logger::info(
-					sprintf( 'PostCreator: link to "%s" is not on the embeddable-platform allowlist — omitted from post content.', $host ),
+					sprintf( 'PostCreator: link to "%s" was not approved for embedding — omitted from post content.', $host ),
 					'publisher'
 				);
 				continue;
@@ -1427,43 +1414,6 @@ class PostCreator {
 	}
 
 	/**
-	 * Whether $host is, or is a subdomain of, an allowlisted embed platform
-	 * (e.g. "myname.bandcamp.com" matches the "bandcamp.com" entry).
-	 *
-	 * Filterable via 'agnosis_embed_host_allowlist' so an operator can add a
-	 * platform without a plugin update. Filtering only ever ADDS trust — there
-	 * is no corresponding way to shrink the list at runtime below
-	 * ALLOWED_EMBED_HOSTS from inside this method, by design.
-	 *
-	 * @param string $host Lowercased hostname from the URL (may include "www.").
-	 */
-	private function is_allowed_embed_host( string $host ): bool {
-		if ( str_starts_with( $host, 'www.' ) ) {
-			$host = substr( $host, 4 );
-		}
-
-		/**
-		 * Filters the list of hostnames an artist-submitted link may point to
-		 * in order to become a wp:embed block. Additive to ALLOWED_EMBED_HOSTS.
-		 *
-		 * @param string[] $hosts Base hostnames (subdomains match automatically).
-		 */
-		$allowed = (array) apply_filters( 'agnosis_embed_host_allowlist', self::ALLOWED_EMBED_HOSTS );
-
-		foreach ( $allowed as $allowed_host ) {
-			$allowed_host = strtolower( trim( (string) $allowed_host ) );
-			if ( '' === $allowed_host ) {
-				continue;
-			}
-			if ( $host === $allowed_host || str_ends_with( $host, '.' . $allowed_host ) ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Build a minimal Gutenberg core/embed block for an allowlisted URL.
 	 *
 	 * Only the URL itself needs to be correct — core/embed is a dynamic block;
@@ -1473,7 +1423,7 @@ class PostCreator {
 	 * included only as a best-effort cosmetic hint, not a functional
 	 * requirement.
 	 *
-	 * @param string $url  Already-validated, allowlisted URL.
+	 * @param string $url  URL already approved by EmbedPolicy::is_allowed().
 	 * @param string $host Lowercased hostname (used only to guess the cosmetic "type").
 	 * @return string Block markup string.
 	 */

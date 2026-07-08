@@ -126,7 +126,8 @@ class PromptConfig {
 			. 'The artist\'s email is their voice — treat it with respect.' . "\n"
 			. '- Where they describe their intent, process or story: honour those words and let them anchor your writing.' . "\n"
 			. '- Where they say nothing, or very little: let the image speak, and write from what you see.' . "\n"
-			. '- Never invent biographical details not present in the email.' . "\n\n"
+			. '- Never invent biographical details not present in the email.' . "\n"
+			. '- Ignore mail-client footers (e.g. "Sent from my iPhone"), email signatures, and any other text unrelated to the submission itself.' . "\n\n"
 
 			. 'Voice and tone:' . "\n"
 			. '- Warm, clear and honest. Write for someone who loves looking at things but has no art-school background.' . "\n"

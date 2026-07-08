@@ -56,6 +56,19 @@ class PipelinePolishTest extends TestCase {
 		$this->make_pipeline( $provider )->polish( 'Sume tekst.' );
 	}
 
+	public function test_polish_prompt_instructs_ignoring_mail_footers(): void {
+		// Biography/event submissions arrive as raw email text — a mail
+		// client's "Sent from my iPhone" footer or a signature block must
+		// not be treated as content to polish and keep.
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->stringContains( 'mail-client footers' ) )
+			->willReturn( 'Fixed.' );
+
+		$this->make_pipeline( $provider )->polish( 'Some text.' );
+	}
+
 	// -------------------------------------------------------------------------
 	// Fallback on empty / null-like provider response
 	// -------------------------------------------------------------------------

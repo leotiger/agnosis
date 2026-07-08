@@ -168,6 +168,16 @@ class PromptConfigTest extends TestCase {
 		$this->assertStringContainsString( '{excerpt_words}', $prompt );
 	}
 
+	public function test_default_system_prompt_instructs_ignoring_mail_footers(): void {
+		// The AI receives the artist's raw email text verbatim — it must not
+		// mistake a "Sent from my iPhone" footer, signature block, or other
+		// mail-client cruft for content describing the artwork.
+		$prompt = PromptConfig::default_system_prompt();
+
+		$this->assertStringContainsString( 'mail-client footers', $prompt );
+		$this->assertStringContainsString( 'Sent from my iPhone', $prompt );
+	}
+
 	public function test_default_user_template_contains_artist_prompt_token(): void {
 		$this->assertStringContainsString( '{artist_prompt}', PromptConfig::default_user_template() );
 	}

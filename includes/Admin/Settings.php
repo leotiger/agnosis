@@ -71,6 +71,7 @@ class Settings {
 		wp_add_inline_style( 'wp-admin', $this->admin_css() );
 		// wp-util is always available in the WP admin and provides no-jQuery baseline.
 		wp_add_inline_script( 'wp-util', $this->ai_test_js() );
+		wp_add_inline_script( 'wp-util', $this->reset_default_js() );
 
 		// Registers the 'media-editor' handle (and everything else the core
 		// media modal needs) so the Email logo field's "Select Image" button
@@ -331,6 +332,11 @@ class Settings {
 			case 'textarea':
 				$rows = $field['rows'] ?? 6;
 				echo '<textarea id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" rows="' . esc_attr( (string) $rows ) . '" class="large-text code">' . esc_textarea( $value ) . '</textarea>';
+				if ( ! empty( $field['resettable'] ) && isset( $field['default'] ) ) {
+					echo '<p><button type="button" class="button agnosis-reset-default" data-target="' . esc_attr( $key ) . '" data-default="' . esc_attr( (string) $field['default'] ) . '">'
+						. esc_html__( 'Reset to default', 'agnosis' )
+						. '</button> <span class="description">' . esc_html__( 'Replaces the text above with the plugin\'s built-in default — click Save Changes below to keep it.', 'agnosis' ) . '</span></p>';
+				}
 				break;
 			case 'readonly':
 				echo '<input type="text" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
@@ -365,12 +371,6 @@ class Settings {
 				'label'   => __( 'Base domain', 'agnosis' ),
 				'desc'    => __( 'Root domain for artist subdomains, e.g. agnosis.art. Each artist is reachable at nicename.{base_domain}. Requires a wildcard DNS record (*.{base_domain}) pointing to this server. Leave blank to disable subdomain routing.', 'agnosis' ),
 				'default' => '',
-			],
-			'agnosis_node_label' => [
-				'tab'     => 'general',
-				'label'   => __( 'Node label', 'agnosis' ),
-				'desc'    => __( 'How this node introduces itself to the network.', 'agnosis' ),
-				'default' => get_bloginfo( 'name' ),
 			],
 
 			// --- GENERAL: Debug ---
@@ -714,31 +714,34 @@ class Settings {
 
 			// --- BEHAVIOUR: AI prompts ---
 			'agnosis_prompt_system' => [
-				'tab'      => 'behavior',
-				'label'    => __( 'System prompt', 'agnosis' ),
-				'input'    => 'textarea',
-				'rows'     => 12,
-				'sanitize' => 'sanitize_textarea_field',
-				'default'  => \Agnosis\AI\PromptConfig::default_system_prompt(),
-				'desc'     => __( 'Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words} as tokens — they are replaced with the values below.', 'agnosis' ),
+				'tab'         => 'behavior',
+				'label'       => __( 'System prompt', 'agnosis' ),
+				'input'       => 'textarea',
+				'rows'        => 12,
+				'sanitize'    => 'sanitize_textarea_field',
+				'default'     => \Agnosis\AI\PromptConfig::default_system_prompt(),
+				'resettable'  => true,
+				'desc'        => __( 'Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words} as tokens — they are replaced with the values below.', 'agnosis' ),
 			],
 			'agnosis_prompt_user_template' => [
-				'tab'      => 'behavior',
-				'label'    => __( 'Artist prompt template', 'agnosis' ),
-				'input'    => 'textarea',
-				'rows'     => 4,
-				'sanitize' => 'sanitize_textarea_field',
-				'default'  => \Agnosis\AI\PromptConfig::default_user_template(),
-				'desc'     => __( 'User message sent alongside the artwork image. Use {artist_prompt} where the artist\'s own description should appear.', 'agnosis' ),
+				'tab'        => 'behavior',
+				'label'      => __( 'Artist prompt template', 'agnosis' ),
+				'input'      => 'textarea',
+				'rows'       => 4,
+				'sanitize'   => 'sanitize_textarea_field',
+				'default'    => \Agnosis\AI\PromptConfig::default_user_template(),
+				'resettable' => true,
+				'desc'       => __( 'User message sent alongside the artwork image. Use {artist_prompt} where the artist\'s own description should appear.', 'agnosis' ),
 			],
 			'agnosis_prompt_enhancement' => [
-				'tab'      => 'behavior',
-				'label'    => __( 'Enhancement instructions', 'agnosis' ),
-				'input'    => 'textarea',
-				'rows'     => 4,
-				'sanitize' => 'sanitize_textarea_field',
-				'default'  => \Agnosis\AI\PromptConfig::default_enhancement_instructions(),
-				'desc'     => __( 'Instructions passed to the image enhancement provider. The AI-generated artwork description is appended automatically as context.', 'agnosis' ),
+				'tab'        => 'behavior',
+				'label'      => __( 'Enhancement instructions', 'agnosis' ),
+				'input'      => 'textarea',
+				'rows'       => 4,
+				'sanitize'   => 'sanitize_textarea_field',
+				'default'    => \Agnosis\AI\PromptConfig::default_enhancement_instructions(),
+				'resettable' => true,
+				'desc'       => __( 'Instructions passed to the image enhancement provider. The AI-generated artwork description is appended automatically as context.', 'agnosis' ),
 			],
 			'agnosis_prompt_tag_count' => [
 				'tab'      => 'behavior',
@@ -761,7 +764,86 @@ class Settings {
 				'desc'     => __( 'Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in the system prompt.', 'agnosis' ),
 			],
 
+			// --- BEHAVIOUR: External link embedding ---
+			// An artist can point to an external link instead of attaching a file
+			// directly (typically a video too large to email) — see
+			// Publishing\EmbedPolicy. Trusted-platform hosts below always embed
+			// with no AI involved; anything else only embeds if AI review is
+			// turned on and the AI approves it against the categories below.
+			// Applies uniformly to artwork/biography/event email submissions and
+			// to the portfolio link on admission applications.
+			'agnosis_embed_trust_community' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Trust all admitted artists (skip link review entirely)', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'Every artist here was already vouched in by the community — if that trust is enough for you, turn this on to embed any link an artist submits, immediately, with no allowlist check and no AI review at all (the settings below are skipped entirely while this is on). Off by default. Only enable this if you are comfortable that a bad actor who made it through admission could embed a link to anything.', 'agnosis' ),
+			],
+			'agnosis_embed_trusted_hosts' => [
+				'tab'        => 'behavior',
+				'label'      => __( 'Trusted embed platforms', 'agnosis' ),
+				'input'      => 'textarea',
+				'rows'       => 6,
+				'sanitize'   => 'sanitize_textarea_field',
+				'default'    => implode( "\n", \Agnosis\Publishing\EmbedPolicy::DEFAULT_TRUSTED_HOSTS ),
+				'resettable' => true,
+				'desc'       => __( 'One hostname per line. A submitted link becomes a rich embed immediately if it matches one of these (or a subdomain of one) — no AI review needed, no network request made to the link itself.', 'agnosis' ),
+			],
+			'agnosis_embed_ai_vetting_enabled' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Let artists submit other links too (AI-reviewed)', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'When enabled, a link to a site not on the trusted list above is not simply discarded: the destination page is fetched and reviewed by your configured AI provider (Settings → AI Providers) against the categories below before deciding whether to embed it. If the AI cannot be reached, the request times out, or the page cannot be safely fetched, the link is not embedded — it fails safe. When disabled (the default), only the trusted platforms above are ever embedded.', 'agnosis' ),
+			],
+			'agnosis_embed_block_adult' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Block pornographic / sexually explicit content', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 1,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'Only takes effect when AI review (above) is enabled.', 'agnosis' ),
+			],
+			'agnosis_embed_block_commercial' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Block primarily commercial / promotional sites', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'Online stores, advertising, marketing landing pages. Off by default — an artist linking to a shop selling their own prints is common and not inherently unwanted. Only takes effect when AI review (above) is enabled.', 'agnosis' ),
+			],
+			'agnosis_embed_block_gambling' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Block gambling / betting sites', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'Only takes effect when AI review (above) is enabled.', 'agnosis' ),
+			],
+			'agnosis_embed_block_custom' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Additional disallowed categories', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 3,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => '',
+				'desc'     => __( 'Optional — describe any other kind of content the AI should reject, in plain language (e.g. "hate speech or violent extremist content", "phishing or scam pages"). Only takes effect when AI review (above) is enabled.', 'agnosis' ),
+			],
+
 			// --- NETWORK ---
+			'agnosis_node_label' => [
+				'tab'     => 'network',
+				'label'   => __( 'Node label', 'agnosis' ),
+				'desc'    => __( 'How this node introduces itself to the network.', 'agnosis' ),
+				'default' => get_bloginfo( 'name' ),
+			],
 			'agnosis_activitypub_enabled' => [
 				'tab'     => 'network',
 				'label'   => __( 'Enable ActivityPub federation', 'agnosis' ),
@@ -856,16 +938,17 @@ class Settings {
 				'desc'     => __( 'Days a community removal vote stays open. A majority (>50%) of active artists must vote yes for removal to proceed.', 'agnosis' ),
 			],
 			'agnosis_invitation_intro' => [
-				'tab'      => 'community',
-				'label'    => __( 'Invitation intro', 'agnosis' ),
-				'input'    => 'textarea',
-				'rows'     => 6,
-				'sanitize' => 'sanitize_textarea_field',
-				'default'  => __(
+				'tab'        => 'community',
+				'label'      => __( 'Invitation intro', 'agnosis' ),
+				'input'      => 'textarea',
+				'rows'       => 6,
+				'sanitize'   => 'sanitize_textarea_field',
+				'default'    => __(
 					"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n\nBeing part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n\nOnce admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website.",
 					'agnosis'
 				),
-				'desc'     => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
+				'resettable' => true,
+				'desc'       => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
 			],
 
 			// --- COMMERCE ---
@@ -893,6 +976,25 @@ class Settings {
 				'sanitize' => 'sanitize_email',
 				'desc'     => __( 'Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — keeps digest mail separate from the site\'s admin email for deliverability and so artists can filter it. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
 			],
+			'agnosis_newsletter_intro_proposal_enabled' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Auto-draft newsletter intros', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 1,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'When enabled, Agnosis drafts an intro via AI ahead of each issue (see the lead time below), saves it to that newsletter\'s intro field, and emails you to review it — unless you\'ve already written one for that cycle. Disable to leave both intro fields exactly as you left them, always.', 'agnosis' ),
+			],
+			'agnosis_newsletter_intro_proposal_lead_hours' => [
+				'tab'      => 'newsletter',
+				'label'    => __( 'Draft intro this many hours ahead', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 24,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'How long before an issue is due Agnosis proposes an AI-drafted intro. Only takes effect when auto-drafting (above) is enabled. Default: 24.', 'agnosis' ),
+			],
 			'agnosis_newsletter_artist_enabled' => [
 				'tab'     => 'newsletter',
 				'label'   => __( 'Artist newsletter', 'agnosis' ),
@@ -916,7 +1018,7 @@ class Settings {
 				'input'    => 'textarea',
 				'rows'     => 4,
 				'sanitize' => 'sanitize_textarea_field',
-				'desc'     => __( 'Optional note prepended to the next artist issue only — cleared automatically once that issue is queued. Leave blank to send the auto-digest with no intro.', 'agnosis' ),
+				'desc'     => __( 'Optional note prepended to the next artist issue only — cleared automatically once that issue is queued. Leave blank to send the auto-digest with no intro. If left blank, Agnosis drafts one automatically from what\'s new about a day before the issue sends, and emails you to review it first — write your own here any time to skip that.', 'agnosis' ),
 			],
 			'agnosis_newsletter_public_enabled' => [
 				'tab'     => 'newsletter',
@@ -941,7 +1043,7 @@ class Settings {
 				'input'    => 'textarea',
 				'rows'     => 4,
 				'sanitize' => 'sanitize_textarea_field',
-				'desc'     => __( 'Optional note prepended to the next public issue only — cleared automatically once that issue is queued.', 'agnosis' ),
+				'desc'     => __( 'Optional note prepended to the next public issue only — cleared automatically once that issue is queued. If left blank, Agnosis drafts one automatically from what\'s new about a day before the issue sends, and emails you to review it first — write your own here any time to skip that.', 'agnosis' ),
 			],
 			'agnosis_newsletter_batch_size' => [
 				'tab'      => 'newsletter',
@@ -2041,6 +2143,30 @@ class Settings {
 			. '});',
 			$ajax_url
 		);
+	}
+
+	/**
+	 * Wires up every `.agnosis-reset-default` button (see render_field()'s
+	 * textarea case) — repopulates its associated textarea with the plugin's
+	 * built-in default text, entirely client-side. Nothing is saved until the
+	 * admin clicks the page's own Save Changes button, and a confirm dialog
+	 * guards against an accidental click overwriting text they meant to keep.
+	 *
+	 * This exists because several textarea settings (system prompt, artist
+	 * prompt template, enhancement instructions, trusted embed platforms,
+	 * invitation intro) ship with substantial built-in copy that an admin can
+	 * freely overwrite — until now, doing so meant losing the original for
+	 * good, with no way to compare against or return to it.
+	 */
+	private function reset_default_js(): string {
+		return "document.addEventListener('click', function (e) {\n"
+			. "\tvar btn = e.target.closest('.agnosis-reset-default');\n"
+			. "\tif (!btn) return;\n"
+			. "\tvar field = document.getElementById(btn.dataset.target);\n"
+			. "\tif (!field) return;\n"
+			. "\tif (!window.confirm('Replace the current text with the built-in default? This will not be saved until you click Save Changes.')) return;\n"
+			. "\tfield.value = btn.dataset.default;\n"
+			. '});';
 	}
 
 	/**

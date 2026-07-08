@@ -17,6 +17,7 @@ use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
+use Agnosis\Artist\ApplicationBiography;
 use Agnosis\Artist\CommunityCap;
 use Agnosis\Artist\CommunityCapVote;
 use Agnosis\Artist\CommunityCapNotification;
@@ -184,6 +185,12 @@ class Plugin {
 
 		$admission_notification = new AdmissionNotification();
 		$admission_notification->register_hooks();
+
+		// Auto-creates a first biography draft from the application's own
+		// bio/statement/portfolio_url the moment an artist is admitted — see
+		// ApplicationBiography's class docblock.
+		$application_biography = new ApplicationBiography();
+		$application_biography->register_hooks();
 
 		$departure = new Departure();
 		$this->loader->add_action( 'rest_api_init',              $departure, 'register_routes' );

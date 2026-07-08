@@ -652,7 +652,7 @@ class Pipeline {
 		if ( empty( trim( $text ) ) ) {
 			return $text;
 		}
-		$prompt   = "Fix spelling and grammar in the following text. Make only minimal improvements — do not change the meaning, tone, or add any content. Return only the corrected text, nothing else.\n\n" . $text;
+		$prompt   = "Fix spelling and grammar in the following text. Make only minimal improvements — do not change the meaning, tone, or add any content. Ignore and omit any mail-client footers (e.g. \"Sent from my iPhone\"), email signatures, or other text unrelated to the submission itself. Return only the corrected text, nothing else.\n\n" . $text;
 		$polished = $this->description_provider->chat( $prompt );
 		return $polished ?: $text;
 	}
@@ -691,11 +691,134 @@ class Pipeline {
 			. "- Naturally integrate the new information — do not repeat facts or create redundancy.\n"
 			. "- Keep the artist's voice and tone.\n"
 			. "- Do not invent new facts or embellish.\n"
+			. "- Disregard mail-client footers (e.g. \"Sent from my iPhone\"), email signatures, or other text unrelated to the biography itself — do not fold them into the merged result.\n"
 			. "- Length: two to four paragraphs.\n"
 			. "- May use basic HTML (<p>, <em>, <strong>) but no headings or lists.\n"
 			. 'Return only the merged biography text. No preamble, no explanation.';
 
 		return $this->description_provider->chat( $prompt ) ?: '';
+	}
+
+	/**
+	 * Classify whether a submitted external link should be trusted enough to
+	 * embed, based on the destination page's extracted text and the site's
+	 * configured disallowed-content categories.
+	 *
+	 * Used by Publishing\EmbedPolicy for links to hosts not on the trusted
+	 * platform list — see that class for the fetch step that produces
+	 * $title/$description/$snippet.
+	 *
+	 * @param string   $title                 Extracted <title>, may be empty.
+	 * @param string   $description           Extracted meta description, may be empty.
+	 * @param string   $snippet               Extracted, truncated body text, may be empty.
+	 * @param string[] $disallowed_categories Human-readable category descriptions to reject.
+	 * @return bool|null True = allow, false = block, null = inconclusive or provider failure —
+	 *                    callers must treat null the same as a hard failure (fail closed).
+	 */
+	public function classify_link( string $title, string $description, string $snippet, array $disallowed_categories ): ?bool {
+		if ( empty( $disallowed_categories ) ) {
+			return true; // Nothing configured to block.
+		}
+
+		$prompt = "You are a content-safety classifier for an independent artist publishing platform.\n\n"
+			. 'An artist submitted a link to be embedded alongside their own artwork, biography, or event post. '
+			. "Decide whether the linked page should be ALLOWED, based ONLY on whether it falls into one of these disallowed categories:\n\n"
+			. '- ' . implode( "\n- ", $disallowed_categories ) . "\n\n"
+			. 'Page title: ' . ( $title ?: '(none)' ) . "\n"
+			. 'Page description: ' . ( $description ?: '(none)' ) . "\n"
+			. 'Page text (truncated): ' . ( $snippet ?: '(none)' ) . "\n\n"
+			. 'Reply with exactly one word on the first line: ALLOW or BLOCK. You may add a short reason on the next line.';
+
+		$response = trim( (string) $this->description_provider->chat( $prompt ) );
+		if ( '' === $response ) {
+			return null;
+		}
+
+		$first_line = strtoupper( trim( (string) strtok( $response, "\n" ) ) );
+
+		if ( 'ALLOW' === $first_line ) {
+			return true;
+		}
+		if ( 'BLOCK' === $first_line ) {
+			return false;
+		}
+
+		return null; // Unparseable response.
+	}
+
+	/**
+	 * Draft a short newsletter intro summarising what's new since the last
+	 * issue, from a structured digest context.
+	 *
+	 * Used by Newsletter\Scheduler's ~24-hours-ahead intro-proposal check (see
+	 * that class) — the admin still reviews the result in Settings →
+	 * Newsletter, and can freely rewrite or clear it, before the real send
+	 * goes out the next day. This only saves them from writing it from
+	 * scratch each cycle.
+	 *
+	 * Returns '' when there is nothing to summarise, or on provider failure —
+	 * exactly like polish()/merge_biography(). The caller must treat '' as
+	 * "nothing to propose": it leaves the intro option untouched and does not
+	 * email the admin a proposal.
+	 *
+	 * @param string $type      'artist' or 'public' — only affects the tone/audience framing.
+	 * @param string $site_name Used to address the intro to "{$site_name}'s newsletter".
+	 * @param array{artworks: array<int, array{title: string, excerpt: string, tags: string[], medium?: string[]}>, events: array<int, array{title: string, excerpt: string, tags: string[]}>, new_members?: string[], open_votes?: int} $context
+	 *        From Newsletter\Digest::build_intro_context().
+	 */
+	public function generate_newsletter_intro( string $type, string $site_name, array $context ): string {
+		$artworks    = $context['artworks'];
+		$events      = $context['events'];
+		$new_members = $context['new_members'] ?? [];
+		$open_votes  = (int) ( $context['open_votes'] ?? 0 );
+
+		if ( empty( $artworks ) && empty( $events ) && empty( $new_members ) && 0 === $open_votes ) {
+			return ''; // Nothing to summarise — the auto-digest's own "nothing new" message already covers this.
+		}
+
+		$facts = [];
+		foreach ( $artworks as $item ) {
+			$facts[] = '- Artwork: ' . $this->describe_digest_item( $item );
+		}
+		foreach ( $events as $item ) {
+			$facts[] = '- Event: ' . $this->describe_digest_item( $item );
+		}
+		if ( ! empty( $new_members ) ) {
+			$facts[] = '- New member(s) admitted: ' . implode( ', ', $new_members );
+		}
+		if ( $open_votes > 0 ) {
+			$facts[] = sprintf( '- %d community vote(s) currently open.', $open_votes );
+		}
+
+		$audience = 'artist' === $type
+			? 'the site\'s own admitted artists — a warm, in-the-family tone, like an update from a friend'
+			: 'the public mailing list of visitors and fans outside the community — a welcoming, inviting tone';
+
+		$prompt = "Write a short introduction for {$site_name}'s newsletter, addressed to {$audience}.\n\n"
+			. "Here is everything that happened since the last issue:\n" . implode( "\n", $facts ) . "\n\n"
+			. "Rules:\n"
+			. "- Two to four sentences, one short paragraph. No greeting (\"Hi everyone\") and no sign-off.\n"
+			. "- This is prepended above an auto-generated list that already names every item individually — capture the overall flavour of what's new, do not just restate the list.\n"
+			. "- Base this only on the facts given above. Never invent artworks, events, names, or numbers not present in them.\n"
+			. "- Warm, plain language. No marketing clichés or hype.\n"
+			. 'Return only the introduction text itself — no preamble, no quotation marks.';
+
+		return trim( (string) $this->description_provider->chat( $prompt ) );
+	}
+
+	/**
+	 * @param array{title: string, excerpt: string, tags: string[], medium?: string[]} $item
+	 */
+	private function describe_digest_item( array $item ): string {
+		$line = '"' . $item['title'] . '"';
+		if ( '' !== $item['excerpt'] ) {
+			$line .= ' — ' . $item['excerpt'];
+		}
+		$tags = array_filter( array_merge( $item['tags'], $item['medium'] ?? [] ) );
+		if ( ! empty( $tags ) ) {
+			$line .= ' (' . implode( ', ', $tags ) . ')';
+		}
+		return $line;
 	}
 
 	// -------------------------------------------------------------------------

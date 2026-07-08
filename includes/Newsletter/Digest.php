@@ -116,9 +116,60 @@ class Digest {
 		return $html;
 	}
 
+	/**
+	 * Structured (non-HTML) summary of what's new since $since — the raw
+	 * material for Pipeline::generate_newsletter_intro()'s AI-drafted intro,
+	 * built from the same underlying query as build_public()/build_artist()
+	 * but shaped for a text prompt rather than an HTML fragment: title,
+	 * AI-generated excerpt, tags, and (for artwork) medium, so the drafted
+	 * intro can speak to what the new work actually is instead of only a
+	 * bare count.
+	 *
+	 * @param string $type  'artist' or 'public' — 'artist' also includes new
+	 *                      members and open community votes, matching build_artist().
+	 * @param string $since MySQL datetime — content published after this is included.
+	 * @return array{artworks: array<int, array{title: string, excerpt: string, tags: string[], medium: string[]}>, events: array<int, array{title: string, excerpt: string, tags: string[]}>, new_members?: string[], open_votes?: int}
+	 */
+	public static function build_intro_context( string $type, string $since ): array {
+		$artworks = self::recent_posts( 'agnosis_artwork', $since );
+		$events   = self::recent_posts( 'agnosis_event', $since );
+
+		$context = [
+			'artworks' => array_map( fn( \WP_Post $post ) => self::summarize_post( $post, true ), array_slice( $artworks, 0, self::MAX_ITEMS ) ),
+			'events'   => array_map( fn( \WP_Post $post ) => self::summarize_post( $post, false ), array_slice( $events, 0, self::MAX_ITEMS ) ),
+		];
+
+		if ( 'artist' === $type ) {
+			$context['new_members'] = self::newly_admitted_artists( $since );
+			$context['open_votes']  = self::open_vote_count();
+		}
+
+		return $context;
+	}
+
 	// -------------------------------------------------------------------------
 	// Internal
 	// -------------------------------------------------------------------------
+
+	/**
+	 * @return array{title: string, excerpt: string, tags: string[], medium: string[]}
+	 */
+	private static function summarize_post( \WP_Post $post, bool $include_medium ): array {
+		$medium = [];
+		if ( $include_medium ) {
+			$terms  = wp_get_post_terms( $post->ID, 'agnosis_medium', [ 'fields' => 'names' ] );
+			$medium = is_wp_error( $terms ) ? [] : $terms;
+		}
+
+		$tags = wp_get_post_tags( $post->ID, [ 'fields' => 'names' ] );
+
+		return [
+			'title'   => get_the_title( $post ),
+			'excerpt' => (string) $post->post_excerpt,
+			'tags'    => is_wp_error( $tags ) ? [] : $tags,
+			'medium'  => $medium,
+		];
+	}
 
 	/**
 	 * @return array<int, \WP_Post>

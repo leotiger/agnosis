@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.7
+Stable tag: 0.9.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,11 +63,15 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.8 =
+* Added: A newly admitted artist now starts with a first Biography draft, built automatically from the bio, artist statement, and portfolio link they already gave on their application — instead of that information sitting unused. The portfolio link, when approved for embedding (see below), is added as an embed at the end. Like every other Agnosis post, this draft is sent to the artist for review — they approve, edit, or discard it, nothing is published without them.
+* Added: The trusted platforms list for embedding artist-submitted links (YouTube, Vimeo, SoundCloud, Bandcamp, etc.) is now editable under Settings → Behaviour, instead of being fixed in code. Site admins can also turn on AI-powered review for links to other, non-listed sites: Agnosis looks at the page and checks it against categories you choose to disallow — pornographic content (on by default), commercial/promotional sites, gambling sites, or your own custom description. If a link can't be safely checked, it's left out rather than embedded. This is off by default, so existing sites see no change unless it's turned on.
+* Added: A "Trust all admitted artists" setting under Settings → Behaviour, for admins who consider the community vouching process itself sufficient — turning it on embeds any artist-submitted link immediately, skipping both the trusted platforms list and AI review entirely. Off by default.
+* Added: A "Reset to default" button on the System prompt, Artist prompt template, Enhancement instructions, Trusted embed platforms, and Invitation intro fields under Settings, so overwriting one of these no longer means losing the plugin's original text for good.
+* Added: The AI is now explicitly told to ignore email footers (e.g. "Sent from my iPhone"), signatures, and other text unrelated to the submission when writing artwork descriptions, polishing biography/event text, or merging biography updates.
+* Added: The Artist/Public newsletter intro fields no longer have to be written by hand — a configurable number of hours (default 24) before an issue is due, Agnosis drafts one from what's new (artwork, events, tags, mediums, new members, open votes) and saves it to the field, then emails you to review, edit, or clear it before it sends. Two new settings under Settings → Newsletter control it: an on/off switch ("Auto-draft newsletter intros", on by default) and the lead time in hours.
+
 = 0.9.7 =
 * Fixed: The "goodbye" self-removal email workflow had three bugs on the same admin Inbox row: the sender's address never showed up, a successful request was shown with a red "Failed" badge, and — in one case — the row claimed a confirmation email had been sent when it actually hadn't (the artist had no active membership at the time). All three are fixed: the sender's address now displays correctly, successful requests show a neutral "Skipped" badge instead of "Failed", and the no-membership case is now labeled accurately instead of falsely claiming success.
-
-= 0.9.6 =
-* Changed: Added a new "Community" tab in Settings and moved everything about admitting and managing artists there — the vote thresholds, community size cap, removal-vote settings, the Pending Applications list, the Members list, and the Invite an Artist card. These used to be split between the Network and Newsletter tabs, which never really fit. Nothing about how any of it works has changed, just where you find it.
-* Changed: The Community tab is now split into two sub-tabs — "Members" (Pending Applications, the Members list, Invite an Artist) and "Rules" (the vote thresholds and other settings). A large community would otherwise turn this into an endless scroll before ever reaching the settings.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
