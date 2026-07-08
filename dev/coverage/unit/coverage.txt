@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:        
-  2026-07-08 13:30:20        
+  2026-07-08 22:29:00        
                              
  Summary:                    
-  Classes:  5.71% (4/70)     
-  Methods:  7.78% (49/630)   
-  Lines:    6.17% (700/11348)
+  Classes:  4.17% (3/72)     
+  Methods:  7.49% (49/654)   
+  Lines:    5.87% (700/11915)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
@@ -17,7 +17,7 @@ Agnosis\AI\MediaAdapter
 Agnosis\AI\Pipeline
   Methods:  42.11% ( 8/19)   Lines:  56.92% (222/390)
 Agnosis\AI\PromptConfig
-  Methods: 100.00% ( 8/ 8)   Lines: 100.00% ( 69/ 69)
+  Methods:  88.89% ( 8/ 9)   Lines:  87.34% ( 69/ 79)
 Agnosis\AI\Providers\Anthropic
   Methods:  14.29% ( 1/ 7)   Lines:   1.06% (  1/ 94)
 Agnosis\AI\Providers\OpenAI
@@ -27,35 +27,37 @@ Agnosis\AI\Providers\WordPressAI
 Agnosis\AI\SubmissionTranslator
   Methods:  85.71% ( 6/ 7)   Lines:  98.95% ( 94/ 95)
 Agnosis\Admin\InboxPage
-  Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/301)
+  Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/308)
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   0.00% ( 0/39)   Lines:   0.00% (  0/1656)
+  Methods:   0.00% ( 0/39)   Lines:   0.00% (  0/1712)
 Agnosis\Artist\Admission
-  Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/450)
+  Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/454)
 Agnosis\Artist\AdmissionNotification
-  Methods:   0.00% ( 0/20)   Lines:   0.00% (  0/369)
+  Methods:   0.00% ( 0/20)   Lines:   0.00% (  0/366)
 Agnosis\Artist\ApplicationBiography
-  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 83)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
+Agnosis\Artist\CommunityBroadcast
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/119)
 Agnosis\Artist\CommunityCap
   Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 41)
 Agnosis\Artist\CommunityCapNotification
-  Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/ 68)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 69)
 Agnosis\Artist\CommunityCapVote
   Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/170)
 Agnosis\Artist\ContentEditor
   Methods:   0.00% ( 0/20)   Lines:   0.00% (  0/510)
 Agnosis\Artist\Departure
-  Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/356)
+  Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/385)
 Agnosis\Artist\DepartureNotification
-  Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/213)
+  Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/232)
 Agnosis\Artist\FrontendAccess
   Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/ 16)
 Agnosis\Artist\Invitation
-  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 81)
+  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 78)
 Agnosis\Artist\JoinPage
-  Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 83)
+  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 97)
 Agnosis\Artist\Profile
   Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/228)
 Agnosis\Artist\RemovalVoteConfirm
@@ -63,9 +65,11 @@ Agnosis\Artist\RemovalVoteConfirm
 Agnosis\Artist\VouchConfirm
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/108)
 Agnosis\Compat\LinguaForge
-  Methods:   0.00% ( 0/19)   Lines:   0.00% (  0/159)
+  Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/190)
 Agnosis\Core\Activator
   Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/295)
+Agnosis\Core\CommunityMailer
+  Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 15)
 Agnosis\Core\DateFormatter
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 35)
 Agnosis\Core\Debug
@@ -95,11 +99,11 @@ Agnosis\Email\AttachmentStore
 Agnosis\Email\EmailAuth
   Methods:  75.00% ( 3/ 4)   Lines:  95.45% ( 21/ 22)
 Agnosis\Email\Inbox
-  Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/397)
+  Methods:   0.00% ( 0/24)   Lines:   0.00% (  0/447)
 Agnosis\Email\Parser
-  Methods:  42.86% ( 3/ 7)   Lines:  22.60% ( 40/177)
+  Methods:  37.50% ( 3/ 8)   Lines:  21.05% ( 40/190)
 Agnosis\Email\Webhook
-  Methods:   0.00% ( 0/ 3)   Lines:  19.54% ( 17/ 87)
+  Methods:   0.00% ( 0/ 3)   Lines:  15.04% ( 17/113)
 Agnosis\Network\ActivityPub
   Methods:   0.00% ( 0/13)   Lines:   0.00% (  0/182)
 Agnosis\Network\HttpSignature
@@ -121,7 +125,7 @@ Agnosis\Newsletter\PopoverBlock
 Agnosis\Newsletter\QueueProcessor
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/124)
 Agnosis\Newsletter\Scheduler
-  Methods:   0.00% ( 0/18)   Lines:   0.00% (  0/222)
+  Methods:   0.00% ( 0/18)   Lines:   0.00% (  0/225)
 Agnosis\Newsletter\SignupBlock
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 70)
 Agnosis\Newsletter\Subscriber
@@ -137,14 +141,14 @@ Agnosis\Publishing\EmbedPolicy
 Agnosis\Publishing\GalleryOverview
   Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 67)
 Agnosis\Publishing\Notification
-  Methods:   0.00% ( 0/13)   Lines:   0.00% (  0/555)
+  Methods:   0.00% ( 0/13)   Lines:   0.00% (  0/566)
 Agnosis\Publishing\PostCreator
   Methods:  10.00% ( 3/30)   Lines:   3.71% ( 28/754)
 Agnosis\Publishing\RemovalEndpoints
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 91)
 Agnosis\Publishing\ReviewConfirm
-  Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/104)
+  Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/269)
 Agnosis\Publishing\ReviewEndpoints
-  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/161)
+  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/164)
 Agnosis\Publishing\SubmissionsPage
   Methods:   0.00% ( 0/15)   Lines:   0.00% (  0/190)
