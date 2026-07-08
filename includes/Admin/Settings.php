@@ -335,7 +335,7 @@ class Settings {
 					'id'                => esc_attr( $key ),
 					'selected'          => (int) $value,
 					'show_option_none'  => esc_html__( '— None (inline message only) —', 'agnosis' ),
-					'option_none_value' => 0,
+					'option_none_value' => '0',
 				] );
 				break;
 			case 'textarea':
