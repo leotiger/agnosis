@@ -143,6 +143,10 @@ dev/                     Dev tooling (never ships in release zip)
 tests/                   PHPUnit unit + integration suites
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete version history.
+
 ## License
 
 [GPL v2 or later](https://www.gnu.org/licenses/gpl-2.0.html)

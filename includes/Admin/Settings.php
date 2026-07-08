@@ -35,6 +35,7 @@ class Settings {
 		'ai'          => 'agnosis_ai_options',
 		'behavior'    => 'agnosis_behavior_options',
 		'network'     => 'agnosis_network_options',
+		'community'   => 'agnosis_community_options',
 		'commerce'    => 'agnosis_commerce_options',
 		'newsletter'  => 'agnosis_newsletter_options',
 	];
@@ -191,6 +192,8 @@ class Settings {
 
 			<?php if ( 'logs' === $active_tab ) : ?>
 				<?php $this->render_logs_tab(); ?>
+			<?php elseif ( 'community' === $active_tab ) : ?>
+				<?php $this->render_community_tab(); ?>
 			<?php else : ?>
 				<form method="post" action="options.php">
 					<?php
@@ -205,6 +208,73 @@ class Settings {
 		<?php
 	}
 
+	/**
+	 * Sub-tabs within the Community tab.
+	 *
+	 * Split out of the main tab because a growing community makes the
+	 * combined page an endless scroll: the Members table (Pending
+	 * Applications + admitted/banned members, both unbounded lists) and the
+	 * Rules settings form used to render on top of each other on one page.
+	 *
+	 * 'members' is listed first and is the default — landing on Community
+	 * should show who's actually in it, not a settings form.
+	 *
+	 * @return array<string, string>
+	 */
+	private function community_subtabs(): array {
+		return [
+			'members' => __( 'Members', 'agnosis' ),
+			'rules'   => __( 'Rules',   'agnosis' ),
+		];
+	}
+
+	/**
+	 * Render the Community tab: a sub-tab nav, then either the Members
+	 * dashboards (Pending Applications, Members, Invite an Artist — via the
+	 * existing render_tab_tools( 'community' ) branch) or the Rules settings
+	 * form (the admission/community-cap/removal-vote/invitation-intro fields),
+	 * never both at once.
+	 */
+	private function render_community_tab(): void {
+		$subtabs = $this->community_subtabs();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading subtab slug for display only, no data mutation.
+		$subtab = sanitize_key( $_GET['subtab'] ?? 'members' );
+		if ( ! isset( $subtabs[ $subtab ] ) ) {
+			$subtab = 'members';
+		}
+		?>
+		<ul class="subsubsub">
+			<?php
+			$slugs = array_keys( $subtabs );
+			$last  = end( $slugs );
+			foreach ( $subtabs as $slug => $label ) {
+				$url = admin_url( 'admin.php?page=' . self::PAGE . '&tab=community&subtab=' . $slug );
+				printf(
+					'<li><a href="%s"%s>%s</a>%s</li>',
+					esc_url( $url ),
+					$subtab === $slug ? ' class="current"' : '',
+					esc_html( $label ),
+					$slug !== $last ? ' |' : ''
+				);
+			}
+			?>
+		</ul>
+		<br class="clear">
+
+		<?php if ( 'rules' === $subtab ) : ?>
+			<form method="post" action="options.php">
+				<?php
+				settings_fields( self::GROUPS['community'] );
+				$this->render_tab( 'community' );
+				submit_button( __( 'Save Changes', 'agnosis' ) );
+				?>
+			</form>
+		<?php else : ?>
+			<?php $this->render_tab_tools( 'community' ); ?>
+		<?php endif; ?>
+		<?php
+	}
+
 	// -------------------------------------------------------------------------
 
 	/** @return array<string, string> */
@@ -215,6 +285,7 @@ class Settings {
 			'ai'         => __( 'AI Providers', 'agnosis' ),
 			'behavior'   => __( 'Behaviour',    'agnosis' ),
 			'network'    => __( 'Network',      'agnosis' ),
+			'community'  => __( 'Community',    'agnosis' ),
 			'commerce'   => __( 'Commerce',     'agnosis' ),
 			'newsletter' => __( 'Newsletter',   'agnosis' ),
 			'logs'       => __( 'Logs',         'agnosis' ),
@@ -706,8 +777,9 @@ class Settings {
 				'input' => 'readonly',
 				'desc'  => __( 'Auto-generated RSA public key for this node. Share this with peer nodes.', 'agnosis' ),
 			],
+			// --- COMMUNITY ---
 			'agnosis_admission_percent' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Admission vote threshold (%)', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 10,
@@ -716,7 +788,7 @@ class Settings {
 				'desc'    => __( 'Percentage of active artists that must vote yes for admission. Combined with the minimum floor below.', 'agnosis' ),
 			],
 			'agnosis_admission_minimum' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Admission minimum votes', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 3,
@@ -724,7 +796,7 @@ class Settings {
 				'desc'    => __( 'Absolute minimum positive votes required regardless of the percentage above.', 'agnosis' ),
 			],
 			'agnosis_admission_window_days' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Voting window (days)', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 7,
@@ -732,7 +804,7 @@ class Settings {
 				'desc'    => __( 'Days an application stays open. If the threshold is not reached within this window the application is rejected.', 'agnosis' ),
 			],
 			'agnosis_join_success_url' => [
-				'tab'      => 'network',
+				'tab'      => 'community',
 				'label'    => __( 'After applying, send artists to', 'agnosis' ),
 				'input'    => 'text',
 				'default'  => '',
@@ -740,7 +812,7 @@ class Settings {
 				'desc'     => __( 'Optional URL — e.g. a page explaining the vouching process and what happens next. When the application is submitted successfully, the artist is redirected here instead of just seeing an inline confirmation message. Leave blank to keep the inline message only.', 'agnosis' ),
 			],
 			'agnosis_community_max_artists' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Community size cap', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 50,
@@ -748,7 +820,7 @@ class Settings {
 				'desc'    => __( 'Maximum number of admitted artists. When full, new applications join a waitlist instead of being rejected, and a freed slot admits the next in line. Set to 0 for no cap. The community can also vote to change this.', 'agnosis' ),
 			],
 			'agnosis_cap_proposal_threshold' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Cap-change co-signers required', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 3,
@@ -756,7 +828,7 @@ class Settings {
 				'desc'    => __( 'How many artists must co-sign a proposal to change the community size cap before it opens as a full community vote.', 'agnosis' ),
 			],
 			'agnosis_cap_vote_window_days' => [
-				'tab'     => 'network',
+				'tab'     => 'community',
 				'label'   => __( 'Cap-change vote window (days)', 'agnosis' ),
 				'input'   => 'number',
 				'default' => 7,
@@ -764,7 +836,7 @@ class Settings {
 				'desc'    => __( 'Days a community cap-change vote stays open. A strict majority of active artists voting yes adopts the new cap.', 'agnosis' ),
 			],
 			'agnosis_removal_nomination_threshold' => [
-				'tab'      => 'network',
+				'tab'      => 'community',
 				'label'    => __( 'Removal nominations required', 'agnosis' ),
 				'input'    => 'number',
 				'default'  => 3,
@@ -774,7 +846,7 @@ class Settings {
 				'desc'     => __( 'Number of artist nominations needed before a community removal vote opens. Admins can bypass this threshold.', 'agnosis' ),
 			],
 			'agnosis_removal_window_days' => [
-				'tab'      => 'network',
+				'tab'      => 'community',
 				'label'   => __( 'Removal vote window (days)', 'agnosis' ),
 				'input'   => 'number',
 				'default'  => 7,
@@ -782,6 +854,18 @@ class Settings {
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Days a community removal vote stays open. A majority (>50%) of active artists must vote yes for removal to proceed.', 'agnosis' ),
+			],
+			'agnosis_invitation_intro' => [
+				'tab'      => 'community',
+				'label'    => __( 'Invitation intro', 'agnosis' ),
+				'input'    => 'textarea',
+				'rows'     => 6,
+				'sanitize' => 'sanitize_textarea_field',
+				'default'  => __(
+					"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n\nBeing part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n\nOnce admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website.",
+					'agnosis'
+				),
+				'desc'     => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
 			],
 
 			// --- COMMERCE ---
@@ -878,18 +962,6 @@ class Settings {
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Advisory only — self-hosted sending keeps working above this count. Once confirmed public subscribers pass it, this page shows a reminder to consider an email service provider (e.g. Brevo\'s free tier) instead.', 'agnosis' ),
-			],
-			'agnosis_invitation_intro' => [
-				'tab'      => 'newsletter',
-				'label'    => __( 'Invitation intro', 'agnosis' ),
-				'input'    => 'textarea',
-				'rows'     => 6,
-				'sanitize' => 'sanitize_textarea_field',
-				'default'  => __(
-					"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n\nBeing part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n\nOnce admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website.",
-					'agnosis'
-				),
-				'desc'     => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
 			],
 		];
 	}
@@ -1118,14 +1190,14 @@ class Settings {
 			$this->render_ai_test_tools();
 			return;
 		}
-		if ( 'network' === $tab ) {
+		if ( 'community' === $tab ) {
 			$this->render_admission_dashboard();
 			$this->render_members_dashboard();
+			$this->render_invitation_card();
 			return;
 		}
 		if ( 'newsletter' === $tab ) {
 			$this->render_newsletter_dashboard();
-			$this->render_invitation_card();
 			return;
 		}
 		if ( 'email' !== $tab ) {
@@ -1187,11 +1259,11 @@ class Settings {
 
 
 	// -------------------------------------------------------------------------
-	// Admission dashboard (Network tab)
+	// Admission dashboard (Community tab)
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Render the pending applications table on the Network tab.
+	 * Render the pending applications table on the Community tab.
 	 *
 	 * Shows every application in status='pending' with vouch counts and
 	 * admin-override Admit / Reject buttons.
@@ -1314,7 +1386,8 @@ class Settings {
 		$redirect = add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'network',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => $ok ? 'admitted' : 'admit_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1342,7 +1415,8 @@ class Settings {
 		$redirect = add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'network',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => $ok ? 'rejected' : 'reject_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1353,11 +1427,11 @@ class Settings {
 	}
 
 	// -------------------------------------------------------------------------
-	// Members dashboard (Network tab)
+	// Members dashboard (Community tab)
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Render the admitted (and banned) members table on the Network tab.
+	 * Render the admitted (and banned) members table on the Community tab.
 	 *
 	 * Shows every admitted/banned artist with Ban / Delete / Initiate Vote actions.
 	 */
@@ -1485,7 +1559,8 @@ class Settings {
 		wp_safe_redirect( add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'network',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => $ok ? 'banned' : 'ban_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1511,7 +1586,8 @@ class Settings {
 		wp_safe_redirect( add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'network',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => $ok ? 'deleted' : 'delete_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1543,7 +1619,7 @@ class Settings {
 
 		if ( ! $user_id ) {
 			wp_safe_redirect( add_query_arg(
-				[ 'page' => 'agnosis-settings', 'tab' => 'network', 'agnosis_message' => 'vote_open_failed' ],
+				[ 'page' => 'agnosis-settings', 'tab' => 'community', 'subtab' => 'members', 'agnosis_message' => 'vote_open_failed' ],
 				admin_url( 'admin.php' )
 			) );
 			exit;
@@ -1555,7 +1631,8 @@ class Settings {
 		wp_safe_redirect( add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'network',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => $ok ? 'vote_opened' : 'vote_open_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1828,13 +1905,14 @@ class Settings {
 	}
 
 	// -------------------------------------------------------------------------
-	// Invite an artist (Artist\Invitation — separate from the newsletter system:
-	// one ad-hoc recipient, no list, no queue, nothing tracked)
+	// Invite an artist (Community tab; Artist\Invitation — separate from the
+	// newsletter system: one ad-hoc recipient, no list, no queue, nothing tracked)
 	// -------------------------------------------------------------------------
 
 	/**
 	 * "Invite an Artist" card — a single-recipient, language-selectable
-	 * invitation email, independent of the newsletter dashboard above it.
+	 * invitation email. Rendered on the Community tab, alongside the
+	 * admission/members dashboards it's most closely related to.
 	 */
 	private function render_invitation_card(): void {
 		$languages = SubmissionTranslator::language_names();
@@ -1892,7 +1970,8 @@ class Settings {
 		wp_safe_redirect( add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'newsletter',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => true === $result ? 'invitation_sent' : 'invitation_failed',
 			],
 			admin_url( 'admin.php' )
@@ -1918,7 +1997,8 @@ class Settings {
 		wp_safe_redirect( add_query_arg(
 			[
 				'page'            => 'agnosis-settings',
-				'tab'             => 'newsletter',
+				'tab'             => 'community',
+				'subtab'          => 'members',
 				'agnosis_message' => true === $result ? 'invitation_test_sent' : 'invitation_test_failed',
 			],
 			admin_url( 'admin.php' )

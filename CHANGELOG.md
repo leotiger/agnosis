@@ -5,6 +5,12 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.6]
+
+### Changed
+- **New "Community" tab in Settings, consolidating everything about who's in the community and how they get there** — previously scattered across Network (admission vote threshold/minimum/window, join-redirect URL, community size cap and its co-signer/vote-window settings, removal-vote nomination threshold/window, plus the Pending Applications and Members dashboards) and Newsletter (the Invitation intro field and the Invite an Artist card), none of which have anything to do with federation or with sending newsletter issues. All of it — settings fields, the Pending Applications dashboard, the Members dashboard, and the Invite an Artist card — now lives together under Community. The Network tab keeps only the two genuinely network-related settings (ActivityPub toggle, node public key); Newsletter keeps only the newsletter-issue settings and dashboard. Every admin-post handler that redirects back into a tab (admit/reject/suspend/delete/open-vote/send-invitation/send-test-invitation) now redirects to Community instead of Network or Newsletter. Setting values themselves are untouched — same option names, same defaults, same underlying business logic — this only regroups where they're edited. (`includes/Admin/Settings.php`)
+- **Community tab split into "Members" and "Rules" sub-tabs** — the Pending Applications and Members dashboards are both unbounded lists (every application, every admitted/banned artist), and used to render directly above the Rules settings form on the same page; a growing community would make that an endless scroll before ever reaching the settings fields. New `render_community_tab()` renders a standard WP `.subsubsub` sub-navigation and shows exactly one or the other, never both: **Members** (Pending Applications, Members, Invite an Artist — the existing `render_tab_tools( 'community' )` branch, unchanged) is first and is the default landing view; **Rules** holds the settings form (admission thresholds, community cap, removal-vote settings, invitation intro). Every admin-post handler that previously redirected to `tab=community` now also passes `subtab=members`, landing back on the dashboard the action was taken from. (`includes/Admin/Settings.php`)
+
 ## [0.9.5]
 
 ### Added

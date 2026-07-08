@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-08T10:32+00:00\n"
+"POT-Creation-Date: 2026-07-08T11:21+00:00\n"
 "PO-Revision-Date: 2026-07-07 21:06+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Russian\n"
@@ -19,7 +19,7 @@ msgstr ""
 "X-Loco-Version: 2.8.5; wp-7.0; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:179
+#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:180
 #: includes/Publishing/SubmissionsPage.php:62
 msgid "Agnosis"
 msgstr "Agnosis"
@@ -118,12 +118,12 @@ msgstr "От"
 msgid "Subject"
 msgstr "Тема"
 
-#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:991
+#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:1063
 msgid "Files"
 msgstr "Файлы"
 
-#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1385
-#: includes/Admin/Settings.php:1629
+#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1459
+#: includes/Admin/Settings.php:1706
 msgid "Status"
 msgstr "Статус"
 
@@ -135,8 +135,8 @@ msgstr "Получено"
 msgid "Error"
 msgstr "Ошибка"
 
-#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1235
-#: includes/Admin/Settings.php:1387
+#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1307
+#: includes/Admin/Settings.php:1461
 msgid "Actions"
 msgstr "Действия"
 
@@ -255,7 +255,7 @@ msgstr "Выполняется…"
 msgid "Delete this queue row?"
 msgstr "Удалить эту строку очереди?"
 
-#: includes/Admin/InboxPage.php:454 includes/Admin/Settings.php:1442
+#: includes/Admin/InboxPage.php:454 includes/Admin/Settings.php:1516
 msgid "Delete"
 msgstr "Удалить"
 
@@ -278,21 +278,21 @@ msgstr "%d ч назад"
 #: includes/Admin/InboxPage.php:548 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1308
-#: includes/Admin/Settings.php:1336 includes/Admin/Settings.php:1474
-#: includes/Admin/Settings.php:1505 includes/Admin/Settings.php:1531
-#: includes/Admin/Settings.php:1784 includes/Admin/Settings.php:1811
-#: includes/Admin/Settings.php:1884 includes/Admin/Settings.php:1910
-#: includes/Admin/Settings.php:2122 includes/Admin/Settings.php:2141
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1380
+#: includes/Admin/Settings.php:1409 includes/Admin/Settings.php:1548
+#: includes/Admin/Settings.php:1580 includes/Admin/Settings.php:1607
+#: includes/Admin/Settings.php:1861 includes/Admin/Settings.php:1888
+#: includes/Admin/Settings.php:1962 includes/Admin/Settings.php:1989
+#: includes/Admin/Settings.php:2202 includes/Admin/Settings.php:2221
 msgid "You do not have permission to perform this action."
 msgstr "У вас нет разрешения на выполнение этого действия."
 
-#: includes/Admin/Settings.php:45 includes/Admin/Settings.php:46
+#: includes/Admin/Settings.php:46 includes/Admin/Settings.php:47
 msgid "Configuration"
 msgstr "Конфигурация"
 
 #. translators: 1: queue rows reset, 2: messages newly enqueued
-#: includes/Admin/Settings.php:97
+#: includes/Admin/Settings.php:98
 #, php-format
 msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
@@ -302,12 +302,12 @@ msgstr ""
 "добавлено новых сообщений: %2$d. Нажмите «Обработать ожидающую очередь», "
 "чтобы запустить ИИ-пайплайн."
 
-#: includes/Admin/Settings.php:105
+#: includes/Admin/Settings.php:106
 msgid "Log cleared."
 msgstr "Журнал очищен."
 
 #. translators: %d: number of debug files removed
-#: includes/Admin/Settings.php:113
+#: includes/Admin/Settings.php:114
 #, php-format
 msgid "Debug files cleared. %d file was removed."
 msgid_plural "Debug files cleared. %d files were removed."
@@ -316,7 +316,7 @@ msgstr[1] "Отладочные файлы очищены. Было удален
 msgstr[2] "Отладочные файлы очищены. Было удалено %d файлов."
 
 #. translators: %d: number of queue items processed
-#: includes/Admin/Settings.php:123
+#: includes/Admin/Settings.php:124
 #, php-format
 msgid "Processed %d pending queue item(s). Check the Logs tab for details."
 msgstr ""
@@ -324,7 +324,7 @@ msgstr ""
 "«Журналы»."
 
 #. translators: %d: number of new messages enqueued
-#: includes/Admin/Settings.php:133
+#: includes/Admin/Settings.php:134
 #, php-format
 msgid ""
 "Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
@@ -333,71 +333,71 @@ msgstr ""
 "Проверка завершена. В очередь добавлено %d новых сообщений. Проверьте "
 "вкладку «Журналы», затем нажмите «Обработать ожидающую очередь»."
 
-#: includes/Admin/Settings.php:149
+#: includes/Admin/Settings.php:150
 msgid "Applicant admitted. A welcome email has been sent."
 msgstr "Заявитель принят. Отправлено приветственное письмо."
 
-#: includes/Admin/Settings.php:150
+#: includes/Admin/Settings.php:151
 msgid "Could not admit — the application may no longer be pending."
 msgstr "Не удалось принять — возможно, заявка уже не находится в ожидании."
 
-#: includes/Admin/Settings.php:151
+#: includes/Admin/Settings.php:152
 msgid "Application rejected."
 msgstr "Заявка отклонена."
 
-#: includes/Admin/Settings.php:152
+#: includes/Admin/Settings.php:153
 msgid "Could not reject — the application may no longer be pending."
 msgstr "Не удалось отклонить — возможно, заявка уже не находится в ожидании."
 
-#: includes/Admin/Settings.php:153
+#: includes/Admin/Settings.php:154
 msgid "Artist suspended. A notification email has been sent."
 msgstr "Художник приостановлен. Отправлено уведомление по электронной почте."
 
-#: includes/Admin/Settings.php:154
+#: includes/Admin/Settings.php:155
 msgid "Could not suspend the artist — they may no longer be active."
 msgstr "Не удалось приостановить художника — возможно, он уже не активен."
 
-#: includes/Admin/Settings.php:155
+#: includes/Admin/Settings.php:156
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
 msgstr "Художник удалён навсегда. Его аккаунт и весь контент были удалены."
 
-#: includes/Admin/Settings.php:156
+#: includes/Admin/Settings.php:157
 msgid "Could not delete the artist — please try again."
 msgstr "Не удалось удалить художника — попробуйте ещё раз."
 
-#: includes/Admin/Settings.php:157
+#: includes/Admin/Settings.php:158
 msgid "Community removal vote opened. All artists have been emailed."
 msgstr ""
 "Открыто голосование за удаление из сообщества. Всем художникам отправлены "
 "письма."
 
-#: includes/Admin/Settings.php:158
+#: includes/Admin/Settings.php:159
 msgid ""
 "Could not open a removal vote — one may already be active for this artist."
 msgstr ""
 "Не удалось открыть голосование за удаление — для этого художника, возможно, "
 "уже активно другое."
 
-#: includes/Admin/Settings.php:159
+#: includes/Admin/Settings.php:160
 msgid ""
 "Issue prepared and queued — it will go out over the next few cron cycles."
 msgstr ""
 "Выпуск подготовлен и поставлен в очередь — он будет отправлен в течение "
 "следующих нескольких циклов cron."
 
-#: includes/Admin/Settings.php:160
+#: includes/Admin/Settings.php:161
 msgid "Could not start this issue — a previous one may still be sending."
 msgstr ""
 "Не удалось запустить этот выпуск — возможно, предыдущий ещё отправляется."
 
-#: includes/Admin/Settings.php:161
+#: includes/Admin/Settings.php:162
 msgid "Test email sent — check the inbox you sent it to."
 msgstr ""
 "Тестовое письмо отправлено — проверьте почтовый ящик, на который оно было "
 "отправлено."
 
-#: includes/Admin/Settings.php:162
+#: includes/Admin/Settings.php:163
 msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
@@ -405,11 +405,11 @@ msgstr ""
 "Не удалось отправить тестовое письмо — проверьте адрес и настройки исходящей "
 "почты вашего сайта."
 
-#: includes/Admin/Settings.php:163
+#: includes/Admin/Settings.php:164
 msgid "Invitation sent."
 msgstr "Приглашение отправлено."
 
-#: includes/Admin/Settings.php:164
+#: includes/Admin/Settings.php:165
 msgid ""
 "Could not send the invitation — check the address and your site's outgoing "
 "mail configuration."
@@ -417,13 +417,13 @@ msgstr ""
 "Не удалось отправить приглашение — проверьте адрес и настройки исходящей "
 "почты вашего сайта."
 
-#: includes/Admin/Settings.php:165
+#: includes/Admin/Settings.php:166
 msgid "Test invitation sent — check the inbox you sent it to."
 msgstr ""
 "Тестовое приглашение отправлено — проверьте почтовый ящик, на который оно "
 "было отправлено."
 
-#: includes/Admin/Settings.php:166
+#: includes/Admin/Settings.php:167
 msgid ""
 "Could not send the test invitation — check the address and your site's "
 "outgoing mail configuration."
@@ -431,60 +431,73 @@ msgstr ""
 "Не удалось отправить тестовое приглашение — проверьте адрес и настройки "
 "исходящей почты вашего сайта."
 
-#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:181
 msgid "Art blooming out of oblivion"
 msgstr "Искусство, расцветающее из небытия"
 
-#: includes/Admin/Settings.php:199
+#: includes/Admin/Settings.php:202 includes/Admin/Settings.php:269
 msgid "Save Changes"
 msgstr "Сохранить изменения"
 
-#: includes/Admin/Settings.php:213
+#: includes/Admin/Settings.php:226 includes/Admin/Settings.php:1450
+msgid "Members"
+msgstr "Участники"
+
+#: includes/Admin/Settings.php:227
+msgid "Rules"
+msgstr ""
+
+#: includes/Admin/Settings.php:283
 msgid "General"
 msgstr "Общие"
 
-#: includes/Admin/Settings.php:214
+#: includes/Admin/Settings.php:284
 msgid "Email Inbox"
 msgstr "Входящие для почты"
 
-#: includes/Admin/Settings.php:215
+#: includes/Admin/Settings.php:285
 msgid "AI Providers"
 msgstr "Провайдеры ИИ"
 
-#: includes/Admin/Settings.php:216
+#: includes/Admin/Settings.php:286
 msgid "Behaviour"
 msgstr "Поведение"
 
-#: includes/Admin/Settings.php:217
+#: includes/Admin/Settings.php:287
 msgid "Network"
 msgstr "Сеть"
 
-#: includes/Admin/Settings.php:218
+#: includes/Admin/Settings.php:288
+#, fuzzy
+msgid "Community"
+msgstr "Лимит размера сообщества"
+
+#: includes/Admin/Settings.php:289
 msgid "Commerce"
 msgstr "Коммерция"
 
-#: includes/Admin/Settings.php:219 includes/Admin/Settings.php:1626
+#: includes/Admin/Settings.php:290 includes/Admin/Settings.php:1703
 #: includes/Newsletter/Mailer.php:66
 msgid "Newsletter"
 msgstr "Рассылка"
 
-#: includes/Admin/Settings.php:220
+#: includes/Admin/Settings.php:291
 msgid "Logs"
 msgstr "Журналы"
 
-#: includes/Admin/Settings.php:276
+#: includes/Admin/Settings.php:347
 msgid "Select Image"
 msgstr "Выбрать изображение"
 
-#: includes/Admin/Settings.php:277 includes/Core/EmailFooter.php:78
+#: includes/Admin/Settings.php:348 includes/Core/EmailFooter.php:78
 msgid "Remove"
 msgstr "Удалить"
 
-#: includes/Admin/Settings.php:294
+#: includes/Admin/Settings.php:365
 msgid "Base domain"
 msgstr "Базовый домен"
 
-#: includes/Admin/Settings.php:295
+#: includes/Admin/Settings.php:366
 msgid ""
 "Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
 "reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
@@ -496,19 +509,19 @@ msgstr ""
 "запись DNS (*.{base_domain}), указывающая на этот сервер. Оставьте поле "
 "пустым, чтобы отключить маршрутизацию по поддоменам."
 
-#: includes/Admin/Settings.php:300
+#: includes/Admin/Settings.php:371
 msgid "Node label"
 msgstr "Метка узла"
 
-#: includes/Admin/Settings.php:301
+#: includes/Admin/Settings.php:372
 msgid "How this node introduces itself to the network."
 msgstr "Как этот узел представляется сети."
 
-#: includes/Admin/Settings.php:308
+#: includes/Admin/Settings.php:379
 msgid "Debug logging"
 msgstr "Отладочное журналирование"
 
-#: includes/Admin/Settings.php:313
+#: includes/Admin/Settings.php:384
 msgid ""
 "Writes raw diagnostic dumps of the email intake pipeline (message structure, "
 "attachment MIME detection, media conversion, post creation) to a dedicated "
@@ -529,11 +542,11 @@ msgstr ""
 "переопределяет этот переключатель. См. ниже панель Debug Files для пути к "
 "каталогу и кнопки очистки файлов."
 
-#: includes/Admin/Settings.php:319
+#: includes/Admin/Settings.php:390
 msgid "Email logo"
 msgstr "Логотип для email"
 
-#: includes/Admin/Settings.php:324
+#: includes/Admin/Settings.php:395
 msgid ""
 "Shown in the header of outgoing HTML emails (submission review, removal "
 "confirmation, rejection notice, and both newsletters) in place of the plain "
@@ -545,11 +558,11 @@ msgstr ""
 "«✦ Название сайта». Оставьте пустым, чтобы сохранить текстовый логотип. "
 "Отображается высотой до 40 px — подходит любая ширина и соотношение сторон."
 
-#: includes/Admin/Settings.php:330
+#: includes/Admin/Settings.php:401
 msgid "Cloudflare Turnstile site key"
 msgstr "Ключ сайта Cloudflare Turnstile"
 
-#: includes/Admin/Settings.php:331
+#: includes/Admin/Settings.php:402
 msgid ""
 "From your Cloudflare Turnstile widget (dash.cloudflare.com → Turnstile). "
 "Adds a human-verification check to the public Subscribe (newsletter-signup) "
@@ -561,11 +574,11 @@ msgstr ""
 "(newsletter-signup) и «Присоединиться». Оставьте любой из ключей пустым, "
 "чтобы обе формы остались без изменений."
 
-#: includes/Admin/Settings.php:335
+#: includes/Admin/Settings.php:406
 msgid "Cloudflare Turnstile secret key"
 msgstr "Секретный ключ Cloudflare Turnstile"
 
-#: includes/Admin/Settings.php:338
+#: includes/Admin/Settings.php:409
 msgid ""
 "Kept server-side only — used to verify each form submission directly with "
 "Cloudflare before it is accepted."
@@ -573,45 +586,45 @@ msgstr ""
 "Хранится только на стороне сервера — используется для проверки каждой "
 "отправки формы напрямую через Cloudflare перед её принятием."
 
-#: includes/Admin/Settings.php:344
+#: includes/Admin/Settings.php:415
 msgid "Email driver"
 msgstr "Драйвер электронной почты"
 
-#: includes/Admin/Settings.php:352
+#: includes/Admin/Settings.php:423
 msgid "Artwork submissions address"
 msgstr "Адрес для отправки работ"
 
-#: includes/Admin/Settings.php:353
+#: includes/Admin/Settings.php:424
 msgid "Artists send artwork to this address — e.g. submit@agnosis.art"
 msgstr ""
 "Художники отправляют работы на этот адрес — например, submit@agnosis.art"
 
-#: includes/Admin/Settings.php:357
+#: includes/Admin/Settings.php:428
 msgid "Biography submissions address"
 msgstr "Адрес для отправки биографий"
 
-#: includes/Admin/Settings.php:358
+#: includes/Admin/Settings.php:429
 msgid "Artists send biography updates to this address — e.g. bio@agnosis.art"
 msgstr ""
 "Художники отправляют обновления биографии на этот адрес — например, "
 "bio@agnosis.art"
 
-#: includes/Admin/Settings.php:362
+#: includes/Admin/Settings.php:433
 msgid "Event submissions address"
 msgstr "Адрес для отправки событий"
 
-#: includes/Admin/Settings.php:363
+#: includes/Admin/Settings.php:434
 msgid ""
 "Artists send event announcements to this address — e.g. event@agnosis.art"
 msgstr ""
 "Художники отправляют анонсы событий на этот адрес — например, "
 "event@agnosis.art"
 
-#: includes/Admin/Settings.php:367
+#: includes/Admin/Settings.php:438
 msgid "Replace artwork address"
 msgstr "Адрес для замены работы"
 
-#: includes/Admin/Settings.php:368
+#: includes/Admin/Settings.php:439
 msgid ""
 "Artist sends a new version of an existing artwork. Subject must match the "
 "original title. Bypasses duplicate detection — e.g. replace@agnosis.art"
@@ -620,11 +633,11 @@ msgstr ""
 "совпадать с оригинальным названием. Обходит проверку на дубликаты — "
 "например, replace@agnosis.art"
 
-#: includes/Admin/Settings.php:372
+#: includes/Admin/Settings.php:443
 msgid "Removal request address"
 msgstr "Адрес для запроса на удаление"
 
-#: includes/Admin/Settings.php:373
+#: includes/Admin/Settings.php:444
 msgid ""
 "Artist requests takedown of an existing artwork. Subject must match the "
 "title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
@@ -633,11 +646,11 @@ msgstr ""
 "совпадать с названием. Перемещает публикацию в черновики до проверки "
 "администратором — например, remove@agnosis.art"
 
-#: includes/Admin/Settings.php:377
+#: includes/Admin/Settings.php:448
 msgid "Promote artwork address"
 msgstr "Адрес для продвижения работы"
 
-#: includes/Admin/Settings.php:378
+#: includes/Admin/Settings.php:449
 msgid ""
 "Artist sends an email here (subject = exact artwork title) to mark that "
 "artwork as featured in their gallery overview. Any previously featured "
@@ -648,11 +661,11 @@ msgstr ""
 "избранная работа автоматически снимается с избранного — например, "
 "promote@agnosis.art"
 
-#: includes/Admin/Settings.php:382
+#: includes/Admin/Settings.php:453
 msgid "Photo-only address"
 msgstr "Адрес только для фотографий"
 
-#: includes/Admin/Settings.php:383
+#: includes/Admin/Settings.php:454
 msgid ""
 "Opt-out lane for photographers and lens-based artists whose photograph is "
 "the artwork, not a snapshot of it. Submissions here are published with the "
@@ -670,11 +683,11 @@ msgstr ""
 "вариант для почтовых клиентов, которые не поддерживают псевдонимы To: — "
 "например, photo@agnosis.art"
 
-#: includes/Admin/Settings.php:387
+#: includes/Admin/Settings.php:458
 msgid "Pure address (no AI at all)"
 msgstr ""
 
-#: includes/Admin/Settings.php:388
+#: includes/Admin/Settings.php:459
 msgid ""
 "Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, "
 "no vision description, no rewriting. The published post title, body, and "
@@ -685,11 +698,11 @@ msgid ""
 "aliases — e.g. pure@agnosis.art"
 msgstr ""
 
-#: includes/Admin/Settings.php:392
+#: includes/Admin/Settings.php:463
 msgid "Goodbye / self-removal address"
 msgstr "Адрес «Прощай» / самоустранение"
 
-#: includes/Admin/Settings.php:393
+#: includes/Admin/Settings.php:464
 msgid ""
 "Artist emails here (any subject, no attachment needed) to request account "
 "deletion. A confirmation link is emailed back before anything is deleted — "
@@ -699,27 +712,27 @@ msgstr ""
 "удаление аккаунта. Перед тем как что-либо будет удалено, в ответ "
 "отправляется ссылка для подтверждения — например, goodbye@agnosis.art"
 
-#: includes/Admin/Settings.php:399
+#: includes/Admin/Settings.php:470
 msgid "IMAP host"
 msgstr "Хост IMAP"
 
-#: includes/Admin/Settings.php:400
+#: includes/Admin/Settings.php:471
 msgid "e.g. imap.yourhost.com"
 msgstr "например, imap.yourhost.com"
 
-#: includes/Admin/Settings.php:404
+#: includes/Admin/Settings.php:475
 msgid "IMAP port"
 msgstr "Порт IMAP"
 
-#: includes/Admin/Settings.php:411
+#: includes/Admin/Settings.php:482
 msgid "Use SSL"
 msgstr "Использовать SSL"
 
-#: includes/Admin/Settings.php:419
+#: includes/Admin/Settings.php:490
 msgid "Skip SSL certificate validation"
 msgstr "Пропустить проверку SSL-сертификата"
 
-#: includes/Admin/Settings.php:424
+#: includes/Admin/Settings.php:495
 msgid ""
 "⚠ Use only as a temporary workaround when your mail server's certificate is "
 "not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
@@ -731,11 +744,11 @@ msgstr ""
 "применения Let’s Encrypt к почтовому демону). Отключите это после того, как "
 "почтовый сервер начнёт предъявлять действительный сертификат."
 
-#: includes/Admin/Settings.php:428
+#: includes/Admin/Settings.php:499
 msgid "IMAP username"
 msgstr "Имя пользователя IMAP"
 
-#: includes/Admin/Settings.php:429
+#: includes/Admin/Settings.php:500
 msgid ""
 "Login username for the IMAP account — typically the catch-all mailbox "
 "address."
@@ -743,23 +756,23 @@ msgstr ""
 "Имя пользователя для входа в IMAP-аккаунт — обычно адрес почтового ящика "
 "catch-all."
 
-#: includes/Admin/Settings.php:433
+#: includes/Admin/Settings.php:504
 msgid "Submission email password"
 msgstr "Пароль для email-публикаций"
 
-#: includes/Admin/Settings.php:439
+#: includes/Admin/Settings.php:510
 msgid "Webhook secret"
 msgstr "Секрет вебхука"
 
-#: includes/Admin/Settings.php:440
+#: includes/Admin/Settings.php:511
 msgid "HMAC secret shared with your webhook provider (Mailgun, SendGrid…)."
 msgstr "HMAC-секрет, общий с вашим провайдером вебхуков (Mailgun, SendGrid…)."
 
-#: includes/Admin/Settings.php:446
+#: includes/Admin/Settings.php:517
 msgid "Inbox retention (days)"
 msgstr "Срок хранения входящих писем (дней)"
 
-#: includes/Admin/Settings.php:452
+#: includes/Admin/Settings.php:523
 msgid ""
 "Seen IMAP messages and processed/failed queue rows older than this are "
 "permanently deleted by the daily cleanup. Default: 7 days."
@@ -767,11 +780,11 @@ msgstr ""
 "Просмотренные сообщения IMAP и строки очереди processed/failed старше этого "
 "срока удаляются навсегда при ежедневной очистке. По умолчанию: 7 дней."
 
-#: includes/Admin/Settings.php:458
+#: includes/Admin/Settings.php:529
 msgid "Per-sender hourly submission limit"
 msgstr "Почасовой лимит отправок на одного отправителя"
 
-#: includes/Admin/Settings.php:465
+#: includes/Admin/Settings.php:536
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -781,11 +794,11 @@ msgstr ""
 "для IMAP и вебхуков. Превышение этого лимита молча отклоняет сообщение (без "
 "повторных попыток со стороны ESP). По умолчанию: 5."
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:541
 msgid "Require SPF/DKIM authentication"
 msgstr "Требовать аутентификацию SPF/DKIM"
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:544
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -800,11 +813,11 @@ msgstr ""
 "оставьте выключенным: отклонённая легитимная почта отклоняется молча. По "
 "умолчанию: выкл."
 
-#: includes/Admin/Settings.php:479
+#: includes/Admin/Settings.php:550
 msgid "Description provider"
 msgstr "Провайдер описания"
 
-#: includes/Admin/Settings.php:487
+#: includes/Admin/Settings.php:558
 msgid ""
 "Analyses the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -814,11 +827,11 @@ msgstr ""
 "WordPress AI Services передаёт задачу тому провайдеру, который настроен на "
 "сайте через плагин AI Services."
 
-#: includes/Admin/Settings.php:491
+#: includes/Admin/Settings.php:562
 msgid "OpenAI vision model"
 msgstr "Визуальная модель OpenAI"
 
-#: includes/Admin/Settings.php:493
+#: includes/Admin/Settings.php:564
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -826,11 +839,11 @@ msgstr ""
 "Модель, используемая для описания работы, если провайдером описания является "
 "OpenAI. Должна поддерживать ввод изображений."
 
-#: includes/Admin/Settings.php:497
+#: includes/Admin/Settings.php:568
 msgid "Anthropic model"
 msgstr "Модель Anthropic"
 
-#: includes/Admin/Settings.php:499
+#: includes/Admin/Settings.php:570
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -838,11 +851,11 @@ msgstr ""
 "Модель, используемая для описания работы, если провайдером описания является "
 "Anthropic. Должна поддерживать ввод изображений."
 
-#: includes/Admin/Settings.php:503
+#: includes/Admin/Settings.php:574
 msgid "Vision image max width (px)"
 msgstr "Максимальная ширина изображения для Vision (px)"
 
-#: includes/Admin/Settings.php:509
+#: includes/Admin/Settings.php:580
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -863,19 +876,19 @@ msgstr ""
 "недоступно, изображения отправляются в исходном размере независимо от этой "
 "настройки. По умолчанию: 800."
 
-#: includes/Admin/Settings.php:515
+#: includes/Admin/Settings.php:586
 msgid "Enhancement provider"
 msgstr "Провайдер улучшения"
 
-#: includes/Admin/Settings.php:518
+#: includes/Admin/Settings.php:589
 msgid "Auto (OpenAI if key is set)"
 msgstr "Авто (OpenAI, если задан ключ)"
 
-#: includes/Admin/Settings.php:520
+#: includes/Admin/Settings.php:591
 msgid "Disabled — use original image"
 msgstr "Отключено — использовать исходное изображение"
 
-#: includes/Admin/Settings.php:523
+#: includes/Admin/Settings.php:594
 msgid ""
 "Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
 "to Disabled to skip enhancement and publish the original."
@@ -884,22 +897,22 @@ msgstr ""
 "image-1. Установите значение «Отключено», чтобы пропустить улучшение и "
 "публиковать исходное изображение."
 
-#: includes/Admin/Settings.php:527
+#: includes/Admin/Settings.php:598
 msgid "OpenAI image model"
 msgstr "Модель изображений OpenAI"
 
-#: includes/Admin/Settings.php:529
+#: includes/Admin/Settings.php:600
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "Модель, используемая для улучшения изображений, если провайдером улучшения "
 "является OpenAI."
 
-#: includes/Admin/Settings.php:535
+#: includes/Admin/Settings.php:606
 msgid "Polish biography with AI"
 msgstr "Улучшать биографию с помощью ИИ"
 
-#: includes/Admin/Settings.php:538
+#: includes/Admin/Settings.php:609
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -907,11 +920,11 @@ msgstr ""
 "Если включено, тексты биографий перед сохранением проходят через ИИ для "
 "исправления орфографии и небольших текстовых улучшений."
 
-#: includes/Admin/Settings.php:542
+#: includes/Admin/Settings.php:613
 msgid "Polish events with AI"
 msgstr "Публикация событий с помощью ИИ"
 
-#: includes/Admin/Settings.php:545
+#: includes/Admin/Settings.php:616
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -919,11 +932,11 @@ msgstr ""
 "Когда эта опция включена, заявки на события перед сохранением проходят через "
 "ИИ для исправления орфографии и небольшого улучшения текста."
 
-#: includes/Admin/Settings.php:551
+#: includes/Admin/Settings.php:622
 msgid "Merge biography updates with AI"
 msgstr "Объединять обновления биографии с помощью ИИ"
 
-#: includes/Admin/Settings.php:554
+#: includes/Admin/Settings.php:625
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -937,11 +950,11 @@ msgstr ""
 "(«Я только что получил награду») без повторной отправки полной биографии. "
 "Отключите, чтобы всегда заменять биографию последней отправкой."
 
-#: includes/Admin/Settings.php:560
+#: includes/Admin/Settings.php:631
 msgid "Rejection threshold (quality score)"
 msgstr "Порог отклонения (оценка качества)"
 
-#: includes/Admin/Settings.php:568
+#: includes/Admin/Settings.php:639
 msgid ""
 "Photos scoring at or below this value (1–10) are automatically rejected — "
 "the artist receives a friendly email explaining the issue and is invited to "
@@ -953,11 +966,11 @@ msgstr ""
 "приглашением отправить работу заново. Значение 0 отключает автоматическое "
 "отклонение. Должно быть меньше порога улучшения. По умолчанию: 3."
 
-#: includes/Admin/Settings.php:573
+#: includes/Admin/Settings.php:644
 msgid "Enhancement threshold (quality score)"
 msgstr "Порог улучшения (оценка качества)"
 
-#: includes/Admin/Settings.php:581
+#: includes/Admin/Settings.php:652
 msgid ""
 "Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
 "= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
@@ -969,27 +982,27 @@ msgstr ""
 "7 — обрабатываются только явно проблемные фотографии. Установите 1, чтобы "
 "полностью отключить автоматическое улучшение."
 
-#: includes/Admin/Settings.php:587
+#: includes/Admin/Settings.php:658
 msgid "OpenAI API key"
 msgstr "API-ключ OpenAI"
 
-#: includes/Admin/Settings.php:590
+#: includes/Admin/Settings.php:661
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "Требуется, когда OpenAI является поставщиком описаний или улучшений."
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:665
 msgid "Anthropic API key"
 msgstr "API-ключ Anthropic"
 
-#: includes/Admin/Settings.php:597
+#: includes/Admin/Settings.php:668
 msgid "Required when Anthropic is the description provider."
 msgstr "Требуется, когда Anthropic является поставщиком описаний."
 
-#: includes/Admin/Settings.php:603
+#: includes/Admin/Settings.php:674
 msgid "Artwork display width (px)"
 msgstr "Ширина отображения произведения (px)"
 
-#: includes/Admin/Settings.php:609
+#: includes/Admin/Settings.php:680
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -999,11 +1012,11 @@ msgstr ""
 "лайтбоксе. Высота масштабируется пропорционально. По умолчанию: 1920. После "
 "изменения этого значения существующие изображения нужно пересоздать."
 
-#: includes/Admin/Settings.php:613
+#: includes/Admin/Settings.php:684
 msgid "Thumbnail size (px)"
 msgstr "Размер миниатюры (px)"
 
-#: includes/Admin/Settings.php:619
+#: includes/Admin/Settings.php:690
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -1013,11 +1026,11 @@ msgstr ""
 "заявок и панели управления. По умолчанию: 512. После изменения этого "
 "значения существующие изображения нужно пересоздать."
 
-#: includes/Admin/Settings.php:623
+#: includes/Admin/Settings.php:694
 msgid "Email image width (px)"
 msgstr "Ширина изображения для email (px)"
 
-#: includes/Admin/Settings.php:629
+#: includes/Admin/Settings.php:700
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -1028,11 +1041,11 @@ msgstr ""
 "умолчанию: 420. После изменения этого значения существующие изображения "
 "нужно пересоздать."
 
-#: includes/Admin/Settings.php:635
+#: includes/Admin/Settings.php:706
 msgid "Gallery overview — items per page"
 msgstr "Обзор галереи — элементов на странице"
 
-#: includes/Admin/Settings.php:641
+#: includes/Admin/Settings.php:712
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -1042,11 +1055,11 @@ msgstr ""
 "формируется пропорционально по всем художникам; приоритет отдается избранным "
 "работам. По умолчанию: 12."
 
-#: includes/Admin/Settings.php:647
+#: includes/Admin/Settings.php:718
 msgid "System prompt"
 msgstr "Системный промпт"
 
-#: includes/Admin/Settings.php:652
+#: includes/Admin/Settings.php:723
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -1054,11 +1067,11 @@ msgstr ""
 "Передаётся ИИ как системная инструкция. Используйте {tag_count} и "
 "{excerpt_words} как токены — они будут заменены значениями ниже."
 
-#: includes/Admin/Settings.php:656
+#: includes/Admin/Settings.php:727
 msgid "Artist prompt template"
 msgstr "Шаблон промпта для художника"
 
-#: includes/Admin/Settings.php:661
+#: includes/Admin/Settings.php:732
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -1067,11 +1080,11 @@ msgstr ""
 "Используйте {artist_prompt} там, где должно появляться собственное описание "
 "художника."
 
-#: includes/Admin/Settings.php:665
+#: includes/Admin/Settings.php:736
 msgid "Enhancement instructions"
 msgstr "Инструкции по улучшению"
 
-#: includes/Admin/Settings.php:670
+#: includes/Admin/Settings.php:741
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -1079,11 +1092,11 @@ msgstr ""
 "Инструкции, передаваемые поставщику улучшения изображений. Сгенерированное "
 "ИИ описание работы автоматически добавляется в качестве контекста."
 
-#: includes/Admin/Settings.php:674
+#: includes/Admin/Settings.php:745
 msgid "Number of tags"
 msgstr "Количество тегов"
 
-#: includes/Admin/Settings.php:680
+#: includes/Admin/Settings.php:751
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -1091,11 +1104,11 @@ msgstr ""
 "Сколько тегов ИИ должен генерировать для каждой работы. Указывается в "
 "системном промпте как {tag_count}."
 
-#: includes/Admin/Settings.php:684
+#: includes/Admin/Settings.php:755
 msgid "Excerpt word limit"
 msgstr "Ограничение на количество слов в отрывке"
 
-#: includes/Admin/Settings.php:690
+#: includes/Admin/Settings.php:761
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -1103,30 +1116,30 @@ msgstr ""
 "Максимальное количество слов для однопредложного отрывка. Указывается в "
 "системном промпте как {excerpt_words}."
 
-#: includes/Admin/Settings.php:696
+#: includes/Admin/Settings.php:767
 msgid "Enable ActivityPub federation"
 msgstr "Включить федерацию ActivityPub"
 
-#: includes/Admin/Settings.php:700
+#: includes/Admin/Settings.php:771
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Распространять новые работы в Mastodon, Pixelfed и Fediverse."
 
-#: includes/Admin/Settings.php:705
+#: includes/Admin/Settings.php:776
 msgid "Node public key"
 msgstr "Открытый ключ узла"
 
-#: includes/Admin/Settings.php:707
+#: includes/Admin/Settings.php:778
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Автоматически сгенерированный RSA-открытый ключ для этого узла. Поделитесь "
 "им с узлами-партнёрами."
 
-#: includes/Admin/Settings.php:711
+#: includes/Admin/Settings.php:783
 msgid "Admission vote threshold (%)"
 msgstr "Порог голосов за приём (%)"
 
-#: includes/Admin/Settings.php:716
+#: includes/Admin/Settings.php:788
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -1134,22 +1147,22 @@ msgstr ""
 "Процент активных художников, которые должны проголосовать «за» при приёме. С "
 "учётом минимального порога ниже."
 
-#: includes/Admin/Settings.php:720
+#: includes/Admin/Settings.php:792
 msgid "Admission minimum votes"
 msgstr "Минимальное количество голосов за приём"
 
-#: includes/Admin/Settings.php:724
+#: includes/Admin/Settings.php:796
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Абсолютный минимум положительных голосов, необходимый независимо от "
 "указанного выше процента."
 
-#: includes/Admin/Settings.php:728
+#: includes/Admin/Settings.php:800
 msgid "Voting window (days)"
 msgstr "Окно голосования (дни)"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:804
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -1157,11 +1170,11 @@ msgstr ""
 "Сколько дней заявка остаётся открытой. Если порог не достигнут в течение "
 "этого срока, заявка отклоняется."
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:808
 msgid "After applying, send artists to"
 msgstr "После подачи заявки отправляйте художников на"
 
-#: includes/Admin/Settings.php:740
+#: includes/Admin/Settings.php:812
 msgid ""
 "Optional URL — e.g. a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -1173,11 +1186,11 @@ msgstr ""
 "перенаправлен сюда вместо показа встроенного сообщения о подтверждении. "
 "Оставьте пустым, чтобы оставить только встроенное сообщение."
 
-#: includes/Admin/Settings.php:744
+#: includes/Admin/Settings.php:816
 msgid "Community size cap"
 msgstr "Лимит размера сообщества"
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:820
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -1188,11 +1201,11 @@ msgstr ""
 "следующий в очереди. Установите 0, чтобы не задавать лимит. Сообщество также "
 "может проголосовать за изменение этого значения."
 
-#: includes/Admin/Settings.php:752
+#: includes/Admin/Settings.php:824
 msgid "Cap-change co-signers required"
 msgstr "Требуемое число соавторов изменения лимита"
 
-#: includes/Admin/Settings.php:756
+#: includes/Admin/Settings.php:828
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -1201,11 +1214,11 @@ msgstr ""
 "размера сообщества, прежде чем оно будет вынесено на полноценное голосование "
 "сообщества."
 
-#: includes/Admin/Settings.php:760
+#: includes/Admin/Settings.php:832
 msgid "Cap-change vote window (days)"
 msgstr "Окно голосования за изменение лимита (дни)"
 
-#: includes/Admin/Settings.php:764
+#: includes/Admin/Settings.php:836
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -1214,11 +1227,11 @@ msgstr ""
 "Простое большинство активных художников, проголосовавших «за», принимает "
 "новый лимит."
 
-#: includes/Admin/Settings.php:768
+#: includes/Admin/Settings.php:840
 msgid "Removal nominations required"
 msgstr "Требуемое число номинаций на исключение"
 
-#: includes/Admin/Settings.php:774
+#: includes/Admin/Settings.php:846
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -1227,11 +1240,11 @@ msgstr ""
 "голосование сообщества за исключение. Администраторы могут обойти это "
 "ограничение."
 
-#: includes/Admin/Settings.php:778
+#: includes/Admin/Settings.php:850
 msgid "Removal vote window (days)"
 msgstr "Окно голосования за исключение (дни)"
 
-#: includes/Admin/Settings.php:784
+#: includes/Admin/Settings.php:856
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -1240,153 +1253,11 @@ msgstr ""
 "Большинство (>50%) активных художников должно проголосовать «за», чтобы "
 "исключение было принято."
 
-#: includes/Admin/Settings.php:790
-msgid "Transaction fee (%)"
-msgstr "Комиссия за транзакцию (%)"
-
-#: includes/Admin/Settings.php:795
-msgid ""
-"Percentage retained by this node on donations and art sales. Artists pay "
-"nothing up front."
-msgstr ""
-"Процент, удерживаемый этим узлом с пожертвований и продаж произведений. "
-"Художники не платят ничего заранее."
-
-#: includes/Admin/Settings.php:803
-msgid "Sender name"
-msgstr "Имя отправителя"
-
-#: includes/Admin/Settings.php:804
-msgid ""
-"Name shown as the sender of digest emails. Leave blank to use the site name."
-msgstr ""
-"Имя, отображаемое как отправитель дайджест-писем. Оставьте пустым, чтобы "
-"использовать имя сайта."
-
-#: includes/Admin/Settings.php:808
-msgid "Sender email address"
-msgstr "Адрес электронной почты отправителя"
-
-#: includes/Admin/Settings.php:810
-msgid ""
-"Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
-"keeps digest mail separate from the site's admin email for deliverability "
-"and so artists can filter it. Leave blank to use the admin email. Must be a "
-"valid, deliverable address on your domain (SPF/DKIM configured) or messages "
-"may be marked as spam."
-msgstr ""
-"Отдельный адрес From: для обеих рассылок, например newsletter@agnosis.art — "
-"позволяет отделить письма дайджеста от административной почты сайта для "
-"лучшей доставляемости и помогает художникам фильтровать их. Оставьте пустым, "
-"чтобы использовать адрес администратора. Должен быть действительным, "
-"доставляемым адресом в вашем домене (SPF/DKIM настроены), иначе сообщения "
-"могут быть помечены как спам."
-
-#: includes/Admin/Settings.php:814
-msgid "Artist newsletter"
-msgstr "Рассылка для художников"
-
-#: includes/Admin/Settings.php:817
-msgid ""
-"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
-"one click). Community digest: recent activity, new members, open votes."
-msgstr ""
-"Принятые художники автоматически подписываются (они могут отписаться от "
-"любого выпуска одним щелчком). Дайджест сообщества: недавняя активность, "
-"новые участники, открытые голосования."
-
-#: includes/Admin/Settings.php:821
-msgid "Artist newsletter frequency (days)"
-msgstr "Частота рассылки для художников (дни)"
-
-#: includes/Admin/Settings.php:827
-msgid ""
-"Default 30 ≈ monthly. A new issue is prepared once this many days have "
-"passed since the last one was sent."
-msgstr ""
-"По умолчанию 30 ≈ раз в месяц. Новый выпуск готовится после того, как с "
-"момента отправки предыдущего прошло столько дней."
-
-#: includes/Admin/Settings.php:831
-msgid "Artist newsletter intro"
-msgstr "Вступление к рассылке для художников"
-
-#: includes/Admin/Settings.php:835
-msgid ""
-"Optional note prepended to the next artist issue only — cleared "
-"automatically once that issue is queued. Leave blank to send the auto-digest "
-"with no intro."
-msgstr ""
-"Необязательная заметка, добавляемая только к следующему выпуску для "
-"художников — автоматически очищается, как только выпуск поставлен в очередь. "
-"Оставьте пустым, чтобы отправить автодайджест без вступления."
-
-#: includes/Admin/Settings.php:839
-msgid "Public newsletter"
-msgstr "Публичная рассылка"
-
-#: includes/Admin/Settings.php:842
-msgid ""
-"Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
-"Digest: new artwork and events published since the last issue."
-msgstr ""
-"Посетители подписываются через блок agnosis/newsletter-signup (double opt-"
-"in). Дайджест: новые работы и события, опубликованные с момента прошлого "
-"выпуска."
-
-#: includes/Admin/Settings.php:846
-msgid "Public newsletter frequency (days)"
-msgstr "Частота публичной рассылки (дни)"
-
-#: includes/Admin/Settings.php:852
-msgid "Default 30 ≈ monthly."
-msgstr "По умолчанию 30 ≈ раз в месяц."
-
-#: includes/Admin/Settings.php:856
-msgid "Public newsletter intro"
-msgstr "Вступление к публичной рассылке"
-
 #: includes/Admin/Settings.php:860
-msgid ""
-"Optional note prepended to the next public issue only — cleared "
-"automatically once that issue is queued."
-msgstr ""
-"Необязательная заметка, добавляемая только к следующему публичному выпуску — "
-"автоматически очищается, как только выпуск поставлен в очередь."
-
-#: includes/Admin/Settings.php:864
-msgid "Send batch size"
-msgstr "Размер пакета отправки"
-
-#: includes/Admin/Settings.php:870
-msgid ""
-"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
-"outbound mail; raise it for faster delivery on hosts with generous limits."
-msgstr ""
-"Получателей, которым отправляется письмо за один 5-минутный тик cron. "
-"Уменьшите это значение, если ваш хост ограничивает исходящую почту; "
-"увеличьте для более быстрой доставки на хостах с щедрыми лимитами."
-
-#: includes/Admin/Settings.php:874
-msgid "Self-hosting comfort threshold"
-msgstr "Порог комфорта для самостоятельного хостинга"
-
-#: includes/Admin/Settings.php:880
-msgid ""
-"Advisory only — self-hosted sending keeps working above this count. Once "
-"confirmed public subscribers pass it, this page shows a reminder to consider "
-"an email service provider (e.g. Brevo's free tier) instead."
-msgstr ""
-"Только для справки — отправка с собственного хостинга продолжает работать и "
-"выше этого числа. Когда подтверждённое число публичных подписчиков превысит "
-"его, на этой странице появится напоминание рассмотреть вместо этого "
-"почтового провайдера (например, бесплатный тариф Brevo)."
-
-#: includes/Admin/Settings.php:884
 msgid "Invitation intro"
 msgstr "Вступление к приглашению"
 
-#: includes/Admin/Settings.php:888
+#: includes/Admin/Settings.php:864
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -1416,7 +1287,7 @@ msgstr ""
 "свои работы, отправив электронное письмо. Вы можете найти дополнительную "
 "информацию, посетив веб-сайт agnosis.art."
 
-#: includes/Admin/Settings.php:892
+#: includes/Admin/Settings.php:868
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
 "join\" link and site name follow automatically — no need to add either "
@@ -1432,7 +1303,149 @@ msgstr ""
 "автоматически, когда приглашение отправляется на языке, отличном от "
 "собственного языка сайта."
 
+#: includes/Admin/Settings.php:874
+msgid "Transaction fee (%)"
+msgstr "Комиссия за транзакцию (%)"
+
+#: includes/Admin/Settings.php:879
+msgid ""
+"Percentage retained by this node on donations and art sales. Artists pay "
+"nothing up front."
+msgstr ""
+"Процент, удерживаемый этим узлом с пожертвований и продаж произведений. "
+"Художники не платят ничего заранее."
+
+#: includes/Admin/Settings.php:887
+msgid "Sender name"
+msgstr "Имя отправителя"
+
+#: includes/Admin/Settings.php:888
+msgid ""
+"Name shown as the sender of digest emails. Leave blank to use the site name."
+msgstr ""
+"Имя, отображаемое как отправитель дайджест-писем. Оставьте пустым, чтобы "
+"использовать имя сайта."
+
+#: includes/Admin/Settings.php:892
+msgid "Sender email address"
+msgstr "Адрес электронной почты отправителя"
+
+#: includes/Admin/Settings.php:894
+msgid ""
+"Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
+"keeps digest mail separate from the site's admin email for deliverability "
+"and so artists can filter it. Leave blank to use the admin email. Must be a "
+"valid, deliverable address on your domain (SPF/DKIM configured) or messages "
+"may be marked as spam."
+msgstr ""
+"Отдельный адрес From: для обеих рассылок, например newsletter@agnosis.art — "
+"позволяет отделить письма дайджеста от административной почты сайта для "
+"лучшей доставляемости и помогает художникам фильтровать их. Оставьте пустым, "
+"чтобы использовать адрес администратора. Должен быть действительным, "
+"доставляемым адресом в вашем домене (SPF/DKIM настроены), иначе сообщения "
+"могут быть помечены как спам."
+
+#: includes/Admin/Settings.php:898
+msgid "Artist newsletter"
+msgstr "Рассылка для художников"
+
 #: includes/Admin/Settings.php:901
+msgid ""
+"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
+"one click). Community digest: recent activity, new members, open votes."
+msgstr ""
+"Принятые художники автоматически подписываются (они могут отписаться от "
+"любого выпуска одним щелчком). Дайджест сообщества: недавняя активность, "
+"новые участники, открытые голосования."
+
+#: includes/Admin/Settings.php:905
+msgid "Artist newsletter frequency (days)"
+msgstr "Частота рассылки для художников (дни)"
+
+#: includes/Admin/Settings.php:911
+msgid ""
+"Default 30 ≈ monthly. A new issue is prepared once this many days have "
+"passed since the last one was sent."
+msgstr ""
+"По умолчанию 30 ≈ раз в месяц. Новый выпуск готовится после того, как с "
+"момента отправки предыдущего прошло столько дней."
+
+#: includes/Admin/Settings.php:915
+msgid "Artist newsletter intro"
+msgstr "Вступление к рассылке для художников"
+
+#: includes/Admin/Settings.php:919
+msgid ""
+"Optional note prepended to the next artist issue only — cleared "
+"automatically once that issue is queued. Leave blank to send the auto-digest "
+"with no intro."
+msgstr ""
+"Необязательная заметка, добавляемая только к следующему выпуску для "
+"художников — автоматически очищается, как только выпуск поставлен в очередь. "
+"Оставьте пустым, чтобы отправить автодайджест без вступления."
+
+#: includes/Admin/Settings.php:923
+msgid "Public newsletter"
+msgstr "Публичная рассылка"
+
+#: includes/Admin/Settings.php:926
+msgid ""
+"Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
+"Digest: new artwork and events published since the last issue."
+msgstr ""
+"Посетители подписываются через блок agnosis/newsletter-signup (double opt-"
+"in). Дайджест: новые работы и события, опубликованные с момента прошлого "
+"выпуска."
+
+#: includes/Admin/Settings.php:930
+msgid "Public newsletter frequency (days)"
+msgstr "Частота публичной рассылки (дни)"
+
+#: includes/Admin/Settings.php:936
+msgid "Default 30 ≈ monthly."
+msgstr "По умолчанию 30 ≈ раз в месяц."
+
+#: includes/Admin/Settings.php:940
+msgid "Public newsletter intro"
+msgstr "Вступление к публичной рассылке"
+
+#: includes/Admin/Settings.php:944
+msgid ""
+"Optional note prepended to the next public issue only — cleared "
+"automatically once that issue is queued."
+msgstr ""
+"Необязательная заметка, добавляемая только к следующему публичному выпуску — "
+"автоматически очищается, как только выпуск поставлен в очередь."
+
+#: includes/Admin/Settings.php:948
+msgid "Send batch size"
+msgstr "Размер пакета отправки"
+
+#: includes/Admin/Settings.php:954
+msgid ""
+"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
+"outbound mail; raise it for faster delivery on hosts with generous limits."
+msgstr ""
+"Получателей, которым отправляется письмо за один 5-минутный тик cron. "
+"Уменьшите это значение, если ваш хост ограничивает исходящую почту; "
+"увеличьте для более быстрой доставки на хостах с щедрыми лимитами."
+
+#: includes/Admin/Settings.php:958
+msgid "Self-hosting comfort threshold"
+msgstr "Порог комфорта для самостоятельного хостинга"
+
+#: includes/Admin/Settings.php:964
+msgid ""
+"Advisory only — self-hosted sending keeps working above this count. Once "
+"confirmed public subscribers pass it, this page shows a reminder to consider "
+"an email service provider (e.g. Brevo's free tier) instead."
+msgstr ""
+"Только для справки — отправка с собственного хостинга продолжает работать и "
+"выше этого числа. Когда подтверждённое число публичных подписчиков превысит "
+"его, на этой странице появится напоминание рассмотреть вместо этого "
+"почтового провайдера (например, бесплатный тариф Brevo)."
+
+#: includes/Admin/Settings.php:973
 msgid ""
 "Sends a minimal ping (\"Reply with the word: ping\") using the configured "
 "API key."
@@ -1440,15 +1453,15 @@ msgstr ""
 "Отправляет минимальный пинг («Ответьте словом: ping») с использованием "
 "настроенного API-ключа."
 
-#: includes/Admin/Settings.php:905
+#: includes/Admin/Settings.php:977
 msgid "Sends a minimal ping using the configured API key."
 msgstr "Отправляет минимальный пинг с использованием настроенного API-ключа."
 
-#: includes/Admin/Settings.php:908
+#: includes/Admin/Settings.php:980
 msgid "WordPress AI Client"
 msgstr "Клиент ИИ WordPress"
 
-#: includes/Admin/Settings.php:909
+#: includes/Admin/Settings.php:981
 msgid ""
 "Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
 "generation model is configured."
@@ -1456,33 +1469,33 @@ msgstr ""
 "Проверяет, что доступна wp_ai_client_prompt() (WordPress 7.0+) и настроена "
 "модель генерации текста."
 
-#: includes/Admin/Settings.php:914
+#: includes/Admin/Settings.php:986
 msgid "Test AI Providers"
 msgstr "Тестировать провайдеров ИИ"
 
 #. translators: %s: provider label
-#: includes/Admin/Settings.php:927
+#: includes/Admin/Settings.php:999
 #, php-format
 msgid "Test %s"
 msgstr "Тестировать %s"
 
-#: includes/Admin/Settings.php:959
+#: includes/Admin/Settings.php:1031
 msgid "Debug Files"
 msgstr "Файлы отладки"
 
-#: includes/Admin/Settings.php:963
+#: includes/Admin/Settings.php:1035
 msgid "Currently"
 msgstr "Текущий"
 
-#: includes/Admin/Settings.php:966
+#: includes/Admin/Settings.php:1038
 msgid "Enabled"
 msgstr "Включено"
 
-#: includes/Admin/Settings.php:968
+#: includes/Admin/Settings.php:1040
 msgid "Disabled"
 msgstr "Отключено"
 
-#: includes/Admin/Settings.php:974
+#: includes/Admin/Settings.php:1046
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1490,7 +1503,7 @@ msgstr ""
 "Принудительно ВКЛЮЧЕНО константой AGNOSIS_DEBUG в wp-config.php — флажок "
 "выше не влияет, пока эта строка не будет удалена."
 
-#: includes/Admin/Settings.php:976
+#: includes/Admin/Settings.php:1048
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1498,21 +1511,21 @@ msgstr ""
 "Принудительно ВЫКЛЮЧЕНО константой AGNOSIS_DEBUG в wp-config.php — флажок "
 "выше не влияет, пока эта строка не будет удалена."
 
-#: includes/Admin/Settings.php:984
+#: includes/Admin/Settings.php:1056
 msgid "Directory"
 msgstr "Каталог"
 
-#: includes/Admin/Settings.php:987
+#: includes/Admin/Settings.php:1059
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Используйте фильтр agnosis_debug_dir, чтобы перенаправить отладочный вывод в "
 "другое место."
 
-#: includes/Admin/Settings.php:994
+#: includes/Admin/Settings.php:1066
 msgid ".txt file(s) in the directory"
 msgstr "файл(ы) .txt в каталоге"
 
-#: includes/Admin/Settings.php:1000
+#: includes/Admin/Settings.php:1072
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1520,24 +1533,24 @@ msgstr ""
 "Удалить все файлы .txt в каталоге отладки? Сам каталог при этом останется на "
 "месте, чтобы будущие отладочные записи по-прежнему сохранялись корректно."
 
-#: includes/Admin/Settings.php:1005
+#: includes/Admin/Settings.php:1077
 msgid "Clear Debug Files"
 msgstr "Очистить отладочные файлы"
 
-#: includes/Admin/Settings.php:1037
+#: includes/Admin/Settings.php:1109
 msgid "Pipeline Logs"
 msgstr "Журналы конвейера"
 
-#: includes/Admin/Settings.php:1042
+#: includes/Admin/Settings.php:1114
 msgid "Clear all log entries?"
 msgstr "Очистить все записи журнала?"
 
-#: includes/Admin/Settings.php:1043
+#: includes/Admin/Settings.php:1115
 msgid "Clear All"
 msgstr "Очистить всё"
 
 #. translators: %d: total log entry count
-#: includes/Admin/Settings.php:1052
+#: includes/Admin/Settings.php:1124
 #, php-format
 msgid ""
 "%d entries total. Logs are pruned automatically according to the Inbox "
@@ -1546,39 +1559,39 @@ msgstr ""
 "Всего записей: %d. Журналы автоматически очищаются в соответствии с "
 "настройкой хранения входящих."
 
-#: includes/Admin/Settings.php:1059
+#: includes/Admin/Settings.php:1131
 msgid "No log entries yet."
 msgstr "Записей журнала пока нет."
 
-#: includes/Admin/Settings.php:1064
+#: includes/Admin/Settings.php:1136
 msgid "Time"
 msgstr "Время"
 
-#: includes/Admin/Settings.php:1065
+#: includes/Admin/Settings.php:1137
 msgid "Level"
 msgstr "Уровень"
 
-#: includes/Admin/Settings.php:1066
+#: includes/Admin/Settings.php:1138
 msgid "Context"
 msgstr "Контекст"
 
-#: includes/Admin/Settings.php:1067
+#: includes/Admin/Settings.php:1139
 msgid "Message"
 msgstr "Сообщение"
 
-#: includes/Admin/Settings.php:1136
+#: includes/Admin/Settings.php:1208
 msgid "Inbox Tools"
 msgstr "Инструменты входящих"
 
-#: includes/Admin/Settings.php:1140
+#: includes/Admin/Settings.php:1212
 msgid "Test connection"
 msgstr "Проверить соединение"
 
-#: includes/Admin/Settings.php:1145
+#: includes/Admin/Settings.php:1217
 msgid "Test IMAP Connection"
 msgstr "Проверить IMAP-соединение"
 
-#: includes/Admin/Settings.php:1147
+#: includes/Admin/Settings.php:1219
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -1586,15 +1599,15 @@ msgstr ""
 "Подключается к настроенному почтовому ящику и сообщает об общем количестве "
 "писем и количестве непрочитанных."
 
-#: includes/Admin/Settings.php:1151
+#: includes/Admin/Settings.php:1223
 msgid "Poll inbox now"
 msgstr "Проверить входящие сейчас"
 
-#: includes/Admin/Settings.php:1156
+#: includes/Admin/Settings.php:1228
 msgid "Poll Inbox Now"
 msgstr "Проверить входящие сейчас"
 
-#: includes/Admin/Settings.php:1158
+#: includes/Admin/Settings.php:1230
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -1602,15 +1615,15 @@ msgstr ""
 "Немедленно получает непрочитанные сообщения, не дожидаясь WP-Cron. Затем "
 "нажмите «Обработать ожидающую очередь», чтобы запустить конвейер ИИ."
 
-#: includes/Admin/Settings.php:1162
+#: includes/Admin/Settings.php:1234
 msgid "Process queue"
 msgstr "Обработать очередь"
 
-#: includes/Admin/Settings.php:1167
+#: includes/Admin/Settings.php:1239
 msgid "Process Pending Queue"
 msgstr "Обработать ожидающую очередь"
 
-#: includes/Admin/Settings.php:1169
+#: includes/Admin/Settings.php:1241
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -1619,15 +1632,15 @@ msgstr ""
 "дожидаясь WP-Cron. Используйте это, чтобы проверить полный поток после "
 "проверки входящих."
 
-#: includes/Admin/Settings.php:1173
+#: includes/Admin/Settings.php:1245
 msgid "Force reprocess"
 msgstr "Принудительно перепроцессить"
 
-#: includes/Admin/Settings.php:1178
+#: includes/Admin/Settings.php:1250
 msgid "Force Reprocess Inbox"
 msgstr "Принудительно перепроцессить входящие"
 
-#: includes/Admin/Settings.php:1180
+#: includes/Admin/Settings.php:1252
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -1640,120 +1653,116 @@ msgstr ""
 "запустить AI-конвейер. Работы, уже опубликованные и имеющие корректные "
 "посты, никогда не перепроцессируются."
 
-#: includes/Admin/Settings.php:1214
+#: includes/Admin/Settings.php:1286
 msgid "Pending Applications"
 msgstr "Ожидающие заявки"
 
-#: includes/Admin/Settings.php:1217
+#: includes/Admin/Settings.php:1289
 msgid "No pending applications."
 msgstr "Нет ожидающих заявок."
 
 #. translators: %d: number of positive votes currently required for admission
-#: includes/Admin/Settings.php:1223
+#: includes/Admin/Settings.php:1295
 #, php-format
 msgid "%d positive vote(s) currently required for admission."
 msgstr "В настоящее время для допуска требуется %d положительных голосов."
 
-#: includes/Admin/Settings.php:1231
+#: includes/Admin/Settings.php:1303
 msgid "Applicant"
 msgstr "Заявитель"
 
-#: includes/Admin/Settings.php:1232
+#: includes/Admin/Settings.php:1304
 msgid "Applied"
 msgstr "Подал заявку"
 
-#: includes/Admin/Settings.php:1233
+#: includes/Admin/Settings.php:1305
 msgid "Votes"
 msgstr "Голоса"
 
-#: includes/Admin/Settings.php:1234
+#: includes/Admin/Settings.php:1306
 msgid "Bio / Portfolio"
 msgstr "Биография / Портфолио"
 
 #. translators: 1: yes votes received, 2: total votes required
-#: includes/Admin/Settings.php:1260
+#: includes/Admin/Settings.php:1332
 #, php-format
 msgid "%1$d / %2$d"
 msgstr "%1$d / %2$d"
 
-#: includes/Admin/Settings.php:1271
+#: includes/Admin/Settings.php:1343
 msgid "Portfolio ↗"
 msgstr "Портфолио ↗"
 
-#: includes/Admin/Settings.php:1280
+#: includes/Admin/Settings.php:1352
 msgid "Admit"
 msgstr "Принять"
 
-#: includes/Admin/Settings.php:1287
+#: includes/Admin/Settings.php:1359
 msgid "Reject"
 msgstr "Отклонить"
 
-#: includes/Admin/Settings.php:1376
-msgid "Members"
-msgstr "Участники"
-
-#: includes/Admin/Settings.php:1379
+#: includes/Admin/Settings.php:1453
 msgid "No admitted members yet."
 msgstr "Пока нет принятых участников."
 
-#: includes/Admin/Settings.php:1384 includes/Admin/Settings.php:1635
+#: includes/Admin/Settings.php:1458 includes/Admin/Settings.php:1712
 msgid "Artist"
 msgstr "Автор"
 
-#: includes/Admin/Settings.php:1386
+#: includes/Admin/Settings.php:1460
 msgid "Joined"
 msgstr "Присоединился"
 
 #. translators: %s: date until which the artist is banned
-#: includes/Admin/Settings.php:1401
+#: includes/Admin/Settings.php:1475
 #, php-format
 msgid "Banned until %s"
 msgstr "Заблокирован до %s"
 
-#: includes/Admin/Settings.php:1404
+#: includes/Admin/Settings.php:1478
 msgid "Banned"
 msgstr "Заблокирован"
 
-#: includes/Admin/Settings.php:1405
+#: includes/Admin/Settings.php:1479
 msgid "Active"
 msgstr "Активен"
 
-#: includes/Admin/Settings.php:1425
+#: includes/Admin/Settings.php:1499
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "Оставьте дату пустой, чтобы заблокировать бессрочно. Продолжить?"
 
-#: includes/Admin/Settings.php:1430
+#: includes/Admin/Settings.php:1504
 msgid "Leave blank to ban indefinitely"
 msgstr "Оставьте пустым, чтобы заблокировать бессрочно"
 
-#: includes/Admin/Settings.php:1432
+#: includes/Admin/Settings.php:1506
 msgid "Suspend"
 msgstr "Приостановить"
 
-#: includes/Admin/Settings.php:1438
+#: includes/Admin/Settings.php:1512
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr ""
 "Безвозвратно удалить этого автора и весь его контент? Это нельзя будет "
 "отменить."
 
-#: includes/Admin/Settings.php:1448
+#: includes/Admin/Settings.php:1522
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr ""
 "Открыть голосование за удаление этого автора со стороны сообщества? Всем "
 "участникам будут отправлены письма."
 
-#: includes/Admin/Settings.php:1452
+#: includes/Admin/Settings.php:1526
 msgid "Open Vote"
 msgstr "Открыть голосование"
 
-#: includes/Admin/Settings.php:1605
+#: includes/Admin/Settings.php:1682
 msgid "Newsletter Status"
 msgstr "Статус рассылки"
 
 #. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
-#: includes/Admin/Settings.php:1614
+#: includes/Admin/Settings.php:1691
 #, php-format
 msgid ""
 "You have %1$d confirmed public subscribers, above the configured comfort "
@@ -1766,57 +1775,57 @@ msgstr ""
 "для лучшей доставляемости при таком размере аудитории вам может быть полезно "
 "подключить провайдера почтовых услуг (например, бесплатный тариф Brevo)."
 
-#: includes/Admin/Settings.php:1627
+#: includes/Admin/Settings.php:1704
 msgid "Audience"
 msgstr "Аудитория"
 
-#: includes/Admin/Settings.php:1628
+#: includes/Admin/Settings.php:1705
 msgid "Last sent"
 msgstr "Последняя отправка"
 
-#: includes/Admin/Settings.php:1630
+#: includes/Admin/Settings.php:1707
 msgid "Action"
 msgstr "Действие"
 
-#: includes/Admin/Settings.php:1631
+#: includes/Admin/Settings.php:1708
 msgid "Send a test"
 msgstr "Отправить тест"
 
 #. translators: 1: admitted artist count, 2: how many of them opted out
-#: includes/Admin/Settings.php:1641
+#: includes/Admin/Settings.php:1718
 #, php-format
 msgid "%1$d admitted (%2$d opted out)"
 msgstr "%1$d принятых (%2$d отказались от участия)"
 
-#: includes/Admin/Settings.php:1649 includes/Admin/Settings.php:1688
+#: includes/Admin/Settings.php:1726 includes/Admin/Settings.php:1765
 msgid "Sending…"
 msgstr "Отправка…"
 
-#: includes/Admin/Settings.php:1649 includes/Admin/Settings.php:1688
+#: includes/Admin/Settings.php:1726 includes/Admin/Settings.php:1765
 msgid "Idle"
 msgstr "Бездействие"
 
-#: includes/Admin/Settings.php:1655 includes/Admin/Settings.php:1694
+#: includes/Admin/Settings.php:1732 includes/Admin/Settings.php:1771
 msgid "Send Now"
 msgstr "Отправить сейчас"
 
-#: includes/Admin/Settings.php:1661
+#: includes/Admin/Settings.php:1738
 msgid "Public"
 msgstr "Публичный"
 
 #. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count
-#: includes/Admin/Settings.php:1667
+#: includes/Admin/Settings.php:1744
 #, php-format
 msgid "%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed"
 msgstr "%1$d подтверждено, %2$d ожидают подтверждения, %3$d отписались"
 
 #. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
-#: includes/Admin/Settings.php:1680
+#: includes/Admin/Settings.php:1757
 #, php-format
 msgid "By language: %s"
 msgstr "По языкам: %s"
 
-#: includes/Admin/Settings.php:1703
+#: includes/Admin/Settings.php:1780
 msgid ""
 "Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
 "the public newsletter. Artists are enrolled automatically and can "
@@ -1826,23 +1835,23 @@ msgstr ""
 "могли подписаться на публичную рассылку. Авторы подключаются автоматически и "
 "могут отписаться от любого выпуска в один клик."
 
-#: includes/Admin/Settings.php:1711
+#: includes/Admin/Settings.php:1788
 msgid "Never"
 msgstr "Никогда"
 
-#: includes/Admin/Settings.php:1746
+#: includes/Admin/Settings.php:1823
 msgid "Unknown"
 msgstr "Неизвестно"
 
-#: includes/Admin/Settings.php:1770 includes/Admin/Settings.php:1871
+#: includes/Admin/Settings.php:1847 includes/Admin/Settings.php:1949
 msgid "Send Test"
 msgstr "Отправить тест"
 
-#: includes/Admin/Settings.php:1845
+#: includes/Admin/Settings.php:1923
 msgid "Invite an Artist"
 msgstr "Пригласить автора"
 
-#: includes/Admin/Settings.php:1847
+#: includes/Admin/Settings.php:1925
 msgid ""
 "Send a one-off email inviting someone to apply. Nothing is tracked or "
 "scheduled — this sends immediately to the address below."
@@ -1851,56 +1860,56 @@ msgstr ""
 "отслеживается и не планируется — письмо отправляется сразу на указанный ниже "
 "адрес."
 
-#: includes/Admin/Settings.php:1853
+#: includes/Admin/Settings.php:1931
 msgid "artist@example.com"
 msgstr "artist@example.com"
 
-#: includes/Admin/Settings.php:1859
+#: includes/Admin/Settings.php:1937
 msgid "Send Invitation"
 msgstr "Отправить приглашение"
 
-#: includes/Admin/Settings.php:2029
+#: includes/Admin/Settings.php:2109
 msgid "Permission denied."
 msgstr "Доступ запрещён."
 
-#: includes/Admin/Settings.php:2039
+#: includes/Admin/Settings.php:2119
 msgid "OpenAI API key not configured."
 msgstr "Ключ API OpenAI не настроен."
 
-#: includes/Admin/Settings.php:2045
+#: includes/Admin/Settings.php:2125
 msgid "OpenAI connection successful."
 msgstr "Подключение к OpenAI успешно."
 
-#: includes/Admin/Settings.php:2052
+#: includes/Admin/Settings.php:2132
 msgid "Anthropic API key not configured."
 msgstr "API-ключ Anthropic не настроен."
 
-#: includes/Admin/Settings.php:2058
+#: includes/Admin/Settings.php:2138
 msgid "Anthropic connection successful."
 msgstr "Подключение к Anthropic успешно."
 
-#: includes/Admin/Settings.php:2064
+#: includes/Admin/Settings.php:2144
 msgid "WordPress AI Client requires WordPress 7.0 or later."
 msgstr "WordPress AI Client требует WordPress версии 7.0 или новее."
 
-#: includes/Admin/Settings.php:2070
+#: includes/Admin/Settings.php:2150
 msgid ""
 "No text-generation model configured. Set one up under Settings → Connectors."
 msgstr ""
 "Модель генерации текста не настроена. Настройте её в разделе «Настройки → "
 "Подключения»."
 
-#: includes/Admin/Settings.php:2072
+#: includes/Admin/Settings.php:2152
 msgid ""
 "WordPress AI Client is available and a text-generation model is configured."
 msgstr "WordPress AI Client доступен, и модель генерации текста настроена."
 
-#: includes/Admin/Settings.php:2076
+#: includes/Admin/Settings.php:2156
 msgid "Unknown provider."
 msgstr "Неизвестный провайдер."
 
 #. translators: %d: HTTP response status code
-#: includes/Admin/Settings.php:2110
+#: includes/Admin/Settings.php:2190
 #, php-format
 msgid "HTTP %d"
 msgstr "HTTP %d"

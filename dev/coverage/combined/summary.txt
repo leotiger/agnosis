@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-08 10:29
+COMBINED COVERAGE  (unit + integration)  —  2026-07-08 10:54
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -71,4 +71,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-08 10:29
   ✅ includes/Publishing/ReviewEndpoints.php                     91%
   ❌ includes/Publishing/SubmissionsPage.php                     19%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 55.47%  (6034 / 10877 statements)
+  TOTAL: 55.47%  (6034 / 10878 statements)

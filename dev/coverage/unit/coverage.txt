@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:        
-  2026-07-08 10:27:17        
+  2026-07-08 10:52:10        
                              
  Summary:                    
   Classes:  5.88% (4/68)     
   Methods:  7.79% (47/603)   
-  Lines:    6.08% (662/10888)
+  Lines:    6.08% (662/10889)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
@@ -31,7 +31,7 @@ Agnosis\Admin\InboxPage
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   0.00% ( 0/36)   Lines:   0.00% (  0/1512)
+  Methods:   0.00% ( 0/36)   Lines:   0.00% (  0/1513)
 Agnosis\Artist\Admission
   Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/450)
 Agnosis\Artist\AdmissionNotification

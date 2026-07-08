@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-08T10:32+00:00\n"
+"POT-Creation-Date: 2026-07-08T11:21+00:00\n"
 "PO-Revision-Date: 2026-07-07 20:47+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Indonesian\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Loco-Version: 2.8.5; wp-7.0; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:179
+#: agnosis.php includes/Admin/InboxPage.php:34 includes/Admin/Settings.php:180
 #: includes/Publishing/SubmissionsPage.php:62
 msgid "Agnosis"
 msgstr "Agnosis"
@@ -117,12 +117,12 @@ msgstr "Dari"
 msgid "Subject"
 msgstr "Subjek"
 
-#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:991
+#: includes/Admin/InboxPage.php:97 includes/Admin/Settings.php:1063
 msgid "Files"
 msgstr "Berkas"
 
-#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1385
-#: includes/Admin/Settings.php:1629
+#: includes/Admin/InboxPage.php:98 includes/Admin/Settings.php:1459
+#: includes/Admin/Settings.php:1706
 msgid "Status"
 msgstr "Status"
 
@@ -134,8 +134,8 @@ msgstr "Diterima"
 msgid "Error"
 msgstr "Galat"
 
-#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1235
-#: includes/Admin/Settings.php:1387
+#: includes/Admin/InboxPage.php:101 includes/Admin/Settings.php:1307
+#: includes/Admin/Settings.php:1461
 msgid "Actions"
 msgstr "Tindakan"
 
@@ -249,7 +249,7 @@ msgstr "Berjalan…"
 msgid "Delete this queue row?"
 msgstr "Hapus baris antrean ini?"
 
-#: includes/Admin/InboxPage.php:454 includes/Admin/Settings.php:1442
+#: includes/Admin/InboxPage.php:454 includes/Admin/Settings.php:1516
 msgid "Delete"
 msgstr "Hapus"
 
@@ -272,21 +272,21 @@ msgstr "%dj yang lalu"
 #: includes/Admin/InboxPage.php:548 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1308
-#: includes/Admin/Settings.php:1336 includes/Admin/Settings.php:1474
-#: includes/Admin/Settings.php:1505 includes/Admin/Settings.php:1531
-#: includes/Admin/Settings.php:1784 includes/Admin/Settings.php:1811
-#: includes/Admin/Settings.php:1884 includes/Admin/Settings.php:1910
-#: includes/Admin/Settings.php:2122 includes/Admin/Settings.php:2141
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1380
+#: includes/Admin/Settings.php:1409 includes/Admin/Settings.php:1548
+#: includes/Admin/Settings.php:1580 includes/Admin/Settings.php:1607
+#: includes/Admin/Settings.php:1861 includes/Admin/Settings.php:1888
+#: includes/Admin/Settings.php:1962 includes/Admin/Settings.php:1989
+#: includes/Admin/Settings.php:2202 includes/Admin/Settings.php:2221
 msgid "You do not have permission to perform this action."
 msgstr "Anda tidak memiliki izin untuk melakukan tindakan ini."
 
-#: includes/Admin/Settings.php:45 includes/Admin/Settings.php:46
+#: includes/Admin/Settings.php:46 includes/Admin/Settings.php:47
 msgid "Configuration"
 msgstr "Konfigurasi"
 
 #. translators: 1: queue rows reset, 2: messages newly enqueued
-#: includes/Admin/Settings.php:97
+#: includes/Admin/Settings.php:98
 #, php-format
 msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
@@ -296,26 +296,26 @@ msgstr ""
 "dimasukkan ke antrean. Klik \"Proses Antrean Tertunda\" untuk menjalankan "
 "pipeline AI."
 
-#: includes/Admin/Settings.php:105
+#: includes/Admin/Settings.php:106
 msgid "Log cleared."
 msgstr "Log dibersihkan."
 
 #. translators: %d: number of debug files removed
-#: includes/Admin/Settings.php:113
+#: includes/Admin/Settings.php:114
 #, php-format
 msgid "Debug files cleared. %d file was removed."
 msgid_plural "Debug files cleared. %d files were removed."
 msgstr[0] "File debug dihapus. %d file telah dihapus."
 
 #. translators: %d: number of queue items processed
-#: includes/Admin/Settings.php:123
+#: includes/Admin/Settings.php:124
 #, php-format
 msgid "Processed %d pending queue item(s). Check the Logs tab for details."
 msgstr ""
 "Berhasil memproses %d item antrean tertunda. Periksa tab Log untuk detail."
 
 #. translators: %d: number of new messages enqueued
-#: includes/Admin/Settings.php:133
+#: includes/Admin/Settings.php:134
 #, php-format
 msgid ""
 "Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
@@ -324,70 +324,70 @@ msgstr ""
 "Polling selesai. %d pesan baru dimasukkan ke antrean. Periksa tab Log, lalu "
 "klik Proses Antrean Tertunda."
 
-#: includes/Admin/Settings.php:149
+#: includes/Admin/Settings.php:150
 msgid "Applicant admitted. A welcome email has been sent."
 msgstr "Pelamar diterima. Email sambutan telah dikirim."
 
-#: includes/Admin/Settings.php:150
+#: includes/Admin/Settings.php:151
 msgid "Could not admit — the application may no longer be pending."
 msgstr "Tidak dapat menerima — lamaran mungkin აღარ masih tertunda."
 
-#: includes/Admin/Settings.php:151
+#: includes/Admin/Settings.php:152
 msgid "Application rejected."
 msgstr "Lamaran ditolak."
 
-#: includes/Admin/Settings.php:152
+#: includes/Admin/Settings.php:153
 msgid "Could not reject — the application may no longer be pending."
 msgstr "Tidak dapat menolak — lamaran mungkin აღარ masih tertunda."
 
-#: includes/Admin/Settings.php:153
+#: includes/Admin/Settings.php:154
 msgid "Artist suspended. A notification email has been sent."
 msgstr "Artis dibekukan. Email pemberitahuan telah dikirim."
 
-#: includes/Admin/Settings.php:154
+#: includes/Admin/Settings.php:155
 msgid "Could not suspend the artist — they may no longer be active."
 msgstr "Tidak dapat membekukan artis — mereka mungkin აღარ aktif."
 
-#: includes/Admin/Settings.php:155
+#: includes/Admin/Settings.php:156
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
 msgstr "Artis dihapus permanen. Akun dan semua kontennya telah dihapus."
 
-#: includes/Admin/Settings.php:156
+#: includes/Admin/Settings.php:157
 msgid "Could not delete the artist — please try again."
 msgstr "Tidak dapat menghapus artis — silakan coba lagi."
 
-#: includes/Admin/Settings.php:157
+#: includes/Admin/Settings.php:158
 msgid "Community removal vote opened. All artists have been emailed."
 msgstr ""
 "Pemungutan suara penghapusan komunitas telah dibuka. Semua artis telah "
 "dikirimi email."
 
-#: includes/Admin/Settings.php:158
+#: includes/Admin/Settings.php:159
 msgid ""
 "Could not open a removal vote — one may already be active for this artist."
 msgstr ""
 "Tidak dapat membuka pemungutan suara penghapusan — mungkin sudah ada yang "
 "aktif untuk artis ini."
 
-#: includes/Admin/Settings.php:159
+#: includes/Admin/Settings.php:160
 msgid ""
 "Issue prepared and queued — it will go out over the next few cron cycles."
 msgstr ""
 "Edisi telah disiapkan dan dimasukkan ke antrean — akan dikirim dalam "
 "beberapa siklus cron berikutnya."
 
-#: includes/Admin/Settings.php:160
+#: includes/Admin/Settings.php:161
 msgid "Could not start this issue — a previous one may still be sending."
 msgstr ""
 "Tidak dapat memulai edisi ini — edisi sebelumnya mungkin masih sedang "
 "dikirim."
 
-#: includes/Admin/Settings.php:161
+#: includes/Admin/Settings.php:162
 msgid "Test email sent — check the inbox you sent it to."
 msgstr "Email percobaan terkirim — periksa kotak masuk tujuan pengiriman."
 
-#: includes/Admin/Settings.php:162
+#: includes/Admin/Settings.php:163
 msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
@@ -395,11 +395,11 @@ msgstr ""
 "Tidak dapat mengirim email percobaan — periksa alamat dan konfigurasi email "
 "keluar situs Anda."
 
-#: includes/Admin/Settings.php:163
+#: includes/Admin/Settings.php:164
 msgid "Invitation sent."
 msgstr "Undangan terkirim."
 
-#: includes/Admin/Settings.php:164
+#: includes/Admin/Settings.php:165
 msgid ""
 "Could not send the invitation — check the address and your site's outgoing "
 "mail configuration."
@@ -407,11 +407,11 @@ msgstr ""
 "Tidak dapat mengirim undangan — periksa alamat dan konfigurasi email keluar "
 "situs Anda."
 
-#: includes/Admin/Settings.php:165
+#: includes/Admin/Settings.php:166
 msgid "Test invitation sent — check the inbox you sent it to."
 msgstr "Undangan percobaan terkirim — periksa kotak masuk tujuan pengiriman."
 
-#: includes/Admin/Settings.php:166
+#: includes/Admin/Settings.php:167
 msgid ""
 "Could not send the test invitation — check the address and your site's "
 "outgoing mail configuration."
@@ -419,60 +419,73 @@ msgstr ""
 "Tidak dapat mengirim undangan percobaan — periksa alamat dan konfigurasi "
 "email keluar situs Anda."
 
-#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:181
 msgid "Art blooming out of oblivion"
 msgstr "Seni yang bermekaran keluar dari keabadian"
 
-#: includes/Admin/Settings.php:199
+#: includes/Admin/Settings.php:202 includes/Admin/Settings.php:269
 msgid "Save Changes"
 msgstr "Simpan Perubahan"
 
-#: includes/Admin/Settings.php:213
+#: includes/Admin/Settings.php:226 includes/Admin/Settings.php:1450
+msgid "Members"
+msgstr "Anggota"
+
+#: includes/Admin/Settings.php:227
+msgid "Rules"
+msgstr ""
+
+#: includes/Admin/Settings.php:283
 msgid "General"
 msgstr "Umum"
 
-#: includes/Admin/Settings.php:214
+#: includes/Admin/Settings.php:284
 msgid "Email Inbox"
 msgstr "Kotak Masuk Email"
 
-#: includes/Admin/Settings.php:215
+#: includes/Admin/Settings.php:285
 msgid "AI Providers"
 msgstr "Penyedia AI"
 
-#: includes/Admin/Settings.php:216
+#: includes/Admin/Settings.php:286
 msgid "Behaviour"
 msgstr "Perilaku"
 
-#: includes/Admin/Settings.php:217
+#: includes/Admin/Settings.php:287
 msgid "Network"
 msgstr "Jaringan"
 
-#: includes/Admin/Settings.php:218
+#: includes/Admin/Settings.php:288
+#, fuzzy
+msgid "Community"
+msgstr "Batas ukuran komunitas"
+
+#: includes/Admin/Settings.php:289
 msgid "Commerce"
 msgstr "Perdagangan"
 
-#: includes/Admin/Settings.php:219 includes/Admin/Settings.php:1626
+#: includes/Admin/Settings.php:290 includes/Admin/Settings.php:1703
 #: includes/Newsletter/Mailer.php:66
 msgid "Newsletter"
 msgstr "Buletin"
 
-#: includes/Admin/Settings.php:220
+#: includes/Admin/Settings.php:291
 msgid "Logs"
 msgstr "Log"
 
-#: includes/Admin/Settings.php:276
+#: includes/Admin/Settings.php:347
 msgid "Select Image"
 msgstr "Pilih Gambar"
 
-#: includes/Admin/Settings.php:277 includes/Core/EmailFooter.php:78
+#: includes/Admin/Settings.php:348 includes/Core/EmailFooter.php:78
 msgid "Remove"
 msgstr "Hapus"
 
-#: includes/Admin/Settings.php:294
+#: includes/Admin/Settings.php:365
 msgid "Base domain"
 msgstr "Domain dasar"
 
-#: includes/Admin/Settings.php:295
+#: includes/Admin/Settings.php:366
 msgid ""
 "Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
 "reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
@@ -484,19 +497,19 @@ msgstr ""
 "{base_domain}) yang mengarah ke server ini. Kosongkan untuk menonaktifkan "
 "perutean subdomain."
 
-#: includes/Admin/Settings.php:300
+#: includes/Admin/Settings.php:371
 msgid "Node label"
 msgstr "Label node"
 
-#: includes/Admin/Settings.php:301
+#: includes/Admin/Settings.php:372
 msgid "How this node introduces itself to the network."
 msgstr "Bagaimana node ini memperkenalkan dirinya ke jaringan."
 
-#: includes/Admin/Settings.php:308
+#: includes/Admin/Settings.php:379
 msgid "Debug logging"
 msgstr "Pencatatan debug"
 
-#: includes/Admin/Settings.php:313
+#: includes/Admin/Settings.php:384
 msgid ""
 "Writes raw diagnostic dumps of the email intake pipeline (message structure, "
 "attachment MIME detection, media conversion, post creation) to a dedicated "
@@ -516,11 +529,11 @@ msgstr ""
 "`define( 'AGNOSIS_DEBUG', true );`, yang akan menimpa toggle ini. Lihat "
 "panel File Debug di bawah untuk lokasi direktori dan tombol hapus file."
 
-#: includes/Admin/Settings.php:319
+#: includes/Admin/Settings.php:390
 msgid "Email logo"
 msgstr "Logo email"
 
-#: includes/Admin/Settings.php:324
+#: includes/Admin/Settings.php:395
 msgid ""
 "Shown in the header of outgoing HTML emails (submission review, removal "
 "confirmation, rejection notice, and both newsletters) in place of the plain "
@@ -533,11 +546,11 @@ msgstr ""
 "Ditampilkan hingga tinggi 40px — lebar atau rasio aspek apa pun bisa "
 "digunakan."
 
-#: includes/Admin/Settings.php:330
+#: includes/Admin/Settings.php:401
 msgid "Cloudflare Turnstile site key"
 msgstr "Kunci situs Cloudflare Turnstile"
 
-#: includes/Admin/Settings.php:331
+#: includes/Admin/Settings.php:402
 msgid ""
 "From your Cloudflare Turnstile widget (dash.cloudflare.com → Turnstile). "
 "Adds a human-verification check to the public Subscribe (newsletter-signup) "
@@ -549,11 +562,11 @@ msgstr ""
 "(newsletter-signup) dan Bergabung. Kosongkan salah satu kunci untuk "
 "membiarkan kedua formulir tetap seperti saat ini."
 
-#: includes/Admin/Settings.php:335
+#: includes/Admin/Settings.php:406
 msgid "Cloudflare Turnstile secret key"
 msgstr "Kunci rahasia Cloudflare Turnstile"
 
-#: includes/Admin/Settings.php:338
+#: includes/Admin/Settings.php:409
 msgid ""
 "Kept server-side only — used to verify each form submission directly with "
 "Cloudflare before it is accepted."
@@ -561,43 +574,43 @@ msgstr ""
 "Disimpan hanya di sisi server — digunakan untuk memverifikasi setiap "
 "pengiriman formulir langsung dengan Cloudflare sebelum diterima."
 
-#: includes/Admin/Settings.php:344
+#: includes/Admin/Settings.php:415
 msgid "Email driver"
 msgstr "Driver email"
 
-#: includes/Admin/Settings.php:352
+#: includes/Admin/Settings.php:423
 msgid "Artwork submissions address"
 msgstr "Alamat pengiriman karya seni"
 
-#: includes/Admin/Settings.php:353
+#: includes/Admin/Settings.php:424
 msgid "Artists send artwork to this address — e.g. submit@agnosis.art"
 msgstr ""
 "Seniman mengirim karya seni ke alamat ini — misalnya submit@agnosis.art"
 
-#: includes/Admin/Settings.php:357
+#: includes/Admin/Settings.php:428
 msgid "Biography submissions address"
 msgstr "Alamat pengiriman biografi"
 
-#: includes/Admin/Settings.php:358
+#: includes/Admin/Settings.php:429
 msgid "Artists send biography updates to this address — e.g. bio@agnosis.art"
 msgstr ""
 "Seniman mengirim pembaruan biografi ke alamat ini — misalnya bio@agnosis.art"
 
-#: includes/Admin/Settings.php:362
+#: includes/Admin/Settings.php:433
 msgid "Event submissions address"
 msgstr "Alamat pengiriman acara"
 
-#: includes/Admin/Settings.php:363
+#: includes/Admin/Settings.php:434
 msgid ""
 "Artists send event announcements to this address — e.g. event@agnosis.art"
 msgstr ""
 "Seniman mengirim pengumuman acara ke alamat ini — misalnya event@agnosis.art"
 
-#: includes/Admin/Settings.php:367
+#: includes/Admin/Settings.php:438
 msgid "Replace artwork address"
 msgstr "Alamat penggantian karya seni"
 
-#: includes/Admin/Settings.php:368
+#: includes/Admin/Settings.php:439
 msgid ""
 "Artist sends a new version of an existing artwork. Subject must match the "
 "original title. Bypasses duplicate detection — e.g. replace@agnosis.art"
@@ -606,11 +619,11 @@ msgstr ""
 "cocok dengan judul asli. Melewati deteksi duplikat — misalnya "
 "replace@agnosis.art"
 
-#: includes/Admin/Settings.php:372
+#: includes/Admin/Settings.php:443
 msgid "Removal request address"
 msgstr "Alamat permintaan penghapusan"
 
-#: includes/Admin/Settings.php:373
+#: includes/Admin/Settings.php:444
 msgid ""
 "Artist requests takedown of an existing artwork. Subject must match the "
 "title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
@@ -619,11 +632,11 @@ msgstr ""
 "dengan judul. Memindahkan postingan ke draf sambil menunggu tinjauan admin — "
 "misalnya remove@agnosis.art"
 
-#: includes/Admin/Settings.php:377
+#: includes/Admin/Settings.php:448
 msgid "Promote artwork address"
 msgstr "Alamat promosi karya seni"
 
-#: includes/Admin/Settings.php:378
+#: includes/Admin/Settings.php:449
 msgid ""
 "Artist sends an email here (subject = exact artwork title) to mark that "
 "artwork as featured in their gallery overview. Any previously featured "
@@ -634,11 +647,11 @@ msgstr ""
 "Karya seni unggulan sebelumnya akan otomatis diturunkan — misalnya "
 "promote@agnosis.art"
 
-#: includes/Admin/Settings.php:382
+#: includes/Admin/Settings.php:453
 msgid "Photo-only address"
 msgstr "Alamat khusus foto saja"
 
-#: includes/Admin/Settings.php:383
+#: includes/Admin/Settings.php:454
 msgid ""
 "Opt-out lane for photographers and lens-based artists whose photograph is "
 "the artwork, not a snapshot of it. Submissions here are published with the "
@@ -655,11 +668,11 @@ msgstr ""
 "sebagai cadangan untuk klien email yang tidak mendukung alias To: — misalnya "
 "photo@agnosis.art"
 
-#: includes/Admin/Settings.php:387
+#: includes/Admin/Settings.php:458
 msgid "Pure address (no AI at all)"
 msgstr ""
 
-#: includes/Admin/Settings.php:388
+#: includes/Admin/Settings.php:459
 msgid ""
 "Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, "
 "no vision description, no rewriting. The published post title, body, and "
@@ -670,11 +683,11 @@ msgid ""
 "aliases — e.g. pure@agnosis.art"
 msgstr ""
 
-#: includes/Admin/Settings.php:392
+#: includes/Admin/Settings.php:463
 msgid "Goodbye / self-removal address"
 msgstr "Alamat selamat tinggal / hapus sendiri"
 
-#: includes/Admin/Settings.php:393
+#: includes/Admin/Settings.php:464
 msgid ""
 "Artist emails here (any subject, no attachment needed) to request account "
 "deletion. A confirmation link is emailed back before anything is deleted — "
@@ -684,27 +697,27 @@ msgstr ""
 "meminta penghapusan akun. Tautan konfirmasi akan dikirim balik sebelum apa "
 "pun dihapus — misalnya goodbye@agnosis.art"
 
-#: includes/Admin/Settings.php:399
+#: includes/Admin/Settings.php:470
 msgid "IMAP host"
 msgstr "Host IMAP"
 
-#: includes/Admin/Settings.php:400
+#: includes/Admin/Settings.php:471
 msgid "e.g. imap.yourhost.com"
 msgstr "mis. imap.yourhost.com"
 
-#: includes/Admin/Settings.php:404
+#: includes/Admin/Settings.php:475
 msgid "IMAP port"
 msgstr "Port IMAP"
 
-#: includes/Admin/Settings.php:411
+#: includes/Admin/Settings.php:482
 msgid "Use SSL"
 msgstr "Gunakan SSL"
 
-#: includes/Admin/Settings.php:419
+#: includes/Admin/Settings.php:490
 msgid "Skip SSL certificate validation"
 msgstr "Lewati validasi sertifikat SSL"
 
-#: includes/Admin/Settings.php:424
+#: includes/Admin/Settings.php:495
 msgid ""
 "⚠ Use only as a temporary workaround when your mail server's certificate is "
 "not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
@@ -716,36 +729,36 @@ msgstr ""
 "diterapkan ke daemon email). Nonaktifkan ini setelah server email "
 "menampilkan sertifikat yang valid."
 
-#: includes/Admin/Settings.php:428
+#: includes/Admin/Settings.php:499
 msgid "IMAP username"
 msgstr "Nama pengguna IMAP"
 
-#: includes/Admin/Settings.php:429
+#: includes/Admin/Settings.php:500
 msgid ""
 "Login username for the IMAP account — typically the catch-all mailbox "
 "address."
 msgstr ""
 "Nama pengguna login untuk akun IMAP — biasanya alamat kotak surat catch-all."
 
-#: includes/Admin/Settings.php:433
+#: includes/Admin/Settings.php:504
 msgid "Submission email password"
 msgstr "Kata sandi email pengiriman"
 
-#: includes/Admin/Settings.php:439
+#: includes/Admin/Settings.php:510
 msgid "Webhook secret"
 msgstr "Rahasia webhook"
 
-#: includes/Admin/Settings.php:440
+#: includes/Admin/Settings.php:511
 msgid "HMAC secret shared with your webhook provider (Mailgun, SendGrid…)."
 msgstr ""
 "Rahasia HMAC yang dibagikan dengan penyedia webhook Anda (Mailgun, "
 "SendGrid…)."
 
-#: includes/Admin/Settings.php:446
+#: includes/Admin/Settings.php:517
 msgid "Inbox retention (days)"
 msgstr "Retensi inbox (hari)"
 
-#: includes/Admin/Settings.php:452
+#: includes/Admin/Settings.php:523
 msgid ""
 "Seen IMAP messages and processed/failed queue rows older than this are "
 "permanently deleted by the daily cleanup. Default: 7 days."
@@ -753,11 +766,11 @@ msgstr ""
 "Pesan IMAP yang sudah dilihat dan baris antrean processed/failed yang lebih "
 "lama dari ini akan dihapus permanen oleh pembersihan harian. Default: 7 hari."
 
-#: includes/Admin/Settings.php:458
+#: includes/Admin/Settings.php:529
 msgid "Per-sender hourly submission limit"
 msgstr "Batas pengiriman per jam per pengirim"
 
-#: includes/Admin/Settings.php:465
+#: includes/Admin/Settings.php:536
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -767,11 +780,11 @@ msgstr ""
 "dan webhook sekaligus. Melebihi batas ini akan membuang pesan tanpa "
 "pemberitahuan (tanpa retry dari ESP). Default: 5."
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:541
 msgid "Require SPF/DKIM authentication"
 msgstr "Wajibkan autentikasi SPF/DKIM"
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:544
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -785,11 +798,11 @@ msgstr ""
 "record SPF/DKIM yang dikonfigurasi. Biarkan mati jika Anda tidak yakin — "
 "email sah yang ditolak tidak akan diberi pemberitahuan. Default: mati."
 
-#: includes/Admin/Settings.php:479
+#: includes/Admin/Settings.php:550
 msgid "Description provider"
 msgstr "Penyedia deskripsi"
 
-#: includes/Admin/Settings.php:487
+#: includes/Admin/Settings.php:558
 msgid ""
 "Analyses the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -799,11 +812,11 @@ msgstr ""
 "WordPress AI Services mendelegasikan ke penyedia apa pun yang dikonfigurasi "
 "situs melalui plugin AI Services."
 
-#: includes/Admin/Settings.php:491
+#: includes/Admin/Settings.php:562
 msgid "OpenAI vision model"
 msgstr "Model visi OpenAI"
 
-#: includes/Admin/Settings.php:493
+#: includes/Admin/Settings.php:564
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -811,11 +824,11 @@ msgstr ""
 "Model yang digunakan untuk deskripsi karya seni ketika OpenAI adalah "
 "penyedia deskripsi. Harus mendukung input visual."
 
-#: includes/Admin/Settings.php:497
+#: includes/Admin/Settings.php:568
 msgid "Anthropic model"
 msgstr "Model Anthropic"
 
-#: includes/Admin/Settings.php:499
+#: includes/Admin/Settings.php:570
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -823,11 +836,11 @@ msgstr ""
 "Model yang digunakan untuk deskripsi karya seni ketika Anthropic adalah "
 "penyedia deskripsi. Harus mendukung input visual."
 
-#: includes/Admin/Settings.php:503
+#: includes/Admin/Settings.php:574
 msgid "Vision image max width (px)"
 msgstr "Lebar maksimum gambar visi (px)"
 
-#: includes/Admin/Settings.php:509
+#: includes/Admin/Settings.php:580
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -848,19 +861,19 @@ msgstr ""
 "terlepas dari pengaturan ini jika ekstensi tersebut tidak tersedia. Default: "
 "800."
 
-#: includes/Admin/Settings.php:515
+#: includes/Admin/Settings.php:586
 msgid "Enhancement provider"
 msgstr "Penyedia peningkatan"
 
-#: includes/Admin/Settings.php:518
+#: includes/Admin/Settings.php:589
 msgid "Auto (OpenAI if key is set)"
 msgstr "Otomatis (OpenAI jika kunci disetel)"
 
-#: includes/Admin/Settings.php:520
+#: includes/Admin/Settings.php:591
 msgid "Disabled — use original image"
 msgstr "Dinonaktifkan — gunakan gambar asli"
 
-#: includes/Admin/Settings.php:523
+#: includes/Admin/Settings.php:594
 msgid ""
 "Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
 "to Disabled to skip enhancement and publish the original."
@@ -869,22 +882,22 @@ msgstr ""
 "gpt-image-1. Setel ke Dinonaktifkan untuk melewati peningkatan dan "
 "memublikasikan versi asli."
 
-#: includes/Admin/Settings.php:527
+#: includes/Admin/Settings.php:598
 msgid "OpenAI image model"
 msgstr "Model gambar OpenAI"
 
-#: includes/Admin/Settings.php:529
+#: includes/Admin/Settings.php:600
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "Model yang digunakan untuk peningkatan gambar ketika OpenAI adalah penyedia "
 "peningkatan."
 
-#: includes/Admin/Settings.php:535
+#: includes/Admin/Settings.php:606
 msgid "Polish biography with AI"
 msgstr "Rapikan biografi dengan AI"
 
-#: includes/Admin/Settings.php:538
+#: includes/Admin/Settings.php:609
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -892,11 +905,11 @@ msgstr ""
 "Saat diaktifkan, pengiriman biografi akan diproses AI untuk memperbaiki "
 "ejaan dan melakukan peningkatan kecil pada teks sebelum disimpan."
 
-#: includes/Admin/Settings.php:542
+#: includes/Admin/Settings.php:613
 msgid "Polish events with AI"
 msgstr "Poleskan acara dengan AI"
 
-#: includes/Admin/Settings.php:545
+#: includes/Admin/Settings.php:616
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -904,11 +917,11 @@ msgstr ""
 "Saat diaktifkan, pengajuan acara akan diproses melalui AI untuk memperbaiki "
 "ejaan dan menyempurnakan teks secara kecil sebelum disimpan."
 
-#: includes/Admin/Settings.php:551
+#: includes/Admin/Settings.php:622
 msgid "Merge biography updates with AI"
 msgstr "Gabungkan pembaruan biografi dengan AI"
 
-#: includes/Admin/Settings.php:554
+#: includes/Admin/Settings.php:625
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -922,11 +935,11 @@ msgstr ""
 "saja memenangkan penghargaan\") tanpa perlu mengirim ulang bio lengkap "
 "mereka. Nonaktifkan untuk selalu mengganti biografi dengan kiriman terbaru."
 
-#: includes/Admin/Settings.php:560
+#: includes/Admin/Settings.php:631
 msgid "Rejection threshold (quality score)"
 msgstr "Ambang penolakan (skor kualitas)"
 
-#: includes/Admin/Settings.php:568
+#: includes/Admin/Settings.php:639
 msgid ""
 "Photos scoring at or below this value (1–10) are automatically rejected — "
 "the artist receives a friendly email explaining the issue and is invited to "
@@ -938,11 +951,11 @@ msgstr ""
 "untuk mengirim ulang. Skor 0 menonaktifkan penolakan otomatis. Harus lebih "
 "rendah daripada ambang peningkatan. Default: 3."
 
-#: includes/Admin/Settings.php:573
+#: includes/Admin/Settings.php:644
 msgid "Enhancement threshold (quality score)"
 msgstr "Ambang peningkatan (skor kualitas)"
 
-#: includes/Admin/Settings.php:581
+#: includes/Admin/Settings.php:652
 msgid ""
 "Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
 "= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
@@ -954,27 +967,27 @@ msgstr ""
 "hanya foto yang bermasalah secara visual yang diproses. Atur ke 1 untuk "
 "menonaktifkan peningkatan otomatis sepenuhnya."
 
-#: includes/Admin/Settings.php:587
+#: includes/Admin/Settings.php:658
 msgid "OpenAI API key"
 msgstr "Kunci API OpenAI"
 
-#: includes/Admin/Settings.php:590
+#: includes/Admin/Settings.php:661
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "Diperlukan saat OpenAI menjadi penyedia deskripsi atau peningkatan."
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:665
 msgid "Anthropic API key"
 msgstr "Kunci API Anthropic"
 
-#: includes/Admin/Settings.php:597
+#: includes/Admin/Settings.php:668
 msgid "Required when Anthropic is the description provider."
 msgstr "Diperlukan saat Anthropic menjadi penyedia deskripsi."
 
-#: includes/Admin/Settings.php:603
+#: includes/Admin/Settings.php:674
 msgid "Artwork display width (px)"
 msgstr "Lebar tampilan karya seni (px)"
 
-#: includes/Admin/Settings.php:609
+#: includes/Admin/Settings.php:680
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -984,11 +997,11 @@ msgstr ""
 "lightbox. Tinggi akan menyesuaikan secara proporsional. Default: 1920. "
 "Gambar yang sudah ada perlu dibuat ulang setelah nilai ini diubah."
 
-#: includes/Admin/Settings.php:613
+#: includes/Admin/Settings.php:684
 msgid "Thumbnail size (px)"
 msgstr "Ukuran thumbnail (px)"
 
-#: includes/Admin/Settings.php:619
+#: includes/Admin/Settings.php:690
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -998,11 +1011,11 @@ msgstr ""
 "dan dasbor. Default: 512. Gambar yang sudah ada perlu dibuat ulang setelah "
 "nilai ini diubah."
 
-#: includes/Admin/Settings.php:623
+#: includes/Admin/Settings.php:694
 msgid "Email image width (px)"
 msgstr "Lebar gambar email (px)"
 
-#: includes/Admin/Settings.php:629
+#: includes/Admin/Settings.php:700
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -1012,11 +1025,11 @@ msgstr ""
 "Tinggi menyesuaikan secara proporsional — tanpa pemotongan. Default: 420. "
 "Gambar yang sudah ada perlu dibuat ulang setelah nilai ini diubah."
 
-#: includes/Admin/Settings.php:635
+#: includes/Admin/Settings.php:706
 msgid "Gallery overview — items per page"
 msgstr "Ikhtisar galeri — item per halaman"
 
-#: includes/Admin/Settings.php:641
+#: includes/Admin/Settings.php:712
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -1026,11 +1039,11 @@ msgstr ""
 "Pool dibangun secara proporsional di seluruh artis; karya unggulan "
 "diutamakan. Default: 12."
 
-#: includes/Admin/Settings.php:647
+#: includes/Admin/Settings.php:718
 msgid "System prompt"
 msgstr "Prompt sistem"
 
-#: includes/Admin/Settings.php:652
+#: includes/Admin/Settings.php:723
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -1038,11 +1051,11 @@ msgstr ""
 "Dikirim ke AI sebagai instruksi sistem. Gunakan {tag_count} dan "
 "{excerpt_words} sebagai token — keduanya akan diganti dengan nilai di bawah."
 
-#: includes/Admin/Settings.php:656
+#: includes/Admin/Settings.php:727
 msgid "Artist prompt template"
 msgstr "Template prompt artis"
 
-#: includes/Admin/Settings.php:661
+#: includes/Admin/Settings.php:732
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -1051,11 +1064,11 @@ msgstr ""
 "{artist_prompt} pada bagian di mana deskripsi dari artis sendiri seharusnya "
 "muncul."
 
-#: includes/Admin/Settings.php:665
+#: includes/Admin/Settings.php:736
 msgid "Enhancement instructions"
 msgstr "Instruksi peningkatan"
 
-#: includes/Admin/Settings.php:670
+#: includes/Admin/Settings.php:741
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -1063,11 +1076,11 @@ msgstr ""
 "Instruksi yang diteruskan ke penyedia peningkatan gambar. Deskripsi karya "
 "seni yang dibuat AI akan ditambahkan secara otomatis sebagai konteks."
 
-#: includes/Admin/Settings.php:674
+#: includes/Admin/Settings.php:745
 msgid "Number of tags"
 msgstr "Jumlah tag"
 
-#: includes/Admin/Settings.php:680
+#: includes/Admin/Settings.php:751
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -1075,11 +1088,11 @@ msgstr ""
 "Berapa banyak tag yang harus dihasilkan AI per karya seni. Direferensikan "
 "sebagai {tag_count} dalam prompt sistem."
 
-#: includes/Admin/Settings.php:684
+#: includes/Admin/Settings.php:755
 msgid "Excerpt word limit"
 msgstr "Batas kata kutipan"
 
-#: includes/Admin/Settings.php:690
+#: includes/Admin/Settings.php:761
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -1087,30 +1100,30 @@ msgstr ""
 "Jumlah kata maksimum untuk kutipan satu kalimat. Direferensikan sebagai "
 "{excerpt_words} dalam prompt sistem."
 
-#: includes/Admin/Settings.php:696
+#: includes/Admin/Settings.php:767
 msgid "Enable ActivityPub federation"
 msgstr "Aktifkan federasi ActivityPub"
 
-#: includes/Admin/Settings.php:700
+#: includes/Admin/Settings.php:771
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Siarankan karya seni baru ke Mastodon, Pixelfed, dan Fediverse."
 
-#: includes/Admin/Settings.php:705
+#: includes/Admin/Settings.php:776
 msgid "Node public key"
 msgstr "Kunci publik node"
 
-#: includes/Admin/Settings.php:707
+#: includes/Admin/Settings.php:778
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Kunci publik RSA yang dibuat otomatis untuk node ini. Bagikan ini dengan "
 "node rekan."
 
-#: includes/Admin/Settings.php:711
+#: includes/Admin/Settings.php:783
 msgid "Admission vote threshold (%)"
 msgstr "Ambang suara masuk (%)"
 
-#: includes/Admin/Settings.php:716
+#: includes/Admin/Settings.php:788
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -1118,22 +1131,22 @@ msgstr ""
 "Persentase artis aktif yang harus memilih ya untuk penerimaan. Digabungkan "
 "dengan batas minimum di bawah."
 
-#: includes/Admin/Settings.php:720
+#: includes/Admin/Settings.php:792
 msgid "Admission minimum votes"
 msgstr "Jumlah minimum suara masuk"
 
-#: includes/Admin/Settings.php:724
+#: includes/Admin/Settings.php:796
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Jumlah minimum mutlak suara positif yang diperlukan terlepas dari persentase "
 "di atas."
 
-#: includes/Admin/Settings.php:728
+#: includes/Admin/Settings.php:800
 msgid "Voting window (days)"
 msgstr "Jendela pemungutan suara (hari)"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:804
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -1141,11 +1154,11 @@ msgstr ""
 "Jumlah hari sebuah aplikasi tetap terbuka. Jika ambang tidak tercapai dalam "
 "jangka waktu ini, aplikasi akan ditolak."
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:808
 msgid "After applying, send artists to"
 msgstr "Setelah mengajukan, kirim artis ke"
 
-#: includes/Admin/Settings.php:740
+#: includes/Admin/Settings.php:812
 msgid ""
 "Optional URL — e.g. a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -1157,11 +1170,11 @@ msgstr ""
 "dialihkan ke sini alih-alih hanya melihat pesan konfirmasi di dalam halaman. "
 "Kosongkan untuk hanya menampilkan pesan di dalam halaman."
 
-#: includes/Admin/Settings.php:744
+#: includes/Admin/Settings.php:816
 msgid "Community size cap"
 msgstr "Batas ukuran komunitas"
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:820
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -1172,11 +1185,11 @@ msgstr ""
 "berikutnya. Atur ke 0 untuk tanpa batas. Komunitas juga dapat memilih untuk "
 "mengubah ini."
 
-#: includes/Admin/Settings.php:752
+#: includes/Admin/Settings.php:824
 msgid "Cap-change co-signers required"
 msgstr "Penandatangan bersama yang diperlukan untuk perubahan batas"
 
-#: includes/Admin/Settings.php:756
+#: includes/Admin/Settings.php:828
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -1185,11 +1198,11 @@ msgstr ""
 "mengubah batas ukuran komunitas sebelum dibuka sebagai pemungutan suara "
 "komunitas penuh."
 
-#: includes/Admin/Settings.php:760
+#: includes/Admin/Settings.php:832
 msgid "Cap-change vote window (days)"
 msgstr "Jendela pemungutan suara perubahan batas (hari)"
 
-#: includes/Admin/Settings.php:764
+#: includes/Admin/Settings.php:836
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -1197,11 +1210,11 @@ msgstr ""
 "Jumlah hari pemungutan suara perubahan batas komunitas tetap terbuka. "
 "Mayoritas ketat artis aktif yang memilih ya akan mengesahkan batas baru."
 
-#: includes/Admin/Settings.php:768
+#: includes/Admin/Settings.php:840
 msgid "Removal nominations required"
 msgstr "Nominasi penghapusan yang diperlukan"
 
-#: includes/Admin/Settings.php:774
+#: includes/Admin/Settings.php:846
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -1209,11 +1222,11 @@ msgstr ""
 "Jumlah nominasi artis yang dibutuhkan sebelum pemungutan suara penghapusan "
 "komunitas dibuka. Admin dapat melewati ambang ini."
 
-#: includes/Admin/Settings.php:778
+#: includes/Admin/Settings.php:850
 msgid "Removal vote window (days)"
 msgstr "Jendela pemungutan suara penghapusan (hari)"
 
-#: includes/Admin/Settings.php:784
+#: includes/Admin/Settings.php:856
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -1221,152 +1234,11 @@ msgstr ""
 "Jumlah hari pemungutan suara penghapusan komunitas tetap terbuka. Mayoritas "
 "(>50%) artis aktif harus memilih ya agar penghapusan dapat dilanjutkan."
 
-#: includes/Admin/Settings.php:790
-msgid "Transaction fee (%)"
-msgstr "Biaya transaksi (%)"
-
-#: includes/Admin/Settings.php:795
-msgid ""
-"Percentage retained by this node on donations and art sales. Artists pay "
-"nothing up front."
-msgstr ""
-"Persentase yang dipertahankan oleh node ini atas donasi dan penjualan karya "
-"seni. Artis tidak membayar apa pun di muka."
-
-#: includes/Admin/Settings.php:803
-msgid "Sender name"
-msgstr "Nama pengirim"
-
-#: includes/Admin/Settings.php:804
-msgid ""
-"Name shown as the sender of digest emails. Leave blank to use the site name."
-msgstr ""
-"Nama yang ditampilkan sebagai pengirim email ringkasan. Kosongkan untuk "
-"menggunakan nama situs."
-
-#: includes/Admin/Settings.php:808
-msgid "Sender email address"
-msgstr "Alamat email pengirim"
-
-#: includes/Admin/Settings.php:810
-msgid ""
-"Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
-"keeps digest mail separate from the site's admin email for deliverability "
-"and so artists can filter it. Leave blank to use the admin email. Must be a "
-"valid, deliverable address on your domain (SPF/DKIM configured) or messages "
-"may be marked as spam."
-msgstr ""
-"Alamat From: khusus untuk kedua buletin, misalnya newsletter@agnosis.art — "
-"menjaga email ringkasan terpisah dari email admin situs untuk keterkiriman, "
-"dan agar artis dapat memfilternya. Kosongkan untuk menggunakan email admin. "
-"Harus berupa alamat yang valid dan dapat menerima email di domain Anda (SPF/"
-"DKIM dikonfigurasi) atau pesan mungkin ditandai sebagai spam."
-
-#: includes/Admin/Settings.php:814
-msgid "Artist newsletter"
-msgstr "Buletin artis"
-
-#: includes/Admin/Settings.php:817
-msgid ""
-"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
-"one click). Community digest: recent activity, new members, open votes."
-msgstr ""
-"Artis yang diterima akan didaftarkan otomatis (mereka dapat berhenti "
-"berlangganan dari isu apa pun dengan satu klik). Ringkasan komunitas: "
-"aktivitas terbaru, anggota baru, voting yang terbuka."
-
-#: includes/Admin/Settings.php:821
-msgid "Artist newsletter frequency (days)"
-msgstr "Frekuensi buletin artis (hari)"
-
-#: includes/Admin/Settings.php:827
-msgid ""
-"Default 30 ≈ monthly. A new issue is prepared once this many days have "
-"passed since the last one was sent."
-msgstr ""
-"Default 30 ≈ bulanan. Edisi baru disiapkan setelah sebanyak hari ini berlalu "
-"sejak yang terakhir dikirim."
-
-#: includes/Admin/Settings.php:831
-msgid "Artist newsletter intro"
-msgstr "Pengantar buletin artis"
-
-#: includes/Admin/Settings.php:835
-msgid ""
-"Optional note prepended to the next artist issue only — cleared "
-"automatically once that issue is queued. Leave blank to send the auto-digest "
-"with no intro."
-msgstr ""
-"Catatan opsional yang hanya ditambahkan di awal edisi artis berikutnya — "
-"dihapus otomatis setelah edisi itu masuk antrean. Kosongkan untuk mengirim "
-"ringkasan otomatis tanpa pengantar."
-
-#: includes/Admin/Settings.php:839
-msgid "Public newsletter"
-msgstr "Buletin publik"
-
-#: includes/Admin/Settings.php:842
-msgid ""
-"Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
-"Digest: new artwork and events published since the last issue."
-msgstr ""
-"Pengunjung berlangganan melalui blok agnosis/newsletter-signup (double opt-"
-"in). Ringkasan: karya seni dan acara baru yang dipublikasikan sejak edisi "
-"terakhir."
-
-#: includes/Admin/Settings.php:846
-msgid "Public newsletter frequency (days)"
-msgstr "Frekuensi buletin publik (hari)"
-
-#: includes/Admin/Settings.php:852
-msgid "Default 30 ≈ monthly."
-msgstr "Default 30 ≈ bulanan."
-
-#: includes/Admin/Settings.php:856
-msgid "Public newsletter intro"
-msgstr "Pengantar buletin publik"
-
 #: includes/Admin/Settings.php:860
-msgid ""
-"Optional note prepended to the next public issue only — cleared "
-"automatically once that issue is queued."
-msgstr ""
-"Catatan opsional yang hanya ditambahkan di awal edisi publik berikutnya — "
-"dihapus otomatis setelah edisi itu masuk antrean."
-
-#: includes/Admin/Settings.php:864
-msgid "Send batch size"
-msgstr "Ukuran batch pengiriman"
-
-#: includes/Admin/Settings.php:870
-msgid ""
-"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
-"outbound mail; raise it for faster delivery on hosts with generous limits."
-msgstr ""
-"Penerima yang dikirimi email per tick cron 5 menit. Kurangi ini jika "
-"penyedia hosting Anda membatasi email keluar; tingkatkan untuk pengiriman "
-"lebih cepat pada host dengan batas yang longgar."
-
-#: includes/Admin/Settings.php:874
-msgid "Self-hosting comfort threshold"
-msgstr "Ambang kenyamanan self-hosting"
-
-#: includes/Admin/Settings.php:880
-msgid ""
-"Advisory only — self-hosted sending keeps working above this count. Once "
-"confirmed public subscribers pass it, this page shows a reminder to consider "
-"an email service provider (e.g. Brevo's free tier) instead."
-msgstr ""
-"Hanya sebagai saran — pengiriman dengan self-host tetap berfungsi di atas "
-"jumlah ini. Setelah dipastikan pelanggan publik melampaui angka ini, halaman "
-"ini akan menampilkan pengingat untuk mempertimbangkan penyedia layanan email "
-"(misalnya paket gratis Brevo) sebagai gantinya."
-
-#: includes/Admin/Settings.php:884
 msgid "Invitation intro"
 msgstr "Pengantar undangan"
 
-#: includes/Admin/Settings.php:888
+#: includes/Admin/Settings.php:864
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -1399,7 +1271,7 @@ msgstr ""
 "Anda dapat menemukan informasi lebih lanjut dengan mengunjungi situs web "
 "agnosis.art."
 
-#: includes/Admin/Settings.php:892
+#: includes/Admin/Settings.php:868
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
 "join\" link and site name follow automatically — no need to add either "
@@ -1414,7 +1286,148 @@ msgstr ""
 "pengantar buletin di atas — diterjemahkan secara otomatis ketika undangan "
 "dikirim dalam bahasa selain bahasa situs itu sendiri."
 
+#: includes/Admin/Settings.php:874
+msgid "Transaction fee (%)"
+msgstr "Biaya transaksi (%)"
+
+#: includes/Admin/Settings.php:879
+msgid ""
+"Percentage retained by this node on donations and art sales. Artists pay "
+"nothing up front."
+msgstr ""
+"Persentase yang dipertahankan oleh node ini atas donasi dan penjualan karya "
+"seni. Artis tidak membayar apa pun di muka."
+
+#: includes/Admin/Settings.php:887
+msgid "Sender name"
+msgstr "Nama pengirim"
+
+#: includes/Admin/Settings.php:888
+msgid ""
+"Name shown as the sender of digest emails. Leave blank to use the site name."
+msgstr ""
+"Nama yang ditampilkan sebagai pengirim email ringkasan. Kosongkan untuk "
+"menggunakan nama situs."
+
+#: includes/Admin/Settings.php:892
+msgid "Sender email address"
+msgstr "Alamat email pengirim"
+
+#: includes/Admin/Settings.php:894
+msgid ""
+"Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
+"keeps digest mail separate from the site's admin email for deliverability "
+"and so artists can filter it. Leave blank to use the admin email. Must be a "
+"valid, deliverable address on your domain (SPF/DKIM configured) or messages "
+"may be marked as spam."
+msgstr ""
+"Alamat From: khusus untuk kedua buletin, misalnya newsletter@agnosis.art — "
+"menjaga email ringkasan terpisah dari email admin situs untuk keterkiriman, "
+"dan agar artis dapat memfilternya. Kosongkan untuk menggunakan email admin. "
+"Harus berupa alamat yang valid dan dapat menerima email di domain Anda (SPF/"
+"DKIM dikonfigurasi) atau pesan mungkin ditandai sebagai spam."
+
+#: includes/Admin/Settings.php:898
+msgid "Artist newsletter"
+msgstr "Buletin artis"
+
 #: includes/Admin/Settings.php:901
+msgid ""
+"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
+"one click). Community digest: recent activity, new members, open votes."
+msgstr ""
+"Artis yang diterima akan didaftarkan otomatis (mereka dapat berhenti "
+"berlangganan dari isu apa pun dengan satu klik). Ringkasan komunitas: "
+"aktivitas terbaru, anggota baru, voting yang terbuka."
+
+#: includes/Admin/Settings.php:905
+msgid "Artist newsletter frequency (days)"
+msgstr "Frekuensi buletin artis (hari)"
+
+#: includes/Admin/Settings.php:911
+msgid ""
+"Default 30 ≈ monthly. A new issue is prepared once this many days have "
+"passed since the last one was sent."
+msgstr ""
+"Default 30 ≈ bulanan. Edisi baru disiapkan setelah sebanyak hari ini berlalu "
+"sejak yang terakhir dikirim."
+
+#: includes/Admin/Settings.php:915
+msgid "Artist newsletter intro"
+msgstr "Pengantar buletin artis"
+
+#: includes/Admin/Settings.php:919
+msgid ""
+"Optional note prepended to the next artist issue only — cleared "
+"automatically once that issue is queued. Leave blank to send the auto-digest "
+"with no intro."
+msgstr ""
+"Catatan opsional yang hanya ditambahkan di awal edisi artis berikutnya — "
+"dihapus otomatis setelah edisi itu masuk antrean. Kosongkan untuk mengirim "
+"ringkasan otomatis tanpa pengantar."
+
+#: includes/Admin/Settings.php:923
+msgid "Public newsletter"
+msgstr "Buletin publik"
+
+#: includes/Admin/Settings.php:926
+msgid ""
+"Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
+"Digest: new artwork and events published since the last issue."
+msgstr ""
+"Pengunjung berlangganan melalui blok agnosis/newsletter-signup (double opt-"
+"in). Ringkasan: karya seni dan acara baru yang dipublikasikan sejak edisi "
+"terakhir."
+
+#: includes/Admin/Settings.php:930
+msgid "Public newsletter frequency (days)"
+msgstr "Frekuensi buletin publik (hari)"
+
+#: includes/Admin/Settings.php:936
+msgid "Default 30 ≈ monthly."
+msgstr "Default 30 ≈ bulanan."
+
+#: includes/Admin/Settings.php:940
+msgid "Public newsletter intro"
+msgstr "Pengantar buletin publik"
+
+#: includes/Admin/Settings.php:944
+msgid ""
+"Optional note prepended to the next public issue only — cleared "
+"automatically once that issue is queued."
+msgstr ""
+"Catatan opsional yang hanya ditambahkan di awal edisi publik berikutnya — "
+"dihapus otomatis setelah edisi itu masuk antrean."
+
+#: includes/Admin/Settings.php:948
+msgid "Send batch size"
+msgstr "Ukuran batch pengiriman"
+
+#: includes/Admin/Settings.php:954
+msgid ""
+"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
+"outbound mail; raise it for faster delivery on hosts with generous limits."
+msgstr ""
+"Penerima yang dikirimi email per tick cron 5 menit. Kurangi ini jika "
+"penyedia hosting Anda membatasi email keluar; tingkatkan untuk pengiriman "
+"lebih cepat pada host dengan batas yang longgar."
+
+#: includes/Admin/Settings.php:958
+msgid "Self-hosting comfort threshold"
+msgstr "Ambang kenyamanan self-hosting"
+
+#: includes/Admin/Settings.php:964
+msgid ""
+"Advisory only — self-hosted sending keeps working above this count. Once "
+"confirmed public subscribers pass it, this page shows a reminder to consider "
+"an email service provider (e.g. Brevo's free tier) instead."
+msgstr ""
+"Hanya sebagai saran — pengiriman dengan self-host tetap berfungsi di atas "
+"jumlah ini. Setelah dipastikan pelanggan publik melampaui angka ini, halaman "
+"ini akan menampilkan pengingat untuk mempertimbangkan penyedia layanan email "
+"(misalnya paket gratis Brevo) sebagai gantinya."
+
+#: includes/Admin/Settings.php:973
 msgid ""
 "Sends a minimal ping (\"Reply with the word: ping\") using the configured "
 "API key."
@@ -1422,15 +1435,15 @@ msgstr ""
 "Mengirim ping minimal (\"Balas dengan kata: ping\") menggunakan kunci API "
 "yang dikonfigurasi."
 
-#: includes/Admin/Settings.php:905
+#: includes/Admin/Settings.php:977
 msgid "Sends a minimal ping using the configured API key."
 msgstr "Mengirim ping minimal menggunakan kunci API yang dikonfigurasi."
 
-#: includes/Admin/Settings.php:908
+#: includes/Admin/Settings.php:980
 msgid "WordPress AI Client"
 msgstr "Klien AI WordPress"
 
-#: includes/Admin/Settings.php:909
+#: includes/Admin/Settings.php:981
 msgid ""
 "Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
 "generation model is configured."
@@ -1438,33 +1451,33 @@ msgstr ""
 "Memeriksa bahwa wp_ai_client_prompt() tersedia (WordPress 7.0+) dan model "
 "generasi teks telah dikonfigurasi."
 
-#: includes/Admin/Settings.php:914
+#: includes/Admin/Settings.php:986
 msgid "Test AI Providers"
 msgstr "Uji Penyedia AI"
 
 #. translators: %s: provider label
-#: includes/Admin/Settings.php:927
+#: includes/Admin/Settings.php:999
 #, php-format
 msgid "Test %s"
 msgstr "Uji %s"
 
-#: includes/Admin/Settings.php:959
+#: includes/Admin/Settings.php:1031
 msgid "Debug Files"
 msgstr "File Debug"
 
-#: includes/Admin/Settings.php:963
+#: includes/Admin/Settings.php:1035
 msgid "Currently"
 msgstr "Saat ini"
 
-#: includes/Admin/Settings.php:966
+#: includes/Admin/Settings.php:1038
 msgid "Enabled"
 msgstr "Diaktifkan"
 
-#: includes/Admin/Settings.php:968
+#: includes/Admin/Settings.php:1040
 msgid "Disabled"
 msgstr "Dinonaktifkan"
 
-#: includes/Admin/Settings.php:974
+#: includes/Admin/Settings.php:1046
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1472,7 +1485,7 @@ msgstr ""
 "Dipaksa AKTIF oleh konstanta AGNOSIS_DEBUG di wp-config.php — kotak centang "
 "di atas tidak berpengaruh sampai baris itu dihapus."
 
-#: includes/Admin/Settings.php:976
+#: includes/Admin/Settings.php:1048
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1480,21 +1493,21 @@ msgstr ""
 "Dipaksa MATI oleh konstanta AGNOSIS_DEBUG di wp-config.php — kotak centang "
 "di atas tidak berpengaruh sampai baris itu dihapus."
 
-#: includes/Admin/Settings.php:984
+#: includes/Admin/Settings.php:1056
 msgid "Directory"
 msgstr "Direktori"
 
-#: includes/Admin/Settings.php:987
+#: includes/Admin/Settings.php:1059
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Gunakan filter agnosis_debug_dir untuk mengalihkan output debug ke lokasi "
 "lain."
 
-#: includes/Admin/Settings.php:994
+#: includes/Admin/Settings.php:1066
 msgid ".txt file(s) in the directory"
 msgstr "file .txt di direktori"
 
-#: includes/Admin/Settings.php:1000
+#: includes/Admin/Settings.php:1072
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1502,24 +1515,24 @@ msgstr ""
 "Hapus semua file .txt di direktori debug? Direktori itu sendiri tetap ada "
 "sehingga penulisan debug di masa mendatang tetap tersimpan dengan benar."
 
-#: includes/Admin/Settings.php:1005
+#: includes/Admin/Settings.php:1077
 msgid "Clear Debug Files"
 msgstr "Hapus File Debug"
 
-#: includes/Admin/Settings.php:1037
+#: includes/Admin/Settings.php:1109
 msgid "Pipeline Logs"
 msgstr "Log Pipeline"
 
-#: includes/Admin/Settings.php:1042
+#: includes/Admin/Settings.php:1114
 msgid "Clear all log entries?"
 msgstr "Hapus semua entri log?"
 
-#: includes/Admin/Settings.php:1043
+#: includes/Admin/Settings.php:1115
 msgid "Clear All"
 msgstr "Hapus Semua"
 
 #. translators: %d: total log entry count
-#: includes/Admin/Settings.php:1052
+#: includes/Admin/Settings.php:1124
 #, php-format
 msgid ""
 "%d entries total. Logs are pruned automatically according to the Inbox "
@@ -1528,39 +1541,39 @@ msgstr ""
 "Total %d entri. Log akan dipangkas secara otomatis sesuai dengan pengaturan "
 "retensi Inbox."
 
-#: includes/Admin/Settings.php:1059
+#: includes/Admin/Settings.php:1131
 msgid "No log entries yet."
 msgstr "Belum ada entri log."
 
-#: includes/Admin/Settings.php:1064
+#: includes/Admin/Settings.php:1136
 msgid "Time"
 msgstr "Waktu"
 
-#: includes/Admin/Settings.php:1065
+#: includes/Admin/Settings.php:1137
 msgid "Level"
 msgstr "Tingkat"
 
-#: includes/Admin/Settings.php:1066
+#: includes/Admin/Settings.php:1138
 msgid "Context"
 msgstr "Konteks"
 
-#: includes/Admin/Settings.php:1067
+#: includes/Admin/Settings.php:1139
 msgid "Message"
 msgstr "Pesan"
 
-#: includes/Admin/Settings.php:1136
+#: includes/Admin/Settings.php:1208
 msgid "Inbox Tools"
 msgstr "Alat Inbox"
 
-#: includes/Admin/Settings.php:1140
+#: includes/Admin/Settings.php:1212
 msgid "Test connection"
 msgstr "Uji koneksi"
 
-#: includes/Admin/Settings.php:1145
+#: includes/Admin/Settings.php:1217
 msgid "Test IMAP Connection"
 msgstr "Uji Koneksi IMAP"
 
-#: includes/Admin/Settings.php:1147
+#: includes/Admin/Settings.php:1219
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -1568,15 +1581,15 @@ msgstr ""
 "Terhubung ke kotak surat yang dikonfigurasi dan melaporkan jumlah total "
 "pesan serta pesan yang belum dibaca."
 
-#: includes/Admin/Settings.php:1151
+#: includes/Admin/Settings.php:1223
 msgid "Poll inbox now"
 msgstr "Ambil inbox sekarang"
 
-#: includes/Admin/Settings.php:1156
+#: includes/Admin/Settings.php:1228
 msgid "Poll Inbox Now"
 msgstr "Ambil Inbox Sekarang"
 
-#: includes/Admin/Settings.php:1158
+#: includes/Admin/Settings.php:1230
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -1584,15 +1597,15 @@ msgstr ""
 "Mengambil pesan yang belum dibaca segera tanpa menunggu WP-Cron. Lalu klik "
 "\"Proses Antrean Tertunda\" untuk menjalankan pipeline AI."
 
-#: includes/Admin/Settings.php:1162
+#: includes/Admin/Settings.php:1234
 msgid "Process queue"
 msgstr "Proses antrean"
 
-#: includes/Admin/Settings.php:1167
+#: includes/Admin/Settings.php:1239
 msgid "Process Pending Queue"
 msgstr "Proses Antrean Tertunda"
 
-#: includes/Admin/Settings.php:1169
+#: includes/Admin/Settings.php:1241
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -1601,15 +1614,15 @@ msgstr ""
 "menunggu WP-Cron. Gunakan ini untuk menguji alur menyeluruh setelah "
 "pengambilan inbox."
 
-#: includes/Admin/Settings.php:1173
+#: includes/Admin/Settings.php:1245
 msgid "Force reprocess"
 msgstr "Paksa proses ulang"
 
-#: includes/Admin/Settings.php:1178
+#: includes/Admin/Settings.php:1250
 msgid "Force Reprocess Inbox"
 msgstr "Paksa proses ulang kotak masuk"
 
-#: includes/Admin/Settings.php:1180
+#: includes/Admin/Settings.php:1252
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -1621,120 +1634,116 @@ msgstr ""
 "Antrean Tertunda\" untuk menjalankan pipeline AI. Karya yang sudah "
 "dipublikasikan dengan postingan yang valid tidak akan pernah diproses ulang."
 
-#: includes/Admin/Settings.php:1214
+#: includes/Admin/Settings.php:1286
 msgid "Pending Applications"
 msgstr "Lamaran yang Menunggu"
 
-#: includes/Admin/Settings.php:1217
+#: includes/Admin/Settings.php:1289
 msgid "No pending applications."
 msgstr "Tidak ada lamaran yang menunggu."
 
 #. translators: %d: number of positive votes currently required for admission
-#: includes/Admin/Settings.php:1223
+#: includes/Admin/Settings.php:1295
 #, php-format
 msgid "%d positive vote(s) currently required for admission."
 msgstr "%d suara positif saat ini diperlukan untuk penerimaan."
 
-#: includes/Admin/Settings.php:1231
+#: includes/Admin/Settings.php:1303
 msgid "Applicant"
 msgstr "Pelamar"
 
-#: includes/Admin/Settings.php:1232
+#: includes/Admin/Settings.php:1304
 msgid "Applied"
 msgstr "Mengajukan"
 
-#: includes/Admin/Settings.php:1233
+#: includes/Admin/Settings.php:1305
 msgid "Votes"
 msgstr "Suara"
 
-#: includes/Admin/Settings.php:1234
+#: includes/Admin/Settings.php:1306
 msgid "Bio / Portfolio"
 msgstr "Bio / Portofolio"
 
 #. translators: 1: yes votes received, 2: total votes required
-#: includes/Admin/Settings.php:1260
+#: includes/Admin/Settings.php:1332
 #, php-format
 msgid "%1$d / %2$d"
 msgstr "%1$d / %2$d"
 
-#: includes/Admin/Settings.php:1271
+#: includes/Admin/Settings.php:1343
 msgid "Portfolio ↗"
 msgstr "Portofolio ↗"
 
-#: includes/Admin/Settings.php:1280
+#: includes/Admin/Settings.php:1352
 msgid "Admit"
 msgstr "Terima"
 
-#: includes/Admin/Settings.php:1287
+#: includes/Admin/Settings.php:1359
 msgid "Reject"
 msgstr "Tolak"
 
-#: includes/Admin/Settings.php:1376
-msgid "Members"
-msgstr "Anggota"
-
-#: includes/Admin/Settings.php:1379
+#: includes/Admin/Settings.php:1453
 msgid "No admitted members yet."
 msgstr "Belum ada anggota yang diterima."
 
-#: includes/Admin/Settings.php:1384 includes/Admin/Settings.php:1635
+#: includes/Admin/Settings.php:1458 includes/Admin/Settings.php:1712
 msgid "Artist"
 msgstr "Seniman"
 
-#: includes/Admin/Settings.php:1386
+#: includes/Admin/Settings.php:1460
 msgid "Joined"
 msgstr "Bergabung"
 
 #. translators: %s: date until which the artist is banned
-#: includes/Admin/Settings.php:1401
+#: includes/Admin/Settings.php:1475
 #, php-format
 msgid "Banned until %s"
 msgstr "Diblokir sampai %s"
 
-#: includes/Admin/Settings.php:1404
+#: includes/Admin/Settings.php:1478
 msgid "Banned"
 msgstr "Diblokir"
 
-#: includes/Admin/Settings.php:1405
+#: includes/Admin/Settings.php:1479
 msgid "Active"
 msgstr "Aktif"
 
-#: includes/Admin/Settings.php:1425
+#: includes/Admin/Settings.php:1499
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "Biarkan tanggal kosong untuk memblokir tanpa batas waktu. Lanjutkan?"
 
-#: includes/Admin/Settings.php:1430
+#: includes/Admin/Settings.php:1504
 msgid "Leave blank to ban indefinitely"
 msgstr "Kosongkan untuk memblokir tanpa batas waktu"
 
-#: includes/Admin/Settings.php:1432
+#: includes/Admin/Settings.php:1506
 msgid "Suspend"
 msgstr "Tangguhkan"
 
-#: includes/Admin/Settings.php:1438
+#: includes/Admin/Settings.php:1512
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr ""
 "Hapus permanen seniman ini dan semua kontennya? Tindakan ini tidak dapat "
 "dibatalkan."
 
-#: includes/Admin/Settings.php:1448
+#: includes/Admin/Settings.php:1522
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr ""
 "Buka pemungutan suara komunitas untuk seniman ini? Semua anggota akan "
 "dikirimi email."
 
-#: includes/Admin/Settings.php:1452
+#: includes/Admin/Settings.php:1526
 msgid "Open Vote"
 msgstr "Buka Suara"
 
-#: includes/Admin/Settings.php:1605
+#: includes/Admin/Settings.php:1682
 msgid "Newsletter Status"
 msgstr "Status Buletin"
 
 #. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
-#: includes/Admin/Settings.php:1614
+#: includes/Admin/Settings.php:1691
 #, php-format
 msgid ""
 "You have %1$d confirmed public subscribers, above the configured comfort "
@@ -1747,58 +1756,58 @@ msgstr ""
 "berfungsi, tetapi Anda mungkin ingin menghubungkan penyedia layanan email "
 "(mis. paket gratis Brevo) untuk keterkiriman yang lebih baik pada skala ini."
 
-#: includes/Admin/Settings.php:1627
+#: includes/Admin/Settings.php:1704
 msgid "Audience"
 msgstr "Audiens"
 
-#: includes/Admin/Settings.php:1628
+#: includes/Admin/Settings.php:1705
 msgid "Last sent"
 msgstr "Terakhir dikirim"
 
-#: includes/Admin/Settings.php:1630
+#: includes/Admin/Settings.php:1707
 msgid "Action"
 msgstr "Tindakan"
 
-#: includes/Admin/Settings.php:1631
+#: includes/Admin/Settings.php:1708
 msgid "Send a test"
 msgstr "Kirim percobaan"
 
 #. translators: 1: admitted artist count, 2: how many of them opted out
-#: includes/Admin/Settings.php:1641
+#: includes/Admin/Settings.php:1718
 #, php-format
 msgid "%1$d admitted (%2$d opted out)"
 msgstr "%1$d diterima (%2$d memilih keluar)"
 
-#: includes/Admin/Settings.php:1649 includes/Admin/Settings.php:1688
+#: includes/Admin/Settings.php:1726 includes/Admin/Settings.php:1765
 msgid "Sending…"
 msgstr "Mengirim…"
 
-#: includes/Admin/Settings.php:1649 includes/Admin/Settings.php:1688
+#: includes/Admin/Settings.php:1726 includes/Admin/Settings.php:1765
 msgid "Idle"
 msgstr "Menganggur"
 
-#: includes/Admin/Settings.php:1655 includes/Admin/Settings.php:1694
+#: includes/Admin/Settings.php:1732 includes/Admin/Settings.php:1771
 msgid "Send Now"
 msgstr "Kirim Sekarang"
 
-#: includes/Admin/Settings.php:1661
+#: includes/Admin/Settings.php:1738
 msgid "Public"
 msgstr "Publik"
 
 #. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count
-#: includes/Admin/Settings.php:1667
+#: includes/Admin/Settings.php:1744
 #, php-format
 msgid "%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed"
 msgstr ""
 "%1$d terkonfirmasi, %2$d menunggu konfirmasi, %3$d berhenti berlangganan"
 
 #. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
-#: includes/Admin/Settings.php:1680
+#: includes/Admin/Settings.php:1757
 #, php-format
 msgid "By language: %s"
 msgstr "Berdasarkan bahasa: %s"
 
-#: includes/Admin/Settings.php:1703
+#: includes/Admin/Settings.php:1780
 msgid ""
 "Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
 "the public newsletter. Artists are enrolled automatically and can "
@@ -1808,23 +1817,23 @@ msgstr ""
 "dapat berlangganan buletin publik. Seniman didaftarkan secara otomatis dan "
 "dapat berhenti berlangganan dari edisi mana pun dengan satu klik."
 
-#: includes/Admin/Settings.php:1711
+#: includes/Admin/Settings.php:1788
 msgid "Never"
 msgstr "Tidak pernah"
 
-#: includes/Admin/Settings.php:1746
+#: includes/Admin/Settings.php:1823
 msgid "Unknown"
 msgstr "Tidak diketahui"
 
-#: includes/Admin/Settings.php:1770 includes/Admin/Settings.php:1871
+#: includes/Admin/Settings.php:1847 includes/Admin/Settings.php:1949
 msgid "Send Test"
 msgstr "Kirim Tes"
 
-#: includes/Admin/Settings.php:1845
+#: includes/Admin/Settings.php:1923
 msgid "Invite an Artist"
 msgstr "Undang Seniman"
 
-#: includes/Admin/Settings.php:1847
+#: includes/Admin/Settings.php:1925
 msgid ""
 "Send a one-off email inviting someone to apply. Nothing is tracked or "
 "scheduled — this sends immediately to the address below."
@@ -1832,58 +1841,58 @@ msgstr ""
 "Kirim email satu kali untuk mengundang seseorang mendaftar. Tidak ada yang "
 "dilacak atau dijadwalkan — ini langsung dikirim ke alamat di bawah."
 
-#: includes/Admin/Settings.php:1853
+#: includes/Admin/Settings.php:1931
 msgid "artist@example.com"
 msgstr "artist@example.com"
 
-#: includes/Admin/Settings.php:1859
+#: includes/Admin/Settings.php:1937
 msgid "Send Invitation"
 msgstr "Kirim Undangan"
 
-#: includes/Admin/Settings.php:2029
+#: includes/Admin/Settings.php:2109
 msgid "Permission denied."
 msgstr "Akses ditolak."
 
-#: includes/Admin/Settings.php:2039
+#: includes/Admin/Settings.php:2119
 msgid "OpenAI API key not configured."
 msgstr "Kunci API OpenAI belum dikonfigurasi."
 
-#: includes/Admin/Settings.php:2045
+#: includes/Admin/Settings.php:2125
 msgid "OpenAI connection successful."
 msgstr "Koneksi OpenAI berhasil."
 
-#: includes/Admin/Settings.php:2052
+#: includes/Admin/Settings.php:2132
 msgid "Anthropic API key not configured."
 msgstr "Kunci API Anthropic belum dikonfigurasi."
 
-#: includes/Admin/Settings.php:2058
+#: includes/Admin/Settings.php:2138
 msgid "Anthropic connection successful."
 msgstr "Koneksi Anthropic berhasil."
 
-#: includes/Admin/Settings.php:2064
+#: includes/Admin/Settings.php:2144
 msgid "WordPress AI Client requires WordPress 7.0 or later."
 msgstr ""
 "WordPress AI Client memerlukan WordPress 7.0 atau versi yang lebih baru."
 
-#: includes/Admin/Settings.php:2070
+#: includes/Admin/Settings.php:2150
 msgid ""
 "No text-generation model configured. Set one up under Settings → Connectors."
 msgstr ""
 "Tidak ada model pembuatan teks yang dikonfigurasi. Atur satu di Pengaturan → "
 "Konektor."
 
-#: includes/Admin/Settings.php:2072
+#: includes/Admin/Settings.php:2152
 msgid ""
 "WordPress AI Client is available and a text-generation model is configured."
 msgstr ""
 "WordPress AI Client tersedia dan model pembuatan teks telah dikonfigurasi."
 
-#: includes/Admin/Settings.php:2076
+#: includes/Admin/Settings.php:2156
 msgid "Unknown provider."
 msgstr "Penyedia tidak dikenal."
 
 #. translators: %d: HTTP response status code
-#: includes/Admin/Settings.php:2110
+#: includes/Admin/Settings.php:2190
 #, php-format
 msgid "HTTP %d"
 msgstr "HTTP %d"
