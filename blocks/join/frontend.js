@@ -8,9 +8,16 @@
  * Expects window.agnosisJoin to be localised by JoinPage::enqueue_assets():
  *   {
  *     apiUrl: string,
- *     redirectUrl: string,  // optional — page to send the artist to on success
+ *     redirectUrl: string,  // optional — static, untranslated fallback (see below)
  *     i18n: { success, error, requiredField, languageRequired }
  *   }
+ *
+ * The /admission/apply response can also carry its own `redirect_url` —
+ * resolved server-side against the language the artist just selected in this
+ * form, which isn't known yet when redirectUrl above was baked into the page.
+ * That value takes priority whenever present; `redirectUrl` is only a
+ * fallback for the (rare) case the response doesn't include one — see
+ * JoinPage::resolve_success_url()'s docblock.
  *
  * The <form> is marked `novalidate` deliberately (see JoinPage::render()) so
  * this handler — not the browser's native bubble UI — owns error display,
@@ -111,11 +118,15 @@
 					showNotice( i18n.success || result.data.status, false );
 
 					// If the operator configured a "what happens next" page
-					// (Settings → Network → "After applying, send artists to"),
+					// (Settings → Community → "After applying, send artists to"),
 					// send the artist there instead of leaving them on the
-					// inline confirmation message alone.
-					if ( cfg.redirectUrl ) {
-						window.location.assign( cfg.redirectUrl );
+					// inline confirmation message alone. Prefer the response's
+					// own redirect_url — resolved server-side to the language
+					// the artist just selected above — over the static,
+					// untranslated redirectUrl baked into the page at render time.
+					var redirectTo = ( result.data && result.data.redirect_url ) || cfg.redirectUrl;
+					if ( redirectTo ) {
+						window.location.assign( redirectTo );
 					}
 				} else {
 					// Surface the server error message.

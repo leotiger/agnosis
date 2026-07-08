@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Turnstile;
 
 class JoinPage {
@@ -213,34 +214,70 @@ class JoinPage {
 	}
 
 	/**
-	 * Optional post-success redirect URL (Settings → Community → "After
-	 * applying, send artists to"). Lets the operator point a successful
-	 * applicant at a page explaining the vouching process / voting window /
-	 * what happens next, instead of just the inline confirmation message.
-	 * Empty string when unconfigured — frontend.js then falls back to the
-	 * inline message only, exactly as before this setting existed.
-	 *
-	 * 2026-07-08: this setting is now a WP page selector (a dropdown of the
-	 * site's own pages) rather than a free-text URL field, so the option
-	 * normally holds a page ID — resolved to its permalink here. Sites that
-	 * configured this before the change still have a raw URL string stored;
-	 * that is honoured as-is until the setting is next saved through the new
-	 * dropdown (at which point it becomes a page ID like everyone else's).
+	 * Render-time default for the post-success redirect (Settings → Community
+	 * → "After applying, send artists to"). Baked into the page via
+	 * wp_localize_script() as `redirectUrl`, used by frontend.js only as a
+	 * fallback — the authoritative value is `redirect_url` in the
+	 * /admission/apply REST response (see resolve_success_url()'s docblock),
+	 * computed from the language the artist actually selects in the form,
+	 * which isn't known yet at page-render time. Empty string when
+	 * unconfigured — frontend.js then shows the inline message only, exactly
+	 * as before this setting existed.
 	 */
 	private function success_redirect_url(): string {
+		return self::resolve_success_url();
+	}
+
+	/**
+	 * Resolve the "what happens next" redirect URL, localised to $lang via
+	 * Lingua Forge's TRID translation group when possible.
+	 *
+	 * 2026-07-08: originally this always returned the configured page's own
+	 * permalink, in whatever single language that page happens to be — no
+	 * artist was ever sent to a translated version of it, regardless of what
+	 * language they applied in. $lang is meant to be the artist's own
+	 * submitted "language you work in" value (already validated by
+	 * Admission::apply() against Lingua Forge's active languages), which is
+	 * why this is called from apply()'s REST response — not from here at
+	 * page-render time, where no language is known yet (see
+	 * success_redirect_url(), which calls this with no argument and always
+	 * gets the page's own permalink as a static fallback).
+	 *
+	 * Falls back to the configured page's own permalink whenever Lingua Forge
+	 * isn't active, the page has no translation for $lang (not yet
+	 * translated, or translation still pending), or $lang is empty.
+	 *
+	 * @param string $lang BCP-47-ish language code (Lingua Forge's own
+	 *                     format, e.g. 'es'), or '' for the untranslated
+	 *                     default.
+	 */
+	public static function resolve_success_url( string $lang = '' ): string {
 		$value = get_option( 'agnosis_join_success_url', '' );
 
-		if ( is_numeric( $value ) ) {
-			$page_id = (int) $value;
-			if ( $page_id <= 0 ) {
-				return '';
-			}
-			$permalink = get_permalink( $page_id );
-			return $permalink ?: '';
+		if ( ! is_numeric( $value ) ) {
+			// Back-compat: pre-existing raw URL string from before this setting
+			// became a page selector — not a page ID, nothing to translate.
+			return (string) $value;
 		}
 
-		// Back-compat: pre-existing raw URL string (see docblock above).
-		return (string) $value;
+		$page_id = (int) $value;
+		if ( $page_id <= 0 ) {
+			return '';
+		}
+
+		if ( '' !== $lang && LinguaForge::is_active() && function_exists( 'linguaforge_get_translations' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+			$translations = linguaforge_get_translations( $page_id );
+			if ( isset( $translations[ $lang ] ) ) {
+				$translated_permalink = get_permalink( (int) $translations[ $lang ] );
+				if ( $translated_permalink ) {
+					return $translated_permalink;
+				}
+			}
+		}
+
+		$permalink = get_permalink( $page_id );
+		return $permalink ?: '';
 	}
 
 	// -------------------------------------------------------------------------

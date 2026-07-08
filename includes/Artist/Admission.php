@@ -241,11 +241,25 @@ class Admission {
 
 		do_action( 'agnosis_artist_applied', $application_id, $email, $display_name );
 
-		return new WP_REST_Response( [
+		$response_data = [
 			'status'           => 'applied',
 			'application_id'   => $application_id,
 			'vouches_required' => $this->calculate_required(),
-		], 201 );
+		];
+
+		// Resolved against the language the artist just selected above (already
+		// validated against Lingua Forge's active languages) — the "what
+		// happens next" page, if one is configured, is sent to the artist in
+		// their own language when a translation exists. Omitted entirely when
+		// nothing is configured, so the frontend's own static fallback
+		// (JoinPage::success_redirect_url(), baked in at page render) applies
+		// instead — see JoinPage::resolve_success_url()'s docblock.
+		$redirect_url = JoinPage::resolve_success_url( $language );
+		if ( '' !== $redirect_url ) {
+			$response_data['redirect_url'] = $redirect_url;
+		}
+
+		return new WP_REST_Response( $response_data, 201 );
 	}
 
 	public function vouch( WP_REST_Request $request ): WP_REST_Response|WP_Error {

@@ -13,7 +13,26 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Artist;
 
+use Agnosis\Tests\Integration\Support\FakeLinguaForge;
+
+// Guarded — see JoinPageTest's docblock for why this is safe to define here
+// too (PHP constants can't be undefined once set; only matters for tests that
+// pass a non-empty $lang into JoinPage::resolve_success_url(), which nothing
+// else in this file does apart from the redirect_url tests below).
+if ( ! defined( 'LINGUAFORGE_FILE' ) ) {
+	define( 'LINGUAFORGE_FILE', __FILE__ );
+}
+if ( ! defined( 'LINGUAFORGE_VERSION' ) ) {
+	define( 'LINGUAFORGE_VERSION', '1.0.0-test' );
+}
+
 class AdmissionIntegrationTest extends \WP_UnitTestCase {
+
+	public function tearDown(): void {
+		delete_option( 'agnosis_join_success_url' );
+		FakeLinguaForge::reset();
+		parent::tearDown();
+	}
 
 	public function setUp(): void {
 		parent::setUp();
@@ -191,6 +210,68 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		] );
 
 		$this->assertSame( 3, $response->get_data()['vouches_required'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Post-apply redirect (Settings → Community → "After applying, send
+	// artists to") — resolved against the submitted `language`, not just the
+	// configured page's own permalink. See JoinPage::resolve_success_url().
+	// -------------------------------------------------------------------------
+
+	public function test_apply_response_omits_redirect_url_when_unconfigured(): void {
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'noredirect@example.com',
+			'display_name' => 'No Redirect',
+			'language'     => 'en',
+		] );
+
+		$this->assertArrayNotHasKey( 'redirect_url', $response->get_data() );
+	}
+
+	public function test_apply_response_includes_configured_pages_permalink(): void {
+		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		update_option( 'agnosis_join_success_url', $page_id );
+
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'redirect@example.com',
+			'display_name' => 'Redirect Artist',
+			'language'     => 'en',
+		] );
+
+		$this->assertSame( get_permalink( $page_id ), $response->get_data()['redirect_url'] );
+	}
+
+	public function test_apply_response_redirects_to_translation_matching_submitted_language(): void {
+		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		$es_page = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		update_option( 'agnosis_join_success_url', $page_id );
+		FakeLinguaForge::link( $page_id, 'es', $es_page );
+
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'translated@example.com',
+			'display_name' => 'Translated Artist',
+			'language'     => 'es',
+		] );
+
+		$this->assertSame( get_permalink( $es_page ), $response->get_data()['redirect_url'] );
+	}
+
+	public function test_apply_response_falls_back_to_source_page_when_no_translation_for_submitted_language(): void {
+		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		update_option( 'agnosis_join_success_url', $page_id );
+		// FakeLinguaForge has no 'de' translation registered for this page.
+
+		wp_set_current_user( 0 );
+		$response = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'untranslated@example.com',
+			'display_name' => 'Untranslated Artist',
+			'language'     => 'de',
+		] );
+
+		$this->assertSame( get_permalink( $page_id ), $response->get_data()['redirect_url'] );
 	}
 
 	// -------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agnosis 0.9.9\n"
+"Project-Id-Version: Agnosis 0.9.10\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

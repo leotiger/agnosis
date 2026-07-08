@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.9
+Stable tag: 0.9.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -63,6 +63,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.10 =
+* Added: If the "After applying, send artists to" page (Settings → Community) has been translated with Lingua Forge, an artist is now sent to the version in the language they picked in the join form, not always whatever language the page itself happens to be in.
+
 = 0.9.9 =
 * Added: The "After applying, send artists to" setting under Settings → Community is now a page picker — choose a page from a dropdown of your site's own pages instead of hand-typing its URL. A previously typed-in URL keeps working until you next save that setting.
 * Fixed: One more email missed by the "WordPress" sender fix below — the admin notice reviewing an AI-drafted newsletter intro before it sends. Now uses the Newsletter sender address like the rest of the newsletter's mail.
@@ -78,13 +81,5 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: Approving, discarding, or editing-then-publishing a Biography or Event submission from its review email could incorrectly show "Link expired or already used", even on a perfectly valid link. Artwork was unaffected. This is now fixed for all three content types.
 * Added: How long the Approve & Publish / Discard links in a review email stay valid is now a setting under Settings → Behaviour ("Review link expiry (days)", default 7), instead of being fixed in code.
 * Fixed: The biography draft automatically created for a newly admitted artist (see 0.9.8 below) no longer includes their "Why do you want to join?" answer from the application form — that's addressed to the community reviewing admission, not part of an artist's public biography, and won't appear there anymore. It's still visible to admission reviewers as before.
-
-= 0.9.8 =
-* Added: A newly admitted artist now starts with a first Biography draft, built automatically from the bio, artist statement, and portfolio link they already gave on their application — instead of that information sitting unused. The portfolio link, when approved for embedding (see below), is added as an embed at the end. Like every other Agnosis post, this draft is sent to the artist for review — they approve, edit, or discard it, nothing is published without them.
-* Added: The trusted platforms list for embedding artist-submitted links (YouTube, Vimeo, SoundCloud, Bandcamp, etc.) is now editable under Settings → Behaviour, instead of being fixed in code. Site admins can also turn on AI-powered review for links to other, non-listed sites: Agnosis looks at the page and checks it against categories you choose to disallow — pornographic content (on by default), commercial/promotional sites, gambling sites, or your own custom description. If a link can't be safely checked, it's left out rather than embedded. This is off by default, so existing sites see no change unless it's turned on.
-* Added: A "Trust all admitted artists" setting under Settings → Behaviour, for admins who consider the community vouching process itself sufficient — turning it on embeds any artist-submitted link immediately, skipping both the trusted platforms list and AI review entirely. Off by default.
-* Added: A "Reset to default" button on the System prompt, Artist prompt template, Enhancement instructions, Trusted embed platforms, and Invitation intro fields under Settings, so overwriting one of these no longer means losing the plugin's original text for good.
-* Added: The AI is now explicitly told to ignore email footers (e.g. "Sent from my iPhone"), signatures, and other text unrelated to the submission when writing artwork descriptions, polishing biography/event text, or merging biography updates.
-* Added: The Artist/Public newsletter intro fields no longer have to be written by hand — a configurable number of hours (default 24) before an issue is due, Agnosis drafts one from what's new (artwork, events, tags, mediums, new members, open votes) and saves it to the field, then emails you to review, edit, or clear it before it sends. Two new settings under Settings → Newsletter control it: an on/off switch ("Auto-draft newsletter intros", on by default) and the lead time in hours.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
