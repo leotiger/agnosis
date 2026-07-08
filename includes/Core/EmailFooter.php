@@ -87,6 +87,10 @@ class EmailFooter {
 				'option' => 'agnosis_email_photo',
 				'desc'   => __( 'Publish a photo exactly as sent — no AI enhancement, no quality check.', 'agnosis' ),
 			],
+			__( 'Pure', 'agnosis' )       => [
+				'option' => 'agnosis_email_pure',
+				'desc'   => __( 'Publish exactly as sent — no AI at all, not even the title/description pass.', 'agnosis' ),
+			],
 		];
 	}
 

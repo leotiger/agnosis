@@ -60,10 +60,22 @@ class PostCreator {
 	 * @var array<string, array{post_type: string, singleton: bool}>
 	 */
 	private const INDICATORS = [
-		'biography' => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false ],
-		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false ],
-		'photo'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true  ],
+		'biography' => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ],
+		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ],
+		'photo'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ],
+		// pure@ implies photo_only too — no enhancement, on top of no description AI at all.
+		'pure'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ],
 	];
+
+	/**
+	 * Values stored in `_agnosis_intake_endpoint` — which address created an
+	 * agnosis_artwork post. Written once at creation (never on update, never
+	 * by replace@) and read by replace@ to reuse the same processing strategy
+	 * on a resend. See handle()'s replace@ branch and create_post().
+	 */
+	private const ENDPOINT_ARTWORK = 'artwork';
+	private const ENDPOINT_PHOTO   = 'photo';
+	private const ENDPOINT_PURE    = 'pure';
 
 	/**
 	 * Hosts an artist-submitted link is allowed to become a wp:embed block for
@@ -155,7 +167,7 @@ class PostCreator {
 			// ---- Resolve post type ----------------------------------------------
 			// Primary: recipient address (To: header / webhook 'recipient' field).
 			// Fallback: subject-line [Indicator] prefix (backward compat).
-			[ $post_type, $singleton, $clean_subject, $photo_only ] = $this->resolve_post_type( $submission );
+			[ $post_type, $singleton, $clean_subject, $photo_only, $pure ] = $this->resolve_post_type( $submission );
 			$submission['subject'] = $clean_subject;
 
 			// Capture the artist's original title before SubmissionTranslator may
@@ -168,6 +180,39 @@ class PostCreator {
 				sprintf( 'Queue #%d: post type resolved to "%s"%s.', $queue_id, $post_type, $singleton ? ' (singleton)' : '' ),
 				'publisher'
 			);
+
+			// ---- replace@: resolve the merge target BEFORE the AI pipeline runs ---
+			// Must happen this early (not in the "Duplicate / singleton resolution"
+			// block further down, which runs after the pipeline) so that when a
+			// matching post is found, its _agnosis_intake_endpoint meta can force
+			// $photo_only/$pure to the SAME strategy the artist used on their
+			// original submission before pipeline->process()/process_raw() is ever
+			// called. replace@ only ever READS this meta — it is never written or
+			// changed here or anywhere else in this branch.
+			$is_replace = ( 'agnosis_replace' === $post_type );
+			$merge_into = 0;
+
+			if ( $is_replace ) {
+				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
+				$post_type  = $merge_into ? (string) get_post_type( $merge_into ) : 'agnosis_artwork';
+
+				if ( $merge_into && 'agnosis_artwork' === $post_type ) {
+					$original_endpoint = (string) get_post_meta( $merge_into, '_agnosis_intake_endpoint', true );
+					$pure              = ( self::ENDPOINT_PURE === $original_endpoint );
+					$photo_only        = $pure || ( self::ENDPOINT_PHOTO === $original_endpoint );
+
+					Logger::info(
+						sprintf( 'Queue #%d: replace@ — matched post #%d was originally submitted via "%s"; reusing that strategy.', $queue_id, $merge_into, $original_endpoint ?: self::ENDPOINT_ARTWORK ),
+						'publisher'
+					);
+				}
+
+				if ( $merge_into ) {
+					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing %s #%d.', $queue_id, $post_type, $merge_into ), 'publisher' );
+				} else {
+					Logger::info( sprintf( 'Queue #%d: replace@ — no existing post found, creating new artwork.', $queue_id ), 'publisher' );
+				}
+			}
 
 			if ( Debug::enabled() ) {
 				$dbg_atts = [];
@@ -242,11 +287,13 @@ class PostCreator {
 						'Queue #%d: running AI pipeline on %d attachment(s)%s.',
 						$queue_id,
 						$attach_count,
-						$photo_only ? ' (photo-only — enhancement skipped)' : ''
+						$pure ? ' (pure — no AI at all)' : ( $photo_only ? ' (photo-only — enhancement skipped)' : '' )
 					),
 					'publisher'
 				);
-				$results = $this->pipeline->process( $submission, $photo_only );
+				$results = $pure
+					? $this->pipeline->process_raw( $submission )
+					: $this->pipeline->process( $submission, $photo_only );
 				foreach ( $results as $i => $r ) {
 					if ( $r['description_ok'] ) {
 						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ), 'publisher' );
@@ -331,7 +378,7 @@ class PostCreator {
 			// own merits: individually-failing images are dropped from the
 			// gallery and only the survivors are published; the whole submission
 			// is rejected only when every image fails.
-			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) && ! $photo_only ) {
+			if ( 'agnosis_artwork' === $post_type && ! empty( $results ) && ! $photo_only && ! $pure ) {
 				$reject_below = (int) get_option( 'agnosis_quality_rejection_threshold', 3 );
 
 				if ( $reject_below > 0 ) {
@@ -421,22 +468,13 @@ class PostCreator {
 			}
 
 			// ---- Duplicate / singleton resolution -------------------------------
-			if ( 'agnosis_replace' === $post_type ) {
+			if ( $is_replace ) {
 				// Explicit replacement: skip AI fuzzy detection entirely.
-				// Match only by exact subject — the artist named the artwork OR
-				// event they want replaced (2026-07-06: searches both types;
-				// $post_type adopts whichever one the match belongs to). No
-				// match falls back to the pre-2026-07-06 default of creating a
-				// new artwork — replace@ was artwork-only until now, so that's
-				// the safest "nothing matched" behaviour to preserve.
-				$singleton  = false;
-				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
-				$post_type  = $merge_into ? (string) get_post_type( $merge_into ) : 'agnosis_artwork';
-				if ( $merge_into ) {
-					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing %s #%d.', $queue_id, $post_type, $merge_into ), 'publisher' );
-				} else {
-					Logger::info( sprintf( 'Queue #%d: replace@ — no existing post found, creating new artwork.', $queue_id ), 'publisher' );
-				}
+				// $merge_into, $post_type, $photo_only, and $pure were already
+				// resolved earlier — before the AI pipeline ran — precisely so the
+				// pipeline call above could reuse the matched post's original
+				// intake strategy. Nothing left to do here except drop $singleton.
+				$singleton = false;
 			} elseif ( 'agnosis_event' === $post_type ) {
 				// 2026-07-06: an artist can now have several events, so a new
 				// [Event] email no longer blindly merges into "the" event (there
@@ -491,7 +529,8 @@ class PostCreator {
 				}
 			}
 
-			$post_id = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title );
+			$intake_endpoint = $pure ? self::ENDPOINT_PURE : ( $photo_only ? self::ENDPOINT_PHOTO : self::ENDPOINT_ARTWORK );
+			$post_id         = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title, $intake_endpoint );
 
 			if ( is_wp_error( $post_id ) ) {
 				throw new \RuntimeException( $post_id->get_error_message() );
@@ -525,19 +564,27 @@ class PostCreator {
 	 *   3. Default: agnosis_artwork.
 	 *
 	/**
-	 * Resolve the post type, singleton flag, cleaned subject, and photo-only flag
-	 * from the submission's To: address and subject line.
+	 * Resolve the post type, singleton flag, cleaned subject, photo-only flag,
+	 * and pure flag from the submission's To: address and subject line.
 	 *
-	 * Returns a four-element array: [post_type, singleton, clean_subject, photo_only].
+	 * Returns a five-element array: [post_type, singleton, clean_subject, photo_only, pure].
 	 *
-	 * photo_only = true means the submission came via photo@ or [Photo] indicator:
+	 * photo_only = true means the submission came via photo@ or [Photo] (or pure@/[Pure]):
 	 *   - AI enhancement is skipped entirely (no API call, no image mutation).
 	 *   - Quality rejection gate is bypassed (a deliberately low-fi image is not a defect).
-	 *   - AI description (title, excerpt, tags, alt text) still runs normally.
+	 *   - AI description (title, excerpt, tags, alt text) still runs normally — UNLESS
+	 *     $pure is also true, in which case no AI runs at all (see below).
 	 *   - The original binary is published as-is.
 	 *
+	 * pure = true means the submission came via pure@ or [Pure] — a strictly stronger
+	 * lane than photo_only:
+	 *   - No AI call of any kind runs (no describe(), no enhance(), no translate()).
+	 *   - Title/excerpt/body/tags/alt text are taken directly from the artist's own
+	 *     subject and message text (see Pipeline::process_raw()).
+	 *   - Implies photo_only (no enhancement, no quality gate) as a subset.
+	 *
 	 * @param array<string, mixed> $submission
-	 * @return array{0: string, 1: bool, 2: string, 3: bool}
+	 * @return array{0: string, 1: bool, 2: string, 3: bool, 4: bool}
 	 */
 	private function resolve_post_type( array $submission ): array {
 		$to      = strtolower( trim( (string) ( $submission['to_address'] ?? '' ) ) );
@@ -550,26 +597,33 @@ class PostCreator {
 			$remove_addr  = strtolower( trim( (string) get_option( 'agnosis_email_remove',  '' ) ) );
 			$promote_addr = strtolower( trim( (string) get_option( 'agnosis_email_promote', '' ) ) );
 			$photo_addr   = strtolower( trim( (string) get_option( 'agnosis_email_photo',   '' ) ) );
+			$pure_addr    = strtolower( trim( (string) get_option( 'agnosis_email_pure',    '' ) ) );
 
 			if ( $bio_addr && $to === $bio_addr ) {
-				return [ 'agnosis_biography', true, $subject, false ];
+				return [ 'agnosis_biography', true, $subject, false, false ];
 			}
 			if ( $event_addr && $to === $event_addr ) {
-				return [ 'agnosis_event', true, $subject, false ];
+				return [ 'agnosis_event', true, $subject, false, false ];
+			}
+			// Pure lane: zero AI — checked before photo@ since both match on the
+			// same shape (agnosis_artwork, non-singleton) and pure@ is the more
+			// specific/stronger of the two.
+			if ( $pure_addr && $to === $pure_addr ) {
+				return [ 'agnosis_artwork', false, $subject, true, true ];
 			}
 			// Photo-only lane: AI description + no enhancement + no quality rejection.
 			if ( $photo_addr && $to === $photo_addr ) {
-				return [ 'agnosis_artwork', false, $subject, true ];
+				return [ 'agnosis_artwork', false, $subject, true, false ];
 			}
 			// Pseudo-types — handled specially in handle() before create_post() is called.
 			if ( $replace_addr && $to === $replace_addr ) {
-				return [ 'agnosis_replace', false, $subject, false ];
+				return [ 'agnosis_replace', false, $subject, false, false ];
 			}
 			if ( $remove_addr && $to === $remove_addr ) {
-				return [ 'agnosis_remove', false, $subject, false ];
+				return [ 'agnosis_remove', false, $subject, false, false ];
 			}
 			if ( $promote_addr && $to === $promote_addr ) {
-				return [ 'agnosis_promote', false, $subject, false ];
+				return [ 'agnosis_promote', false, $subject, false, false ];
 			}
 		}
 
@@ -585,7 +639,7 @@ class PostCreator {
 	 * post title. Unknown indicators fall back to the default artwork type.
 	 *
 	 * @param  string $subject Raw email subject.
-	 * @return array{0: string, 1: bool, 2: string, 3: bool} [post_type, is_singleton, clean_subject, photo_only]
+	 * @return array{0: string, 1: bool, 2: string, 3: bool, 4: bool} [post_type, is_singleton, clean_subject, photo_only, pure]
 	 */
 	private function resolve_indicator( string $subject ): array {
 		if ( preg_match( '/^\[([^\]]+)\]\s*/u', $subject, $m ) ) {
@@ -598,10 +652,11 @@ class PostCreator {
 					$indicator['singleton'],
 					$clean,
 					$indicator['photo_only'],
+					$indicator['pure'],
 				];
 			}
 		}
-		return [ 'agnosis_artwork', false, $subject, false ];
+		return [ 'agnosis_artwork', false, $subject, false, false ];
 	}
 
 	/**
@@ -981,9 +1036,12 @@ class PostCreator {
 	 * @param int                              $queue_id         Queue row ID — stored in post meta for reverse lookup.
 	 * @param int                              $merge_into_post  Post ID to update instead of inserting (0 = auto-detect).
 	 * @param string                           $post_type        CPT slug (default: agnosis_artwork).
+	 * @param string                           $intake_endpoint  Which address created this submission (ENDPOINT_* const) —
+	 *                                                           written once to _agnosis_intake_endpoint on agnosis_artwork
+	 *                                                           posts only, never overwritten on a later update/replace.
 	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
 	 */
-	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '' ): int|\WP_Error {
+	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '', string $intake_endpoint = self::ENDPOINT_ARTWORK ): int|\WP_Error {
 		// ---- Idempotency guard ------------------------------------------------
 		// Priority: explicit merge target (singleton/duplicate) > same queue row > new post.
 		$existing_id = $merge_into_post;
@@ -1085,6 +1143,15 @@ class PostCreator {
 		// the artist's creative intent is never lost or overwritten by a later AI pass.
 		if ( '' !== $original_title && '' === (string) get_post_meta( $post_id, '_agnosis_original_title', true ) ) {
 			update_post_meta( $post_id, '_agnosis_original_title', $original_title );
+		}
+
+		// Persist which address created this submission — once, same write-once
+		// pattern as _agnosis_original_title above. A replace@ update reads this
+		// (see handle()'s early replace@ resolution) but must never change it:
+		// the artwork's original intake strategy is what a resend should keep
+		// reusing, not whatever address the artist happened to send the resend to.
+		if ( 'agnosis_artwork' === $post_type && '' === (string) get_post_meta( $post_id, '_agnosis_intake_endpoint', true ) ) {
+			update_post_meta( $post_id, '_agnosis_intake_endpoint', $intake_endpoint );
 		}
 
 		$this->write_post_meta( $post_id, $primary, $gallery, $all_tags, $post_type );

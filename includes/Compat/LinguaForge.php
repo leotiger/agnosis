@@ -64,14 +64,22 @@ class LinguaForge {
 	 *
 	 * Event-only keys are harmless on artwork/biography posts (simply absent).
 	 *
+	 * _agnosis_intake_endpoint (0.9.5) is language-neutral by construction — it
+	 * records which address (artwork/photo/pure) created the source submission,
+	 * which has nothing to do with the target language. Included so a replace@
+	 * resend that happens to land on a translated post's TRID group still finds
+	 * the original intake strategy no matter which language member replace@'s
+	 * own subject-match lookup (PostCreator::find_post_by_subject()) turns up.
+	 *
 	 * @var string[]
 	 */
 	private const NEUTRAL_META_KEYS = [
-		'_thumbnail_id',           // featured image (first gallery image)
-		'_agnosis_gallery_ids',    // gallery attachment IDs
-		'_agnosis_original_title', // artist's own-words title (language-neutral)
-		'_agnosis_event_location', // events only
-		'_agnosis_event_date',     // events only
+		'_thumbnail_id',             // featured image (first gallery image)
+		'_agnosis_gallery_ids',      // gallery attachment IDs
+		'_agnosis_original_title',   // artist's own-words title (language-neutral)
+		'_agnosis_event_location',   // events only
+		'_agnosis_event_date',       // events only
+		'_agnosis_intake_endpoint',  // which address created the artwork (artwork/photo/pure)
 	];
 
 	/**

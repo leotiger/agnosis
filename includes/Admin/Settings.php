@@ -382,6 +382,11 @@ class Settings {
 				'label' => __( 'Photo-only address', 'agnosis' ),
 				'desc'  => __( 'Opt-out lane for photographers and lens-based artists whose photograph is the artwork, not a snapshot of it. Submissions here are published with the original image exactly as sent — AI enhancement is skipped and the quality-rejection gate is bypassed. AI description (title, tags, alt text) still runs. Use the [Photo] subject indicator as a fallback for mail clients that do not support To: aliases — e.g. photo@agnosis.art', 'agnosis' ),
 			],
+			'agnosis_email_pure' => [
+				'tab'   => 'email',
+				'label' => __( 'Pure address (no AI at all)', 'agnosis' ),
+				'desc'  => __( 'Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, no vision description, no rewriting. The published post title, body, and translated-title subtitle are taken verbatim from the artist\'s own subject and message text; the attached file(s) are published exactly as sent. The quality-rejection gate is bypassed, same as Photo-only. Use the [Pure] subject indicator as a fallback for mail clients that do not support To: aliases — e.g. pure@agnosis.art', 'agnosis' ),
+			],
 			'agnosis_email_goodbye' => [
 				'tab'   => 'email',
 				'label' => __( 'Goodbye / self-removal address', 'agnosis' ),

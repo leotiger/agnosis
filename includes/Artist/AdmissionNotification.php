@@ -596,7 +596,9 @@ class AdmissionNotification {
 			<p style="margin:0;font-size:15px;color:#666;line-height:1.6;">
 				<?php esc_html_e( 'Artwork (default) — any subject', 'agnosis' ); ?><br>
 				<?php esc_html_e( '[Biography] — biography update', 'agnosis' ); ?><br>
-				<?php esc_html_e( '[Event] — event announcement', 'agnosis' ); ?>
+				<?php esc_html_e( '[Event] — event announcement', 'agnosis' ); ?><br>
+				<?php esc_html_e( '[Photo] — publish as-is, no AI enhancement (fallback for mail apps without To: aliases)', 'agnosis' ); ?><br>
+				<?php esc_html_e( '[Pure] — publish exactly as sent, no AI at all (fallback for mail apps without To: aliases)', 'agnosis' ); ?>
 			</p>
 		</div>
 		<?php endif; ?>
@@ -660,6 +662,8 @@ class AdmissionNotification {
 			'agnosis_email_replace' => __( 'Replace artwork (subject: exact title)', 'agnosis' ),
 			'agnosis_email_remove'  => __( 'Remove artwork (subject: exact title)', 'agnosis' ),
 			'agnosis_email_promote' => __( 'Feature artwork (subject: exact title)', 'agnosis' ),
+			'agnosis_email_photo'   => __( 'Photo-only — publish as-is, no AI enhancement', 'agnosis' ),
+			'agnosis_email_pure'    => __( 'Pure — publish exactly as sent, no AI at all', 'agnosis' ),
 		];
 
 		$aliases = [];

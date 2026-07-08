@@ -1,11 +1,11 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-07 17:24
+COMBINED COVERAGE  (unit + integration)  —  2026-07-08 10:29
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
   ✅ includes/AI/DescriptionResult.php                          100%
   ✅ includes/AI/EnhancementResult.php                          100%
   ✅ includes/AI/MediaAdapter.php                                80%
-  🔶 includes/AI/Pipeline.php                                    61%
+  🔶 includes/AI/Pipeline.php                                    65%
   ✅ includes/AI/PromptConfig.php                               100%
   🔶 includes/AI/Providers/Anthropic.php                         71%
   ❌ includes/AI/Providers/OpenAI.php                            35%
@@ -26,14 +26,14 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-07 17:24
   ✅ includes/Artist/Invitation.php                              88%
   ✅ includes/Artist/JoinPage.php                                87%
   ❌ includes/Artist/Profile.php                                 12%
-  ✅ includes/Artist/RemovalVoteConfirm.php                      92%
-  ✅ includes/Artist/VouchConfirm.php                            89%
+  ✅ includes/Artist/RemovalVoteConfirm.php                      89%
+  ✅ includes/Artist/VouchConfirm.php                            87%
   ✅ includes/Compat/LinguaForge.php                             89%
   ✅ includes/Core/Activator.php                                 80%
   ❌ includes/Core/DateFormatter.php                              0%
   ❌ includes/Core/Debug.php                                      5%
   ❌ includes/Core/EmailBranding.php                             37%
-  ✅ includes/Core/EmailFooter.php                               91%
+  ✅ includes/Core/EmailFooter.php                               95%
   ❌ includes/Core/ImageSizes.php                                 0%
   ✅ includes/Core/Loader.php                                   100%
   ✅ includes/Core/Logger.php                                   100%
@@ -65,10 +65,10 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-07 17:24
   ✅ includes/Newsletter/Tokens.php                             100%
   ❌ includes/Publishing/GalleryOverview.php                     43%
   ✅ includes/Publishing/Notification.php                        84%
-  🔶 includes/Publishing/PostCreator.php                         60%
-  ✅ includes/Publishing/RemovalEndpoints.php                    94%
+  🔶 includes/Publishing/PostCreator.php                         63%
+  ✅ includes/Publishing/RemovalEndpoints.php                    99%
   ✅ includes/Publishing/ReviewConfirm.php                       97%
   ✅ includes/Publishing/ReviewEndpoints.php                     91%
   ❌ includes/Publishing/SubmissionsPage.php                     19%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 54.96%  (5919 / 10770 statements)
+  TOTAL: 55.47%  (6034 / 10877 statements)

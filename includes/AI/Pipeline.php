@@ -112,6 +112,72 @@ class Pipeline {
 	}
 
 	/**
+	 * Process all attachments in a submission with zero AI involvement.
+	 *
+	 * Used for `pure@` submissions (Settings → Email, `agnosis_email_pure`) —
+	 * the strictest opt-out lane. Unlike `process( $submission, true )`
+	 * (photo@, which still runs the full vision description call and only
+	 * skips image enhancement), this method never calls describe(), enhance(),
+	 * transcribe(), chat(), or SubmissionTranslator::translate() — nothing here
+	 * touches the AI provider at all. `MediaAdapter::adapt()` still runs
+	 * because it is format normalisation, not content generation (HEIC→JPEG,
+	 * PDF rasterisation) — without it a HEIC photo or a PDF submission would
+	 * never reach the media library as anything usable.
+	 *
+	 * Each result is built directly from the artist's own subject/description
+	 * text so it slots into the exact same shape process()/process_single()
+	 * produce — merge_gallery(), build_post_content(), and write_post_meta()
+	 * in PostCreator need no special-casing for the pure@ lane: 'body' being
+	 * the artist's own words instead of an AI-authored description is exactly
+	 * what makes build_post_content() publish the artist's verbatim text for
+	 * an agnosis_artwork post, the same way it already does for biography/event.
+	 *
+	 * photo_quality_score is always 0 ("could not assess / not applicable") so
+	 * PostCreator's quality-rejection gate — which always passes a 0 score —
+	 * never rejects a pure@ submission, same effective outcome as photo_only.
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission.
+	 * @return array<int, array<string, mixed>> One result per adapted attachment.
+	 */
+	public function process_raw( array $submission ): array {
+		$results = [];
+
+		$subject = trim( (string) ( $submission['subject']     ?? '' ) );
+		$body    = trim( (string) ( $submission['description'] ?? '' ) );
+		$excerpt = '' !== $body ? wp_trim_words( wp_strip_all_tags( $body ), 30, '…' ) : '';
+		$content = '' !== $body ? wpautop( wp_kses_post( $body ) ) : '';
+
+		$adapted = MediaAdapter::adapt( $submission['attachments'] ?? [] );
+
+		foreach ( $adapted as $attachment ) {
+			$media_type = $attachment['media_type'] ?? 'image';
+			$data       = (string) ( $attachment['data'] ?? '' );
+
+			$results[] = [
+				'filename'             => $attachment['filename'] ?? ( 'submission-' . uniqid() ),
+				'original_data'        => $data,
+				'enhanced_data'        => $data, // never enhanced — pure@ publishes exactly what arrived.
+				'mime_type'            => (string) ( $attachment['mime'] ?? '' ),
+				'media_type'           => $media_type,
+				'title'                => $subject,
+				'excerpt'              => $excerpt,
+				'body'                 => $content,
+				'tags'                 => [],
+				'alt_text'             => $subject,
+				'description_ok'       => true,
+				'error'                => '',
+				'photo_quality_score'  => 0,
+				'photo_quality_issues' => [],
+				'enhanced'             => false,
+				'poster_data'          => $attachment['poster_data'] ?? '',
+				'poster_mime'          => $attachment['poster_mime'] ?? '',
+			];
+		}
+
+		return $results;
+	}
+
+	/**
 	 * Build a structured context string from the full email submission.
 	 *
 	 * Includes the subject line (which often hints at a title) and the email

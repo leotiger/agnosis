@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.4
+Stable tag: 0.9.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,11 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
 == Changelog ==
+
+= 0.9.5 =
+* Added: A new "Pure" work-submission address (Settings → Email). Artwork sent there is published exactly as received — no AI touches the text or the image at all (not even the description/title/tag pass Photo-only still runs). What the artist wrote and attached is what gets published, word for word, pixel for pixel.
+* Added: Every artwork post now remembers which address it was submitted to (Artwork, Photo-only, or Pure). Sending a replacement version via the Replace address now reuses that same original approach automatically, instead of always running full AI on the replacement.
+* Fixed: The welcome email sent to newly admitted artists never actually mentioned the Photo-only address, and would have had the same gap for the new Pure address — both are now listed alongside the other work-submission addresses in that email, correctly translated into the artist's language like the rest of that email. (Note: if you use Loco Translate, you'll need to re-scan once to pick up these two new lines.)
 
 = 0.9.4 =
 * Fixed: When an artist requested that a piece of art or an event be taken down (via the remove link in their email), only the original-language version was actually removed — any translated copies of it stayed live and visible. Removal now takes every translated version down along with it.
