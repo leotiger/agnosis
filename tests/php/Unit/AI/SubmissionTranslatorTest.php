@@ -417,4 +417,280 @@ class SubmissionTranslatorTest extends TestCase {
 		$this->assertSame( 'qapla', $result['subject'] );
 		$this->assertSame( 'majQa.', $result['description'] );
 	}
+
+	// -------------------------------------------------------------------------
+	// translate_fields() — fifth audit §4b: many fields, one language, one call
+	// -------------------------------------------------------------------------
+
+	public function test_translate_fields_returns_empty_array_for_empty_input_without_chat_call(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$this->assertSame( [], $this->make_translator( $provider )->translate_fields( [], 'es' ) );
+	}
+
+	public function test_translate_fields_returns_empty_array_when_every_field_is_blank(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$result = $this->make_translator( $provider )->translate_fields(
+			[ 'title' => '', 'excerpt' => '   ' ],
+			'es'
+		);
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_fields_returns_empty_array_for_unknown_language_code_without_chat_call(): void {
+		// 'xx' is not in the active Lingua Forge language list and no filter override is set.
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$result = $this->make_translator( $provider )->translate_fields( [ 'title' => 'Hello' ], 'xx' );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_fields_makes_exactly_one_chat_call_for_all_fields(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->willReturn( '{"title":"Titulo","excerpt":"Extracto","body":"Cuerpo."}' );
+
+		$this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => 'Excerpt', 'body' => 'Body.' ],
+			'es'
+		);
+	}
+
+	public function test_translate_fields_returns_all_translated_keys(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn(
+			'{"title":"Titulo","excerpt":"Extracto","body":"Cuerpo."}'
+		);
+
+		$result = $this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => 'Excerpt', 'body' => 'Body.' ],
+			'es'
+		);
+
+		$this->assertSame(
+			[ 'title' => 'Titulo', 'excerpt' => 'Extracto', 'body' => 'Cuerpo.' ],
+			$result
+		);
+	}
+
+	public function test_translate_fields_prompt_includes_uppercased_field_names_and_target_language(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'TITLE:' ),
+				$this->stringContains( 'EXCERPT:' ),
+				$this->stringContains( 'Spanish' ),
+				$this->stringContains( '"title", "excerpt"' )
+			) )
+			->willReturn( '{"title":"Titulo","excerpt":"Extracto"}' );
+
+		$this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => 'Excerpt' ],
+			'es'
+		);
+	}
+
+	public function test_translate_fields_omits_blank_fields_from_the_prompt_and_result(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalNot( $this->stringContains( 'EXCERPT:' ) ) )
+			->willReturn( '{"title":"Titulo"}' );
+
+		$result = $this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => '' ],
+			'es'
+		);
+
+		$this->assertSame( [ 'title' => 'Titulo' ], $result );
+	}
+
+	public function test_translate_fields_omits_keys_missing_from_the_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		// Only "title" comes back — "excerpt" was requested but is absent.
+		$provider->method( 'chat' )->willReturn( '{"title":"Titulo"}' );
+
+		$result = $this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => 'Excerpt' ],
+			'es'
+		);
+
+		$this->assertSame( [ 'title' => 'Titulo' ], $result );
+		$this->assertArrayNotHasKey( 'excerpt', $result );
+	}
+
+	public function test_translate_fields_omits_non_string_values_from_the_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"title":"Titulo","excerpt":42}' );
+
+		$result = $this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title', 'excerpt' => 'Excerpt' ],
+			'es'
+		);
+
+		$this->assertSame( [ 'title' => 'Titulo' ], $result );
+	}
+
+	public function test_translate_fields_returns_empty_array_on_empty_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '' );
+
+		$result = $this->make_translator( $provider )->translate_fields( [ 'title' => 'Title' ], 'es' );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_fields_returns_empty_array_on_non_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( 'Sorry, I cannot help with that.' );
+
+		$result = $this->make_translator( $provider )->translate_fields( [ 'title' => 'Title' ], 'es' );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_fields_strips_markdown_fences_from_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( "```json\n{\"title\":\"Titulo\"}\n```" );
+
+		$result = $this->make_translator( $provider )->translate_fields( [ 'title' => 'Title' ], 'es' );
+
+		$this->assertSame( [ 'title' => 'Titulo' ], $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// translate_to_languages() — fifth audit §4d: one field, many languages, one call
+	// -------------------------------------------------------------------------
+
+	public function test_translate_to_languages_returns_empty_array_for_empty_text_without_chat_call(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$this->assertSame( [], $this->make_translator( $provider )->translate_to_languages( '', [ 'es', 'fr' ] ) );
+	}
+
+	public function test_translate_to_languages_returns_empty_array_when_every_target_code_is_unknown(): void {
+		// Neither 'xx' nor 'yy' is in the active Lingua Forge language list.
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'xx', 'yy' ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_to_languages_makes_exactly_one_chat_call_for_every_target_language(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->willReturn( '{"es":"Hola","fr":"Bonjour","de":"Hallo"}' );
+
+		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr', 'de' ] );
+	}
+
+	public function test_translate_to_languages_returns_a_translation_for_every_valid_target_code(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"es":"Hola","fr":"Bonjour","de":"Hallo"}' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr', 'de' ] );
+
+		$this->assertSame( [ 'es' => 'Hola', 'fr' => 'Bonjour', 'de' => 'Hallo' ], $result );
+	}
+
+	public function test_translate_to_languages_drops_unknown_codes_but_keeps_valid_ones(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			// The unknown code must never reach the prompt at all.
+			->with( $this->logicalNot( $this->stringContains( 'xx' ) ) )
+			->willReturn( '{"es":"Hola"}' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'xx' ] );
+
+		$this->assertSame( [ 'es' => 'Hola' ], $result );
+	}
+
+	public function test_translate_to_languages_deduplicates_repeated_target_codes(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->callback( static function ( string $prompt ): bool {
+				// 'es (Spanish)' must appear exactly once in the language list,
+				// not twice, even though 'es' was passed in twice.
+				return 1 === substr_count( $prompt, 'es (Spanish)' );
+			} ) )
+			->willReturn( '{"es":"Hola"}' );
+
+		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'es' ] );
+	}
+
+	public function test_translate_to_languages_drops_a_translation_identical_to_the_source_text(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		// The model just echoed the English text back for 'en' (source == target).
+		$provider->method( 'chat' )->willReturn( '{"es":"Hola","en":"Hello"}' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'en' ] );
+
+		$this->assertSame( [ 'es' => 'Hola' ], $result );
+		$this->assertArrayNotHasKey( 'en', $result );
+	}
+
+	public function test_translate_to_languages_drops_empty_string_translations(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"es":"Hola","fr":""}' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr' ] );
+
+		$this->assertSame( [ 'es' => 'Hola' ], $result );
+	}
+
+	public function test_translate_to_languages_prompt_lists_code_and_name_pairs_and_json_keys(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'es (Spanish)' ),
+				$this->stringContains( 'fr (French)' ),
+				$this->stringContains( '"es", "fr"' ),
+				$this->stringContains( "TEXT:\nHello" )
+			) )
+			->willReturn( '{"es":"Hola","fr":"Bonjour"}' );
+
+		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr' ] );
+	}
+
+	public function test_translate_to_languages_returns_empty_array_on_empty_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es' ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_to_languages_returns_empty_array_on_non_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( 'Sorry, I cannot help with that.' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es' ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_translate_to_languages_strips_markdown_fences_from_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( "```json\n{\"es\":\"Hola\"}\n```" );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es' ] );
+
+		$this->assertSame( [ 'es' => 'Hola' ], $result );
+	}
 }

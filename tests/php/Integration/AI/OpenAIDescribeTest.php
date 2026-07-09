@@ -390,4 +390,112 @@ class OpenAIDescribeTest extends \WP_UnitTestCase {
 		$this->assertSame( 400, $img->getImageWidth() );
 		$img->destroy();
 	}
+
+	// =========================================================================
+	// describe_secondary() — fifth audit §4c: slim pass for secondary gallery
+	// images. Same HTTP shape as describe() but a fixed, much shorter system
+	// prompt, no artist-context user message, and only alt_text/tags/
+	// photo_quality in the response — title/excerpt/body/medium are never
+	// populated since this image's own text is never published.
+	// =========================================================================
+
+	public function test_describe_secondary_empty_api_key_returns_failure(): void {
+		$result = $this->make_provider( '' )->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'API key', $result->error );
+	}
+
+	public function test_describe_secondary_wp_error_returns_failure(): void {
+		$this->mock_http_error( 'Connection refused' );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'Connection refused', $result->error );
+	}
+
+	public function test_describe_secondary_non_200_response_returns_failure(): void {
+		$this->mock_http( 401, (string) wp_json_encode( [ 'error' => [ 'message' => 'Unauthorized' ] ] ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'OpenAI vision error', $result->error );
+	}
+
+	public function test_describe_secondary_inner_content_non_json_returns_failure(): void {
+		$this->mock_http( 200, (string) wp_json_encode( [
+			'choices' => [ [ 'message' => [ 'content' => 'This is plain text, not JSON' ] ] ],
+		] ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'non-JSON', $result->error );
+	}
+
+	public function test_describe_secondary_happy_path_populates_only_alt_text_tags_and_quality(): void {
+		$content = [
+			'alt_text'      => 'A canvas of deep red hues.',
+			'tags'          => [ 'abstract', 'red' ],
+			'photo_quality' => [ 'score' => 7, 'issues' => [] ],
+		];
+		$this->mock_http( 200, $this->make_openai_body( $content ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertTrue( $result->success );
+		$this->assertSame( '', $result->title );
+		$this->assertSame( '', $result->excerpt );
+		$this->assertSame( '', $result->body );
+		$this->assertSame( '', $result->medium );
+		$this->assertSame( 'A canvas of deep red hues.', $result->alt_text );
+		$this->assertSame( [ 'abstract', 'red' ], $result->tags );
+		$this->assertSame( 7, $result->photo_quality_score );
+		$this->assertSame( [], $result->photo_quality_issues );
+	}
+
+	public function test_describe_secondary_quality_score_clamped_to_bounds(): void {
+		$this->mock_http( 200, $this->make_openai_body( [
+			'alt_text' => 'A', 'tags' => [], 'photo_quality' => [ 'score' => -9, 'issues' => [] ],
+		] ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertSame( 0, $result->photo_quality_score );
+	}
+
+	public function test_describe_secondary_sends_the_fixed_slim_system_prompt_and_lower_max_tokens(): void {
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_openai_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$captured
+		);
+
+		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( PromptConfig::secondary_system_prompt(), $payload['messages'][0]['content'] ?? '' );
+		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (1500).' );
+	}
+
+	public function test_describe_secondary_sends_no_artist_context_in_the_user_message(): void {
+		// describe_secondary() has no $artist_prompt parameter at all (see
+		// ProviderInterface::describe_secondary()) — the user message's content
+		// array must contain only the image_url block, nothing else.
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_openai_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$captured
+		);
+
+		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertCount( 1, $payload['messages'][1]['content'] ?? [], 'Only one content block (the image) — no separate text block for artist context.' );
+		$this->assertSame( 'image_url', $payload['messages'][1]['content'][0]['type'] ?? null );
+	}
 }

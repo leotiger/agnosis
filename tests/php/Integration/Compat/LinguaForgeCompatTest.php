@@ -44,10 +44,18 @@ namespace Agnosis\Tests\Integration\Compat;
 
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
+use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
 
 // LF constants and global function stubs live in a separate file to satisfy
 // Universal.Files.SeparateFunctionsFromOO (no function declarations alongside OO).
 require_once __DIR__ . '/Stubs/lf_global_stubs.php';
+
+// Shared fake WordPress AI Client stub (Providers\WordPressAI needs no API
+// key) — used only by the build_title_translations() "with a configured
+// provider" tests below; every other test in this file relies on
+// SubmissionTranslator::from_settings() being null, unaffected by this.
+require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
+require_once __DIR__ . '/../AI/Stubs/wp_ai_provider_namespace_stubs.php';
 
 class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
@@ -910,5 +918,181 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertSame( [ 'es' => 'Paisaje' ], $cache['post_tag']['Landscape'] ?? null );
 
 		delete_option( 'agnosis_term_translations' );
+	}
+
+	// ── sync_taxonomy(): numeric-looking term names (sixth audit §6) ──────────
+	//
+	// WordPress's own term_exists() adds a `t.term_id = %d` OR-clause whenever
+	// is_numeric($term) is true, so a translated term name that happens to be
+	// a bare number ("2026") could silently match an UNRELATED term whose
+	// term_id happens to equal that number, instead of a term actually named
+	// that. resolve_numeric_term_name() resolves numeric-looking names to a
+	// real term ID itself, before term_exists()/wp_set_object_terms() ever see
+	// the ambiguous string. As with the tests above, the term-translation
+	// cache (agnosis_term_translations) is used to force a specific
+	// "translated" name without a real AI provider.
+
+	public function test_sync_taxonomy_creates_and_assigns_a_new_numeric_term_name(): void {
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => '2026' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertSame(
+			[ '2026' ],
+			wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
+			'A brand-new numeric-looking term name must actually be created and assigned, not silently dropped.'
+		);
+
+		$term = get_term_by( 'name', '2026', 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$this->assertSame(
+			'es',
+			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'A newly-created numeric term must be flagged as translated, exactly like a newly-created non-numeric one.'
+		);
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_taxonomy_reuses_an_existing_numeric_term_without_reflagging_it(): void {
+		// '2026' already exists as a genuine, admin-curated term (e.g. a real
+		// "year" tag used elsewhere) — sync_taxonomy() must reuse that exact
+		// term, not create a duplicate, and must not retroactively flag a term
+		// that already existed before this translation pass.
+		$existing = wp_insert_term( '2026', 'post_tag' );
+		$this->assertIsArray( $existing );
+
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => '2026' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$this->assertSame( [ (int) $existing['term_id'] ], $assigned, 'Must reuse the pre-existing "2026" term by ID, not create a second one.' );
+		$this->assertSame( '', get_term_meta( (int) $existing['term_id'], LinguaForge::TRANSLATED_TERM_META, true ), 'A pre-existing numeric term must not be flagged as translated.' );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	/**
+	 * The exact scenario resolve_numeric_term_name() exists to prevent: a
+	 * translated name that happens to be numeric ("Filler"'s own term_id,
+	 * stringified) must never be silently matched against that UNRELATED
+	 * term merely because the ID happens to coincide with the digits —
+	 * WordPress's term_exists() ambiguity this method sidesteps. A distinct
+	 * term, actually NAMED that digit string, must be created instead, and
+	 * the collided-with term must be completely untouched.
+	 */
+	public function test_sync_taxonomy_numeric_term_never_matches_an_unrelated_term_by_id(): void {
+		$filler = wp_insert_term( 'Filler Tag', 'post_tag' );
+		$this->assertIsArray( $filler );
+		$collision_id = (int) $filler['term_id'];
+
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => (string) $collision_id ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$assigned_names = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$this->assertSame( [ (string) $collision_id ], $assigned_names, 'A new term literally named after the colliding ID must be created and assigned.' );
+
+		$new_term = get_term_by( 'name', (string) $collision_id, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $new_term );
+		$this->assertNotSame( $collision_id, $new_term->term_id, 'The new term must NOT reuse "Filler Tag"\'s term_id merely because the digits match — that is exactly the WordPress term_exists() ambiguity this method exists to avoid.' );
+
+		$untouched = get_term( $collision_id, 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $untouched );
+		$this->assertSame( 'Filler Tag', $untouched->name, '"Filler Tag" itself must be completely unaffected by an unrelated numeric-named term sharing its ID.' );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_taxonomy_drops_a_genuinely_unresolvable_numeric_term(): void {
+		// Force wp_insert_term() to fail for reasons other than "already
+		// exists" (e.g. a genuine DB error) and ensure no pre-existing term
+		// named '404' exists either — resolve_numeric_term_name() must drop
+		// the term entirely rather than ever passing the ambiguous numeric
+		// string through to wp_set_object_terms().
+		$force_failure = static function () {
+			return new \WP_Error( 'db_insert_error', 'Simulated failure for this test.' );
+		};
+		add_filter( 'pre_insert_term', $force_failure, 10, 0 );
+
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => '404' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertSame(
+			[],
+			wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
+			'An unresolvable numeric term name must be dropped, never passed through unassigned/ambiguous.'
+		);
+
+		remove_filter( 'pre_insert_term', $force_failure, 10 );
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	// ── build_title_translations(): with a configured provider (fifth audit §4d) ──
+	//
+	// The existing guard tests above (test_build_title_translations_skips_*)
+	// only ever exercise the "no provider configured" no-op path. These tests
+	// configure Providers\WordPressAI (no API key required) backed by the
+	// shared fake wp_ai_client_prompt() stub so translate_to_languages() is
+	// actually invoked and its result actually written to _agnosis_title_i18n.
+
+	public function test_build_title_translations_invokes_translate_to_languages_and_stores_the_map(): void {
+		self::$lf_languages = [ 'en', 'es', 'fr' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_translated_title', 'Sunrise' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'es' => 'Amanecer', 'fr' => 'Lever du soleil' ] );
+
+		( new LinguaForge() )->build_title_translations( $this->artwork_id );
+
+		$this->assertSame(
+			[ 'es' => 'Amanecer', 'fr' => 'Lever du soleil' ],
+			get_post_meta( $this->artwork_id, '_agnosis_title_i18n', true )
+		);
+		// Fifth audit §4d: one envelope call for every target language, not one
+		// translate_text() call per language.
+		$this->assertCount( 1, WpAiClientTestRegistry::$prompts );
+		$this->assertStringContainsString( 'Sunrise', WpAiClientTestRegistry::$prompts[0] );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
+	}
+
+	public function test_build_title_translations_does_not_store_a_map_when_every_translation_is_unchanged(): void {
+		// translate_to_languages() drops any language whose "translation" comes
+		// back identical to the source text — if that empties the whole map,
+		// build_title_translations() must not write an empty array to meta.
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_translated_title', 'Sunrise' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'es' => 'Sunrise' ] ); // Echoed back unchanged.
+
+		( new LinguaForge() )->build_title_translations( $this->artwork_id );
+
+		$this->assertSame( '', (string) get_post_meta( $this->artwork_id, '_agnosis_title_i18n', true ) );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
 	}
 }

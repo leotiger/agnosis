@@ -42,6 +42,11 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Publishing;
 
 use Agnosis\Publishing\Notification;
+use Agnosis\Publishing\ReviewConfirm;
+use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
+
+require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
+require_once __DIR__ . '/../AI/Stubs/wp_ai_provider_namespace_stubs.php';
 
 class NotificationEmailTest extends \WP_UnitTestCase {
 
@@ -61,6 +66,11 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 
 		$this->build_rejection_email = $rc->getMethod( 'build_rejection_email' );
 		$this->build_rejection_email->setAccessible( true );
+	}
+
+	protected function tearDown(): void {
+		WpAiClientTestRegistry::reset();
+		parent::tearDown();
 	}
 
 	// -------------------------------------------------------------------------
@@ -577,5 +587,250 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
 		$this->assertStringContainsString( 'pencil icon', $captured['message'] );
+	}
+
+	// =========================================================================
+	// on_removal_target_not_found() — fifth audit §2b/§2c "we couldn't find
+	// that" feedback email. Never previously exercised by any test in this
+	// file (or anywhere else — confirmed via grep for the action name).
+	// =========================================================================
+
+	public function test_on_removal_target_not_found_sends_email_listing_current_titles(): void {
+		$artist   = $this->create_artist( 'notfound@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_target_not_found( $artist->ID, 'A typo\'d title', [ 'Golden Hour', 'Blue Study' ], 0, '', '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertSame( 'notfound@example.com', $captured['to'] );
+		$this->assertStringContainsString( 'Golden Hour', $captured['message'] );
+		$this->assertStringContainsString( 'Blue Study', $captured['message'] );
+		$this->assertStringContainsString( 'A typo&#039;d title', $captured['message'] );
+	}
+
+	public function test_on_removal_target_not_found_includes_confirm_link_when_suggestion_present(): void {
+		$artist   = $this->create_artist( 'suggestion@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_target_not_found( $artist->ID, 'Golden Hor (typo)', [ 'Golden Hour' ], 42, 'Golden Hour', 'a-real-token' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'agnosis_review', $captured['message'] );
+		$this->assertStringContainsString( 'action=remove', $captured['message'] );
+		$this->assertStringContainsString( 'token=a-real-token', $captured['message'] );
+		$this->assertStringContainsString( 'id=42', $captured['message'] );
+	}
+
+	public function test_on_removal_target_not_found_omits_confirm_link_when_no_suggestion(): void {
+		$artist   = $this->create_artist( 'nosuggestion@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_target_not_found( $artist->ID, 'Nothing close', [ 'Golden Hour' ], 0, '', '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringNotContainsString( 'agnosis_review', $captured['message'] );
+	}
+
+	public function test_on_removal_target_not_found_skips_for_invalid_artist_id(): void {
+		$called = false;
+		$filter = function () use ( &$called ) {
+			$called = true;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 1 );
+
+		$this->notification->on_removal_target_not_found( 999999, 'Some title', [], 0, '', '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertFalse( $called );
+	}
+
+	// =========================================================================
+	// on_promotion_result() — fifth audit §2b/§2c. Same email builder as
+	// removal, minus a confirm link. Never previously exercised.
+	// =========================================================================
+
+	public function test_on_promotion_result_success_sends_featured_confirmation(): void {
+		$artist   = $this->create_artist( 'promoted@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_promotion_result( $artist->ID, 'Golden Hour', true, [], '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertSame( 'promoted@example.com', $captured['to'] );
+		$this->assertStringContainsString( 'featured', strtolower( $captured['subject'] ) );
+	}
+
+	public function test_on_promotion_result_failure_sends_not_found_email_listing_titles(): void {
+		$artist   = $this->create_artist( 'promotefail@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_promotion_result( $artist->ID, 'Nonexistent Title', false, [ 'Golden Hour', 'Blue Study' ], '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'couldn&#039;t find', strtolower( $captured['message'] ) );
+		$this->assertStringContainsString( 'Golden Hour', $captured['message'] );
+		$this->assertStringContainsString( 'Blue Study', $captured['message'] );
+	}
+
+	public function test_on_promotion_result_failure_email_never_includes_a_confirm_link(): void {
+		// Unlike removal, promote@ has no confirm step to attach a link to —
+		// even with a fuzzy suggestion, no agnosis_review link must appear.
+		$artist   = $this->create_artist( 'promotefail2@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_promotion_result( $artist->ID, 'Golden Hor (typo)', false, [ 'Golden Hour' ], 'Golden Hour' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringNotContainsString( 'agnosis_review', $captured['message'] );
+		$this->assertStringContainsString( 'Golden Hour', $captured['message'] );
+	}
+
+	public function test_on_promotion_result_skips_for_invalid_artist_id(): void {
+		$called = false;
+		$filter = function () use ( &$called ) {
+			$called = true;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 1 );
+
+		$this->notification->on_promotion_result( 999999, 'Some title', true, [], '' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertFalse( $called );
+	}
+
+	// =========================================================================
+	// on_post_drafted() — fifth audit §4b: batched translate_fields() call +
+	// ReviewConfirm::BACKTRANSLATION_META cache warm. No existing test ever
+	// sets an artist locale different from the site locale, so this whole
+	// block (lines ~458-518 of Notification.php) was completely unexercised.
+	// =========================================================================
+
+	private function create_post_for_translation( int $artist_id, string $site_title, string $excerpt, string $body ): int {
+		$post_id = self::factory()->post->create( [
+			'post_type'    => 'agnosis_artwork',
+			'post_status'  => 'draft',
+			'post_author'  => $artist_id,
+			'post_title'   => 'Amanecer',
+			'post_excerpt' => $excerpt,
+			'post_content' => $body,
+		] );
+		update_post_meta( $post_id, '_agnosis_review_token', bin2hex( random_bytes( 16 ) ) );
+		update_post_meta( $post_id, '_agnosis_translated_title', $site_title );
+		return $post_id;
+	}
+
+	public function test_on_post_drafted_batches_title_excerpt_and_body_into_one_translate_fields_call(): void {
+		$artist = $this->create_artist( 'translated@example.com' );
+		update_user_meta( $artist->ID, 'locale', 'es_ES' );
+		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
+
+		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', 'A vivid excerpt.', '<p>Full body content.</p>' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [
+			'title'   => 'Amanecer',
+			'excerpt' => 'Un extracto vívido.',
+			'body'    => 'Contenido completo.',
+		] );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+		$this->notification->on_post_drafted( $post_id, $artist->ID );
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 1, WpAiClientTestRegistry::$prompts, 'title + excerpt + body must be translated in a single chat() call, not three.' );
+		$this->assertStringContainsString( 'TITLE:', WpAiClientTestRegistry::$prompts[0] );
+		$this->assertStringContainsString( 'EXCERPT:', WpAiClientTestRegistry::$prompts[0] );
+		$this->assertStringContainsString( 'BODY:', WpAiClientTestRegistry::$prompts[0] );
+
+		delete_option( 'agnosis_ai_provider' );
+	}
+
+	public function test_on_post_drafted_warms_the_backtranslation_cache_with_the_matching_hash(): void {
+		$artist = $this->create_artist( 'cachewarm@example.com' );
+		update_user_meta( $artist->ID, 'locale', 'es_ES' );
+		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
+
+		$excerpt = 'A vivid excerpt.';
+		$body    = '<p>Full body content.</p>';
+		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', $excerpt, $body );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [
+			'title'   => 'Amanecer',
+			'excerpt' => 'Un extracto vívido.',
+			'body'    => 'Contenido completo.',
+		] );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+		$this->notification->on_post_drafted( $post_id, $artist->ID );
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$cached = get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true );
+		$this->assertIsArray( $cached );
+		$this->assertSame( md5( $excerpt . '|' . wp_strip_all_tags( $body ) ), $cached['hash'] );
+		$this->assertSame( 'es', $cached['lang'] );
+		$this->assertSame( 'Un extracto vívido.', $cached['excerpt'] );
+		$this->assertSame( 'Contenido completo.', $cached['body'] );
+
+		delete_option( 'agnosis_ai_provider' );
+	}
+
+	public function test_on_post_drafted_does_not_warm_cache_when_translation_response_has_no_body(): void {
+		$artist = $this->create_artist( 'nocachewarm@example.com' );
+		update_user_meta( $artist->ID, 'locale', 'es_ES' );
+		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
+
+		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', 'An excerpt.', '<p>Body.</p>' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		// Response only contains "title" — no "excerpt"/"body" keys at all.
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'title' => 'Amanecer' ] );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+		$this->notification->on_post_drafted( $post_id, $artist->ID );
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertSame( '', (string) get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true ) );
+
+		delete_option( 'agnosis_ai_provider' );
+	}
+
+	public function test_on_post_drafted_skips_translation_entirely_when_artist_locale_matches_site_locale(): void {
+		$artist = $this->create_artist( 'samelocale@example.com' );
+		// No distinct locale set — artist_locale resolves to '' or equals get_locale().
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+
+		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', 'An excerpt.', '<p>Body.</p>' );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+		$this->notification->on_post_drafted( $post_id, $artist->ID );
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertSame( [], WpAiClientTestRegistry::$prompts, 'No translation call should ever be made when the artist has no distinct locale.' );
+		$this->assertSame( '', (string) get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true ) );
+
+		delete_option( 'agnosis_ai_provider' );
 	}
 }

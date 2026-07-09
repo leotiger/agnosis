@@ -740,7 +740,12 @@ class PostCreator {
 	 */
 	private function resolve_indicator( string $subject ): array {
 		if ( preg_match( '/^\[([^\]]+)\]\s*/u', $subject, $m ) ) {
-			$keyword   = strtolower( trim( $m[1] ) );
+			// mb_strtolower() (not strtolower()) — strtolower() only lowercases
+			// ASCII A-Z and silently leaves multibyte UTF-8 characters like the
+			// 'Í' in "[BIOGRAFÍA]" untouched, so an uppercased accented keyword
+			// would never match any of the lowercase-accented INDICATORS keys
+			// this same fix added (e.g. 'biografía').
+			$keyword   = mb_strtolower( trim( $m[1] ), 'UTF-8' );
 			$clean     = substr( $subject, strlen( $m[0] ) );
 			$indicator = self::INDICATORS[ $keyword ] ?? null;
 			if ( $indicator ) {

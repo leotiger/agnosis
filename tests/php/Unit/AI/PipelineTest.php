@@ -339,4 +339,107 @@ class PipelineTest extends TestCase {
 
 		$this->assertTrue( $pipeline->classify_link( 'T', 'D', 'S', [] ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// found_primary / describe_secondary() dispatch — fifth audit §4c
+	//
+	// Only the first attachment whose description actually succeeds ever
+	// supplies the published post's title/excerpt/body/medium
+	// (Publishing\PostCreator::primary_result() walks $results in order
+	// looking for the first 'description_ok' hit). Every image attachment
+	// gets the full describe() call UNTIL that primary is found; every
+	// remaining image after that uses the slim describe_secondary() call
+	// instead. make_description_mock() (used by every other test in this
+	// file) always succeeds or always fails uniformly, so it can't exercise
+	// the actual "found on attempt N, slim from then on" transition — these
+	// tests build their own mocks specifically for that.
+	// -------------------------------------------------------------------------
+
+	public function test_process_uses_full_describe_for_the_first_attachment_then_secondary_for_the_rest(): void {
+		$mock = $this->createMock( ProviderInterface::class );
+		$mock->expects( $this->once() )->method( 'describe' )->willReturn(
+			new DescriptionResult(
+				title: 'Primary Title', excerpt: 'Primary excerpt.', body: '<p>Primary body.</p>',
+				tags: [ 'primary' ], alt_text: 'Primary alt text.', success: true, photo_quality_score: 8,
+			)
+		);
+		$mock->expects( $this->exactly( 2 ) )->method( 'describe_secondary' )->willReturn(
+			new DescriptionResult(
+				title: '', excerpt: '', body: '',
+				tags: [ 'secondary' ], alt_text: 'Secondary alt text.', success: true, photo_quality_score: 6,
+			)
+		);
+		$mock->method( 'supports_enhancement' )->willReturn( false );
+		$mock->method( 'enhance' )->willReturn( EnhancementResult::failure( 'not supported' ) );
+
+		$pipeline = $this->make_pipeline( $mock );
+		$results  = $pipeline->process( $this->make_submission( 3 ) );
+
+		$this->assertSame( 'Primary Title', $results[0]['title'] );
+		$this->assertTrue( $results[0]['description_ok'] );
+
+		$this->assertSame( '', $results[1]['title'], 'Once a primary is found, subsequent attachments must never contribute their own title/excerpt/body.' );
+		$this->assertSame( 'Secondary alt text.', $results[1]['alt_text'] );
+		$this->assertSame( '', $results[2]['title'] );
+		$this->assertSame( 'Secondary alt text.', $results[2]['alt_text'] );
+	}
+
+	public function test_process_keeps_using_full_describe_until_a_later_attachment_actually_succeeds(): void {
+		// The FIRST attachment's full description fails — process() must keep
+		// calling the full describe() (not the slim describe_secondary()) on
+		// the second attachment too, since no primary has been found yet.
+		// Only once the second attachment succeeds does the third fall back
+		// to describe_secondary().
+		$call_count = 0;
+		$mock       = $this->createMock( ProviderInterface::class );
+		$mock->expects( $this->exactly( 2 ) )->method( 'describe' )->willReturnCallback(
+			function () use ( &$call_count ): DescriptionResult {
+				++$call_count;
+				if ( 1 === $call_count ) {
+					return DescriptionResult::failure( 'First attachment could not be described.' );
+				}
+				return new DescriptionResult(
+					title: 'Second Attachment Title', excerpt: 'E', body: 'B',
+					tags: [], alt_text: 'Second attachment alt text.', success: true, photo_quality_score: 7,
+				);
+			}
+		);
+		$mock->expects( $this->once() )->method( 'describe_secondary' )->willReturn(
+			new DescriptionResult(
+				title: '', excerpt: '', body: '',
+				tags: [], alt_text: 'Third attachment alt text.', success: true, photo_quality_score: 6,
+			)
+		);
+		$mock->method( 'supports_enhancement' )->willReturn( false );
+		$mock->method( 'enhance' )->willReturn( EnhancementResult::failure( 'not supported' ) );
+
+		$pipeline = $this->make_pipeline( $mock );
+		$results  = $pipeline->process( $this->make_submission( 3 ) );
+
+		$this->assertFalse( $results[0]['description_ok'] );
+		$this->assertTrue( $results[1]['description_ok'] );
+		$this->assertSame( 'Second Attachment Title', $results[1]['title'] );
+		$this->assertSame( 'Third attachment alt text.', $results[2]['alt_text'] );
+	}
+
+	public function test_process_never_calls_describe_secondary_when_no_attachment_ever_succeeds(): void {
+		// found_primary never becomes true — every attachment must keep
+		// getting the full describe() call, none should ever fall back to
+		// describe_secondary(); no worse than before this fix, since every
+		// attachment already risked (and could fail) the same full call.
+		$mock = $this->createMock( ProviderInterface::class );
+		$mock->expects( $this->exactly( 3 ) )->method( 'describe' )->willReturn(
+			DescriptionResult::failure( 'Provider unavailable.' )
+		);
+		$mock->expects( $this->never() )->method( 'describe_secondary' );
+		$mock->method( 'supports_enhancement' )->willReturn( false );
+		$mock->method( 'enhance' )->willReturn( EnhancementResult::failure( 'not supported' ) );
+
+		$pipeline = $this->make_pipeline( $mock );
+		$results  = $pipeline->process( $this->make_submission( 3 ) );
+
+		foreach ( $results as $result ) {
+			$this->assertFalse( $result['description_ok'] );
+		}
+	}
 }

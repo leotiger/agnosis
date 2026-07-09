@@ -366,4 +366,114 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$this->assertSame( 400, $img->getImageWidth() );
 		$img->destroy();
 	}
+
+	// =========================================================================
+	// describe_secondary() — fifth audit §4c: slim pass for secondary gallery
+	// images. Same HTTP shape as describe() but a fixed, much shorter system
+	// prompt, no artist-context user message, and only alt_text/tags/
+	// photo_quality in the response — title/excerpt/body/medium are never
+	// populated since this image's own text is never published.
+	// =========================================================================
+
+	public function test_describe_secondary_empty_api_key_returns_failure(): void {
+		$result = $this->make_provider( '' )->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'API key', $result->error );
+	}
+
+	public function test_describe_secondary_wp_error_returns_failure(): void {
+		$this->mock_http_error( 'SSL error' );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'SSL error', $result->error );
+	}
+
+	public function test_describe_secondary_non_200_response_returns_failure(): void {
+		$this->mock_http( 429, '{"error":{"type":"rate_limit_error"}}' );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'Anthropic API error', $result->error );
+	}
+
+	public function test_describe_secondary_inner_text_non_json_returns_failure(): void {
+		$this->mock_http( 200, (string) wp_json_encode( [
+			'content' => [ [ 'type' => 'text', 'text' => 'Sorry, I cannot help with that.' ] ],
+		] ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'non-JSON', $result->error );
+	}
+
+	public function test_describe_secondary_happy_path_populates_only_alt_text_tags_and_quality(): void {
+		$content = [
+			'alt_text'      => 'A calm harbour at sunrise.',
+			'tags'          => [ 'seascape', 'dawn' ],
+			'photo_quality' => [ 'score' => 8, 'issues' => [] ],
+		];
+		$this->mock_http( 200, $this->make_anthropic_body( $content ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertTrue( $result->success );
+		$this->assertSame( '', $result->title );
+		$this->assertSame( '', $result->excerpt );
+		$this->assertSame( '', $result->body );
+		$this->assertSame( '', $result->medium );
+		$this->assertSame( 'A calm harbour at sunrise.', $result->alt_text );
+		$this->assertSame( [ 'seascape', 'dawn' ], $result->tags );
+		$this->assertSame( 8, $result->photo_quality_score );
+		$this->assertSame( [], $result->photo_quality_issues );
+	}
+
+	public function test_describe_secondary_quality_score_clamped_to_bounds(): void {
+		$this->mock_http( 200, $this->make_anthropic_body( [
+			'alt_text' => 'A', 'tags' => [], 'photo_quality' => [ 'score' => 100, 'issues' => [] ],
+		] ) );
+
+		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$this->assertSame( 10, $result->photo_quality_score );
+	}
+
+	public function test_describe_secondary_sends_the_fixed_slim_system_prompt(): void {
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$captured
+		);
+
+		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( PromptConfig::secondary_system_prompt(), $payload['system'] ?? '' );
+		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (1500).' );
+	}
+
+	public function test_describe_secondary_sends_no_artist_context_user_message(): void {
+		// describe_secondary() has no $artist_prompt parameter at all (see
+		// ProviderInterface::describe_secondary()) — the outgoing user message
+		// must contain only the image, no text block.
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$captured
+		);
+
+		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$content = $payload['messages'][0]['content'] ?? [];
+		foreach ( $content as $block ) {
+			$this->assertNotSame( 'text', $block['type'] ?? null, 'describe_secondary() must never send a text content block — there is no artist prompt to include.' );
+		}
+	}
 }
