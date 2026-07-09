@@ -62,9 +62,15 @@ class SubdomainNavigation {
 	 * "back to the artist's home" link from any other page on that subdomain
 	 * (an artwork, biography, or event single), not just an identifying label.
 	 *
-	 * "Biography" and "Events" are appended to the right, pipe-separated, but
-	 * only when the artist actually has that content published — no dangling
-	 * link to an empty page for an artist who's never submitted a bio or event.
+	 * The name and the "Biography"/"Events" links are two separate groups —
+	 * the name is never pipe-separated from anything else. The theme lays
+	 * the two groups out on opposite sides (name on the reading-start side,
+	 * links on the reading-end side — i.e. left/right, or the reverse on
+	 * RTL) via `.agnosis-artist-breadcrumb`'s flex layout. Within the links
+	 * group, "Biography" and "Events" are pipe-separated from *each other*,
+	 * but only when both are actually present — no dangling link to an empty
+	 * page for an artist who's never submitted a bio or event, and no lone
+	 * leading/trailing pipe when only one of the two exists.
 	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 * @return string
@@ -85,21 +91,31 @@ class SubdomainNavigation {
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-artist-breadcrumb' ] );
 		$url                = SubdomainRouter::url_for_artist( $artist_id );
 
-		$links = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $name ) );
+		$name_link = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $name ) );
+		$markup    = sprintf( '<span class="agnosis-artist-breadcrumb__name">%s</span>', $name_link );
+
+		$secondary_links = [];
 
 		$bio_url = $this->biography_permalink( $artist_id );
 		if ( '' !== $bio_url ) {
-			$links .= sprintf( ' | <a href="%s">%s</a>', esc_url( $bio_url ), esc_html__( 'Biography', 'agnosis' ) );
+			$secondary_links[] = sprintf( '<a href="%s">%s</a>', esc_url( $bio_url ), esc_html__( 'Biography', 'agnosis' ) );
 		}
 
 		if ( $this->has_published_post( 'agnosis_event', $artist_id ) ) {
 			$events_url = (string) get_post_type_archive_link( 'agnosis_event' );
 			if ( '' !== $events_url ) {
-				$links .= sprintf( ' | <a href="%s">%s</a>', esc_url( $events_url ), esc_html__( 'Events', 'agnosis' ) );
+				$secondary_links[] = sprintf( '<a href="%s">%s</a>', esc_url( $events_url ), esc_html__( 'Events', 'agnosis' ) );
 			}
 		}
 
-		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $links );
+		if ( $secondary_links ) {
+			$markup .= sprintf(
+				'<span class="agnosis-artist-breadcrumb__links">%s</span>',
+				implode( ' | ', $secondary_links )
+			);
+		}
+
+		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $markup );
 	}
 
 	// -------------------------------------------------------------------------
@@ -144,21 +160,77 @@ class SubdomainNavigation {
 	}
 
 	/**
-	 * Permalink of the artist's one published biography post, or '' if they
-	 * don't have one (yet). Biography is a singleton CPT — at most one post
-	 * per artist — so the first result is always the right one.
+	 * Permalink of the artist's biography post, localized to the CURRENT
+	 * request's language, or '' if they don't have one (yet).
+	 *
+	 * Biography is "singleton" only in the sense that intake never creates a
+	 * second SOURCE-language post — but Lingua Forge translation fan-out
+	 * still creates one additional `agnosis_biography` post per translated
+	 * language once publish happens, so an artist can have several published
+	 * biography posts. Without scoping to the source language first,
+	 * `get_posts()` could return ANY of those siblings (ordered by date, not
+	 * language) — which is exactly why this link used to always point at
+	 * whichever translation happened to be created last, regardless of which
+	 * language the visitor was actually reading. `localized_post()` then
+	 * swaps in the visitor's own language's sibling when one exists,
+	 * mirroring `Newsletter\Digest::localized_post()`'s exact fallback chain.
 	 */
 	private function biography_permalink( int $artist_id ): string {
-		$ids = get_posts( [
+		$query_args = [
 			'post_type'      => 'agnosis_biography',
 			'author'         => $artist_id,
 			'post_status'    => 'publish',
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
-		] );
+		];
 
-		return $ids ? (string) get_permalink( $ids[0] ) : '';
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+		if ( function_exists( 'linguaforge_source_language' ) ) {
+			$query_args['meta_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- single, cheap lookup, once per artist-breadcrumb render.
+				'relation' => 'OR',
+				[ 'key' => '_lf_lang', 'value' => linguaforge_source_language() ],
+				[ 'key' => '_lf_lang', 'compare' => 'NOT EXISTS' ],
+			];
+		}
+
+		$ids = get_posts( $query_args );
+		if ( ! $ids ) {
+			return '';
+		}
+
+		$post = get_post( $ids[0] );
+
+		return $post instanceof \WP_Post ? (string) get_permalink( $this->localized_post( $post ) ) : '';
+	}
+
+	/**
+	 * Resolve a post to its published translated counterpart in the CURRENT
+	 * request's language (`LF_LANG`), or the post itself when Lingua Forge
+	 * isn't active, the current language IS the source language, or no
+	 * published translation exists yet.
+	 */
+	private function localized_post( \WP_Post $post ): \WP_Post {
+		if ( ! defined( 'LF_LANG' ) || ! LF_LANG || ! function_exists( 'linguaforge_get_translations' ) ) {
+			return $post;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+		$source = function_exists( 'linguaforge_source_language' ) ? linguaforge_source_language() : '';
+		if ( LF_LANG === $source ) {
+			return $post; // Already the source-language post — nothing to look up.
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+		$translations  = linguaforge_get_translations( $post->ID );
+		$translated_id = (int) ( $translations[ LF_LANG ] ?? 0 );
+		if ( $translated_id <= 0 ) {
+			return $post; // No translation into the visitor's language yet.
+		}
+
+		$translated = get_post( $translated_id );
+
+		return ( $translated instanceof \WP_Post && 'publish' === $translated->post_status ) ? $translated : $post;
 	}
 
 	/** True when the artist has at least one published post of the given type. */

@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:        
-  2026-07-09 20:58:05        
+  2026-07-09 22:51:21        
                              
  Summary:                    
   Classes:  4.17% (3/72)     
-  Methods:  8.27% (57/689)   
-  Lines:    7.50% (955/12727)
+  Methods:  8.26% (57/690)   
+  Lines:    7.49% (955/12755)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
@@ -111,7 +111,7 @@ Agnosis\Network\HttpSignature
 Agnosis\Network\Node
   Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 80)
 Agnosis\Network\SubdomainNavigation
-  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 56)
+  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 84)
 Agnosis\Network\SubdomainRouter
   Methods:  25.00% ( 2/ 8)   Lines:  10.00% (  5/ 50)
 Agnosis\Newsletter\Archive

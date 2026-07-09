@@ -5,6 +5,12 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.14] — 2026-07-10
+
+### Fixed
+- **`agnosis/artist-breadcrumb` pipe-separated the artist's name from "Biography" even when no Events link followed it, and left no way for a theme to lay the name and the Biography/Events links out on opposite sides.** `SubdomainNavigation::render_block()` now wraps the artist's name and the Biography/Events links in two separate spans (`.agnosis-artist-breadcrumb__name` and `.agnosis-artist-breadcrumb__links`) instead of one pipe-joined string — the name is never pipe-separated from anything, and "Biography"/"Events" are pipe-separated from each other only when both are present. Paired with a theme-side layout change (`agnosis-theme` 0.5.5) that puts the two spans on opposite sides of the block (name on the reading-start side, links on the reading-end side, auto-reversing on RTL). (`includes/Network/SubdomainNavigation.php`, `blocks/artist-breadcrumb/editor.js`, `blocks/artist-breadcrumb/block.json`)
+- **The "Biography" link in the breadcrumb didn't follow the visitor's current language, unlike the artist-name link right next to it.** `biography_permalink()` queried `agnosis_biography` posts by author only, with no language scoping — since Lingua Forge translation fan-out creates one additional `agnosis_biography` post per translated language, `get_posts()`'s date-ordered result could return any of those siblings (e.g. always the most recently translated one), regardless of which language the page itself was being viewed in. The lookup now scopes to the artist's source-language post first, then resolves it to the visitor's own language's published sibling via a new `localized_post()` helper — the same "look up by `_lf_lang`, then swap via `linguaforge_get_translations()`" pattern `Newsletter\Digest::localized_post()` already used. No-ops (falls back to the single post found) when Lingua Forge isn't active. (`includes/Network/SubdomainNavigation.php`)
+
 ## [0.9.13] — 2026-07-09
 
 ### Added

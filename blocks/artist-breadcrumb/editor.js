@@ -7,7 +7,9 @@
  *
  * Renders real sample text ("Artist Name") inside the same wrapper markup the
  * PHP render_callback outputs (a <div class="agnosis-artist-breadcrumb"> with
- * a link inside), instead of a Placeholder card explaining the block. This
+ * a <span class="agnosis-artist-breadcrumb__name"> link inside — the
+ * PHP-only Biography/Events span isn't relevant to the editor sample),
+ * instead of a Placeholder card explaining the block. This
  * matters here specifically because the block's Typography (Font Size, Font
  * Family, Appearance/weight) and Color (text/background) Inspector controls
  * are block *supports* — Gutenberg applies them automatically to whatever
@@ -37,14 +39,18 @@
 				'div',
 				blockProps,
 				el(
-					'a',
-					{
-						href: '#',
-						onClick: function ( event ) {
-							event.preventDefault();
+					'span',
+					{ className: 'agnosis-artist-breadcrumb__name' },
+					el(
+						'a',
+						{
+							href: '#',
+							onClick: function ( event ) {
+								event.preventDefault();
+							},
 						},
-					},
-					__( 'Artist Name', 'agnosis' )
+						__( 'Artist Name', 'agnosis' )
+					)
 				)
 			);
 		},

@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-09 21:07
+COMBINED COVERAGE  (unit + integration)  —  2026-07-09 22:53
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-09 21:07
   ❌ includes/Artist/Profile.php                                 21%
   ✅ includes/Artist/RemovalVoteConfirm.php                      89%
   ✅ includes/Artist/VouchConfirm.php                            87%
-  ❌ includes/Compat/LinguaForge.php                             49%
+  ✅ includes/Compat/LinguaForge.php                             90%
   ✅ includes/Core/Activator.php                                 80%
   ✅ includes/Core/CommunityMailer.php                          100%
   ❌ includes/Core/DateFormatter.php                              0%
@@ -75,4 +75,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-09 21:07
   ✅ includes/Publishing/ReviewEndpoints.php                     95%
   ❌ includes/Publishing/SubmissionsPage.php                     19%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 66.06%  (8528 / 12909 statements)
+  TOTAL: 66.98%  (8535 / 12743 statements)
