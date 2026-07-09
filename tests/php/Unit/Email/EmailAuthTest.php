@@ -171,4 +171,42 @@ class EmailAuthTest extends TestCase {
 		$result = EmailAuth::extract_from_mailgun_payload( $payload );
 		$this->assertSame( $value, $result );
 	}
+
+	// -------------------------------------------------------------------------
+	// extract_mailgun_header() — the generalised form (fourth audit §3c), added
+	// so Webhook's Auto-Submitted mail-loop guard could reuse this parsing
+	// instead of duplicating it. extract_from_mailgun_payload() above is now a
+	// thin wrapper over this — every test above still passes unchanged.
+	// -------------------------------------------------------------------------
+
+	public function test_extract_mailgun_header_finds_an_arbitrary_header(): void {
+		$payload = [
+			'message-headers' => [
+				[ 'From', 'artist@example.com' ],
+				[ 'Auto-Submitted', 'auto-replied' ],
+			],
+		];
+
+		$this->assertSame( 'auto-replied', EmailAuth::extract_mailgun_header( $payload, 'auto-submitted' ) );
+	}
+
+	public function test_extract_mailgun_header_is_case_insensitive_on_header_name(): void {
+		$payload = [
+			'message-headers' => [
+				[ 'AUTO-SUBMITTED', 'auto-replied' ],
+			],
+		];
+
+		$this->assertSame( 'auto-replied', EmailAuth::extract_mailgun_header( $payload, 'auto-submitted' ) );
+	}
+
+	public function test_extract_mailgun_header_returns_empty_when_not_present(): void {
+		$payload = [
+			'message-headers' => [
+				[ 'Subject', 'No Auto-Submitted here' ],
+			],
+		];
+
+		$this->assertSame( '', EmailAuth::extract_mailgun_header( $payload, 'auto-submitted' ) );
+	}
 }

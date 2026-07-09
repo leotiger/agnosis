@@ -75,17 +75,26 @@ class Inbox {
 	}
 
 	/**
-	 * Cron callback — purge old IMAP messages and stale queue rows.
+	 * Cron callback — purge old IMAP messages, stale queue rows, old log
+	 * entries, and expired debug-tracing dumps.
 	 *
 	 * Reads `agnosis_imap_cleanup_days` (default 30). Any SEEN IMAP message
 	 * older than that threshold is permanently deleted. Queue rows that are
 	 * 'failed' or 'done' and older than the same threshold are also pruned.
+	 *
+	 * Debug dumps (fourth audit §5c) use their own, shorter-lived
+	 * `agnosis_debug_retention_days` (default 14) rather than reusing the
+	 * IMAP/queue threshold — a raw pipeline dump is a full copy of an
+	 * artist's raw email, so it's the most sensitive thing this cron touches
+	 * and defaults to expiring sooner, independent of whatever retention an
+	 * admin has configured for routine IMAP/queue housekeeping.
 	 */
 	public function cleanup(): void {
 		$days = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 7 ) );
 		$this->cleanup_imap();
 		$this->cleanup_queue();
 		Logger::prune( $days );
+		Debug::prune( max( 1, (int) get_option( 'agnosis_debug_retention_days', 14 ) ) );
 	}
 
 	/**
@@ -438,6 +447,29 @@ class Inbox {
 				$from_list  = $message->getFrom()->toArray();
 				$from_email = $from_list ? sanitize_email( (string) $from_list[0]->mail ) : '';
 
+				// Resolved once, up front (fourth audit §3b): the auth gate just below
+				// — now evaluated before any alias routing — needs an artist_id for
+				// accurate logging/admin-table display, the same identity "cheap gate
+				// 1" further down used to resolve when auth was checked after it. This
+				// is a plain lookup for logging purposes only, NOT an admission check —
+				// the goodbye/community alias handlers below do their own, and gate 1
+				// below still performs the real admitted-artist gate.
+				$artist_user = $from_email ? get_user_by( 'email', $from_email ) : null;
+				$artist_id   = $artist_user ? $artist_user->ID : null;
+
+				// --- Auth gate (opt-in, fourth audit §3b) — evaluated BEFORE any
+				// alias routing. Previously this ran as "cheap gate 3", ~40 lines
+				// below, reached only by messages that fell through to the normal
+				// artwork/bio/event pipeline — so the opt-in SPF/DKIM hardening this
+				// option promises never covered the two aliases where a spoofed From
+				// does the most damage: an impersonated community@ broadcast (relayed
+				// to every other artist under the spoofed sender's own name) and a
+				// forged goodbye@ removal request. Moving the check here closes both.
+				if ( ! $this->passes_email_auth( $message, $from_email, $uid ) ) {
+					$this->mark_no_artwork( $uid, $artist_id, 'auth_failed', $from_email );
+					continue;
+				}
+
 				// --- Goodbye alias: self-removal request (no attachment required) ---
 				if ( $goodbye_addr ) {
 					$to_list = $message->getTo()->toArray();
@@ -459,9 +491,7 @@ class Inbox {
 				}
 
 				// --- Cheap gate 1: admitted sender (header-only) -------------------
-				$artist_user = $from_email ? get_user_by( 'email', $from_email ) : null;
-				$artist_id   = $artist_user ? $artist_user->ID : null;
-
+				// $artist_user / $artist_id already resolved above.
 				if ( null === $artist_id ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': unregistered sender <' . $from_email . '>.', 'inbox' );
 					$this->mark_no_artwork( $uid, null, 'unregistered_sender', $from_email );
@@ -483,29 +513,11 @@ class Inbox {
 					continue;
 				}
 
-				// --- Cheap gate 3: SPF/DKIM (opt-in) -------------------------------
-				if ( get_option( 'agnosis_require_email_auth' ) ) {
-					$auth_raw = '';
-					try {
-						$auth_raw = (string) $message->getHeader()->get( 'authentication-results' );
-					} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw; $auth_raw stays ''
-					}
-					if ( $auth_raw ) {
-						$verdicts = EmailAuth::check_header( $auth_raw );
-						if ( ! EmailAuth::passes( $verdicts ) ) {
-							Logger::warning(
-								sprintf( 'Skipped UID ' . $uid . ': <' . $from_email . '> failed auth — SPF=%s DKIM=%s.', $verdicts['spf'] ?: 'none', $verdicts['dkim'] ?: 'none' ),
-								'inbox'
-							);
-							$this->mark_no_artwork( $uid, $artist_id, 'auth_failed', $from_email );
-							continue;
-						}
-					} else {
-						Logger::warning( 'Skipped UID ' . $uid . ': auth required but no Authentication-Results header.', 'inbox' );
-						$this->mark_no_artwork( $uid, $artist_id, 'auth_failed', $from_email );
-						continue;
-					}
-				}
+				// Cheap gate 3 (SPF/DKIM) used to run here — moved above alias
+				// routing (fourth audit §3b); see passes_email_auth() and its call
+				// site near the top of this loop, right after $from_email/$artist_id
+				// are resolved. Every message reaching this point has already passed
+				// it, regardless of which branch (goodbye/community/normal) it took.
 
 				// ---- Full parse (body + attachments) — admitted senders only ------
 				$submission = $this->parser->parse_imap_message( $message );
@@ -626,6 +638,23 @@ class Inbox {
 			return;
 		}
 
+		// Per-sender throttle (fourth audit §3b): a genuine self-removal only
+		// ever needs to be requested once. Without this, a spoofed From (or a
+		// confused repeat sender) could trigger unlimited removal-confirmation
+		// emails to the real artist's inbox — the same 'goodbye_request' bucket
+		// key is shared with Webhook::handle()'s goodbye branch, mirroring how
+		// 'community_broadcast' is already shared between both intake paths.
+		$limit    = max( 1, (int) get_option( 'agnosis_goodbye_request_limit', 3 ) );
+		$throttle = RateLimiter::check_sender( 'goodbye_request', $from_email, $limit, DAY_IN_SECONDS );
+		if ( is_wp_error( $throttle ) ) {
+			Logger::warning(
+				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): daily limit (' . $limit . ') reached — ignored.',
+				'inbox'
+			);
+			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_throttled', $from_email );
+			return;
+		}
+
 		$departure = new Departure();
 		$ok        = $departure->initiate_removal_for_user( $user->ID );
 
@@ -653,6 +682,91 @@ class Inbox {
 	}
 
 	/**
+	 * Opt-in SPF/DKIM authentication gate (fourth audit §3b).
+	 *
+	 * Evaluated for EVERY message in process_messages() — including the
+	 * goodbye@/community@ aliases — before any routing decision is made, not
+	 * just messages that fall through to the normal artwork/bio/event
+	 * pipeline. Returns true immediately (no-op) when the
+	 * `agnosis_require_email_auth` option is off, which it is by default.
+	 *
+	 * Deliberately untyped for $message (not `Message`, despite this always
+	 * being a real webklex Message in production): called unconditionally for
+	 * EVERY message before any routing decision, including in test doubles
+	 * (e.g. FakeImapMessage in InboxUidCursorTest) that duck-type only the
+	 * methods process_messages() itself calls directly and don't implement
+	 * getHeader() at all. Safe because this method returns true immediately,
+	 * before ever touching $message, whenever agnosis_require_email_auth is
+	 * off — the default, and the case every existing test double relies on.
+	 *
+	 * @param object $message    Full IMAP message (read for the Authentication-Results header).
+	 * @param string $from_email Sender address, used only for logging.
+	 * @param string $uid        IMAP UID, used only for logging.
+	 * @return bool True when the message passes (or auth is not required at all).
+	 */
+	private function passes_email_auth( object $message, string $from_email, string $uid ): bool {
+		if ( ! get_option( 'agnosis_require_email_auth' ) ) {
+			return true;
+		}
+
+		$auth_raw = '';
+		try {
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see docblock above) so test doubles that don't implement getHeader() can still be passed; real webklex Message always has it, and any mismatch is caught below anyway.
+			$auth_raw = (string) $message->getHeader()->get( 'authentication-results' );
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw; $auth_raw stays ''
+		}
+
+		if ( ! $auth_raw ) {
+			Logger::warning( 'Skipped UID ' . $uid . ': auth required but no Authentication-Results header.', 'inbox' );
+			return false;
+		}
+
+		$verdicts = EmailAuth::check_header( $auth_raw );
+		if ( ! EmailAuth::passes( $verdicts ) ) {
+			Logger::warning(
+				sprintf( 'Skipped UID ' . $uid . ': <' . $from_email . '> failed auth — SPF=%s DKIM=%s.', $verdicts['spf'] ?: 'none', $verdicts['dkim'] ?: 'none' ),
+				'inbox'
+			);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether a message carries an `Auto-Submitted` header indicating it is an
+	 * automated response (vacation auto-reply, mailing-list bounce, etc.)
+	 * rather than a human-written email (fourth audit §3c).
+	 *
+	 * Per RFC 3834, genuine auto-responses set this header to a value other
+	 * than `no` (typically `auto-replied`) — normal mail clients either omit
+	 * the header entirely or, less commonly, set it explicitly to `no`. Either
+	 * of those is treated as "not an auto-response" here; only a present,
+	 * non-`no` value trips this guard, which is why an absent header (the
+	 * overwhelming majority of real mail) is not treated as suspicious.
+	 *
+	 * Deliberately untyped for $message for the same reason as
+	 * passes_email_auth() above — but unlike that method, this one is only
+	 * ever called from handle_community_email(), whose own $message parameter
+	 * is already typed `Message`, so this is never reached with a test double
+	 * lacking getHeader() in practice.
+	 *
+	 * @param object $message Full IMAP message (read for the Auto-Submitted header).
+	 * @return bool True when the message looks like an automated response.
+	 */
+	private function is_auto_submitted( object $message ): bool {
+		$raw = '';
+		try {
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see docblock above); only ever called with a real webklex Message in practice, and any mismatch is caught below anyway.
+			$raw = (string) $message->getHeader()->get( 'auto-submitted' );
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw; $raw stays ''
+		}
+
+		$value = strtolower( trim( $raw ) );
+		return '' !== $value && 'no' !== $value;
+	}
+
+	/**
 	 * Handle a community-broadcast email: verify the sender is an admitted
 	 * artist and within their daily send limit, relay it to every other
 	 * admitted artist via CommunityBroadcast, then mark the message so it
@@ -664,6 +778,21 @@ class Inbox {
 	 * @param string  $uid        IMAP message UID (used for deduplication).
 	 */
 	private function handle_community_email( Message $message, string $from_email, string $uid ): void {
+		// Mail-loop guard (fourth audit §3c): broadcast copies deliberately set
+		// Reply-To to this same alias (see CommunityBroadcast::send_one()'s
+		// docblock) so a human reply gets translated for everyone — but that
+		// means a recipient's vacation auto-responder also fires on the
+		// broadcast and lands right back here. RFC 3834-compliant
+		// auto-responders (and most ESPs / mail clients) set
+		// `Auto-Submitted: auto-replied` (never `no`) on those messages —
+		// checked first, before resolving the sender at all, so an
+		// auto-response never even counts against anyone's throttle.
+		if ( $this->is_auto_submitted( $message ) ) {
+			Logger::info( 'Community broadcast from <' . $from_email . '> looks like an auto-response (Auto-Submitted header) — ignored, not broadcast.', 'inbox' );
+			$this->mark_no_artwork( $uid, null, 'community_auto_submitted', $from_email );
+			return;
+		}
+
 		$user = get_user_by( 'email', $from_email );
 
 		if ( ! $user || ! $this->is_admitted_artist( $user->ID ) ) {
@@ -739,9 +868,11 @@ class Inbox {
 		'goodbye_non_artist'     => 'Skipped: goodbye request from a non-artist sender.',
 		'goodbye_handled'        => 'Goodbye request processed — self-removal confirmation sent.',
 		'goodbye_no_membership'  => 'Goodbye request could not be processed — no active membership found for this sender.',
+		'goodbye_throttled'      => 'Skipped: sender exceeded the daily self-removal (goodbye) request limit.',
 		'community_non_artist'   => 'Skipped: community broadcast request from a non-artist sender.',
 		'community_throttled'    => 'Skipped: sender exceeded the daily community broadcast limit.',
 		'community_empty'        => 'Skipped: community broadcast had no subject or body text.',
+		'community_auto_submitted' => 'Skipped: message looked like an automated response (Auto-Submitted header), not a genuine community message.',
 		'community_too_long'     => 'Community broadcast exceeded the configured length limit — bounced back to sender, not broadcast.',
 		'community_handled'      => 'Community broadcast processed — sent to every other community member.',
 	];

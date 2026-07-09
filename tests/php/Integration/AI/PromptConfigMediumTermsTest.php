@@ -29,6 +29,7 @@ namespace Agnosis\Tests\Integration\AI;
 
 use Agnosis\AI\PromptConfig;
 use Agnosis\Artist\Profile;
+use Agnosis\Compat\LinguaForge;
 
 class PromptConfigMediumTermsTest extends \WP_UnitTestCase {
 
@@ -133,5 +134,32 @@ class PromptConfigMediumTermsTest extends \WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Oil Painting', $result );
 		$this->assertStringContainsString( 'Ceramics', $result );
+	}
+
+	// ── §4c: AI-translated terms excluded from the vocabulary ────────────────
+	// Compat\LinguaForge::sync_taxonomy() is what actually stamps
+	// TRANSLATED_TERM_META on a term it auto-created; these tests stamp it
+	// directly to isolate medium_terms()'s filtering from that other class's
+	// behaviour (covered separately in LinguaForgeCompatTest).
+
+	public function test_medium_terms_excludes_term_flagged_as_ai_translated(): void {
+		wp_insert_term( 'Oil Painting', 'agnosis_medium' );
+		$translated = wp_insert_term( 'Peinture à l\'huile', 'agnosis_medium' );
+		add_term_meta( $translated['term_id'], LinguaForge::TRANSLATED_TERM_META, 'fr', true );
+
+		$terms = PromptConfig::medium_terms();
+
+		$this->assertContains( 'Oil Painting', $terms );
+		$this->assertNotContains( 'Peinture à l\'huile', $terms );
+	}
+
+	public function test_medium_terms_falls_back_to_canonical_when_only_translated_terms_exist(): void {
+		// Every real term is AI-translated (edge case: a fresh install whose
+		// only content so far arrived via re-translation) — filtering must not
+		// silently return an empty array to the AI prompt/validation guard.
+		$translated = wp_insert_term( 'Ölgemälde', 'agnosis_medium' );
+		add_term_meta( $translated['term_id'], LinguaForge::TRANSLATED_TERM_META, 'de', true );
+
+		$this->assertSame( PromptConfig::CANONICAL_MEDIUMS, PromptConfig::medium_terms() );
 	}
 }

@@ -496,6 +496,127 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
 	}
 
+	// -------------------------------------------------------------------------
+	// Fourth audit §3a — GET with an invalid/expired token must not render the
+	// draft's content and POST with an invalid token must not write meta or
+	// spend an AI call before being rejected. Previously the only real token
+	// check on the approve path was inside the final rest_do_request()
+	// dispatch, well after both of those things could already happen.
+	// -------------------------------------------------------------------------
+
+	public function test_handle_confirm_get_approve_with_wrong_token_does_not_render_draft_content(): void {
+		// Configure an AI provider + a mismatched artist locale so, pre-fix,
+		// get_display_text() would actually attempt a back-translation HTTP call
+		// on this GET. The pre_http_request filter fails the test outright if
+		// any HTTP call happens at all — proving the "up to two unauthenticated
+		// AI calls per prefetch" spend the audit found is closed, not just that
+		// the rendered page happens to look different.
+		update_option( 'agnosis_openai_api_key', 'test-key-not-real' );
+		update_user_meta( $this->artist_id, 'locale', 'es_ES' );
+
+		$http_calls = 0;
+		$http_filter = function () use ( &$http_calls ) {
+			++$http_calls;
+			return new \WP_Error( 'test_unexpected_http_call', 'No AI HTTP call should happen before the token is verified.' );
+		};
+		add_filter( 'pre_http_request', $http_filter, 10, 3 );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => 'guessed-wrong-token',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected a redirect to the error page, not the approve form.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=error', $e->url );
+		} catch ( DieCapture $e ) {
+			$this->fail( 'A bad token must never reach the approve confirm form: ' . $e->body );
+		} finally {
+			remove_filter( 'pre_http_request', $http_filter, 10 );
+			delete_option( 'agnosis_openai_api_key' );
+		}
+
+		$this->assertSame( 0, $http_calls, 'A guessed token must be rejected before any AI back-translation call is attempted.' );
+		// The draft must remain untouched — this is purely a read-path leak
+		// check, not a state-change check, but confirming it stayed a draft is
+		// cheap insurance against any accidental side effect.
+		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
+	}
+
+	public function test_handle_confirm_get_approve_with_expired_token_does_not_render_draft_content(): void {
+		update_post_meta( $this->post_id, '_agnosis_review_expiry', time() - 1 );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected a redirect to the error page, not the approve form.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=error', $e->url );
+		} catch ( DieCapture $e ) {
+			$this->fail( 'An expired token must never reach the approve confirm form: ' . $e->body );
+		}
+	}
+
+	public function test_handle_confirm_approve_edited_title_with_wrong_token_does_not_spend_ai_call_or_write_translated_title(): void {
+		// Configure an AI provider so, pre-fix, the translated-title regeneration
+		// branch would actually run and call translate_text() — without a
+		// provider configured this branch already no-ops regardless of the
+		// token, which would make this test pass for the wrong reason. The
+		// pre_http_request filter below fails the test outright if any HTTP
+		// call is attempted at all, rather than trying to mock a realistic
+		// OpenAI response — the point being proven is that NO call happens
+		// before the token is checked, not what happens if one did.
+		update_option( 'agnosis_openai_api_key', 'test-key-not-real' );
+		update_user_meta( $this->artist_id, 'locale', 'es_ES' );
+
+		$http_calls = 0;
+		$http_filter = function () use ( &$http_calls ) {
+			++$http_calls;
+			return new \WP_Error( 'test_unexpected_http_call', 'No AI HTTP call should happen before the token is verified.' );
+		};
+		add_filter( 'pre_http_request', $http_filter, 10, 3 );
+
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => 'completely-wrong-token',
+			'title'          => 'A New Corrected Title', // differs from orig_title → "edited" branch
+			'excerpt'        => '',
+			'body'           => 'Body text is present.',
+			'orig_title'     => 'Shim Test Artwork',
+			'orig_excerpt'   => '',
+			'orig_body'      => 'Body text is present.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=error', $e->url );
+		} finally {
+			remove_filter( 'pre_http_request', $http_filter, 10 );
+			delete_option( 'agnosis_openai_api_key' );
+		}
+
+		$this->assertSame( 0, $http_calls, 'A forged token must be rejected before any AI HTTP call is attempted.' );
+		$this->assertSame( 'draft', get_post_status( $this->post_id ) );
+		$this->assertEmpty(
+			get_post_meta( $this->post_id, '_agnosis_translated_title', true ),
+			'A forged token must never trigger the translated-title write — it must be rejected before that branch runs at all.'
+		);
+	}
+
 	public function test_handle_confirm_expired_token_redirects_to_error(): void {
 		update_post_meta( $this->post_id, '_agnosis_review_expiry', time() - 1 );
 

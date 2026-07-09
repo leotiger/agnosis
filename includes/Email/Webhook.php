@@ -40,14 +40,42 @@ class Webhook {
 	public function handle( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$payload = $request->get_params();
 
+		// Resolved once, up front (fourth audit §3b) — the auth gate just below,
+		// and both alias branches, all need it. Identical to how
+		// Parser::parse_webhook_payload() derives 'from' for the normal pipeline
+		// further down, so this does not change what a genuine submission sees.
+		$from_email = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
+
+		// --- Auth gate (opt-in, fourth audit §3b) — evaluated BEFORE any alias
+		// routing. Previously this ran only in the normal artwork/bio/event
+		// pipeline, ~90 lines below, so the opt-in SPF/DKIM hardening this
+		// option promises never covered the two aliases where a spoofed From
+		// does the most damage: an impersonated community@ broadcast (relayed to
+		// every other artist under the spoofed sender's own name) and a forged
+		// goodbye@ removal request. Moving the check here closes both.
+		if ( ! $this->passes_email_auth( $payload, $from_email ) ) {
+			return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'auth_failed' ], 200 );
+		}
+
 		// --- Goodbye alias: self-removal request (no attachment required) ---
 		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
 		if ( $goodbye_addr ) {
 			$recipient = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
 			if ( $recipient === $goodbye_addr ) {
-				$from_email = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
-				$user       = get_user_by( 'email', $from_email );
+				$user = get_user_by( 'email', $from_email );
 				if ( $user ) {
+					// Per-sender throttle (fourth audit §3b): a genuine self-removal
+					// only ever needs to be requested once. The 'goodbye_request'
+					// bucket is shared with Email\Inbox::handle_goodbye_email(),
+					// mirroring how 'community_broadcast' is already shared between
+					// both intake paths below.
+					$limit    = max( 1, (int) get_option( 'agnosis_goodbye_request_limit', 3 ) );
+					$throttle = RateLimiter::check_sender( 'goodbye_request', $from_email, $limit, DAY_IN_SECONDS );
+					if ( is_wp_error( $throttle ) ) {
+						Logger::warning( 'Webhook: goodbye request from <' . $from_email . '> throttled (' . $limit . '/day limit).', 'webhook' );
+						return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'goodbye_throttled' ], 200 );
+					}
+
 					$departure = new Departure();
 					$departure->initiate_removal_for_user( $user->ID );
 				}
@@ -63,8 +91,19 @@ class Webhook {
 		if ( $community_addr ) {
 			$recipient = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
 			if ( $recipient === $community_addr ) {
-				$from_email = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
-				$user       = get_user_by( 'email', $from_email );
+				// Mail-loop guard (fourth audit §3c): broadcast copies deliberately
+				// set Reply-To to this same alias (see CommunityBroadcast::send_one()'s
+				// docblock) so a human reply gets translated for everyone — but that
+				// means a recipient's vacation auto-responder also fires on the
+				// broadcast and lands right back here. Checked first, before
+				// resolving the sender at all, so an auto-response never even
+				// counts against anyone's throttle.
+				if ( $this->is_auto_submitted( $payload ) ) {
+					Logger::info( 'Webhook: community broadcast from <' . $from_email . '> looks like an auto-response (Auto-Submitted header) — ignored, not broadcast.', 'webhook' );
+					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_auto_submitted' ], 200 );
+				}
+
+				$user = get_user_by( 'email', $from_email );
 
 				if ( ! $user || ! Admission::is_admitted_artist( $user->ID ) ) {
 					Logger::warning( 'Webhook: community broadcast from non-artist <' . $from_email . '> — ignored.', 'webhook' );
@@ -108,8 +147,6 @@ class Webhook {
 			return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'no_images' ], 200 );
 		}
 
-		$from_email = $submission['from'];
-
 		// --- Gate 1: admitted sender -------------------------------------------
 		// Mirror the admission check the IMAP path enforces. Without this, any
 		// image-bearing message relayed by the ESP from an unknown sender would be
@@ -133,39 +170,10 @@ class Webhook {
 			return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'throttled' ], 200 );
 		}
 
-		// --- Gate 3: SPF/DKIM authentication (opt-in) --------------------------
-		// When enabled, reject messages that fail both SPF and DKIM. This stops
-		// spoofed From: addresses — an attacker who knows an artist's email but
-		// does not control their domain will fail both checks.
-		// Disabled by default: requires the site's domain to have SPF/DKIM
-		// records configured and the ESP to include Authentication-Results.
-		if ( get_option( 'agnosis_require_email_auth' ) ) {
-			$auth_header = EmailAuth::extract_from_mailgun_payload( $payload );
-			// Generic fallback: some ESPs include it as a top-level field.
-			if ( ! $auth_header ) {
-				$auth_header = (string) ( $payload['Authentication-Results'] ?? $payload['authentication-results'] ?? '' );
-			}
-			if ( $auth_header ) {
-				$verdicts = EmailAuth::check_header( $auth_header );
-				if ( ! EmailAuth::passes( $verdicts ) ) {
-					Logger::warning(
-						sprintf(
-							'Webhook: rejected <' . $from_email . '> — SPF=%s DKIM=%s DMARC=%s.',
-							$verdicts['spf'] ?: 'none',
-							$verdicts['dkim'] ?: 'none',
-							$verdicts['dmarc'] ?: 'none'
-						),
-						'webhook'
-					);
-					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'auth_failed' ], 200 );
-				}
-			} else {
-				// No Authentication-Results header found — cannot verify.
-				// When auth is required but not available, reject to be safe.
-				Logger::warning( 'Webhook: rejected <' . $from_email . '> — authentication required but no Authentication-Results header found.', 'webhook' );
-				return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'no_auth_header' ], 200 );
-			}
-		}
+		// Gate 3 (SPF/DKIM) used to run here — moved above alias routing (fourth
+		// audit §3b); see passes_email_auth() and its call site near the top of
+		// this method. Every request reaching this point has already passed it,
+		// regardless of which branch (goodbye/community/normal) it took.
 
 		global $wpdb;
 
@@ -190,6 +198,82 @@ class Webhook {
 		}
 
 		return new WP_REST_Response( [ 'status' => 'queued', 'id' => $queue_id ], 202 );
+	}
+
+	/**
+	 * Opt-in SPF/DKIM authentication gate (fourth audit §3b).
+	 *
+	 * Evaluated for EVERY request in handle() — including the goodbye@/
+	 * community@ aliases — before any routing decision is made, not just
+	 * requests that fall through to the normal artwork/bio/event pipeline.
+	 * Returns true immediately (no-op) when the `agnosis_require_email_auth`
+	 * option is off, which it is by default.
+	 *
+	 * @param array<string, mixed> $payload    Raw webhook POST params.
+	 * @param string               $from_email Sender address, used only for logging.
+	 * @return bool True when the request passes (or auth is not required at all).
+	 */
+	private function passes_email_auth( array $payload, string $from_email ): bool {
+		if ( ! get_option( 'agnosis_require_email_auth' ) ) {
+			return true;
+		}
+
+		// When enabled, reject messages that fail both SPF and DKIM. This stops
+		// spoofed From: addresses — an attacker who knows an artist's email but
+		// does not control their domain will fail both checks.
+		$auth_header = EmailAuth::extract_from_mailgun_payload( $payload );
+		// Generic fallback: some ESPs include it as a top-level field.
+		if ( ! $auth_header ) {
+			$auth_header = (string) ( $payload['Authentication-Results'] ?? $payload['authentication-results'] ?? '' );
+		}
+
+		if ( ! $auth_header ) {
+			// No Authentication-Results header found — cannot verify. When auth
+			// is required but not available, reject to be safe.
+			Logger::warning( 'Webhook: rejected <' . $from_email . '> — authentication required but no Authentication-Results header found.', 'webhook' );
+			return false;
+		}
+
+		$verdicts = EmailAuth::check_header( $auth_header );
+		if ( ! EmailAuth::passes( $verdicts ) ) {
+			Logger::warning(
+				sprintf(
+					'Webhook: rejected <' . $from_email . '> — SPF=%s DKIM=%s DMARC=%s.',
+					$verdicts['spf'] ?: 'none',
+					$verdicts['dkim'] ?: 'none',
+					$verdicts['dmarc'] ?: 'none'
+				),
+				'webhook'
+			);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Whether a webhook payload carries an `Auto-Submitted` header indicating
+	 * it is an automated response (vacation auto-reply, mailing-list bounce,
+	 * etc.) rather than a human-written email (fourth audit §3c).
+	 *
+	 * Per RFC 3834, genuine auto-responses set this header to a value other
+	 * than `no` (typically `auto-replied`) — normal mail either omits the
+	 * header or, less commonly, sets it explicitly to `no`; only a present,
+	 * non-`no` value trips this guard, so an absent header (the overwhelming
+	 * majority of real mail) is not treated as suspicious.
+	 *
+	 * @param array<string, mixed> $payload Raw webhook POST params.
+	 * @return bool True when the payload looks like an automated response.
+	 */
+	private function is_auto_submitted( array $payload ): bool {
+		$raw = EmailAuth::extract_mailgun_header( $payload, 'auto-submitted' );
+		if ( ! $raw ) {
+			// Generic fallback: some ESPs include it as a top-level field.
+			$raw = (string) ( $payload['Auto-Submitted'] ?? $payload['auto-submitted'] ?? '' );
+		}
+
+		$value = strtolower( trim( $raw ) );
+		return '' !== $value && 'no' !== $value;
 	}
 
 	/**

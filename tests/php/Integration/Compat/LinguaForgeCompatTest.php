@@ -21,7 +21,19 @@
  *   filter_og_image()         — passes through off-artwork; falls back when no thumb
  *   filter_schema_type()      — VisualArtwork on singular artwork, passes through otherwise
  *   supply_translated_meta()  — allowlisted meta only; excludes tokens/identity/lang keys
- *   copy_translated_meta()    — fallback path writes allowlist; skips non-Agnosis source
+ *   copy_translated_meta()    — writes allowlist; skips non-Agnosis source; overwrites
+ *                               stale values on re-translation (fourth audit, §4b);
+ *                               hooked on linguaforge_translation_complete unconditionally
+ *                               (not just as a pre-2.4.0 fallback)
+ *   sync_taxonomy()           — (via sync_translated_terms()) flags a newly-created
+ *                               translated term with TRANSLATED_TERM_META; leaves a
+ *                               pre-existing term unflagged (fourth audit, §4c — see
+ *                               PromptConfigMediumTermsTest for the filtering side)
+ *   clear_term_translations_cache() / term_translation_cache_count() — manual
+ *                               cache-clear + count for the Settings panel
+ *   invalidate_renamed_term_cache() — drops a term's OLD cached translations when
+ *                               it's renamed (not on any other kind of term edit),
+ *                               scoped to post_tag/agnosis_medium only (fourth audit, §4d)
  *
  * @package Agnosis\Tests\Integration\Compat
  */
@@ -392,6 +404,56 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertSame( '', (string) get_post_meta( $translated_id, '_thumbnail_id', true ) );
 	}
 
+	/**
+	 * Fourth audit §4b: the concrete production symptom was a `replace@` photo
+	 * swap leaving OLD images live on every translated page — the translated
+	 * sibling already has meta from its first translation pass, and the fix's
+	 * whole point is that a second pass must overwrite it, not just fill it in
+	 * when absent (which the pre-fix "write allowlist" tests above don't
+	 * distinguish from a genuine refresh).
+	 */
+	public function test_copy_translated_meta_overwrites_stale_values_on_retranslation(): void {
+		update_post_meta( $this->artwork_id, '_thumbnail_id', 9999 ); // new photo post-replace@
+
+		$translated_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+		] );
+		update_post_meta( $translated_id, '_thumbnail_id', 1111 ); // stale, pre-replace@ photo
+
+		( new LinguaForge() )->copy_translated_meta( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertEquals( 9999, get_post_meta( $translated_id, '_thumbnail_id', true ) );
+	}
+
+	/**
+	 * Fourth audit §4b: on LF >= 2.4.0, copy_translated_meta() must be hooked
+	 * on `linguaforge_translation_complete` UNCONDITIONALLY, not only as a
+	 * pre-2.4.0 fallback — LF's update_translated_post() (the re-translation
+	 * path) never fires `linguaforge_translated_post_meta` at any LF version,
+	 * so the born-with filter alone misses every re-translation.
+	 *
+	 * Caveat: LINGUAFORGE_VERSION is a PHP constant defined once for this test
+	 * process (here, and by several other Integration test files) at
+	 * '1.0.0-test' — always below 2.4.0 — so this test cannot itself cross the
+	 * 2.4.0 boundary. What it guards against is regressing back to the old
+	 * `if (>= 2.4.0) { filter } else { action }` fork, which — combined with
+	 * test_copy_translated_meta_overwrites_stale_values_on_retranslation()
+	 * above proving the method's refresh behavior is correct once called —
+	 * closes the gap: were the constructor to ever gate this action behind an
+	 * LF-version check again, a real LF >= 2.4.0 site would silently lose
+	 * re-translation refresh exactly as the audit found, even though every
+	 * test in this file would still pass under the fixed '1.0.0-test' stub.
+	 */
+	public function test_copy_translated_meta_is_hooked_on_translation_complete_unconditionally(): void {
+		$lf = new LinguaForge();
+
+		$this->assertNotFalse(
+			has_action( 'linguaforge_translation_complete', [ $lf, 'copy_translated_meta' ] ),
+			'copy_translated_meta() must be registered on linguaforge_translation_complete regardless of LINGUAFORGE_VERSION.'
+		);
+	}
+
 	// ── set_language_meta(): primary-language alignment (§2d residual) ─────────
 
 	public function test_set_language_meta_uses_primary_language_option(): void {
@@ -667,6 +729,185 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 			[ 'Landscape' ],
 			wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	// ── §4c: newly-created translated terms are flagged for exclusion ────────
+	// SubmissionTranslator::from_settings() is null in this test env (no AI
+	// provider configured), so translated_term_name() only ever produces a
+	// name DIFFERENT from the source when a cache entry supplies one — same
+	// mechanism the cache tests above already use. That's exploited here to
+	// get a genuinely new term name out of sync_taxonomy() without a real
+	// provider call.
+
+	public function test_sync_taxonomy_flags_newly_created_term_as_translated(): void {
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$term = get_term_by( 'name', 'Paisaje', 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$this->assertSame( 'es', get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_taxonomy_flags_newly_created_medium_term_as_translated(): void {
+		update_option( 'agnosis_term_translations', [
+			'agnosis_medium' => [ 'Oil Painting' => [ 'de' => 'Ölgemälde' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Oil Painting' ], 'agnosis_medium' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'de' );
+
+		$term = get_term_by( 'name', 'Ölgemälde', 'agnosis_medium' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$this->assertSame( 'de', get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_taxonomy_does_not_flag_a_pre_existing_term(): void {
+		// No AI provider configured — 'Landscape' and 'Coastal' are assigned
+		// to the translated post unchanged (translated_term_name() falls back
+		// to the source name), so both terms already existed BEFORE
+		// sync_taxonomy() ran (created when assigned to the source post
+		// above). Neither should come out flagged as machine-translated.
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape', 'Coastal' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		foreach ( [ 'Landscape', 'Coastal' ] as $name ) {
+			$term = get_term_by( 'name', $name, 'post_tag' );
+			$this->assertInstanceOf( \WP_Term::class, $term, $name );
+			$this->assertSame( '', get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ), $name );
+		}
+	}
+
+	// ── §4d: term-translation cache maintenance ───────────────────────────────
+
+	public function test_clear_term_translations_cache_empties_the_option(): void {
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+
+		LinguaForge::clear_term_translations_cache();
+
+		$this->assertSame( [], get_option( 'agnosis_term_translations', [] ) );
+	}
+
+	public function test_term_translation_cache_count_sums_every_cached_language(): void {
+		update_option( 'agnosis_term_translations', [
+			'post_tag'       => [
+				'Landscape' => [ 'es' => 'Paisaje', 'fr' => 'Paysage' ],
+				'Coastal'   => [ 'es' => 'Costero' ],
+			],
+			'agnosis_medium' => [
+				'Oil Painting' => [ 'de' => 'Ölgemälde' ],
+			],
+		] );
+
+		$this->assertSame( 4, LinguaForge::term_translation_cache_count() );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_term_translation_cache_count_is_zero_when_option_is_unset(): void {
+		delete_option( 'agnosis_term_translations' );
+
+		$this->assertSame( 0, LinguaForge::term_translation_cache_count() );
+	}
+
+	/**
+	 * The cache is keyed by the term's NAME, so a rename otherwise orphans
+	 * the old entry forever (fourth audit §4d). Renaming a term must drop
+	 * every cached language under the OLD name for that taxonomy, while
+	 * leaving unrelated cache entries (a different term, or the same name in
+	 * a different taxonomy) untouched.
+	 */
+	public function test_renaming_a_term_invalidates_its_old_cached_translations(): void {
+		$term = wp_insert_term( 'Landscape', 'post_tag' );
+		update_option( 'agnosis_term_translations', [
+			'post_tag'       => [
+				'Landscape' => [ 'es' => 'Paisaje', 'fr' => 'Paysage' ],
+				'Coastal'   => [ 'es' => 'Costero' ], // Unrelated term — must survive.
+			],
+			'agnosis_medium' => [
+				'Landscape' => [ 'es' => 'Not really a medium, just proving taxonomy scoping' ],
+			],
+		] );
+
+		// Unlike every other test in this file, this one goes through the real
+		// `edit_terms`/`edited_term` WP actions (via wp_update_term() below)
+		// rather than calling a method directly — so the constructor's
+		// add_action() calls actually need to have run first. The production
+		// singleton (Plugin.php's `new LinguaForge()`) was already constructed
+		// before this test file's LINGUAFORGE_FILE/VERSION stubs were defined,
+		// so is_active() was false at that point and it never registered these
+		// hooks; a fresh instance here (constants now defined) registers them
+		// for real, scoped to this test only (WP_UnitTestCase backs up/restores
+		// $wp_filter around every test).
+		new LinguaForge();
+
+		wp_update_term( $term['term_id'], 'post_tag', [ 'name' => 'Landscapes' ] );
+
+		$cache = get_option( 'agnosis_term_translations', [] );
+		$this->assertArrayNotHasKey( 'Landscape', $cache['post_tag'] );
+		$this->assertSame( [ 'es' => 'Costero' ], $cache['post_tag']['Coastal'] ?? null );
+		// Same old name under a DIFFERENT taxonomy is untouched — invalidation is scoped per-taxonomy.
+		$this->assertArrayHasKey( 'Landscape', $cache['agnosis_medium'] );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_updating_a_term_without_changing_its_name_does_not_invalidate_the_cache(): void {
+		// edited_term fires on ANY term save (description, slug, parent, …),
+		// not only a rename — must not treat every save as a cache-busting event.
+		$term = wp_insert_term( 'Landscape', 'post_tag' );
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+
+		// Register the real hooks (see the rename test above for why this is
+		// needed) — without it, this "no-op" assertion would pass trivially
+		// even if the guard clause were broken, since nothing would run at all.
+		new LinguaForge();
+
+		wp_update_term( $term['term_id'], 'post_tag', [ 'description' => 'A scenic view.' ] );
+
+		$cache = get_option( 'agnosis_term_translations', [] );
+		$this->assertSame( [ 'es' => 'Paisaje' ], $cache['post_tag']['Landscape'] ?? null );
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_renaming_a_term_in_an_unrelated_taxonomy_does_not_touch_the_cache(): void {
+		// Category isn't one of the two taxonomies this class ever caches a
+		// translation for — capture_pre_rename_term_name()/invalidate_renamed_term_cache()
+		// must no-op for it entirely (also proves the taxonomy scoping guard
+		// doesn't throw when there's nothing cached for that taxonomy at all).
+		$term = wp_insert_term( 'Uncategorized Sub', 'category' );
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => 'Paisaje' ] ],
+		] );
+
+		// Register the real hooks (see the rename test above for why this is
+		// needed) — without it, this taxonomy-scoping assertion would pass
+		// trivially even if the scoping guard were broken, since nothing would
+		// run at all.
+		new LinguaForge();
+
+		wp_update_term( $term['term_id'], 'category', [ 'name' => 'Renamed Category' ] );
+
+		$cache = get_option( 'agnosis_term_translations', [] );
+		$this->assertSame( [ 'es' => 'Paisaje' ], $cache['post_tag']['Landscape'] ?? null );
 
 		delete_option( 'agnosis_term_translations' );
 	}

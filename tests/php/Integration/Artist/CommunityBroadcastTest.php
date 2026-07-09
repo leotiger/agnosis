@@ -230,6 +230,24 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'Reply-To:', $headers );
 	}
 
+	public function test_broadcast_copies_carry_anti_loop_headers(): void {
+		// Fourth audit §3c: Reply-To (tested above) deliberately points back at
+		// the community alias, which means a recipient's vacation auto-responder
+		// firing on this message would otherwise loop straight back into the
+		// broadcast pipeline. These headers suppress the auto-responder at the
+		// recipient's own mail server.
+		$sender_id = $this->create_artist( 'loopguard@example.com', 'Loop Guard Sender' );
+		$this->create_artist( 'recipient11@example.com', 'Recipient Eleven' );
+
+		$this->broadcast->broadcast( $sender_id, 'Hello', 'A message.' );
+
+		$mail    = $this->mails_to( 'recipient11@example.com' )[0];
+		$headers = implode( "\n", (array) $mail['headers'] );
+		$this->assertStringContainsString( 'Auto-Submitted: auto-generated', $headers );
+		$this->assertStringContainsString( 'Precedence: bulk', $headers );
+		$this->assertStringContainsString( 'X-Auto-Response-Suppress: All', $headers );
+	}
+
 	public function test_from_header_uses_community_sender_identity(): void {
 		update_option( 'agnosis_community_from_name', 'Test Community' );
 		update_option( 'agnosis_community_from_email', 'hello@agnosis.test' );

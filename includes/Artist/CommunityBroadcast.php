@@ -312,6 +312,22 @@ class CommunityBroadcast {
 		$lines[] = $site_name;
 
 		$headers = CommunityMailer::text_headers();
+
+		// Anti-loop headers (fourth audit §3c) — this is a bulk copy sent to
+		// every other admitted artist, and Reply-To below deliberately points
+		// back at the community alias itself (needed so a reply gets translated
+		// for everyone). Without these, a recipient's vacation auto-responder
+		// fires on THIS message and its reply lands right back on the alias,
+		// re-entering the broadcast pipeline as if it were a genuine new
+		// message — these three headers suppress the auto-responder at the
+		// recipient's own mail server before that can happen. Only added here,
+		// not in CommunityMailer::text_headers()/html_headers(), since those are
+		// shared by one-off transactional emails (vote links, welcome,
+		// departure) that were never the mail-loop risk this addresses.
+		$headers[] = 'Auto-Submitted: auto-generated';
+		$headers[] = 'Precedence: bulk';
+		$headers[] = 'X-Auto-Response-Suppress: All';
+
 		if ( '' !== $community_addr ) {
 			// Reply-To is the community alias itself, NOT the sender's own address
 			// (2026-07-08 correction) — a direct reply would arrive in whatever

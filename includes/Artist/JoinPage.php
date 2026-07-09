@@ -245,7 +245,12 @@ class JoinPage {
 	 *
 	 * Falls back to the configured page's own permalink whenever Lingua Forge
 	 * isn't active, the page has no translation for $lang (not yet
-	 * translated, or translation still pending), or $lang is empty.
+	 * translated, or translation still pending), $lang is empty, or a
+	 * translation exists but isn't published yet (fourth audit §4d: a TRID
+	 * group entry is created as soon as LF starts translating, well before
+	 * the translated post is actually published — preferring it unconditionally
+	 * could hand an applicant a draft's permalink, a 404 for anyone without
+	 * edit rights on that post).
 	 *
 	 * @param string $lang BCP-47-ish language code (Lingua Forge's own
 	 *                     format, e.g. 'es'), or '' for the untranslated
@@ -268,7 +273,7 @@ class JoinPage {
 		if ( '' !== $lang && LinguaForge::is_active() && function_exists( 'linguaforge_get_translations' ) ) {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
 			$translations = linguaforge_get_translations( $page_id );
-			if ( isset( $translations[ $lang ] ) ) {
+			if ( isset( $translations[ $lang ] ) && 'publish' === get_post_status( (int) $translations[ $lang ] ) ) {
 				$translated_permalink = get_permalink( (int) $translations[ $lang ] );
 				if ( $translated_permalink ) {
 					return $translated_permalink;

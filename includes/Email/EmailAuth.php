@@ -45,15 +45,33 @@ class EmailAuth {
 	 * Extract the `Authentication-Results` header value from a Mailgun webhook
 	 * payload.
 	 *
-	 * Mailgun encodes all original headers as a JSON array under the key
-	 * `message-headers`, where each element is a two-element array [name, value].
-	 * This method finds the first `Authentication-Results` entry and returns its
-	 * value, or '' when absent.
+	 * Thin wrapper over extract_mailgun_header() — kept as its own method
+	 * (rather than requiring every call site to pass the header name) since
+	 * this was the original, sole use case and existing callers/tests already
+	 * depend on this exact signature.
 	 *
 	 * @param array<string, mixed> $payload Decoded Mailgun webhook POST body.
 	 * @return string Raw header value, or '' when not present.
 	 */
 	public static function extract_from_mailgun_payload( array $payload ): string {
+		return self::extract_mailgun_header( $payload, 'authentication-results' );
+	}
+
+	/**
+	 * Extract an arbitrary header's value from a Mailgun webhook payload
+	 * (fourth audit §3c — added to also read `Auto-Submitted` for the
+	 * community-broadcast mail-loop guard, without duplicating this parsing).
+	 *
+	 * Mailgun encodes all original headers as a JSON array under the key
+	 * `message-headers`, where each element is a two-element array [name, value].
+	 * This method finds the first entry matching $header_name (case-insensitive)
+	 * and returns its value, or '' when absent.
+	 *
+	 * @param array<string, mixed> $payload     Decoded Mailgun webhook POST body.
+	 * @param string               $header_name Header name to look for, e.g. 'auto-submitted'.
+	 * @return string Raw header value, or '' when not present.
+	 */
+	public static function extract_mailgun_header( array $payload, string $header_name ): string {
 		$raw = $payload['message-headers'] ?? '';
 
 		if ( is_string( $raw ) ) {
@@ -68,9 +86,11 @@ class EmailAuth {
 			return '';
 		}
 
+		$needle = strtolower( $header_name );
+
 		foreach ( $headers as $pair ) {
 			if ( is_array( $pair ) && count( $pair ) >= 2
-				&& strtolower( (string) $pair[0] ) === 'authentication-results'
+				&& strtolower( (string) $pair[0] ) === $needle
 			) {
 				return (string) $pair[1];
 			}

@@ -131,6 +131,34 @@ class JoinPageTest extends \WP_UnitTestCase {
 		$this->assertSame( get_permalink( $page_id ), JoinPage::resolve_success_url( 'de' ) );
 	}
 
+	/**
+	 * Fourth audit §4d: a TRID group entry exists as soon as Lingua Forge
+	 * starts translating a page, well before the translated post is actually
+	 * published — resolve_success_url() must not send an applicant to a
+	 * draft's permalink (a 404 for anyone without edit rights on that post).
+	 */
+	public function test_resolve_success_url_falls_back_to_source_page_when_translation_is_unpublished(): void {
+		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		$es_page = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'draft' ] );
+		update_option( 'agnosis_join_success_url', $page_id );
+		FakeLinguaForge::link( $page_id, 'es', $es_page );
+
+		$this->assertSame( get_permalink( $page_id ), JoinPage::resolve_success_url( 'es' ) );
+	}
+
+	public function test_resolve_success_url_uses_translation_once_it_is_published(): void {
+		// Companion to the draft case above — confirms the new guard is a
+		// status check, not an accidental "never prefer the translation"
+		// regression: the same translation link the draft test uses must
+		// still resolve once the translated post's status is 'publish'.
+		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		$es_page = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+		update_option( 'agnosis_join_success_url', $page_id );
+		FakeLinguaForge::link( $page_id, 'es', $es_page );
+
+		$this->assertSame( get_permalink( $es_page ), JoinPage::resolve_success_url( 'es' ) );
+	}
+
 	public function test_resolve_success_url_with_no_lang_argument_returns_source_permalink(): void {
 		$page_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
 		$es_page = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );

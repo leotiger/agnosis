@@ -117,6 +117,11 @@ class Settings {
 				) )
 				. '</p></div>';
 		}
+		if ( isset( $_GET['term_cache_cleared'] ) ) {
+			echo '<div class="notice notice-success is-dismissible"><p>'
+				. esc_html__( 'Term translation cache cleared. Terms will be re-translated the next time they\'re needed.', 'agnosis' )
+				. '</p></div>';
+		}
 		if ( isset( $_GET['processed'] ) ) {
 			$count = (int) $_GET['processed'];
 			echo '<div class="notice notice-success is-dismissible"><p>'
@@ -391,6 +396,17 @@ class Settings {
 				'type'     => 'boolean',
 				'sanitize' => fn( $v ) => (bool) $v,
 				'desc'     => __( 'Writes raw diagnostic dumps of the email intake pipeline (message structure, attachment MIME detection, media conversion, post creation) to a dedicated debug directory — far more detail than the Logs tab keeps, for tracing exactly where a submission was rejected or lost. Turn off once you have what you need; files can accumulate quickly. Can also be forced from wp-config.php with `define( \'AGNOSIS_DEBUG\', true );`, which overrides this toggle. See the Debug Files panel below for the directory location and a clear-files button.', 'agnosis' ),
+			],
+
+			'agnosis_debug_retention_days' => [
+				'tab'      => 'general',
+				'label'    => __( 'Debug file retention (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 14,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Debug dumps older than this are permanently deleted by the daily cleanup — automatically, whether or not debug logging is currently turned on, so files left over from a past debug session don\'t linger indefinitely. A dump is a full raw copy of an artist\'s email, so this defaults shorter than the inbox/queue retention above. Default: 14 days.', 'agnosis' ),
 			],
 
 			// --- GENERAL: Branding ---
@@ -897,6 +913,16 @@ class Settings {
 				'sanitize' => 'sanitize_email',
 				'desc'     => __( 'Dedicated From: address for admission, vote, welcome, departure, invitation, and submission-review emails — e.g. hello@agnosis.art. Deliberately separate from the Settings → Newsletter sender: these are one-off actions (a vote link, a review link), not digest mail. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
 			],
+			'agnosis_goodbye_request_limit' => [
+				'tab'      => 'community',
+				'label'    => __( 'Self-removal (goodbye) requests per sender per day', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 3,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum number of self-removal ("goodbye") confirmation emails a single sender address can trigger per day. A genuine self-removal only ever needs to be requested once — this caps how many confirmation emails a spoofed or repeated From can be used to spam a real artist with. Default: 3.', 'agnosis' ),
+			],
 			'agnosis_community_broadcast_limit' => [
 				'tab'      => 'community',
 				'label'    => __( 'Community broadcasts per artist per day', 'agnosis' ),
@@ -1244,6 +1270,55 @@ class Settings {
 		<?php
 	}
 
+	/**
+	 * Term Translation Cache panel — shown under Settings → General,
+	 * alongside the Debug Files panel. Fourth audit §4d: the AI-translated
+	 * term-name cache (`agnosis_term_translations`, used by
+	 * Compat\LinguaForge::sync_translated_terms()) previously had no UI at
+	 * all — a bad translation of a term label was permanent, since nothing
+	 * ever expired the cache or gave an admin a way to clear it (renaming the
+	 * source term auto-invalidates that one entry as of this same fix — see
+	 * LinguaForge::invalidate_renamed_term_cache() — but a bad translation of
+	 * a term an admin does NOT plan to rename still needed a manual escape
+	 * hatch). Only ever active if Lingua Forge is installed — the cache
+	 * can't exist otherwise.
+	 */
+	private function render_term_translation_cache_panel(): void {
+		if ( ! LinguaForge::is_active() ) {
+			return;
+		}
+
+		$count = LinguaForge::term_translation_cache_count();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Term Translation Cache', 'agnosis' ); ?></h2>
+
+			<table class="form-table" role="presentation" style="margin-bottom:0"><tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Cached translations', 'agnosis' ); ?></th>
+					<td>
+						<strong><?php echo esc_html( number_format_i18n( $count ) ); ?></strong>
+						<p class="description"><?php esc_html_e( 'AI-translated tag/medium term names, cached so the same term always gets the same translated label instead of a fresh AI phrasing per post. Renaming a term already clears its own cached entry automatically; use the button below only if a cached translation itself is wrong.', 'agnosis' ); ?></p>
+					</td>
+				</tr>
+			</tbody></table>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:1rem"
+				  onsubmit="return confirm('<?php echo esc_js( __( 'Clear every cached term translation? Nothing is deleted from your site — terms will simply be re-translated by AI the next time they\'re needed.', 'agnosis' ) ); ?>');">
+				<input type="hidden" name="action" value="agnosis_clear_term_translations_cache">
+				<?php wp_nonce_field( 'agnosis_clear_term_translations_cache' ); ?>
+				<?php
+				submit_button(
+					__( 'Clear Term Translation Cache', 'agnosis' ),
+					'secondary', 'submit', false,
+					$count > 0 ? [] : [ 'disabled' => 'disabled' ]
+				);
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
 	private function render_logs_tab(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- integer page offset for display only.
 		$page    = max( 1, (int) sanitize_key( wp_unslash( $_GET['log_page'] ?? '1' ) ) );
@@ -1344,6 +1419,7 @@ class Settings {
 	private function render_tab_tools( string $tab ): void {
 		if ( 'general' === $tab ) {
 			$this->render_debug_panel();
+			$this->render_term_translation_cache_panel();
 			return;
 		}
 		if ( 'ai' === $tab ) {
@@ -2410,6 +2486,25 @@ class Settings {
 		wp_safe_redirect(
 			add_query_arg(
 				[ 'page' => 'agnosis-settings', 'tab' => 'general', 'debug_cleared' => (string) $removed ],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/** admin_post handler — delete the entire term-translation cache (fourth audit §4d). */
+	public function handle_clear_term_translations_cache(): void {
+		check_admin_referer( 'agnosis_clear_term_translations_cache' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		LinguaForge::clear_term_translations_cache();
+
+		wp_safe_redirect(
+			add_query_arg(
+				[ 'page' => 'agnosis-settings', 'tab' => 'general', 'term_cache_cleared' => '1' ],
 				admin_url( 'admin.php' )
 			)
 		);

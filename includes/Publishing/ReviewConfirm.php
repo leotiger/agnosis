@@ -71,6 +71,18 @@
  * silently 404'd every biography/event approve/reject/save call regardless of
  * token validity.
  *
+ * Token check ordering (fourth audit §3a, 2026-07-09): render_approve_confirm()
+ * (GET) and handle_approve_submission() (POST) both call the shared
+ * require_valid_token() gate — ReviewEndpoints::verify_token() — as their very
+ * first step, before any draft content is displayed, any AI translate_text()
+ * call is made, or any post meta is written. Previously the only real token
+ * check on this path was inside the final rest_do_request() dispatch, well
+ * after the GET path had already rendered the draft's title/excerpt/body and
+ * the POST "edited" path had already regenerated and written
+ * _agnosis_translated_title — a guessable sequential post ID plus any string
+ * in the token slot was enough to read an unpublished submission and spend an
+ * unauthenticated AI call.
+ *
  * Hooks registered in Plugin::register_services() on 'template_redirect' (priority 1).
  *
  * @package Agnosis\Publishing
@@ -288,6 +300,14 @@ class ReviewConfirm {
 			exit;
 		}
 
+		// Fourth audit §3a: this must run BEFORE anything below — the translated-
+		// title regeneration further down calls translate_text() (unauthenticated
+		// AI spend) and writes _agnosis_translated_title, and both used to happen
+		// before the only token check on this path (inside the final
+		// rest_do_request() dispatch). A forged POST with a garbage token could
+		// already reach and complete both side effects. Always exits on failure.
+		$this->require_valid_token( $id, $token, $post->post_type );
+
 		// No ?? fallback needed: the gate above already guarantees $post->post_type
 		// is one of ReviewEndpoints::REVIEWABLE_POST_TYPES, and APPROVE_FIELDS has
 		// an entry for each of those three keys — PHPStan proves the offset always
@@ -404,6 +424,28 @@ class ReviewConfirm {
 		$response = rest_do_request( $rest_request );
 
 		$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type );
+	}
+
+	/**
+	 * Shared read-only token gate for the approve confirm form (fourth audit
+	 * §3a) — the same `hash_equals()` + expiry check
+	 * `ReviewEndpoints::check_access()` already performs for the REST layer,
+	 * exposed via `ReviewEndpoints::verify_token()` (public static, pure) so
+	 * there is exactly one authoritative implementation rather than a second
+	 * copy that could drift out of sync with it.
+	 *
+	 * Called at the very top of both render_approve_confirm() (GET) and
+	 * handle_approve_submission() (POST) — before any draft content is
+	 * rendered, any AI translation call is made, or any post meta is written.
+	 * On failure, redirects to the same `?agnosis_result=error` page a bad
+	 * token already produces later via the REST dispatch, so the visible
+	 * behavior for an invalid token is unchanged from the artist's/attacker's
+	 * perspective — only how early it is rejected changes. Always exits.
+	 */
+	private function require_valid_token( int $id, string $token, string $post_type ): void {
+		if ( true !== ReviewEndpoints::verify_token( $id, $token ) ) {
+			$this->redirect_result( 'error', $post_type );
+		}
 	}
 
 	/**
@@ -561,6 +603,15 @@ class ReviewConfirm {
 			wp_safe_redirect( home_url( '/' ) );
 			exit;
 		}
+
+		// Fourth audit §3a: this used to check only that the post exists and is
+		// reviewable — not that the supplied token is the one actually issued for
+		// it, or even that a token exists at all. Since this method renders the
+		// draft's title/excerpt/body (translated into the artist's language via
+		// get_display_text(), which can itself spend an AI call on cache miss),
+		// a guessable sequential post ID plus ANY string in the token slot used
+		// to be enough to read an unpublished submission. Always exits on failure.
+		$this->require_valid_token( $id, $token, $post->post_type );
 
 		// No ?? fallback needed: the gate above already guarantees $post->post_type
 		// is one of ReviewEndpoints::REVIEWABLE_POST_TYPES, and APPROVE_FIELDS has

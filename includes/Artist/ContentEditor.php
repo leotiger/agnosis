@@ -1,7 +1,7 @@
 <?php
 /**
  * Front-end correction for artists — Phase 1 (text chunks) + Phase 2 (photo
- * substitution).
+ * substitution) + Phase 3 (title editing + restore original photo).
  *
  * Lets an admitted artist correct their own published content directly, in
  * place, without composing another intake email:
@@ -10,13 +10,18 @@
  *   - Phase 2: replace the featured image (biography/event) or a specific
  *     gallery image (artwork) with a direct upload — no AI enhancement, no
  *     quality gate; the artist's own photo is used exactly as uploaded.
+ *   - Phase 3: artwork/biography TITLE editing (dual-title regeneration —
+ *     see propagate_title()'s docblock) and a one-click "restore original
+ *     photo" that reverses a Phase 2 replacement (see restore_photo()'s
+ *     docblock) — both now implemented, not just evaluated.
  *
- * REST:  POST /agnosis/v1/content/{id}/text   { field, value }
- *        POST /agnosis/v1/content/{id}/photo  multipart { file, attachment_id? }
+ * REST:  POST /agnosis/v1/content/{id}/text          { field, value } — field
+ *          can be 'title' on artwork/biography, routed through the dual-title
+ *          path (see EDITABLE_FIELDS, DUAL_TITLE_POST_TYPES).
+ *        POST /agnosis/v1/content/{id}/photo          multipart { file, attachment_id? }
+ *        POST /agnosis/v1/content/{id}/photo/restore  { } — Phase 3, see restore_photo()
  *
  * This is the feasibility evaluation in the third audit (§7), phased per §7d.
- * Phase 3 (artwork/biography TITLE editing — dual-title regeneration — and
- * "restore original photo") is deliberately not exposed here.
  *
  * Translation coherence (§7c, reassessed 2026-07-06): an artist may only edit the
  * post version matching their OWN declared language (their WP user `locale`, set

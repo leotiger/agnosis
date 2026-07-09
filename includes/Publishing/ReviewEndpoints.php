@@ -283,7 +283,7 @@ class ReviewEndpoints {
 		// Path 1 — token from query string (email link).
 		$token = sanitize_text_field( (string) $request->get_param( 'token' ) );
 		if ( ! empty( $token ) ) {
-			return $this->verify_token( $post_id, $token );
+			return self::verify_token( $post_id, $token );
 		}
 
 		// Path 2 — logged-in user.
@@ -315,11 +315,17 @@ class ReviewEndpoints {
 	/**
 	 * Validate a signed review token against what is stored in post meta.
 	 *
+	 * Public and static (fourth audit §3a): a pure, read-only check with no
+	 * dependency on instance state, so `Publishing\ReviewConfirm` can reuse the
+	 * exact same check the REST layer performs — the token-first-then-act order
+	 * only holds if both sides use one authoritative implementation, not two
+	 * copies that could drift apart.
+	 *
 	 * @param int    $post_id Post ID.
 	 * @param string $token   Token from the request.
 	 * @return true|WP_Error
 	 */
-	private function verify_token( int $post_id, string $token ): true|WP_Error {
+	public static function verify_token( int $post_id, string $token ): true|WP_Error {
 		$stored_token  = (string) get_post_meta( $post_id, '_agnosis_review_token', true );
 		$stored_expiry = (int) get_post_meta( $post_id, '_agnosis_review_expiry', true );
 

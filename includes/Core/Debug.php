@@ -127,6 +127,49 @@ class Debug {
 	 * write() still lands cleanly.
 	 */
 	public static function clear(): int {
+		return self::delete_matching( fn( string $path ): bool => true );
+	}
+
+	/**
+	 * Delete *.txt dumps whose mtime is older than $days days. Returns the
+	 * number removed. Same symlink-safety and directory-preservation
+	 * behaviour as clear() — this is clear() with an age filter.
+	 *
+	 * Fourth audit §5c: a raw pipeline dump contains an artist's full raw
+	 * email (attachments included), so unlike agnosis_log's DB-backed
+	 * entries (already pruned by Logger::prune()), these files had no
+	 * expiry at all — a site that ever turned debug logging on would
+	 * accumulate PII in this directory forever. Wired into the existing
+	 * `agnosis_cleanup_inbox` daily cron (see Inbox::cleanup()) rather than
+	 * a new cron event, since that hook already exists purely to run
+	 * periodic retention housekeeping (IMAP messages, queue rows, log rows)
+	 * — one more prune call there, not a new moving part.
+	 *
+	 * Runs unconditionally on the cleanup cron — including when debug
+	 * logging is currently OFF — so dumps left over from a since-disabled
+	 * debug session still expire instead of sitting there indefinitely;
+	 * gating this on enabled() would defeat the point for exactly the
+	 * site that most needs it: one that turned debug on, captured what it
+	 * needed, and turned it back off again.
+	 *
+	 * @param int $days Age threshold in days (default 14, per the audit's own suggestion).
+	 */
+	public static function prune( int $days = 14 ): int {
+		$cutoff = time() - ( max( 1, $days ) * DAY_IN_SECONDS );
+
+		return self::delete_matching(
+			fn( string $path ): bool => ( filemtime( $path ) ?: 0 ) < $cutoff
+		);
+	}
+
+	/**
+	 * Shared symlink-safe deletion loop for clear()/prune() — deletes every
+	 * *.txt file in the debug directory for which $should_delete( $path )
+	 * returns true.
+	 *
+	 * @param callable(string): bool $should_delete
+	 */
+	private static function delete_matching( callable $should_delete ): int {
 		$dir = self::dir();
 		if ( ! is_dir( $dir ) ) {
 			return 0;
@@ -153,6 +196,9 @@ class Debug {
 				continue;
 			}
 			if ( 0 !== strpos( $real, $real_dir . DIRECTORY_SEPARATOR ) ) {
+				continue;
+			}
+			if ( ! $should_delete( $path ) ) {
 				continue;
 			}
 

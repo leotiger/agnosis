@@ -109,6 +109,15 @@ class PromptConfig {
 	 * Calls the live WordPress term API (get_terms()), so this is NOT called
 	 * from resolved_system_prompt() itself — see that method's docblock for why.
 	 *
+	 * Excludes terms flagged with `LinguaForge::TRANSLATED_TERM_META` — names
+	 * `Compat\LinguaForge::sync_taxonomy()` itself auto-created while assigning
+	 * a translated medium term to a translated post's sibling, not ones an
+	 * admin curated (fourth audit §4c). Left in, these would otherwise let a
+	 * term translated into one language get offered as vocabulary — and
+	 * potentially AI-assigned — to artwork in a completely different language,
+	 * and would clutter Artwork → Mediums with every term times every
+	 * translation pass.
+	 *
 	 * @return array<string>
 	 */
 	public static function medium_terms(): array {
@@ -120,6 +129,12 @@ class PromptConfig {
 			'taxonomy'   => 'agnosis_medium',
 			'fields'     => 'names',
 			'hide_empty' => false,
+			'meta_query' => [
+				[
+					'key'     => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META,
+					'compare' => 'NOT EXISTS',
+				],
+			],
 		] );
 
 		if ( is_wp_error( $terms ) || empty( $terms ) ) {

@@ -5,7 +5,8 @@
  * Integrates Agnosis with Lingua Forge (the official translation plugin for
  * the Agnosis network) when both plugins are active on the same site.
  *
- * What this does when Lingua Forge is present:
+ * What this does when Lingua Forge is present — seven concerns, registered in
+ * the constructor in this order:
  *
  *  1. LANGUAGE META — tags every new artwork post with `_lf_lang` (the source
  *     language of the artist's submission) so LF's router, hreflang system,
@@ -16,11 +17,16 @@
  *     so the title, excerpt and body are translated into all configured site
  *     languages without the artist doing anything.
  *
- *  3. SEO METADATA — overrides the Open Graph image with the artwork's
- *     featured thumbnail via the `linguaforge_seo_og_image` filter.
+ *  3. DUAL-TITLE HANDLING — keeps the artist's own `post_title` untranslated
+ *     on every language version (via `linguaforge_translation_content`,
+ *     hold_artist_title()); the per-language display title AI-translates
+ *     separately into `_agnosis_translated_title`. Artwork only.
  *
- *  4. ARTWORK SCHEMA — hooks into LF's `linguaforge_seo_schema_data` filter
- *     to annotate artwork posts as `VisualArtwork` rather than generic `Article`.
+ *  4. TRANSLATED-POST META PROPAGATION — a translated post is otherwise
+ *     created (and, critically, re-translated) with none of the source's
+ *     images/event/gallery meta; copy_translated_meta() / supply_translated_meta()
+ *     copy a language-neutral allowlist across, refreshing it again on every
+ *     re-translation (fourth audit, §4b).
  *
  *  5. TAG / MEDIUM TRANSLATION — LF's own translation pipeline never touches
  *     taxonomy terms at all, so a translated post is otherwise created with no
@@ -28,7 +34,20 @@
  *     and assigns both onto every translated sibling, cached per (taxonomy,
  *     term name, language) so a recurring value (a common tag, or one of
  *     `agnosis_medium`'s built-in options) gets the same translated label
- *     every time rather than a fresh AI phrasing per post.
+ *     every time rather than a fresh AI phrasing per post. Newly-created
+ *     translated terms are flagged with TRANSLATED_TERM_META so the AI's own
+ *     controlled vocabulary (`PromptConfig::medium_terms()`) doesn't end up
+ *     polluted with machine-translated variants (fourth audit, §4c). The
+ *     cache itself can be cleared from Settings → General (a manual "Clear
+ *     Term Translation Cache" action) and is auto-invalidated per entry when
+ *     a source term is renamed, since the cache key is the term's name
+ *     (fourth audit, §4d).
+ *
+ *  6. SEO METADATA — overrides the Open Graph image with the artwork's
+ *     featured thumbnail via the `linguaforge_seo_og_image` filter.
+ *
+ *  7. ARTWORK SCHEMA — hooks into LF's `linguaforge_seo_schema_data` filter
+ *     to annotate artwork posts as `VisualArtwork` rather than generic `Article`.
  *
  * When Lingua Forge is NOT active, this class does nothing — all hooks are
  * registered conditionally. No hard dependency.
@@ -107,6 +126,22 @@ class LinguaForge {
 	 */
 	private const TERM_TRANSLATIONS_OPTION = 'agnosis_term_translations';
 
+	/**
+	 * Term meta key flagging a taxonomy term (post_tag or agnosis_medium) as
+	 * one sync_taxonomy() itself created via AI translation, rather than one
+	 * an admin created directly (fourth audit §4c). Value is the target
+	 * language code the term was translated into.
+	 *
+	 * Public: `AI\PromptConfig::medium_terms()` reads this constant to exclude
+	 * flagged terms from the AI's controlled vocabulary — see that method's
+	 * docblock for why the pollution this prevents was a real bug, not
+	 * theoretical (after a few translation passes on a multi-language site,
+	 * the "controlled vocabulary" would otherwise contain every term times
+	 * every language, and nothing would stop a translated label from being
+	 * assigned to a brand-new, differently-languaged artwork).
+	 */
+	public const TRANSLATED_TERM_META = '_agnosis_translated_term';
+
 	// -------------------------------------------------------------------------
 	// Boot
 	// -------------------------------------------------------------------------
@@ -152,16 +187,24 @@ class LinguaForge {
 		// allowlist (see NEUTRAL_META_KEYS) from source to translation.
 		//
 		// LF 2.4.0 added linguaforge_translated_post_meta, which writes the meta as
-		// the translated post is *born* (no empty-meta window) — prefer it. On older
-		// LF, fall back to the post-save action, which also covers re-translation.
+		// the translated post is *born* (no empty-meta window) — prefer it when
+		// available. But that filter only ever fires on LF's create path
+		// (TranslationTrigger::create_translated_post()); update_translated_post()
+		// — the re-translation path — applies no meta filter at all. So
+		// copy_translated_meta() is ALSO registered on linguaforge_translation_complete
+		// unconditionally (not just as a pre-2.4.0 fallback): that action fires on
+		// both creation and re-translation, and copy_translated_meta() is a pure,
+		// idempotent update_post_meta() re-copy — on first creation it merely
+		// rewrites the values the born-with filter already supplied; on
+		// re-translation it's the only thing that refreshes stale images/meta on
+		// an existing translated sibling (fourth audit, §4b).
 		if (
 			defined( 'LINGUAFORGE_VERSION' )
 			&& version_compare( (string) LINGUAFORGE_VERSION, '2.4.0', '>=' )
 		) {
 			add_filter( 'linguaforge_translated_post_meta', [ $this, 'supply_translated_meta' ], 10, 4 );
-		} else {
-			add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 		}
+		add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 
 		// Tag / medium translation (2026-07-08). Unlike the meta-propagation
 		// above, this is NOT forked by LF version: LF 2.4.0's born-with filter
@@ -172,6 +215,17 @@ class LinguaForge {
 		// linguaforge_translation_complete, which — per copy_translated_meta()'s
 		// own docblock above — fires on both creation and re-translation either way.
 		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_terms' ], 10, 3 );
+
+		// Term-translation cache maintenance (fourth audit §4d): the cache is
+		// keyed by the term's NAME, so renaming a source term orphans its old
+		// cache entry (harmless — just an unbounded, unreachable row — but
+		// cheap to avoid). edit_terms fires just before WP writes the new
+		// name; edited_term fires just after, once the change is committed —
+		// capturing the pre-update name in the first and comparing it to the
+		// post-update name in the second is the standard WP pattern for
+		// detecting a rename (there is no single "term renamed" hook).
+		add_action( 'edit_terms',   [ $this, 'capture_pre_rename_term_name' ], 10, 2 );
+		add_action( 'edited_term',  [ $this, 'invalidate_renamed_term_cache' ], 10, 3 );
 
 		// SEO: Open Graph image override for artwork posts.
 		add_filter( 'linguaforge_seo_og_image',      [ $this, 'filter_og_image'       ], 10, 1 );
@@ -397,12 +451,17 @@ class LinguaForge {
 	}
 
 	/**
-	 * Pre-2.4.0 fallback: copy the meta after the translated post is saved.
+	 * Unconditional meta refresh: copy the meta after the translated post is saved.
 	 *
-	 * Hooked on `linguaforge_translation_complete`. Runs on both creation and
-	 * re-translation, so it also refreshes images if the source changes. There is a
-	 * brief window after creation where the post exists without these keys — which
-	 * is exactly why LF 2.4.0's born-complete filter (above) is preferred.
+	 * Hooked on `linguaforge_translation_complete` regardless of LF version. Runs
+	 * on both creation and re-translation, so it also refreshes images / event
+	 * meta / the translated display title if the source changes. On LF < 2.4.0
+	 * this is the only meta propagation path. On LF >= 2.4.0 it runs ALONGSIDE
+	 * supply_translated_meta() (the born-with filter, preferred for its no-empty-
+	 * window benefit on first creation) because that filter never fires on LF's
+	 * update/re-translation path — this method is what refreshes an already-
+	 * existing translated sibling. Idempotent: on first creation it merely
+	 * rewrites the values the born-with filter already supplied (fourth audit, §4b).
 	 *
 	 * @param int    $translated_id Newly created/updated translated post ID.
 	 * @param int    $source_id     Source post ID.
@@ -442,7 +501,8 @@ class LinguaForge {
 	 * cannot carry a taxonomy relationship — assigning one requires the post to
 	 * already have an ID, i.e. it can only happen after insert, which is
 	 * exactly why this is NOT forked by LF version the way supply_translated_meta()
-	 * / copy_translated_meta() are (see the constructor).
+	 * is (see the constructor) — unlike that filter, taxonomy assignment has no
+	 * "born-with" option at any LF version.
 	 *
 	 * `agnosis_medium` is a controlled vocabulary at AI-generation time — as of
 	 * 2026-07-08, `PromptConfig::medium_terms()` (live taxonomy terms, not the
@@ -481,6 +541,16 @@ class LinguaForge {
 	 * A source post with no terms in $taxonomy clears the translated post's own
 	 * terms too, rather than leaving a stale set behind from a previous
 	 * translation pass.
+	 *
+	 * Any translated name that doesn't already exist in $taxonomy is, by
+	 * definition, a term this method itself is about to create via
+	 * wp_set_object_terms()'s auto-create behaviour — not one an admin
+	 * deliberately added. Such terms are stamped with TRANSLATED_TERM_META so
+	 * `PromptConfig::medium_terms()` can exclude them from the AI's controlled
+	 * vocabulary (fourth audit §4c: without this, AI-translated term names
+	 * accumulate in `agnosis_medium`/`post_tag` indistinguishable from
+	 * admin-curated ones, polluting both the AI prompt's term list and the
+	 * admin taxonomy screens).
 	 */
 	private function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
 		$names = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'names' ] );
@@ -499,7 +569,19 @@ class LinguaForge {
 			$names
 		);
 
+		$new_names = array_filter(
+			$translated_names,
+			fn( string $name ) => ! term_exists( $name, $taxonomy )
+		);
+
 		wp_set_object_terms( $translated_id, $translated_names, $taxonomy );
+
+		foreach ( $new_names as $name ) {
+			$term = get_term_by( 'name', $name, $taxonomy );
+			if ( $term instanceof \WP_Term ) {
+				add_term_meta( $term->term_id, self::TRANSLATED_TERM_META, $target_lang, true );
+			}
+		}
 	}
 
 	/**
@@ -515,6 +597,17 @@ class LinguaForge {
 	 *
 	 * Falls back to the untranslated name — never blocks the sync — when no AI
 	 * provider is configured or a translation call returns empty.
+	 *
+	 * Cache-write race (fourth audit §4d, noted rather than fixed — see that
+	 * finding's rationale): this is a plain read-modify-write of a single WP
+	 * option, not an atomic increment. If two `linguaforge_translation_complete`
+	 * events land in the same cron window and both reach this method for
+	 * different terms before either has written back, the second `update_option()`
+	 * overwrites the first — one entry is silently lost. The only consequence is
+	 * that term getting re-translated (one extra AI call) the next time it's
+	 * encountered, not a corrupted cache or a wrong translation ever being
+	 * served — acceptable for a low-traffic admin-side cache, so left
+	 * unguarded rather than adding real locking for a cosmetic race.
 	 */
 	private function translated_term_name( string $name, string $taxonomy, string $target_lang ): string {
 		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
@@ -541,6 +634,110 @@ class LinguaForge {
 		update_option( self::TERM_TRANSLATIONS_OPTION, $cache, false );
 
 		return $translated;
+	}
+
+	// -------------------------------------------------------------------------
+	// Term-translation cache maintenance (fourth audit §4d)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Delete the entire term-translation cache. A bad AI translation of a
+	 * term label was otherwise permanent — nothing expired it and
+	 * re-translating the same source term always hit the cache by design.
+	 * The next sync for every (taxonomy, term, language) combination simply
+	 * re-translates from scratch. Exposed for the Settings → General "Clear
+	 * Term Translation Cache" action (see Admin\Settings::handle_clear_term_translations_cache()).
+	 */
+	public static function clear_term_translations_cache(): void {
+		delete_option( self::TERM_TRANSLATIONS_OPTION );
+	}
+
+	/** Total number of cached (taxonomy, term name, language) translations, for the Settings panel. */
+	public static function term_translation_cache_count(): int {
+		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
+		if ( ! is_array( $cache ) ) {
+			return 0;
+		}
+
+		$count = 0;
+		foreach ( $cache as $names ) {
+			foreach ( (array) $names as $langs ) {
+				$count += count( (array) $langs );
+			}
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Static holder for capture_pre_rename_term_name()'s "before" snapshot,
+	 * read by invalidate_renamed_term_cache() on the very next hook firing
+	 * for the same $term_id — WP fires edit_terms then edited_term as two
+	 * separate actions for the same save, with no built-in way to pass data
+	 * between them.
+	 *
+	 * @var array<int, string>
+	 */
+	private static array $pre_rename_names = [];
+
+	/**
+	 * `edit_terms` callback — snapshot the term's current name just before
+	 * WP overwrites it, so invalidate_renamed_term_cache() (hooked on the
+	 * `edited_term` action that follows) can tell whether this save actually
+	 * changed the name.
+	 *
+	 * Scoped to post_tag/agnosis_medium only — the two taxonomies this class
+	 * ever caches a translation for; no reason to do this lookup for every
+	 * term edit sitewide (categories, other custom taxonomies, etc.).
+	 */
+	public function capture_pre_rename_term_name( int $term_id, string $taxonomy ): void {
+		if ( ! in_array( $taxonomy, [ 'post_tag', 'agnosis_medium' ], true ) ) {
+			return;
+		}
+
+		$term = get_term( $term_id, $taxonomy );
+		if ( $term instanceof \WP_Term ) {
+			self::$pre_rename_names[ $term_id ] = $term->name;
+		}
+	}
+
+	/**
+	 * `edited_term` callback — if this save actually renamed the term (name
+	 * differs from the snapshot captured above), drop that taxonomy's cache
+	 * entries for the OLD name. The cache is keyed by name, not term ID, so a
+	 * rename otherwise leaves the old entry orphaned forever — harmless (it's
+	 * simply never read again) but unbounded, and a rename is also exactly
+	 * the moment an admin is most likely fixing a bad AI translation, which
+	 * is the scenario this cache existing at all is meant to help with.
+	 *
+	 * Every cached language for the old name is dropped, not just one — a
+	 * renamed term needs fresh translations into every language, same as a
+	 * brand new term would.
+	 */
+	public function invalidate_renamed_term_cache( int $term_id, int $tt_id, string $taxonomy ): void {
+		if ( ! in_array( $taxonomy, [ 'post_tag', 'agnosis_medium' ], true ) ) {
+			return;
+		}
+
+		$old_name = self::$pre_rename_names[ $term_id ] ?? null;
+		unset( self::$pre_rename_names[ $term_id ] );
+
+		if ( null === $old_name ) {
+			return;
+		}
+
+		$term = get_term( $term_id, $taxonomy );
+		if ( ! ( $term instanceof \WP_Term ) || $term->name === $old_name ) {
+			return; // Not actually a rename (or term vanished mid-request).
+		}
+
+		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
+		if ( ! isset( $cache[ $taxonomy ][ $old_name ] ) ) {
+			return;
+		}
+
+		unset( $cache[ $taxonomy ][ $old_name ] );
+		update_option( self::TERM_TRANSLATIONS_OPTION, $cache, false );
 	}
 
 	/**

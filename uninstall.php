@@ -13,7 +13,10 @@
  *   • the `agnosis_artist` role (its capabilities go with it);
  *   • the managed pages (/join/, My Submissions);
  *   • all scheduled cron events;
- *   • the uploads/agnosis-queue/ working directory.
+ *   • the uploads/agnosis-queue/ working directory;
+ *   • the wp-content/agnosis-debug/ directory (raw pipeline-tracing dumps —
+ *     contain artists' full raw emails when Settings → General → "Enable
+ *     debug logging" was ever turned on; fourth audit §5c).
  *
  * Deliberately PRESERVED — this is the artists'/operator's content, not the
  * plugin's to destroy on delete:
@@ -123,6 +126,26 @@ function agnosis_uninstall_site(): void {
 		if ( WP_Filesystem() && $wp_filesystem->is_dir( $queue_dir ) ) {
 			$wp_filesystem->delete( $queue_dir, true ); // recursive.
 		}
+	}
+
+	// 8. Debug-tracing directory (wp-content/agnosis-debug/) — fourth audit §5c.
+	// Deliberately outside uploads/ (see Core\Debug::dir()'s own docblock), so
+	// it isn't touched by step 7 above; can hold raw pipeline dumps, including
+	// artists' full raw emails, whenever debug logging was ever turned on.
+	// Not routed through Core\Debug::dir() itself — uninstall.php intentionally
+	// loads none of the plugin's classes, matching this file's existing
+	// dependency-free style — so a site that filtered `agnosis_debug_dir` to a
+	// non-default location (via a still-active mu-plugin) would need that
+	// filter to still be registered for this step to find it; the default
+	// location is what's covered here, same as step 7 covers only the default
+	// uploads-based queue path.
+	$debug_dir = ( defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content' ) . '/agnosis-debug';
+
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+
+	global $wp_filesystem;
+	if ( WP_Filesystem() && $wp_filesystem->is_dir( $debug_dir ) ) {
+		$wp_filesystem->delete( $debug_dir, true ); // recursive.
 	}
 }
 

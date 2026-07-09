@@ -111,6 +111,7 @@ class Plugin {
 			$this->loader->add_action( 'admin_enqueue_scripts', $settings, 'enqueue_assets' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_logs',         $settings, 'handle_clear_logs' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_debug_files', $settings, 'handle_clear_debug_files' );
+			$this->loader->add_action( 'admin_post_agnosis_clear_term_translations_cache', $settings, 'handle_clear_term_translations_cache' );
 			$this->loader->add_action( 'wp_ajax_agnosis_test_ai',              $settings, 'handle_test_ai' );
 			$this->loader->add_action( 'admin_post_agnosis_admit_application',    $settings, 'handle_admit_application' );
 			$this->loader->add_action( 'admin_post_agnosis_reject_application',   $settings, 'handle_reject_application' );
