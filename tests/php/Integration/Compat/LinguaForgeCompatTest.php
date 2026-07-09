@@ -34,6 +34,11 @@
  *   invalidate_renamed_term_cache() — drops a term's OLD cached translations when
  *                               it's renamed (not on any other kind of term edit),
  *                               scoped to post_tag/agnosis_medium only (fourth audit, §4d)
+ *   sync_translated_template()  — calls linguaforge_sync_templates() with the
+ *                               SOURCE post ID and check_caps=false; skips
+ *                               non-Agnosis source posts; hooked on
+ *                               linguaforge_translation_complete only when
+ *                               LINGUAFORGE_VERSION >= 2.6.1 (concern #8)
  *
  * @package Agnosis\Tests\Integration\Compat
  */
@@ -70,6 +75,9 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	/** Calls recorded by linguaforge_queue_translation() (LF 2.4.0+). */
 	public static array $queue_calls = [];
 
+	/** Calls recorded by linguaforge_sync_templates() (LF 2.6.1+). */
+	public static array $sync_templates_calls = [];
+
 	/** Return value for linguaforge_trigger_translation (int post ID or WP_Error). */
 	public static int|\WP_Error|null $trigger_return = null;
 
@@ -95,6 +103,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		self::$lf_languages  = null;
 		self::$trigger_calls = [];
 		self::$queue_calls   = [];
+		self::$sync_templates_calls = [];
 		self::$trigger_return = null;
 
 		$this->artwork_id = self::factory()->post->create( [
@@ -113,6 +122,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		self::$lf_languages   = null;
 		self::$trigger_calls  = [];
 		self::$queue_calls    = [];
+		self::$sync_templates_calls = [];
 		self::$trigger_return = null;
 		delete_option( 'agnosis_term_translations' );
 		parent::tearDown();
@@ -459,6 +469,59 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertNotFalse(
 			has_action( 'linguaforge_translation_complete', [ $lf, 'copy_translated_meta' ] ),
 			'copy_translated_meta() must be registered on linguaforge_translation_complete regardless of LINGUAFORGE_VERSION.'
+		);
+	}
+
+	// ── sync_translated_template(): template safeguard (LF >= 2.6.1 only) ──────
+
+	/**
+	 * sync_translated_template() must call LF's linguaforge_sync_templates()
+	 * with the SOURCE (primary-language) post ID, not the translated post ID —
+	 * that function walks every OTHER language in the source's own
+	 * translation group internally and errors on a secondary-language ID (see
+	 * this method's own docblock), so passing $translated_id here would be a
+	 * silent no-op against LF's real implementation.
+	 */
+	public function test_sync_translated_template_calls_linguaforge_sync_templates_with_source_id(): void {
+		( new LinguaForge() )->sync_translated_template( 4242, $this->artwork_id, 'es' );
+
+		$this->assertCount( 1, self::$sync_templates_calls );
+		$this->assertSame( $this->artwork_id, self::$sync_templates_calls[0]['post_id'] );
+		$this->assertFalse(
+			self::$sync_templates_calls[0]['check_caps'],
+			'Programmatic callers must not enforce current_user_can(), matching linguaforge_sync_templates()\'s own $check_caps convention for non-request contexts.'
+		);
+	}
+
+	public function test_sync_translated_template_skips_non_agnosis_source(): void {
+		( new LinguaForge() )->sync_translated_template( 4242, $this->page_id, 'es' );
+
+		$this->assertSame( [], self::$sync_templates_calls );
+	}
+
+	/**
+	 * This class's docblock (concern #8) documents sync_translated_template()
+	 * as hooked on linguaforge_translation_complete ONLY when LINGUAFORGE_VERSION
+	 * >= 2.6.1 — the version linguaforge_sync_templates() was introduced in.
+	 *
+	 * Caveat mirrors test_copy_translated_meta_is_hooked_on_translation_complete_unconditionally()'s
+	 * own: LINGUAFORGE_VERSION is a PHP constant fixed at '1.0.0-test' for this
+	 * entire test process (here and in several other Integration test files),
+	 * always below 2.6.1 — so this test cannot cross the boundary in the other
+	 * direction (it can't prove the hook IS added at >= 2.6.1). What it DOES
+	 * prove is the gate's negative case: below 2.6.1, the hook must NOT be
+	 * registered, guarding against ever hooking this unconditionally (which
+	 * would call an undefined LF function on any pre-2.6.1 site running
+	 * alongside Agnosis, before function_exists() inside the method itself
+	 * even gets a chance to no-op it — the method's own guard is a second,
+	 * independent safety net, not a substitute for gating the hook itself).
+	 */
+	public function test_sync_translated_template_is_not_hooked_below_2_6_1(): void {
+		$lf = new LinguaForge();
+
+		$this->assertFalse(
+			has_action( 'linguaforge_translation_complete', [ $lf, 'sync_translated_template' ] ),
+			'sync_translated_template() must not be registered while LINGUAFORGE_VERSION is below 2.6.1.'
 		);
 	}
 

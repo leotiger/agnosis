@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1783620936">
-  <project timestamp="1783620936">
+<coverage generated="1783630683">
+  <project timestamp="1783630683">
     <file name="/Users/tiger/Github/agnosis/includes/AI/DescriptionResult.php">
       <class name="Agnosis\AI\DescriptionResult" namespace="global">
         <metrics complexity="2" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="10" elements="12" coveredelements="12"/>
@@ -7018,277 +7018,287 @@
     </file>
     <file name="/Users/tiger/Github/agnosis/includes/Compat/LinguaForge.php">
       <class name="Agnosis\Compat\LinguaForge" namespace="global">
-        <metrics complexity="106" methods="27" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="245" coveredstatements="0" elements="272" coveredelements="0"/>
+        <metrics complexity="111" methods="28" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="254" coveredstatements="0" elements="282" coveredelements="0"/>
       </class>
-      <line num="149" type="method" name="__construct" visibility="public" complexity="5" crap="30" count="0"/>
-      <line num="152" type="stmt" count="0"/>
-      <line num="153" type="stmt" count="0"/>
-      <line num="156" type="stmt" count="0"/>
-      <line num="157" type="stmt" count="0"/>
-      <line num="161" type="stmt" count="0"/>
-      <line num="168" type="stmt" count="0"/>
+      <line num="168" type="method" name="__construct" visibility="public" complexity="7" crap="56" count="0"/>
+      <line num="171" type="stmt" count="0"/>
+      <line num="172" type="stmt" count="0"/>
       <line num="175" type="stmt" count="0"/>
-      <line num="182" type="stmt" count="0"/>
-      <line num="202" type="stmt" count="0"/>
-      <line num="203" type="stmt" count="0"/>
-      <line num="205" type="stmt" count="0"/>
-      <line num="207" type="stmt" count="0"/>
-      <line num="217" type="stmt" count="0"/>
-      <line num="227" type="stmt" count="0"/>
-      <line num="228" type="stmt" count="0"/>
-      <line num="231" type="stmt" count="0"/>
-      <line num="234" type="stmt" count="0"/>
-      <line num="253" type="method" name="set_language_meta" visibility="public" complexity="3" crap="12" count="0"/>
-      <line num="254" type="stmt" count="0"/>
+      <line num="176" type="stmt" count="0"/>
+      <line num="180" type="stmt" count="0"/>
+      <line num="187" type="stmt" count="0"/>
+      <line num="194" type="stmt" count="0"/>
+      <line num="201" type="stmt" count="0"/>
+      <line num="221" type="stmt" count="0"/>
+      <line num="222" type="stmt" count="0"/>
+      <line num="224" type="stmt" count="0"/>
+      <line num="226" type="stmt" count="0"/>
+      <line num="236" type="stmt" count="0"/>
+      <line num="241" type="stmt" count="0"/>
+      <line num="242" type="stmt" count="0"/>
+      <line num="244" type="stmt" count="0"/>
       <line num="255" type="stmt" count="0"/>
-      <line num="258" type="stmt" count="0"/>
-      <line num="260" type="stmt" count="0"/>
+      <line num="256" type="stmt" count="0"/>
+      <line num="259" type="stmt" count="0"/>
       <line num="262" type="stmt" count="0"/>
-      <line num="265" type="stmt" count="0"/>
-      <line num="285" type="method" name="schedule_translations" visibility="public" complexity="1" crap="2" count="0"/>
+      <line num="281" type="method" name="set_language_meta" visibility="public" complexity="3" crap="12" count="0"/>
+      <line num="282" type="stmt" count="0"/>
+      <line num="283" type="stmt" count="0"/>
       <line num="286" type="stmt" count="0"/>
-      <line num="313" type="method" name="schedule_fanout" visibility="public" complexity="4" crap="20" count="0"/>
+      <line num="288" type="stmt" count="0"/>
+      <line num="290" type="stmt" count="0"/>
+      <line num="293" type="stmt" count="0"/>
+      <line num="313" type="method" name="schedule_translations" visibility="public" complexity="1" crap="2" count="0"/>
       <line num="314" type="stmt" count="0"/>
-      <line num="315" type="stmt" count="0"/>
-      <line num="325" type="stmt" count="0"/>
-      <line num="327" type="stmt" count="0"/>
-      <line num="328" type="stmt" count="0"/>
-      <line num="343" type="method" name="dispatch_translations" visibility="public" complexity="1" crap="2" count="0"/>
-      <line num="344" type="stmt" count="0"/>
-      <line num="345" type="stmt" count="0"/>
-      <line num="369" type="method" name="request_translations" visibility="public" complexity="8" crap="72" count="0"/>
-      <line num="370" type="stmt" count="0"/>
-      <line num="371" type="stmt" count="0"/>
-      <line num="374" type="stmt" count="0"/>
-      <line num="375" type="stmt" count="0"/>
-      <line num="378" type="stmt" count="0"/>
-      <line num="379" type="stmt" count="0"/>
-      <line num="381" type="stmt" count="0"/>
-      <line num="382" type="stmt" count="0"/>
-      <line num="385" type="stmt" count="0"/>
-      <line num="386" type="stmt" count="0"/>
-      <line num="389" type="stmt" count="0"/>
-      <line num="392" type="stmt" count="0"/>
-      <line num="394" type="stmt" count="0"/>
-      <line num="397" type="stmt" count="0"/>
-      <line num="414" type="method" name="collect_neutral_meta" visibility="private" complexity="5" crap="30" count="0"/>
-      <line num="415" type="stmt" count="0"/>
+      <line num="341" type="method" name="schedule_fanout" visibility="public" complexity="4" crap="20" count="0"/>
+      <line num="342" type="stmt" count="0"/>
+      <line num="343" type="stmt" count="0"/>
+      <line num="353" type="stmt" count="0"/>
+      <line num="355" type="stmt" count="0"/>
+      <line num="356" type="stmt" count="0"/>
+      <line num="371" type="method" name="dispatch_translations" visibility="public" complexity="1" crap="2" count="0"/>
+      <line num="372" type="stmt" count="0"/>
+      <line num="373" type="stmt" count="0"/>
+      <line num="397" type="method" name="request_translations" visibility="public" complexity="8" crap="72" count="0"/>
+      <line num="398" type="stmt" count="0"/>
+      <line num="399" type="stmt" count="0"/>
+      <line num="402" type="stmt" count="0"/>
+      <line num="403" type="stmt" count="0"/>
+      <line num="406" type="stmt" count="0"/>
+      <line num="407" type="stmt" count="0"/>
+      <line num="409" type="stmt" count="0"/>
+      <line num="410" type="stmt" count="0"/>
+      <line num="413" type="stmt" count="0"/>
+      <line num="414" type="stmt" count="0"/>
       <line num="417" type="stmt" count="0"/>
-      <line num="418" type="stmt" count="0"/>
       <line num="420" type="stmt" count="0"/>
-      <line num="421" type="stmt" count="0"/>
+      <line num="422" type="stmt" count="0"/>
       <line num="425" type="stmt" count="0"/>
-      <line num="441" type="method" name="supply_translated_meta" visibility="public" complexity="2" crap="6" count="0"/>
-      <line num="442" type="stmt" count="0"/>
+      <line num="442" type="method" name="collect_neutral_meta" visibility="private" complexity="5" crap="30" count="0"/>
       <line num="443" type="stmt" count="0"/>
+      <line num="445" type="stmt" count="0"/>
       <line num="446" type="stmt" count="0"/>
-      <line num="447" type="stmt" count="0"/>
       <line num="448" type="stmt" count="0"/>
       <line num="449" type="stmt" count="0"/>
-      <line num="450" type="stmt" count="0"/>
-      <line num="471" type="method" name="copy_translated_meta" visibility="public" complexity="3" crap="12" count="0"/>
-      <line num="472" type="stmt" count="0"/>
-      <line num="473" type="stmt" count="0"/>
+      <line num="453" type="stmt" count="0"/>
+      <line num="469" type="method" name="supply_translated_meta" visibility="public" complexity="2" crap="6" count="0"/>
+      <line num="470" type="stmt" count="0"/>
+      <line num="471" type="stmt" count="0"/>
+      <line num="474" type="stmt" count="0"/>
+      <line num="475" type="stmt" count="0"/>
       <line num="476" type="stmt" count="0"/>
       <line num="477" type="stmt" count="0"/>
       <line num="478" type="stmt" count="0"/>
-      <line num="479" type="stmt" count="0"/>
-      <line num="481" type="stmt" count="0"/>
-      <line num="482" type="stmt" count="0"/>
-      <line num="520" type="method" name="sync_translated_terms" visibility="public" complexity="3" crap="12" count="0"/>
-      <line num="521" type="stmt" count="0"/>
-      <line num="522" type="stmt" count="0"/>
-      <line num="523" type="stmt" count="0"/>
-      <line num="526" type="stmt" count="0"/>
-      <line num="528" type="stmt" count="0"/>
-      <line num="529" type="stmt" count="0"/>
-      <line num="562" type="method" name="sync_taxonomy" visibility="private" complexity="11" crap="132" count="0"/>
-      <line num="563" type="stmt" count="0"/>
-      <line num="565" type="stmt" count="0"/>
-      <line num="566" type="stmt" count="0"/>
-      <line num="569" type="stmt" count="0"/>
-      <line num="570" type="stmt" count="0"/>
-      <line num="571" type="stmt" count="0"/>
-      <line num="574" type="stmt" count="0"/>
-      <line num="575" type="stmt" count="0"/>
-      <line num="576" type="stmt" count="0"/>
-      <line num="577" type="stmt" count="0"/>
-      <line num="591" type="stmt" count="0"/>
-      <line num="592" type="stmt" count="0"/>
+      <line num="499" type="method" name="copy_translated_meta" visibility="public" complexity="3" crap="12" count="0"/>
+      <line num="500" type="stmt" count="0"/>
+      <line num="501" type="stmt" count="0"/>
+      <line num="504" type="stmt" count="0"/>
+      <line num="505" type="stmt" count="0"/>
+      <line num="506" type="stmt" count="0"/>
+      <line num="507" type="stmt" count="0"/>
+      <line num="509" type="stmt" count="0"/>
+      <line num="510" type="stmt" count="0"/>
+      <line num="548" type="method" name="sync_translated_terms" visibility="public" complexity="3" crap="12" count="0"/>
+      <line num="549" type="stmt" count="0"/>
+      <line num="550" type="stmt" count="0"/>
+      <line num="551" type="stmt" count="0"/>
+      <line num="554" type="stmt" count="0"/>
+      <line num="556" type="stmt" count="0"/>
+      <line num="557" type="stmt" count="0"/>
+      <line num="592" type="method" name="sync_translated_template" visibility="public" complexity="3" crap="12" count="0"/>
       <line num="593" type="stmt" count="0"/>
       <line num="595" type="stmt" count="0"/>
       <line num="596" type="stmt" count="0"/>
-      <line num="597" type="stmt" count="0"/>
-      <line num="598" type="stmt" count="0"/>
       <line num="599" type="stmt" count="0"/>
-      <line num="601" type="stmt" count="0"/>
-      <line num="602" type="stmt" count="0"/>
-      <line num="603" type="stmt" count="0"/>
-      <line num="605" type="stmt" count="0"/>
-      <line num="608" type="stmt" count="0"/>
-      <line num="609" type="stmt" count="0"/>
-      <line num="611" type="stmt" count="0"/>
-      <line num="614" type="stmt" count="0"/>
-      <line num="616" type="stmt" count="0"/>
-      <line num="617" type="stmt" count="0"/>
-      <line num="620" type="stmt" count="0"/>
-      <line num="621" type="stmt" count="0"/>
-      <line num="622" type="stmt" count="0"/>
-      <line num="623" type="stmt" count="0"/>
-      <line num="656" type="method" name="resolve_numeric_term_name" visibility="private" complexity="4" crap="20" count="0"/>
-      <line num="657" type="stmt" count="0"/>
-      <line num="658" type="stmt" count="0"/>
-      <line num="659" type="stmt" count="0"/>
-      <line num="662" type="stmt" count="0"/>
-      <line num="663" type="stmt" count="0"/>
+      <line num="600" type="stmt" count="0"/>
+      <line num="604" type="stmt" count="0"/>
+      <line num="636" type="method" name="sync_taxonomy" visibility="private" complexity="11" crap="132" count="0"/>
+      <line num="637" type="stmt" count="0"/>
+      <line num="639" type="stmt" count="0"/>
+      <line num="640" type="stmt" count="0"/>
+      <line num="643" type="stmt" count="0"/>
+      <line num="644" type="stmt" count="0"/>
+      <line num="645" type="stmt" count="0"/>
+      <line num="648" type="stmt" count="0"/>
+      <line num="649" type="stmt" count="0"/>
+      <line num="650" type="stmt" count="0"/>
+      <line num="651" type="stmt" count="0"/>
+      <line num="665" type="stmt" count="0"/>
+      <line num="666" type="stmt" count="0"/>
+      <line num="667" type="stmt" count="0"/>
+      <line num="669" type="stmt" count="0"/>
       <line num="670" type="stmt" count="0"/>
       <line num="671" type="stmt" count="0"/>
-      <line num="674" type="stmt" count="0"/>
-      <line num="702" type="method" name="translated_term_name" visibility="private" complexity="4" crap="20" count="0"/>
-      <line num="703" type="stmt" count="0"/>
-      <line num="705" type="stmt" count="0"/>
-      <line num="706" type="stmt" count="0"/>
-      <line num="707" type="stmt" count="0"/>
-      <line num="710" type="stmt" count="0"/>
-      <line num="711" type="stmt" count="0"/>
-      <line num="712" type="stmt" count="0"/>
-      <line num="715" type="stmt" count="0"/>
-      <line num="716" type="stmt" count="0"/>
-      <line num="717" type="stmt" count="0"/>
-      <line num="720" type="stmt" count="0"/>
-      <line num="724" type="stmt" count="0"/>
-      <line num="726" type="stmt" count="0"/>
-      <line num="741" type="method" name="clear_term_translations_cache" visibility="public" complexity="1" crap="2" count="0"/>
-      <line num="742" type="stmt" count="0"/>
-      <line num="746" type="method" name="term_translation_cache_count" visibility="public" complexity="4" crap="20" count="0"/>
-      <line num="747" type="stmt" count="0"/>
+      <line num="672" type="stmt" count="0"/>
+      <line num="673" type="stmt" count="0"/>
+      <line num="675" type="stmt" count="0"/>
+      <line num="676" type="stmt" count="0"/>
+      <line num="677" type="stmt" count="0"/>
+      <line num="679" type="stmt" count="0"/>
+      <line num="682" type="stmt" count="0"/>
+      <line num="683" type="stmt" count="0"/>
+      <line num="685" type="stmt" count="0"/>
+      <line num="688" type="stmt" count="0"/>
+      <line num="690" type="stmt" count="0"/>
+      <line num="691" type="stmt" count="0"/>
+      <line num="694" type="stmt" count="0"/>
+      <line num="695" type="stmt" count="0"/>
+      <line num="696" type="stmt" count="0"/>
+      <line num="697" type="stmt" count="0"/>
+      <line num="730" type="method" name="resolve_numeric_term_name" visibility="private" complexity="4" crap="20" count="0"/>
+      <line num="731" type="stmt" count="0"/>
+      <line num="732" type="stmt" count="0"/>
+      <line num="733" type="stmt" count="0"/>
+      <line num="736" type="stmt" count="0"/>
+      <line num="737" type="stmt" count="0"/>
+      <line num="744" type="stmt" count="0"/>
+      <line num="745" type="stmt" count="0"/>
       <line num="748" type="stmt" count="0"/>
-      <line num="749" type="stmt" count="0"/>
-      <line num="752" type="stmt" count="0"/>
-      <line num="753" type="stmt" count="0"/>
-      <line num="754" type="stmt" count="0"/>
-      <line num="755" type="stmt" count="0"/>
-      <line num="759" type="stmt" count="0"/>
-      <line num="783" type="method" name="capture_pre_rename_term_name" visibility="public" complexity="3" crap="12" count="0"/>
+      <line num="776" type="method" name="translated_term_name" visibility="private" complexity="4" crap="20" count="0"/>
+      <line num="777" type="stmt" count="0"/>
+      <line num="779" type="stmt" count="0"/>
+      <line num="780" type="stmt" count="0"/>
+      <line num="781" type="stmt" count="0"/>
       <line num="784" type="stmt" count="0"/>
       <line num="785" type="stmt" count="0"/>
-      <line num="788" type="stmt" count="0"/>
+      <line num="786" type="stmt" count="0"/>
       <line num="789" type="stmt" count="0"/>
       <line num="790" type="stmt" count="0"/>
-      <line num="807" type="method" name="invalidate_renamed_term_cache" visibility="public" complexity="6" crap="42" count="0"/>
-      <line num="808" type="stmt" count="0"/>
-      <line num="809" type="stmt" count="0"/>
-      <line num="812" type="stmt" count="0"/>
-      <line num="813" type="stmt" count="0"/>
-      <line num="815" type="stmt" count="0"/>
+      <line num="791" type="stmt" count="0"/>
+      <line num="794" type="stmt" count="0"/>
+      <line num="798" type="stmt" count="0"/>
+      <line num="800" type="stmt" count="0"/>
+      <line num="815" type="method" name="clear_term_translations_cache" visibility="public" complexity="1" crap="2" count="0"/>
       <line num="816" type="stmt" count="0"/>
-      <line num="819" type="stmt" count="0"/>
-      <line num="820" type="stmt" count="0"/>
+      <line num="820" type="method" name="term_translation_cache_count" visibility="public" complexity="4" crap="20" count="0"/>
       <line num="821" type="stmt" count="0"/>
-      <line num="824" type="stmt" count="0"/>
-      <line num="825" type="stmt" count="0"/>
+      <line num="822" type="stmt" count="0"/>
+      <line num="823" type="stmt" count="0"/>
       <line num="826" type="stmt" count="0"/>
+      <line num="827" type="stmt" count="0"/>
+      <line num="828" type="stmt" count="0"/>
       <line num="829" type="stmt" count="0"/>
-      <line num="830" type="stmt" count="0"/>
-      <line num="846" type="method" name="collect_translated_title" visibility="private" complexity="4" crap="20" count="0"/>
-      <line num="847" type="stmt" count="0"/>
-      <line num="849" type="stmt" count="0"/>
-      <line num="850" type="stmt" count="0"/>
-      <line num="853" type="stmt" count="0"/>
-      <line num="880" type="method" name="hold_artist_title" visibility="public" complexity="4" crap="20" count="0"/>
-      <line num="881" type="stmt" count="0"/>
+      <line num="833" type="stmt" count="0"/>
+      <line num="857" type="method" name="capture_pre_rename_term_name" visibility="public" complexity="3" crap="12" count="0"/>
+      <line num="858" type="stmt" count="0"/>
+      <line num="859" type="stmt" count="0"/>
+      <line num="862" type="stmt" count="0"/>
+      <line num="863" type="stmt" count="0"/>
+      <line num="864" type="stmt" count="0"/>
+      <line num="881" type="method" name="invalidate_renamed_term_cache" visibility="public" complexity="6" crap="42" count="0"/>
+      <line num="882" type="stmt" count="0"/>
       <line num="883" type="stmt" count="0"/>
-      <line num="884" type="stmt" count="0"/>
+      <line num="886" type="stmt" count="0"/>
       <line num="887" type="stmt" count="0"/>
-      <line num="888" type="stmt" count="0"/>
       <line num="889" type="stmt" count="0"/>
-      <line num="892" type="stmt" count="0"/>
-      <line num="910" type="method" name="build_title_translations" visibility="public" complexity="7" crap="56" count="0"/>
-      <line num="911" type="stmt" count="0"/>
-      <line num="912" type="stmt" count="0"/>
-      <line num="915" type="stmt" count="0"/>
-      <line num="916" type="stmt" count="0"/>
-      <line num="917" type="stmt" count="0"/>
-      <line num="920" type="stmt" count="0"/>
+      <line num="890" type="stmt" count="0"/>
+      <line num="893" type="stmt" count="0"/>
+      <line num="894" type="stmt" count="0"/>
+      <line num="895" type="stmt" count="0"/>
+      <line num="898" type="stmt" count="0"/>
+      <line num="899" type="stmt" count="0"/>
+      <line num="900" type="stmt" count="0"/>
+      <line num="903" type="stmt" count="0"/>
+      <line num="904" type="stmt" count="0"/>
+      <line num="920" type="method" name="collect_translated_title" visibility="private" complexity="4" crap="20" count="0"/>
       <line num="921" type="stmt" count="0"/>
-      <line num="922" type="stmt" count="0"/>
       <line num="923" type="stmt" count="0"/>
-      <line num="926" type="stmt" count="0"/>
+      <line num="924" type="stmt" count="0"/>
       <line num="927" type="stmt" count="0"/>
-      <line num="928" type="stmt" count="0"/>
-      <line num="937" type="stmt" count="0"/>
-      <line num="939" type="stmt" count="0"/>
-      <line num="940" type="stmt" count="0"/>
-      <line num="958" type="method" name="filter_og_image" visibility="public" complexity="4" crap="20" count="0"/>
-      <line num="959" type="stmt" count="0"/>
-      <line num="960" type="stmt" count="0"/>
+      <line num="954" type="method" name="hold_artist_title" visibility="public" complexity="4" crap="20" count="0"/>
+      <line num="955" type="stmt" count="0"/>
+      <line num="957" type="stmt" count="0"/>
+      <line num="958" type="stmt" count="0"/>
       <line num="961" type="stmt" count="0"/>
-      <line num="964" type="stmt" count="0"/>
-      <line num="965" type="stmt" count="0"/>
-      <line num="978" type="method" name="filter_schema_type" visibility="public" complexity="2" crap="6" count="0"/>
-      <line num="979" type="stmt" count="0"/>
-      <line num="980" type="stmt" count="0"/>
-      <line num="983" type="stmt" count="0"/>
-      <line num="991" type="method" name="is_active" visibility="public" complexity="2" crap="6" count="0"/>
-      <line num="992" type="stmt" count="0"/>
-      <line num="1021" type="method" name="current_lang_path_prefix" visibility="public" complexity="6" crap="42" count="0"/>
-      <line num="1022" type="stmt" count="0"/>
-      <line num="1023" type="stmt" count="0"/>
-      <line num="1027" type="stmt" count="0"/>
-      <line num="1029" type="stmt" count="0"/>
-      <line num="1042" type="method" name="get_target_languages" visibility="private" complexity="3" crap="12" count="0"/>
-      <line num="1043" type="stmt" count="0"/>
-      <line num="1044" type="stmt" count="0"/>
-      <line num="1048" type="stmt" count="0"/>
-      <line num="1050" type="stmt" count="0"/>
-      <line num="1051" type="stmt" count="0"/>
+      <line num="962" type="stmt" count="0"/>
+      <line num="963" type="stmt" count="0"/>
+      <line num="966" type="stmt" count="0"/>
+      <line num="984" type="method" name="build_title_translations" visibility="public" complexity="7" crap="56" count="0"/>
+      <line num="985" type="stmt" count="0"/>
+      <line num="986" type="stmt" count="0"/>
+      <line num="989" type="stmt" count="0"/>
+      <line num="990" type="stmt" count="0"/>
+      <line num="991" type="stmt" count="0"/>
+      <line num="994" type="stmt" count="0"/>
+      <line num="995" type="stmt" count="0"/>
+      <line num="996" type="stmt" count="0"/>
+      <line num="997" type="stmt" count="0"/>
+      <line num="1000" type="stmt" count="0"/>
+      <line num="1001" type="stmt" count="0"/>
+      <line num="1002" type="stmt" count="0"/>
+      <line num="1011" type="stmt" count="0"/>
+      <line num="1013" type="stmt" count="0"/>
+      <line num="1014" type="stmt" count="0"/>
+      <line num="1032" type="method" name="filter_og_image" visibility="public" complexity="4" crap="20" count="0"/>
+      <line num="1033" type="stmt" count="0"/>
+      <line num="1034" type="stmt" count="0"/>
+      <line num="1035" type="stmt" count="0"/>
+      <line num="1038" type="stmt" count="0"/>
+      <line num="1039" type="stmt" count="0"/>
+      <line num="1052" type="method" name="filter_schema_type" visibility="public" complexity="2" crap="6" count="0"/>
+      <line num="1053" type="stmt" count="0"/>
       <line num="1054" type="stmt" count="0"/>
-      <line num="1055" type="stmt" count="0"/>
-      <line num="1056" type="stmt" count="0"/>
       <line num="1057" type="stmt" count="0"/>
-      <line num="1071" type="method" name="locale_to_lang" visibility="public" complexity="1" crap="2" count="0"/>
-      <line num="1073" type="stmt" count="0"/>
-      <line num="1092" type="method" name="compatibility_notices" visibility="public" complexity="5" crap="30" count="0"/>
-      <line num="1093" type="stmt" count="0"/>
-      <line num="1094" type="stmt" count="0"/>
-      <line num="1098" type="stmt" count="0"/>
-      <line num="1099" type="stmt" count="0"/>
-      <line num="1104" type="stmt" count="0"/>
-      <line num="1105" type="stmt" count="0"/>
-      <line num="1107" type="stmt" count="0"/>
-      <line num="1110" type="stmt" count="0"/>
-      <line num="1114" type="stmt" count="0"/>
-      <line num="1115" type="stmt" count="0"/>
-      <line num="1116" type="stmt" count="0"/>
+      <line num="1065" type="method" name="is_active" visibility="public" complexity="2" crap="6" count="0"/>
+      <line num="1066" type="stmt" count="0"/>
+      <line num="1095" type="method" name="current_lang_path_prefix" visibility="public" complexity="6" crap="42" count="0"/>
+      <line num="1096" type="stmt" count="0"/>
+      <line num="1097" type="stmt" count="0"/>
+      <line num="1101" type="stmt" count="0"/>
+      <line num="1103" type="stmt" count="0"/>
+      <line num="1116" type="method" name="get_target_languages" visibility="private" complexity="3" crap="12" count="0"/>
       <line num="1117" type="stmt" count="0"/>
       <line num="1118" type="stmt" count="0"/>
-      <line num="1119" type="stmt" count="0"/>
-      <line num="1120" type="stmt" count="0"/>
-      <line num="1121" type="stmt" count="0"/>
       <line num="1122" type="stmt" count="0"/>
-      <line num="1123" type="stmt" count="0"/>
       <line num="1124" type="stmt" count="0"/>
       <line num="1125" type="stmt" count="0"/>
-      <line num="1126" type="stmt" count="0"/>
-      <line num="1127" type="stmt" count="0"/>
       <line num="1128" type="stmt" count="0"/>
       <line num="1129" type="stmt" count="0"/>
       <line num="1130" type="stmt" count="0"/>
-      <line num="1132" type="stmt" count="0"/>
-      <line num="1133" type="stmt" count="0"/>
-      <line num="1134" type="stmt" count="0"/>
-      <line num="1135" type="stmt" count="0"/>
-      <line num="1136" type="stmt" count="0"/>
-      <line num="1137" type="stmt" count="0"/>
-      <line num="1138" type="stmt" count="0"/>
-      <line num="1139" type="stmt" count="0"/>
-      <line num="1140" type="stmt" count="0"/>
-      <line num="1141" type="stmt" count="0"/>
-      <line num="1142" type="stmt" count="0"/>
-      <line num="1143" type="stmt" count="0"/>
-      <line num="1144" type="stmt" count="0"/>
-      <line num="1145" type="stmt" count="0"/>
-      <metrics loc="1148" ncloc="495" classes="1" methods="27" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="245" coveredstatements="0" elements="272" coveredelements="0"/>
+      <line num="1131" type="stmt" count="0"/>
+      <line num="1145" type="method" name="locale_to_lang" visibility="public" complexity="1" crap="2" count="0"/>
+      <line num="1147" type="stmt" count="0"/>
+      <line num="1166" type="method" name="compatibility_notices" visibility="public" complexity="5" crap="30" count="0"/>
+      <line num="1167" type="stmt" count="0"/>
+      <line num="1168" type="stmt" count="0"/>
+      <line num="1172" type="stmt" count="0"/>
+      <line num="1173" type="stmt" count="0"/>
+      <line num="1178" type="stmt" count="0"/>
+      <line num="1179" type="stmt" count="0"/>
+      <line num="1181" type="stmt" count="0"/>
+      <line num="1184" type="stmt" count="0"/>
+      <line num="1188" type="stmt" count="0"/>
+      <line num="1189" type="stmt" count="0"/>
+      <line num="1190" type="stmt" count="0"/>
+      <line num="1191" type="stmt" count="0"/>
+      <line num="1192" type="stmt" count="0"/>
+      <line num="1193" type="stmt" count="0"/>
+      <line num="1194" type="stmt" count="0"/>
+      <line num="1195" type="stmt" count="0"/>
+      <line num="1196" type="stmt" count="0"/>
+      <line num="1197" type="stmt" count="0"/>
+      <line num="1198" type="stmt" count="0"/>
+      <line num="1199" type="stmt" count="0"/>
+      <line num="1200" type="stmt" count="0"/>
+      <line num="1201" type="stmt" count="0"/>
+      <line num="1202" type="stmt" count="0"/>
+      <line num="1203" type="stmt" count="0"/>
+      <line num="1204" type="stmt" count="0"/>
+      <line num="1206" type="stmt" count="0"/>
+      <line num="1207" type="stmt" count="0"/>
+      <line num="1208" type="stmt" count="0"/>
+      <line num="1209" type="stmt" count="0"/>
+      <line num="1210" type="stmt" count="0"/>
+      <line num="1211" type="stmt" count="0"/>
+      <line num="1212" type="stmt" count="0"/>
+      <line num="1213" type="stmt" count="0"/>
+      <line num="1214" type="stmt" count="0"/>
+      <line num="1215" type="stmt" count="0"/>
+      <line num="1216" type="stmt" count="0"/>
+      <line num="1217" type="stmt" count="0"/>
+      <line num="1218" type="stmt" count="0"/>
+      <line num="1219" type="stmt" count="0"/>
+      <metrics loc="1222" ncloc="517" classes="1" methods="28" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="254" coveredstatements="0" elements="282" coveredelements="0"/>
     </file>
     <file name="/Users/tiger/Github/agnosis/includes/Core/Activator.php">
       <class name="Agnosis\Core\Activator" namespace="global">
@@ -13830,6 +13840,6 @@
       <line num="632" type="stmt" count="0"/>
       <metrics loc="635" ncloc="497" classes="1" methods="15" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="190" coveredstatements="0" elements="205" coveredelements="0"/>
     </file>
-    <metrics files="73" loc="30181" ncloc="20535" classes="72" methods="688" coveredmethods="57" conditionals="0" coveredconditionals="0" statements="12718" coveredstatements="955" elements="13406" coveredelements="1012"/>
+    <metrics files="73" loc="30255" ncloc="20557" classes="72" methods="689" coveredmethods="57" conditionals="0" coveredconditionals="0" statements="12727" coveredstatements="955" elements="13416" coveredelements="1012"/>
   </project>
 </coverage>

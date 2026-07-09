@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.12
+Stable tag: 0.9.13
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.13 =
+* Added: A free, no-AI safety net that double-checks translated artwork/biography/event pages are using the correct language-specific page template, on sites running Lingua Forge 2.6.1 or later. Runs automatically after every translation; does nothing on older Lingua Forge versions.
+
 = 0.9.12 =
 * Fixed: Emailing `remove@` or `promote@` with a title that didn't exactly match one of your artworks or events used to do nothing at all, with no explanation — you'd think it worked and never find out it hadn't. You'll now get an email explaining the title wasn't found, listing your current titles, and — when we can make a good guess — suggesting the one you probably meant (with a one-click confirmation link, for removals). Promoting an artwork to featured now also sends a confirmation email when it works, which it never did before.
 * Fixed: The `[Biography]`, `[Event]`, `[Photo]`, and `[Pure]` subject-line shortcuts only worked in English. They now also recognize their equivalents in every language this plugin ships translations for.
@@ -81,15 +84,5 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Changed: The review email an artist gets when their submission needs approval is now translated more efficiently, and the confirmation page they click through to reuses that same translation instead of doing its own — lowering the AI cost of your most common artist-facing email without changing what it says.
 * Changed: Translating an artwork's title into every language your site supports is now done in a single AI request instead of one request per language, lowering the AI cost of every artwork you publish on a multilingual site.
 * Changed: Submitting several images in one artwork email is now noticeably cheaper to process — only the image actually used for the post's title and description gets the full AI analysis; the other images in the gallery get a lighter pass that still generates their accessibility text, tags, and photo-quality check, just without the parts that were never published anyway.
-
-= 0.9.11 =
-* Fixed: Editing an artwork's title, correcting an event's date/location, or replacing an artwork's photo after it had already been translated into other languages didn't always reach those translated pages — depending on your Lingua Forge version, a re-translated page could keep showing the old image, the old event details, or a stale subtitle next to the corrected title. Re-translations now always refresh the translated page's images, event details, and display title to match the source.
-* Fixed: The "Publish this artwork?" confirmation page reachable from a review email could show a draft's title, description, and text to anyone who guessed its link, and a forged version of that link could overwrite the artwork's translated subtitle — both without the link actually being valid. The link is now checked for validity before anything is shown or changed.
-* Fixed: If email authentication (Settings → Email → "Require SPF/DKIM authentication") was turned on, it didn't actually apply to the Community announcement or self-removal ("goodbye") addresses — someone could still fake being another artist to send a community message or trigger a removal confirmation in their name. Authentication now applies to both. Self-removal requests are also now limited per sender per day (Settings → Community), matching the existing limit on community announcements.
-* Fixed: A community announcement could accidentally set off a chain reaction — if a recipient had an "out of office" auto-reply turned on, it could land back on the community address and get rebroadcast to everyone as if it were a new message. Community announcements now tell mail servers not to send auto-replies to them, and an incoming message that's itself an auto-reply is no longer rebroadcast.
-* Fixed: When an artwork's tags or medium (e.g. "Oil Painting") were translated onto a translated page, the translated version of the term could quietly join the site's real vocabulary — offered to the AI, and even auto-assignable, for artwork in an entirely different language, and cluttering the Mediums list in the admin with machine-generated entries no one added on purpose. Translated terms created this way are now recognized and kept out of the AI's vocabulary and left for admins to clean up rather than mixing them in.
-* Fixed: If you ever turned on debug logging (Settings → General), the raw diagnostic files it wrote — which can include a full copy of an artist's email — were never automatically cleaned up, and deleting the plugin entirely left them behind too. Old debug files are now deleted automatically after 14 days by default (configurable under Settings → General), whether or not debug logging is still turned on, and deleting the plugin now removes the debug folder along with everything else it created.
-* Fixed: If the "After applying, send artists to" page had a translation that was still a draft, an applicant could be sent straight to that unpublished page and see a broken link instead of the page they expected. Artists are now only sent to a translated version of the page once it's actually published.
-* Fixed: If Lingua Forge ever produced a bad AI translation of a tag or medium name, there was no way to make it try again — it was cached permanently. A new "Term Translation Cache" panel under Settings → General shows how many translations are cached and lets you clear them; renaming a tag or medium now also automatically clears its own cached translation.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.

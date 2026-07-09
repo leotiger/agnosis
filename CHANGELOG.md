@@ -5,6 +5,14 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.13] — 2026-07-09
+
+### Added
+- **Template safeguard for translated posts, on Lingua Forge >= 2.6.1.** Lingua Forge 2.6.1 fixed a bug where `TranslationTrigger::create_translated_post()` — the function Agnosis's own translation trigger (`request_translations()`) always goes through — never assigned a translated post its language-specific FSE template (`_wp_page_template`), even when a matching `single-{post_type}-{lang}` template already existed in the database (e.g. one scaffolded via Lingua Forge's own Settings → Router FSE tools). LF 2.6.1 also shipped `linguaforge_sync_templates( $post_id, $check_caps )`, a free, non-AI, content-untouched call that re-resolves and re-writes the correct template across every sibling in a translation group — documented by LF as "safe to run repeatedly." New `Compat\LinguaForge::sync_translated_template()`, hooked on `linguaforge_translation_complete` only when `LINGUAFORGE_VERSION >= 2.6.1`, calls it (with the source/primary post ID, `$check_caps = false`) after every translation completes. This is additive defense-in-depth on top of LF's own fix, not a workaround for its absence — it protects against future template drift from a theme change, a template rename, or a future LF regression, at no ongoing cost. No-ops entirely on any LF version before 2.6.1. (`includes/Compat/LinguaForge.php`)
+
+### Tests
+- **`LinguaForgeCompatTest`** gained coverage for the safeguard above: `sync_translated_template()` calls `linguaforge_sync_templates()` with the source post's ID (not the translated post's) and `$check_caps = false`; it's a no-op for a non-Agnosis source post type; and — mirroring the existing `copy_translated_meta()` version-gate regression test's own documented caveat about `LINGUAFORGE_VERSION` being fixed at `'1.0.0-test'` for the whole test process — a new test proves the negative case directly testable under that fixed stub: the hook is NOT registered while `LINGUAFORGE_VERSION` is below 2.6.1. New `linguaforge_sync_templates()` global stub added alongside the existing `linguaforge_trigger_translation()`/`linguaforge_queue_translation()` stubs. (`tests/php/Integration/Compat/LinguaForgeCompatTest.php`, `tests/php/Integration/Compat/Stubs/lf_global_stubs.php`)
+
 ## [0.9.12]
 
 ### Fixed

@@ -96,3 +96,19 @@ if ( ! function_exists( 'linguaforge_queue_translation' ) ) {
 		];
 	}
 }
+
+if ( ! function_exists( 'linguaforge_sync_templates' ) ) {
+	/**
+	 * Stub for LF's template-only safeguard sync (LF 2.6.1+).
+	 * Records every call in $sync_templates_calls so tests can assert on them.
+	 *
+	 * @return array{success:bool,results?:array<string,mixed>}
+	 */
+	function linguaforge_sync_templates( int $post_id, bool $check_caps = false ): array {
+		\Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest::$sync_templates_calls[] = [
+			'post_id'    => $post_id,
+			'check_caps' => $check_caps,
+		];
+		return [ 'success' => true, 'results' => [] ];
+	}
+}

@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:        
-  2026-07-09 18:15:38        
+  2026-07-09 20:58:05        
                              
  Summary:                    
   Classes:  4.17% (3/72)     
-  Methods:  8.28% (57/688)   
-  Lines:    7.51% (955/12718)
+  Methods:  8.27% (57/689)   
+  Lines:    7.50% (955/12727)
 
 Agnosis\AI\DescriptionResult
   Methods: 100.00% ( 2/ 2)   Lines: 100.00% ( 10/ 10)
@@ -65,7 +65,7 @@ Agnosis\Artist\RemovalVoteConfirm
 Agnosis\Artist\VouchConfirm
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/108)
 Agnosis\Compat\LinguaForge
-  Methods:   0.00% ( 0/27)   Lines:   0.00% (  0/245)
+  Methods:   0.00% ( 0/28)   Lines:   0.00% (  0/254)
 Agnosis\Core\Activator
   Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/295)
 Agnosis\Core\CommunityMailer

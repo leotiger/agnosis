@@ -5,7 +5,7 @@
  * Integrates Agnosis with Lingua Forge (the official translation plugin for
  * the Agnosis network) when both plugins are active on the same site.
  *
- * What this does when Lingua Forge is present — seven concerns, registered in
+ * What this does when Lingua Forge is present — eight concerns, registered in
  * the constructor in this order:
  *
  *  1. LANGUAGE META — tags every new artwork post with `_lf_lang` (the source
@@ -48,6 +48,25 @@
  *
  *  7. ARTWORK SCHEMA — hooks into LF's `linguaforge_seo_schema_data` filter
  *     to annotate artwork posts as `VisualArtwork` rather than generic `Article`.
+ *
+ *  8. TEMPLATE SAFEGUARD — LF >= 2.6.1 only. LF 2.6.1 fixed
+ *     `TranslationTrigger::create_translated_post()` (the function Agnosis's
+ *     own translation trigger above always goes through) so a newly created
+ *     translation is correctly assigned its language-specific FSE template
+ *     (`single-{post_type}-{lang}`) when one already exists in the DB. This
+ *     is a defense-in-depth call on top of that fix, not a workaround for its
+ *     absence: `sync_translated_template()` calls LF's new
+ *     `linguaforge_sync_templates()` (also 2.6.1) after every translation
+ *     completes, which re-resolves and re-writes `_wp_page_template` for
+ *     every sibling in the post's translation group. It makes no AI call and
+ *     touches no content — LF's own changelog documents it as "free to run
+ *     and safe to run repeatedly" — so keeping it as a standing safeguard
+ *     costs nothing even now that the underlying bug is fixed, and continues
+ *     to protect against template drift from a future theme change, template
+ *     rename, or an LF regression, without Agnosis needing to know any of
+ *     LF's own template-resolution logic itself. No-ops entirely on any LF
+ *     version before 2.6.1 (function_exists() guard) — the fix above still
+ *     applies on 2.6.1+ either way, this is additive only.
  *
  * When Lingua Forge is NOT active, this class does nothing — all hooks are
  * registered conditionally. No hard dependency.
@@ -215,6 +234,15 @@ class LinguaForge {
 		// linguaforge_translation_complete, which — per copy_translated_meta()'s
 		// own docblock above — fires on both creation and re-translation either way.
 		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_terms' ], 10, 3 );
+
+		// Template safeguard (2026-07-09) — LF >= 2.6.1 only. See concern #8
+		// above for why this is additive defense-in-depth, not a workaround.
+		if (
+			defined( 'LINGUAFORGE_VERSION' )
+			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.1', '>=' )
+		) {
+			add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_template' ], 10, 3 );
+		}
 
 		// Term-translation cache maintenance (fourth audit §4d): the cache is
 		// keyed by the term's NAME, so renaming a source term orphans its old
@@ -528,6 +556,52 @@ class LinguaForge {
 		if ( 'agnosis_artwork' === $post_type ) {
 			$this->sync_taxonomy( $source_id, $translated_id, 'agnosis_medium', $target_lang );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Template safeguard (LF >= 2.6.1 only)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Re-resolve and re-write `_wp_page_template` across an entire translation
+	 * group after a translation completes — a free, no-AI, no-content-touching
+	 * safeguard on top of LF 2.6.1's own fix for this (see concern #8 in this
+	 * class's docblock for the full history).
+	 *
+	 * `linguaforge_sync_templates()` must be called with the PRIMARY/source-
+	 * language post ID — it returns an error (silently ignored here; there is
+	 * nothing actionable to do with it) when given a secondary-language ID —
+	 * and internally walks every OTHER language in the post's translation
+	 * group, so a single call after any one language's translation completes
+	 * re-verifies the template assignment for every sibling, not just the one
+	 * that just finished. Deliberately not scoped to $target_lang for that
+	 * reason: passing $translated_id or checking $target_lang would miss the
+	 * "fix every sibling" behaviour this function is designed to provide.
+	 *
+	 * Hooked only when LF >= 2.6.1 (see constructor) — this function does not
+	 * exist on older LF, and LF 2.6.1's own TranslationTrigger fix already
+	 * covers this class's normal translation-creation path regardless, so
+	 * there is nothing to work around on an older version; this is purely
+	 * additive insurance against future drift (a theme change, a template
+	 * rename, or an LF regression), not a fix for a known gap.
+	 *
+	 * @param int    $translated_id Newly created/updated translated post ID (unused — see above).
+	 * @param int    $source_id     Source (primary-language) post ID.
+	 * @param string $target_lang   Target language code (unused — see above).
+	 */
+	public function sync_translated_template( int $translated_id, int $source_id, string $target_lang ): void {
+		unset( $translated_id, $target_lang );
+
+		if ( ! in_array( get_post_type( $source_id ), self::AGNOSIS_POST_TYPES, true ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'linguaforge_sync_templates' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		linguaforge_sync_templates( $source_id, false );
 	}
 
 	/**
