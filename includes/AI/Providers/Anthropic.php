@@ -119,6 +119,92 @@ class Anthropic implements ProviderInterface {
 		);
 	}
 
+	/**
+	 * Slim description pass for secondary gallery images (fifth audit §4c) —
+	 * see ProviderInterface::describe_secondary()'s docblock for the full
+	 * rationale. Same vision call shape as describe() — the image itself is
+	 * still sent at full resolution, only the system prompt is fixed and much
+	 * shorter, no artist-context user message is sent, and max_tokens is cut
+	 * to match the tiny JSON response this asks for.
+	 */
+	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+		if ( empty( $this->api_key ) ) {
+			return DescriptionResult::failure( 'Anthropic API key not configured.' );
+		}
+
+		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
+		$image_b64         = base64_encode( $vision_image_data );
+
+		$body = wp_json_encode( [
+			'model'      => $this->model,
+			'max_tokens' => 300,
+			'system'     => PromptConfig::secondary_system_prompt(),
+			'messages'   => [
+				[
+					'role'    => 'user',
+					'content' => [
+						[
+							'type'   => 'image',
+							'source' => [
+								'type'       => 'base64',
+								'media_type' => $mime_type,
+								'data'       => $image_b64,
+							],
+						],
+					],
+				],
+			],
+		] );
+
+		if ( false === $body ) {
+			return DescriptionResult::failure( 'JSON encoding failed.' );
+		}
+
+		$response = wp_remote_post( self::API_URL, [
+			'timeout' => 60,
+			'headers' => [
+				'x-api-key'         => $this->api_key,
+				'anthropic-version' => '2023-06-01',
+				'content-type'      => 'application/json',
+			],
+			'body'    => $body,
+		] );
+
+		if ( is_wp_error( $response ) ) {
+			return DescriptionResult::failure( $response->get_error_message() );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$raw  = wp_remote_retrieve_body( $response );
+		$data = json_decode( $raw, true );
+
+		if ( $code !== 200 || ! isset( $data['content'][0]['text'] ) ) {
+			return DescriptionResult::failure( 'Anthropic API error: ' . $raw );
+		}
+
+		$json = json_decode( $data['content'][0]['text'], true );
+
+		if ( ! is_array( $json ) ) {
+			return DescriptionResult::failure( 'Claude returned non-JSON response.' );
+		}
+
+		$quality        = is_array( $json['photo_quality'] ?? null ) ? $json['photo_quality'] : [];
+		$quality_score  = max( 0, min( 10, (int) ( $quality['score'] ?? 0 ) ) );
+		$quality_issues = array_map( 'sanitize_text_field', (array) ( $quality['issues'] ?? [] ) );
+
+		return new DescriptionResult(
+			title:                '',
+			excerpt:              '',
+			body:                 '',
+			tags:                 array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+			alt_text:             sanitize_text_field( $json['alt_text'] ?? '' ),
+			success:              true,
+			photo_quality_score:  $quality_score,
+			photo_quality_issues: $quality_issues,
+			medium:               '',
+		);
+	}
+
 	public function enhance( string $image_data, string $mime_type, string $instructions ): EnhancementResult {
 		// Claude does not produce enhanced images.
 		return EnhancementResult::failure( 'Anthropic provider does not support image enhancement.' );

@@ -108,6 +108,27 @@ class WordPressAI implements ProviderInterface {
 		);
 	}
 
+	/**
+	 * Slim description pass for secondary gallery images (fifth audit §4c).
+	 *
+	 * WordPress AI Client is text-only (see class docblock) — it was never
+	 * able to genuinely analyse a secondary image's pixels any more than a
+	 * primary one, and this method has no artist text to fall back on the way
+	 * describe() does (there is deliberately no $artist_prompt parameter here
+	 * — see ProviderInterface::describe_secondary()). Returning a failure
+	 * immediately, with no HTTP call at all, is strictly better than what
+	 * this provider could otherwise offer: zero cost instead of a wasted
+	 * call, and callers already treat a failed secondary description
+	 * gracefully (empty alt text, quality score 0 — never rejected by the
+	 * quality gate, exactly as this provider's primary-image path already
+	 * behaves when it has no image to work from).
+	 */
+	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+		return DescriptionResult::failure(
+			'WordPress AI Client is text-only and cannot analyse images — secondary gallery images get no AI-generated alt text, tags, or quality score with this provider.'
+		);
+	}
+
 	public function enhance( string $image_data, string $mime_type, string $instructions ): EnhancementResult {
 		return EnhancementResult::failure(
 			'WordPress AI Client does not support image enhancement.'

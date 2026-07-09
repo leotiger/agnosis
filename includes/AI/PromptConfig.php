@@ -230,6 +230,40 @@ class PromptConfig {
 			. 'If they provided a subject line, it may hint at a title — feel free to build on it or depart from it entirely.';
 	}
 
+	/**
+	 * Fixed system prompt for the slim secondary-image description pass
+	 * (fifth audit §4c) — used by ProviderInterface::describe_secondary()
+	 * implementations. Deliberately NOT part of the admin-configurable
+	 * system_prompt option above: this exists purely to cut AI cost on
+	 * non-primary gallery images, and asks for only the three fields
+	 * Publishing\PostCreator actually reads from a secondary result — alt
+	 * text, tags, and a photo-quality assessment (see
+	 * ProviderInterface::describe_secondary()'s docblock for the full
+	 * accounting of what's discarded vs. published). Mirrors the fixed,
+	 * hardcoded prompts Pipeline::process_audio_single()/
+	 * describe_video_from_context() already use for their own non-customizable
+	 * lean paths — same precedent, same reasoning: a one-off structured
+	 * extraction doesn't need an admin-editable template.
+	 */
+	public static function secondary_system_prompt(): string {
+		return 'You are assessing one image among several in a multi-image artwork gallery submission. '
+			. "This image's own title, description, and editorial text will never be published — only its alt text, tags, and photographic quality matter here.\n\n"
+			. 'Also assess the photographic quality of the submitted image — the quality of the photograph itself, not the artwork. '
+			. 'Look for: blur or camera shake, underexposure or overexposure, poor white balance, distracting backgrounds, '
+			. 'clipped highlights, heavy noise, or anything that obscures the artwork.' . "\n\n"
+			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
+			. '{' . "\n"
+			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible.",' . "\n"
+			. '  "tags":     ["tag1", "tag2", "..."] (3-6 descriptive lowercase tags),' . "\n"
+			. '  "photo_quality": {' . "\n"
+			. '    "score": <integer 1-10, where 1 = technically unusable, 10 = publication-perfect photograph>,' . "\n"
+			. '    "issues": ["<concise description of photographic issue>"]' . "\n"
+			. '  }' . "\n"
+			. '}' . "\n\n"
+			. 'photo_quality.issues must be an empty array [] when no issues are found. '
+			. 'Score the photograph only — not the artistic merit of the work itself.';
+	}
+
 	public static function default_enhancement_instructions(): string {
 		return 'Enhance this artwork for web and Fediverse publication.' . "\n"
 			. 'Goals: improve overall clarity, colour accuracy and tonal balance; reduce noise; sharpen edges where the artist clearly intended detail.' . "\n"

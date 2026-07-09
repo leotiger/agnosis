@@ -111,7 +111,7 @@ class RemovalEndpoints {
 			] );
 		}
 
-		$error = $this->verify_token( $post_id, $supplied_token );
+		$error = self::verify_token( $post_id, $supplied_token );
 		if ( is_wp_error( $error ) ) {
 			return $error;
 		}
@@ -187,13 +187,6 @@ class RemovalEndpoints {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Validate the supplied removal token against stored meta.
-	 *
-	 * @param int    $post_id        The artwork or event post ID.
-	 * @param string $supplied_token Token from the request query string.
-	 * @return true|\WP_Error True on success, WP_Error on failure.
-	 */
-	/**
 	 * REST permission gate — called before the route callback.
 	 *
 	 * The removal endpoint is token-only (no cookie auth path). Returning
@@ -218,7 +211,21 @@ class RemovalEndpoints {
 		);
 	}
 
-	private function verify_token( int $post_id, string $supplied_token ): true|\WP_Error {
+	/**
+	 * Validate a signed removal token against what is stored in post meta.
+	 *
+	 * Public and static (fifth audit §2e, mirroring ReviewEndpoints::verify_token()
+	 * — fourth audit §3a): a pure, read-only check with no dependency on
+	 * instance state, so `Publishing\ReviewConfirm` can call the same check
+	 * the REST layer performs one step earlier, on the GET confirm page,
+	 * instead of only discovering an expired/invalid link after the artist
+	 * clicks the button and hits this REST endpoint.
+	 *
+	 * @param int    $post_id        The artwork or event post ID.
+	 * @param string $supplied_token Token from the request query string.
+	 * @return true|\WP_Error
+	 */
+	public static function verify_token( int $post_id, string $supplied_token ): true|\WP_Error {
 		$stored_token = (string) get_post_meta( $post_id, '_agnosis_removal_token', true );
 		$expiry       = (int) get_post_meta( $post_id, '_agnosis_removal_expiry', true );
 

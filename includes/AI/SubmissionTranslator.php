@@ -170,6 +170,172 @@ class SubmissionTranslator {
 	}
 
 	/**
+	 * Translate an arbitrary named set of text fields to $target_code in a
+	 * single `chat()` call, returning a same-keyed array of translated
+	 * strings.
+	 *
+	 * Generalises call_translate() (which only ever handles a fixed
+	 * subject/description pair) to any field names — used by
+	 * `Notification::on_post_drafted()` to batch a review email's title,
+	 * excerpt, and body into one round trip (fifth audit §4b) instead of
+	 * three separate `translate_text()` calls, each paying its own prompt
+	 * envelope.
+	 *
+	 * Fields that are empty (after trimming) are omitted from both the
+	 * prompt and the returned array — same convention `call_translate()`
+	 * already uses — so callers should fall back to the original text for
+	 * any key missing from the result, exactly as they would for a failed
+	 * `translate_text()` call. An entirely failed/unparseable response
+	 * returns an empty array; callers can distinguish "nothing needed
+	 * translating" from "the call failed" by checking whether $fields was
+	 * non-empty going in.
+	 *
+	 * @param array<string, string> $fields      Field name => plain text.
+	 * @param string                $target_code ISO 639-1 code (e.g. 'es', 'fr', 'zh').
+	 * @return array<string, string> Field name => translated text, only for
+	 *                               fields that were non-empty AND present in
+	 *                               the AI's response.
+	 */
+	public function translate_fields( array $fields, string $target_code ): array {
+		$fields = array_filter( $fields, static fn( $v ) => '' !== trim( (string) $v ) );
+		if ( empty( $fields ) ) {
+			return [];
+		}
+
+		$target_name = $this->resolve_language_name( $target_code );
+		if ( null === $target_name ) {
+			Logger::warning(
+				sprintf( 'SubmissionTranslator::translate_fields: unknown target language code "%s" — skipping.', $target_code ),
+				'pipeline'
+			);
+			return [];
+		}
+
+		$sections = '';
+		foreach ( $fields as $key => $text ) {
+			$sections .= strtoupper( $key ) . ":\n" . trim( (string) $text ) . "\n\n";
+		}
+
+		$json_keys = implode( ', ', array_map( static fn( $k ) => '"' . $k . '"', array_keys( $fields ) ) );
+
+		$prompt = "Translate the sections below to {$target_name}.\n"
+			. "If a section is already in {$target_name}, include it in the output unchanged.\n"
+			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. trim( $sections );
+
+		$response = $this->provider->chat( $prompt );
+
+		if ( '' === trim( $response ) ) {
+			return [];
+		}
+
+		// Strip markdown fences if present — same tolerance as call_translate().
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded ) ) {
+			return [];
+		}
+
+		$result = [];
+		foreach ( array_keys( $fields ) as $key ) {
+			if ( isset( $decoded[ $key ] ) && is_string( $decoded[ $key ] ) ) {
+				$result[ $key ] = sanitize_textarea_field( $decoded[ $key ] );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Translate a single piece of text into MULTIPLE target languages in one
+	 * `chat()` call, returning a language-code-keyed array of translations
+	 * (fifth audit §4d). Generalises the same JSON-envelope pattern
+	 * translate_fields() uses for "many fields, one language" to the
+	 * opposite axis — "one field, many languages" — used by
+	 * Compat\LinguaForge::build_title_translations() to translate an
+	 * artwork's primary title into every enabled site language in a single
+	 * round trip instead of one translate_text() call per language.
+	 *
+	 * Unknown/unconfigured target codes (resolve_language_name() returns
+	 * null) are silently dropped from the prompt and the result — same
+	 * "skip rather than send a broken prompt" convention every other method
+	 * here already uses. A translation identical to the input (e.g. the
+	 * target language matches the source, or the model just echoed it back)
+	 * is also dropped from the result, mirroring build_title_translations()'s
+	 * own prior per-language "only store an actual change" check.
+	 *
+	 * @param string   $text         Plain text to translate.
+	 * @param string[] $target_codes ISO 639-1 codes (e.g. ['es', 'fr', 'zh']).
+	 * @return array<string, string> Target code => translated text, only for
+	 *                               codes that were valid, present in the AI's
+	 *                               response, and different from $text.
+	 */
+	public function translate_to_languages( string $text, array $target_codes ): array {
+		$text = trim( $text );
+		if ( '' === $text ) {
+			return [];
+		}
+
+		$names = [];
+		foreach ( array_unique( $target_codes ) as $code ) {
+			$name = $this->resolve_language_name( $code );
+			if ( null !== $name ) {
+				$names[ $code ] = $name;
+			} else {
+				Logger::warning(
+					sprintf( 'SubmissionTranslator::translate_to_languages: unknown target language code "%s" — skipping.', $code ),
+					'pipeline'
+				);
+			}
+		}
+
+		if ( empty( $names ) ) {
+			return [];
+		}
+
+		$lang_list = implode( ', ', array_map(
+			static fn( string $code, string $name ) => "{$code} ({$name})",
+			array_keys( $names ),
+			array_values( $names )
+		) );
+		$json_keys = implode( ', ', array_map( static fn( string $code ) => '"' . $code . '"', array_keys( $names ) ) );
+
+		$prompt = "Translate the text below into EACH of these languages: {$lang_list}.\n"
+			. "Return ONLY a JSON object whose keys are exactly these language codes: {$json_keys}, and whose values are the translated text for that language.\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. "TEXT:\n{$text}";
+
+		$response = $this->provider->chat( $prompt );
+
+		if ( '' === trim( $response ) ) {
+			return [];
+		}
+
+		// Strip markdown fences if present — same tolerance as call_translate()/translate_fields().
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded ) ) {
+			return [];
+		}
+
+		$result = [];
+		foreach ( array_keys( $names ) as $code ) {
+			if ( ! isset( $decoded[ $code ] ) || ! is_string( $decoded[ $code ] ) ) {
+				continue;
+			}
+			$translated = sanitize_text_field( $decoded[ $code ] );
+			if ( '' !== $translated && $translated !== $text ) {
+				$result[ $code ] = $translated;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Create a SubmissionTranslator from the site's currently configured AI provider.
 	 *
 	 * Returns null when no API key is configured so callers can skip translation

@@ -78,18 +78,33 @@ class Pipeline {
 
 		$adapted = MediaAdapter::adapt( $submission['attachments'] ?? [] );
 
+		// Fifth audit §4c: only the first attachment (of ANY media type) whose
+		// description actually succeeds ever supplies the published post's
+		// title/excerpt/body/medium — see Publishing\PostCreator::primary_result(),
+		// which walks $results in this exact order looking for the first
+		// 'description_ok' hit. Every image attachment gets the full editorial
+		// describe() call UNTIL that primary is found; once found, every
+		// remaining image uses the slim describe_secondary() call instead
+		// (alt text + tags + quality only — see that method's docblock),
+		// since a later image's own title/excerpt/body/medium would be
+		// discarded regardless of how it was generated. If every attachment's
+		// full description fails, every result is a failure result — no
+		// worse than before this fix, since previously every attachment
+		// already risked (and could fail) the same full call.
+		$found_primary = false;
+
 		foreach ( $adapted as $attachment ) {
 			$media_type = $attachment['media_type'] ?? 'image';
 
 			if ( 'audio' === $media_type ) {
-				$results[] = $this->process_audio_single(
+				$result = $this->process_audio_single(
 					$attachment['data'],
 					$attachment['mime'],
 					$attachment['filename'],
 					$artist_context
 				);
 			} elseif ( 'video' === $media_type ) {
-				$results[] = $this->process_video_single(
+				$result = $this->process_video_single(
 					$attachment['data'],
 					$attachment['mime'],
 					$attachment['filename'],
@@ -98,13 +113,20 @@ class Pipeline {
 					$artist_context
 				);
 			} else {
-				$results[] = $this->process_single(
+				$result = $this->process_single(
 					$attachment['data'],
 					$attachment['mime'],
 					$attachment['filename'],
 					$artist_context,
-					$skip_enhancement
+					$skip_enhancement,
+					$found_primary // $use_slim — true once a primary has already been found.
 				);
+			}
+
+			$results[] = $result;
+
+			if ( ! $found_primary && ( $result['description_ok'] ?? false ) ) {
+				$found_primary = true;
 			}
 		}
 
@@ -205,16 +227,29 @@ class Pipeline {
 
 	// -------------------------------------------------------------------------
 
-	/** @return array<string, mixed> */
+	/**
+	 * @param bool $use_slim When true, calls the slim describe_secondary()
+	 *                       instead of the full describe() — set by process()
+	 *                       once a primary result has already been found
+	 *                       among this submission's attachments (fifth audit
+	 *                       §4c). The photo-quality gate and per-image alt
+	 *                       text below are completely unaffected either way —
+	 *                       both description paths populate the same
+	 *                       DescriptionResult fields this method reads.
+	 * @return array<string, mixed>
+	 */
 	private function process_single(
 		string $image_data,
 		string $mime_type,
 		string $filename,
 		string $artist_prompt,
-		bool $skip_enhancement = false
+		bool $skip_enhancement = false,
+		bool $use_slim = false
 	): array {
 		// Step 1 — Describe (also assesses photo quality as part of the same vision call).
-		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
+		$description = $use_slim
+			? $this->description_provider->describe_secondary( $image_data, $mime_type )
+			: $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
 
 		$quality_score  = $description->photo_quality_score;
 		$quality_issues = $description->photo_quality_issues;

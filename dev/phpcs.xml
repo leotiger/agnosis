@@ -22,6 +22,23 @@
     <arg name="parallel" value="8"/>
     <arg value="ps"/>
 
+    <!--
+        Required whenever the codebase contains multi-byte UTF-8 characters —
+        this one does, extensively (em dashes "—", section signs "§", curly
+        quotes, and non-English sample text in docblocks/comments). Without an
+        explicit encoding declaration, PHP_CodeSniffer falls back to a
+        byte-oriented assumption for some sniffs' fixers; `phpcbf` can then
+        compute whitespace-insertion offsets in BYTES rather than characters,
+        which — for a multi-byte character — lands the fix partway through
+        the character's own byte sequence instead of beside it. In practice
+        this has corrupted docblocks near em dashes/§ by splitting `*/` into
+        `* /` and inserting stray spaces before `/`, `<`, `>`, and `.` nearby
+        — a real `composer cs:fix` run reproduced this exact corruption twice
+        in `includes/Email/Webhook.php`. This is the documented fix (see the
+        PHP_CodeSniffer/WPCS install docs on encoding), not a workaround.
+    -->
+    <arg name="encoding" value="utf-8"/>
+
     <!-- PHP / WP version targets. -->
     <config name="testVersion" value="8.1-"/>
     <config name="minimum_supported_wp_version" value="6.4"/>

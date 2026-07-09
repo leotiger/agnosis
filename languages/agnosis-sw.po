@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-09T08:45+00:00\n"
+"POT-Creation-Date: 2026-07-09T15:16+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:20+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Swahili\n"
@@ -2297,10 +2297,12 @@ msgstr "Tumepokea ombi lako kwa %s"
 #: includes/Artist/AdmissionNotification.php:392
 #: includes/Artist/AdmissionNotification.php:486
 #: includes/Artist/AdmissionNotification.php:559
-#: includes/Publishing/Notification.php:231
-#: includes/Publishing/Notification.php:438
-#: includes/Publishing/Notification.php:745
-#: includes/Publishing/Notification.php:900
+#: includes/Publishing/Notification.php:250
+#: includes/Publishing/Notification.php:367
+#: includes/Publishing/Notification.php:604
+#: includes/Publishing/Notification.php:811
+#: includes/Publishing/Notification.php:1118
+#: includes/Publishing/Notification.php:1273
 #, php-format
 msgid "Hi %s,"
 msgstr "Habari %s,"
@@ -2328,10 +2330,12 @@ msgstr ""
 #: includes/Artist/AdmissionNotification.php:630
 #: includes/Artist/Invitation.php:177 includes/Newsletter/Mailer.php:101
 #: includes/Newsletter/Subscription.php:166
-#: includes/Publishing/Notification.php:296
-#: includes/Publishing/Notification.php:539
-#: includes/Publishing/Notification.php:773
-#: includes/Publishing/Notification.php:963
+#: includes/Publishing/Notification.php:306
+#: includes/Publishing/Notification.php:391
+#: includes/Publishing/Notification.php:669
+#: includes/Publishing/Notification.php:912
+#: includes/Publishing/Notification.php:1146
+#: includes/Publishing/Notification.php:1336
 #, php-format
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — sanaa ikichanua kutoka kwenye usahaulifu"
@@ -2520,13 +2524,13 @@ msgid "About %s"
 msgstr "Kuhusu %s"
 
 #. translators: %s: site name
-#: includes/Artist/CommunityBroadcast.php:138
+#: includes/Artist/CommunityBroadcast.php:151
 #, php-format
 msgid "[%s] Your community message was not sent — too long"
 msgstr ""
 
 #. translators: 1: sender's display name, 2: character count of their message, 3: configured character limit, 4: site name
-#: includes/Artist/CommunityBroadcast.php:144
+#: includes/Artist/CommunityBroadcast.php:157
 #, php-format
 msgid ""
 "Hi %1$s,\n"
@@ -2542,37 +2546,37 @@ msgid ""
 msgstr ""
 
 #. translators: 1: site name, 2: sender's display name
-#: includes/Artist/CommunityBroadcast.php:275
+#: includes/Artist/CommunityBroadcast.php:317
 #, fuzzy, php-format
 msgid "[%1$s] Community message from %2$s"
 msgstr "[%s] Jarida la Jumuiya"
 
 #. translators: 1: sender's display name, 2: sender's email address
-#: includes/Artist/CommunityBroadcast.php:283
+#: includes/Artist/CommunityBroadcast.php:325
 #, php-format
 msgid "%1$s <%2$s> sent a message to the community:"
 msgstr ""
 
 #. translators: %s: message subject
-#: includes/Artist/CommunityBroadcast.php:291
+#: includes/Artist/CommunityBroadcast.php:333
 #, fuzzy, php-format
 msgid "Subject: %s"
 msgstr "Mada"
 
-#: includes/Artist/CommunityBroadcast.php:303
+#: includes/Artist/CommunityBroadcast.php:345
 msgid ""
 "Hit reply to respond — your reply goes back to the whole community, "
 "translated automatically, just like this message."
 msgstr ""
 
 #. translators: %s: sender's display name
-#: includes/Artist/CommunityBroadcast.php:309
+#: includes/Artist/CommunityBroadcast.php:351
 #, php-format
 msgid "This message was sent by %s."
 msgstr ""
 
 #. translators: 1: sender's display name, 2: site name
-#: includes/Artist/CommunityBroadcast.php:341
+#: includes/Artist/CommunityBroadcast.php:383
 #, fuzzy, php-format
 msgid "%1$s via %2$s"
 msgstr "%1$d / %2$d"
@@ -2711,7 +2715,7 @@ msgid "The uploaded file could not be read."
 msgstr "Faili iliyopakiwa haikuweza kusomwa."
 
 #: includes/Artist/ContentEditor.php:345
-#: includes/Publishing/PostCreator.php:1072
+#: includes/Publishing/PostCreator.php:1349
 msgid "Untitled"
 msgstr "Bila kichwa"
 
@@ -2807,7 +2811,7 @@ msgid ""
 "deleted. Nothing tied to you is stored here anymore."
 msgstr ""
 
-#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:278
+#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:291
 msgid "Link expired or already used"
 msgstr "Kiungo muda wake umeisha au tayari kimetumika"
 
@@ -3444,19 +3448,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "Kura chanya %d imerekodiwa hadi sasa."
 msgstr[1] "Kura chanya %d zimerikodiwa hadi sasa."
 
-#: includes/Compat/LinguaForge.php:1026
+#: includes/Compat/LinguaForge.php:1116
 msgid "is active and configured for"
 msgstr "iko hai na imesanidiwa kwa"
 
-#: includes/Compat/LinguaForge.php:1027
+#: includes/Compat/LinguaForge.php:1117
 msgid "Subdomain"
 msgstr "Subdomain"
 
-#: includes/Compat/LinguaForge.php:1028
+#: includes/Compat/LinguaForge.php:1118
 msgid "routing mode"
 msgstr "hali ya uelekezaji"
 
-#: includes/Compat/LinguaForge.php:1030
+#: includes/Compat/LinguaForge.php:1120
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -3464,39 +3468,39 @@ msgstr ""
 "Hii inapingana na subdomain za wasanii za Agnosis — programu-jalizi zote "
 "mbili zingedai nafasi ileile ya majina ya subdomain."
 
-#: includes/Compat/LinguaForge.php:1031
+#: includes/Compat/LinguaForge.php:1121
 msgid "Artist subdomain routing is"
 msgstr "Uelekezaji wa subdomain ya msanii ni"
 
-#: includes/Compat/LinguaForge.php:1032
+#: includes/Compat/LinguaForge.php:1122
 msgid "completely inactive"
 msgstr "umezimwa kabisa"
 
-#: includes/Compat/LinguaForge.php:1033
+#: includes/Compat/LinguaForge.php:1123
 msgid "until this is resolved."
 msgstr "mpaka hili litakaposhughulikiwa."
 
-#: includes/Compat/LinguaForge.php:1035
+#: includes/Compat/LinguaForge.php:1125
 msgid "Fix: open"
 msgstr "Suluhisho: fungua"
 
-#: includes/Compat/LinguaForge.php:1036
+#: includes/Compat/LinguaForge.php:1126
 msgid "Settings"
 msgstr "Mipangilio"
 
-#: includes/Compat/LinguaForge.php:1036
+#: includes/Compat/LinguaForge.php:1126
 msgid "Language Router"
 msgstr "Kipanga Lugha"
 
-#: includes/Compat/LinguaForge.php:1037
+#: includes/Compat/LinguaForge.php:1127
 msgid "and switch the URL strategy to"
 msgstr "na ubadilishe mkakati wa URL kuwa"
 
-#: includes/Compat/LinguaForge.php:1038
+#: includes/Compat/LinguaForge.php:1128
 msgid "Path prefix (subfolder)"
 msgstr "Kiambishi awali cha njia (folda ndogo)"
 
-#: includes/Compat/LinguaForge.php:1039
+#: includes/Compat/LinguaForge.php:1129
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -3504,11 +3508,11 @@ msgstr ""
 "Hii ni chaguo-msingi la LinguaForge na huruhusu subdomain za wasanii kuishi "
 "pamoja na folda ndogo za lugha"
 
-#: includes/Compat/LinguaForge.php:1044
+#: includes/Compat/LinguaForge.php:1134
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Uelekezaji wa Subdomain ya Msanii umezimwa"
 
-#: includes/Compat/LinguaForge.php:1054
+#: includes/Compat/LinguaForge.php:1144
 msgid "Open LinguaForge Settings"
 msgstr "Fungua Mipangilio ya LinguaForge"
 
@@ -3638,13 +3642,21 @@ msgstr ""
 "Imeunganishwa kwa mafanikio. Ujumbe %1$d kwenye kikasha, %2$d ambao "
 "haujasomwa."
 
-#: includes/Email/Webhook.php:295
+#: includes/Email/Webhook.php:530
 msgid "Webhook secret not configured."
 msgstr "Siri ya webhook haijasanidiwa."
 
-#: includes/Email/Webhook.php:316
+#: includes/Email/Webhook.php:582
 msgid "Invalid or missing webhook signature."
 msgstr "Sahihi ya webhook si sahihi au haipo."
+
+#: includes/Email/Webhook.php:604
+msgid "Webhook request timestamp is missing, malformed, or too old."
+msgstr ""
+
+#: includes/Email/Webhook.php:614
+msgid "This webhook request has already been processed."
+msgstr ""
 
 #: includes/Network/HttpSignature.php:56
 msgid "OpenSSL is required for HTTP Signature verification."
@@ -4045,32 +4057,108 @@ msgstr ""
 msgid "[Agnosis] Confirm removal of: %s"
 msgstr "[Agnosis] Thibitisha uondoaji wa: %s"
 
+#. translators: %s: site name
+#: includes/Publishing/Notification.php:116
+#, fuzzy, php-format
+msgid "[%s] We couldn't find that artwork or event"
+msgstr "[%s] Hatukuweza kupata picha katika barua pepe yako"
+
+#. translators: %s: site name
+#: includes/Publishing/Notification.php:178
+#, php-format
+msgid "[%s] Your artwork is now featured"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/Publishing/Notification.php:185
+#, fuzzy, php-format
+msgid "[%s] We couldn't find that artwork"
+msgstr "[%s] Hatukuweza kupata picha katika barua pepe yako"
+
+#. translators: %s: the subject line the artist sent
+#: includes/Publishing/Notification.php:227
+#, php-format
+msgid ""
+"We received a removal request for \"%s\", but couldn't find an artwork or "
+"event with that exact title in your account."
+msgstr ""
+
+#. translators: %s: the subject line the artist sent
+#: includes/Publishing/Notification.php:229
+#, php-format
+msgid ""
+"We received a request to feature \"%s\", but couldn't find a published "
+"artwork with that exact title in your account."
+msgstr ""
+
+#. translators: %s: suggested title
+#: includes/Publishing/Notification.php:265
+#, php-format
+msgid "Did you mean \"%s\"?"
+msgstr ""
+
+#: includes/Publishing/Notification.php:273
+#, fuzzy
+msgid "Yes, remove this instead"
+msgstr "Ndiyo, ondoa %s hii"
+
+#: includes/Publishing/Notification.php:277
+msgid "Or simply resend your original email with that exact title."
+msgstr ""
+
+#: includes/Publishing/Notification.php:281
+msgid "Resend your original email with that exact title."
+msgstr ""
+
+#: includes/Publishing/Notification.php:288
+msgid "Your current titles:"
+msgstr ""
+
+#: includes/Publishing/Notification.php:297
+msgid ""
+"Titles are matched exactly, so a small difference in wording is enough to "
+"miss — double-check spelling, capitalization, and punctuation against the "
+"list above before resending."
+msgstr ""
+
+#. translators: %s: artwork title
+#: includes/Publishing/Notification.php:376
+#, fuzzy, php-format
+msgid "\"%s\" is now your featured artwork on the gallery overview."
+msgstr "Onyesha kazi hii ya sanaa katika muhtasari wa ghala"
+
+#: includes/Publishing/Notification.php:382
+msgid ""
+"Any previously featured artwork has been unfeatured automatically — only one "
+"piece is featured at a time."
+msgstr ""
+
 #. translators: %s: artwork title (in the artist's own language)
-#: includes/Publishing/Notification.php:157
+#: includes/Publishing/Notification.php:530
 #, php-format
 msgid "[Agnosis] Your submission is ready to review: %s"
 msgstr "[Agnosis] Tuma kazi yako iko tayari kukaguliwa: %s"
 
-#: includes/Publishing/Notification.php:208
+#: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:711
+#: includes/Publishing/ReviewConfirm.php:757
 msgid "event"
 msgstr "tukio"
 
-#: includes/Publishing/Notification.php:208
+#: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:712
+#: includes/Publishing/ReviewConfirm.php:758
 msgid "artwork"
 msgstr "kazi ya sanaa"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:241
+#: includes/Publishing/Notification.php:614
 #, php-format
 msgid "We received a removal request for the following %s:"
 msgstr "Tumepokea ombi la kuondoa %s ifuatayo:"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:255
+#: includes/Publishing/Notification.php:628
 #, php-format
 msgid ""
 "If you want to permanently remove this %s, click the button below. This "
@@ -4080,13 +4168,13 @@ msgstr ""
 "Kitendo hiki hakiwezi kutenduliwa."
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:267
+#: includes/Publishing/Notification.php:640
 #, php-format
 msgid "Yes, remove this %s"
 msgstr "Ndiyo, ondoa %s hii"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:279
+#: includes/Publishing/Notification.php:652
 #, php-format
 msgid ""
 "If you did not request this removal, simply ignore this email — your %s will "
@@ -4095,15 +4183,15 @@ msgstr ""
 "Ikiwa hukuomba uondoaji huu, puuza tu barua pepe hii — %s yako itaendelea "
 "kuchapishwa."
 
-#: includes/Publishing/Notification.php:286
+#: includes/Publishing/Notification.php:659
 msgid "This confirmation link expires in 7 days."
 msgstr "Kiungo hiki cha uthibitisho kitaisha baada ya siku 7."
 
-#: includes/Publishing/Notification.php:371
+#: includes/Publishing/Notification.php:744
 msgid "📷 Photo enhanced automatically"
 msgstr "📷 Picha imeboreshwa kiotomatiki"
 
-#: includes/Publishing/Notification.php:374
+#: includes/Publishing/Notification.php:747
 msgid ""
 "We detected some photographic issues and applied AI correction to improve "
 "visibility of your artwork:"
@@ -4111,7 +4199,7 @@ msgstr ""
 "Tumegundua baadhi ya matatizo ya picha na tumetekeleza marekebisho ya AI ili "
 "kuboresha uonekanaji wa kazi yako ya sanaa:"
 
-#: includes/Publishing/Notification.php:378
+#: includes/Publishing/Notification.php:751
 msgid ""
 "The artwork itself has not been altered — only the photograph quality was "
 "corrected."
@@ -4120,12 +4208,12 @@ msgstr ""
 "uliorekebishwa."
 
 #. translators: %d: photo quality score out of 10
-#: includes/Publishing/Notification.php:385
+#: includes/Publishing/Notification.php:758
 #, php-format
 msgid "📷 Photo quality score: %d/10"
 msgstr "📷 Alama ya ubora wa picha: %d/10"
 
-#: includes/Publishing/Notification.php:444
+#: includes/Publishing/Notification.php:817
 msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
@@ -4134,36 +4222,36 @@ msgstr ""
 "itazame na utuambie ikiwa iko tayari kuchapishwa."
 
 #. translators: %s: the AI-generated site title in the site's primary language
-#: includes/Publishing/Notification.php:464
+#: includes/Publishing/Notification.php:837
 #, php-format
 msgid "On the site: %s"
 msgstr "Kwenye tovuti: %s"
 
 #. translators: %s: the site title translated back into the artist's language
-#: includes/Publishing/Notification.php:477
+#: includes/Publishing/Notification.php:850
 #, php-format
 msgid "In your language: %s"
 msgstr "Katika lugha yako: %s"
 
-#: includes/Publishing/Notification.php:498
+#: includes/Publishing/Notification.php:871
 msgid "Looks great — Publish it"
 msgstr "Inaonekana vizuri — Ichapishe"
 
-#: includes/Publishing/Notification.php:501
+#: includes/Publishing/Notification.php:874
 #: includes/Publishing/SubmissionsPage.php:242
 msgid "Discard"
 msgstr "Tupa"
 
-#: includes/Publishing/Notification.php:508
+#: includes/Publishing/Notification.php:881
 msgid "Want to tweak the title, text or tags before publishing?"
 msgstr "Unataka kurekebisha kichwa, maandishi au lebo kabla ya kuchapisha?"
 
-#: includes/Publishing/Notification.php:510
+#: includes/Publishing/Notification.php:883
 msgid "Open your submissions page →"
 msgstr "Fungua ukurasa wako wa mawasilisho →"
 
 #. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
-#: includes/Publishing/Notification.php:520
+#: includes/Publishing/Notification.php:893
 #, fuzzy, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
@@ -4179,18 +4267,18 @@ msgstr[1] ""
 "Uwasilishaji wako unabaki kama rasimu hadi uamue."
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:637
+#: includes/Publishing/Notification.php:1010
 #, php-format
 msgid "[%s] We couldn't process your submission"
 msgstr "[%s] Hatukuweza kuchakata uwasilishaji wako"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:696
+#: includes/Publishing/Notification.php:1069
 #, php-format
 msgid "[%s] We couldn't find a photo in your email"
 msgstr "[%s] Hatukuweza kupata picha katika barua pepe yako"
 
-#: includes/Publishing/Notification.php:751
+#: includes/Publishing/Notification.php:1124
 msgid ""
 "We received your email, but couldn't process a usable photo, audio, or video "
 "file from it — so nothing was published. This can happen when an image is "
@@ -4205,11 +4293,11 @@ msgstr ""
 "fomati ambayo seva hii haiwezi kubadilisha (kwa mfano, picha ya iPhone "
 "iliyohifadhiwa katika fomati ya HEIC/HEIF)."
 
-#: includes/Publishing/Notification.php:755
+#: includes/Publishing/Notification.php:1128
 msgid "To resend correctly:"
 msgstr "Ili kutuma tena kwa usahihi:"
 
-#: includes/Publishing/Notification.php:757
+#: includes/Publishing/Notification.php:1130
 msgid ""
 "Use your mail app's \"Attach file\" (usually a paperclip icon) rather than "
 "\"Insert photo\" or pasting the image directly into the message body."
@@ -4218,7 +4306,7 @@ msgstr ""
 "klipu ya karatasi) badala ya \"Insert photo\" au kubandika picha moja kwa "
 "moja kwenye kiini cha ujumbe."
 
-#: includes/Publishing/Notification.php:758
+#: includes/Publishing/Notification.php:1131
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
 "Formats to \"Most Compatible\" before taking or sending it, or use "
@@ -4228,7 +4316,7 @@ msgstr ""
 "Camera → Formats kuwa \"Most Compatible\" kabla ya kuipiga au kuituma, au "
 "tumia \"Options\" katika Mail kuituma kama JPEG."
 
-#: includes/Publishing/Notification.php:759
+#: includes/Publishing/Notification.php:1132
 msgid ""
 "Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
@@ -4238,7 +4326,7 @@ msgstr ""
 "MP3, WAV, M4A, OGG, au FLAC kwa sauti; MP4, MOV, AVI, WebM, OGG, au MPEG kwa "
 "video."
 
-#: includes/Publishing/Notification.php:764
+#: includes/Publishing/Notification.php:1137
 msgid ""
 "Once it's properly attached, just send it to the same address again — we'll "
 "pick it up automatically."
@@ -4246,7 +4334,7 @@ msgstr ""
 "Mara tu itakapokuwa imefungwa vizuri, tuma tu kwa anwani sawa tena — "
 "tutaichukua kiotomatiki."
 
-#: includes/Publishing/Notification.php:815
+#: includes/Publishing/Notification.php:1188
 msgid ""
 "The photo is too dark to show your artwork clearly. Try photographing near a "
 "large window in daylight, or use a soft lamp aimed at the work from the side."
@@ -4255,7 +4343,7 @@ msgstr ""
 "picha karibu na dirisha kubwa wakati wa mchana, au tumia taa laini "
 "iliyoelekezwa kwenye kazi kutoka upande."
 
-#: includes/Publishing/Notification.php:816
+#: includes/Publishing/Notification.php:1189
 msgid ""
 "The photo is underexposed (too dark). Try photographing near a large window "
 "in daylight, or use a soft lamp aimed at the work from the side."
@@ -4264,7 +4352,7 @@ msgstr ""
 "dirisha kubwa wakati wa mchana, au tumia taa laini iliyoelekezwa kwenye kazi "
 "kutoka upande."
 
-#: includes/Publishing/Notification.php:817
+#: includes/Publishing/Notification.php:1190
 msgid ""
 "The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
 "flash pointed straight at the artwork — diffuse or indirect light works best."
@@ -4273,7 +4361,7 @@ msgstr ""
 "wa moja kwa moja au flash iliyolenga moja kwa moja kwenye kazi ya sanaa — "
 "mwanga uliosambaa au wa upande wa pili hufanya kazi vizuri zaidi."
 
-#: includes/Publishing/Notification.php:818
+#: includes/Publishing/Notification.php:1191
 msgid ""
 "The photo is too bright or washed out. Avoid direct sunlight or flash — "
 "diffuse light or shade gives more even tones."
@@ -4281,7 +4369,7 @@ msgstr ""
 "Picha ni ya kung'aa sana au imeoshwa. Epuka mwanga wa jua wa moja kwa moja "
 "au flash — mwanga uliosambaa au kivuli hutoa toni zilizo sawa zaidi."
 
-#: includes/Publishing/Notification.php:819
+#: includes/Publishing/Notification.php:1192
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
 "slightly or photograph at an angle to eliminate reflections from the surface."
@@ -4289,7 +4377,7 @@ msgstr ""
 "Kuna mng'ao au mwangwi mkali juu ya kazi ya sanaa. Inamisha turubai kidogo "
 "au piga picha kwa pembe ili kuondoa mwangwi kutoka kwenye uso."
 
-#: includes/Publishing/Notification.php:820
+#: includes/Publishing/Notification.php:1193
 msgid ""
 "There is a reflection on the artwork surface. Tilt the canvas slightly or "
 "change your angle to eliminate it."
@@ -4297,7 +4385,7 @@ msgstr ""
 "Kuna mwangwi juu ya uso wa kazi ya sanaa. Inamisha turubai kidogo au "
 "badilisha pembe yako ili kuuondoa."
 
-#: includes/Publishing/Notification.php:822
+#: includes/Publishing/Notification.php:1195
 msgid ""
 "The image is blurry. Rest your phone or camera on a stable surface, use the "
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
@@ -4307,7 +4395,7 @@ msgstr ""
 "kipima muda, na hakikisha kazi ya sanaa inachukua sehemu kubwa ya fremu ili "
 "autofocus ifunge juu yake."
 
-#: includes/Publishing/Notification.php:823
+#: includes/Publishing/Notification.php:1196
 msgid ""
 "The image is out of focus. Tap on the artwork on your phone screen before "
 "shooting to make sure autofocus locks on it, and hold the camera still."
@@ -4316,7 +4404,7 @@ msgstr ""
 "kupiga ili kuhakikisha autofocus inafunga juu yake, na shikilia kamera bila "
 "kuyumba."
 
-#: includes/Publishing/Notification.php:824
+#: includes/Publishing/Notification.php:1197
 msgid ""
 "There is motion blur. Hold the camera very still or use a tripod; press the "
 "shutter gently or use the self-timer to avoid shake."
@@ -4325,7 +4413,7 @@ msgstr ""
 "bonyeza kitufe cha kupiga kwa upole au tumia kipima muda ili kuepuka "
 "mtikisiko."
 
-#: includes/Publishing/Notification.php:825
+#: includes/Publishing/Notification.php:1198
 msgid ""
 "Camera shake is visible. Use a tripod or rest the camera on a flat surface "
 "and use the self-timer to avoid movement when pressing the shutter."
@@ -4333,7 +4421,7 @@ msgstr ""
 "Mtikisiko wa kamera unaonekana. Tumia tripod au weka kamera juu ya uso "
 "tambarare na tumia kipima muda ili kuepuka mwendo unapobonyeza shutter."
 
-#: includes/Publishing/Notification.php:827
+#: includes/Publishing/Notification.php:1200
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and make sure you're close enough that the artwork fills the frame."
@@ -4341,7 +4429,7 @@ msgstr ""
 "Azimio la picha ni la chini sana. Tumia mpangilio wa ubora wa juu zaidi wa "
 "simu yako na hakikisha uko karibu vya kutosha ili kazi ya sanaa ijaze fremu."
 
-#: includes/Publishing/Notification.php:828
+#: includes/Publishing/Notification.php:1201
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and fill the frame with the artwork."
@@ -4349,7 +4437,7 @@ msgstr ""
 "Azimio la picha ni la chini sana. Tumia mpangilio wa ubora wa juu zaidi wa "
 "simu yako na ijaze fremu kwa kazi ya sanaa."
 
-#: includes/Publishing/Notification.php:829
+#: includes/Publishing/Notification.php:1202
 msgid ""
 "The image is pixelated. Shoot from closer or use a higher resolution setting "
 "on your camera."
@@ -4357,8 +4445,8 @@ msgstr ""
 "Picha ina pikseli zinazoonekana. Piga kutoka karibu zaidi au tumia mpangilio "
 "wa azimio la juu zaidi kwenye kamera yako."
 
-#: includes/Publishing/Notification.php:831
-#: includes/Publishing/Notification.php:832
+#: includes/Publishing/Notification.php:1204
+#: includes/Publishing/Notification.php:1205
 msgid ""
 "The photo has a strong colour cast. Shoot under neutral daylight or use your "
 "phone's Auto White Balance setting for more accurate colours."
@@ -4367,7 +4455,7 @@ msgstr ""
 "rangi au tumia mpangilio wa Auto White Balance wa simu yako kwa rangi sahihi "
 "zaidi."
 
-#: includes/Publishing/Notification.php:833
+#: includes/Publishing/Notification.php:1206
 msgid ""
 "The photo looks too yellow or warm. Shoot under natural daylight or switch "
 "your phone's white balance to Daylight / Cloudy."
@@ -4375,7 +4463,7 @@ msgstr ""
 "Picha inaonekana ya njano sana au ya joto. Piga chini ya mwanga wa asili wa "
 "mchana au badilisha white balance ya simu yako kuwa Daylight / Cloudy."
 
-#: includes/Publishing/Notification.php:834
+#: includes/Publishing/Notification.php:1207
 msgid ""
 "The photo has a cold blue tint. Move the artwork to a warmer, more natural "
 "light source or adjust your camera's white balance."
@@ -4384,7 +4472,7 @@ msgstr ""
 "mwanga chenye joto zaidi na cha asili zaidi au rekebisha white balance ya "
 "kamera yako."
 
-#: includes/Publishing/Notification.php:836
+#: includes/Publishing/Notification.php:1209
 msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
@@ -4392,7 +4480,7 @@ msgstr ""
 "Sehemu ya kazi ya sanaa inaonekana kukatwa nje ya fremu. Rudi nyuma na "
 "hakikisha kazi yote inaonekana kabla ya kupiga picha."
 
-#: includes/Publishing/Notification.php:837
+#: includes/Publishing/Notification.php:1210
 msgid ""
 "The artwork is photographed at an angle, causing distortion. Shoot straight "
 "on, with the camera parallel to the canvas."
@@ -4400,7 +4488,7 @@ msgstr ""
 "Kazi ya sanaa imepigwa picha kwa pembe, ikisababisha upotoshaji. Piga moja "
 "kwa moja, na kamera ikiwa sambamba na turubai."
 
-#: includes/Publishing/Notification.php:838
+#: includes/Publishing/Notification.php:1211
 msgid ""
 "The artwork looks distorted or skewed. Position your camera directly in "
 "front of the artwork, parallel to its surface."
@@ -4408,7 +4496,7 @@ msgstr ""
 "Kazi ya sanaa inaonekana kupotoshwa au kupinda. Weka kamera yako moja kwa "
 "moja mbele ya kazi ya sanaa, sambamba na uso wake."
 
-#: includes/Publishing/Notification.php:839
+#: includes/Publishing/Notification.php:1212
 msgid ""
 "There is a shadow across part of the artwork. Reposition your light source "
 "or move the artwork so no shadows fall on the surface."
@@ -4416,7 +4504,7 @@ msgstr ""
 "Kuna kivuli juu ya sehemu ya kazi ya sanaa. Hamisha chanzo chako cha mwanga "
 "au songesha kazi ya sanaa ili hakuna vivuli vitakavyoanguka juu ya uso."
 
-#: includes/Publishing/Notification.php:906
+#: includes/Publishing/Notification.php:1279
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
 "for us to show your artwork clearly. We didn't publish it — but please don't "
@@ -4428,16 +4516,16 @@ msgstr ""
 "kwa kawaida kunatosha."
 
 #. translators: %d: quality score out of 10
-#: includes/Publishing/Notification.php:915
+#: includes/Publishing/Notification.php:1288
 #, php-format
 msgid "📷 Photo quality score: %d / 10"
 msgstr "📷 Alama ya ubora wa picha: %d / 10"
 
-#: includes/Publishing/Notification.php:921
+#: includes/Publishing/Notification.php:1294
 msgid "Here's what our AI detected and how to fix it:"
 msgstr "Hiki ndicho AI yetu ilichogundua na jinsi ya kukirekebisha:"
 
-#: includes/Publishing/Notification.php:928
+#: includes/Publishing/Notification.php:1301
 msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
@@ -4445,11 +4533,11 @@ msgstr ""
 "Ubora wa jumla wa picha ulikuwa chini sana kwa AI yetu kuweza kuchakata kazi "
 "ya sanaa kwa uwazi."
 
-#: includes/Publishing/Notification.php:934
+#: includes/Publishing/Notification.php:1307
 msgid "💡 Quick tips for a great artwork photo"
 msgstr "💡 Vidokezo vya haraka kwa picha nzuri ya kazi ya sanaa"
 
-#: includes/Publishing/Notification.php:936
+#: includes/Publishing/Notification.php:1309
 msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
@@ -4457,7 +4545,7 @@ msgstr ""
 "Tumia mwanga wa asili — weka kazi ya sanaa karibu na dirisha siku ya mawingu "
 "ili upate mwanga laini na wa sawasawa."
 
-#: includes/Publishing/Notification.php:937
+#: includes/Publishing/Notification.php:1310
 msgid ""
 "Shoot straight on — hold your phone parallel to the canvas to avoid "
 "perspective distortion."
@@ -4465,7 +4553,7 @@ msgstr ""
 "Piga picha moja kwa moja — shikilia simu yako sambamba na turubai ili "
 "kuepuka upotovu wa mtazamo."
 
-#: includes/Publishing/Notification.php:938
+#: includes/Publishing/Notification.php:1311
 msgid ""
 "Fill the frame — let the artwork take up most of the shot; crop out "
 "distracting backgrounds."
@@ -4473,7 +4561,7 @@ msgstr ""
 "Jaza fremu — acha kazi ya sanaa ichukue sehemu kubwa ya picha; kata "
 "mandharinyuma yanayosumbua."
 
-#: includes/Publishing/Notification.php:939
+#: includes/Publishing/Notification.php:1312
 msgid ""
 "Hold still — tap the artwork on your screen to focus, then press the shutter "
 "gently or use a self-timer."
@@ -4482,7 +4570,7 @@ msgstr ""
 "umakini, kisha bonyeza kitufe cha kupiga picha kwa upole au tumia kipima "
 "muda cha kujipiga."
 
-#: includes/Publishing/Notification.php:944
+#: includes/Publishing/Notification.php:1317
 msgid ""
 "Once you have a clearer photo, just email it to the same address as before — "
 "we'll pick it up automatically."
@@ -4490,7 +4578,7 @@ msgstr ""
 "Mara tu utakapokuwa na picha iliyo wazi zaidi, itume tu kwa barua pepe kwa "
 "anuani ileile kama awali — tutaipokea kiotomatiki."
 
-#: includes/Publishing/Notification.php:949
+#: includes/Publishing/Notification.php:1322
 msgid ""
 "Your previous submission is saved in your submissions page in case you want "
 "to review what was sent."
@@ -4498,23 +4586,23 @@ msgstr ""
 "Uwasilishaji wako wa awali umehifadhiwa katika ukurasa wako wa uwasilishaji "
 "iwapo ungependa kukagua kile kilichotumwa."
 
-#: includes/Publishing/Notification.php:951
+#: includes/Publishing/Notification.php:1324
 msgid "View submissions →"
 msgstr "Tazama uwasilishaji →"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1233
+#: includes/Publishing/PostCreator.php:1510
 #, php-format
 msgid "%s (original)"
 msgstr "%s (ya asili)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1281
+#: includes/Publishing/PostCreator.php:1558
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (fremu ya bango)"
 
-#: includes/Publishing/PostCreator.php:1610
+#: includes/Publishing/PostCreator.php:1887
 msgid "Failed to insert attachment."
 msgstr "Imeshindwa kuingiza kiambatisho."
 
@@ -4540,89 +4628,89 @@ msgstr "Haikuweza kuondoa %s. Tafadhali jaribu tena."
 msgid "Your %s has been removed."
 msgstr "%s yako imeondolewa."
 
-#: includes/Publishing/RemovalEndpoints.php:216
+#: includes/Publishing/RemovalEndpoints.php:209
 msgid "A valid removal token is required."
 msgstr "Tokeni halali ya uondoaji inahitajika."
 
-#: includes/Publishing/RemovalEndpoints.php:228
+#: includes/Publishing/RemovalEndpoints.php:235
 msgid "No pending removal request found for this item."
 msgstr "Hakuna ombi la uondoaji linalosubiri limepatikana kwa kipengee hiki."
 
-#: includes/Publishing/RemovalEndpoints.php:240
+#: includes/Publishing/RemovalEndpoints.php:247
 msgid "The removal link has expired. Please send another removal request."
 msgstr ""
 "Kiungo cha uondoaji muda wake umeisha. Tafadhali tuma ombi jingine la "
 "uondoaji."
 
-#: includes/Publishing/RemovalEndpoints.php:248
+#: includes/Publishing/RemovalEndpoints.php:255
 msgid "Invalid removal token."
 msgstr "Tokeni ya uondoaji si sahihi."
 
-#: includes/Publishing/ReviewConfirm.php:271
+#: includes/Publishing/ReviewConfirm.php:284
 #, fuzzy
 msgid "Biography published"
 msgstr "Kazi ya sanaa imechapishwa"
 
-#: includes/Publishing/ReviewConfirm.php:271
+#: includes/Publishing/ReviewConfirm.php:284
 #, fuzzy
 msgid "Your biography has been published."
 msgstr "%s yako imeondolewa."
 
-#: includes/Publishing/ReviewConfirm.php:272
+#: includes/Publishing/ReviewConfirm.php:285
 #, fuzzy
 msgid "Event published"
 msgstr "Kazi ya sanaa imechapishwa"
 
-#: includes/Publishing/ReviewConfirm.php:272
+#: includes/Publishing/ReviewConfirm.php:285
 #, fuzzy
 msgid "The event has been published."
 msgstr "Kazi ya sanaa imechapishwa kwenye ghala."
 
-#: includes/Publishing/ReviewConfirm.php:273
+#: includes/Publishing/ReviewConfirm.php:286
 msgid "Artwork published"
 msgstr "Kazi ya sanaa imechapishwa"
 
-#: includes/Publishing/ReviewConfirm.php:273
+#: includes/Publishing/ReviewConfirm.php:286
 msgid "The artwork has been published to the gallery."
 msgstr "Kazi ya sanaa imechapishwa kwenye ghala."
 
-#: includes/Publishing/ReviewConfirm.php:274
+#: includes/Publishing/ReviewConfirm.php:287
 msgid "Submission discarded"
 msgstr "Uwasilishaji umetupiliwa mbali"
 
-#: includes/Publishing/ReviewConfirm.php:274
+#: includes/Publishing/ReviewConfirm.php:287
 msgid "The submission has been discarded."
 msgstr "Uwasilishaji umetupiliwa mbali."
 
-#: includes/Publishing/ReviewConfirm.php:275
+#: includes/Publishing/ReviewConfirm.php:288
 #, fuzzy
 msgid "Biography removed"
 msgstr "Wasifu"
 
-#: includes/Publishing/ReviewConfirm.php:275
+#: includes/Publishing/ReviewConfirm.php:288
 #, fuzzy
 msgid "Your biography has been removed."
 msgstr "%s yako imeondolewa."
 
-#: includes/Publishing/ReviewConfirm.php:276
+#: includes/Publishing/ReviewConfirm.php:289
 #, fuzzy
 msgid "Event removed"
 msgstr "Kazi ya sanaa imeondolewa"
 
-#: includes/Publishing/ReviewConfirm.php:276
+#: includes/Publishing/ReviewConfirm.php:289
 #, fuzzy
 msgid "The event has been removed."
 msgstr "%s yako imeondolewa."
 
-#: includes/Publishing/ReviewConfirm.php:277
+#: includes/Publishing/ReviewConfirm.php:290
 msgid "Artwork removed"
 msgstr "Kazi ya sanaa imeondolewa"
 
-#: includes/Publishing/ReviewConfirm.php:277
+#: includes/Publishing/ReviewConfirm.php:290
 msgid "Your artwork has been removed from the gallery."
 msgstr "Kazi yako ya sanaa imeondolewa kwenye ghala."
 
-#: includes/Publishing/ReviewConfirm.php:278
+#: includes/Publishing/ReviewConfirm.php:291
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -4630,75 +4718,75 @@ msgstr ""
 "Kiungo hiki huenda tayari kimetumika au muda wake umeisha. Tafadhali ingia "
 "ili kudhibiti uwasilishaji wako."
 
-#: includes/Publishing/ReviewConfirm.php:362
+#: includes/Publishing/ReviewConfirm.php:375
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:363
+#: includes/Publishing/ReviewConfirm.php:376
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:552
+#: includes/Publishing/ReviewConfirm.php:598
 msgid "Discard this submission?"
 msgstr "Kutupilia mbali uwasilishaji huu?"
 
-#: includes/Publishing/ReviewConfirm.php:553
+#: includes/Publishing/ReviewConfirm.php:599
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "Hii itatupilia mbali kabisa uwasilishaji — hautachapishwa."
 
-#: includes/Publishing/ReviewConfirm.php:554
+#: includes/Publishing/ReviewConfirm.php:600
 msgid "Yes, discard it"
 msgstr "Ndiyo, uitupilie mbali"
 
-#: includes/Publishing/ReviewConfirm.php:557
+#: includes/Publishing/ReviewConfirm.php:603
 msgid "Remove this artwork?"
 msgstr "Kuondoa kazi hii ya sanaa?"
 
-#: includes/Publishing/ReviewConfirm.php:558
+#: includes/Publishing/ReviewConfirm.php:604
 msgid "This will remove the published artwork from the gallery."
 msgstr "Hii itaondoa kazi ya sanaa iliyochapishwa kutoka kwenye ghala."
 
-#: includes/Publishing/ReviewConfirm.php:559
+#: includes/Publishing/ReviewConfirm.php:605
 msgid "Yes, remove it"
 msgstr "Ndiyo, iondoe"
 
-#: includes/Publishing/ReviewConfirm.php:652
+#: includes/Publishing/ReviewConfirm.php:698
 #: includes/Publishing/SubmissionsPage.php:253
 msgid "Title"
 msgstr "Kichwa"
 
-#: includes/Publishing/ReviewConfirm.php:660
+#: includes/Publishing/ReviewConfirm.php:706
 #, fuzzy
 msgid "Short description"
 msgstr "Maelezo"
 
-#: includes/Publishing/ReviewConfirm.php:665
+#: includes/Publishing/ReviewConfirm.php:711
 msgid "Full text"
 msgstr ""
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:670
+#: includes/Publishing/ReviewConfirm.php:716
 #, fuzzy, php-format
 msgid "Publish this %s?"
 msgstr "Kuchapisha kazi hii ya sanaa?"
 
-#: includes/Publishing/ReviewConfirm.php:693
+#: includes/Publishing/ReviewConfirm.php:739
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:699
+#: includes/Publishing/ReviewConfirm.php:745
 #: includes/Publishing/SubmissionsPage.php:233
 msgid "Publish it"
 msgstr "Chapisha"
 
-#: includes/Publishing/ReviewConfirm.php:710
+#: includes/Publishing/ReviewConfirm.php:756
 #, fuzzy
 msgid "biography"
 msgstr "Wasifu"

@@ -60,11 +60,85 @@ class PostCreator {
 	 * @var array<string, array{post_type: string, singleton: bool}>
 	 */
 	private const INDICATORS = [
+		// English (canonical).
 		'biography' => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ],
 		'event'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ],
 		'photo'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ],
 		// pure@ implies photo_only too — no enhancement, on top of no description AI at all.
 		'pure'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ],
+
+		// Localized aliases (fifth audit §2d). Address-based routing
+		// (resolve_post_type()'s primary mechanism) makes this bracket-keyword
+		// table a fallback concern, but the fallback exists precisely for
+		// artists whose mail situation is odd — the least technical cohort —
+		// and an English-only keyword list silently turned a Spanish
+		// "[Biografía]" into a plain artwork submission. Covers the same four
+		// indicators translated into the 17 locales this plugin ships
+		// template-string catalogs for (see languages/*.po) — a static array,
+		// no AI, no settings. Several languages share an identical unaccented
+		// spelling (e.g. "foto"), so one key legitimately covers more than
+		// one locale; each is annotated with which locale(s) it serves.
+		// Biography.
+		'biografía'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // es (accented)
+		'biografia'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // es/it/pt/ca (unaccented)
+		'biographie' => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // fr
+		'biografie'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // de/nl
+		'biyografi'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // tr
+		'biografi'   => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // id
+		'wasifu'     => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // sw
+		'биография'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ru
+		'プロフィール'  => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ja
+		'経歴'         => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ja (alt)
+		'简介'         => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // zh
+		'传记'         => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // zh (alt)
+		'سيرة'        => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ar
+		'بیوگرافی'    => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // fa
+		'سوانح'       => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ur
+		'जीवनी'       => [ 'post_type' => 'agnosis_biography', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // hi
+
+		// Event.
+		'evento'        => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // es/it/pt
+		'esdeveniment'  => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ca
+		'événement'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // fr (accented)
+		'evenement'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // fr (unaccented)/nl
+		'veranstaltung' => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // de
+		'etkinlik'      => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // tr
+		'acara'         => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // id
+		'tukio'         => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // sw
+		'событие'       => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ru
+		'イベント'        => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ja
+		'活动'           => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // zh
+		'حدث'           => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ar
+		'رویداد'        => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // fa
+		'تقریب'         => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // ur
+		'कार्यक्रम'     => [ 'post_type' => 'agnosis_event', 'singleton' => true, 'photo_only' => false, 'pure' => false ], // hi
+
+		// Photo.
+		'foto'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // es/it/pt/de/nl/id (all spelled "foto")
+		'fotoğraf'  => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // tr
+		'picha'     => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // sw
+		'фото'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // ru
+		'写真'        => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // ja
+		'照片'        => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // zh
+		'صورة'       => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // ar
+		'عکس'        => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // fa
+		'تصویر'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // ur
+		'फोटो'       => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => false ], // hi
+
+		// Pure (implies photo_only — see canonical 'pure' above).
+		'puro'   => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // es/it/pt
+		'pur'    => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // fr
+		'rein'   => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // de
+		'puur'   => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // nl
+		'saf'    => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // tr
+		'murni'  => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // id
+		'safi'   => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // sw
+		'чистый' => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // ru
+		'ピュア'    => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // ja
+		'纯'      => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // zh
+		'نقي'    => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // ar
+		'خالص'   => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // fa/ur
+		'शुद्ध'  => [ 'post_type' => 'agnosis_artwork', 'singleton' => false, 'photo_only' => true, 'pure' => true ], // hi
 	];
 
 	/**
@@ -230,14 +304,32 @@ class PostCreator {
 			// ---- Special handlers (no AI pipeline) ------------------------------
 
 			if ( 'agnosis_remove' === $post_type ) {
-				$this->handle_removal_request( $submission, (int) $row->artist_id, $queue_id );
-				$this->mark( $queue_id, 'published' );
+				// fifth audit §2b: a title that matches nothing used to be marked
+				// 'published' — misleading in the Inbox admin table for a request
+				// that did nothing — and the artist got no email at all. The queue
+				// row now honestly reflects what happened, and
+				// handle_removal_request() always fires an artist-facing action
+				// (a removal confirmation on match, a "not found" feedback email
+				// with title suggestions otherwise — see Notification).
+				$found = $this->handle_removal_request( $submission, (int) $row->artist_id, $queue_id );
+				$this->mark(
+					$queue_id,
+					$found ? 'published' : 'skipped',
+					$found ? '' : sprintf( 'Skipped: remove@ found no artwork or event titled "%s" for this artist — feedback email sent.', trim( (string) $submission['subject'] ) )
+				);
 				return;
 			}
 
 			if ( 'agnosis_promote' === $post_type ) {
-				$this->handle_promotion_request( $submission, (int) $row->artist_id, $queue_id );
-				$this->mark( $queue_id, 'published' );
+				// fifth audit §2b: same truthful-status treatment as remove@ above,
+				// plus promote@ now also gets a *success* confirmation email — it
+				// previously had no feedback in either direction.
+				$found = $this->handle_promotion_request( $submission, (int) $row->artist_id, $queue_id );
+				$this->mark(
+					$queue_id,
+					$found ? 'published' : 'skipped',
+					$found ? '' : sprintf( 'Skipped: promote@ found no published artwork titled "%s" for this artist — feedback email sent.', trim( (string) $submission['subject'] ) )
+				);
 				return;
 			}
 
@@ -282,7 +374,12 @@ class PostCreator {
 					: $this->pipeline->process( $submission, $photo_only );
 				foreach ( $results as $i => $r ) {
 					if ( $r['description_ok'] ) {
-						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ), 'publisher' );
+						// A secondary gallery image described via the slim
+						// AI\ProviderInterface::describe_secondary() pass (fifth
+						// audit §4c) always has title === '' — its alt text is
+						// the one AI-generated string it actually carries, so
+						// log that instead of an empty pair of quotes.
+						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ?: ( $r['alt_text'] ?? '' ) ), 'publisher' );
 					} else {
 						Logger::warning( sprintf( 'Queue #%d: attachment %d description failed — %s', $queue_id, $i + 1, $r['error'] ?? 'unknown' ), 'publisher' );
 					}
@@ -543,8 +640,9 @@ class PostCreator {
 	 * Resolve the target post type for an incoming submission.
 	 *
 	 * Routing priority:
-	 *   1. Recipient address (To: header from IMAP; 'recipient'/'to' from webhook).
-	 *      Matched case-insensitively against the three configured routing addresses.
+	 *   1. Recipient address — every To:/Cc: recipient (fifth audit §5a; see
+	 *      'to_addresses' in the submission array), matched case-insensitively
+	 *      against the configured routing addresses.
 	 *   2. Subject-line [Indicator] prefix — backward-compatible fallback for artists
 	 *      who already use the bracket syntax or whose mail client doesn't set To:.
 	 *   3. Default: agnosis_artwork.
@@ -573,10 +671,23 @@ class PostCreator {
 	 * @return array{0: string, 1: bool, 2: string, 3: bool, 4: bool}
 	 */
 	private function resolve_post_type( array $submission ): array {
-		$to      = strtolower( trim( (string) ( $submission['to_address'] ?? '' ) ) );
-		$subject = (string) ( $submission['subject'] ?? '' );
+		// 2026-07-09 (fifth audit §5a): match against every To:/Cc: recipient,
+		// not just the first To: address. Previously an artist writing to
+		// `remove@` while CCing a friend (or whose mail client serialised To:
+		// in an unexpected order) routed on whichever single address Parser
+		// happened to capture — the message fell through to the plain artwork
+		// pipeline and bounced a confusing "no attachment" reply for what was
+		// actually a management request. Falls back to the single legacy
+		// 'to_address' when 'to_addresses' isn't present (older queued rows,
+		// and test doubles that only ever set the singular key).
+		$addresses = array_map(
+			static fn( $a ) => strtolower( trim( (string) $a ) ),
+			(array) ( $submission['to_addresses'] ?? [ $submission['to_address'] ?? '' ] )
+		);
+		$addresses = array_values( array_filter( $addresses ) );
+		$subject   = (string) ( $submission['subject'] ?? '' );
 
-		if ( $to ) {
+		if ( ! empty( $addresses ) ) {
 			$bio_addr     = strtolower( trim( (string) get_option( 'agnosis_email_bio',     '' ) ) );
 			$event_addr   = strtolower( trim( (string) get_option( 'agnosis_email_event',   '' ) ) );
 			$replace_addr = strtolower( trim( (string) get_option( 'agnosis_email_replace', '' ) ) );
@@ -585,30 +696,30 @@ class PostCreator {
 			$photo_addr   = strtolower( trim( (string) get_option( 'agnosis_email_photo',   '' ) ) );
 			$pure_addr    = strtolower( trim( (string) get_option( 'agnosis_email_pure',    '' ) ) );
 
-			if ( $bio_addr && $to === $bio_addr ) {
+			if ( $bio_addr && in_array( $bio_addr, $addresses, true ) ) {
 				return [ 'agnosis_biography', true, $subject, false, false ];
 			}
-			if ( $event_addr && $to === $event_addr ) {
+			if ( $event_addr && in_array( $event_addr, $addresses, true ) ) {
 				return [ 'agnosis_event', true, $subject, false, false ];
 			}
 			// Pure lane: zero AI — checked before photo@ since both match on the
 			// same shape (agnosis_artwork, non-singleton) and pure@ is the more
 			// specific/stronger of the two.
-			if ( $pure_addr && $to === $pure_addr ) {
+			if ( $pure_addr && in_array( $pure_addr, $addresses, true ) ) {
 				return [ 'agnosis_artwork', false, $subject, true, true ];
 			}
 			// Photo-only lane: AI description + no enhancement + no quality rejection.
-			if ( $photo_addr && $to === $photo_addr ) {
+			if ( $photo_addr && in_array( $photo_addr, $addresses, true ) ) {
 				return [ 'agnosis_artwork', false, $subject, true, false ];
 			}
 			// Pseudo-types — handled specially in handle() before create_post() is called.
-			if ( $replace_addr && $to === $replace_addr ) {
+			if ( $replace_addr && in_array( $replace_addr, $addresses, true ) ) {
 				return [ 'agnosis_replace', false, $subject, false, false ];
 			}
-			if ( $remove_addr && $to === $remove_addr ) {
+			if ( $remove_addr && in_array( $remove_addr, $addresses, true ) ) {
 				return [ 'agnosis_remove', false, $subject, false, false ];
 			}
-			if ( $promote_addr && $to === $promote_addr ) {
+			if ( $promote_addr && in_array( $promote_addr, $addresses, true ) ) {
 				return [ 'agnosis_promote', false, $subject, false, false ];
 			}
 		}
@@ -890,16 +1001,30 @@ class PostCreator {
 	 * which also had to stop rejecting non-artwork post types for this to work
 	 * end-to-end).
 	 *
+	 * fifth audit §2b/§2c: on no exact match, this used to log a warning and
+	 * silently return — the artist got no email, and the queue row was marked
+	 * 'published' by the caller regardless. It now fires
+	 * 'agnosis_removal_target_not_found' with the artist's current titles and
+	 * (§2c) a fuzzy-matched suggestion — reusing find_duplicate_post()'s
+	 * AI-comparison pattern — so Notification can send a helpful "we couldn't
+	 * find X; did you mean Y?" email. The fuzzy match is NEVER acted on
+	 * directly; it only ever informs a suggestion in that email. The one
+	 * exception: since remove@'s real consent step is the confirmation link
+	 * click (not the email request itself), a removal token IS safely
+	 * pre-generated for the suggested post — a wrong guess simply dies
+	 * unclicked, exactly like any other removal request.
+	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
 	 * @param int                  $queue_id   Current queue row (for logging).
+	 * @return bool True if a matching post was found and a removal confirmation queued.
 	 */
-	private function handle_removal_request( array $submission, int $artist_id, int $queue_id ): void {
+	private function handle_removal_request( array $submission, int $artist_id, int $queue_id ): bool {
 		$subject = trim( $submission['subject'] ?? '' );
 
 		if ( ! $subject ) {
 			Logger::warning( sprintf( 'Queue #%d: remove@ request has no subject — cannot identify post.', $queue_id ), 'publisher' );
-			return;
+			return false;
 		}
 
 		$post_id = $this->find_post_by_subject( $subject, $artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
@@ -909,7 +1034,44 @@ class PostCreator {
 				sprintf( 'Queue #%d: remove@ — no artwork or event titled "%s" found for this artist.', $queue_id, $subject ),
 				'publisher'
 			);
-			return;
+
+			$context = $this->gather_title_context( $subject, $artist_id, [ 'agnosis_artwork', 'agnosis_event' ], [ 'draft', 'pending', 'publish' ] );
+
+			$suggestion_token = '';
+			if ( $context['suggestion_id'] ) {
+				// Pre-generate a removal confirmation token for the fuzzy-matched
+				// post (§2c) — the confirmation click is the real consent step, so
+				// including a ready-to-use link in the feedback email is safe even
+				// if the fuzzy guess is wrong: it simply dies unclicked.
+				$suggestion_token = $this->generate_token();
+				update_post_meta( $context['suggestion_id'], '_agnosis_removal_token', $suggestion_token );
+				update_post_meta( $context['suggestion_id'], '_agnosis_removal_expiry', time() + ( 7 * DAY_IN_SECONDS ) );
+				update_post_meta( $context['suggestion_id'], '_agnosis_removal_reason', sanitize_textarea_field( $submission['description'] ?? '' ) );
+			}
+
+			/**
+			 * Fires when a remove@ request's subject matches no existing artwork
+			 * or event for this artist.
+			 *
+			 * @param int      $artist_id        Requesting artist's user ID.
+			 * @param string   $subject          The subject line that didn't match.
+			 * @param string[] $titles           The artist's current artwork/event titles.
+			 * @param int      $suggestion_id     Fuzzy-matched post ID, or 0 if none.
+			 * @param string   $suggestion_title  Fuzzy-matched post title, or ''.
+			 * @param string   $suggestion_token  Pre-generated removal token for the
+			 *                                    suggested post, or '' if no suggestion.
+			 */
+			do_action(
+				'agnosis_removal_target_not_found',
+				$artist_id,
+				$subject,
+				$context['titles'],
+				$context['suggestion_id'],
+				$context['suggestion_title'],
+				$suggestion_token
+			);
+
+			return false;
 		}
 
 		// Generate a cryptographically random removal token.
@@ -934,6 +1096,8 @@ class PostCreator {
 		 * @param int $artist_id The requesting artist's user ID.
 		 */
 		do_action( 'agnosis_removal_requested', $post_id, $artist_id );
+
+		return true;
 	}
 
 	/**
@@ -943,16 +1107,25 @@ class PostCreator {
 	 * Subject must exactly match the artwork's title.  Only published artworks
 	 * are eligible — a draft cannot be featured until it has been approved.
 	 *
+	 * fifth audit §2b/§2c: promote@ used to have no artist feedback in either
+	 * direction — a match silently flipped the featured meta, and a miss
+	 * silently did nothing. Both now fire 'agnosis_promotion_result' so
+	 * Notification can confirm success or, on a miss, suggest a likely title
+	 * (§2c, same fuzzy-match-as-suggestion-only pattern as remove@ — promote@
+	 * has no confirmation step to pre-generate a token for, so a miss here
+	 * only ever informs the email text, never acts).
+	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
 	 * @param int                  $queue_id   Current queue row (for logging).
+	 * @return bool True if a matching published artwork was found and featured.
 	 */
-	private function handle_promotion_request( array $submission, int $artist_id, int $queue_id ): void {
+	private function handle_promotion_request( array $submission, int $artist_id, int $queue_id ): bool {
 		$subject = trim( $submission['subject'] ?? '' );
 
 		if ( ! $subject ) {
 			Logger::warning( sprintf( 'Queue #%d: promote@ request has no subject — cannot identify post.', $queue_id ), 'publisher' );
-			return;
+			return false;
 		}
 
 		$matches = get_posts( [
@@ -970,7 +1143,21 @@ class PostCreator {
 				sprintf( 'Queue #%d: promote@ — no published artwork titled "%s" found for this artist.', $queue_id, $subject ),
 				'publisher'
 			);
-			return;
+
+			$context = $this->gather_title_context( $subject, $artist_id, 'agnosis_artwork', [ 'publish' ] );
+
+			/**
+			 * Fires after a promote@ request completes — success or failure.
+			 *
+			 * @param int      $artist_id        Requesting artist's user ID.
+			 * @param string   $subject          The subject line that was matched (or not).
+			 * @param bool     $found            Whether a matching published artwork was found.
+			 * @param string[] $titles           The artist's current published artwork titles (only on failure).
+			 * @param string   $suggestion_title Fuzzy-matched title suggestion, or '' (only on failure).
+			 */
+			do_action( 'agnosis_promotion_result', $artist_id, $subject, false, $context['titles'], $context['suggestion_title'] );
+
+			return false;
 		}
 
 		$post_id = (int) $matches[0];
@@ -980,6 +1167,96 @@ class PostCreator {
 			sprintf( 'Queue #%d: promote@ — artwork #%d "%s" is now featured.', $queue_id, $post_id, $subject ),
 			'publisher'
 		);
+
+		do_action( 'agnosis_promotion_result', $artist_id, $subject, true, [], '' );
+
+		return true;
+	}
+
+	/**
+	 * Gather feedback-email context for a remove@/promote@ subject that
+	 * didn't match anything exactly (fifth audit §2b/§2c): every current
+	 * title the artist could have meant, plus (when the subject is non-empty)
+	 * an AI fuzzy-match suggestion for which one they most likely did mean.
+	 *
+	 * Reuses the same cheap, text-only AI comparison pattern as
+	 * find_duplicate_post()'s third (fuzzy) layer — allowing for typos,
+	 * missing words, or reworded titles — but this method never acts on the
+	 * result itself; callers only ever use it to inform an email. Costs at
+	 * most one get_posts() call and, when the subject is non-empty and at
+	 * least one candidate exists, one cheap chat() call.
+	 *
+	 * @param string          $subject      Subject line that didn't match exactly.
+	 * @param int             $artist_id    WordPress user ID.
+	 * @param string|string[] $post_type    CPT slug, or an array of slugs to search across.
+	 * @param string[]        $post_status  Post statuses to include as candidates.
+	 * @return array{titles: string[], suggestion_id: int, suggestion_title: string}
+	 */
+	private function gather_title_context( string $subject, int $artist_id, string|array $post_type, array $post_status ): array {
+		$empty = [ 'titles' => [], 'suggestion_id' => 0, 'suggestion_title' => '' ];
+
+		if ( ! $artist_id ) {
+			return $empty;
+		}
+
+		$candidates = get_posts( [
+			'post_type'      => $post_type,
+			'author'         => $artist_id,
+			'post_status'    => $post_status,
+			'posts_per_page' => 20,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		] );
+
+		$titles_map = [];
+		foreach ( $candidates as $pid ) {
+			$post = get_post( (int) $pid );
+			if ( $post && '' !== trim( $post->post_title ) ) {
+				$titles_map[ (int) $pid ] = $post->post_title;
+			}
+		}
+
+		if ( empty( $titles_map ) ) {
+			return $empty;
+		}
+
+		$suggestion_id = 0;
+		if ( '' !== $subject ) {
+			$lines = [];
+			foreach ( $titles_map as $pid => $title ) {
+				$lines[] = sprintf( 'Post #%d: "%s"', $pid, $title );
+			}
+			$prompt = sprintf(
+				"An artist emailed a request referencing one of their own works by title: \"%s\"\n\n"
+				. "Their current posts:\n%s\n\n"
+				. 'Which post (if any) did they most likely mean — allowing for typos, missing words, or slightly different wording? '
+				. 'Reply with ONLY the matching post ID number (e.g. "42"), or "0" if none is a plausible match. No explanation.',
+				$subject,
+				implode( "\n", $lines )
+			);
+
+			// Defensive: a fuzzy-match suggestion is a nice-to-have addition to
+			// the feedback email, never a prerequisite for sending it. If the AI
+			// call fails for any reason (provider misconfigured, network error),
+			// fall back to no suggestion rather than losing the whole "here are
+			// your current titles" email over it.
+			try {
+				$response      = $this->pipeline->chat( $prompt );
+				$candidate_id  = (int) preg_replace( '/\D/', '', $response );
+				$suggestion_id = isset( $titles_map[ $candidate_id ] ) ? $candidate_id : 0;
+			} catch ( \Throwable $e ) {
+				Logger::warning( 'gather_title_context(): fuzzy-match chat() call failed — ' . $e->getMessage(), 'publisher' );
+				$suggestion_id = 0;
+			}
+		}
+
+		return [
+			'titles'           => array_values( $titles_map ),
+			'suggestion_id'    => $suggestion_id,
+			'suggestion_title' => $suggestion_id ? $titles_map[ $suggestion_id ] : '',
+		];
 	}
 
 	/**

@@ -551,6 +551,13 @@ class LinguaForge {
 	 * accumulate in `agnosis_medium`/`post_tag` indistinguishable from
 	 * admin-curated ones, polluting both the AI prompt's term list and the
 	 * admin taxonomy screens).
+	 *
+	 * Numeric-looking names ("2026", or an AI translation that happens to
+	 * come back as a bare number) are handled separately from the plain
+	 * term_exists()/auto-create flow above — see resolve_numeric_term_name()
+	 * (sixth audit §6, carried from the fifth) for why WordPress's own term
+	 * lookup is ambiguous for those specifically, and how this method avoids
+	 * it.
 	 */
 	private function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
 		$names = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'names' ] );
@@ -569,12 +576,46 @@ class LinguaForge {
 			$names
 		);
 
-		$new_names = array_filter(
-			$translated_names,
-			fn( string $name ) => ! term_exists( $name, $taxonomy )
-		);
+		// Numeric-looking names (a literal year like "2026", or an AI
+		// translation that happens to come back as a bare number) are
+		// resolved to a real term ID here, BEFORE anything below ever hands
+		// the raw numeric string to term_exists()/wp_set_object_terms() —
+		// see resolve_numeric_term_name()'s docblock for why WordPress's own
+		// lookup is ambiguous for those, and not for an actual int (sixth
+		// audit §6, carried from the fifth — pre-existing since 0.9.9, not
+		// introduced by this method). Non-numeric names are completely
+		// unaffected and keep the original behaviour: term_exists() is
+		// checked BEFORE the assignment call so a genuinely new name can
+		// still be identified afterward (wp_set_object_terms() auto-creates
+		// it, and its ID is only known once that call returns).
+		$assign     = []; // int|string values, in order, for wp_set_object_terms().
+		$new_names  = []; // non-numeric names not yet existing — resolved to IDs after assignment.
+		$newly_made = []; // term IDs already known to be freshly created — numeric names resolve immediately.
 
-		wp_set_object_terms( $translated_id, $translated_names, $taxonomy );
+		foreach ( $translated_names as $name ) {
+			if ( is_numeric( $name ) ) {
+				[ $term_id, $was_new ] = $this->resolve_numeric_term_name( $name, $taxonomy );
+				if ( 0 === $term_id ) {
+					continue; // Nothing resolvable — drop rather than pass the ambiguous numeric string through.
+				}
+				$assign[] = $term_id;
+				if ( $was_new ) {
+					$newly_made[] = $term_id;
+				}
+				continue;
+			}
+
+			if ( ! term_exists( $name, $taxonomy ) ) {
+				$new_names[] = $name;
+			}
+			$assign[] = $name;
+		}
+
+		wp_set_object_terms( $translated_id, $assign, $taxonomy );
+
+		foreach ( $newly_made as $term_id ) {
+			add_term_meta( $term_id, self::TRANSLATED_TERM_META, $target_lang, true );
+		}
 
 		foreach ( $new_names as $name ) {
 			$term = get_term_by( 'name', $name, $taxonomy );
@@ -582,6 +623,55 @@ class LinguaForge {
 				add_term_meta( $term->term_id, self::TRANSLATED_TERM_META, $target_lang, true );
 			}
 		}
+	}
+
+	/**
+	 * Resolve a numeric-looking translated term name ("2026", or an AI
+	 * translation that happens to come back as a bare number) to a real term
+	 * ID, sidestepping a documented WordPress ambiguity for numeric-looking
+	 * term names (sixth audit §6, carried from the fifth — pre-existing
+	 * since 0.9.9, not introduced by sync_taxonomy() itself).
+	 *
+	 * WordPress's own `term_exists()` adds a `t.term_id = %d` OR-clause to
+	 * its lookup SQL whenever `is_numeric( $term )` is true, even though
+	 * `$term` is a plain string — so a tag or medium literally named "2026"
+	 * can silently match whatever UNRELATED term happens to have term_id
+	 * 2026, instead of a term actually named "2026" (creating one, or
+	 * reusing an existing one, as intended). `wp_set_object_terms()` calls
+	 * `term_exists()` internally and inherits the exact same ambiguity, so
+	 * passing a numeric-looking name straight through — the pre-fix
+	 * behaviour — silently mis-assigns or drops such terms. Passing a
+	 * genuine PHP int (not a numeric string) sidesteps this entirely:
+	 * `term_exists()` performs ONLY the exact `t.term_id = %d` match when
+	 * given an int, with no name/slug fallback at all — so resolving to a
+	 * real int ID ourselves, before the name ever reaches
+	 * `term_exists()`/`wp_set_object_terms()`, removes the ambiguity.
+	 *
+	 * @param string $name     The (already-translated) term name to resolve. Caller
+	 *                         guarantees `is_numeric( $name )` is true.
+	 * @param string $taxonomy Taxonomy to resolve/create the term in.
+	 * @return array{0: int, 1: bool} [term_id (0 if genuinely unresolvable), whether
+	 *                                 this call just created the term].
+	 */
+	private function resolve_numeric_term_name( string $name, string $taxonomy ): array {
+		$existing = get_term_by( 'name', $name, $taxonomy );
+		if ( $existing instanceof \WP_Term ) {
+			return [ $existing->term_id, false ];
+		}
+
+		$inserted = wp_insert_term( $name, $taxonomy );
+		if ( is_wp_error( $inserted ) ) {
+			// Most likely a genuine race — another request created the same
+			// term between the lookup above and this call (wp_insert_term()
+			// itself returns a "term_exists" WP_Error in that case). One more
+			// lookup catches that; if there is still nothing, the term is
+			// dropped rather than passed through to wp_set_object_terms() as
+			// an ambiguous numeric string anyway.
+			$retry = get_term_by( 'name', $name, $taxonomy );
+			return $retry instanceof \WP_Term ? [ $retry->term_id, false ] : [ 0, false ];
+		}
+
+		return [ (int) $inserted['term_id'], true ];
 	}
 
 	/**
@@ -838,13 +928,13 @@ class LinguaForge {
 			return; // No provider configured — translations keep no display-title override.
 		}
 
-		$map = [];
-		foreach ( $targets as $lang ) {
-			$translated = $translator->translate_text( $primary_title, $lang );
-			if ( '' !== $translated && $translated !== $primary_title ) {
-				$map[ $lang ] = $translated;
-			}
-		}
+		// Fifth audit §4d: one envelope call translating the title into every
+		// target language at once, instead of one translate_text() call per
+		// language — the same title fan-out ran on every artwork publish on a
+		// multilingual site, each call re-shipping a full translate prompt for
+		// a ~10-word string. translate_to_languages() applies the identical
+		// "only keep an actual change" filter the old per-language loop did.
+		$map = $translator->translate_to_languages( $primary_title, $targets );
 
 		if ( ! empty( $map ) ) {
 			update_post_meta( $post_id, self::TITLE_I18N_META, $map );

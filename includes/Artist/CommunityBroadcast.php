@@ -30,9 +30,22 @@
  * original text unchanged rather than blocking the whole broadcast on a
  * missing provider.
  *
- * Length cap (2026-07-08 correction): every recipient's copy costs one AI
- * translation call, so a single long message is not one AI cost but N of
- * them. Callers must check exceeds_max_length() before calling broadcast()
+ * Translation is grouped by target language, not done once per recipient
+ * (fifth audit §4a) — broadcast() buckets recipients by their target
+ * language first and translates each distinct language exactly once, so
+ * twenty Spanish-speaking members cost one Spanish translation, not twenty
+ * byte-identical ones (N recipients × 2 calls → L languages × 2 calls). Every
+ * recipient in a group still gets their own account locale switched for the
+ * surrounding template chrome in send_one() — grouping only changes how many
+ * times the AI is asked to translate the same words, not what any individual
+ * recipient receives.
+ *
+ * Length cap (2026-07-08 correction): a single long message is still not a
+ * fixed, one-time AI cost — even grouped by language (§4a above), it's L
+ * translation calls, one per distinct language among the recipients, so a
+ * long message on a multi-language community is still a multiplied cost, just
+ * by language count rather than recipient count. Callers must check
+ * exceeds_max_length() before calling broadcast()
  * and, if it's true, call send_too_long_bounce() instead — see
  * Email\Inbox::handle_community_email() / Email\Webhook::handle(). Measured
  * in characters, not words: this is an international community, and
@@ -213,38 +226,67 @@ class CommunityBroadcast {
 		// site-wide provider config regardless of who the email is going to.
 		$translator = SubmissionTranslator::from_settings();
 
-		$sent = 0;
+		// ---- Group recipients by target language (fifth audit §4a) -----------
+		// Previously this loop called translate_text() (subject + body) once
+		// per RECIPIENT — twenty Spanish-speaking members meant twenty separate,
+		// byte-identical Spanish translations. Recipients are grouped by target
+		// language first so each distinct language is translated exactly once
+		// below (N recipients × 2 calls → L languages × 2 calls), then every
+		// recipient in a group reuses that group's copy — no feature change,
+		// since a "broadcast" already implies identical wording for recipients
+		// who share a language. switch_to_locale() still happens per recipient,
+		// not per group: that's template chrome (the "Subject:"/"Hit reply…"
+		// wrapper strings in send_one()), which reads WP's full locale (e.g.
+		// es_ES vs es_MX) — a finer distinction than the 2-letter language code
+		// translation is grouped by, so two recipients can share a translation
+		// group while still getting their own locale's chrome.
+		$no_translation_key = '__original__'; // Sentinel: not a valid ISO 639-1 code, so it can never collide with a real target language group.
+		$groups             = []; // lang code (or the sentinel above) => list of ['recipient' => WP_User-like, 'locale' => string]
+
 		foreach ( $recipients as $recipient ) {
 			$recipient_id = (int) $recipient->ID;
 			$locale       = (string) get_user_meta( $recipient_id, 'locale', true );
-
-			if ( '' !== $locale ) {
-				switch_to_locale( $locale );
-			}
-
-			$target_lang        = '' !== $locale ? LinguaForge::locale_to_lang( $locale ) : '';
-			$translated_subject = $subject;
-			$translated_body    = $body;
+			$target_lang  = '' !== $locale ? LinguaForge::locale_to_lang( $locale ) : '';
 
 			$needs_translation = null !== $translator
 				&& '' !== $sender_lang
 				&& '' !== $target_lang
 				&& $target_lang !== $sender_lang;
 
-			if ( $needs_translation ) {
-				if ( '' !== $subject ) {
-					$translated_subject = $translator->translate_text( $subject, $target_lang );
-				}
-				if ( '' !== $body ) {
-					$translated_body = $translator->translate_text( $body, $target_lang );
-				}
+			$group_key            = $needs_translation ? $target_lang : $no_translation_key;
+			$groups[ $group_key ][] = [ 'recipient' => $recipient, 'locale' => $locale ];
+		}
+
+		$sent = 0;
+		foreach ( $groups as $group_key => $members ) {
+			if ( $no_translation_key === $group_key ) {
+				$translated_subject = $subject;
+				$translated_body    = $body;
+			} else {
+				// One call per field, per language group — not per recipient.
+				// $translator is guaranteed non-null here: $group_key can only be
+				// a real language code (never $no_translation_key) when
+				// $needs_translation was true above, which itself requires
+				// `null !== $translator` — re-checked explicitly anyway so static
+				// analysis doesn't have to infer that invariant across the loops.
+				$translated_subject = ( '' !== $subject && null !== $translator ) ? $translator->translate_text( $subject, $group_key ) : $subject;
+				$translated_body    = ( '' !== $body && null !== $translator ) ? $translator->translate_text( $body, $group_key ) : $body;
 			}
 
-			$this->send_one( $recipient->user_email, $sender, $translated_subject, $translated_body );
-			++$sent;
+			foreach ( $members as $member ) {
+				$recipient = $member['recipient'];
+				$locale    = $member['locale'];
 
-			if ( '' !== $locale ) {
-				restore_current_locale();
+				if ( '' !== $locale ) {
+					switch_to_locale( $locale );
+				}
+
+				$this->send_one( $recipient->user_email, $sender, $translated_subject, $translated_body );
+				++$sent;
+
+				if ( '' !== $locale ) {
+					restore_current_locale();
+				}
 			}
 		}
 

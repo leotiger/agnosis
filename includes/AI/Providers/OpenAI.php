@@ -115,6 +115,87 @@ class OpenAI implements ProviderInterface {
 		);
 	}
 
+	/**
+	 * Slim description pass for secondary gallery images (fifth audit §4c) —
+	 * see ProviderInterface::describe_secondary()'s docblock for the full
+	 * rationale. Same vision call shape as describe() (still 'detail' =>
+	 * 'high' — the audit's own cost model is explicit that image tokens
+	 * dominate and stay; only the text side shrinks), but a fixed, much
+	 * shorter system prompt and no artist-context user message, and a far
+	 * lower max_tokens ceiling since the JSON response itself is a few dozen
+	 * tokens instead of a full title/excerpt/body.
+	 */
+	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+		if ( empty( $this->api_key ) ) {
+			return DescriptionResult::failure( 'OpenAI API key not configured.' );
+		}
+
+		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
+		$image_b64         = base64_encode( $vision_image_data );
+		$image_url         = 'data:' . $mime_type . ';base64,' . $image_b64;
+
+		$body = wp_json_encode( [
+			'model'           => $this->vision_model,
+			'max_tokens'      => 300,
+			'response_format' => [ 'type' => 'json_object' ],
+			'messages'        => [
+				[ 'role' => 'system', 'content' => PromptConfig::secondary_system_prompt() ],
+				[
+					'role'    => 'user',
+					'content' => [
+						[ 'type' => 'image_url', 'image_url' => [ 'url' => $image_url, 'detail' => 'high' ] ],
+					],
+				],
+			],
+		] );
+
+		if ( false === $body ) {
+			return DescriptionResult::failure( 'JSON encoding failed.' );
+		}
+
+		$response = wp_remote_post( self::CHAT_URL, [
+			'timeout' => 60,
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->api_key,
+				'Content-Type'  => 'application/json',
+			],
+			'body'    => $body,
+		] );
+
+		if ( is_wp_error( $response ) ) {
+			return DescriptionResult::failure( $response->get_error_message() );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( $code !== 200 || ! isset( $data['choices'][0]['message']['content'] ) ) {
+			return DescriptionResult::failure( 'OpenAI vision error: ' . wp_json_encode( $data['error'] ?? $data ) );
+		}
+
+		$json = json_decode( $data['choices'][0]['message']['content'], true );
+
+		if ( ! is_array( $json ) ) {
+			return DescriptionResult::failure( 'OpenAI returned non-JSON content.' );
+		}
+
+		$quality        = is_array( $json['photo_quality'] ?? null ) ? $json['photo_quality'] : [];
+		$quality_score  = max( 0, min( 10, (int) ( $quality['score'] ?? 0 ) ) );
+		$quality_issues = array_map( 'sanitize_text_field', (array) ( $quality['issues'] ?? [] ) );
+
+		return new DescriptionResult(
+			title:                '',
+			excerpt:              '',
+			body:                 '',
+			tags:                 array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+			alt_text:             sanitize_text_field( $json['alt_text'] ?? '' ),
+			success:              true,
+			photo_quality_score:  $quality_score,
+			photo_quality_issues: $quality_issues,
+			medium:               '',
+		);
+	}
+
 	// -------------------------------------------------------------------------
 	// Enhancement
 	// -------------------------------------------------------------------------

@@ -187,6 +187,26 @@ class Parser {
 			$to_address = strtolower( sanitize_email( (string) $to_addresses[0]->mail ) );
 		}
 
+		// --- All To:/Cc: recipients (fifth audit §5a) ---
+		// PostCreator::resolve_post_type() used to match aliases against
+		// $to_address alone (the first To: address) — an artist writing to
+		// remove@/promote@/etc. while CCing a friend, or whose mail client
+		// serialised To: in an unexpected order, silently fell through to the
+		// plain artwork pipeline. Collected here (headers already fetched for
+		// From:/To: above — Cc: is the same cheap header read, no extra IMAP
+		// round trip) so routing can check every recipient, not just the first.
+		$all_recipients = [];
+		foreach ( $to_addresses as $addr ) {
+			$all_recipients[] = strtolower( sanitize_email( (string) $addr->mail ) );
+		}
+		try {
+			foreach ( $message->getCc()->toArray() as $addr ) {
+				$all_recipients[] = strtolower( sanitize_email( (string) $addr->mail ) );
+			}
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getCc() (e.g. some test fakes); To: addresses alone are still collected above.
+		}
+		$all_recipients = array_values( array_unique( array_filter( $all_recipients ) ) );
+
 		// --- Subject ---
 		$subject = sanitize_text_field( (string) $message->getSubject() );
 
@@ -350,13 +370,14 @@ class Parser {
 		$artist_id = $this->resolve_artist( $from );
 
 		return [
-			'from'        => $from,
-			'to_address'  => $to_address,
-			'subject'     => $subject,
-			'description' => $this->clean_text( $text_body ),
-			'attachments' => $attachments,
-			'artist_id'   => $artist_id,
-			'source'      => 'imap',
+			'from'         => $from,
+			'to_address'   => $to_address,
+			'to_addresses' => $all_recipients,
+			'subject'      => $subject,
+			'description'  => $this->clean_text( $text_body ),
+			'attachments'  => $attachments,
+			'artist_id'    => $artist_id,
+			'source'       => 'imap',
 		];
 	}
 
@@ -402,11 +423,12 @@ class Parser {
 	 * @return array<string, mixed>|null
 	 */
 	public function parse_webhook_payload( array $payload ): ?array {
-		$from        = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
-		$to_address  = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
-		$subject     = sanitize_text_field( $payload['subject'] ?? '' );
-		$description = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
-		$attachments = [];
+		$from         = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
+		$to_address   = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
+		$to_addresses = $this->extract_recipient_addresses( $payload );
+		$subject      = sanitize_text_field( $payload['subject'] ?? '' );
+		$description  = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
+		$attachments  = [];
 
 		// Mailgun / SendGrid attach files differently — handle both.
 		$attachment_count = (int) ( $payload['attachment-count'] ?? 0 );
@@ -435,19 +457,56 @@ class Parser {
 		}
 
 		return [
-			'from'        => $from,
-			'to_address'  => $to_address,
-			'subject'     => $subject,
-			'description' => $this->clean_text( $description ),
-			'attachments' => $attachments,
-			'artist_id'   => $this->resolve_artist( $from ),
-			'source'      => 'webhook',
+			'from'         => $from,
+			'to_address'   => $to_address,
+			'to_addresses' => $to_addresses,
+			'subject'      => $subject,
+			'description'  => $this->clean_text( $description ),
+			'attachments'  => $attachments,
+			'artist_id'    => $this->resolve_artist( $from ),
+			'source'       => 'webhook',
 		];
 	}
 
 	// -------------------------------------------------------------------------
 	// Private helpers
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Collect every To:/Cc: address from a webhook payload (fifth audit §5a).
+	 *
+	 * Mailgun's 'recipient' field is the single address its own routing
+	 * matched, but 'To'/'Cc' carry the full raw header — which can list
+	 * several addresses (e.g. a message to `community@` that also CCs a
+	 * friend). Previously only 'recipient' (falling back to 'to') was ever
+	 * checked, so — same as the IMAP path — intent lost to header order.
+	 *
+	 * @param array<string, mixed> $payload Webhook POST payload.
+	 * @return string[] Lowercased, sanitized email addresses.
+	 */
+	private function extract_recipient_addresses( array $payload ): array {
+		$raw = [];
+		foreach ( [ 'recipient', 'to', 'To', 'cc', 'Cc' ] as $key ) {
+			if ( ! empty( $payload[ $key ] ) && is_string( $payload[ $key ] ) ) {
+				$raw[] = $payload[ $key ];
+			}
+		}
+
+		if ( empty( $raw ) ) {
+			return [];
+		}
+
+		// Extract bare email addresses out of "Name <addr>, Name2 <addr2>" or a
+		// plain comma-separated header string.
+		preg_match_all( '/[^\s,<>"]+@[^\s,<>"]+/', implode( ',', $raw ), $matches );
+
+		$addrs = array_map(
+			static fn( $e ) => strtolower( sanitize_email( $e ) ),
+			$matches[0]
+		);
+
+		return array_values( array_unique( array_filter( $addrs ) ) );
+	}
 
 	private function is_allowed_mime( string $mime ): bool {
 		return in_array( strtolower( $mime ), self::ALLOWED_MIME, true );

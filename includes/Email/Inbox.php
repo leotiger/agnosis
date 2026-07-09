@@ -471,10 +471,13 @@ class Inbox {
 				}
 
 				// --- Goodbye alias: self-removal request (no attachment required) ---
+				// fifth audit §5a: matched against every To:/Cc: recipient, not
+				// just To[0] — an artist writing to goodbye@ while CCing someone
+				// else, or whose mail client serialised To: in an unexpected
+				// order, used to fall through to the normal pipeline instead.
 				if ( $goodbye_addr ) {
-					$to_list = $message->getTo()->toArray();
-					$msg_to  = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
-					if ( $msg_to === $goodbye_addr ) {
+					$recipients = $this->message_recipient_addresses( $message );
+					if ( in_array( $goodbye_addr, $recipients, true ) ) {
 						$this->handle_goodbye_email( $from_email, $uid );
 						continue;
 					}
@@ -482,9 +485,8 @@ class Inbox {
 
 				// --- Community alias: broadcast to all other artists (no attachment required) ---
 				if ( $community_addr ) {
-					$to_list = $message->getTo()->toArray();
-					$msg_to  = $to_list ? strtolower( sanitize_email( (string) $to_list[0]->mail ) ) : '';
-					if ( $msg_to === $community_addr ) {
+					$recipients = $this->message_recipient_addresses( $message );
+					if ( in_array( $community_addr, $recipients, true ) ) {
 						$this->handle_community_email( $message, $from_email, $uid );
 						continue;
 					}
@@ -617,6 +619,34 @@ class Inbox {
 			'inbox'
 		);
 		return $messages;
+	}
+
+	/**
+	 * Collect every To:/Cc: address on a message, lowercased (fifth audit
+	 * §5a). Previously alias detection only ever read To[0], so intent lost
+	 * to header order for any message where the alias wasn't the first To:
+	 * recipient (e.g. CCing a friend on a goodbye@/community@ message).
+	 * getCc() is wrapped in a try/catch since not every Message double used
+	 * in tests implements it (FakeAliasImapMessage deliberately doesn't —
+	 * see its own docblock); To: addresses alone are still collected either way.
+	 *
+	 * @param object $message webklex Message (or a test double exposing getTo()).
+	 * @return string[] Lowercased, sanitized email addresses (To + Cc combined).
+	 */
+	private function message_recipient_addresses( object $message ): array {
+		$addrs = [];
+		// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see docblock above) so test doubles that only duck-type getTo() still pass; real webklex Message always has it.
+		foreach ( $message->getTo()->toArray() as $a ) {
+			$addrs[] = strtolower( sanitize_email( (string) ( $a->mail ?? '' ) ) );
+		}
+		try {
+			// @phpstan-ignore-next-line -- same reasoning as getTo() above; getCc() is additionally guarded by the try/catch below for doubles that omit it entirely.
+			foreach ( $message->getCc()->toArray() as $a ) {
+				$addrs[] = strtolower( sanitize_email( (string) ( $a->mail ?? '' ) ) );
+			}
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getCc(); To: alone is fine.
+		}
+		return array_values( array_unique( array_filter( $addrs ) ) );
 	}
 
 	/**

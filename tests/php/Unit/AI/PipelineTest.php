@@ -74,6 +74,24 @@ class PipelineTest extends TestCase {
 				)
 				: DescriptionResult::failure( 'Mocked provider error.' )
 		);
+		// Fifth audit §4c: process() calls describe_secondary() (not describe())
+		// on every attachment after the first successfully-described one — any
+		// test submitting more than one attachment needs this stubbed too, or
+		// PHPUnit's auto-generated return value for the unconfigured method
+		// won't satisfy DescriptionResult's constructor.
+		$mock->method( 'describe_secondary' )->willReturn(
+			$success
+				? new DescriptionResult(
+					title:               '',
+					excerpt:             '',
+					body:                '',
+					tags:                [ 'art', 'mock' ],
+					alt_text:            'A mocked secondary image.',
+					success:             true,
+					photo_quality_score: 5,
+				)
+				: DescriptionResult::failure( 'Mocked provider error.' )
+		);
 		$mock->method( 'supports_enhancement' )->willReturn( false );
 		$mock->method( 'enhance' )->willReturn( EnhancementResult::failure( 'not supported' ) );
 		return $mock;

@@ -77,6 +77,345 @@ class Notification {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// remove@ / promote@ feedback (fifth audit §2b/§2c)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hook callback for 'agnosis_removal_target_not_found'.
+	 *
+	 * Previously a remove@ request whose subject matched nothing exactly got
+	 * no artist-facing response at all — the queue row was silently marked
+	 * 'published' and the artist was left believing their email had worked.
+	 * This sends a "we couldn't find that" email listing the artist's current
+	 * titles and, when the AI fuzzy-match layer found a plausible candidate
+	 * (§2c), a one-click confirmation link for it — safe to offer because
+	 * clicking is still the real consent step, so a wrong guess just sits
+	 * unclicked until it expires.
+	 *
+	 * @param int      $artist_id        Requesting artist's user ID.
+	 * @param string   $subject          The subject line that didn't match.
+	 * @param string[] $titles           The artist's current artwork/event titles.
+	 * @param int      $suggestion_id    Fuzzy-matched post ID, or 0.
+	 * @param string   $suggestion_title Fuzzy-matched post title, or ''.
+	 * @param string   $suggestion_token Pre-generated removal token for the suggestion, or ''.
+	 */
+	public function on_removal_target_not_found( int $artist_id, string $subject, array $titles, int $suggestion_id, string $suggestion_title, string $suggestion_token ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$subject_line = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] We couldn\'t find that artwork or event', 'agnosis' ),
+			get_bloginfo( 'name' )
+		);
+
+		$confirm_url = '';
+		if ( $suggestion_id && '' !== $suggestion_token ) {
+			$confirm_url = add_query_arg(
+				[
+					'agnosis_review' => '1',
+					'id'             => $suggestion_id,
+					'action'         => 'remove',
+					'token'          => $suggestion_token,
+				],
+				home_url( '/' )
+			);
+		}
+
+		wp_mail(
+			$artist->user_email,
+			$subject_line,
+			$this->build_not_found_email( $artist->display_name, $subject, $titles, $suggestion_title, $confirm_url, $artist_id, 'remove' ),
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			]
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Hook callback for 'agnosis_promotion_result'.
+	 *
+	 * promote@ previously had no feedback in either direction: a match
+	 * silently flipped the featured-artwork meta, and a miss silently did
+	 * nothing. Now sends a plain confirmation on success, or a "we couldn't
+	 * find that" email (same shape as removal's, minus a confirmation link —
+	 * promote@ has no confirm step to attach one to) on a miss, optionally
+	 * with a fuzzy-matched title suggestion (§2c) the artist can resend with.
+	 *
+	 * @param int      $artist_id Requesting artist's user ID.
+	 * @param string   $subject   The subject line that was matched (or not).
+	 * @param bool     $found     Whether a matching published artwork was found.
+	 * @param string[] $titles    Artist's current published artwork titles (failure only).
+	 * @param string   $suggestion_title Fuzzy-matched title suggestion, or '' (failure only).
+	 */
+	public function on_promotion_result( int $artist_id, string $subject, bool $found, array $titles, string $suggestion_title ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		if ( $found ) {
+			$subject_line = sprintf(
+				/* translators: %s: site name */
+				__( '[%s] Your artwork is now featured', 'agnosis' ),
+				get_bloginfo( 'name' )
+			);
+			$body = $this->build_promotion_success_email( $artist->display_name, $subject, $artist_id );
+		} else {
+			$subject_line = sprintf(
+				/* translators: %s: site name */
+				__( '[%s] We couldn\'t find that artwork', 'agnosis' ),
+				get_bloginfo( 'name' )
+			);
+			$body = $this->build_not_found_email( $artist->display_name, $subject, $titles, $suggestion_title, '', $artist_id, 'promote' );
+		}
+
+		wp_mail(
+			$artist->user_email,
+			$subject_line,
+			$body,
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			]
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Build the shared "we couldn't find that title" email body for both
+	 * remove@ and promote@ misses (§2b/§2c).
+	 *
+	 * @param string   $artist_name      Artist's display name.
+	 * @param string   $subject          The subject line that didn't match.
+	 * @param string[] $titles           The artist's current titles to list.
+	 * @param string   $suggestion_title Fuzzy-matched title suggestion, or ''.
+	 * @param string   $confirm_url      One-click confirm link for the suggestion
+	 *                                   (remove@ only), or '' when not applicable.
+	 * @param int      $artist_id        WP user ID — gates EmailFooter::edit_reminder_html().
+	 * @param string   $lane             'remove' or 'promote' — selects the wording.
+	 * @return string HTML email body.
+	 */
+	private function build_not_found_email( string $artist_name, string $subject, array $titles, string $suggestion_title, string $confirm_url, int $artist_id, string $lane ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12';
+		$accent    = '#c0392b';
+
+		$intro = 'remove' === $lane
+			/* translators: %s: the subject line the artist sent */
+			? sprintf( __( 'We received a removal request for "%s", but couldn\'t find an artwork or event with that exact title in your account.', 'agnosis' ), $subject )
+			/* translators: %s: the subject line the artist sent */
+			: sprintf( __( 'We received a request to feature "%s", but couldn\'t find a published artwork with that exact title in your account.', 'agnosis' ), $subject );
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 20px;font-size:19px;line-height:1.6;color:#555;">
+			<?php echo esc_html( $intro ); ?>
+		</p>
+
+		<?php if ( '' !== $suggestion_title ) : ?>
+		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 24px;border-left:3px solid #7c6af7;">
+			<p style="margin:0 0 12px;font-size:18px;color:#333;">
+				<?php
+				printf(
+					/* translators: %s: suggested title */
+					esc_html__( 'Did you mean "%s"?', 'agnosis' ),
+					esc_html( $suggestion_title )
+				);
+				?>
+			</p>
+			<?php if ( '' !== $confirm_url ) : ?>
+			<table cellpadding="0" cellspacing="0"><tr><td>
+				<a href="<?php echo esc_url( $confirm_url ); ?>" style="display:inline-block;padding:10px 20px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:0 0 8px;background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
+					<?php esc_html_e( 'Yes, remove this instead', 'agnosis' ); ?>
+				</a>
+			</td></tr></table>
+			<p style="margin:8px 0 0;font-size:15px;color:#888;">
+				<?php esc_html_e( 'Or simply resend your original email with that exact title.', 'agnosis' ); ?>
+			</p>
+			<?php else : ?>
+			<p style="margin:0;font-size:15px;color:#888;">
+				<?php esc_html_e( 'Resend your original email with that exact title.', 'agnosis' ); ?>
+			</p>
+			<?php endif; ?>
+		</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $titles ) ) : ?>
+		<p style="margin:0 0 8px;font-size:17px;font-weight:700;color:#333;"><?php esc_html_e( 'Your current titles:', 'agnosis' ); ?></p>
+		<ul style="margin:0 0 24px;padding-left:20px;">
+			<?php foreach ( $titles as $t ) : ?>
+			<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php echo esc_html( $t ); ?></li>
+			<?php endforeach; ?>
+		</ul>
+		<?php endif; ?>
+
+		<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'Titles are matched exactly, so a small difference in wording is enough to miss — double-check spelling, capitalization, and punctuation against the list above before resending.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Build the promote@ success confirmation email body — previously promote@
+	 * had no feedback at all on success; the artist found out only by visiting
+	 * the gallery overview themselves (§2b).
+	 *
+	 * @param string $artist_name Artist's display name.
+	 * @param string $title       The artwork's title, now featured.
+	 * @param int    $artist_id   WP user ID — gates EmailFooter::edit_reminder_html().
+	 * @return string HTML email body.
+	 */
+	private function build_promotion_success_email( string $artist_name, string $title, int $artist_id ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12';
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 28px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;font-size:20px;line-height:1.6;color:#333;">
+			<?php
+			printf(
+				/* translators: %s: artwork title */
+				esc_html__( '"%s" is now your featured artwork on the gallery overview.', 'agnosis' ),
+				esc_html( $title )
+			);
+			?>
+		</p>
+		<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'Any previously featured artwork has been unfeatured automatically — only one piece is featured at a time.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
 	/**
 	 * Hook callback for 'agnosis_post_drafted'.
 	 *
@@ -110,36 +449,70 @@ class Notification {
 		$translated_site_title   = ''; // Site title back-translated to artist's language.
 		$translated_body_preview = ''; // Body preview back-translated to artist's language.
 
+		// Primary-language source values, captured before anything below may
+		// overwrite $post->post_excerpt — needed both to hash-match and to warm
+		// ReviewConfirm::BACKTRANSLATION_META using its exact hash scheme (§4b).
+		$primary_excerpt    = $post->post_excerpt;
+		$primary_body_plain = wp_strip_all_tags( (string) $post->post_content );
+
 		if ( '' !== $artist_locale && $artist_locale !== $site_locale ) {
 			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for SubmissionTranslator::language_names() lookup).
 			$lang_code  = strtolower( substr( $artist_locale, 0, 2 ) );
 			$translator = SubmissionTranslator::from_settings();
 
 			if ( null !== $translator ) {
-				// Back-translate the AI site title so the artist knows what it means
-				// in their language — useful when the AI significantly reworded the work.
-				if ( '' !== trim( $site_title ) ) {
-					$back = $translator->translate_text( $site_title, $lang_code );
-					// Only keep if meaningfully different from the original title.
-					if ( '' !== $back && $back !== $post->post_title ) {
-						$translated_site_title = $back;
-					}
+				// fifth audit §4b: batch title + excerpt + FULL body into a single
+				// JSON-envelope chat() call (translate_fields()) instead of three
+				// separate translate_text() round trips, each paying its own
+				// prompt envelope. Translating the full body here (not just the
+				// 80-word preview this email shows) costs more up front, but lets
+				// the result double as ReviewConfirm::get_display_text()'s cache
+				// below — almost every artist clicks through to that confirm
+				// page, which previously re-translated the same excerpt+full-body
+				// into a SEPARATE cache on the very next request. Net effect: up
+				// to ~5 translation calls per cross-language draft down to this
+				// one call, plus a near-guaranteed cache hit afterwards instead of
+				// 1–2 more calls there too.
+				$translated = $translator->translate_fields(
+					[
+						'title'   => $site_title,
+						'excerpt' => $primary_excerpt,
+						'body'    => $primary_body_plain,
+					],
+					$lang_code
+				);
+
+				// Only keep the title if meaningfully different from the artist's
+				// own original title (post_title is never translated — it's kept
+				// verbatim everywhere in this plugin).
+				if ( isset( $translated['title'] ) && $translated['title'] !== $post->post_title ) {
+					$translated_site_title = $translated['title'];
 				}
-				// Back-translate the AI-generated excerpt — 100% AI text the artist never wrote.
-				if ( '' !== trim( $post->post_excerpt ) ) {
-					$post->post_excerpt = $translator->translate_text( $post->post_excerpt, $lang_code ) ?: $post->post_excerpt;
-				}
-				// Back-translate the AI-generated body preview — same rationale as the
-				// excerpt above: post_content at this stage is the AI's own writing in
-				// the site's primary language, not the artist's words, so an artist who
-				// doesn't read that language couldn't actually review what they were
-				// about to approve for publication (only the title and excerpt were
-				// being back-translated before this fix). Translate the same trimmed
-				// preview build_email() shows, not the full body, to keep this a single
-				// short AI call rather than translating text the artist never sees.
-				$plain_body_preview = wp_trim_words( wp_strip_all_tags( $post->post_content ), 80 );
-				if ( '' !== trim( $plain_body_preview ) ) {
-					$translated_body_preview = $translator->translate_text( $plain_body_preview, $lang_code ) ?: '';
+
+				$translated_excerpt = $translated['excerpt'] ?? $primary_excerpt;
+				$translated_body    = $translated['body'] ?? $primary_body_plain;
+
+				$post->post_excerpt      = $translated_excerpt ?: $primary_excerpt;
+				$translated_body_preview = '' !== trim( $translated_body ) ? wp_trim_words( $translated_body, 80 ) : '';
+
+				// Warm ReviewConfirm's confirm-page cache — same key, same hash
+				// scheme — so the click-through from this very email almost
+				// always cache-hits instead of re-translating. Skipped when the
+				// batch call didn't actually return a translated body (total
+				// failure, or the draft has no body text at all): nothing worth
+				// caching, and get_display_text() still tries fresh on click,
+				// same safety net that existed before this fix.
+				if ( '' !== trim( $primary_body_plain ) && isset( $translated['body'] ) ) {
+					update_post_meta(
+						$post_id,
+						ReviewConfirm::BACKTRANSLATION_META,
+						[
+							'hash'    => md5( $primary_excerpt . '|' . $primary_body_plain ),
+							'lang'    => $lang_code,
+							'excerpt' => $translated_excerpt,
+							'body'    => $translated_body,
+						]
+					);
 				}
 			}
 		}

@@ -244,6 +244,9 @@ class Plugin {
 		$this->loader->add_action( 'agnosis_removal_requested',    $notification, 'on_removal_requested',    10, 2 );
 		$this->loader->add_action( 'agnosis_submission_rejected',  $notification, 'on_submission_rejected',  10, 4 );
 		$this->loader->add_action( 'agnosis_submission_no_attachment', $notification, 'on_submission_no_attachment', 10, 2 );
+		// fifth audit §2b/§2c — remove@/promote@ artist feedback.
+		$this->loader->add_action( 'agnosis_removal_target_not_found', $notification, 'on_removal_target_not_found', 10, 6 );
+		$this->loader->add_action( 'agnosis_promotion_result',          $notification, 'on_promotion_result',        10, 5 );
 
 		$review = new ReviewEndpoints();
 		$this->loader->add_action( 'rest_api_init', $review, 'register_routes' );

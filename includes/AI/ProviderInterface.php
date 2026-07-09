@@ -32,6 +32,32 @@ interface ProviderInterface {
 	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult;
 
 	/**
+	 * Slim, cheaper description pass for a secondary (non-primary) image in a
+	 * multi-image gallery submission (fifth audit §4c).
+	 *
+	 * Pipeline::process() runs describe() (the full editorial prompt) on the
+	 * first attachment whose description succeeds — that result alone supplies
+	 * the published post's title/excerpt/body/medium (see
+	 * Publishing\PostCreator::primary_result()). Every OTHER image's own
+	 * title/excerpt/body/medium from a full describe() call is generated and
+	 * then silently discarded; only its alt text, tags, and photo-quality
+	 * assessment are ever actually used (accessibility alt attribute, the
+	 * post's merged tag list, and the per-image quality-rejection gate,
+	 * respectively). This method asks for exactly those three fields with a
+	 * short instruction instead of the full ~600-word editorial prompt,
+	 * cutting the bulk of prompt+completion tokens on multi-image submissions
+	 * without changing anything actually published.
+	 *
+	 * Implementations MUST return '' for title/excerpt/body/medium — callers
+	 * must never read those fields from a secondary result.
+	 *
+	 * @param string $image_data Raw binary of the image.
+	 * @param string $mime_type  e.g. 'image/jpeg'.
+	 * @return DescriptionResult
+	 */
+	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult;
+
+	/**
 	 * Enhance / upscale / clean the artwork image.
 	 *
 	 * @param string $image_data  Raw binary of the original image.

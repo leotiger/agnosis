@@ -48,6 +48,13 @@
  * every time the artist reopens the same link — would re-spend an AI call;
  * with it, translation happens at most once per edit generation.
  *
+ * That cache is now (fifth audit §4b) usually already warm by the time this
+ * page is ever requested: `Notification::on_post_drafted()` translates the
+ * full excerpt+body once when the review email is sent and writes it into
+ * this exact cache entry under the same hash/lang scheme, so get_display_text()
+ * below almost always finds a hit on the artist's first (and only) visit
+ * rather than translating a second time into what used to be a separate call.
+ *
  * If the artist changes anything, the edited excerpt/body are translated back
  * into the primary language on submit (again via translate_text(), not the
  * generative pipeline) and the post is saved-and-published in one call via the
@@ -99,8 +106,14 @@ class ReviewConfirm {
 	/**
 	 * Post meta key caching the artist-language back-translation of the
 	 * excerpt/body shown on the approve confirm form. See class docblock.
+	 *
+	 * Public (fifth audit §4b): `Notification::on_post_drafted()` writes into
+	 * this same cache — under the identical `hash`/`lang` scheme
+	 * get_display_text() below reads — when it translates the review email,
+	 * so the artist's click-through to this confirm page almost always
+	 * cache-hits instead of re-translating into a second cache.
 	 */
-	private const BACKTRANSLATION_META = '_agnosis_review_backtranslation';
+	public const BACKTRANSLATION_META = '_agnosis_review_backtranslation';
 
 	/**
 	 * Which of title/excerpt/body are editable on the approve confirm form,
@@ -449,6 +462,28 @@ class ReviewConfirm {
 	}
 
 	/**
+	 * Token gate for the GET reject/remove confirm page (fifth audit §2e).
+	 *
+	 * Mirrors require_valid_token()'s approve-only gate but dispatches to the
+	 * token store the given action actually uses: reject shares the review
+	 * token approve uses (ReviewEndpoints::verify_token(), same
+	 * `_agnosis_review_token` meta), while remove uses its own
+	 * `_agnosis_removal_token` (RemovalEndpoints::verify_token()). Always
+	 * exits on failure — redirects to the same `?agnosis_result=error` page
+	 * an invalid token already produced later via the REST dispatch, so the
+	 * only change is how early it's shown.
+	 */
+	private function require_valid_action_token( int $id, string $action, string $token, string $post_type ): void {
+		$result = 'remove' === $action
+			? RemovalEndpoints::verify_token( $id, $token )
+			: ReviewEndpoints::verify_token( $id, $token );
+
+		if ( true !== $result ) {
+			$this->redirect_result( 'error', $post_type );
+		}
+	}
+
+	/**
 	 * Resolve an artist's language code (ISO 639-1) from their WP user locale.
 	 *
 	 * Mirrors the inline conversion Notification::on_post_drafted() already
@@ -546,6 +581,17 @@ class ReviewConfirm {
 			$this->render_approve_confirm( $id, $token, $prefill, $error );
 			return;
 		}
+
+		// fifth audit §2e: reject/remove used to render this generic "are you
+		// sure?" page for ANY token, valid or not — an artist with an expired
+		// or already-used link only discovered that after clicking the button
+		// and hitting the REST layer's own check. require_valid_token() already
+		// exists for approve; the same one-step-earlier gate now applies here,
+		// dispatched to the right token store per action (reject shares the
+		// review token approve uses; remove has its own removal token).
+		$post      = get_post( $id );
+		$post_type = $post ? $post->post_type : '';
+		$this->require_valid_action_token( $id, $action, $token, $post_type );
 
 		$prompts = [
 			'reject'  => [
