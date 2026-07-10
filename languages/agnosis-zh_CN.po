@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-09T15:16+00:00\n"
+"POT-Creation-Date: 2026-07-10T17:48+00:00\n"
 "PO-Revision-Date: 2026-07-08 13:53+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Chinese (China)\n"
@@ -306,8 +306,8 @@ msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
 "enqueued. Click \"Process Pending Queue\" to run the AI pipeline."
 msgstr ""
-"强制重新处理已完成。已重置 %1$d 行队列记录，已加入 %2$d 条新消息到队列。点击"
-"“处理待处理队列”以运行 AI 管道。"
+"强制重新处理已完成。已重置 %1$d 行队列记录，已加入 %2$d 条新消息到队列。点"
+"击“处理待处理队列”以运行 AI 管道。"
 
 #: includes/Admin/Settings.php:107
 msgid "Log cleared."
@@ -459,7 +459,7 @@ msgstr "行为"
 msgid "Network"
 msgstr "网络"
 
-#: includes/Admin/Settings.php:294
+#: includes/Admin/Settings.php:294 includes/Core/EmailFooter.php:99
 msgid "Community"
 msgstr "社区"
 
@@ -494,7 +494,7 @@ msgstr "将上方内容替换为插件内置默认值——点击下方“保存
 msgid "Select Image"
 msgstr "选择图片"
 
-#: includes/Admin/Settings.php:368 includes/Core/EmailFooter.php:78
+#: includes/Admin/Settings.php:368 includes/Core/EmailFooter.php:83
 msgid "Remove"
 msgstr "移除"
 
@@ -523,10 +523,10 @@ msgid ""
 "attachment MIME detection, media conversion, post creation) to a dedicated "
 "debug directory — far more detail than the Logs tab keeps, for tracing "
 "exactly where a submission was rejected or lost. Turn off once you have what "
-"you need; files can accumulate quickly. Can also be forced from wp-"
-"config.php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this "
-"toggle. See the Debug Files panel below for the directory location and a "
-"clear-files button."
+"you need; files can accumulate quickly. Can also be forced from wp-config."
+"php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this toggle. "
+"See the Debug Files panel below for the directory location and a clear-files "
+"button."
 msgstr ""
 "将电子邮件接收流程的原始诊断转储（消息结构、附件 MIME 检测、媒体转换、文章创"
 "建）写入专用调试目录——比日志选项卡保留的细节多得多，可用于精确追踪提交在哪一"
@@ -646,14 +646,17 @@ msgid "Promote artwork address"
 msgstr "推广作品地址"
 
 #: includes/Admin/Settings.php:474
+#, fuzzy
 msgid ""
-"Artist sends an email here (subject = exact artwork title) to mark that "
-"artwork as featured in their gallery overview. Any previously featured "
-"artwork is automatically demoted — e.g. promote@agnosis.art"
+"Artist sends an email here (subject = exact artwork title) to choose which "
+"artwork represents them in the shared community gallery on the main site — "
+"not their own subdomain, which already shows everything they've published. "
+"Any previously featured artwork is automatically demoted — e.g. "
+"promote@agnosis.art"
 msgstr ""
 "艺术家可将邮件发送到此处（主题=作品的精确标题），以将该作品标记为其画廊概览中"
-"的精选作品。任何之前被设为精选的作品都会自动取消精选——例如："
-"promote@agnosis.art"
+"的精选作品。任何之前被设为精选的作品都会自动取消精选——例如：promote@agnosis."
+"art"
 
 #: includes/Admin/Settings.php:478
 msgid "Photo-only address"
@@ -701,8 +704,8 @@ msgstr "告别 / 自助删除地址"
 #: includes/Admin/Settings.php:489
 msgid ""
 "Artist emails here (any subject, no attachment needed) to request account "
-"deletion. A confirmation link is emailed back before anything is deleted — "
-"e.g. goodbye@agnosis.art"
+"deletion. A confirmation link is emailed back before anything is deleted — e."
+"g. goodbye@agnosis.art"
 msgstr ""
 "艺术家可在此发送邮件（任意主题，无需附件）来请求删除账户。在删除任何内容之"
 "前，系统会先通过邮件发回确认链接——例如：goodbye@agnosis.art"
@@ -1412,11 +1415,11 @@ msgstr ""
 
 #: includes/Admin/Settings.php:1035
 msgid ""
-"Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
-"join\" link and site name follow automatically — no need to add either "
-"here). Two or three short paragraphs is plenty. Standing copy, not cleared "
-"after use like the newsletter intros above — translated automatically when "
-"an invitation is sent in a language other than the site's own."
+"Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
+"\" link and site name follow automatically — no need to add either here). "
+"Two or three short paragraphs is plenty. Standing copy, not cleared after "
+"use like the newsletter intros above — translated automatically when an "
+"invitation is sent in a language other than the site's own."
 msgstr ""
 "显示在下方“发送邀请”邮件顶部附近（“申请加入”链接和网站名称会自动附上——这里无"
 "需添加）。两到三段简短文字就足够。它是固定文案，使用后不会像上面的新闻简报前"
@@ -1795,8 +1798,8 @@ msgid ""
 "the AI pipeline. Already-published artworks with valid posts are never re-"
 "processed."
 msgstr ""
-"将失败、卡住或孤立的队列行重置为待处理状态，然后立即轮询未处理消息。随后点击"
-"“处理待处理队列”以运行 AI 流水线。已发布且具有有效帖子作品不会被重新处理。"
+"将失败、卡住或孤立的队列行重置为待处理状态，然后立即轮询未处理消息。随后点"
+"击“处理待处理队列”以运行 AI 流水线。已发布且具有有效帖子作品不会被重新处理。"
 
 #: includes/Admin/Settings.php:1522
 msgid "Pending Applications"
@@ -2123,15 +2126,15 @@ msgstr "我们已收到你加入 %s 的申请"
 
 #. translators: %s: recipient's display name
 #: includes/Artist/AdmissionNotification.php:323
-#: includes/Artist/AdmissionNotification.php:392
-#: includes/Artist/AdmissionNotification.php:486
-#: includes/Artist/AdmissionNotification.php:559
+#: includes/Artist/AdmissionNotification.php:450
+#: includes/Artist/AdmissionNotification.php:568
+#: includes/Artist/AdmissionNotification.php:641
 #: includes/Publishing/Notification.php:250
 #: includes/Publishing/Notification.php:367
 #: includes/Publishing/Notification.php:604
-#: includes/Publishing/Notification.php:811
-#: includes/Publishing/Notification.php:1118
-#: includes/Publishing/Notification.php:1273
+#: includes/Publishing/Notification.php:864
+#: includes/Publishing/Notification.php:1175
+#: includes/Publishing/Notification.php:1330
 #, php-format
 msgid "Hi %s,"
 msgstr "嗨，%s，"
@@ -2153,75 +2156,75 @@ msgstr "社区有 %d 天的投票时间。我们会通过电子邮件告知你�
 
 #. translators: %s: site name
 #: includes/Artist/AdmissionNotification.php:355
-#: includes/Artist/AdmissionNotification.php:630
+#: includes/Artist/AdmissionNotification.php:506
+#: includes/Artist/AdmissionNotification.php:712
 #: includes/Artist/Invitation.php:177 includes/Newsletter/Mailer.php:101
 #: includes/Newsletter/Subscription.php:166
 #: includes/Publishing/Notification.php:306
 #: includes/Publishing/Notification.php:391
 #: includes/Publishing/Notification.php:669
-#: includes/Publishing/Notification.php:912
-#: includes/Publishing/Notification.php:1146
-#: includes/Publishing/Notification.php:1336
+#: includes/Publishing/Notification.php:969
+#: includes/Publishing/Notification.php:1203
+#: includes/Publishing/Notification.php:1393
 #, php-format
 msgid "%s — art blooming out of oblivion"
 msgstr "%s——从遗忘中绽放的艺术"
 
-#. translators: 1: applicant display name, 2: community name, 3: number of days
-#: includes/Artist/AdmissionNotification.php:396
-#, php-format
-msgid "%1$s has applied to join %2$s. You have %3$d days to vote."
-msgstr "%1$s 已申请加入 %2$s。你有 %3$d 天进行投票。"
-
-#: includes/Artist/AdmissionNotification.php:404
-msgid "Bio:"
-msgstr "简介："
-
-#. translators: %s: portfolio URL
-#: includes/Artist/AdmissionNotification.php:410
-#, php-format
-msgid "Portfolio: %s"
-msgstr "作品集：%s"
-
-#: includes/Artist/AdmissionNotification.php:414
-msgid "Statement:"
-msgstr "说明："
-
-#. translators: %s: vote URL
-#: includes/Artist/AdmissionNotification.php:420
-#, php-format
-msgid "Vote YES: %s"
-msgstr "投赞成票：%s"
-
-#. translators: %s: vote URL
-#: includes/Artist/AdmissionNotification.php:422
-#, php-format
-msgid "Vote NO:  %s"
-msgstr "投反对票：%s"
-
-#: includes/Artist/AdmissionNotification.php:424
-msgid "You can change your vote at any time within the voting window."
-msgstr "你可以在投票期间的任何时候更改你的投票。"
-
 #. translators: 1: applicant name, 2: community name
-#: includes/Artist/AdmissionNotification.php:440
+#: includes/Artist/AdmissionNotification.php:394
 #, php-format
 msgid "New application: %1$s wants to join %2$s"
 msgstr "新申请：%1$s 想加入 %2$s"
 
-#. translators: %s: community name
+#. translators: 1: applicant display name, 2: community name, 3: number of days
+#: includes/Artist/AdmissionNotification.php:459
+#, php-format
+msgid "%1$s has applied to join %2$s. You have %3$d days to vote."
+msgstr "%1$s 已申请加入 %2$s。你有 %3$d 天进行投票。"
+
+#: includes/Artist/AdmissionNotification.php:468
+#, fuzzy
+msgid "Bio"
+msgstr "简介："
+
+#: includes/Artist/AdmissionNotification.php:474
+#, fuzzy
+msgid "Portfolio:"
+msgstr "作品集：%s"
+
+#: includes/Artist/AdmissionNotification.php:480
+#, fuzzy
+msgid "Statement"
+msgstr "说明："
+
+#: includes/Artist/AdmissionNotification.php:487
+#, fuzzy
+msgid "Vote YES"
+msgstr "投赞成票：%s"
+
 #: includes/Artist/AdmissionNotification.php:490
+#, fuzzy
+msgid "Vote NO"
+msgstr "投反对票：%s"
+
+#: includes/Artist/AdmissionNotification.php:496
+msgid "You can change your vote at any time within the voting window."
+msgstr "你可以在投票期间的任何时候更改你的投票。"
+
+#. translators: %s: community name
+#: includes/Artist/AdmissionNotification.php:572
 #, php-format
 msgid ""
 "Thank you for applying to %s. Unfortunately, your application did not "
 "receive enough votes within the voting window."
 msgstr "感谢你申请加入 %s。很遗憾，你的申请在投票期限内未获得足够票数。"
 
-#: includes/Artist/AdmissionNotification.php:494
+#: includes/Artist/AdmissionNotification.php:576
 msgid "You are welcome to apply again in the future."
 msgstr "欢迎你今后再次申请。"
 
 #. translators: %s: applicant display name
-#: includes/Artist/AdmissionNotification.php:507
+#: includes/Artist/AdmissionNotification.php:589
 #, php-format
 msgid ""
 "The application by %s has closed without reaching the admission threshold. "
@@ -2229,40 +2232,40 @@ msgid ""
 msgstr "%s 的申请在未达到录取门槛的情况下已关闭。无需采取行动。"
 
 #. translators: %s: community name
-#: includes/Artist/AdmissionNotification.php:568
+#: includes/Artist/AdmissionNotification.php:650
 #, php-format
 msgid "The %s community has admitted you as an artist. Welcome!"
 msgstr "%s 社区已接纳你为艺术家。欢迎！"
 
-#: includes/Artist/AdmissionNotification.php:575
+#: includes/Artist/AdmissionNotification.php:657
 msgid "Your gallery:"
 msgstr "您的画廊："
 
-#: includes/Artist/AdmissionNotification.php:579
+#: includes/Artist/AdmissionNotification.php:661
 msgid "Your submissions:"
 msgstr "您的提交："
 
-#: includes/Artist/AdmissionNotification.php:586
+#: includes/Artist/AdmissionNotification.php:668
 msgid "How to share your work — send an email to:"
 msgstr "如何分享你的作品——发送电子邮件至："
 
-#: includes/Artist/AdmissionNotification.php:595
+#: includes/Artist/AdmissionNotification.php:677
 msgid "Subject line conventions:"
 msgstr "主题行约定："
 
-#: includes/Artist/AdmissionNotification.php:597
+#: includes/Artist/AdmissionNotification.php:679
 msgid "Artwork (default) — any subject"
 msgstr "艺术作品（默认）——任意主题"
 
-#: includes/Artist/AdmissionNotification.php:598
+#: includes/Artist/AdmissionNotification.php:680
 msgid "[Biography] — biography update"
 msgstr "[Biography] — 传记更新"
 
-#: includes/Artist/AdmissionNotification.php:599
+#: includes/Artist/AdmissionNotification.php:681
 msgid "[Event] — event announcement"
 msgstr "[Event] — 事件公告"
 
-#: includes/Artist/AdmissionNotification.php:600
+#: includes/Artist/AdmissionNotification.php:682
 msgid ""
 "[Photo] — publish as-is, no AI enhancement (fallback for mail apps without "
 "To: aliases)"
@@ -2270,7 +2273,7 @@ msgstr ""
 "[照片]——按原样发布，不进行 AI 增强（适用于不支持 To: 别名的邮件客户端的后备方"
 "案）"
 
-#: includes/Artist/AdmissionNotification.php:601
+#: includes/Artist/AdmissionNotification.php:683
 msgid ""
 "[Pure] — publish exactly as sent, no AI at all (fallback for mail apps "
 "without To: aliases)"
@@ -2278,11 +2281,11 @@ msgstr ""
 "[纯净]——完全按发送内容发布，完全不使用 AI（适用于不支持 To: 别名的邮件客户端"
 "的后备方案）"
 
-#: includes/Artist/AdmissionNotification.php:609
+#: includes/Artist/AdmissionNotification.php:691
 msgid "To leave the network and delete your account:"
 msgstr "要退出网络并删除你的账户："
 
-#: includes/Artist/AdmissionNotification.php:612
+#: includes/Artist/AdmissionNotification.php:694
 msgid ""
 "Send any email (no attachment needed). You will receive a confirmation link "
 "— nothing is deleted until you click it."
@@ -2290,7 +2293,7 @@ msgstr ""
 "发送任何电子邮件（不需要附件）。您将收到一个确认链接 — 在您点击它之前，不会删"
 "除任何内容。"
 
-#: includes/Artist/AdmissionNotification.php:619
+#: includes/Artist/AdmissionNotification.php:701
 msgid ""
 "No login is needed to work with Agnosis — everything above happens by email. "
 "If you'd also like to use the site's optional online features (like "
@@ -2300,44 +2303,45 @@ msgstr ""
 "使用 Agnosis 无需登录——以上所有操作都通过电子邮件完成。如果你也想使用本站可选"
 "的在线功能（例如在提交发布前预览），你可以随时通过设置密码来启用，方法是"
 
-#: includes/Artist/AdmissionNotification.php:620
+#: includes/Artist/AdmissionNotification.php:702
 msgid "password recovery"
 msgstr "密码找回"
 
-#: includes/Artist/AdmissionNotification.php:659
+#: includes/Artist/AdmissionNotification.php:741
 msgid "Submit artwork"
 msgstr "提交作品"
 
-#: includes/Artist/AdmissionNotification.php:660
+#: includes/Artist/AdmissionNotification.php:742
 msgid "Submit biography"
 msgstr "提交简介"
 
-#: includes/Artist/AdmissionNotification.php:661
+#: includes/Artist/AdmissionNotification.php:743
 msgid "Submit event"
 msgstr "提交活动"
 
-#: includes/Artist/AdmissionNotification.php:662
+#: includes/Artist/AdmissionNotification.php:744
 msgid "Replace artwork (subject: exact title)"
 msgstr "替换作品（主题：准确标题）"
 
-#: includes/Artist/AdmissionNotification.php:663
+#: includes/Artist/AdmissionNotification.php:745
 msgid "Remove artwork (subject: exact title)"
 msgstr "移除作品（主题：准确标题）"
 
-#: includes/Artist/AdmissionNotification.php:664
-msgid "Feature artwork (subject: exact title)"
+#: includes/Artist/AdmissionNotification.php:746
+#, fuzzy
+msgid "Feature artwork in the shared gallery (subject: exact title)"
 msgstr "推荐作品（主题：准确标题）"
 
-#: includes/Artist/AdmissionNotification.php:665
+#: includes/Artist/AdmissionNotification.php:747
 msgid "Photo-only — publish as-is, no AI enhancement"
 msgstr "仅照片——按原样发布，不进行 AI 增强"
 
-#: includes/Artist/AdmissionNotification.php:666
+#: includes/Artist/AdmissionNotification.php:748
 msgid "Pure — publish exactly as sent, no AI at all"
 msgstr "纯净——完全按发送内容发布，完全不使用 AI"
 
 #. translators: %s: artist display name
-#: includes/Artist/ApplicationBiography.php:164
+#: includes/Artist/ApplicationBiography.php:176
 #, php-format
 msgid "About %s"
 msgstr "关于 %s"
@@ -2444,8 +2448,8 @@ msgstr "%s 的社区人数上限已更改"
 #: includes/Artist/CommunityCapNotification.php:108
 #, php-format
 msgid ""
-"The community voted to change the membership size cap to %1$s (proposal "
-"#%2$d). The new cap is now in effect."
+"The community voted to change the membership size cap to %1$s (proposal #"
+"%2$d). The new cap is now in effect."
 msgstr ""
 "社区已投票决定将会员人数上限更改为 %1$s（提案 #%2$d）。新上限现已生效。"
 
@@ -2495,118 +2499,122 @@ msgstr "未找到提案。"
 msgid "This vote is not currently open."
 msgstr "此投票当前未开放。"
 
-#: includes/Artist/ContentEditor.php:192 includes/Artist/ContentEditor.php:555
+#: includes/Artist/ContentEditor.php:201 includes/Artist/ContentEditor.php:572
 #: includes/Publishing/ReviewEndpoints.php:277
 #: includes/Publishing/ReviewEndpoints.php:294
 msgid "Authentication required."
 msgstr "需要身份验证。"
 
-#: includes/Artist/ContentEditor.php:217
+#: includes/Artist/ContentEditor.php:226
 msgid "This field cannot be edited here."
 msgstr "此字段无法在此处编辑。"
 
-#: includes/Artist/ContentEditor.php:228
+#: includes/Artist/ContentEditor.php:237
 msgid "That date could not be understood."
 msgstr "无法识别该日期。"
 
-#: includes/Artist/ContentEditor.php:236
+#: includes/Artist/ContentEditor.php:245
+msgid "That does not look like a valid timezone (e.g. \"Europe/Madrid\")."
+msgstr ""
+
+#: includes/Artist/ContentEditor.php:253
 msgid "The title cannot be empty."
 msgstr "标题不能为空。"
 
-#: includes/Artist/ContentEditor.php:275 includes/Artist/ContentEditor.php:966
+#: includes/Artist/ContentEditor.php:292 includes/Artist/ContentEditor.php:985
 msgid "Saved — translations will update within a few minutes."
 msgstr "已保存 — 翻译将在几分钟内更新。"
 
-#: includes/Artist/ContentEditor.php:313
+#: includes/Artist/ContentEditor.php:330
 msgid "No image file was received."
 msgstr "未收到图像文件。"
 
-#: includes/Artist/ContentEditor.php:322
+#: includes/Artist/ContentEditor.php:339
 msgid "Please upload a JPEG, PNG, WebP, or GIF image."
 msgstr "请上传 JPEG、PNG、WebP 或 GIF 图像。"
 
-#: includes/Artist/ContentEditor.php:333
+#: includes/Artist/ContentEditor.php:350
 msgid "The uploaded file could not be read."
 msgstr "无法读取上传的文件。"
 
-#: includes/Artist/ContentEditor.php:345
-#: includes/Publishing/PostCreator.php:1349
+#: includes/Artist/ContentEditor.php:362
+#: includes/Publishing/PostCreator.php:1371
 msgid "Untitled"
 msgstr "未命名"
 
-#: includes/Artist/ContentEditor.php:378 includes/Artist/ContentEditor.php:970
+#: includes/Artist/ContentEditor.php:395 includes/Artist/ContentEditor.php:989
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr "照片已替换——原始照片已保留，稍后可恢复。"
 
-#: includes/Artist/ContentEditor.php:412
+#: includes/Artist/ContentEditor.php:429
 msgid "There is no photo to restore."
 msgstr "没有可恢复的照片。"
 
-#: includes/Artist/ContentEditor.php:421
+#: includes/Artist/ContentEditor.php:438
 msgid "No earlier version of this photo was found."
 msgstr "未找到此照片的更早版本。"
 
-#: includes/Artist/ContentEditor.php:450 includes/Artist/ContentEditor.php:973
+#: includes/Artist/ContentEditor.php:467 includes/Artist/ContentEditor.php:992
 msgid "Restored the earlier photo."
 msgstr "已恢复较早的照片。"
 
-#: includes/Artist/ContentEditor.php:563
+#: includes/Artist/ContentEditor.php:580
 msgid "Only admitted artists may edit their own content."
 msgstr "只有已获准的艺术家才能编辑自己的内容。"
 
-#: includes/Artist/ContentEditor.php:572
+#: includes/Artist/ContentEditor.php:589
 msgid "Content not found."
 msgstr "未找到内容。"
 
-#: includes/Artist/ContentEditor.php:580
+#: includes/Artist/ContentEditor.php:597
 msgid "Only published content can be corrected here."
 msgstr "这里只能修正已发布的内容。"
 
-#: includes/Artist/ContentEditor.php:590
+#: includes/Artist/ContentEditor.php:607
 msgid "You may only edit your own content."
 msgstr "你只能编辑自己的内容。"
 
-#: includes/Artist/ContentEditor.php:637
+#: includes/Artist/ContentEditor.php:654
 msgid ""
 "This page is not in your own language. Edit the version in your language "
 "instead."
 msgstr "此页面不是你的母语版本。请编辑你所使用语言的版本。"
 
-#: includes/Artist/ContentEditor.php:727
+#: includes/Artist/ContentEditor.php:746
 msgid "Unsupported field target."
 msgstr "不支持的字段目标。"
 
-#: includes/Artist/ContentEditor.php:963
+#: includes/Artist/ContentEditor.php:982
 msgid "Save"
 msgstr "保存"
 
-#: includes/Artist/ContentEditor.php:964
+#: includes/Artist/ContentEditor.php:983
 #: includes/Publishing/SubmissionsPage.php:287
 msgid "Cancel"
 msgstr "取消"
 
-#: includes/Artist/ContentEditor.php:965
+#: includes/Artist/ContentEditor.php:984
 msgid "Saving…"
 msgstr "正在保存…"
 
-#: includes/Artist/ContentEditor.php:967 includes/Artist/JoinPage.php:202
+#: includes/Artist/ContentEditor.php:986 includes/Artist/JoinPage.php:202
 #: includes/Newsletter/SignupBlock.php:140
 msgid "Something went wrong. Please try again."
 msgstr "出了点问题。请重试。"
 
-#: includes/Artist/ContentEditor.php:968
+#: includes/Artist/ContentEditor.php:987
 msgid "Replace photo"
 msgstr "替换照片"
 
-#: includes/Artist/ContentEditor.php:969
+#: includes/Artist/ContentEditor.php:988
 msgid "Uploading…"
 msgstr "正在上传…"
 
-#: includes/Artist/ContentEditor.php:971
+#: includes/Artist/ContentEditor.php:990
 msgid "Restore earlier photo"
 msgstr "恢复较早的照片"
 
-#: includes/Artist/ContentEditor.php:972
+#: includes/Artist/ContentEditor.php:991
 msgid "Restoring…"
 msgstr "正在恢复…"
 
@@ -2622,7 +2630,7 @@ msgid ""
 "deleted. Nothing tied to you is stored here anymore."
 msgstr ""
 
-#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:291
+#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:292
 msgid "Link expired or already used"
 msgstr "链接已过期或已使用"
 
@@ -2990,8 +2998,8 @@ msgstr "你的申请已收到。社区会与你联系！"
 msgid "Please fill in all required fields."
 msgstr "请填写所有必填字段。"
 
-#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:432
-#: includes/Artist/Profile.php:445
+#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:495
+#: includes/Artist/Profile.php:508
 msgid "Artworks"
 msgstr "作品"
 
@@ -3005,7 +3013,8 @@ msgid "Biographies"
 msgstr "传记"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
-#: includes/Core/EmailFooter.php:66 includes/Network/SubdomainNavigation.php:92
+#: includes/Core/EmailFooter.php:71
+#: includes/Network/SubdomainNavigation.php:110
 msgid "Biography"
 msgstr "传记"
 
@@ -3042,8 +3051,8 @@ msgid "All Biographies"
 msgstr "所有传记"
 
 #: includes/Artist/Profile.php:89 includes/Artist/Profile.php:91
-#: includes/Artist/Profile.php:101 includes/Core/EmailFooter.php:70
-#: includes/Network/SubdomainNavigation.php:98
+#: includes/Artist/Profile.php:101 includes/Core/EmailFooter.php:75
+#: includes/Network/SubdomainNavigation.php:116
 msgid "Events"
 msgstr "活动"
 
@@ -3115,52 +3124,52 @@ msgstr "添加新媒介"
 msgid "New Medium Name"
 msgstr "新媒介名称"
 
-#: includes/Artist/Profile.php:433 includes/Artist/Profile.php:446
-#: includes/Core/EmailFooter.php:62
+#: includes/Artist/Profile.php:496 includes/Artist/Profile.php:509
+#: includes/Core/EmailFooter.php:67
 msgid "Artwork"
 msgstr "作品"
 
-#: includes/Artist/Profile.php:434
+#: includes/Artist/Profile.php:497
 msgid "Add New"
 msgstr "添加新内容"
 
-#: includes/Artist/Profile.php:435
+#: includes/Artist/Profile.php:498
 msgid "Add New Artwork"
 msgstr "添加新作品"
 
-#: includes/Artist/Profile.php:436
+#: includes/Artist/Profile.php:499
 msgid "Edit Artwork"
 msgstr "编辑作品"
 
-#: includes/Artist/Profile.php:437
+#: includes/Artist/Profile.php:500
 msgid "New Artwork"
 msgstr "新作品"
 
-#: includes/Artist/Profile.php:438
+#: includes/Artist/Profile.php:501
 msgid "View Artwork"
 msgstr "查看作品"
 
-#: includes/Artist/Profile.php:439
+#: includes/Artist/Profile.php:502
 msgid "Search Artworks"
 msgstr "搜索作品"
 
-#: includes/Artist/Profile.php:440
+#: includes/Artist/Profile.php:503
 msgid "No artworks found."
 msgstr "未找到作品。"
 
-#: includes/Artist/Profile.php:441
+#: includes/Artist/Profile.php:504
 msgid "No artworks in trash."
 msgstr "回收站中没有作品。"
 
-#: includes/Artist/Profile.php:442
+#: includes/Artist/Profile.php:505
 msgid "All Artworks"
 msgstr "全部作品"
 
-#: includes/Artist/Profile.php:443
+#: includes/Artist/Profile.php:506
 msgid "Artwork Archives"
 msgstr "作品归档"
 
-#: includes/Artist/Profile.php:444
+#: includes/Artist/Profile.php:507
 msgid "Artwork Attributes"
 msgstr "作品属性"
 
@@ -3245,68 +3254,68 @@ msgid "%d positive vote recorded so far."
 msgid_plural "%d positive votes recorded so far."
 msgstr[0] "目前已记录 %d 票赞成票。"
 
-#: includes/Compat/LinguaForge.php:1116
+#: includes/Compat/LinguaForge.php:1190
 msgid "is active and configured for"
 msgstr "已启用并配置为"
 
-#: includes/Compat/LinguaForge.php:1117
+#: includes/Compat/LinguaForge.php:1191
 msgid "Subdomain"
 msgstr "子域名"
 
-#: includes/Compat/LinguaForge.php:1118
+#: includes/Compat/LinguaForge.php:1192
 msgid "routing mode"
 msgstr "路由模式"
 
-#: includes/Compat/LinguaForge.php:1120
+#: includes/Compat/LinguaForge.php:1194
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
 msgstr ""
 "这会与 Agnosis 艺术家子域名产生冲突——两个插件都会主张同一子域名命名空间。"
 
-#: includes/Compat/LinguaForge.php:1121
+#: includes/Compat/LinguaForge.php:1195
 msgid "Artist subdomain routing is"
 msgstr "艺术家子域路由目前"
 
-#: includes/Compat/LinguaForge.php:1122
+#: includes/Compat/LinguaForge.php:1196
 msgid "completely inactive"
 msgstr "完全处于非活动状态"
 
-#: includes/Compat/LinguaForge.php:1123
+#: includes/Compat/LinguaForge.php:1197
 msgid "until this is resolved."
 msgstr "直到此问题得到解决。"
 
-#: includes/Compat/LinguaForge.php:1125
+#: includes/Compat/LinguaForge.php:1199
 msgid "Fix: open"
 msgstr "修复：打开"
 
-#: includes/Compat/LinguaForge.php:1126
+#: includes/Compat/LinguaForge.php:1200
 msgid "Settings"
 msgstr "设置"
 
-#: includes/Compat/LinguaForge.php:1126
+#: includes/Compat/LinguaForge.php:1200
 msgid "Language Router"
 msgstr "语言路由"
 
-#: includes/Compat/LinguaForge.php:1127
+#: includes/Compat/LinguaForge.php:1201
 msgid "and switch the URL strategy to"
 msgstr "并将 URL 策略切换为"
 
-#: includes/Compat/LinguaForge.php:1128
+#: includes/Compat/LinguaForge.php:1202
 msgid "Path prefix (subfolder)"
 msgstr "路径前缀（子文件夹）"
 
-#: includes/Compat/LinguaForge.php:1129
+#: includes/Compat/LinguaForge.php:1203
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
 msgstr "这是 LinguaForge 的默认设置，并允许艺术家子域与语言子文件夹共存"
 
-#: includes/Compat/LinguaForge.php:1134
+#: includes/Compat/LinguaForge.php:1208
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — 艺术家子域路由已禁用"
 
-#: includes/Compat/LinguaForge.php:1144
+#: includes/Compat/LinguaForge.php:1218
 msgid "Open LinguaForge Settings"
 msgstr "打开 LinguaForge 设置"
 
@@ -3322,60 +3331,67 @@ msgstr "我的投稿"
 msgid "Join"
 msgstr "加入"
 
-#: includes/Core/EmailFooter.php:64
+#: includes/Core/EmailFooter.php:69
 msgid "Send new artwork to be published."
 msgstr "发送新艺术作品以供发布。"
 
-#: includes/Core/EmailFooter.php:68
+#: includes/Core/EmailFooter.php:73
 msgid "Update your artist biography."
 msgstr "更新你的艺术家简介。"
 
-#: includes/Core/EmailFooter.php:72
+#: includes/Core/EmailFooter.php:77
 msgid "Announce an upcoming event."
 msgstr "宣布即将举行的活动。"
 
-#: includes/Core/EmailFooter.php:74
+#: includes/Core/EmailFooter.php:79
 msgid "Replace"
 msgstr "替换"
 
-#: includes/Core/EmailFooter.php:76
+#: includes/Core/EmailFooter.php:81
 msgid ""
 "Send a new version of an existing artwork — subject must match its title."
 msgstr "发送现有艺术作品的新版本——主题必须与其标题相符。"
 
-#: includes/Core/EmailFooter.php:80
+#: includes/Core/EmailFooter.php:85
 msgid ""
 "Request an existing artwork or event be taken down — subject must match its "
 "title."
 msgstr "请求将现有作品或活动下架——主题必须与其标题完全一致。"
 
-#: includes/Core/EmailFooter.php:82
+#: includes/Core/EmailFooter.php:87
 msgid "Promote"
 msgstr "推广"
 
-#: includes/Core/EmailFooter.php:84
+#: includes/Core/EmailFooter.php:89
 msgid ""
-"Mark an artwork as featured in your gallery — subject must match its title."
-msgstr "将某件作品标记为画廊精选——主题必须与其标题完全一致。"
+"Choose which artwork represents you in the shared community gallery on the "
+"main site — subject must match its title. Your own subdomain already shows "
+"everything you've published."
+msgstr ""
 
-#: includes/Core/EmailFooter.php:86
+#: includes/Core/EmailFooter.php:91
 msgid "Photo-only"
 msgstr "仅限照片"
 
-#: includes/Core/EmailFooter.php:88
+#: includes/Core/EmailFooter.php:93
 msgid "Publish a photo exactly as sent — no AI enhancement, no quality check."
 msgstr "按发送时的原样发布照片——不进行 AI 增强，也不做质量检查。"
 
-#: includes/Core/EmailFooter.php:90
+#: includes/Core/EmailFooter.php:95
 msgid "Pure"
 msgstr "纯净"
 
-#: includes/Core/EmailFooter.php:92
+#: includes/Core/EmailFooter.php:97
 msgid ""
 "Publish exactly as sent — no AI at all, not even the title/description pass."
 msgstr "完全按照发送的内容发布——根本不使用AI，甚至标题/描述也不经过处理。"
 
-#: includes/Core/EmailFooter.php:203 includes/Core/EmailFooter.php:217
+#: includes/Core/EmailFooter.php:101
+#, fuzzy
+msgid "Send a message to every other artist in the community."
+msgstr "您已投票支持保留此艺术家在社区中。"
+
+#: includes/Core/EmailFooter.php:212 includes/Core/EmailFooter.php:226
 msgid ""
 "Spotted something to fix after publishing? Log in and look for the pencil "
 "icon on your published page — you can correct the title, text, or photo "
@@ -3792,6 +3808,33 @@ msgstr "确认取消订阅"
 msgid "Link error"
 msgstr "链接错误"
 
+#: includes/Publishing/EmbedPolicy.php:119
+#, fuzzy
+msgid "That doesn't look like a valid web address."
+msgstr "请输入有效的电子邮件地址。"
+
+#: includes/Publishing/EmbedPolicy.php:136
+msgid ""
+"This site isn't on this Agnosis node's list of trusted platforms, and "
+"automatic link review is turned off here."
+msgstr ""
+
+#: includes/Publishing/EmbedPolicy.php:154
+msgid ""
+"This node couldn't safely load that page to review it (it may be "
+"unreachable, or blocked for security reasons)."
+msgstr ""
+
+#: includes/Publishing/EmbedPolicy.php:165
+msgid "Automatic review of that page's content was inconclusive."
+msgstr ""
+
+#: includes/Publishing/EmbedPolicy.php:175
+msgid ""
+"Automatic review found that page's content isn't allowed to be embedded on "
+"this site."
+msgstr ""
+
 #: includes/Publishing/GalleryOverview.php:123
 msgid "Gallery overview"
 msgstr "画廊概览"
@@ -3896,13 +3939,13 @@ msgstr "[Agnosis] 您的投稿已准备好审核：%s"
 
 #: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:757
+#: includes/Publishing/ReviewConfirm.php:1070
 msgid "event"
 msgstr "活动"
 
 #: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:758
+#: includes/Publishing/ReviewConfirm.php:1071
 msgid "artwork"
 msgstr "作品"
 
@@ -3960,7 +4003,29 @@ msgstr "作品本身并未被修改——仅校正了照片质量。"
 msgid "📷 Photo quality score: %d/10"
 msgstr "📷 照片质量评分：%d/10"
 
-#: includes/Publishing/Notification.php:817
+#: includes/Publishing/Notification.php:802
+msgid ""
+"Double-check the link is correct — you can fix or remove it in the form "
+"below before publishing."
+msgstr ""
+
+#: includes/Publishing/Notification.php:803
+msgid ""
+"If the link was correct, its destination may simply not be from a source "
+"this site automatically embeds."
+msgstr ""
+
+#: includes/Publishing/Notification.php:807
+msgid "🔗 A link was not included"
+msgid_plural "🔗 Some links were not included"
+msgstr[0] ""
+
+#: includes/Publishing/Notification.php:810
+msgid ""
+"The following couldn't be automatically embedded, so they were left out:"
+msgstr ""
+
+#: includes/Publishing/Notification.php:870
 msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
@@ -3969,36 +4034,36 @@ msgstr ""
 "以发布。"
 
 #. translators: %s: the AI-generated site title in the site's primary language
-#: includes/Publishing/Notification.php:837
+#: includes/Publishing/Notification.php:894
 #, php-format
 msgid "On the site: %s"
 msgstr "网站上显示：%s"
 
 #. translators: %s: the site title translated back into the artist's language
-#: includes/Publishing/Notification.php:850
+#: includes/Publishing/Notification.php:907
 #, php-format
 msgid "In your language: %s"
 msgstr "你的语言中显示：%s"
 
-#: includes/Publishing/Notification.php:871
+#: includes/Publishing/Notification.php:928
 msgid "Looks great — Publish it"
 msgstr "看起来不错——发布它"
 
-#: includes/Publishing/Notification.php:874
+#: includes/Publishing/Notification.php:931
 #: includes/Publishing/SubmissionsPage.php:242
 msgid "Discard"
 msgstr "丢弃"
 
-#: includes/Publishing/Notification.php:881
+#: includes/Publishing/Notification.php:938
 msgid "Want to tweak the title, text or tags before publishing?"
 msgstr "在发布前想调整标题、正文或标签吗？"
 
-#: includes/Publishing/Notification.php:883
+#: includes/Publishing/Notification.php:940
 msgid "Open your submissions page →"
 msgstr "打开你的提交页面 →"
 
 #. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
-#: includes/Publishing/Notification.php:893
+#: includes/Publishing/Notification.php:950
 #, fuzzy, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
@@ -4011,18 +4076,18 @@ msgstr[0] ""
 "出决定。"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1010
+#: includes/Publishing/Notification.php:1067
 #, php-format
 msgid "[%s] We couldn't process your submission"
 msgstr "[%s] 我们无法处理你的提交"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1069
+#: includes/Publishing/Notification.php:1126
 #, php-format
 msgid "[%s] We couldn't find a photo in your email"
 msgstr "[%s] 我们在您的电子邮件中找不到照片"
 
-#: includes/Publishing/Notification.php:1124
+#: includes/Publishing/Notification.php:1181
 msgid ""
 "We received your email, but couldn't process a usable photo, audio, or video "
 "file from it — so nothing was published. This can happen when an image is "
@@ -4035,11 +4100,11 @@ msgstr ""
 "件添加时；或者文件到达时处于本服务器无法转换的格式（例如以 HEIC/HEIF 格式保存"
 "的 iPhone 照片）。"
 
-#: includes/Publishing/Notification.php:1128
+#: includes/Publishing/Notification.php:1185
 msgid "To resend correctly:"
 msgstr "要正确重新发送："
 
-#: includes/Publishing/Notification.php:1130
+#: includes/Publishing/Notification.php:1187
 msgid ""
 "Use your mail app's \"Attach file\" (usually a paperclip icon) rather than "
 "\"Insert photo\" or pasting the image directly into the message body."
@@ -4047,16 +4112,16 @@ msgstr ""
 "请使用邮件应用中的“附加文件”（通常是回形针图标），不要使用“插入照片”，也不要"
 "把图片直接粘贴到邮件正文中。"
 
-#: includes/Publishing/Notification.php:1131
+#: includes/Publishing/Notification.php:1188
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
-"Formats to \"Most Compatible\" before taking or sending it, or use "
-"\"Options\" in Mail to send it as a JPEG."
+"Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
+"\" in Mail to send it as a JPEG."
 msgstr ""
-"如果你的照片是在 iPhone 上拍摄的，请在拍摄或发送前，先到“设置”→“相机”→“格式”"
-"中切换为“兼容性最佳”；或者在 Mail 中使用“选项”将其作为 JPEG 发送。"
+"如果你的照片是在 iPhone 上拍摄的，请在拍摄或发送前，先到“设置”→“相机”→“格"
+"式”中切换为“兼容性最佳”；或者在 Mail 中使用“选项”将其作为 JPEG 发送。"
 
-#: includes/Publishing/Notification.php:1132
+#: includes/Publishing/Notification.php:1189
 msgid ""
 "Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
@@ -4065,13 +4130,13 @@ msgstr ""
 "支持的格式：图片支持 JPEG、PNG、WebP、GIF、TIFF 或 HEIC/HEIF；音频支持 MP3、"
 "WAV、M4A、OGG 或 FLAC；视频支持 MP4、MOV、AVI、WebM、OGG 或 MPEG。"
 
-#: includes/Publishing/Notification.php:1137
+#: includes/Publishing/Notification.php:1194
 msgid ""
 "Once it's properly attached, just send it to the same address again — we'll "
 "pick it up automatically."
 msgstr "一旦正确附加，只需将其再次发送到同一地址——我们会自动提取它。"
 
-#: includes/Publishing/Notification.php:1188
+#: includes/Publishing/Notification.php:1245
 msgid ""
 "The photo is too dark to show your artwork clearly. Try photographing near a "
 "large window in daylight, or use a soft lamp aimed at the work from the side."
@@ -4079,7 +4144,7 @@ msgstr ""
 "照片太暗，无法清晰展示你的作品。请尝试在白天靠近一扇大窗户拍摄，或使用从侧面"
 "照向作品的柔和灯光。"
 
-#: includes/Publishing/Notification.php:1189
+#: includes/Publishing/Notification.php:1246
 msgid ""
 "The photo is underexposed (too dark). Try photographing near a large window "
 "in daylight, or use a soft lamp aimed at the work from the side."
@@ -4087,7 +4152,7 @@ msgstr ""
 "照片曝光不足（太暗）。请尝试在白天靠近一扇大窗户拍摄，或使用从侧面照向作品的"
 "柔和灯光。"
 
-#: includes/Publishing/Notification.php:1190
+#: includes/Publishing/Notification.php:1247
 msgid ""
 "The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
 "flash pointed straight at the artwork — diffuse or indirect light works best."
@@ -4095,27 +4160,27 @@ msgstr ""
 "照片曝光过度（太亮/发白）。避免直射阳光或直接照向作品的闪光灯——漫射光或间接光"
 "效果最好。"
 
-#: includes/Publishing/Notification.php:1191
+#: includes/Publishing/Notification.php:1248
 msgid ""
 "The photo is too bright or washed out. Avoid direct sunlight or flash — "
 "diffuse light or shade gives more even tones."
 msgstr ""
 "照片太亮或发白。避免直射阳光或闪光灯——漫射光或阴影环境能带来更均匀的色调。"
 
-#: includes/Publishing/Notification.php:1192
+#: includes/Publishing/Notification.php:1249
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
 "slightly or photograph at an angle to eliminate reflections from the surface."
 msgstr ""
 "作品上有眩光或明亮反射。可稍微倾斜画布，或改变拍摄角度，以消除表面反光。"
 
-#: includes/Publishing/Notification.php:1193
+#: includes/Publishing/Notification.php:1250
 msgid ""
 "There is a reflection on the artwork surface. Tilt the canvas slightly or "
 "change your angle to eliminate it."
 msgstr "作品表面有反光。可稍微倾斜画布，或改变拍摄角度以将其消除。"
 
-#: includes/Publishing/Notification.php:1195
+#: includes/Publishing/Notification.php:1252
 msgid ""
 "The image is blurry. Rest your phone or camera on a stable surface, use the "
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
@@ -4124,7 +4189,7 @@ msgstr ""
 "图像模糊。请将手机或相机放在稳定的平面上，使用自拍定时器，并确保作品占据画面"
 "的大部分，以便自动对焦锁定在作品上。"
 
-#: includes/Publishing/Notification.php:1196
+#: includes/Publishing/Notification.php:1253
 msgid ""
 "The image is out of focus. Tap on the artwork on your phone screen before "
 "shooting to make sure autofocus locks on it, and hold the camera still."
@@ -4132,7 +4197,7 @@ msgstr ""
 "图像失焦。拍摄前请在手机屏幕上点按作品，以确保自动对焦锁定在作品上，并保持相"
 "机稳定。"
 
-#: includes/Publishing/Notification.php:1197
+#: includes/Publishing/Notification.php:1254
 msgid ""
 "There is motion blur. Hold the camera very still or use a tripod; press the "
 "shutter gently or use the self-timer to avoid shake."
@@ -4140,7 +4205,7 @@ msgstr ""
 "存在运动模糊。请尽量保持相机稳定，或使用三脚架；轻按快门，或使用自拍定时器，"
 "以避免抖动。"
 
-#: includes/Publishing/Notification.php:1198
+#: includes/Publishing/Notification.php:1255
 msgid ""
 "Camera shake is visible. Use a tripod or rest the camera on a flat surface "
 "and use the self-timer to avoid movement when pressing the shutter."
@@ -4148,27 +4213,27 @@ msgstr ""
 "可以看到相机抖动。请使用三脚架或将相机放在平面上，并使用自拍定时器，以避免按"
 "下快门时产生移动。"
 
-#: includes/Publishing/Notification.php:1200
+#: includes/Publishing/Notification.php:1257
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and make sure you're close enough that the artwork fills the frame."
 msgstr ""
 "图像分辨率太低。请使用手机的最高画质设置，并确保离得足够近，让作品充满画面。"
 
-#: includes/Publishing/Notification.php:1201
+#: includes/Publishing/Notification.php:1258
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and fill the frame with the artwork."
 msgstr "图像分辨率太低。请使用手机的最高画质设置，并让作品充满画面。"
 
-#: includes/Publishing/Notification.php:1202
+#: includes/Publishing/Notification.php:1259
 msgid ""
 "The image is pixelated. Shoot from closer or use a higher resolution setting "
 "on your camera."
 msgstr "图像出现像素化。请从更近的距离拍摄，或使用更高分辨率的相机设置。"
 
-#: includes/Publishing/Notification.php:1204
-#: includes/Publishing/Notification.php:1205
+#: includes/Publishing/Notification.php:1261
+#: includes/Publishing/Notification.php:1262
 msgid ""
 "The photo has a strong colour cast. Shoot under neutral daylight or use your "
 "phone's Auto White Balance setting for more accurate colours."
@@ -4176,46 +4241,46 @@ msgstr ""
 "照片有明显的色偏。请在中性日光下拍摄，或使用手机的自动白平衡设置，以获得更准"
 "确的色彩。"
 
-#: includes/Publishing/Notification.php:1206
+#: includes/Publishing/Notification.php:1263
 msgid ""
 "The photo looks too yellow or warm. Shoot under natural daylight or switch "
 "your phone's white balance to Daylight / Cloudy."
 msgstr ""
 "照片看起来过于偏黄或偏暖。请在自然日光下拍摄，或将手机白平衡切换为日光/多云。"
 
-#: includes/Publishing/Notification.php:1207
+#: includes/Publishing/Notification.php:1264
 msgid ""
 "The photo has a cold blue tint. Move the artwork to a warmer, more natural "
 "light source or adjust your camera's white balance."
 msgstr ""
 "照片带有偏冷的蓝色调。请将作品移到更温暖、更自然的光源下，或调整相机白平衡。"
 
-#: includes/Publishing/Notification.php:1209
+#: includes/Publishing/Notification.php:1266
 msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
 msgstr ""
 "作品的一部分似乎被裁出了画面。请后退一些，并在拍摄前确保整件作品都在画面内。"
 
-#: includes/Publishing/Notification.php:1210
+#: includes/Publishing/Notification.php:1267
 msgid ""
 "The artwork is photographed at an angle, causing distortion. Shoot straight "
 "on, with the camera parallel to the canvas."
 msgstr "作品是斜着拍摄的，导致变形。请正面拍摄，让相机与画布保持平行。"
 
-#: includes/Publishing/Notification.php:1211
+#: includes/Publishing/Notification.php:1268
 msgid ""
 "The artwork looks distorted or skewed. Position your camera directly in "
 "front of the artwork, parallel to its surface."
 msgstr "作品看起来变形或倾斜。请将相机正对作品，并与其表面保持平行。"
 
-#: includes/Publishing/Notification.php:1212
+#: includes/Publishing/Notification.php:1269
 msgid ""
 "There is a shadow across part of the artwork. Reposition your light source "
 "or move the artwork so no shadows fall on the surface."
 msgstr "作品的一部分有阴影。请调整光源位置，或移动作品，确保表面没有阴影。"
 
-#: includes/Publishing/Notification.php:1279
+#: includes/Publishing/Notification.php:1336
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
 "for us to show your artwork clearly. We didn't publish it — but please don't "
@@ -4225,50 +4290,50 @@ msgstr ""
 "发布它——但请不要气馁！通常只需要重新拍摄一次就可以了。"
 
 #. translators: %d: quality score out of 10
-#: includes/Publishing/Notification.php:1288
+#: includes/Publishing/Notification.php:1345
 #, php-format
 msgid "📷 Photo quality score: %d / 10"
 msgstr "📷 照片质量评分：%d / 10"
 
-#: includes/Publishing/Notification.php:1294
+#: includes/Publishing/Notification.php:1351
 msgid "Here's what our AI detected and how to fix it:"
 msgstr "以下是我们的 AI 检测结果以及修复建议："
 
-#: includes/Publishing/Notification.php:1301
+#: includes/Publishing/Notification.php:1358
 msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
 msgstr "整体照片质量太低，我们的 AI 无法清晰处理作品。"
 
-#: includes/Publishing/Notification.php:1307
+#: includes/Publishing/Notification.php:1364
 msgid "💡 Quick tips for a great artwork photo"
 msgstr "💡 拍出优秀作品照片的快速提示"
 
-#: includes/Publishing/Notification.php:1309
+#: includes/Publishing/Notification.php:1366
 msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
 msgstr "使用自然光——在阴天将作品放在窗边，获得均匀柔和的光线。"
 
-#: includes/Publishing/Notification.php:1310
+#: includes/Publishing/Notification.php:1367
 msgid ""
 "Shoot straight on — hold your phone parallel to the canvas to avoid "
 "perspective distortion."
 msgstr "正面拍摄——让手机与画布保持平行，以避免透视失真。"
 
-#: includes/Publishing/Notification.php:1311
+#: includes/Publishing/Notification.php:1368
 msgid ""
 "Fill the frame — let the artwork take up most of the shot; crop out "
 "distracting backgrounds."
 msgstr "充满画面——让作品占据大部分画面；裁掉分散注意力的背景。"
 
-#: includes/Publishing/Notification.php:1312
+#: includes/Publishing/Notification.php:1369
 msgid ""
 "Hold still — tap the artwork on your screen to focus, then press the shutter "
 "gently or use a self-timer."
 msgstr "保持稳定——在屏幕上点按作品以对焦，然后轻按快门，或使用自拍定时器。"
 
-#: includes/Publishing/Notification.php:1317
+#: includes/Publishing/Notification.php:1374
 msgid ""
 "Once you have a clearer photo, just email it to the same address as before — "
 "we'll pick it up automatically."
@@ -4276,29 +4341,29 @@ msgstr ""
 "一旦你拍到更清晰的照片，只需像之前一样把它发送到同一个邮箱地址——我们会自动获"
 "取。"
 
-#: includes/Publishing/Notification.php:1322
+#: includes/Publishing/Notification.php:1379
 msgid ""
 "Your previous submission is saved in your submissions page in case you want "
 "to review what was sent."
 msgstr "你的上一份提交已保存在你的提交页面中，方便你日后查看已发送的内容。"
 
-#: includes/Publishing/Notification.php:1324
+#: includes/Publishing/Notification.php:1381
 msgid "View submissions →"
 msgstr "查看提交 →"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1510
+#: includes/Publishing/PostCreator.php:1539
 #, php-format
 msgid "%s (original)"
 msgstr "%s（原始）"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1558
+#: includes/Publishing/PostCreator.php:1587
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s（海报画面）"
 
-#: includes/Publishing/PostCreator.php:1887
+#: includes/Publishing/PostCreator.php:1924
 msgid "Failed to insert attachment."
 msgstr "插入附件失败。"
 
@@ -4340,145 +4405,173 @@ msgstr "移除链接已过期。请发送另一条移除请求。"
 msgid "Invalid removal token."
 msgstr "无效的移除令牌。"
 
-#: includes/Publishing/ReviewConfirm.php:284
+#: includes/Publishing/ReviewConfirm.php:285
 #, fuzzy
 msgid "Biography published"
 msgstr "作品已发布"
 
-#: includes/Publishing/ReviewConfirm.php:284
+#: includes/Publishing/ReviewConfirm.php:285
 #, fuzzy
 msgid "Your biography has been published."
 msgstr "你的%s已被移除。"
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:286
 #, fuzzy
 msgid "Event published"
 msgstr "作品已发布"
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:286
 #, fuzzy
 msgid "The event has been published."
 msgstr "该作品已发布到画廊。"
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:287
 msgid "Artwork published"
 msgstr "作品已发布"
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:287
 msgid "The artwork has been published to the gallery."
 msgstr "该作品已发布到画廊。"
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:288
 msgid "Submission discarded"
 msgstr "提交已丢弃"
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:288
 msgid "The submission has been discarded."
 msgstr "该提交已被丢弃。"
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:289
 #, fuzzy
 msgid "Biography removed"
 msgstr "传记"
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:289
 #, fuzzy
 msgid "Your biography has been removed."
 msgstr "你的%s已被移除。"
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:290
 #, fuzzy
 msgid "Event removed"
 msgstr "作品已移除"
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:290
 #, fuzzy
 msgid "The event has been removed."
 msgstr "你的%s已被移除。"
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:291
 msgid "Artwork removed"
 msgstr "作品已移除"
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:291
 msgid "Your artwork has been removed from the gallery."
 msgstr "你的作品已从画廊中移除。"
 
-#: includes/Publishing/ReviewConfirm.php:291
+#: includes/Publishing/ReviewConfirm.php:292
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
 msgstr "此链接可能已经使用过或已过期。请登录以管理你的提交。"
 
-#: includes/Publishing/ReviewConfirm.php:375
+#: includes/Publishing/ReviewConfirm.php:384
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:376
+#: includes/Publishing/ReviewConfirm.php:385
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:598
+#: includes/Publishing/ReviewConfirm.php:711
+#, fuzzy
+msgid "Portfolio link"
+msgstr "作品集 ↗"
+
+#: includes/Publishing/ReviewConfirm.php:737
+msgid "Date"
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:739
+msgid "Hour"
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:742
+#, fuzzy
+msgid "Location"
+msgstr "操作"
+
+#: includes/Publishing/ReviewConfirm.php:744
+#, fuzzy
+msgid "Address"
+msgstr "电子邮件地址"
+
+#: includes/Publishing/ReviewConfirm.php:746
+#, fuzzy
+msgid "Timezone"
+msgstr "时间"
+
+#: includes/Publishing/ReviewConfirm.php:906
 msgid "Discard this submission?"
 msgstr "要丢弃这份提交吗？"
 
-#: includes/Publishing/ReviewConfirm.php:599
+#: includes/Publishing/ReviewConfirm.php:907
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "这将永久丢弃该提交——它不会被发布。"
 
-#: includes/Publishing/ReviewConfirm.php:600
+#: includes/Publishing/ReviewConfirm.php:908
 msgid "Yes, discard it"
 msgstr "是，丢弃它"
 
-#: includes/Publishing/ReviewConfirm.php:603
+#: includes/Publishing/ReviewConfirm.php:911
 msgid "Remove this artwork?"
 msgstr "要移除这件作品吗？"
 
-#: includes/Publishing/ReviewConfirm.php:604
+#: includes/Publishing/ReviewConfirm.php:912
 msgid "This will remove the published artwork from the gallery."
 msgstr "这将把已发布的作品从画廊中移除。"
 
-#: includes/Publishing/ReviewConfirm.php:605
+#: includes/Publishing/ReviewConfirm.php:913
 msgid "Yes, remove it"
 msgstr "是，移除它"
 
-#: includes/Publishing/ReviewConfirm.php:698
+#: includes/Publishing/ReviewConfirm.php:1006
 #: includes/Publishing/SubmissionsPage.php:253
 msgid "Title"
 msgstr "标题"
 
-#: includes/Publishing/ReviewConfirm.php:706
+#: includes/Publishing/ReviewConfirm.php:1014
 #, fuzzy
 msgid "Short description"
 msgstr "描述"
 
-#: includes/Publishing/ReviewConfirm.php:711
+#: includes/Publishing/ReviewConfirm.php:1019
 msgid "Full text"
 msgstr ""
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:716
+#: includes/Publishing/ReviewConfirm.php:1029
 #, fuzzy, php-format
 msgid "Publish this %s?"
 msgstr "要发布这件作品吗？"
 
-#: includes/Publishing/ReviewConfirm.php:739
+#: includes/Publishing/ReviewConfirm.php:1052
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:745
+#: includes/Publishing/ReviewConfirm.php:1058
 #: includes/Publishing/SubmissionsPage.php:233
 msgid "Publish it"
 msgstr "发布它"
 
-#: includes/Publishing/ReviewConfirm.php:756
+#: includes/Publishing/ReviewConfirm.php:1069
 #, fuzzy
 msgid "biography"
 msgstr "传记"
@@ -4596,7 +4689,7 @@ msgstr "记住我"
 msgid "Forgot your password?"
 msgstr "忘记密码？"
 
-#: blocks/artist-breadcrumb/editor.js:47
+#: blocks/artist-breadcrumb/editor.js:52
 msgid "Artist Name"
 msgstr "艺术家姓名"
 
@@ -4666,8 +4759,8 @@ msgstr "触发图标"
 
 #: blocks/newsletter-popover/editor.js:82
 msgid ""
-"Pick something that won’t blend in with icons already sitting next to it "
-"(e.g. Social Share)."
+"Pick something that won’t blend in with icons already sitting next to it (e."
+"g. Social Share)."
 msgstr "请选择一个不会和旁边已有图标混淆的图标（例如社交分享）。"
 
 #: blocks/newsletter-signup/editor.js:28
@@ -4872,6 +4965,11 @@ msgstr "提交"
 msgctxt "block keyword"
 msgid "review"
 msgstr "审核"
+
+#~ msgid ""
+#~ "Mark an artwork as featured in your gallery — subject must match its "
+#~ "title."
+#~ msgstr "将某件作品标记为画廊精选——主题必须与其标题完全一致。"
 
 #~ msgid "Skipped"
 #~ msgstr "已跳过"

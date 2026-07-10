@@ -82,6 +82,15 @@ class EmbedPolicy {
 	private Pipeline $pipeline;
 
 	/**
+	 * Human-readable reason the most recent is_allowed() call returned false —
+	 * '' when it returned true, or before is_allowed() has been called at all.
+	 * See last_reason()'s docblock.
+	 *
+	 * @var string
+	 */
+	private string $last_reason = '';
+
+	/**
 	 * @param Pipeline|null $pipeline Injectable for tests; production callers
 	 *                                get a fully-configured Pipeline automatically.
 	 */
@@ -95,10 +104,19 @@ class EmbedPolicy {
 
 	/**
 	 * Whether $url may become a wp:embed block.
+	 *
+	 * Resets last_reason() to '' at the start of every call, then sets it
+	 * whenever this returns false — read it immediately after calling this
+	 * method (before checking another URL on the same instance, e.g. in
+	 * PostCreator::build_external_link_embeds()'s per-URL loop) to explain a
+	 * rejection to the artist rather than only logging it.
 	 */
 	public function is_allowed( string $url ): bool {
+		$this->last_reason = '';
+
 		$host = strtolower( (string) ( wp_parse_url( $url, PHP_URL_HOST ) ?: '' ) );
 		if ( '' === $host ) {
+			$this->last_reason = __( "That doesn't look like a valid web address.", 'agnosis' );
 			return false;
 		}
 
@@ -115,6 +133,7 @@ class EmbedPolicy {
 		}
 
 		if ( ! self::ai_vetting_enabled() ) {
+			$this->last_reason = __( "This site isn't on this Agnosis node's list of trusted platforms, and automatic link review is turned off here.", 'agnosis' );
 			return false;
 		}
 
@@ -132,6 +151,7 @@ class EmbedPolicy {
 				sprintf( 'EmbedPolicy: could not safely fetch "%s" for AI review — not embedded.', $url ),
 				'embed-policy'
 			);
+			$this->last_reason = __( "This node couldn't safely load that page to review it (it may be unreachable, or blocked for security reasons).", 'agnosis' );
 			return false; // Fail closed — unreachable/unsafe-to-fetch page.
 		}
 
@@ -142,6 +162,7 @@ class EmbedPolicy {
 				sprintf( 'EmbedPolicy: AI review of "%s" was inconclusive — not embedded.', $url ),
 				'embed-policy'
 			);
+			$this->last_reason = __( "Automatic review of that page's content was inconclusive.", 'agnosis' );
 			return false; // Fail closed — no usable verdict.
 		}
 
@@ -150,7 +171,25 @@ class EmbedPolicy {
 			'embed-policy'
 		);
 
+		if ( ! $verdict ) {
+			$this->last_reason = __( "Automatic review found that page's content isn't allowed to be embedded on this site.", 'agnosis' );
+		}
+
 		return $verdict;
+	}
+
+	/**
+	 * Human-readable explanation for why the most recent is_allowed() call
+	 * returned false — '' if it returned true (or hasn't been called yet).
+	 *
+	 * Callers that surface a dropped link to the artist (Notification's review
+	 * email notice, ApplicationBiography, PostCreator) call this immediately
+	 * after is_allowed() so the explanation always matches the URL just
+	 * checked — this is deliberately per-call state, not per-URL, so it must
+	 * be read before checking a second URL on the same EmbedPolicy instance.
+	 */
+	public function last_reason(): string {
+		return $this->last_reason;
 	}
 
 	/**

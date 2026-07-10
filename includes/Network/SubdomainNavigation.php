@@ -63,14 +63,23 @@ class SubdomainNavigation {
 	 * (an artwork, biography, or event single), not just an identifying label.
 	 *
 	 * The name and the "Biography"/"Events" links are two separate groups —
-	 * the name is never pipe-separated from anything else. The theme lays
-	 * the two groups out on opposite sides (name on the reading-start side,
-	 * links on the reading-end side — i.e. left/right, or the reverse on
-	 * RTL) via `.agnosis-artist-breadcrumb`'s flex layout. Within the links
-	 * group, "Biography" and "Events" are pipe-separated from *each other*,
-	 * but only when both are actually present — no dangling link to an empty
-	 * page for an artist who's never submitted a bio or event, and no lone
-	 * leading/trailing pipe when only one of the two exists.
+	 * the name is never mixed in with anything else. The theme lays the two
+	 * groups out on opposite sides (name on the reading-start side, links on
+	 * the reading-end side — i.e. left/right, or the reverse on RTL) via
+	 * `.agnosis-artist-breadcrumb`'s flex layout.
+	 *
+	 * 2026-07-10: Biography/Events used to render as translated text links
+	 * ("Biography" / "Events", pipe-separated from each other when both were
+	 * present). On mobile, some translations of those two words together
+	 * were wide enough to overflow or wrap awkwardly next to the artist's
+	 * name. Both are now icon-only links — a fixed-width glyph regardless of
+	 * locale — with the translated word moved to `aria-label`/`title`
+	 * (screen readers and hover tooltips still get it; sighted mobile
+	 * visitors get a compact, self-explanatory icon). Same
+	 * stroke="currentColor" 24×24-viewBox convention `PopoverBlock::ICONS`
+	 * already established for this plugin's icon buttons. No separator
+	 * needed between the two any more — `.agnosis-artist-breadcrumb__links`'s
+	 * flex `gap` spaces them evenly whether one or both are present.
 	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 * @return string
@@ -98,24 +107,53 @@ class SubdomainNavigation {
 
 		$bio_url = $this->biography_permalink( $artist_id );
 		if ( '' !== $bio_url ) {
-			$secondary_links[] = sprintf( '<a href="%s">%s</a>', esc_url( $bio_url ), esc_html__( 'Biography', 'agnosis' ) );
+			$secondary_links[] = $this->icon_link( $bio_url, 'biography', __( 'Biography', 'agnosis' ) );
 		}
 
 		if ( $this->has_published_post( 'agnosis_event', $artist_id ) ) {
 			$events_url = (string) get_post_type_archive_link( 'agnosis_event' );
 			if ( '' !== $events_url ) {
-				$secondary_links[] = sprintf( '<a href="%s">%s</a>', esc_url( $events_url ), esc_html__( 'Events', 'agnosis' ) );
+				$secondary_links[] = $this->icon_link( $events_url, 'events', __( 'Events', 'agnosis' ) );
 			}
 		}
 
 		if ( $secondary_links ) {
 			$markup .= sprintf(
 				'<span class="agnosis-artist-breadcrumb__links">%s</span>',
-				implode( ' | ', $secondary_links )
+				implode( '', $secondary_links )
 			);
 		}
 
 		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $markup );
+	}
+
+	/**
+	 * Icon-only stroke SVGs for the breadcrumb's Biography/Events links —
+	 * same 24×24-viewBox, stroke="currentColor" Feather-style convention as
+	 * `Newsletter\PopoverBlock::ICONS`, kept local here since this is the
+	 * only place that uses these two specific icons. Raw, hand-authored
+	 * markup — never user input.
+	 *
+	 * @var array<string, string>
+	 */
+	private const LINK_ICONS = [
+		'biography' => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
+		'events'    => '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+	];
+
+	/**
+	 * Build one icon-only breadcrumb link. The translated word never appears
+	 * as visible text — it's the link's `aria-label` (for screen readers)
+	 * and `title` (for a mouse-hover tooltip on desktop) — see render_block()'s
+	 * docblock for why.
+	 */
+	private function icon_link( string $url, string $icon_key, string $label ): string {
+		return sprintf(
+			'<a href="%1$s" aria-label="%2$s" title="%2$s"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">%3$s</svg></a>',
+			esc_url( $url ),
+			esc_attr( $label ),
+			self::LINK_ICONS[ $icon_key ] ?? ''
+		);
 	}
 
 	// -------------------------------------------------------------------------

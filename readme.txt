@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.14
+Stable tag: 0.9.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,11 +69,19 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.15 =
+* Added: When approving an event submission, you can now edit its Date, Hour, Location, Timezone, and Address before it goes live — previously only the written description was editable at that step. A new Address field/block and Timezone field are also new: the AI now tries to pull them from your email automatically.
+* Added: When approving a biography submission, you can now correct the portfolio link before it goes live — handy if it was misspelled or otherwise didn't get included automatically. This also fixes a bug where editing the biography text on that same screen could silently remove an already-working portfolio link.
+* Fixed: If a link you included — a join application's portfolio link, or a link mentioned in an artwork, biography, or event email — couldn't be automatically added to your page, you previously had no way of knowing. The relevant review email now tells you which link was left out and why (for example, that its site isn't on the trusted list, or automatic review couldn't confirm it was appropriate), for all submission types, not just biography.
+* Fixed: The "new application, please vote" email sent to existing artists was still plain text, unlike every other Agnosis email. It now uses the same styled look as the rest of the plugin's emails.
+* Fixed: The "Biography"/"Events" links next to an artist's name (on a subdomain) could overflow or wrap awkwardly on mobile in some languages. Both are now compact icons instead of translated text, with the word still available on hover or to screen readers.
+* Fixed: The Community announcement address didn't appear in the "here's every address you can use" reference card included in notification emails, unlike every other configured address. It now does.
+* Changed: The Promote address's description was unclear about which gallery it affects — it's the shared, cross-artist gallery on the main site, not your own subdomain (which already shows everything you've published). Wording only; the underlying feature already worked this way.
+* Fixed: The footer's newsletter bell and social icons rendered too small by default. Both are now bigger (requires agnosis-theme 0.5.8+ for the matching social-icons size).
+
 = 0.9.14 =
 * Fixed: The artist name in the artist-breadcrumb line always showed a "|" before "Biography" even when there was no Events link after it, and the name couldn't be styled on the opposite side from those links. The name and the Biography/Events links are now separate, and the "|" only appears between Biography and Events when both are present.
 * Fixed: The "Biography" link in that same breadcrumb line didn't follow the page's current language on multilingual (Lingua Forge) sites — it could link to a translated biography in the wrong language regardless of which language you were actually viewing. It now always links to the biography in your current language when one exists.
 
-= 0.9.13 =
-* Added: A free, no-AI safety net that double-checks translated artwork/biography/event pages are using the correct language-specific page template, on sites running Lingua Forge 2.6.1 or later. Runs automatically after every translation; does nothing on older Lingua Forge versions.
-
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
+

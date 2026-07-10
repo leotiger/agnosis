@@ -761,6 +761,59 @@ class Notification {
 				. '</p>';
 		}
 
+		// Dropped-link notice (2026-07-10, generalised beyond biography's
+		// portfolio field) — any submission can mention a link that doesn't
+		// clear EmbedPolicy (untrusted host, AI review off/rejected, fetch
+		// failure...) and gets silently left out of the post. Previously this
+		// was nothing beyond a log line the artist never sees. Both drafting
+		// paths now record every dropped link plus WHY, in the same shape:
+		// `_agnosis_dropped_links` (JSON array of {url, reason}) — written by
+		// PostCreator::build_external_link_embeds() for artwork/biography/event
+		// email submissions, and by ApplicationBiography::on_artist_admitted()
+		// for a join-application's portfolio field. One reader here covers
+		// both, so every content type gets the same explanation instead of
+		// only biography.
+		$dropped_links_html = '';
+		$dropped_links_raw  = (string) get_post_meta( $post->ID, '_agnosis_dropped_links', true );
+		$dropped_links      = $dropped_links_raw ? (array) json_decode( $dropped_links_raw, true ) : [];
+
+		if ( ! empty( $dropped_links ) ) {
+			$link_items = implode(
+				'',
+				array_map(
+					static function ( $link ): string {
+						$link   = (array) $link;
+						$url    = (string) ( $link['url'] ?? '' );
+						$reason = (string) ( $link['reason'] ?? '' );
+						return '<li style="margin:0 0 8px;">'
+							. '<strong>' . esc_html( $url ) . '</strong>'
+							. ( '' !== $reason ? '<br><span style="color:#888;">' . esc_html( $reason ) . '</span>' : '' )
+							. '</li>';
+					},
+					$dropped_links
+				)
+			);
+
+			// Biography is the only content type with an editable "fix this
+			// link" field today (ReviewConfirm's approve form) — everything
+			// else just gets an explanation, since resending the email with a
+			// corrected link is the only fix for those.
+			$footer_hint = 'agnosis_biography' === $post->post_type
+				? esc_html__( 'Double-check the link is correct — you can fix or remove it in the form below before publishing.', 'agnosis' )
+				: esc_html__( 'If the link was correct, its destination may simply not be from a source this site automatically embeds.', 'agnosis' );
+
+			$dropped_links_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:17px;color:#555;">'
+				. '<strong style="color:#8a6200;">'
+				. esc_html( _n( '🔗 A link was not included', '🔗 Some links were not included', count( $dropped_links ), 'agnosis' ) )
+				. '</strong>'
+				. '<p style="margin:8px 0 6px;">'
+				. esc_html__( "The following couldn't be automatically embedded, so they were left out:", 'agnosis' )
+				. '</p>'
+				. '<ul style="margin:0 0 8px;padding-left:18px;">' . $link_items . '</ul>'
+				. '<p style="margin:8px 0 0;font-size:16px;color:#888;">' . $footer_hint . '</p>'
+				. '</div>';
+		}
+
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$excerpt   = esc_html( $post->post_excerpt );
@@ -823,6 +876,10 @@ class Notification {
 
 		<?php if ( $quality_html ) : ?>
 			<?php echo $quality_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html() and esc_html__() above. ?>
+		<?php endif; ?>
+
+		<?php if ( $dropped_links_html ) : ?>
+			<?php echo $dropped_links_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html() above. ?>
 		<?php endif; ?>
 
 		<!-- Original title (artist's language) — the canonical name of the work -->

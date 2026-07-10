@@ -17,6 +17,11 @@
  *   - Newsletter emails — those already carry their own footer/unsubscribe link
  *     (see Newsletter\Mailer) and aren't work-submission correspondence at all.
  *
+ * The "community" announcement address (agnosis_email_community) IS included
+ * below (2026-07-10, was missing) — unlike goodbye, it's something an artist
+ * actively sends mail to as part of participating in the community, the same
+ * shape as every other address here, just not something that produces a post.
+ *
  * Also home to edit_reminder_plain_text()/edit_reminder_html() — a similarly
  * shared, one-line "you can also fix things directly on the page" reminder
  * for the front-end correction feature (Artist\ContentEditor, 0.8.0). Unlike
@@ -81,7 +86,7 @@ class EmailFooter {
 			],
 			__( 'Promote', 'agnosis' )    => [
 				'option' => 'agnosis_email_promote',
-				'desc'   => __( 'Mark an artwork as featured in your gallery — subject must match its title.', 'agnosis' ),
+				'desc'   => __( 'Choose which artwork represents you in the shared community gallery on the main site — subject must match its title. Your own subdomain already shows everything you\'ve published.', 'agnosis' ),
 			],
 			__( 'Photo-only', 'agnosis' ) => [
 				'option' => 'agnosis_email_photo',
@@ -90,6 +95,10 @@ class EmailFooter {
 			__( 'Pure', 'agnosis' )       => [
 				'option' => 'agnosis_email_pure',
 				'desc'   => __( 'Publish exactly as sent — no AI at all, not even the title/description pass.', 'agnosis' ),
+			],
+			__( 'Community', 'agnosis' )  => [
+				'option' => 'agnosis_email_community',
+				'desc'   => __( 'Send a message to every other artist in the community.', 'agnosis' ),
 			],
 		];
 	}

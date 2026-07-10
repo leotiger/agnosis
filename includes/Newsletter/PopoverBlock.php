@@ -107,7 +107,7 @@ class PopoverBlock {
 			popovertargetaction="show"
 			aria-label="<?php esc_attr_e( 'Subscribe to the newsletter', 'agnosis' ); ?>"
 		>
-			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+			<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
 				<?php echo $icon_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed, hand-authored markup from self::ICONS, never user input. ?>
 			</svg>
 		</button>
@@ -120,7 +120,7 @@ class PopoverBlock {
 				popovertargetaction="hide"
 				aria-label="<?php esc_attr_e( 'Close', 'agnosis' ); ?>"
 			>
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
 					<path d="M4 4l16 16M20 4 4 20"></path>
 				</svg>
 			</button>

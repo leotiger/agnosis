@@ -387,52 +387,6 @@ class AdmissionNotification {
 		$yes_url = self::vote_url( $voter_id, (int) $application->id, 'yes' );
 		$no_url  = self::vote_url( $voter_id, (int) $application->id, 'no' );
 
-		$lines = [];
-		/* translators: %s: recipient's display name */
-		$lines[] = sprintf( __( 'Hi %s,', 'agnosis' ), $voter_name );
-		$lines[] = '';
-		$lines[] = sprintf(
-			/* translators: 1: applicant display name, 2: community name, 3: number of days */
-			__( '%1$s has applied to join %2$s. You have %3$d days to vote.', 'agnosis' ),
-			$application->display_name,
-			get_bloginfo( 'name' ),
-			$window
-		);
-		$lines[] = '';
-
-		if ( $application->bio ) {
-			$lines[] = __( 'Bio:', 'agnosis' );
-			$lines[] = $application->bio;
-			$lines[] = '';
-		}
-		if ( $application->portfolio_url ) {
-			/* translators: %s: portfolio URL */
-			$lines[] = sprintf( __( 'Portfolio: %s', 'agnosis' ), $application->portfolio_url );
-			$lines[] = '';
-		}
-		if ( $application->statement ) {
-			$lines[] = __( 'Statement:', 'agnosis' );
-			$lines[] = $application->statement;
-			$lines[] = '';
-		}
-
-		/* translators: %s: vote URL */
-		$lines[] = sprintf( __( 'Vote YES: %s', 'agnosis' ), $yes_url );
-		/* translators: %s: vote URL */
-		$lines[] = sprintf( __( 'Vote NO:  %s', 'agnosis' ), $no_url );
-		$lines[] = '';
-		$lines[] = __( 'You can change your vote at any time within the voting window.', 'agnosis' );
-		$lines   = array_merge( $lines, $this->footer_lines() );
-
-		// $voter_id may be the fallback admin account (see on_application_received()
-		// above) rather than an artist — edit_reminder_plain_text() simply returns
-		// '' for a non-artist with nothing published, so no extra guard is needed here.
-		$edit_reminder = EmailFooter::edit_reminder_plain_text( $voter_id );
-		if ( '' !== $edit_reminder ) {
-			$lines[] = '';
-			$lines[] = $edit_reminder;
-		}
-
 		wp_mail(
 			$voter_email,
 			sprintf(
@@ -441,13 +395,141 @@ class AdmissionNotification {
 				$application->display_name,
 				get_bloginfo( 'name' )
 			),
-			implode( "\n", $lines ),
-			$this->text_headers()
+			$this->build_vote_email_body( $application, $voter_name, $voter_id, $yes_url, $no_url, $window ),
+			$this->html_headers()
 		);
 
 		if ( '' !== $voter_locale ) {
 			restore_current_locale();
 		}
+	}
+
+	/**
+	 * Build the HTML "new application — please vote" email sent to every
+	 * current artist (and the admin fallback when there are no artists yet).
+	 *
+	 * 2026-07-10: this was the one remaining plain-text, unstyled email path
+	 * in the plugin — every other artist-facing email (acknowledgment,
+	 * welcome, and everything in Publishing\Notification) already used the
+	 * shared EmailBranding header + styled-button template. Same content as
+	 * the old plain-text version (bio/portfolio/statement, Yes/No links,
+	 * work-email footer, edit reminder), just in that same visual language.
+	 *
+	 * @param object{id: int, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
+	 * @param int    $voter_id   WP user ID of the recipient — gates EmailFooter::edit_reminder_html()
+	 *                           the same way it gated edit_reminder_plain_text() before.
+	 */
+	private function build_vote_email_body( object $application, string $voter_name, int $voter_id, string $yes_url, string $no_url, int $window ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$accent    = '#7c6af7';
+		$reject    = '#c0392b';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 8px 6px 0;';
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $voter_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
+			<?php
+			printf(
+				/* translators: 1: applicant display name, 2: community name, 3: number of days */
+				esc_html__( '%1$s has applied to join %2$s. You have %3$d days to vote.', 'agnosis' ),
+				esc_html( $application->display_name ),
+				esc_html( $site_name ),
+				absint( $window )
+			);
+			?>
+		</p>
+
+		<?php if ( $application->bio ) : ?>
+		<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Bio', 'agnosis' ); ?></p>
+		<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid <?php echo esc_attr( $accent ); ?>;border-radius:4px;"><?php echo esc_html( $application->bio ); ?></p>
+		<?php endif; ?>
+
+		<?php if ( $application->portfolio_url ) : ?>
+		<p style="margin:0 0 20px;font-size:17px;color:#555;">
+			<strong><?php esc_html_e( 'Portfolio:', 'agnosis' ); ?></strong>
+			<a href="<?php echo esc_url( $application->portfolio_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $application->portfolio_url ); ?></a>
+		</p>
+		<?php endif; ?>
+
+		<?php if ( $application->statement ) : ?>
+		<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Statement', 'agnosis' ); ?></p>
+		<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid <?php echo esc_attr( $accent ); ?>;border-radius:4px;"><?php echo esc_html( $application->statement ); ?></p>
+		<?php endif; ?>
+
+		<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+		<tr><td>
+			<a href="<?php echo esc_url( $yes_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
+				✓ <?php esc_html_e( 'Vote YES', 'agnosis' ); ?>
+			</a>
+			<a href="<?php echo esc_url( $no_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:#fff;color:<?php echo esc_attr( $reject ); ?>;border:1px solid <?php echo esc_attr( $reject ); ?>;">
+				✕ <?php esc_html_e( 'Vote NO', 'agnosis' ); ?>
+			</a>
+		</td></tr>
+		</table>
+
+		<p style="margin:0;font-size:15px;color:#999;">
+			<?php esc_html_e( 'You can change your vote at any time within the voting window.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php // $voter_id may be the fallback admin account (see on_application_received() above) rather than an artist — edit_reminder_html() simply returns '' for a non-artist with nothing published, so no extra guard is needed here. ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $voter_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -661,7 +743,7 @@ class AdmissionNotification {
 			'agnosis_email_event'   => __( 'Submit event', 'agnosis' ),
 			'agnosis_email_replace' => __( 'Replace artwork (subject: exact title)', 'agnosis' ),
 			'agnosis_email_remove'  => __( 'Remove artwork (subject: exact title)', 'agnosis' ),
-			'agnosis_email_promote' => __( 'Feature artwork (subject: exact title)', 'agnosis' ),
+			'agnosis_email_promote' => __( 'Feature artwork in the shared gallery (subject: exact title)', 'agnosis' ),
 			'agnosis_email_photo'   => __( 'Photo-only — publish as-is, no AI enhancement', 'agnosis' ),
 			'agnosis_email_pure'    => __( 'Pure — publish exactly as sent, no AI at all', 'agnosis' ),
 		];

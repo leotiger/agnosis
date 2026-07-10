@@ -250,6 +250,19 @@ class Profile {
 			]
 		);
 
+		// agnosis/event-address — renders the _agnosis_event_address meta value
+		// (street address, distinct from the venue/city name event-location
+		// renders — added 2026-07-10 alongside the event-timezone meta) for
+		// agnosis_event posts. Same empty-string-takes-no-space convention as
+		// event-location above.
+		register_block_type(
+			'agnosis/event-address',
+			[
+				'render_callback' => [ $this, 'render_event_address' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
+
 		// agnosis/artwork-title — bilingual title block for single artwork pages.
 		// Renders the artist's original title (post_title) as the primary <h1> and
 		// the AI-generated site-language translation (_agnosis_translated_title meta)
@@ -306,6 +319,17 @@ class Profile {
 	 * configured date format (and time format when a time component is present).
 	 * Returns an empty string when the meta is absent so the block takes no space.
 	 *
+	 * 2026-07-10: when `_agnosis_event_timezone` is also set (an IANA identifier —
+	 * see Pipeline::extract_event_fields()), it's appended after the formatted
+	 * date/time (e.g. "August 15, 2026 7:00 pm (Europe/Madrid)") so a visitor
+	 * reading the event on a site whose own configured timezone differs from the
+	 * event's isn't misled into thinking the displayed time is in their local/site
+	 * timezone. Deliberately NOT converted into the site's own timezone — the
+	 * stored date/time is exactly what the artist's email said, in the place the
+	 * event actually happens; converting it would require assuming the artist
+	 * wrote the time already in that IANA zone, which extract_event_fields() only
+	 * infers, not guarantees.
+	 *
 	 * @param array<string, mixed> $attrs   Block attributes (unused).
 	 * @param string               $content Inner block content (unused).
 	 * @param \WP_Block            $block   Block instance (provides postId context).
@@ -330,6 +354,11 @@ class Profile {
 			? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $timestamp )
 			: date_i18n( (string) get_option( 'date_format' ), $timestamp );
 
+		$timezone = trim( (string) get_post_meta( $post_id, '_agnosis_event_timezone', true ) );
+		if ( $has_time && '' !== $timezone ) {
+			$formatted .= ' (' . $timezone . ')';
+		}
+
 		// Editable-region marker for the front-end correction overlay (audit §7c/§7d
 		// Phase 1) — same convention as render_event_location() above.
 		if ( ContentEditor::is_editable_by_current_user( $post_id ) ) {
@@ -345,6 +374,40 @@ class Profile {
 			'<p class="agnosis-event-date" style="font-size:var(--wp--preset--font-size--small);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin:0;"><time datetime="%s">%s</time></p>',
 			esc_attr( $event_date ),
 			esc_html( $formatted )
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/event-address block.
+	 *
+	 * Mirrors render_event_location() exactly, reading `_agnosis_event_address`
+	 * (the street address, distinct from the venue/city name `_agnosis_event_location`
+	 * holds) instead. Added 2026-07-10 alongside the timezone meta.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when no address is set.
+	 */
+	public function render_event_address( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$address = trim( (string) get_post_meta( $post_id, '_agnosis_event_address', true ) );
+
+		if ( ! $address && ! ContentEditor::is_editable_by_current_user( $post_id ) ) {
+			return '';
+		}
+
+		if ( ContentEditor::is_editable_by_current_user( $post_id ) ) {
+			return sprintf(
+				'<p class="agnosis-event-address agnosis-editable" data-agnosis-edit-field="event_address" data-agnosis-post-id="%d" style="font-size:var(--wp--preset--font-size--small);font-weight:400;margin:0;opacity:0.7;">%s</p>',
+				$post_id,
+				esc_html( $address )
+			);
+		}
+
+		return sprintf(
+			'<p class="agnosis-event-address" style="font-size:var(--wp--preset--font-size--small);font-weight:400;margin:0;opacity:0.7;">%s</p>',
+			esc_html( $address )
 		);
 	}
 

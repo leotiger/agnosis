@@ -168,6 +168,18 @@ class PostCreator {
 	private EmbedPolicy $embed_policy;
 
 	/**
+	 * Links dropped by the current build_post_content() call — reset at the
+	 * start of build_external_link_embeds(), read by create_post() right
+	 * after, and written into the new post's `_agnosis_dropped_links` meta so
+	 * Notification::build_email() can tell the artist why a link they
+	 * mentioned didn't turn into an embed, instead of it just silently not
+	 * being there. See build_external_link_embeds()'s docblock.
+	 *
+	 * @var array<int, array{url: string, reason: string}>
+	 */
+	private array $last_dropped_links = [];
+
+	/**
 	 * Inject or auto-create the AI pipeline (and, from it, the embed policy).
 	 *
 	 * Accepts optional collaborators so tests can pass lightweight stubs
@@ -535,13 +547,18 @@ class PostCreator {
 			}
 
 			// ---- Event field extraction -----------------------------------------
-			// For event posts, ask the AI to pull the location and event date out of
-			// the email so the agnosis/event-location and agnosis/event-date blocks
-			// have data without admin entry.
+			// For event posts, ask the AI to pull the location, address, event
+			// date, and timezone out of the email so the agnosis/event-location,
+			// agnosis/event-date, and agnosis/event-address blocks have data
+			// without admin entry. address/timezone added 2026-07-10 (see
+			// Pipeline::extract_event_fields()'s docblock) — both also editable
+			// on the approve confirm form (ReviewConfirm) before publish.
 			if ( 'agnosis_event' === $post_type ) {
-				$event_fields                    = $this->pipeline->extract_event_fields( $submission );
-				$submission['_event_location']   = $event_fields['location'];
-				$submission['_event_date']        = $event_fields['event_date'];
+				$event_fields                   = $this->pipeline->extract_event_fields( $submission );
+				$submission['_event_location']  = $event_fields['location'];
+				$submission['_event_address']   = $event_fields['address'];
+				$submission['_event_date']      = $event_fields['event_date'];
+				$submission['_event_timezone']  = $event_fields['timezone'];
 				if ( $event_fields['location'] ) {
 					Logger::info( sprintf( 'Queue #%d: event location extracted — "%s".', $queue_id, $event_fields['location'] ), 'publisher' );
 				}
@@ -1366,12 +1383,19 @@ class PostCreator {
 				'_agnosis_review_expiry'    => $review_expiry,
 				'_agnosis_queue_id'         => $queue_id,
 				'_agnosis_translated_title' => $ai_title,
+				// Written every time (not just when non-empty) so a resubmission
+				// that no longer has any dropped link correctly clears a stale
+				// notice from an earlier attempt — Notification::build_email()
+				// treats '[]' the same as the meta being entirely absent.
+				'_agnosis_dropped_links'    => wp_json_encode( $this->last_dropped_links ),
 			],
 		];
 
 		if ( 'agnosis_event' === $post_type ) {
 			$post_data['meta_input']['_agnosis_event_location'] = $submission['_event_location'] ?? '';
+			$post_data['meta_input']['_agnosis_event_address']  = $submission['_event_address']  ?? '';
 			$post_data['meta_input']['_agnosis_event_date']     = $submission['_event_date']     ?? '';
+			$post_data['meta_input']['_agnosis_event_timezone'] = $submission['_event_timezone'] ?? '';
 		}
 
 		// For new posts, derive the URL slug from the artist's original submitted
@@ -1643,13 +1667,19 @@ class PostCreator {
 	 * EmbedPolicy::is_allowed()). Appended at the very bottom of the post,
 	 * after all attached media and body text.
 	 *
-	 * A link EmbedPolicy does not approve is silently dropped and logged,
-	 * never embedded, never shown as a raw link either.
+	 * A link EmbedPolicy does not approve is dropped, logged, and — 2026-07-10 —
+	 * recorded (URL + EmbedPolicy::last_reason()) in $this->last_dropped_links,
+	 * which create_post() reads right after this returns and writes to the new
+	 * post's `_agnosis_dropped_links` meta, so the artist's review email can
+	 * explain why a link they mentioned isn't there instead of it just quietly
+	 * not being there. Never embedded, never shown as a raw link either.
 	 *
 	 * @param string $artist_text Raw submitted email body (pre-translation, pre-AI).
 	 * @return string Zero or more wp:embed blocks, each followed by a blank line; '' if none.
 	 */
 	private function build_external_link_embeds( string $artist_text ): string {
+		$this->last_dropped_links = [];
+
 		if ( '' === trim( $artist_text ) ) {
 			return '';
 		}
@@ -1685,10 +1715,12 @@ class PostCreator {
 			}
 
 			if ( ! $this->embed_policy->is_allowed( $url ) ) {
+				$reason = $this->embed_policy->last_reason();
 				Logger::info(
-					sprintf( 'PostCreator: link to "%s" was not approved for embedding — omitted from post content.', $host ),
+					sprintf( 'PostCreator: link to "%s" was not approved for embedding — omitted from post content (%s).', $host, $reason ),
 					'publisher'
 				);
+				$this->last_dropped_links[] = [ 'url' => $url, 'reason' => $reason ];
 				continue;
 			}
 

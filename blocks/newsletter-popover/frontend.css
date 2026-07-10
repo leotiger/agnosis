@@ -8,15 +8,20 @@
 /*
  * Shared icon-button treatment for the trigger + close buttons. Sized and
  * weighted to sit flush with a Social Icons block placed next to the trigger
- * (agnosis-theme's footer does exactly this) — themes can override via this
- * same class name if they want a different treatment.
+ * (agnosis-theme's footer does exactly this — its wp:social-links block uses
+ * "has-large-icon-size", ~3rem per icon, so this is sized to match) — themes
+ * can override via this same class name if they want a different treatment.
+ *
+ * 2026-07-10: bumped from 2.25rem — the default (matching core's un-sized
+ * "normal" Social Icons rendering) read as too small next to the rest of the
+ * footer. The inner <svg> sizes (PopoverBlock.php) were bumped to match.
  */
 .lf-icon-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 2.25rem;
-	height: 2.25rem;
+	width: 3rem;
+	height: 3rem;
 	padding: 0;
 	border: 1px solid var(--wp--preset--color--tertiary, currentColor);
 	background: transparent;

@@ -83,9 +83,18 @@ class ContentEditor {
 			'title'   => 'post_title',
 		],
 		'agnosis_event'     => [
-			'content'        => 'post_content',
-			'event_location' => '_agnosis_event_location',
-			'event_date'     => '_agnosis_event_date',
+			'content'         => 'post_content',
+			'event_location'  => '_agnosis_event_location',
+			'event_date'      => '_agnosis_event_date',
+			// 2026-07-10: added alongside the approve-form structured-data fields
+			// (Publishing\ReviewConfirm) — event_address has its own editable-region
+			// block (agnosis/event-address, mirroring event_location); event_timezone
+			// has no dedicated visual element of its own yet (it's appended as plain
+			// text inside event-date's rendered string — Artist\Profile::render_event_date()),
+			// so it's reachable via this REST field for a future editable-region pass
+			// but has no on-page click-to-edit affordance today.
+			'event_address'   => '_agnosis_event_address',
+			'event_timezone'  => '_agnosis_event_timezone',
 		],
 	];
 
@@ -226,6 +235,14 @@ class ContentEditor {
 			return new WP_Error(
 				'agnosis_invalid_date',
 				__( 'That date could not be understood.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		if ( 'event_timezone' === $field && '' !== $value && ! in_array( $value, \DateTimeZone::listIdentifiers(), true ) ) {
+			return new WP_Error(
+				'agnosis_invalid_timezone',
+				__( 'That does not look like a valid timezone (e.g. "Europe/Madrid").', 'agnosis' ),
 				[ 'status' => 400 ]
 			);
 		}
@@ -689,6 +706,8 @@ class ContentEditor {
 			'excerpt'        => sanitize_textarea_field( $value ),
 			'event_location' => sanitize_text_field( $value ),
 			'event_date'     => sanitize_text_field( $value ),
+			'event_address'  => sanitize_text_field( $value ),
+			'event_timezone' => sanitize_text_field( $value ),
 			'title'          => sanitize_text_field( $value ),
 			default          => sanitize_textarea_field( $value ),
 		};

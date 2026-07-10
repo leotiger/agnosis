@@ -134,10 +134,22 @@ class ApplicationBiography {
 		// (EmbedPolicy::is_allowed()), so it's deliberately not done any
 		// earlier than this.
 		$portfolio_approved = '' !== $portfolio && $this->embed_policy->is_allowed( $portfolio );
+		$portfolio_reason   = '';
 
 		if ( '' !== $portfolio && ! $portfolio_approved ) {
+			// 2026-07-10: this used to be silent beyond a log line no artist
+			// ever sees — the artist had no way to know their portfolio link
+			// didn't make it onto their own biography page, and no way to
+			// correct it if the omission was actually their own typo (a
+			// misspelled domain the policy correctly didn't recognise).
+			// `_agnosis_biography_portfolio_url` (below) is stored regardless
+			// of approval so Notification::build_email() can surface a notice
+			// in the review email, and so the approve confirm form
+			// (ReviewConfirm::render_approve_confirm()) can offer it back as
+			// an editable field the artist can fix before publishing.
+			$portfolio_reason = $this->embed_policy->last_reason();
 			Logger::info(
-				sprintf( 'ApplicationBiography: portfolio URL for artist #%d was not approved for embedding — omitted.', $user_id ),
+				sprintf( 'ApplicationBiography: portfolio URL for artist #%d was not approved for embedding — omitted (%s).', $user_id, $portfolio_reason ),
 				'admission'
 			);
 		}
@@ -180,6 +192,22 @@ class ApplicationBiography {
 				// regardless of which CPT it's for.
 				'_agnosis_review_expiry' => time() + ( max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) ) * DAY_IN_SECONDS ),
 				'_agnosis_queue_id'      => 0,
+				// Recorded regardless of embed approval (see the log-only branch
+				// above) — _agnosis_biography_portfolio_url/_embedded are the
+				// source of truth for the approve form's correctable field
+				// (ReviewConfirm::sync_portfolio_embed()); _agnosis_dropped_links
+				// is the same generic, reason-carrying shape
+				// PostCreator::build_external_link_embeds() writes for
+				// artwork/biography/event email submissions, so
+				// Notification::build_email()'s "link not included" notice reads
+				// one format regardless of which path drafted the post.
+				'_agnosis_biography_portfolio_url'      => $portfolio,
+				'_agnosis_biography_portfolio_embedded' => $portfolio_approved ? '1' : '0',
+				'_agnosis_dropped_links'                => wp_json_encode(
+					( '' !== $portfolio && ! $portfolio_approved )
+						? [ [ 'url' => $portfolio, 'reason' => $portfolio_reason ] ]
+						: []
+				),
 			],
 		];
 
@@ -231,7 +259,7 @@ class ApplicationBiography {
 		}
 
 		if ( '' !== $portfolio ) {
-			$body .= $this->build_embed_block( $portfolio ) . "\n\n";
+			$body .= self::build_embed_block( $portfolio ) . "\n\n";
 		}
 
 		return $body;
@@ -243,8 +271,13 @@ class ApplicationBiography {
 	 * correct — core/embed is a dynamic block; WordPress performs its own
 	 * oEmbed lookup at render time regardless of what "type" this markup
 	 * declares (mirrors PostCreator::build_embed_block()'s same comment).
+	 *
+	 * Public static so `Publishing\ReviewConfirm::sync_portfolio_embed()` can
+	 * rebuild this same block when an artist corrects the portfolio URL on
+	 * the approve confirm form, without a second implementation to drift out
+	 * of sync with this one.
 	 */
-	private function build_embed_block( string $url ): string {
+	public static function build_embed_block( string $url ): string {
 		$attr    = wp_json_encode( [ 'url' => $url, 'type' => 'rich' ] ) ?: '{}';
 		$esc_url = esc_url( $url );
 

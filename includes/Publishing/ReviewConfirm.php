@@ -100,6 +100,7 @@ declare(strict_types=1);
 namespace Agnosis\Publishing;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Artist\ApplicationBiography;
 
 class ReviewConfirm {
 
@@ -359,6 +360,14 @@ class ReviewConfirm {
 			$rest_request->set_param( 'token', $token );
 			$response = rest_do_request( $rest_request );
 
+			// Extra structured fields (portfolio link / event date-time-location-
+			// timezone-address) are handled entirely outside the title/excerpt/body
+			// diff above — see sync_extra_fields()'s docblock for why they're always
+			// re-applied from the submitted form rather than gated on $edited.
+			if ( ! $response->is_error() ) {
+				$this->sync_extra_fields( $id, $post->post_type, $source );
+			}
+
 			$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type );
 			return;
 		}
@@ -378,11 +387,18 @@ class ReviewConfirm {
 			$this->render_approve_confirm(
 				$id,
 				$token,
-				[
-					'title'   => $title,
-					'excerpt' => $excerpt,
-					'body'    => $body,
-				],
+				array_merge(
+					[
+						'title'   => $title,
+						'excerpt' => $excerpt,
+						'body'    => $body,
+					],
+					// Preserve whatever the artist typed into the extra structured
+					// fields too, so a blank-title/body retry doesn't reset a
+					// portfolio-link correction or event detail edit made in the
+					// same submission.
+					$this->extra_prefill_from_source( $post->post_type, $source )
+				),
 				$error
 			);
 			return;
@@ -436,7 +452,299 @@ class ReviewConfirm {
 
 		$response = rest_do_request( $rest_request );
 
+		if ( ! $response->is_error() ) {
+			$this->sync_extra_fields( $id, $post->post_type, $source );
+		}
+
 		$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type );
+	}
+
+	// -------------------------------------------------------------------------
+	// Extra structured fields — portfolio link (biography), event details (event)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Apply the approve form's extra, non-translatable structured fields —
+	 * added 2026-07-10 alongside the title/excerpt/body edits above, but
+	 * deliberately NOT folded into that $edited diff-and-gate logic: these
+	 * fields are structured metadata (a URL, a date, a timezone identifier),
+	 * not language content, so there is nothing to translate and no reason to
+	 * skip re-applying them just because title/excerpt/body happened to be
+	 * unchanged. Always reads straight from the submitted form and re-applies
+	 * it — called from both branches of handle_approve_submission() (the
+	 * unedited fast path and the edited/translated path), after the
+	 * publish/save REST call succeeds, so either path ends up with identical,
+	 * correct metadata regardless of which one a given submission took.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_extra_fields( int $id, string $post_type, array $source ): void {
+		if ( 'agnosis_biography' === $post_type ) {
+			$this->sync_portfolio_embed( $id, $source );
+			return;
+		}
+
+		if ( 'agnosis_event' === $post_type ) {
+			$this->sync_event_fields( $id, $source );
+		}
+	}
+
+	/**
+	 * Re-apply the biography approve form's portfolio-link field.
+	 *
+	 * `_agnosis_biography_portfolio_url`/`_agnosis_biography_portfolio_embedded`
+	 * (ApplicationBiography::on_artist_admitted()) are the source of truth. Two
+	 * independent things happen here, deliberately kept separate:
+	 *
+	 *   1. The embed is always re-synced into post_content, whether or not the
+	 *      URL changed. ReviewEndpoints::save() (the PUT path a body edit goes
+	 *      through) rebuilds post_content from the submitted body text plus any
+	 *      LEADING image/gallery blocks only — a trailing wp:embed block is not
+	 *      part of that reconstruction, so a plain body-only edit used to
+	 *      silently drop an already-approved portfolio embed. Stripping
+	 *      whatever trailing embed is currently there and re-adding it if it's
+	 *      still supposed to be there fixes that regardless of what else the
+	 *      artist edited.
+	 *   2. EmbedPolicy::is_allowed() — a network fetch and, if AI review is
+	 *      enabled, an AI call — is only re-run when the URL actually changed
+	 *      from the baseline. Running it unconditionally on every single
+	 *      biography approval (whether or not this field was touched) would
+	 *      spend that cost needlessly on the common case.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_portfolio_embed( int $id, array $source ): void {
+		$post = get_post( $id );
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		$baseline_url      = (string) get_post_meta( $id, '_agnosis_biography_portfolio_url', true );
+		$baseline_embedded = '1' === (string) get_post_meta( $id, '_agnosis_biography_portfolio_embedded', true );
+
+		$raw         = (string) wp_unslash( $source['portfolio_url'] ?? $baseline_url );
+		$url         = '' !== trim( $raw ) ? esc_url_raw( trim( $raw ) ) : '';
+		$url_changed = $url !== $baseline_url;
+
+		// Reason tracking (2026-07-10) — feeds the same generic
+		// `_agnosis_dropped_links` notice Notification::build_email() reads for
+		// every post type. Only re-derived when the URL actually changed
+		// (EmbedPolicy::is_allowed() is only re-run then, per the cost note
+		// above); otherwise the previously-recorded reason is carried forward
+		// unchanged, since nothing new was actually checked.
+		$reason = '';
+		if ( $url_changed ) {
+			$policy   = new EmbedPolicy();
+			$approved = '' !== $url && $policy->is_allowed( $url );
+			$reason   = $approved ? '' : $policy->last_reason();
+		} else {
+			$approved = '' !== $url && $baseline_embedded;
+			if ( ! $approved && '' !== $url ) {
+				$existing_raw   = (string) get_post_meta( $id, '_agnosis_dropped_links', true );
+				$existing_links = $existing_raw ? (array) json_decode( $existing_raw, true ) : [];
+				$reason         = (string) ( $existing_links[0]['reason'] ?? '' );
+			}
+		}
+
+		$content_without_embed = $this->strip_trailing_embed_block( $post->post_content );
+		$new_content           = $approved
+			? rtrim( $content_without_embed ) . "\n\n" . ApplicationBiography::build_embed_block( $url )
+			: $content_without_embed;
+
+		if ( $new_content !== $post->post_content ) {
+			wp_update_post( [ 'ID' => $id, 'post_content' => $new_content ] );
+		}
+
+		if ( $url_changed || $approved !== $baseline_embedded ) {
+			update_post_meta( $id, '_agnosis_biography_portfolio_url', $url );
+			update_post_meta( $id, '_agnosis_biography_portfolio_embedded', $approved ? '1' : '0' );
+		}
+
+		update_post_meta(
+			$id,
+			'_agnosis_dropped_links',
+			wp_json_encode( ( '' !== $url && ! $approved ) ? [ [ 'url' => $url, 'reason' => $reason ] ] : [] )
+		);
+	}
+
+	/**
+	 * Strip a trailing `wp:embed` block (with any surrounding whitespace) from
+	 * the end of post content — biography posts have at most one (the
+	 * portfolio link), always appended last by
+	 * ApplicationBiography::build_content()/build_embed_block().
+	 */
+	private function strip_trailing_embed_block( string $content ): string {
+		$stripped = preg_replace( '/\s*<!-- wp:embed\b.*?<!-- \/wp:embed -->\s*$/s', '', $content );
+
+		return rtrim( null !== $stripped ? $stripped : $content );
+	}
+
+	/**
+	 * Re-apply the event approve form's structured fields directly to post
+	 * meta — no translation involved (unlike title/excerpt/body), so this is
+	 * a plain sanitize-and-write, not routed through the REST review endpoint.
+	 *
+	 * Date and hour are submitted as two separate inputs (matching how an
+	 * artist actually thinks about "the date" vs. "what time"), but stored
+	 * combined in the single `_agnosis_event_date` meta exactly as
+	 * Pipeline::extract_event_fields()/PostCreator have always stored it (e.g.
+	 * "2026-08-15T19:00") — every other reader of that meta (render_event_date(),
+	 * order_events_archive(), ContentEditor's event_date field) already expects
+	 * that one combined format, so this does not introduce a second shape.
+	 *
+	 * Deliberately lenient: an invalid date or an unrecognised timezone
+	 * identifier is silently ignored (the previous value is kept) rather than
+	 * blocking the whole approval — these are supplementary metadata, not the
+	 * core content the artist is here to approve, and a mistake here is still
+	 * correctable afterwards via Artist\ContentEditor's own event_date/
+	 * event_timezone fields once the event is published.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_event_fields( int $id, array $source ): void {
+		$baseline_datetime = (string) get_post_meta( $id, '_agnosis_event_date', true );
+		[ $baseline_date, $baseline_hour ] = $this->split_event_datetime( $baseline_datetime );
+
+		$date = sanitize_text_field( wp_unslash( $source['event_date'] ?? $baseline_date ) );
+		$hour = sanitize_text_field( wp_unslash( $source['event_hour'] ?? $baseline_hour ) );
+
+		$combined = $this->combine_event_datetime( $date, $hour );
+		if ( '' === $combined || false !== strtotime( $combined ) ) {
+			update_post_meta( $id, '_agnosis_event_date', $combined );
+		}
+
+		$location = (string) get_post_meta( $id, '_agnosis_event_location', true );
+		update_post_meta( $id, '_agnosis_event_location', sanitize_text_field( wp_unslash( $source['event_location'] ?? $location ) ) );
+
+		$address = (string) get_post_meta( $id, '_agnosis_event_address', true );
+		update_post_meta( $id, '_agnosis_event_address', sanitize_text_field( wp_unslash( $source['event_address'] ?? $address ) ) );
+
+		$timezone = sanitize_text_field( wp_unslash( $source['event_timezone'] ?? '' ) );
+		if ( '' === $timezone || in_array( $timezone, \DateTimeZone::listIdentifiers(), true ) ) {
+			update_post_meta( $id, '_agnosis_event_timezone', $timezone );
+		}
+	}
+
+	/**
+	 * Split a stored `_agnosis_event_date` value into [date, hour] for form display.
+	 *
+	 * @return array{0: string, 1: string}
+	 */
+	private function split_event_datetime( string $value ): array {
+		if ( '' === $value ) {
+			return [ '', '' ];
+		}
+
+		if ( str_contains( $value, 'T' ) ) {
+			[ $date, $time ] = explode( 'T', $value, 2 );
+			return [ $date, substr( $time, 0, 5 ) ]; // HH:MM — drop a seconds component if present.
+		}
+
+		return [ $value, '' ];
+	}
+
+	/** Combine a [date, hour] form submission back into one `_agnosis_event_date` value. */
+	private function combine_event_datetime( string $date, string $hour ): string {
+		if ( '' === $date ) {
+			return '';
+		}
+
+		return '' !== $hour ? $date . 'T' . $hour : $date;
+	}
+
+	/**
+	 * Read the extra structured fields straight off a submitted form (raw,
+	 * per-post-type) for prefill on a blank-title/body validation retry — see
+	 * handle_approve_submission()'s safeguard branch.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 * @return array<string, string>
+	 */
+	private function extra_prefill_from_source( string $post_type, array $source ): array {
+		if ( 'agnosis_biography' === $post_type ) {
+			return [ 'portfolio_url' => sanitize_text_field( wp_unslash( $source['portfolio_url'] ?? '' ) ) ];
+		}
+
+		if ( 'agnosis_event' === $post_type ) {
+			return [
+				'event_date'     => sanitize_text_field( wp_unslash( $source['event_date']     ?? '' ) ),
+				'event_hour'     => sanitize_text_field( wp_unslash( $source['event_hour']     ?? '' ) ),
+				'event_location' => sanitize_text_field( wp_unslash( $source['event_location'] ?? '' ) ),
+				'event_address'  => sanitize_text_field( wp_unslash( $source['event_address']  ?? '' ) ),
+				'event_timezone' => sanitize_text_field( wp_unslash( $source['event_timezone'] ?? '' ) ),
+			];
+		}
+
+		return [];
+	}
+
+	/**
+	 * Render the extra structured-field inputs appended to the approve form,
+	 * after the title/excerpt/body fields — biography gets a portfolio link,
+	 * event gets date/hour/location/timezone/address. Returns '' for artwork
+	 * (no extra fields defined).
+	 *
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_extra_fields_html( string $post_type, int $post_id, array $prefill ): string {
+		if ( 'agnosis_biography' === $post_type ) {
+			return $this->render_portfolio_field( $post_id, $prefill );
+		}
+
+		if ( 'agnosis_event' === $post_type ) {
+			return $this->render_event_fields_html( $post_id, $prefill );
+		}
+
+		return '';
+	}
+
+	/**
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_portfolio_field( int $post_id, array $prefill ): string {
+		$baseline = (string) get_post_meta( $post_id, '_agnosis_biography_portfolio_url', true );
+		$value    = $prefill['portfolio_url'] ?? $baseline;
+
+		$label_style = 'display:block;font-size:14px;color:#888;margin:0 0 4px;';
+		$input_style = 'width:100%;box-sizing:border-box;padding:10px;font-size:16px;font-family:inherit;border:1px solid #ddd;border-radius:6px;margin:0 0 16px;';
+
+		return '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Portfolio link', 'agnosis' ) . '</label>'
+			. '<input type="url" name="portfolio_url" value="' . esc_attr( $value ) . '" placeholder="https://" style="' . esc_attr( $input_style ) . '">';
+	}
+
+	/**
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_event_fields_html( int $post_id, array $prefill ): string {
+		$baseline_datetime = (string) get_post_meta( $post_id, '_agnosis_event_date', true );
+		[ $baseline_date, $baseline_hour ] = $this->split_event_datetime( $baseline_datetime );
+
+		$baseline_location = (string) get_post_meta( $post_id, '_agnosis_event_location', true );
+		$baseline_address  = (string) get_post_meta( $post_id, '_agnosis_event_address', true );
+		$baseline_timezone = (string) get_post_meta( $post_id, '_agnosis_event_timezone', true );
+
+		$date     = $prefill['event_date']     ?? $baseline_date;
+		$hour     = $prefill['event_hour']     ?? $baseline_hour;
+		$location = $prefill['event_location'] ?? $baseline_location;
+		$address  = $prefill['event_address']  ?? $baseline_address;
+		$timezone = $prefill['event_timezone'] ?? $baseline_timezone;
+
+		$label_style = 'display:block;font-size:14px;color:#888;margin:0 0 4px;';
+		$input_style = 'width:100%;box-sizing:border-box;padding:10px;font-size:16px;font-family:inherit;border:1px solid #ddd;border-radius:6px;margin:0 0 16px;';
+		$half_style  = 'width:100%;box-sizing:border-box;padding:10px;font-size:16px;font-family:inherit;border:1px solid #ddd;border-radius:6px;';
+
+		return '<div style="display:flex;gap:12px;margin:0 0 16px;">'
+			. '<div style="flex:1;"><label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Date', 'agnosis' ) . '</label>'
+			. '<input type="date" name="event_date" value="' . esc_attr( $date ) . '" style="' . esc_attr( $half_style ) . '"></div>'
+			. '<div style="flex:1;"><label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Hour', 'agnosis' ) . '</label>'
+			. '<input type="time" name="event_hour" value="' . esc_attr( $hour ) . '" style="' . esc_attr( $half_style ) . '"></div>'
+			. '</div>'
+			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Location', 'agnosis' ) . '</label>'
+			. '<input type="text" name="event_location" value="' . esc_attr( $location ) . '" style="' . esc_attr( $input_style ) . '">'
+			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Address', 'agnosis' ) . '</label>'
+			. '<input type="text" name="event_address" value="' . esc_attr( $address ) . '" style="' . esc_attr( $input_style ) . '">'
+			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Timezone', 'agnosis' ) . '</label>'
+			. '<input type="text" name="event_timezone" value="' . esc_attr( $timezone ) . '" placeholder="Europe/Madrid" style="' . esc_attr( $input_style ) . '">';
 	}
 
 	/**
@@ -710,6 +1018,11 @@ class ReviewConfirm {
 		$fields_html .= '<input type="hidden" name="orig_body" value="' . esc_attr( $baseline_body ) . '">'
 			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Full text', 'agnosis' ) . '</label>'
 			. '<textarea name="body" rows="10" style="' . esc_attr( $body_style ) . '">' . esc_textarea( $body ) . '</textarea>';
+
+		// Extra structured fields (portfolio link / event date-hour-location-
+		// timezone-address) — added below the free-text fields above, per
+		// post type. See render_extra_fields_html()'s docblock.
+		$fields_html .= $this->render_extra_fields_html( $post->post_type, $post->ID, $prefill );
 
 		$heading = sprintf(
 			/* translators: %s is the content type — artwork, biography, or event */

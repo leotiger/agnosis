@@ -471,7 +471,7 @@ class Settings {
 			'agnosis_email_promote' => [
 				'tab'  => 'email',
 				'label' => __( 'Promote artwork address', 'agnosis' ),
-				'desc'  => __( 'Artist sends an email here (subject = exact artwork title) to mark that artwork as featured in their gallery overview. Any previously featured artwork is automatically demoted — e.g. promote@agnosis.art', 'agnosis' ),
+				'desc'  => __( 'Artist sends an email here (subject = exact artwork title) to choose which artwork represents them in the shared community gallery on the main site — not their own subdomain, which already shows everything they\'ve published. Any previously featured artwork is automatically demoted — e.g. promote@agnosis.art', 'agnosis' ),
 			],
 			'agnosis_email_photo' => [
 				'tab'   => 'email',

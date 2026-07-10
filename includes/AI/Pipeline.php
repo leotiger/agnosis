@@ -609,19 +609,29 @@ class Pipeline {
 	/**
 	 * Extract structured fields from an event email.
 	 *
-	 * Uses a cheap text-model pass to pull the event location (venue, city,
-	 * address) and event date/time from the artist's email body and subject.
+	 * Uses a cheap text-model pass to pull the event's venue/location, street
+	 * address, date/time, and timezone from the artist's email body and subject.
+	 *
+	 * 2026-07-10: 'address' and 'timezone' are new (previously 'location' alone
+	 * covered venue/city/address combined, and there was no timezone concept at
+	 * all) — added so the approve confirm form (ReviewConfirm) can offer them
+	 * back to the artist as distinct, individually-correctable fields alongside
+	 * the existing location/date, matching how the artist actually thinks about
+	 * an event ("where" vs. "the street address" vs. "what timezone").
 	 *
 	 * Returns an array with:
-	 *   'location'   — venue/city/address string, or '' when none found.
+	 *   'location'   — venue name or city (short label), or '' when none found.
+	 *   'address'    — street address, or '' when none found/mentioned.
 	 *   'event_date' — ISO 8601 date or datetime string (e.g. "2026-08-15" or
 	 *                  "2026-08-15T19:00"), or '' when none found.
+	 *   'timezone'   — IANA timezone identifier (e.g. "Europe/Madrid"), or ''
+	 *                  when none found or not a recognised identifier.
 	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
-	 * @return array{location: string, event_date: string}
+	 * @return array{location: string, address: string, event_date: string, timezone: string}
 	 */
 	public function extract_event_fields( array $submission ): array {
-		$empty = [ 'location' => '', 'event_date' => '' ];
+		$empty = [ 'location' => '', 'address' => '', 'event_date' => '', 'timezone' => '' ];
 
 		$body    = trim( (string) ( $submission['description'] ?? '' ) );
 		$subject = trim( (string) ( $submission['subject'] ?? '' ) );
@@ -634,12 +644,16 @@ class Pipeline {
 
 		$prompt = 'You are extracting structured data from an artist\'s event announcement email.' . "\n\n"
 			. "Email content:\n---\n{$email_text}\n---\n\n"
-			. "Extract two fields:\n"
-			. "- \"location\": venue name, city, address, or any place information mentioned (string). Empty string if none.\n"
+			. "Extract four fields:\n"
+			. "- \"location\": venue name or city (a short place label, NOT the full street address). Empty string if none.\n"
+			. "- \"address\": the full street address, if one is given. Empty string if none.\n"
 			. '- "event_date": the date (and time, if given) when the event takes place, as an ISO 8601 string '
 			. '(e.g. "2026-08-15" or "2026-08-15T19:00"). Empty string if no event date is mentioned. '
-			. "Do NOT use today's date — only extract a date that is explicitly stated in the email.\n\n"
-			. 'Return ONLY a JSON object with those two keys. No markdown fences. No preamble.';
+			. "Do NOT use today's date — only extract a date that is explicitly stated in the email.\n"
+			. "- \"timezone\": the IANA timezone identifier the event's date/time is stated in (e.g. \"Europe/Madrid\", "
+			. '"America/New_York"), inferred from the venue/city if a timezone is not explicit. Empty string if it '
+			. "cannot be reasonably determined — do not guess wildly.\n\n"
+			. 'Return ONLY a JSON object with those four keys. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
 
@@ -656,7 +670,9 @@ class Pipeline {
 		}
 
 		$location   = sanitize_text_field( (string) ( $decoded['location']   ?? '' ) );
+		$address    = sanitize_text_field( (string) ( $decoded['address']    ?? '' ) );
 		$event_date = sanitize_text_field( (string) ( $decoded['event_date'] ?? '' ) );
+		$timezone   = sanitize_text_field( (string) ( $decoded['timezone']   ?? '' ) );
 
 		// Validate event_date looks like an ISO 8601 date to prevent the AI from
 		// returning a natural-language string or hallucinating an unrelated value.
@@ -664,7 +680,15 @@ class Pipeline {
 			$event_date = '';
 		}
 
-		return [ 'location' => $location, 'event_date' => $event_date ];
+		// Validate timezone against PHP's own IANA database rather than trusting
+		// the AI's string verbatim — an invalid identifier would otherwise throw
+		// when anything later constructs a DateTimeZone from it (e.g. a future
+		// render_event_date() conversion).
+		if ( $timezone && ! in_array( $timezone, \DateTimeZone::listIdentifiers(), true ) ) {
+			$timezone = '';
+		}
+
+		return [ 'location' => $location, 'address' => $address, 'event_date' => $event_date, 'timezone' => $timezone ];
 	}
 
 	/**
