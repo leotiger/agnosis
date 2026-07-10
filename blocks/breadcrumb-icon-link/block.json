@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/breadcrumb-icon-link",
+	"version": "0.9.15",
+	"title": "Breadcrumb Icon Link",
+	"category": "agnosis",
+	"icon": "admin-links",
+	"description": "A single icon-only link (Biography or Events) to the current artist's own content. Renders nothing if the artist has none yet, or off an artist subdomain.",
+	"keywords": [ "artist", "biography", "events", "icon", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"attributes": {
+		"type": {
+			"type": "string",
+			"default": "biography"
+		},
+		"icon": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true
+		},
+		"typography": {
+			"fontSize": true
+		}
+	},
+	"example": {}
+}

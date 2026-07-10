@@ -1,0 +1,19 @@
+/* Agnosis Breadcrumb Icon Link block — frontend styles.
+ * Only the structural minimum: the block's own Color/Typography supports
+ * (block.json) handle recoloring/resizing, so this is intentionally the only
+ * stylesheet this block ships — no theme dependency required to render
+ * sensibly out of the box.
+ */
+
+.wp-block-agnosis-breadcrumb-icon-link {
+	display: inline-flex;
+	align-items: center;
+	line-height: 0;
+	text-decoration: none;
+	color: inherit;
+}
+
+.wp-block-agnosis-breadcrumb-icon-link svg {
+	width: 1em;
+	height: 1em;
+}

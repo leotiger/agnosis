@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-10T17:48+00:00\n"
+"POT-Creation-Date: 2026-07-10T18:30+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:13+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Japanese\n"
@@ -3169,7 +3169,8 @@ msgstr "略歴"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
 #: includes/Core/EmailFooter.php:71
-#: includes/Network/SubdomainNavigation.php:110
+#: includes/Network/SubdomainNavigation.php:133
+#: blocks/artist-breadcrumb/editor.js:210
 msgid "Biography"
 msgstr "略歴"
 
@@ -3207,7 +3208,8 @@ msgstr "すべての略歴"
 
 #: includes/Artist/Profile.php:89 includes/Artist/Profile.php:91
 #: includes/Artist/Profile.php:101 includes/Core/EmailFooter.php:75
-#: includes/Network/SubdomainNavigation.php:116
+#: includes/Network/SubdomainNavigation.php:139
+#: blocks/artist-breadcrumb/editor.js:221
 msgid "Events"
 msgstr "イベント"
 
@@ -4920,7 +4922,78 @@ msgstr "ログイン状態を保持する"
 msgid "Forgot your password?"
 msgstr "パスワードをお忘れですか？"
 
+#: blocks/artist-breadcrumb/editor.js:46
+msgid "Book"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:47
+msgid "Person"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:51
+msgid "Calendar"
+msgstr ""
+
 #: blocks/artist-breadcrumb/editor.js:52
+#, fuzzy
+msgid "Pin"
+msgstr "保留中"
+
+#: blocks/artist-breadcrumb/editor.js:58
+msgid "Baseline (default)"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:59
+msgid "Top"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:60
+msgid "Middle"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:61
+msgid "Bottom"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:123
+#, fuzzy
+msgid "Icon settings"
+msgstr "設定"
+
+#: blocks/artist-breadcrumb/editor.js:125
+#, fuzzy
+msgid "Biography icon"
+msgstr "略歴"
+
+#: blocks/artist-breadcrumb/editor.js:133
+#, fuzzy
+msgid "Events icon"
+msgstr "イベント"
+
+#: blocks/artist-breadcrumb/editor.js:141
+msgid "Icon size"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:150
+msgid "Icon vertical align"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:156
+msgid ""
+"Icon-only links have no text baseline of their own — use this if they sit "
+"too high or low next to the artist name once Icon size is changed from the "
+"default."
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:164
+msgid "Icon color"
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:176
+msgid "Leave unset to match the block’s own text color."
+msgstr ""
+
+#: blocks/artist-breadcrumb/editor.js:194
 msgid "Artist Name"
 msgstr "アーティスト名"
 

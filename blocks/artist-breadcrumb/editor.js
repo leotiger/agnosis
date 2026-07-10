@@ -20,10 +20,11 @@
  * `add_editor_style()`) for the parts supports don't cover (opacity, hover).
  *
  * 2026-07-10: the Biography/Events sample links were added specifically so
- * the new per-instance icon controls below (icon choice, size, color — plain
- * block.json "attributes", not supports, since there's no built-in support
- * for recoloring just one inner element) preview live too, same reasoning as
- * the name/Color/Typography controls above.
+ * the new per-instance icon controls below (icon choice, size, color,
+ * vertical align — plain block.json "attributes", not supports, since
+ * there's no built-in support for recoloring/realigning just one inner
+ * element) preview live too, same reasoning as the name/Color/Typography
+ * controls above.
  *
  * The canvas has no way to preview per-subdomain rendering, so this sample
  * always shows, even editing on the main site — the "renders nothing off a
@@ -50,6 +51,22 @@
 		{ label: __( 'Calendar', 'agnosis' ), value: 'calendar' },
 		{ label: __( 'Pin', 'agnosis' ), value: 'pin' },
 	];
+
+	// Values mirror Agnosis\Network\SubdomainNavigation::VERTICAL_ALIGN_VALUES
+	// on the PHP side — keep both in sync by hand.
+	var VERTICAL_ALIGN_OPTIONS = [
+		{ label: __( 'Baseline (default)', 'agnosis' ), value: 'baseline' },
+		{ label: __( 'Top', 'agnosis' ), value: 'top' },
+		{ label: __( 'Middle', 'agnosis' ), value: 'middle' },
+		{ label: __( 'Bottom', 'agnosis' ), value: 'bottom' },
+	];
+
+	var VERTICAL_ALIGN_CSS = {
+		baseline: 'baseline',
+		top:      'flex-start',
+		middle:   'center',
+		bottom:   'flex-end',
+	};
 
 	// Mirrors Agnosis\Network\SubdomainNavigation::LINK_ICON_SETS on the PHP
 	// side — kept in sync by hand since this is a vanilla-JS, no-build-step
@@ -89,6 +106,7 @@
 			var eventsIcon    = attributes.eventsIcon || 'calendar';
 			var iconSize      = attributes.iconSize || 18;
 			var iconColor     = attributes.iconColor || '';
+			var verticalAlign = attributes.iconVerticalAlign || 'baseline';
 
 			var blockProps = useBlockProps( {
 				className: 'agnosis-artist-breadcrumb',
@@ -127,6 +145,18 @@
 							onChange: function ( value ) {
 								props.setAttributes( { iconSize: value || 18 } );
 							},
+						} ),
+						el( SelectControl, {
+							label:    __( 'Icon vertical align', 'agnosis' ),
+							value:    verticalAlign,
+							options:  VERTICAL_ALIGN_OPTIONS,
+							onChange: function ( value ) {
+								props.setAttributes( { iconVerticalAlign: value } );
+							},
+							help: __(
+								'Icon-only links have no text baseline of their own — use this if they sit too high or low next to the artist name once Icon size is changed from the default.',
+								'agnosis'
+							),
 						} )
 					),
 					el(
@@ -168,7 +198,10 @@
 						'span',
 						{
 							className: 'agnosis-artist-breadcrumb__links',
-							style: iconColor ? { color: iconColor } : {},
+							style: Object.assign(
+								{ alignSelf: VERTICAL_ALIGN_CSS[ verticalAlign ] || 'baseline' },
+								iconColor ? { color: iconColor } : {}
+							),
 						},
 						el(
 							'a',

@@ -300,8 +300,15 @@ class Plugin {
 		// Logo/Site Title links back at the main site from an artist subdomain.
 		// Lives in the plugin (not a theme) so any Agnosis-compatible theme gets
 		// both just by using core's Site Logo/Site Title blocks.
+		//
+		// register_block() (agnosis/artist-breadcrumb) is kept registered
+		// alongside the two newer blocks below purely for backward
+		// compatibility — see register_artist_name_link_block()'s docblock.
 		$subdomain_nav = new SubdomainNavigation();
 		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_block' );
+		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_artist_name_link_block' );
+		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_breadcrumb_icon_link_block' );
+		$this->loader->add_filter( 'render_block_core/group',       $subdomain_nav, 'hide_empty_breadcrumb_group', 10, 2 );
 		$this->loader->add_filter( 'render_block_core/site-logo',  $subdomain_nav, 'link_to_portal' );
 		$this->loader->add_filter( 'render_block_core/site-title', $subdomain_nav, 'link_to_portal' );
 

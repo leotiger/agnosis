@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/artist-name-link",
+	"version": "0.9.15",
+	"title": "Artist Name Link",
+	"category": "agnosis",
+	"icon": "admin-users",
+	"description": "Links to the current artist's own subdomain home. Renders nothing off an artist subdomain.",
+	"keywords": [ "artist", "breadcrumb", "subdomain", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": true
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}

@@ -81,15 +81,22 @@ class SubdomainNavigation {
 	 * needed between the two any more — `.agnosis-artist-breadcrumb__links`'s
 	 * flex `gap` spaces them evenly whether one or both are present.
 	 *
-	 * Icon choice (`biographyIcon`/`eventsIcon`), size (`iconSize`), and color
-	 * (`iconColor`) are editable per-instance from the block's own Inspector
-	 * panel (block.json "attributes" — a plain per-instance attribute here,
-	 * not a block *support*, since there's no built-in support for "recolor
-	 * just this inner element" the way there is for the whole block's text
-	 * color). `iconColor` defaults to '' (unset), in which case the icons
-	 * keep inheriting `currentColor` from the block's own text-color support
+	 * Icon choice (`biographyIcon`/`eventsIcon`), size (`iconSize`), color
+	 * (`iconColor`), and vertical alignment (`iconVerticalAlign`) are editable
+	 * per-instance from the block's own Inspector panel (block.json
+	 * "attributes" — plain per-instance attributes here, not block *supports*,
+	 * since there's no built-in support for "recolor/realign just this inner
+	 * element" the way there is for the whole block's text color).
+	 * `iconColor` defaults to '' (unset), in which case the icons keep
+	 * inheriting `currentColor` from the block's own text-color support
 	 * exactly as before — setting it only overrides that for the icons
-	 * specifically, leaving the artist name's color untouched.
+	 * specifically, leaving the artist name's color untouched. Likewise
+	 * `iconVerticalAlign` defaults to 'baseline', matching the pre-existing
+	 * behaviour of just inheriting `.agnosis-artist-breadcrumb`'s own
+	 * `align-items: baseline` — icon-only glyphs (no text baseline of their
+	 * own) can sit visibly high/low against the name's text baseline once
+	 * `iconSize` is turned up or down from its default, so this lets that be
+	 * corrected per-instance instead of only in theme CSS.
 	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 * @return string
@@ -113,10 +120,11 @@ class SubdomainNavigation {
 		$name_link = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $name ) );
 		$markup    = sprintf( '<span class="agnosis-artist-breadcrumb__name">%s</span>', $name_link );
 
-		$icon_size    = max( 12, (int) ( $attributes['iconSize'] ?? 18 ) );
-		$icon_color   = sanitize_hex_color( (string) ( $attributes['iconColor'] ?? '' ) ) ?: '';
-		$bio_icon     = (string) ( $attributes['biographyIcon'] ?? 'book' );
-		$events_icon  = (string) ( $attributes['eventsIcon'] ?? 'calendar' );
+		$icon_size     = max( 12, (int) ( $attributes['iconSize'] ?? 18 ) );
+		$icon_color    = sanitize_hex_color( (string) ( $attributes['iconColor'] ?? '' ) ) ?: '';
+		$bio_icon      = (string) ( $attributes['biographyIcon'] ?? 'book' );
+		$events_icon   = (string) ( $attributes['eventsIcon'] ?? 'calendar' );
+		$vertical_align = self::VERTICAL_ALIGN_VALUES[ (string) ( $attributes['iconVerticalAlign'] ?? 'baseline' ) ] ?? 'baseline';
 
 		$secondary_links = [];
 
@@ -133,16 +141,35 @@ class SubdomainNavigation {
 		}
 
 		if ( $secondary_links ) {
-			$links_style = '' !== $icon_color ? sprintf( ' style="color:%s"', esc_attr( $icon_color ) ) : '';
-			$markup     .= sprintf(
-				'<span class="agnosis-artist-breadcrumb__links"%s>%s</span>',
-				$links_style,
+			$links_style_rules   = [ 'align-self:' . $vertical_align ];
+			if ( '' !== $icon_color ) {
+				$links_style_rules[] = 'color:' . $icon_color;
+			}
+			$markup .= sprintf(
+				'<span class="agnosis-artist-breadcrumb__links" style="%s">%s</span>',
+				esc_attr( implode( ';', $links_style_rules ) ),
 				implode( '', $secondary_links )
 			);
 		}
 
 		return sprintf( '<div %s>%s</div>', $wrapper_attributes, $markup );
 	}
+
+	/**
+	 * Whitelist mapping the Inspector's `iconVerticalAlign` attribute values
+	 * to real `align-self` CSS values — the attribute is user-editable (any
+	 * artist/admin with block-editor access), so this is resolved through a
+	 * fixed map rather than writing the raw attribute value into `style="..."`
+	 * directly.
+	 *
+	 * @var array<string, string>
+	 */
+	private const VERTICAL_ALIGN_VALUES = [
+		'baseline' => 'baseline',
+		'top'      => 'flex-start',
+		'middle'   => 'center',
+		'bottom'   => 'flex-end',
+	];
 
 	/**
 	 * Icon-only stroke SVGs for the breadcrumb's Biography/Events links — a
@@ -184,6 +211,222 @@ class SubdomainNavigation {
 			$size,
 			$path
 		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Blocks: agnosis/artist-name-link, agnosis/breadcrumb-icon-link
+	// -------------------------------------------------------------------------
+
+	/**
+	 * 2026-07-10: split out of the single `agnosis/artist-breadcrumb` block
+	 * above (which is untouched and keeps working exactly as before — any
+	 * site whose header template part is already customized in the database
+	 * still has it, and WordPress has no mechanism to retroactively rewrite a
+	 * site's saved template content when a theme/plugin update changes what
+	 * the *default* template looks like). These two new blocks are the
+	 * recommended way to build a breadcrumb going forward: a real Group block
+	 * in the template does the layout (justify content, vertical alignment —
+	 * all native Group-block toolbar controls, no custom attributes needed
+	 * for that any more), `agnosis/artist-name-link` is the name, and
+	 * `agnosis/breadcrumb-icon-link` (one instance per link, `type` attribute
+	 * picks Biography vs Events — mirrors `core/social-link`'s single-block-
+	 * type-plus-attribute shape) is each icon — each independently selectable
+	 * and stylable through ordinary Gutenberg Color/Typography panels, instead
+	 * of `artist-breadcrumb`'s bespoke iconSize/iconColor/iconVerticalAlign
+	 * attributes. `agnosis-theme` 0.5.10's bundled header.html/header-pages.html
+	 * use this new structure; the old block registration/render_callback
+	 * above is kept solely for backward compatibility and receives no further
+	 * feature work.
+	 *
+	 * 2026-07-10 (later same day): both blocks below correctly render '' off
+	 * an artist subdomain, exactly like render_block() above — but unlike
+	 * that single block, they now sit inside a plain `core/group` in the
+	 * template (agnosis-theme 0.5.10's header.html), and a Group block has no
+	 * "collapse to nothing when every child renders empty" behaviour of its
+	 * own — it's static content, so its wrapper `<div>` (padding/gap/whatever
+	 * the Inspector's Style panel set on it) still rendered on the main site,
+	 * empty but visible, which is exactly the bug fixed by
+	 * hide_empty_breadcrumb_group() below.
+	 */
+	public function register_artist_name_link_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/artist-name-link',
+			[ 'render_callback' => [ $this, 'render_artist_name_link_block' ] ]
+		);
+	}
+
+	/**
+	 * PHP render_callback for the agnosis/artist-name-link block. Renders
+	 * nothing at all off an artist subdomain, same reasoning as
+	 * render_block()'s docblock above.
+	 *
+	 * Color/Typography are ordinary block *supports* here (block.json), so
+	 * `get_block_wrapper_attributes()` alone carries whatever the Inspector's
+	 * standard panels picked — no per-instance attributes to read.
+	 *
+	 * @param array<string, mixed> $attributes Block attributes (unused — no
+	 *                                          custom attributes on this block).
+	 * @return string
+	 */
+	public function render_artist_name_link_block( array $attributes = [] ): string {
+		$artist_id = SubdomainRouter::current_artist_id();
+
+		if ( ! $artist_id ) {
+			return '';
+		}
+
+		$name = $this->artist_name( $artist_id );
+
+		if ( '' === $name ) {
+			return '';
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes();
+		$url                = SubdomainRouter::url_for_artist( $artist_id );
+
+		return sprintf( '<a %s href="%s">%s</a>', $wrapper_attributes, esc_url( $url ), esc_html( $name ) );
+	}
+
+	/**
+	 * Register the agnosis/breadcrumb-icon-link dynamic block.
+	 *
+	 * block.json lives in blocks/breadcrumb-icon-link/ relative to the plugin
+	 * root.
+	 */
+	public function register_breadcrumb_icon_link_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/breadcrumb-icon-link',
+			[ 'render_callback' => [ $this, 'render_breadcrumb_icon_link_block' ] ]
+		);
+	}
+
+	/**
+	 * PHP render_callback for the agnosis/breadcrumb-icon-link block. Renders
+	 * nothing at all off an artist subdomain, or when the artist has no
+	 * biography/events yet — same "nothing, not an empty element" reasoning
+	 * as render_block()'s docblock above.
+	 *
+	 * The icon is sized in `1em` (rather than a fixed pixel `width`/`height`
+	 * the way `artist-breadcrumb`'s icons are) so the block's own Typography
+	 * → Font Size support directly controls how big it renders, and
+	 * `stroke="currentColor"` so the block's own Color → Text support directly
+	 * recolors it — both ordinary block *supports* (block.json), read here
+	 * only via `get_block_wrapper_attributes()`, same as
+	 * `render_artist_name_link_block()` above. `type`/`icon` are this block's
+	 * only real custom attributes, since there's no core supports equivalent
+	 * for "which link" or "which glyph."
+	 *
+	 * @param array<string, mixed> $attributes Block attributes ('type': 'biography'|'events',
+	 *                                          'icon': one of self::LINK_ICON_SETS[type]'s keys).
+	 * @return string
+	 */
+	public function render_breadcrumb_icon_link_block( array $attributes = [] ): string {
+		$artist_id = SubdomainRouter::current_artist_id();
+
+		if ( ! $artist_id ) {
+			return '';
+		}
+
+		$type = 'events' === ( $attributes['type'] ?? 'biography' ) ? 'events' : 'biography';
+
+		if ( 'biography' === $type ) {
+			$url          = $this->biography_permalink( $artist_id );
+			$label        = __( 'Biography', 'agnosis' );
+			$default_icon = 'book';
+		} else {
+			$url          = $this->has_published_post( 'agnosis_event', $artist_id )
+				? (string) get_post_type_archive_link( 'agnosis_event' )
+				: '';
+			$label        = __( 'Events', 'agnosis' );
+			$default_icon = 'calendar';
+		}
+
+		if ( '' === $url ) {
+			return '';
+		}
+
+		$this->enqueue_breadcrumb_icon_link_assets();
+
+		// self::LINK_ICON_SETS has exactly these two keys ('biography'/'events',
+		// matching $type's only two possible values) and $default_icon is
+		// always one of that set's own keys — both guaranteed by the const
+		// array's own definition just below, not by anything at runtime, so
+		// no '??' fallback is needed for either lookup. $icon_key is the only
+		// genuinely unverified value here (an arbitrary block attribute), so
+		// it's the only one that still needs one.
+		$set      = self::LINK_ICON_SETS[ $type ];
+		$icon_key = (string) ( $attributes['icon'] ?? '' );
+		$path     = $set[ $icon_key ] ?? $set[ $default_icon ];
+
+		$wrapper_attributes = get_block_wrapper_attributes();
+
+		return sprintf(
+			'<a %1$s href="%2$s" aria-label="%3$s" title="%3$s"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">%4$s</svg></a>',
+			$wrapper_attributes,
+			esc_url( $url ),
+			esc_attr( $label ),
+			$path
+		);
+	}
+
+	/**
+	 * Minimal structural CSS for agnosis/breadcrumb-icon-link — just enough
+	 * that the `<a>` behaves as an inline icon button (no stray line-height
+	 * gap under the SVG) regardless of theme. Same "small, block-local
+	 * frontend.css, enqueued only when the block actually renders something"
+	 * pattern `Newsletter\PopoverBlock::enqueue_assets()` already established.
+	 */
+	private function enqueue_breadcrumb_icon_link_assets(): void {
+		wp_enqueue_style(
+			'agnosis-breadcrumb-icon-link',
+			\AGNOSIS_URL . 'blocks/breadcrumb-icon-link/frontend.css',
+			[],
+			\AGNOSIS_VERSION
+		);
+	}
+
+	/**
+	 * CSS class marker `agnosis-theme` puts on the `core/group` block that
+	 * wraps `agnosis/artist-name-link` + the icon-links Group in
+	 * header.html/header-pages.html (see register_artist_name_link_block()'s
+	 * later docblock for why this is needed at all).
+	 */
+	private const BREADCRUMB_GROUP_CLASS = 'agnosis-artist-breadcrumb-group';
+
+	/**
+	 * Strip the breadcrumb's wrapping `core/group` entirely off an artist
+	 * subdomain, so it renders nothing at all — not an empty box — matching
+	 * render_block()'s "renders nothing, not an empty element" behaviour for
+	 * the older single-block version of this same breadcrumb.
+	 *
+	 * Scoped to ONLY the one Group block carrying `self::BREADCRUMB_GROUP_CLASS`
+	 * in its `className` attribute (set directly in the theme template) —
+	 * every other `core/group` on the site, including ones nested anywhere
+	 * else, passes straight through untouched.
+	 *
+	 * Hooked on `render_block_core/group`, which WordPress calls with the
+	 * block's fully-rendered inner content already in `$block_content` —
+	 * including both `agnosis/artist-name-link` and the icon-links Group
+	 * nested inside it, which is exactly why checking "is the artist ID
+	 * present" here (rather than, say, checking whether $block_content
+	 * happens to be blank/whitespace-only) is the correct gate: those inner
+	 * blocks already correctly render '' off-subdomain, but the Group's own
+	 * wrapper `<div>` — and any padding/gap/background its Style panel set —
+	 * still renders regardless of how empty its content is, since a static
+	 * Group block has no concept of "collapse when empty."
+	 *
+	 * @param string               $block_content Rendered block HTML.
+	 * @param array<string, mixed> $block         Parsed block, incl. 'attrs'.
+	 * @return string
+	 */
+	public function hide_empty_breadcrumb_group( string $block_content, array $block ): string {
+		$class_name = (string) ( $block['attrs']['className'] ?? '' );
+
+		if ( ! str_contains( ' ' . $class_name . ' ', ' ' . self::BREADCRUMB_GROUP_CLASS . ' ' ) ) {
+			return $block_content;
+		}
+
+		return SubdomainRouter::current_artist_id() ? $block_content : '';
 	}
 
 	// -------------------------------------------------------------------------
