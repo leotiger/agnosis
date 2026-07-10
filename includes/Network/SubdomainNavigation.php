@@ -81,6 +81,16 @@ class SubdomainNavigation {
 	 * needed between the two any more — `.agnosis-artist-breadcrumb__links`'s
 	 * flex `gap` spaces them evenly whether one or both are present.
 	 *
+	 * Icon choice (`biographyIcon`/`eventsIcon`), size (`iconSize`), and color
+	 * (`iconColor`) are editable per-instance from the block's own Inspector
+	 * panel (block.json "attributes" — a plain per-instance attribute here,
+	 * not a block *support*, since there's no built-in support for "recolor
+	 * just this inner element" the way there is for the whole block's text
+	 * color). `iconColor` defaults to '' (unset), in which case the icons
+	 * keep inheriting `currentColor` from the block's own text-color support
+	 * exactly as before — setting it only overrides that for the icons
+	 * specifically, leaving the artist name's color untouched.
+	 *
 	 * @param array<string, mixed> $attributes Block attributes.
 	 * @return string
 	 */
@@ -103,23 +113,30 @@ class SubdomainNavigation {
 		$name_link = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $name ) );
 		$markup    = sprintf( '<span class="agnosis-artist-breadcrumb__name">%s</span>', $name_link );
 
+		$icon_size    = max( 12, (int) ( $attributes['iconSize'] ?? 18 ) );
+		$icon_color   = sanitize_hex_color( (string) ( $attributes['iconColor'] ?? '' ) ) ?: '';
+		$bio_icon     = (string) ( $attributes['biographyIcon'] ?? 'book' );
+		$events_icon  = (string) ( $attributes['eventsIcon'] ?? 'calendar' );
+
 		$secondary_links = [];
 
 		$bio_url = $this->biography_permalink( $artist_id );
 		if ( '' !== $bio_url ) {
-			$secondary_links[] = $this->icon_link( $bio_url, 'biography', __( 'Biography', 'agnosis' ) );
+			$secondary_links[] = $this->icon_link( $bio_url, 'biography', $bio_icon, __( 'Biography', 'agnosis' ), $icon_size );
 		}
 
 		if ( $this->has_published_post( 'agnosis_event', $artist_id ) ) {
 			$events_url = (string) get_post_type_archive_link( 'agnosis_event' );
 			if ( '' !== $events_url ) {
-				$secondary_links[] = $this->icon_link( $events_url, 'events', __( 'Events', 'agnosis' ) );
+				$secondary_links[] = $this->icon_link( $events_url, 'events', $events_icon, __( 'Events', 'agnosis' ), $icon_size );
 			}
 		}
 
 		if ( $secondary_links ) {
-			$markup .= sprintf(
-				'<span class="agnosis-artist-breadcrumb__links">%s</span>',
+			$links_style = '' !== $icon_color ? sprintf( ' style="color:%s"', esc_attr( $icon_color ) ) : '';
+			$markup     .= sprintf(
+				'<span class="agnosis-artist-breadcrumb__links"%s>%s</span>',
+				$links_style,
 				implode( '', $secondary_links )
 			);
 		}
@@ -128,17 +145,26 @@ class SubdomainNavigation {
 	}
 
 	/**
-	 * Icon-only stroke SVGs for the breadcrumb's Biography/Events links —
-	 * same 24×24-viewBox, stroke="currentColor" Feather-style convention as
-	 * `Newsletter\PopoverBlock::ICONS`, kept local here since this is the
-	 * only place that uses these two specific icons. Raw, hand-authored
-	 * markup — never user input.
+	 * Icon-only stroke SVGs for the breadcrumb's Biography/Events links — a
+	 * couple of variants per link, selectable from the block's Inspector
+	 * panel (`biographyIcon`/`eventsIcon` attributes). Same 24×24-viewBox,
+	 * stroke="currentColor" Feather-style convention as
+	 * `Newsletter\PopoverBlock::ICONS`. Raw, hand-authored markup — never
+	 * user input. Kept in sync by hand with editor.js's `ICON_MARKUP` (same
+	 * "vanilla JS, no build step" tradeoff `PopoverBlock`'s own icon picker
+	 * already made).
 	 *
-	 * @var array<string, string>
+	 * @var array<string, array<string, string>>
 	 */
-	private const LINK_ICONS = [
-		'biography' => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
-		'events'    => '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+	private const LINK_ICON_SETS = [
+		'biography' => [
+			'book' => '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>',
+			'user' => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>',
+		],
+		'events' => [
+			'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+			'pin'      => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>',
+		],
 	];
 
 	/**
@@ -147,12 +173,16 @@ class SubdomainNavigation {
 	 * and `title` (for a mouse-hover tooltip on desktop) — see render_block()'s
 	 * docblock for why.
 	 */
-	private function icon_link( string $url, string $icon_key, string $label ): string {
+	private function icon_link( string $url, string $link_type, string $icon_key, string $label, int $size ): string {
+		$set  = self::LINK_ICON_SETS[ $link_type ] ?? [];
+		$path = $set[ $icon_key ] ?? reset( $set ) ?: '';
+
 		return sprintf(
-			'<a href="%1$s" aria-label="%2$s" title="%2$s"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">%3$s</svg></a>',
+			'<a href="%1$s" aria-label="%2$s" title="%2$s"><svg width="%3$d" height="%3$d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">%4$s</svg></a>',
 			esc_url( $url ),
 			esc_attr( $label ),
-			self::LINK_ICONS[ $icon_key ] ?? ''
+			$size,
+			$path
 		);
 	}
 

@@ -78,6 +78,7 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: The Community announcement address didn't appear in the "here's every address you can use" reference card included in notification emails, unlike every other configured address. It now does.
 * Changed: The Promote address's description was unclear about which gallery it affects — it's the shared, cross-artist gallery on the main site, not your own subdomain (which already shows everything you've published). Wording only; the underlying feature already worked this way.
 * Fixed: The footer's newsletter bell and social icons rendered too small by default. Both are now bigger (requires agnosis-theme 0.5.8+ for the matching social-icons size).
+* Added: The artist-breadcrumb's Biography/Events icons can now be customized from the block's editor panel — pick between a couple of icon styles for each, set their size, and optionally set a color independent of the block's own text color (requires agnosis-theme 0.5.9+ so the theme's own CSS stops overriding the size).
 
 = 0.9.14 =
 * Fixed: The artist name in the artist-breadcrumb line always showed a "|" before "Biography" even when there was no Events link after it, and the name couldn't be styled on the opposite side from those links. The name and the Biography/Events links are now separate, and the "|" only appears between Biography and Events when both are present.

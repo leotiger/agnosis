@@ -10,6 +10,24 @@
 	"keywords": [ "artist", "breadcrumb", "subdomain", "agnosis" ],
 	"textdomain": "agnosis",
 	"editorScript": "file:editor.js",
+	"attributes": {
+		"biographyIcon": {
+			"type": "string",
+			"default": "book"
+		},
+		"eventsIcon": {
+			"type": "string",
+			"default": "calendar"
+		},
+		"iconSize": {
+			"type": "number",
+			"default": 18
+		},
+		"iconColor": {
+			"type": "string",
+			"default": ""
+		}
+	},
 	"supports": {
 		"html": false,
 		"multiple": false,
