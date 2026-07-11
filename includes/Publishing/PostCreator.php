@@ -23,6 +23,7 @@ namespace Agnosis\Publishing;
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\PromptConfig;
 use Agnosis\Artist\Admission;
+use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 use Agnosis\Email\AttachmentStore;
@@ -389,13 +390,36 @@ class PostCreator {
 			// ingest time; read it back now and remove the temp file reference.
 			// Legacy path (rows enqueued before this change): binary is still
 			// base64-encoded inline — decode it for backwards compatibility.
+			//
+			// A missing/unreadable temp file used to leave $att with no 'data'
+			// key at all — silently `null` once MediaAdapter/Pipeline read it —
+			// which threw an opaque `Pipeline::process_single(): Argument #1
+			// ($image_data) must be of type string, null given` deep inside the
+			// AI layer, with nothing in the log pointing back at the actual
+			// cause (a file that vanished or was never readable from THIS
+			// process — e.g. two web nodes with non-shared /wp-content/uploads,
+			// or the orphan-sweep cron racing a slow queue). The attachment is
+			// now dropped with a clear, specific error logged at the point of
+			// failure instead — the submission still processes on whatever
+			// text/other attachments it has, rather than the whole queue row
+			// dying on a low-level type error that gives no indication why.
 			if ( ! empty( $submission['attachments'] ) ) {
-				foreach ( $submission['attachments'] as &$att ) {
+				foreach ( $submission['attachments'] as $i => &$att ) {
 					if ( isset( $att['file'] ) ) {
 						$binary = $this->filesystem()->get_contents( $att['file'] );
 
 						if ( false !== $binary ) {
 							$att['data'] = $binary;
+						} else {
+							Logger::error(
+								sprintf(
+									'Queue #%d: could not read attachment #%d binary from "%s" — file missing or unreadable from this process. Dropping this attachment; the submission continues without it.',
+									$queue_id,
+									$i,
+									$att['file']
+								),
+								'publisher'
+							);
 						}
 						unset( $att['file'] );
 					} elseif ( ( $att['encoding'] ?? '' ) === 'base64' && isset( $att['data'] ) ) {
@@ -404,6 +428,15 @@ class PostCreator {
 					}
 				}
 				unset( $att );
+
+				// Drop any attachment that still has no usable binary after the
+				// loop above (the failed-read case just logged, or a malformed
+				// entry with neither a file reference nor base64 data to begin
+				// with) — re-index so downstream code sees a clean, gap-free list.
+				$submission['attachments'] = array_values( array_filter(
+					$submission['attachments'],
+					static fn( array $att ): bool => ! empty( $att['data'] ) && is_string( $att['data'] )
+				) );
 			}
 
 			// ---- AI pipeline ----------------------------------------------------
@@ -902,6 +935,68 @@ class PostCreator {
 	}
 
 	/**
+	 * Meta-query fragment restricting a merge-target lookup to the PRIMARY/
+	 * source-language version of a post — never one of Lingua Forge's
+	 * translated siblings.
+	 *
+	 * Root cause this guards against: every "find the existing post to merge
+	 * into" lookup in this class (find_singleton_post(), find_duplicate_post()'s
+	 * exact-subject-match layer, find_post_by_subject()) queries by post_type +
+	 * author only, with no language scoping. Lingua Forge translates a
+	 * published biography/artwork/event into a SEPARATE post per configured
+	 * language, all sharing the SAME post_author — so once translations exist,
+	 * a plain author+post_type query can return ANY language sibling, not
+	 * necessarily the true source post, since get_posts()'s default date-DESC
+	 * ordering has no reason to prefer the source over a sibling that happens
+	 * to have a later post_date (e.g. one re-translated more recently). A merge
+	 * whose target resolves to a translated sibling instead of the source post
+	 * silently applies the artist's update to a page almost nobody visits by
+	 * default, while the source (and every OTHER language) stays stale
+	 * forever — confirmed live: an update meant for a Catalan-speaking artist's
+	 * biography landed on its Urdu translation; the Catalan source and English
+	 * sibling never changed.
+	 *
+	 * `Compat\LinguaForge::set_language_meta()` tags a post with `_lf_lang`
+	 * (the PRIMARY language, since Agnosis content is always normalised to
+	 * primary at intake) the first time it's published via
+	 * 'agnosis_post_published' — a translated sibling instead carries ITS OWN
+	 * target language in that same meta key (Lingua Forge's own translation-
+	 * creation code sets it when the sibling is born). Filtering to "no
+	 * `_lf_lang` at all, OR `_lf_lang` equals the primary language" therefore
+	 * matches the source post and excludes every translated sibling, while
+	 * staying a complete no-op on a site where Lingua Forge isn't active (no
+	 * post ever has this meta key at all, so every post keeps matching the
+	 * first branch exactly as before this fix existed).
+	 *
+	 * @return array<string, mixed> A `get_posts()`/`WP_Query` args fragment —
+	 *                               empty when Lingua Forge isn't active.
+	 */
+	private function primary_language_meta_query(): array {
+		if ( ! LinguaForge::is_active() ) {
+			return [];
+		}
+
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		if ( '' === $primary_lang ) {
+			$primary_lang = LinguaForge::locale_to_lang( get_locale() );
+		}
+
+		return [
+			'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- author+post_type-scoped, posts_per_page capped at every call site; no realistic row count here.
+				'relation' => 'OR',
+				[
+					'key'     => '_lf_lang',
+					'compare' => 'NOT EXISTS',
+				],
+				[
+					'key'   => '_lf_lang',
+					'value' => $primary_lang,
+				],
+			],
+		];
+	}
+
+	/**
 	 * Find the single existing post of a singleton type for a given artist.
 	 *
 	 * As of 2026-07-06 this is only ever called for 'agnosis_biography' — an
@@ -911,6 +1006,20 @@ class PostCreator {
 	 * find_post_by_subject() (see the duplicate/singleton resolution block in
 	 * handle()) — the same title-match mechanism replace@ uses.
 	 *
+	 * Patch 18 ("true staging"): once the artist's biography is published,
+	 * an update to it is never written directly onto the live post —
+	 * create_post() instead creates (or reuses) a separate draft "staging"
+	 * post, tagged with '_agnosis_pending_update_for' pointing at the live
+	 * post, and only ReviewEndpoints applies it, on approval (see that
+	 * class's finalize_publish()). So there can now be up to TWO posts of
+	 * this type for the same artist at once: the live one, and a pending
+	 * staging draft for an update to it that hasn't been approved yet. A
+	 * second resubmission before the first is approved must merge into that
+	 * SAME staging draft — not create a competing second one, and not touch
+	 * the still-published live post — hence checking for one explicitly
+	 * FIRST, rather than trusting get_posts()'s default date ordering to
+	 * happen to prefer it.
+	 *
 	 * @param string $post_type CPT slug (e.g. 'agnosis_biography').
 	 * @param int    $artist_id WordPress user ID.
 	 * @param int    $queue_id  Current queue row (used only for logging).
@@ -919,14 +1028,33 @@ class PostCreator {
 		if ( ! $artist_id ) {
 			return 0;
 		}
-		$existing = get_posts( [
+
+		$staging = get_posts( array_merge( [
+			'post_type'      => $post_type,
+			'author'         => $artist_id,
+			'post_status'    => 'draft',
+			'meta_key'       => '_agnosis_pending_update_for',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		], $this->primary_language_meta_query() ) );
+		if ( ! empty( $staging ) ) {
+			$post_id = (int) $staging[0];
+			Logger::info(
+				sprintf( 'Queue #%d: singleton %s — merging into existing pending update #%d.', $queue_id, $post_type, $post_id ),
+				'publisher'
+			);
+			return $post_id;
+		}
+
+		$existing = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
 			'posts_per_page' => 1,
 			'post_status'    => 'any',
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
-		] );
+		], $this->primary_language_meta_query() ) );
 		if ( ! empty( $existing ) ) {
 			$post_id = (int) $existing[0];
 			Logger::info(
@@ -974,7 +1102,7 @@ class PostCreator {
 		// If it matches an existing post title exactly, it's the same artwork.
 		$subject = trim( (string) ( $submission['subject'] ?? '' ) );
 		if ( $subject ) {
-			$exact = get_posts( [
+			$exact = get_posts( array_merge( [
 				'post_type'      => 'agnosis_artwork',
 				'author'         => $artist_id,
 				'title'          => $subject,
@@ -982,7 +1110,7 @@ class PostCreator {
 				'post_status'    => 'any',
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
-			] );
+			], $this->primary_language_meta_query() ) );
 			if ( ! empty( $exact ) ) {
 				$match_id = (int) $exact[0];
 				if ( (int) get_post_meta( $match_id, '_agnosis_queue_id', true ) !== $queue_id ) {
@@ -1123,7 +1251,7 @@ class PostCreator {
 		if ( ! $subject || ! $artist_id ) {
 			return 0;
 		}
-		$matches = get_posts( [
+		$matches = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
 			'title'          => $subject,
@@ -1131,7 +1259,7 @@ class PostCreator {
 			'posts_per_page' => 1,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
-		] );
+		], $this->primary_language_meta_query() ) );
 		return ! empty( $matches ) ? (int) $matches[0] : 0;
 	}
 
@@ -1438,16 +1566,25 @@ class PostCreator {
 	/**
 	 * Build and insert (or update) a post for the given CPT.
 	 *
+	 * Patch 18 ("true staging"): if $merge_into_post is currently published,
+	 * its content is never touched here — a separate draft "staging" post is
+	 * inserted instead (tagged '_agnosis_pending_update_for' => the live
+	 * post's ID), and the live post stays exactly as visitors see it until
+	 * ReviewEndpoints::finalize_publish() applies the staging draft's fields
+	 * onto it on approval. See the "True staging" block inside this method.
+	 *
 	 * @param array<string, mixed>             $submission       Parsed email submission data.
 	 * @param array<int, array<string, mixed>> $results          AI pipeline results, one per attachment.
 	 * @param int                              $artist_id        WordPress user ID of the submitting artist.
 	 * @param int                              $queue_id         Queue row ID — stored in post meta for reverse lookup.
-	 * @param int                              $merge_into_post  Post ID to update instead of inserting (0 = auto-detect).
+	 * @param int                              $merge_into_post  Post ID to update instead of inserting (0 = auto-detect) —
+	 *                                                           redirected to a staging draft instead when already published.
 	 * @param string                           $post_type        CPT slug (default: agnosis_artwork).
 	 * @param string                           $intake_endpoint  Which address created this submission (ENDPOINT_* const) —
 	 *                                                           written once to _agnosis_intake_endpoint on agnosis_artwork
 	 *                                                           posts only, never overwritten on a later update/replace.
-	 * @return int|\WP_Error Post ID on success, WP_Error on failure.
+	 * @return int|\WP_Error Post ID on success (the staging draft's ID, when
+	 *                       one was created — NOT the live post's), WP_Error on failure.
 	 */
 	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '', string $intake_endpoint = self::ENDPOINT_ARTWORK ): int|\WP_Error {
 		// ---- Idempotency guard ------------------------------------------------
@@ -1467,11 +1604,56 @@ class PostCreator {
 			$existing_id = ! empty( $existing ) ? (int) $existing[0] : 0;
 		}
 
+		// ---- True staging (patch 18) ------------------------------------------
+		// A merge target that is already LIVE (published) is never written to
+		// directly — not by this call, not ever, until the artist explicitly
+		// approves the update. Doing so used to mean an update to already-
+		// published content (a biography singleton merge, a replace@ resend, an
+		// event resent to an existing title) minted a review token that could
+		// never actually be approved: ReviewEndpoints::approve()/reject() both
+		// hard-require 'draft' === $post->post_status, but the merge target's
+		// status was deliberately preserved as 'publish' so the live page
+		// wouldn't vanish while the update was pending — an irreconcilable
+		// contradiction between "stays live" and "needs a working approve link"
+		// that always resolved in favor of a permanently unredeemable token.
+		//
+		// Redirecting to $existing_id = 0 here means the rest of this method
+		// takes its ordinary "brand new post" path below — inserting a genuine,
+		// separate draft post with its own review token, completely unrelated
+		// to the live one until approved. $stage_for is threaded through to
+		// that insert so the new draft can be tagged with
+		// '_agnosis_pending_update_for', the pointer
+		// ReviewEndpoints::finalize_publish() reads to know it must copy this
+		// draft's fields onto $stage_for (and delete this draft) instead of
+		// publishing the draft as its own thing. The live post is completely
+		// untouched — title, content, status, everything — for as long as the
+		// update sits awaiting approval; nothing about it ever goes offline.
+		//
+		// find_singleton_post() already prefers an existing staging draft over
+		// the live post for biography specifically, so $existing_id here is
+		// only ever the LIVE post in that case — this redirect still applies to
+		// it as the safety net for every other caller (replace@, event resend,
+		// artwork duplicate detection) that has no staging-draft awareness of
+		// its own.
+		$stage_for = 0;
+		if ( $existing_id && 'publish' === get_post_status( $existing_id ) ) {
+			$stage_for   = $existing_id;
+			$existing_id = 0;
+		}
+
 		// ---- Build content ----------------------------------------------------
 		$primary  = $this->primary_result( $results );
 		$all_tags = array_unique( array_merge( ...array_column( $results, 'tags' ) ) );
 
-		$gallery      = $this->merge_gallery( $existing_id, $results, $post_type );
+		// merge_gallery()'s "existing" gallery must come from whichever post
+		// actually holds the currently-accepted photos — for a staged update
+		// that's the LIVE post ($stage_for), not the brand-new staging draft
+		// being inserted ($existing_id, forced to 0 above). Without this, a
+		// text-only biography update to an already-published bio would stage
+		// an empty gallery and wipe the existing photo on approval, and an
+		// artwork resend that appends a photo would lose the previously
+		// published ones the same way.
+		$gallery      = $this->merge_gallery( $existing_id ?: $stage_for, $results, $post_type );
 		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '' );
 
 		// Keep the existing review token when updating so artist links stay valid.
@@ -1540,8 +1722,16 @@ class PostCreator {
 
 		// ---- Insert or update ------------------------------------------------
 		if ( $existing_id ) {
-			$post_data['ID']          = $existing_id;
-			$post_data['post_status'] = get_post_status( $existing_id ) ?: 'draft'; // preserve publish state
+			// $existing_id can never be a currently-published post at this
+			// point — the "true staging" redirect above already turned that
+			// case into $existing_id = 0 (a fresh staging draft) before we got
+			// here. So $existing_id is always either a not-yet-approved
+			// original draft or an existing staging draft (found by
+			// find_singleton_post()'s own staging-aware lookup, for
+			// biography) — both are ordinary drafts, and post_status staying
+			// at the 'draft' default set above is simply correct, not
+			// something that needs preserving or overriding.
+			$post_data['ID'] = $existing_id;
 
 			// For singleton types (biography, event): do not replace existing body
 			// with empty content. This guards against a resend that arrives with no
@@ -1560,6 +1750,17 @@ class PostCreator {
 
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
+		}
+
+		// Tag a freshly-created staging draft with the live post it's a
+		// pending update for (patch 18) — see the "True staging" block above.
+		// ReviewEndpoints::finalize_publish() is what reads this back.
+		if ( $stage_for ) {
+			update_post_meta( $post_id, '_agnosis_pending_update_for', $stage_for );
+			Logger::info(
+				sprintf( 'Queue #%d: created pending-update draft #%d for already-published post #%d.', $queue_id, $post_id, $stage_for ),
+				'publisher'
+			);
 		}
 
 		// Persist the artist's original submitted title (pre-translation) once.

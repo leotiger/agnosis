@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-11T16:55+00:00\n"
+"POT-Creation-Date: 2026-07-11T19:34+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:16+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Portuguese (Portugal)\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Loco-Version: 2.8.5; wp-7.0; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:77 includes/Admin/Settings.php:192
+#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:192
 #: includes/Publishing/SubmissionsPage.php:62
 msgid "Agnosis"
 msgstr "Agnosis"
@@ -84,8 +84,8 @@ msgstr "Páginas da galeria"
 msgid "Prev"
 msgstr "Anterior"
 
-#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:279
-#: includes/Admin/InboxPage.php:610
+#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:282
+#: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "Seguinte"
 
@@ -99,16 +99,16 @@ msgstr "Limite máximo de dimensão da comunidade"
 msgid "Newsletter"
 msgstr "Newsletter"
 
-#: includes/Admin/InboxPage.php:76
+#: includes/Admin/InboxPage.php:77
 msgid "Agnosis Inbox"
 msgstr "Caixa de entrada Agnosis"
 
-#: includes/Admin/InboxPage.php:88 includes/Admin/InboxPage.php:89
-#: includes/Admin/InboxPage.php:140
+#: includes/Admin/InboxPage.php:89 includes/Admin/InboxPage.php:90
+#: includes/Admin/InboxPage.php:141
 msgid "Inbox"
 msgstr "Caixa de entrada"
 
-#: includes/Admin/InboxPage.php:152
+#: includes/Admin/InboxPage.php:153
 msgid ""
 "No messages in the queue yet. Click \"Poll Inbox\" to fetch messages from "
 "your IMAP account."
@@ -116,85 +116,89 @@ msgstr ""
 "Ainda não há mensagens na fila. Clique em \"Verificar caixa de entrada\" "
 "para obter mensagens da sua conta IMAP."
 
-#: includes/Admin/InboxPage.php:153
+#: includes/Admin/InboxPage.php:154
 msgid "No queue rows match this filter."
 msgstr ""
 
-#: includes/Admin/InboxPage.php:161
+#: includes/Admin/InboxPage.php:162
 msgid "#"
 msgstr "#"
 
-#: includes/Admin/InboxPage.php:162
+#: includes/Admin/InboxPage.php:163
 msgid "From"
 msgstr "De"
 
-#: includes/Admin/InboxPage.php:163
+#: includes/Admin/InboxPage.php:164
 msgid "Subject"
 msgstr "Assunto"
 
-#: includes/Admin/InboxPage.php:164 includes/Admin/Settings.php:1295
+#: includes/Admin/InboxPage.php:165
+msgid "Endpoint"
+msgstr ""
+
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:1295
 msgid "Files"
 msgstr "Ficheiros"
 
-#: includes/Admin/InboxPage.php:165 includes/Admin/Settings.php:1912
+#: includes/Admin/InboxPage.php:167 includes/Admin/Settings.php:1912
 #: includes/Admin/Settings.php:2198
 msgid "Status"
 msgstr "Estado"
 
-#: includes/Admin/InboxPage.php:166
+#: includes/Admin/InboxPage.php:168
 msgid "Received"
 msgstr "Recebido"
 
-#: includes/Admin/InboxPage.php:167
+#: includes/Admin/InboxPage.php:169
 msgid "Error"
 msgstr "Erro"
 
-#: includes/Admin/InboxPage.php:168 includes/Admin/Settings.php:1760
+#: includes/Admin/InboxPage.php:170 includes/Admin/Settings.php:1760
 #: includes/Admin/Settings.php:1914
 msgid "Actions"
 msgstr "Ações"
 
-#: includes/Admin/InboxPage.php:210
+#: includes/Admin/InboxPage.php:212
 msgid "unregistered sender"
 msgstr "remetente não registado"
 
-#: includes/Admin/InboxPage.php:238
+#: includes/Admin/InboxPage.php:241
 msgid "Old row — delete and re-poll to preview"
 msgstr "Linha antiga — elimine e volte a verificar para pré-visualizar"
 
-#: includes/Admin/InboxPage.php:270
+#: includes/Admin/InboxPage.php:273
 msgid "Attachment viewer"
 msgstr "Visualizador de anexos"
 
-#: includes/Admin/InboxPage.php:273 includes/Newsletter/PopoverBlock.php:121
+#: includes/Admin/InboxPage.php:276 includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
 msgstr "Fechar"
 
-#: includes/Admin/InboxPage.php:274 includes/Admin/InboxPage.php:607
+#: includes/Admin/InboxPage.php:277 includes/Admin/InboxPage.php:610
 msgid "Previous"
 msgstr "Anterior"
 
-#: includes/Admin/InboxPage.php:351
+#: includes/Admin/InboxPage.php:354
 msgid "Queue row deleted. Poll Inbox to re-fetch the message."
 msgstr ""
 "Linha da fila eliminada. Verifique a caixa de entrada para voltar a obter a "
 "mensagem."
 
 #. translators: %d: queue row ID
-#: includes/Admin/InboxPage.php:359
+#: includes/Admin/InboxPage.php:362
 #, php-format
 msgid "Queue #%d sent to pipeline. Check back in a few seconds."
 msgstr ""
 "Fila #%d enviada para a pipeline. Volte a verificar daqui a alguns segundos."
 
 #. translators: %d: new messages enqueued
-#: includes/Admin/InboxPage.php:369
+#: includes/Admin/InboxPage.php:372
 #, php-format
 msgid "Poll complete. %d new message(s) added to the queue."
 msgstr "Verificação concluída. %d nova(s) mensagem(ns) adicionada(s) à fila."
 
 #. translators: 1: rows reset 2: newly enqueued
-#: includes/Admin/InboxPage.php:380
+#: includes/Admin/InboxPage.php:383
 #, php-format
 msgid "Force-reprocess: %1$d row(s) reset, %2$d new message(s) enqueued."
 msgstr ""
@@ -202,51 +206,51 @@ msgstr ""
 "mensagem(ns) adicionada(s) à fila."
 
 #. translators: %d: items processed
-#: includes/Admin/InboxPage.php:390
+#: includes/Admin/InboxPage.php:393
 #, php-format
 msgid "Processed %d pending item(s)."
 msgstr "Processado(s) %d item(ns) pendente(s)."
 
-#: includes/Admin/InboxPage.php:506
+#: includes/Admin/InboxPage.php:509
 msgid "All statuses"
 msgstr ""
 
-#: includes/Admin/InboxPage.php:507 includes/Admin/InboxPage.php:683
+#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:715
 msgid "Pending"
 msgstr "Pendente"
 
-#: includes/Admin/InboxPage.php:508 includes/Admin/InboxPage.php:684
+#: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:716
 msgid "Processing"
 msgstr "A processar"
 
-#: includes/Admin/InboxPage.php:509
+#: includes/Admin/InboxPage.php:512
 #, fuzzy
 msgid "Published"
 msgstr "Publicado ✓"
 
-#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:685
+#: includes/Admin/InboxPage.php:513 includes/Admin/InboxPage.php:717
 msgid "Failed"
 msgstr "Falhado"
 
-#: includes/Admin/InboxPage.php:511
+#: includes/Admin/InboxPage.php:514
 msgid "Skipped"
 msgstr "Ignorado"
 
-#: includes/Admin/InboxPage.php:524
+#: includes/Admin/InboxPage.php:527
 #, fuzzy
 msgid "All reasons"
 msgstr "Todos os Eventos"
 
-#: includes/Admin/InboxPage.php:529
+#: includes/Admin/InboxPage.php:532
 msgid "Filter"
 msgstr ""
 
-#: includes/Admin/InboxPage.php:531
+#: includes/Admin/InboxPage.php:534
 msgid "Reset"
 msgstr ""
 
 #. translators: 1: number of collapsed messages, 2: URL to view them
-#: includes/Admin/InboxPage.php:568
+#: includes/Admin/InboxPage.php:571
 #, php-format
 msgid ""
 "%1$d message from an unregistered sender is hidden from this view. <a href="
@@ -258,94 +262,107 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: current page number, 2: total number of pages
-#: includes/Admin/InboxPage.php:599
+#: includes/Admin/InboxPage.php:602
 #, fuzzy, php-format
 msgid "Page %1$d of %2$d"
 msgstr "%1$d / %2$d"
 
-#: includes/Admin/InboxPage.php:626
+#: includes/Admin/InboxPage.php:629
 msgid "Poll Inbox"
 msgstr "Verificar caixa de entrada"
 
-#: includes/Admin/InboxPage.php:635
+#: includes/Admin/InboxPage.php:638
 msgid "Force Reprocess"
 msgstr "Forçar reprocessamento"
 
-#: includes/Admin/InboxPage.php:644
+#: includes/Admin/InboxPage.php:647
 msgid "Process All Pending"
 msgstr "Processar todos os pendentes"
 
-#: includes/Admin/InboxPage.php:657
+#: includes/Admin/InboxPage.php:672
+msgid "Goodbye"
+msgstr ""
+
+#: includes/Admin/InboxPage.php:675 includes/Admin/Settings.php:300
+#: includes/Core/EmailFooter.php:101
+msgid "Community"
+msgstr "Comunidade"
+
+#: includes/Admin/InboxPage.php:678
+msgid "Bounce"
+msgstr ""
+
+#: includes/Admin/InboxPage.php:689
 msgid "Awaiting Review"
 msgstr "A aguardar revisão"
 
-#: includes/Admin/InboxPage.php:660
+#: includes/Admin/InboxPage.php:692
 msgid "Live"
 msgstr "Em direto"
 
-#: includes/Admin/InboxPage.php:663
+#: includes/Admin/InboxPage.php:695
 msgid "Processed"
 msgstr "Processado"
 
-#: includes/Admin/InboxPage.php:676
+#: includes/Admin/InboxPage.php:708
 #, fuzzy
 msgid "Member Removed"
 msgstr "Lembrar-me"
 
-#: includes/Admin/InboxPage.php:677
+#: includes/Admin/InboxPage.php:709
 #, fuzzy
 msgid "Broadcast Sent"
 msgstr "Último envio"
 
-#: includes/Admin/InboxPage.php:678
+#: includes/Admin/InboxPage.php:710
 msgid "Bounced (too long)"
 msgstr ""
 
-#: includes/Admin/InboxPage.php:680
+#: includes/Admin/InboxPage.php:712
 msgid "Handled"
 msgstr ""
 
-#: includes/Admin/InboxPage.php:706
+#: includes/Admin/InboxPage.php:738
 msgid "Process"
 msgstr "Processar"
 
-#: includes/Admin/InboxPage.php:726
+#: includes/Admin/InboxPage.php:758
 msgid "View Post"
 msgstr "Ver publicação"
 
-#: includes/Admin/InboxPage.php:736
+#: includes/Admin/InboxPage.php:768
 msgid "Reprocess"
 msgstr "Reprocessar"
 
-#: includes/Admin/InboxPage.php:741
+#: includes/Admin/InboxPage.php:773
 msgid "Running…"
 msgstr "A executar…"
 
-#: includes/Admin/InboxPage.php:747
+#: includes/Admin/InboxPage.php:779
 msgid "Delete this queue row?"
 msgstr "Eliminar esta linha da fila?"
 
-#: includes/Admin/InboxPage.php:752 includes/Admin/Settings.php:2008
+#: includes/Admin/InboxPage.php:784 includes/Admin/Settings.php:2008
 msgid "Delete"
 msgstr "Eliminar"
 
-#: includes/Admin/InboxPage.php:763
+#: includes/Admin/InboxPage.php:795
 msgid "just now"
 msgstr "agora mesmo"
 
 #. translators: %d: number of minutes
-#: includes/Admin/InboxPage.php:768
+#: includes/Admin/InboxPage.php:800
 #, php-format
 msgid "%dm ago"
 msgstr "há %d min"
 
 #. translators: %d: number of hours
-#: includes/Admin/InboxPage.php:773
+#: includes/Admin/InboxPage.php:805
 #, php-format
 msgid "%dh ago"
 msgstr "há %d h"
 
-#: includes/Admin/InboxPage.php:846 includes/Admin/QueueController.php:31
+#: includes/Admin/InboxPage.php:878 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
@@ -564,10 +581,6 @@ msgstr "Comportamento"
 msgid "Network"
 msgstr "Rede"
 
-#: includes/Admin/Settings.php:300 includes/Core/EmailFooter.php:101
-msgid "Community"
-msgstr "Comunidade"
-
 #: includes/Admin/Settings.php:301
 msgid "Commerce"
 msgstr "Comércio"
@@ -597,6 +610,7 @@ msgid "Select Image"
 msgstr "Selecionar imagem"
 
 #: includes/Admin/Settings.php:374 includes/Core/EmailFooter.php:85
+#: includes/Publishing/PostCreator.php:868
 msgid "Remove"
 msgstr "Remover"
 
@@ -3082,8 +3096,8 @@ msgid "This vote is not currently open."
 msgstr "Esta votação não está atualmente aberta."
 
 #: includes/Artist/ContentEditor.php:201 includes/Artist/ContentEditor.php:572
-#: includes/Publishing/ReviewEndpoints.php:277
-#: includes/Publishing/ReviewEndpoints.php:294
+#: includes/Publishing/ReviewEndpoints.php:399
+#: includes/Publishing/ReviewEndpoints.php:416
 msgid "Authentication required."
 msgstr "Autenticação necessária."
 
@@ -3120,7 +3134,7 @@ msgid "The uploaded file could not be read."
 msgstr "Não foi possível ler o ficheiro carregado."
 
 #: includes/Artist/ContentEditor.php:362
-#: includes/Publishing/PostCreator.php:1425
+#: includes/Publishing/PostCreator.php:1581
 msgid "Untitled"
 msgstr "Sem título"
 
@@ -3673,6 +3687,8 @@ msgstr "Biografias"
 #: includes/Core/EmailFooter.php:73
 #: includes/Network/SubdomainNavigation.php:133
 #: includes/Network/SubdomainNavigation.php:334
+#: includes/Publishing/PostCreator.php:863
+#: includes/Publishing/PostCreator.php:893
 #: blocks/artist-breadcrumb/editor.js:210
 #: blocks/breadcrumb-icon-link/editor.js:66
 #: blocks/breadcrumb-icon-link/editor.js:99
@@ -3722,6 +3738,8 @@ msgid "Events"
 msgstr "Eventos"
 
 #: includes/Artist/Profile.php:92 includes/Artist/Profile.php:102
+#: includes/Publishing/PostCreator.php:864
+#: includes/Publishing/PostCreator.php:896
 msgid "Event"
 msgstr "Evento"
 
@@ -3790,7 +3808,7 @@ msgid "New Medium Name"
 msgstr "Novo Nome do Meio"
 
 #: includes/Artist/Profile.php:496 includes/Artist/Profile.php:509
-#: includes/Core/EmailFooter.php:69
+#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:901
 msgid "Artwork"
 msgstr "Obra"
 
@@ -4011,15 +4029,15 @@ msgstr "Agnosis — O encaminhamento por subdomínio de artista está desativado
 msgid "Open LinguaForge Settings"
 msgstr "Abrir Definições do LinguaForge"
 
-#: includes/Core/Activator.php:576 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:586 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Artista da Agnosis"
 
-#: includes/Core/Activator.php:689
+#: includes/Core/Activator.php:699
 msgid "My Submissions"
 msgstr "As Minhas Submissões"
 
-#: includes/Core/Activator.php:831
+#: includes/Core/Activator.php:841
 msgid "Join"
 msgstr "Juntar-se"
 
@@ -4035,7 +4053,7 @@ msgstr "Atualize a sua biografia de artista."
 msgid "Announce an upcoming event."
 msgstr "Anuncie um próximo evento."
 
-#: includes/Core/EmailFooter.php:81
+#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:867
 msgid "Replace"
 msgstr "Substituir"
 
@@ -4054,7 +4072,7 @@ msgstr ""
 "Solicite que uma obra de arte ou evento existente seja removido — o assunto "
 "tem de corresponder ao título."
 
-#: includes/Core/EmailFooter.php:89
+#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:869
 msgid "Promote"
 msgstr "Promover"
 
@@ -4075,7 +4093,8 @@ msgstr ""
 "Publique uma fotografia exatamente como foi enviada — sem melhoria por IA, "
 "sem verificação de qualidade."
 
-#: includes/Core/EmailFooter.php:97
+#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:865
+#: includes/Publishing/PostCreator.php:887
 msgid "Pure"
 msgstr "Puro"
 
@@ -4668,13 +4687,13 @@ msgstr "[Agnosis] O seu envio está pronto para revisão: %s"
 
 #: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1103
+#: includes/Publishing/ReviewConfirm.php:1116
 msgid "event"
 msgstr "evento"
 
 #: includes/Publishing/Notification.php:581
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1104
+#: includes/Publishing/ReviewConfirm.php:1117
 msgid "artwork"
 msgstr "obra"
 
@@ -5160,19 +5179,25 @@ msgstr ""
 msgid "View submissions →"
 msgstr "Ver submissões →"
 
+#: includes/Publishing/PostCreator.php:866
+#: includes/Publishing/PostCreator.php:890
+#, fuzzy
+msgid "Photo"
+msgstr "Apenas foto"
+
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1598
+#: includes/Publishing/PostCreator.php:1802
 #, php-format
 msgid "%s (original)"
 msgstr "%s (original)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1646
+#: includes/Publishing/PostCreator.php:1865
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (moldura de poster)"
 
-#: includes/Publishing/PostCreator.php:1983
+#: includes/Publishing/PostCreator.php:2202
 msgid "Failed to insert attachment."
 msgstr "Falha ao inserir o anexo."
 
@@ -5287,140 +5312,145 @@ msgstr ""
 "Esta ligação pode já ter sido utilizada ou pode ter expirado. Por favor, "
 "inicia sessão para gerir as tuas submissões."
 
-#: includes/Publishing/ReviewConfirm.php:384
+#: includes/Publishing/ReviewConfirm.php:393
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:385
+#: includes/Publishing/ReviewConfirm.php:394
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:711
+#: includes/Publishing/ReviewConfirm.php:724
 #, fuzzy
 msgid "Portfolio link"
 msgstr "Portefólio ↗"
 
-#: includes/Publishing/ReviewConfirm.php:737
+#: includes/Publishing/ReviewConfirm.php:750
 msgid "Date"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:739
+#: includes/Publishing/ReviewConfirm.php:752
 msgid "Hour"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:742
+#: includes/Publishing/ReviewConfirm.php:755
 #, fuzzy
 msgid "Location"
 msgstr "Ação"
 
-#: includes/Publishing/ReviewConfirm.php:744
+#: includes/Publishing/ReviewConfirm.php:757
 #, fuzzy
 msgid "Address"
 msgstr "Endereço de email"
 
-#: includes/Publishing/ReviewConfirm.php:746
+#: includes/Publishing/ReviewConfirm.php:759
 #, fuzzy
 msgid "Timezone"
 msgstr "Hora"
 
-#: includes/Publishing/ReviewConfirm.php:766
+#: includes/Publishing/ReviewConfirm.php:779
 msgid "Other"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:771
+#: includes/Publishing/ReviewConfirm.php:784
 msgid "— Not set —"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:939
+#: includes/Publishing/ReviewConfirm.php:952
 msgid "Discard this submission?"
 msgstr "Descartar esta submissão?"
 
-#: includes/Publishing/ReviewConfirm.php:940
+#: includes/Publishing/ReviewConfirm.php:953
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "Isto descartará permanentemente a submissão — não será publicada."
 
-#: includes/Publishing/ReviewConfirm.php:941
+#: includes/Publishing/ReviewConfirm.php:954
 msgid "Yes, discard it"
 msgstr "Sim, descartá-la"
 
-#: includes/Publishing/ReviewConfirm.php:944
+#: includes/Publishing/ReviewConfirm.php:957
 msgid "Remove this artwork?"
 msgstr "Remover esta obra?"
 
-#: includes/Publishing/ReviewConfirm.php:945
+#: includes/Publishing/ReviewConfirm.php:958
 msgid "This will remove the published artwork from the gallery."
 msgstr "Isto removerá a obra publicada da galeria."
 
-#: includes/Publishing/ReviewConfirm.php:946
+#: includes/Publishing/ReviewConfirm.php:959
 msgid "Yes, remove it"
 msgstr "Sim, removê-la"
 
-#: includes/Publishing/ReviewConfirm.php:1039
+#: includes/Publishing/ReviewConfirm.php:1052
 #: includes/Publishing/SubmissionsPage.php:253
 msgid "Title"
 msgstr "Título"
 
-#: includes/Publishing/ReviewConfirm.php:1047
+#: includes/Publishing/ReviewConfirm.php:1060
 #, fuzzy
 msgid "Short description"
 msgstr "Descrição"
 
-#: includes/Publishing/ReviewConfirm.php:1052
+#: includes/Publishing/ReviewConfirm.php:1065
 msgid "Full text"
 msgstr ""
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1062
+#: includes/Publishing/ReviewConfirm.php:1075
 #, fuzzy, php-format
 msgid "Publish this %s?"
 msgstr "Publicar esta obra?"
 
-#: includes/Publishing/ReviewConfirm.php:1085
+#: includes/Publishing/ReviewConfirm.php:1098
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:1091
+#: includes/Publishing/ReviewConfirm.php:1104
 #: includes/Publishing/SubmissionsPage.php:233
 msgid "Publish it"
 msgstr "Publicar"
 
-#: includes/Publishing/ReviewConfirm.php:1102
+#: includes/Publishing/ReviewConfirm.php:1115
 #, fuzzy
 msgid "biography"
 msgstr "Biografia"
 
 #: includes/Publishing/ReviewEndpoints.php:98
-#: includes/Publishing/ReviewEndpoints.php:160
-#: includes/Publishing/ReviewEndpoints.php:200
+#: includes/Publishing/ReviewEndpoints.php:170
+#: includes/Publishing/ReviewEndpoints.php:202
 msgid "Submission not found."
 msgstr "Submissão não encontrada."
 
 #: includes/Publishing/ReviewEndpoints.php:107
-#: includes/Publishing/ReviewEndpoints.php:169
-#: includes/Publishing/ReviewEndpoints.php:209
+#: includes/Publishing/ReviewEndpoints.php:179
+#: includes/Publishing/ReviewEndpoints.php:211
 msgid "This submission is not awaiting review."
 msgstr "Esta submissão não está à espera de revisão."
 
-#: includes/Publishing/ReviewEndpoints.php:310
+#: includes/Publishing/ReviewEndpoints.php:287
+#, fuzzy
+msgid "The original published item could not be found."
+msgstr "Não foi possível encontrar este número da newsletter."
+
+#: includes/Publishing/ReviewEndpoints.php:432
 msgid "You do not have permission to review this submission."
 msgstr "Não tens permissão para rever esta submissão."
 
-#: includes/Publishing/ReviewEndpoints.php:335
+#: includes/Publishing/ReviewEndpoints.php:457
 msgid "Review link not found or already used."
 msgstr "Ligação de revisão não encontrada ou já utilizada."
 
-#: includes/Publishing/ReviewEndpoints.php:343
+#: includes/Publishing/ReviewEndpoints.php:465
 msgid "Invalid review token."
 msgstr "Token de revisão inválido."
 
-#: includes/Publishing/ReviewEndpoints.php:351
+#: includes/Publishing/ReviewEndpoints.php:473
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Esta ligação de revisão expirou. Por favor, inicia sessão para gerir as tuas "

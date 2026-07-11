@@ -215,11 +215,22 @@ class ReviewConfirm {
 	 * carrying the content's post type so handle_result() can say "Biography
 	 * published" / "Event removed" instead of always assuming artwork — see
 	 * class docblock's 2026-07-08 post-types note. Always exits.
+	 *
+	 * $post_id (added alongside the "view it live" link below) is the FINAL
+	 * post id — for a staged update this is the live post's id
+	 * (ReviewEndpoints::finalize_publish()'s return value / the REST
+	 * response's 'post_id'), never the now-deleted staging draft's — so the
+	 * link this produces always resolves. Only meaningful for a successful
+	 * 'approve'; omitted (0) for reject/remove/error, which have nothing to
+	 * link to.
 	 */
-	private function redirect_result( string $result, string $post_type = '' ): void {
+	private function redirect_result( string $result, string $post_type = '', int $post_id = 0 ): void {
 		$args = [ 'agnosis_result' => $result ];
 		if ( '' !== $post_type ) {
 			$args['agnosis_type'] = $post_type;
+		}
+		if ( $post_id > 0 ) {
+			$args['agnosis_post'] = $post_id;
 		}
 		wp_safe_redirect( add_query_arg( $args, home_url( '/' ) ) );
 		exit;
@@ -239,6 +250,7 @@ class ReviewConfirm {
 		}
 		$result    = sanitize_key( wp_unslash( $_GET['agnosis_result'] ) );
 		$post_type = sanitize_key( wp_unslash( $_GET['agnosis_type'] ?? '' ) );
+		$post_id   = absint( wp_unslash( $_GET['agnosis_post'] ?? 0 ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		[ $label, $message ] = $this->result_copy( $result, $post_type );
@@ -247,17 +259,39 @@ class ReviewConfirm {
 		$icon   = $is_err ? '✕' : '✦';
 		$color  = $is_err ? '#c0392b' : '#7c6af7';
 
+		// "View it live" — only for a successful approve, and only when the
+		// post genuinely resolves to a real, published permalink (never trust
+		// the query string alone: a stale/crafted agnosis_post value on any
+		// other result, or a post that's since been unpublished/deleted,
+		// simply gets no button rather than a dead link).
+		$view_link_html = '';
+		if ( 'approve' === $result && $post_id > 0 ) {
+			$live_post = get_post( $post_id );
+			if ( $live_post instanceof \WP_Post && 'publish' === $live_post->post_status ) {
+				$permalink = get_permalink( $post_id );
+				if ( $permalink ) {
+					$view_link_html = sprintf(
+						'<p style="margin:0 0 24px;"><a href="%1$s" style="display:inline-block;background:#7c6af7;color:#fff;border-radius:6px;padding:12px 28px;font-size:16px;text-decoration:none;">%2$s</a></p>',
+						esc_url( $permalink ),
+						esc_html__( 'View it live', 'agnosis' )
+					);
+				}
+			}
+		}
+
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
 			. '<p style="font-size:34px;color:%1$s;margin:0 0 16px;">%2$s</p>'
 			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%3$s</h1>'
 			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%4$s</p>'
-			. '<a href="%5$s" style="color:%1$s;font-size:16px;text-decoration:none;">&larr; %6$s</a>'
+			. '%5$s'
+			. '<a href="%6$s" style="color:%1$s;font-size:16px;text-decoration:none;">&larr; %7$s</a>'
 			. '</div>',
 			esc_attr( $color ),
 			esc_html( $icon ),
 			esc_html( $label ),
 			esc_html( $message ),
+			$view_link_html, // Built entirely from esc_url()/esc_html() pieces above.
 			esc_url( home_url( '/' ) ),
 			esc_html( get_bloginfo( 'name' ) )
 		);
@@ -364,11 +398,23 @@ class ReviewConfirm {
 			// timezone-address) are handled entirely outside the title/excerpt/body
 			// diff above — see sync_extra_fields()'s docblock for why they're always
 			// re-applied from the submitted form rather than gated on $edited.
+			//
+			// Patch 18 ("true staging"): $id may be a pending-update staging
+			// draft that ReviewEndpoints::finalize_publish() just deleted,
+			// copying its fields onto a DIFFERENT, already-published post
+			// instead. That final post's ID comes back as 'post_id' in the
+			// REST response — sync_extra_fields() must target THAT post, not
+			// the now-deleted $id, or it silently writes nothing. Also carried
+			// into redirect_result() so the confirmation page can link
+			// straight to the live post instead of just the site homepage.
+			$final_id = $id;
 			if ( ! $response->is_error() ) {
-				$this->sync_extra_fields( $id, $post->post_type, $source );
+				$data     = $response->get_data();
+				$final_id = isset( $data['post_id'] ) ? (int) $data['post_id'] : $id;
+				$this->sync_extra_fields( $final_id, $post->post_type, $source );
 			}
 
-			$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type );
+			$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type, $final_id );
 			return;
 		}
 
@@ -452,11 +498,17 @@ class ReviewConfirm {
 
 		$response = rest_do_request( $rest_request );
 
+		// See the unedited-fast-path branch above for why this must target
+		// the REST response's returned 'post_id', not $id — patch 18. Also
+		// carried into redirect_result() for the "view it live" link.
+		$final_id = $id;
 		if ( ! $response->is_error() ) {
-			$this->sync_extra_fields( $id, $post->post_type, $source );
+			$data     = $response->get_data();
+			$final_id = isset( $data['post_id'] ) ? (int) $data['post_id'] : $id;
+			$this->sync_extra_fields( $final_id, $post->post_type, $source );
 		}
 
-		$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type );
+		$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type, $final_id );
 	}
 
 	// -------------------------------------------------------------------------

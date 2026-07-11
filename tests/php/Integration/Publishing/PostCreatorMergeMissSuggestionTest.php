@@ -257,9 +257,20 @@ class PostCreatorMergeMissSuggestionTest extends \WP_UnitTestCase {
 		$creator = new PostCreator( $this->make_pipeline( (string) $existing_id ) );
 		$creator->handle( $queue_id );
 
-		$updated_post_id = $this->get_published_post_id( $queue_id );
-		$this->assertSame( $existing_id, $updated_post_id, 'An exact match must update the existing post in place.' );
-		$this->assertSame( [], $this->merge_miss_meta( $updated_post_id ) );
+		// Patch 18 "true staging": the fixture target is publish()'d, so an
+		// exact match no longer updates it in place — that would take
+		// already-live content offline the moment a fresh review token is
+		// minted (see PostCreatorMergeRedraftsPublishedTargetTest). Instead a
+		// separate staging draft is created, tagged back to the live post.
+		$staged_post_id = $this->get_published_post_id( $queue_id );
+		$this->assertNotSame( $existing_id, $staged_post_id, 'A replace@ exact match onto an already-published post must stage the update as a separate draft, not write to the live post directly.' );
+		$this->assertSame(
+			$existing_id,
+			(int) get_post_meta( $staged_post_id, '_agnosis_pending_update_for', true ),
+			'The staging draft must be tagged back to the live post it is an update for.'
+		);
+		$this->assertSame( 'publish', get_post_status( $existing_id ), 'The live post must remain untouched (still published) while the update is only staged.' );
+		$this->assertSame( [], $this->merge_miss_meta( $staged_post_id ) );
 	}
 
 	// =========================================================================
@@ -299,9 +310,18 @@ class PostCreatorMergeMissSuggestionTest extends \WP_UnitTestCase {
 		$creator  = new PostCreator( $this->make_pipeline( (string) $existing_id ) );
 		$creator->handle( $queue_id );
 
-		$updated_post_id = $this->get_published_post_id( $queue_id );
-		$this->assertSame( $existing_id, $updated_post_id );
-		$this->assertSame( [], $this->merge_miss_meta( $updated_post_id ) );
+		// Patch 18 "true staging": the fixture target is publish()'d, so an
+		// exact title match no longer updates it in place — see the matching
+		// comment on test_replace_exact_match_sets_no_suggestion_meta above.
+		$staged_post_id = $this->get_published_post_id( $queue_id );
+		$this->assertNotSame( $existing_id, $staged_post_id, 'An event-title exact match onto an already-published event must stage the update as a separate draft, not write to the live post directly.' );
+		$this->assertSame(
+			$existing_id,
+			(int) get_post_meta( $staged_post_id, '_agnosis_pending_update_for', true ),
+			'The staging draft must be tagged back to the live event it is an update for.'
+		);
+		$this->assertSame( 'publish', get_post_status( $existing_id ), 'The live event must remain untouched (still published) while the update is only staged.' );
+		$this->assertSame( [], $this->merge_miss_meta( $staged_post_id ) );
 	}
 
 	public function test_event_fuzzy_suggestion_never_matches_an_artwork_title(): void {

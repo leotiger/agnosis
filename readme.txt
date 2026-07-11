@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.17
+Stable tag: 0.9.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.18 =
+* Added: The Inbox admin table now shows which email address a submission was sent to (artwork, photo, pure, biography, event, replace, remove, promote, goodbye, or community) — previously you could only guess from the subject line or the resulting post type.
+* Fixed: The 8 default artwork medium categories (Oil Painting, Watercolour, Photography, etc.) are now created automatically whenever the plugin updates to a new version, not just on first activation — a site that was already running before this feature existed never got them.
+* Fixed: A biography submitted with a photo could fail to process entirely if that artist's biography page was originally auto-created from their admission application rather than from an email — a missing internal field crashed the pipeline. Biography posts also now correctly hold at most one photo: a new one replaces the old rather than accumulating alongside it.
+* Fixed: Sending an update to an already-published biography (or replacing/re-sending an already-published artwork or event) generated an "approve this" email whose link could never actually be clicked through — it always showed "Link expired or already used," even seconds after arriving. Updating already-published content now stages your changes separately with their own working approve link, while the currently-published page keeps showing exactly as it is, unaffected, the whole time you're deciding whether to approve — no downtime either way.
+
 = 0.9.17 =
 * Added: Artists can now mute community broadcast messages, or switch application-vote emails to a once-daily digest instead of one email per application — a link to manage these is included in vote, broadcast, and welcome emails. Previously the only way to reduce mail volume was to leave the network entirely.
 * Added: A `replace@` or event-update email whose subject doesn't exactly match one of your existing titles still publishes as a new post (as before), but now flags in the review email if it looks like you meant to update something else — so a typo in the subject line no longer creates a duplicate that goes unnoticed.
@@ -83,10 +89,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: The internal AI prompt used to pull structured event details (venue, date, timezone) out of an artist's email now clearly marks that email's content as data, not instructions — a consistency fix bringing it in line with how the plugin already treats fetched web page content elsewhere. No visible behavior change.
 * Fixed: Internal code-quality cleanup — recipient-address parsing and shared reason text for the goodbye@/community@ email addresses were previously duplicated between the two mail intake methods (IMAP and webhook), risking drift between them over time. This logic now lives in one place. No visible behavior change.
 * Fixed: A documentation/code mismatch meant a fresh install with no saved Inbox settings could clean up old messages on a 30-day schedule instead of the documented 7-day one — now aligned. Also some minor internal documentation and code cleanup in the rate-limiting logic, with no visible behavior change.
-
-= 0.9.16 =
-* Fixed: Submitting the join form used to immediately email an acknowledgment to whatever address was typed in, and blast a "please vote" email — including that applicant's own bio, statement, and portfolio link — to every artist and admin. Since nothing verified the address actually belonged to the applicant, this could be used to send unwanted mail to a stranger's inbox, or to get arbitrary content shown to your whole community. Submitting the join form now only sends a short "confirm your application" email; the application isn't shown to the community for voting until that link is clicked.
-* Fixed: Emails that bounced or were marked as spam were never noticed — a dead newsletter address kept receiving every issue forever, and an artist whose inbox stopped working kept getting silently skipped over with no visible sign anything was wrong. Bounces and complaints reported by your mail provider (via webhook) or arriving back in the inbox (as a delivery-failure notice) now automatically stop future newsletters to that address and show a bounce warning next to the affected artist on the Members dashboard.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
