@@ -22,11 +22,14 @@ use Agnosis\Artist\CommunityCap;
 use Agnosis\Artist\CommunityCapVote;
 use Agnosis\Artist\CommunityCapNotification;
 use Agnosis\Artist\ContentEditor;
+use Agnosis\Artist\AdmissionConfirm;
 use Agnosis\Artist\Departure;
 use Agnosis\Artist\DepartureNotification;
 use Agnosis\Artist\FrontendAccess;
 use Agnosis\Artist\JoinPage;
+use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Artist\RemovalVoteConfirm;
+use Agnosis\Artist\VoteDigest;
 use Agnosis\Artist\VouchConfirm;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
@@ -122,6 +125,8 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_test', $settings, 'handle_send_newsletter_test' );
 			$this->loader->add_action( 'admin_post_agnosis_send_invitation',      $settings, 'handle_send_invitation' );
 			$this->loader->add_action( 'admin_post_agnosis_send_invitation_test', $settings, 'handle_send_invitation_test' );
+			$this->loader->add_action( 'admin_post_agnosis_send_deliverability_test', $settings, 'handle_send_deliverability_test' );
+			$this->loader->add_action( 'admin_post_agnosis_retry_failed_newsletter_recipients', $settings, 'handle_retry_failed_newsletter_recipients' );
 
 			// Queue management handlers.
 			$queue = new QueueController();
@@ -173,6 +178,9 @@ class Plugin {
 		$admission = new Admission();
 		$this->loader->add_action( 'rest_api_init',           $admission, 'register_routes' );
 		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'check_expired_applications' );
+		// Double opt-in housekeeping (security audit §3a): prune abandoned
+		// never-confirmed applications, piggybacked on the same daily cron.
+		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'expire_stale_unverified' );
 		// Community size cap: re-evaluate the advanced application when a slot opens.
 		$this->loader->add_action( 'agnosis_waitlist_advanced', $admission, 'reconsider' );
 
@@ -218,6 +226,24 @@ class Plugin {
 
 		$vouch_confirm = new VouchConfirm( $admission );
 		$vouch_confirm->register_hooks();
+
+		// Join application double opt-in email-link shim — processes
+		// ?agnosis_admission=1&action=confirm&token=… (mirrors VouchConfirm's
+		// own pattern; security audit §3a/§4a).
+		$admission_confirm = new AdmissionConfirm( $admission );
+		$admission_confirm->register_hooks();
+
+		// Daily vote-email digest for artists who've switched to digest mode
+		// (security audit §5b/§4a) — see VoteDigest's own docblock.
+		$vote_digest = new VoteDigest();
+		$vote_digest->register_hooks();
+
+		// Tokenized, unauthenticated "manage notification preferences" front
+		// end — processes ?agnosis_prefs=1&artist=…&token=… (mirrors
+		// VouchConfirm/AdmissionConfirm's stateless-HMAC pattern; security
+		// audit §5b).
+		$notification_preferences = new NotificationPreferences();
+		$notification_preferences->register_hooks();
 
 		$join = new JoinPage();
 		$this->loader->add_action( 'init', $join, 'register_block' );

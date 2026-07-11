@@ -40,6 +40,54 @@ use WP_Error;
 
 class Admission {
 
+	/**
+	 * How long a still-unverified reapplication is throttled (mirrors
+	 * Newsletter\Subscriber::RESEND_COOLDOWN_SECONDS — security audit §3a):
+	 * resubmitting the join form for the same still-unconfirmed address
+	 * within this window neither churns a fresh token nor resends the
+	 * confirmation email, so a bot hammering the form (already bounded by
+	 * the 5/min/IP rate limit) can't multiply the mail it triggers just by
+	 * retrying.
+	 */
+	private const RESEND_COOLDOWN_SECONDS = 300; // 5 minutes.
+
+	/**
+	 * How long an unconfirmed 'unverified' row survives before
+	 * expire_stale_unverified() (piggybacked on the existing daily
+	 * 'agnosis_check_admissions' cron) deletes it — mirrors
+	 * Newsletter\Subscriber::PENDING_EXPIRY_DAYS.
+	 */
+	private const UNVERIFIED_EXPIRY_DAYS = 14;
+
+	/**
+	 * Per-email reapplication cooldown (security audit §4b): a
+	 * withdrawn/rejected/left application reapplying is legitimate by
+	 * design, but with no per-email limit the same address could cycle
+	 * apply → confirm → community vote blast → withdraw → apply again, at
+	 * whatever rate the 5/min/IP endpoint limit and the resend cooldown
+	 * allow. RateLimiter::check_sender() (the same per-sender-throttle
+	 * class/pattern the intake mailbox already uses) is consulted only on
+	 * that specific reapplication branch — see apply() — making one lap of
+	 * the cycle cost a week, not a few minutes. Brand-new addresses and a
+	 * resend of a still-unconfirmed application are unaffected; only a
+	 * resolved application's own address is throttled here.
+	 */
+	private const REAPPLY_LIMIT         = 1;
+	private const REAPPLY_WINDOW_SECONDS = WEEK_IN_SECONDS;
+
+	/**
+	 * Server-side length caps on application fields (security audit §3b):
+	 * bio/statement/display_name were sanitized but uncapped, and the vote
+	 * email embeds all three for every recipient — a multi-megabyte
+	 * statement is a mail-size and storage nuisance at minimum. Enforced in
+	 * register_routes()'s REST `args` validate_callback (never trust the
+	 * join form's own `maxlength` alone — see JoinPage.php for the mirrored
+	 * client-side hint).
+	 */
+	private const MAX_DISPLAY_NAME_LENGTH = 100;
+	private const MAX_BIO_LENGTH          = 5000;
+	private const MAX_STATEMENT_LENGTH    = 5000;
+
 	public function register_routes(): void {
 		register_rest_route( 'agnosis/v1', '/admission/apply', [
 			'methods'             => 'POST',
@@ -56,10 +104,12 @@ class Admission {
 					'type'              => 'string',
 					'required'          => true,
 					'sanitize_callback' => 'sanitize_text_field',
+					'validate_callback' => fn( string $v ): bool|WP_Error => self::validate_max_length( $v, self::MAX_DISPLAY_NAME_LENGTH, __( 'Name', 'agnosis' ) ),
 				],
 				'bio'           => [
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_textarea_field',
+					'validate_callback' => fn( string $v ): bool|WP_Error => self::validate_max_length( $v, self::MAX_BIO_LENGTH, __( 'Bio', 'agnosis' ) ),
 				],
 				'portfolio_url' => [
 					'type'              => 'string',
@@ -68,6 +118,7 @@ class Admission {
 				'statement'     => [
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_textarea_field',
+					'validate_callback' => fn( string $v ): bool|WP_Error => self::validate_max_length( $v, self::MAX_STATEMENT_LENGTH, __( 'Statement', 'agnosis' ) ),
 				],
 				'language'      => [
 					'type'              => 'string',
@@ -104,6 +155,33 @@ class Admission {
 				'id' => [ 'type' => 'integer', 'required' => true ],
 			],
 		] );
+	}
+
+	/**
+	 * REST `validate_callback` for a length-capped text field (security audit
+	 * §3b). Runs before `sanitize_callback`, so `$value` is the raw submitted
+	 * string — `mb_strlen()` (not `strlen()`) so multibyte scripts aren't
+	 * penalized for their own byte width.
+	 *
+	 * @param string $value       Raw (unsanitized) field value.
+	 * @param int    $max         Maximum character count.
+	 * @param string $field_label Human-readable field name for the error message.
+	 * @return true|WP_Error
+	 */
+	private static function validate_max_length( string $value, int $max, string $field_label ): bool|WP_Error {
+		if ( mb_strlen( $value ) > $max ) {
+			return new WP_Error(
+				'agnosis_field_too_long',
+				sprintf(
+					/* translators: 1: field name (e.g. "Bio"), 2: maximum character count */
+					__( '%1$s must be %2$d characters or fewer.', 'agnosis' ),
+					$field_label,
+					$max
+				),
+				[ 'status' => 400 ]
+			);
+		}
+		return true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -160,47 +238,86 @@ class Admission {
 			);
 		}
 
-		// Community size cap: when the instance is full, park the application on the
-		// FIFO waitlist instead of opening it for vouching. Existing members are
-		// never affected — the cap gates new admissions only.
-		$waitlisted = ( new CommunityCap() )->is_full();
-		$new_status = $waitlisted ? 'waitlisted' : 'pending';
-
-		// Check for an existing application row.
+		// Check for an existing application row. is_recent is computed by MySQL
+		// itself (comparing applied_at against its own NOW()), same clock-safety
+		// reasoning as Newsletter\Subscriber::subscribe() — no PHP/MySQL
+		// clock-mixing risk.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$existing = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, status FROM {$wpdb->prefix}agnosis_applications WHERE email = %s",
+				"SELECT id, status,
+				        ( applied_at > ( NOW() - INTERVAL %d SECOND ) ) AS is_recent
+				 FROM {$wpdb->prefix}agnosis_applications WHERE email = %s",
+				self::RESEND_COOLDOWN_SECONDS,
 				$email
 			)
 		);
 
-		if ( $existing ) {
-			if ( in_array( $existing->status, [ 'pending', 'admitted' ], true ) ) {
-				return new WP_Error(
-					'agnosis_already_applied',
-					'pending' === $existing->status
-						? __( 'An application for this email address is already pending.', 'agnosis' )
-						: __( 'This email address belongs to an admitted artist.', 'agnosis' ),
-					[ 'status' => 409 ]
-				);
-			}
+		if ( $existing && in_array( $existing->status, [ 'pending', 'waitlisted', 'admitted' ], true ) ) {
+			return new WP_Error(
+				'agnosis_already_applied',
+				'admitted' === $existing->status
+					? __( 'This email address belongs to an admitted artist.', 'agnosis' )
+					: __( 'An application for this email address is already pending.', 'agnosis' ),
+				[ 'status' => 409 ]
+			);
+		}
 
-			// withdrawn / rejected / left — allow reapplication.
+		// Double opt-in (security audit §3a/§4a): a still-unverified row for
+		// this address, resubmitted within the resend cooldown — an impatient
+		// double-click, or a bot retrying within the existing 5/min/IP rate
+		// limit — gets the same response with no new token and no second
+		// email. Mirrors Newsletter\Subscriber::subscribe()'s §2d hardening.
+		if ( $existing && 'unverified' === $existing->status && $existing->is_recent ) {
+			return new WP_REST_Response( [
+				'status'         => 'pending_confirmation',
+				'application_id' => (int) $existing->id,
+			], 201 );
+		}
+
+		// Per-email reapplication cooldown (security audit §4b): a
+		// withdrawn/rejected/left application reapplying is legitimate — the
+		// exposure is specifically that address cycling apply → confirm →
+		// vote blast → withdraw → apply again, bounded only by the 5/min/IP
+		// endpoint limit and the (much shorter) unverified-resend cooldown
+		// above. Scoped narrowly to a *resolved* prior application reapplying
+		// — a brand-new address ($existing === null) and a still-unconfirmed
+		// resend past its own cooldown are untouched by this guard.
+		if ( $existing && in_array( $existing->status, [ 'withdrawn', 'rejected', 'left' ], true ) ) {
+			$sender_rate = RateLimiter::check_sender( 'admission_apply_email', $email, self::REAPPLY_LIMIT, self::REAPPLY_WINDOW_SECONDS );
+			if ( is_wp_error( $sender_rate ) ) {
+				return $sender_rate;
+			}
+		}
+
+		// Every other case — brand new address, an unverified row past its
+		// cooldown (resend), or a withdrawn/rejected/left row reapplying —
+		// parks (or re-parks) the row as 'unverified' with a fresh single-use
+		// token. Nothing becomes 'pending'/'waitlisted' here, and neither the
+		// acknowledgment email nor the community vote blast fire yet — only
+		// confirm_application() (reached by clicking the link in the
+		// "confirm your application" email below) does that. This is what
+		// closes the two lanes the audit flagged: a forged address can no
+		// longer trigger backscatter to a victim, and no attacker-controlled
+		// content reaches the community without the sender first proving they
+		// control the inbox.
+		$token = bin2hex( random_bytes( 32 ) );
+
+		if ( $existing ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->query(
 				$wpdb->prepare(
 					"UPDATE {$wpdb->prefix}agnosis_applications
 					 SET display_name = %s, bio = %s, portfolio_url = %s, statement = %s,
-					     language = %s, status = %s, wp_user_id = NULL,
-					     applied_at = %s, resolved_at = NULL
+					     language = %s, status = 'unverified', confirm_token = %s,
+					     wp_user_id = NULL, applied_at = %s, resolved_at = NULL
 					 WHERE id = %d",
 					$display_name,
 					$bio,
 					$portfolio,
 					$statement,
 					$language,
-					$new_status,
+					$token,
 					current_time( 'mysql' ),
 					$existing->id
 				)
@@ -220,29 +337,22 @@ class Admission {
 					// $language is guaranteed non-empty here — apply() returns a 400
 					// WP_Error earlier when it's missing or unrecognized (see above).
 					'language'      => $language,
-					'status'        => $new_status,
+					'status'        => 'unverified',
+					'confirm_token' => $token,
 				],
-				[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
+				[ '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 			);
 
 			$application_id = (int) $wpdb->insert_id;
 		}
 
-		if ( $waitlisted ) {
-			do_action( 'agnosis_artist_waitlisted', $application_id, $email, $display_name );
-
-			return new WP_REST_Response( [
-				'status'         => 'waitlisted',
-				'application_id' => $application_id,
-				'cap'            => ( new CommunityCap() )->cap(),
-				'message'        => __( 'This community is currently full. Your application has joined the waitlist — when a member leaves, the next person in line is welcomed in, and the community can also vote to make room for more artists.', 'agnosis' ),
-			], 202 );
-		}
-
-		do_action( 'agnosis_artist_applied', $application_id, $email, $display_name );
+		// The one and only email apply() itself triggers: a short "confirm your
+		// application" link. No acknowledgment, no vote blast — see
+		// AdmissionNotification::on_application_unverified().
+		do_action( 'agnosis_application_unverified', $application_id, $email, $display_name, $token );
 
 		$response_data = [
-			'status'           => 'applied',
+			'status'           => 'pending_confirmation',
 			'application_id'   => $application_id,
 			'vouches_required' => $this->calculate_required(),
 		];
@@ -260,6 +370,105 @@ class Admission {
 		}
 
 		return new WP_REST_Response( $response_data, 201 );
+	}
+
+	/**
+	 * Confirm a pending application by its single-use token (double opt-in
+	 * click — security audit §3a/§4a).
+	 *
+	 * Flips 'unverified' → 'pending' or 'waitlisted', re-checking
+	 * CommunityCap at confirmation time rather than trusting whatever it was
+	 * at apply() time — the count can change in the interval, same reasoning
+	 * maybe_admit() already applies at the admission end of this flow. This
+	 * is the one and only place agnosis_artist_applied / agnosis_artist_waitlisted
+	 * fire for a freshly submitted application: a forged address can never
+	 * trigger the acknowledgment email or the community vote blast, only
+	 * whoever actually controls the inbox that received the confirm link can.
+	 *
+	 * @param string $token The confirm_token from the confirmation email link.
+	 * @return array{id: int, status: string, display_name: string, email: string}|false False when the token is unknown, already used, or the row is no longer 'unverified'.
+	 */
+	public function confirm_application( string $token ): array|false {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$application = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}agnosis_applications WHERE confirm_token = %s AND status = 'unverified'",
+				$token
+			)
+		);
+
+		if ( ! $application ) {
+			return false;
+		}
+
+		/** @var object{id: int, email: string, display_name: string, language: string|null} $application */
+
+		$waitlisted = ( new CommunityCap() )->is_full();
+		$new_status = $waitlisted ? 'waitlisted' : 'pending';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_applications',
+			[
+				'status'        => $new_status,
+				'confirm_token' => null,
+				// Restart the clock from confirmation, not from whenever the
+				// unverified row was first created — the voting window
+				// (check_expired_applications()) and the admin dashboard's
+				// "applied N days ago" should both count from when the
+				// application actually opened for review, not from however
+				// long the confirmation email sat unread.
+				'applied_at'    => current_time( 'mysql' ),
+			],
+			[ 'id' => $application->id ],
+			[ '%s', '%s', '%s' ],
+			[ '%d' ]
+		);
+
+		if ( $waitlisted ) {
+			do_action( 'agnosis_artist_waitlisted', (int) $application->id, $application->email, $application->display_name );
+		} else {
+			do_action( 'agnosis_artist_applied', (int) $application->id, $application->email, $application->display_name );
+		}
+
+		return [
+			'id'           => (int) $application->id,
+			'status'       => $new_status,
+			'display_name' => $application->display_name,
+			'email'        => $application->email,
+		];
+	}
+
+	/**
+	 * Delete abandoned, never-confirmed 'unverified' rows older than
+	 * UNVERIFIED_EXPIRY_DAYS (security audit §3a hardening note — mirrors
+	 * Newsletter\Subscriber::expire_stale_pending()). Without this, a bot
+	 * hammering the join form with a fresh address each time (still bounded
+	 * by the existing 5/min/IP rate limit) accumulates rows forever — and
+	 * every one of them triggered a confirmation email. Confirmed/pending/
+	 * waitlisted/admitted/etc. rows are never touched.
+	 *
+	 * Piggybacks on the existing daily 'agnosis_check_admissions' cron
+	 * (alongside check_expired_applications()) rather than registering a new
+	 * scheduled event for what is a low-volume cleanup task.
+	 */
+	public function expire_stale_unverified(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$deleted = (int) $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->prefix}agnosis_applications
+				 WHERE status = 'unverified' AND applied_at < ( NOW() - INTERVAL %d DAY )",
+				self::UNVERIFIED_EXPIRY_DAYS
+			)
+		);
+
+		if ( $deleted > 0 ) {
+			Logger::info( sprintf( 'Admission: expired %d abandoned unverified application(s) older than %d days.', $deleted, self::UNVERIFIED_EXPIRY_DAYS ), 'admission' );
+		}
 	}
 
 	public function vouch( WP_REST_Request $request ): WP_REST_Response|WP_Error {

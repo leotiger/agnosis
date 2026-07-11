@@ -18,8 +18,10 @@ use Agnosis\Artist\Departure;
 use Agnosis\Artist\Invitation;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Activator;
+use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
+use Agnosis\Core\Turnstile;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\Subscriber;
@@ -171,6 +173,10 @@ class Settings {
 				'invitation_failed'      => [ 'error', __( 'Could not send the invitation — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
 				'invitation_test_sent'   => [ 'success', __( 'Test invitation sent — check the inbox you sent it to.', 'agnosis' ) ],
 				'invitation_test_failed' => [ 'error', __( 'Could not send the test invitation — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
+				'deliverability_test_sent'   => [ 'success', __( 'Test email sent — check whether it lands in your inbox or your spam folder.', 'agnosis' ) ],
+				'deliverability_test_failed' => [ 'error', __( 'Could not send the test email — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
+				'newsletter_retry_queued'    => [ 'success', __( 'Failed recipients reset to pending — they will be retried on the next few cron cycles.', 'agnosis' ) ],
+				'newsletter_retry_none'      => [ 'error', __( 'No failed recipients to retry for this newsletter.', 'agnosis' ) ],
 			];
 			$key = sanitize_key( wp_unslash( $_GET['agnosis_message'] ) );
 			if ( isset( $notice_map[ $key ] ) ) {
@@ -538,7 +544,7 @@ class Settings {
 			'agnosis_webhook_secret' => [
 				'tab'     => 'email',
 				'label'   => __( 'Webhook secret', 'agnosis' ),
-				'desc'    => __( 'HMAC secret shared with your webhook provider (Mailgun, SendGrid…).', 'agnosis' ),
+				'desc'    => __( 'HMAC secret shared with your webhook provider (Mailgun, SendGrid…). Used for both the inbound-mail endpoint (/wp-json/agnosis/v1/email/inbound) and the bounce/complaint events endpoint (/wp-json/agnosis/v1/email/events) — point your provider\'s bounce/spam-complaint webhook at the latter to keep your subscriber and artist addresses clean.', 'agnosis' ),
 				'input'   => 'password',
 				'sanitize' => fn( $v ) => $v,
 			],
@@ -1199,6 +1205,46 @@ class Settings {
 	}
 
 	/**
+	 * Turnstile-unconfigured warning (security/ops audit §4a, layer (2) of
+	 * that finding's fix shape). The join application form (and newsletter
+	 * signup) are always publicly reachable by design — there is no "close
+	 * the join page" mode in this plugin, the whole model is community
+	 * vouching, not a gatekeeper — so the only thing standing between the
+	 * form and a spam bot is whichever of the two layers below is active:
+	 *
+	 * - Turnstile::is_enabled() — opt-in, off until both keys are set here.
+	 * - RateLimiter's fixed 5/min/IP cap — always on, but per §4a itself,
+	 *   trivially distributed around.
+	 *
+	 * Nothing before this shipped ever told the operator that skipping the
+	 * Turnstile keys above left the form running on IP-limiting alone.
+	 * Read-only — configuring Turnstile is still just filling in the two
+	 * fields already on this tab; this card only makes the current state
+	 * visible instead of silent.
+	 */
+	private function render_turnstile_warning(): void {
+		$enabled = Turnstile::is_enabled();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Bot Protection', 'agnosis' ); ?></h2>
+			<?php if ( $enabled ) : ?>
+				<p>
+					<strong style="color:#0a7c48">✓ <?php esc_html_e( 'Turnstile is configured.', 'agnosis' ); ?></strong>
+					<?php esc_html_e( 'The Join application form and the Newsletter Subscribe form both require human verification before they accept a submission.', 'agnosis' ); ?>
+				</p>
+			<?php else : ?>
+				<div class="notice notice-warning inline" style="margin:0">
+					<p>
+						<strong><?php esc_html_e( 'Turnstile is not configured.', 'agnosis' ); ?></strong>
+						<?php esc_html_e( 'Your Join application form is public — anyone can submit an application, and a submitted (and confirmed) application still emails every admitted artist and admin. Right now the only thing standing between that form and an automated bot is a fixed 5-submissions-per-minute-per-IP limit, which a distributed bot can work around entirely. Add a Cloudflare Turnstile site key and secret key above to require human verification on both the Join form and the Newsletter Subscribe form.', 'agnosis' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Debug Files panel — shown under Settings → General, below the Save
 	 * Changes button. The debug on/off toggle itself is a normal Settings
 	 * API field (agnosis_debug_enabled, saved via options.php); this panel
@@ -1418,6 +1464,7 @@ class Settings {
 
 	private function render_tab_tools( string $tab ): void {
 		if ( 'general' === $tab ) {
+			$this->render_turnstile_warning();
 			$this->render_debug_panel();
 			$this->render_term_translation_cache_panel();
 			return;
@@ -1491,8 +1538,148 @@ class Settings {
 			</tbody></table>
 		</div>
 		<?php
+		$this->render_deliverability_card();
 	}
 
+	/**
+	 * "Deliverability" health card on the Email Inbox tab (security audit
+	 * §5c). Read-only diagnostic — never changes sending behavior, headers,
+	 * or configuration. Reports, for each configured From identity
+	 * (community transactional mail, newsletter — see
+	 * Deliverability::identity_report()): whether its domain matches the
+	 * site's own domain, and whether that domain publishes an SPF/DMARC
+	 * record at all (correctness/alignment is out of scope — a plugin can't
+	 * know a shared host's outbound IP without an actual delivered test).
+	 * Also flags a detected SMTP-sending plugin, and offers the same
+	 * one-click "send a test to my address" pattern the newsletter dashboard
+	 * already uses (render_newsletter_test_form()) via CommunityMailer's own
+	 * headers, so the test reflects the same identity workflow mail actually
+	 * sends from.
+	 */
+	private function render_deliverability_card(): void {
+		$rows        = Deliverability::identity_report();
+		$smtp_plugin = Deliverability::detected_smtp_plugin();
+		$current_user = wp_get_current_user();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Deliverability', 'agnosis' ); ?></h2>
+			<p class="description" style="margin-top:0">
+				<?php esc_html_e( 'A diagnostic check only — nothing here changes how mail is sent. On ordinary hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn\'t match your site\'s own domain, or from a domain with no SPF/DMARC record at all, is increasingly likely to land in spam or be rejected outright by large mailbox providers. If any row below looks wrong, the most reliable fix is installing an SMTP-sending plugin (WP Mail SMTP, Post SMTP, FluentSMTP, and others all work) configured against a real transactional mail provider, and adding SPF/DMARC records for the domain you send from at your DNS host.', 'agnosis' ); ?>
+			</p>
+
+			<table class="widefat striped" style="margin-bottom:1rem">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'From identity', 'agnosis' ); ?></th>
+						<th><?php esc_html_e( 'Domain matches site?', 'agnosis' ); ?></th>
+						<th><?php esc_html_e( 'SPF record', 'agnosis' ); ?></th>
+						<th><?php esc_html_e( 'DMARC record', 'agnosis' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $rows as $row ) : ?>
+						<tr>
+							<td>
+								<strong><?php echo esc_html( $row['label'] ); ?></strong><br>
+								<code><?php echo esc_html( $row['email'] ); ?></code>
+							</td>
+							<td><?php echo wp_kses_post( $this->deliverability_domain_badge( $row['domain_matches_site'], $row['domain'] ) ); ?></td>
+							<td><?php echo wp_kses_post( $this->deliverability_status_badge( $row['spf']['status'] ) ); ?></td>
+							<td><?php echo wp_kses_post( $this->deliverability_status_badge( $row['dmarc']['status'] ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+					<tr>
+						<td><strong><?php esc_html_e( 'SMTP plugin', 'agnosis' ); ?></strong></td>
+						<td colspan="3">
+							<?php if ( $smtp_plugin ) : ?>
+								✅ 
+								<?php
+								echo esc_html( sprintf(
+									/* translators: %s: detected plugin name, e.g. "WP Mail SMTP" */
+									__( 'Detected: %s', 'agnosis' ),
+									$smtp_plugin
+								) );
+								?>
+							<?php else : ?>
+								⚠️ <?php esc_html_e( 'None of the common SMTP-sending plugins were detected — this site is likely relying on PHP\'s built-in mail(), which most hosts deliver poorly through.', 'agnosis' ); ?>
+							<?php endif; ?>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.4rem;align-items:center">
+				<input type="hidden" name="action" value="agnosis_send_deliverability_test">
+				<?php wp_nonce_field( 'agnosis_send_deliverability_test' ); ?>
+				<label for="agnosis_deliverability_test_email" style="margin:0"><?php esc_html_e( 'Send a real test email to:', 'agnosis' ); ?></label>
+				<input type="email" id="agnosis_deliverability_test_email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
+				<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
+			</form>
+			<p class="description">
+				<?php esc_html_e( 'Sends one plain-text email from the same community identity used for review/vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not arriving at all confirms a real deliverability problem regardless of what the checks above say.', 'agnosis' ); ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/** Small inline status pill for an SPF/DMARC lookup result. */
+	private function deliverability_status_badge( string $status ): string {
+		return match ( $status ) {
+			'found'         => '<span style="color:#1a7f37">✅ ' . esc_html__( 'Found', 'agnosis' ) . '</span>',
+			'not_found'     => '<span style="color:#b32d2e">❌ ' . esc_html__( 'Not found', 'agnosis' ) . '</span>',
+			'lookup_failed' => '<span style="color:#996800">⚠️ ' . esc_html__( 'DNS lookup failed', 'agnosis' ) . '</span>',
+			default         => '<span style="color:#888">— ' . esc_html__( 'Unavailable on this host', 'agnosis' ) . '</span>',
+		};
+	}
+
+	/** Small inline status pill for the From-domain-vs-site-domain comparison. */
+	private function deliverability_domain_badge( bool $matches, string $domain ): string {
+		if ( '' === $domain ) {
+			return '<span style="color:#888">— ' . esc_html__( 'No address configured', 'agnosis' ) . '</span>';
+		}
+		return $matches
+			? '<span style="color:#1a7f37">✅ ' . esc_html( $domain ) . '</span>'
+			: '<span style="color:#996800">⚠️ ' . esc_html( $domain ) . '</span>';
+	}
+
+	/**
+	 * admin-post handler: send a one-off deliverability test email using the
+	 * same community/transactional identity real workflow mail sends from.
+	 * Diagnostic only — does not touch any subscriber, queue, or setting.
+	 */
+	public function handle_send_deliverability_test(): void {
+		check_admin_referer( 'agnosis_send_deliverability_test' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$test_email = sanitize_email( wp_unslash( $_POST['test_email'] ?? '' ) );
+		$result     = false;
+
+		if ( is_email( $test_email ) ) {
+			$result = wp_mail(
+				$test_email,
+				sprintf(
+					/* translators: %s: site name */
+					__( '[TEST] Deliverability check from %s', 'agnosis' ),
+					get_bloginfo( 'name' )
+				),
+				__( "This is a one-off deliverability test from your Agnosis Settings → Email Inbox page. If you're reading this in your inbox (not spam), the community/transactional From identity is deliverable to this address.", 'agnosis' ),
+				CommunityMailer::text_headers()
+			);
+		}
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'email',
+				'agnosis_message' => $result ? 'deliverability_test_sent' : 'deliverability_test_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
 
 	// -------------------------------------------------------------------------
 	// Admission dashboard (Community tab)
@@ -1517,9 +1704,39 @@ class Settings {
 			 ORDER BY applied_at ASC"
 		);
 
+		// Double opt-in (security audit §3a/§4a): a row sits as 'unverified'
+		// between apply() and the artist clicking the confirm link in their
+		// email — invisible to the table below by design (it isn't open for
+		// community review yet). Surfaced as a plain count here only so an
+		// operator fielding "I applied but nothing happened" doesn't have to
+		// guess why an applicant isn't listed.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$unverified_count = (int) $wpdb->get_var(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_applications WHERE status = 'unverified'"
+		);
+
 		?>
 		<div class="card" style="max-width:900px;margin-top:1.5rem;padding:1rem 1.5rem">
 			<h2 style="margin-top:0"><?php esc_html_e( 'Pending Applications', 'agnosis' ); ?></h2>
+
+			<?php if ( $unverified_count > 0 ) : ?>
+				<p class="description" style="margin-bottom:1rem">
+					<?php
+					printf(
+						esc_html(
+							/* translators: %d: number of applications awaiting email confirmation */
+							_n(
+								'%d application is awaiting email confirmation from the applicant and isn\'t listed below yet.',
+								'%d applications are awaiting email confirmation from the applicant and aren\'t listed below yet.',
+								$unverified_count,
+								'agnosis'
+							)
+						),
+						(int) $unverified_count
+					);
+					?>
+				</p>
+			<?php endif; ?>
 
 			<?php if ( empty( $applications ) ) : ?>
 				<p style="color:#666"><?php esc_html_e( 'No pending applications.', 'agnosis' ); ?></p>
@@ -1714,10 +1931,49 @@ class Settings {
 								: __( 'Banned', 'agnosis' ) )
 							: __( 'Active', 'agnosis' );
 						?>
+						<?php
+						// Bounce counter (security audit §5a): a dead artist inbox
+						// otherwise silently stops receiving review links — this
+						// count is the only operator-visible sign anything is wrong.
+						$bounce_count = $member->wp_user_id ? (int) get_user_meta( (int) $member->wp_user_id, '_agnosis_bounce_count', true ) : 0;
+						// Notification preferences (security audit §5b/§4a) — surfaced
+						// here for the same reason as the bounce badge: an operator
+						// wondering why a particular artist never votes on new
+						// applications, or never replies to a broadcast, has an
+						// immediate answer instead of having to guess.
+						$muted_broadcasts = $member->wp_user_id && '1' === get_user_meta( (int) $member->wp_user_id, '_agnosis_broadcast_optout', true );
+						$digest_mode      = $member->wp_user_id && 'digest' === get_user_meta( (int) $member->wp_user_id, '_agnosis_vote_email_mode', true );
+						?>
 						<tr>
 							<td>
 								<strong><?php echo esc_html( $member->display_name ); ?></strong><br>
 								<span style="color:#666;font-size:12px"><?php echo esc_html( $member->email ); ?></span>
+								<?php if ( $bounce_count > 0 ) : ?>
+									<br>
+									<span style="color:#b34a4a;font-size:12px;font-weight:600" title="<?php esc_attr_e( 'This address has bounced or been reported as spam — mail may no longer be reaching this artist.', 'agnosis' ); ?>">
+										<?php
+										echo esc_html(
+											sprintf(
+												/* translators: %d: number of recorded bounces/complaints for this artist's address */
+												_n( '⚠ %d bounce', '⚠ %d bounces', $bounce_count, 'agnosis' ),
+												$bounce_count
+											)
+										);
+										?>
+									</span>
+								<?php endif; ?>
+								<?php if ( $muted_broadcasts ) : ?>
+									<br>
+									<span style="color:#888;font-size:12px" title="<?php esc_attr_e( 'This artist has muted community broadcast messages.', 'agnosis' ); ?>">
+										<?php esc_html_e( '🔇 Broadcasts muted', 'agnosis' ); ?>
+									</span>
+								<?php endif; ?>
+								<?php if ( $digest_mode ) : ?>
+									<br>
+									<span style="color:#888;font-size:12px" title="<?php esc_attr_e( 'This artist receives one daily digest of open applications instead of an email per application.', 'agnosis' ); ?>">
+										<?php esc_html_e( '📬 Vote digest mode', 'agnosis' ); ?>
+									</span>
+								<?php endif; ?>
 							</td>
 							<td>
 								<span style="color:<?php echo esc_attr( $status_col ); ?>;font-weight:600;font-size:12px">
@@ -1941,6 +2197,7 @@ class Settings {
 					<th><?php esc_html_e( 'Last sent', 'agnosis' ); ?></th>
 					<th><?php esc_html_e( 'Status', 'agnosis' ); ?></th>
 					<th><?php esc_html_e( 'Action', 'agnosis' ); ?></th>
+					<th><?php esc_html_e( 'Failed recipients', 'agnosis' ); ?></th>
 					<th><?php esc_html_e( 'Send a test', 'agnosis' ); ?></th>
 				</tr></thead>
 				<tbody>
@@ -1968,6 +2225,7 @@ class Settings {
 								<?php submit_button( __( 'Send Now', 'agnosis' ), 'small', 'submit', false, $scheduler->has_issue_in_flight( 'artist' ) ? [ 'disabled' => 'disabled' ] : [] ); ?>
 							</form>
 						</td>
+						<td><?php $this->render_retry_failed_button( 'artist' ); ?></td>
 						<td><?php $this->render_newsletter_test_form( 'artist' ); ?></td>
 					</tr>
 					<tr>
@@ -1976,11 +2234,12 @@ class Settings {
 							<?php
 							echo esc_html(
 								sprintf(
-									/* translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count */
-									__( '%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed', 'agnosis' ),
+									/* translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count, 4: bounced/suppressed count */
+									__( '%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed, %4$d bounced', 'agnosis' ),
 									(int) $sub_counts['confirmed'],
 									(int) $sub_counts['pending'],
-									(int) $sub_counts['unsubscribed']
+									(int) $sub_counts['unsubscribed'],
+									(int) $sub_counts['bounced']
 								)
 							);
 							?>
@@ -2007,6 +2266,7 @@ class Settings {
 								<?php submit_button( __( 'Send Now', 'agnosis' ), 'small', 'submit', false, $scheduler->has_issue_in_flight( 'public' ) ? [ 'disabled' => 'disabled' ] : [] ); ?>
 							</form>
 						</td>
+						<td><?php $this->render_retry_failed_button( 'public' ); ?></td>
 						<td><?php $this->render_newsletter_test_form( 'public' ); ?></td>
 					</tr>
 				</tbody>
@@ -2067,6 +2327,44 @@ class Settings {
 	}
 
 	/**
+	 * "Retry Failed" button for the Newsletter dashboard (fifth/sixth audit
+	 * §5e). Shows the count of terminally-failed recipients for $type's most
+	 * recent issue and, when that count is above zero, a button that resets
+	 * them all back to 'pending' so the next few cron ticks retry them —
+	 * see QueueProcessor::retry_failed(). Previously an SMTP outage longer
+	 * than MAX_ATTEMPTS worth of cron ticks (~15 minutes) left those
+	 * recipients permanently skipped with no resend affordance at all.
+	 */
+	private function render_retry_failed_button( string $type ): void {
+		$scheduler = new Scheduler();
+		$failed    = $scheduler->failed_count_for_latest_issue( $type );
+
+		if ( 0 === $failed ) {
+			esc_html_e( 'None', 'agnosis' );
+			return;
+		}
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.4rem;align-items:center">
+			<input type="hidden" name="action" value="agnosis_retry_failed_newsletter_recipients">
+			<input type="hidden" name="newsletter_type" value="<?php echo esc_attr( $type ); ?>">
+			<?php wp_nonce_field( 'agnosis_retry_failed_newsletter_recipients_' . $type ); ?>
+			<span>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of recipients whose send permanently failed for the most recent issue */
+						_n( '%d failed', '%d failed', $failed, 'agnosis' ),
+						$failed
+					)
+				);
+				?>
+			</span>
+			<?php submit_button( __( 'Retry Failed', 'agnosis' ), 'secondary small', 'submit', false ); ?>
+		</form>
+		<?php
+	}
+
+	/**
 	 * Inline "send a preview to one address" form for the Newsletter dashboard.
 	 *
 	 * Defaults to the current admin's own email. Sending a test does not touch
@@ -2105,6 +2403,36 @@ class Settings {
 				'page'            => 'agnosis-settings',
 				'tab'             => 'newsletter',
 				'agnosis_message' => true === $result ? 'newsletter_sent' : 'newsletter_send_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
+	}
+
+	/**
+	 * admin-post handler: reset all permanently-failed recipients of $type's
+	 * most recent newsletter issue back to 'pending' so cron retries them
+	 * (audit §5e). See QueueProcessor::retry_failed() and
+	 * render_retry_failed_button().
+	 */
+	public function handle_retry_failed_newsletter_recipients(): void {
+		$type = sanitize_key( wp_unslash( $_POST['newsletter_type'] ?? '' ) );
+
+		check_admin_referer( 'agnosis_retry_failed_newsletter_recipients_' . $type );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$scheduler = new Scheduler();
+		$issue_id  = $scheduler->latest_issue_id( $type );
+		$requeued  = null !== $issue_id ? ( new QueueProcessor() )->retry_failed( $issue_id ) : 0;
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'newsletter',
+				'agnosis_message' => $requeued > 0 ? 'newsletter_retry_queued' : 'newsletter_retry_none',
 			],
 			admin_url( 'admin.php' )
 		) );

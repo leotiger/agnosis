@@ -200,7 +200,7 @@ class RemovalEndpoints {
 	 * @param \WP_REST_Request $request Incoming request.
 	 * @return true|\WP_Error
 	 */
-	public function check_permission( \WP_REST_Request $request ): true|\WP_Error {
+	public function check_permission( \WP_REST_Request $request ): bool|\WP_Error {
 		if ( ! empty( sanitize_text_field( (string) $request->get_param( 'token' ) ) ) ) {
 			return true; // Verified inside confirm() via verify_token().
 		}
@@ -225,7 +225,7 @@ class RemovalEndpoints {
 	 * @param string $supplied_token Token from the request query string.
 	 * @return true|\WP_Error
 	 */
-	public static function verify_token( int $post_id, string $supplied_token ): true|\WP_Error {
+	public static function verify_token( int $post_id, string $supplied_token ): bool|\WP_Error {
 		$stored_token = (string) get_post_meta( $post_id, '_agnosis_removal_token', true );
 		$expiry       = (int) get_post_meta( $post_id, '_agnosis_removal_expiry', true );
 

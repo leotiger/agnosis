@@ -157,6 +157,7 @@ class CommunityCapVoteIntegrationTest extends \WP_UnitTestCase {
 		$a3 = $this->create_artist();
 
 		// Two applicants waitlist (community is full at cap 1).
+		global $wpdb;
 		foreach ( [ 'w1@example.com', 'w2@example.com' ] as $email ) {
 			$req = new \WP_REST_Request( 'POST', '/agnosis/v1/admission/apply' );
 			$req->set_param( 'email', $email );
@@ -164,9 +165,20 @@ class CommunityCapVoteIntegrationTest extends \WP_UnitTestCase {
 			$req->set_param( 'bio', 'Bio' );
 			$req->set_param( 'language', 'en' );
 			wp_set_current_user( 0 );
-			rest_do_request( $req );
+			$apply_response = rest_do_request( $req );
+
+			// Double opt-in (security audit §3a/§4a): apply() only ever parks
+			// the row as 'unverified' now — confirm immediately, mirroring the
+			// applicant clicking the confirm link right away, so the waitlist
+			// decision (made inside confirm_application(), not apply()) fires
+			// while the community is still full.
+			$application_id = (int) ( $apply_response->get_data()['application_id'] ?? 0 );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$token = $wpdb->get_var(
+				$wpdb->prepare( "SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d", $application_id )
+			);
+			( new \Agnosis\Artist\Admission() )->confirm_application( (string) $token );
 		}
-		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$waitlisted = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_applications WHERE status = 'waitlisted'" );
 		$this->assertSame( 2, $waitlisted );

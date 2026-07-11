@@ -2,9 +2,23 @@
 /**
  * Transient-based per-IP rate limiter.
  *
- * Counts requests per action per IP address within a sliding time window and
- * returns a WP_Error when the limit is exceeded.  Uses WordPress transients so
- * it works on any host without extra infrastructure.
+ * Counts requests per action per IP address within a window and returns a
+ * WP_Error when the limit is exceeded.  Uses WordPress transients so it works
+ * on any host without extra infrastructure.
+ *
+ * This is a FIXED window, not a sliding one (code-quality audit §6 —
+ * corrected from an earlier docblock that called it "sliding"/"rolling"):
+ * transient_key()'s `floor( time() / $window_seconds )` slot changes the
+ * whole counter's identity once per window boundary, rather than continuously
+ * decaying older requests out of a moving lookback period. The practical
+ * effect is that a burst straddling a boundary (e.g. the limit's worth of
+ * requests just before a slot rolls over, plus the limit's worth again just
+ * after) can let up to roughly 2x the configured limit through inside one
+ * real-world window-length span. Acceptable at this plugin's actual traffic
+ * (a handful of low-single-digit-per-minute application/webhook limits, not a
+ * high-value target where a 2x burst materially changes the threat model) —
+ * documented here rather than switched to a heavier sliding-window
+ * implementation.
  *
  * Usage in a permission callback:
  *
@@ -33,10 +47,10 @@ class RateLimiter {
 	 *
 	 * @param string $action         Unique action identifier (e.g. 'admission_apply').
 	 * @param int    $limit          Maximum number of requests allowed in the window.
-	 * @param int    $window_seconds Length of the rolling window in seconds.
+	 * @param int    $window_seconds Length of the (fixed, not sliding — see class docblock) window in seconds.
 	 * @return true|WP_Error         true if within limit; WP_Error(429) when exceeded.
 	 */
-	public static function check( string $action, int $limit, int $window_seconds = 60 ): true|WP_Error {
+	public static function check( string $action, int $limit, int $window_seconds = 60 ): bool|WP_Error {
 		$ip  = self::client_ip();
 		$key = self::transient_key( $action, $ip, $window_seconds );
 
@@ -52,18 +66,17 @@ class RateLimiter {
 		}
 
 		// Increment or create the counter.  set_transient is atomic enough for
-		// our purposes — exact-once semantics are not required here.
-		if ( 0 === $count ) {
-			set_transient( $key, 1, $window_seconds );
-		} else {
-			// Preserve remaining TTL by deleting and re-setting is expensive; use
-			// an object-cache-friendly increment when available, otherwise overwrite.
-			if ( function_exists( 'wp_cache_incr' ) ) {
-				$cache_key = 'transient_' . $key;
-				wp_cache_incr( $cache_key );
-			}
-			set_transient( $key, $count + 1, $window_seconds );
-		}
+		// our purposes — exact-once semantics are not required here. (A
+		// wp_cache_incr() call used to sit here as a supposed object-cache
+		// fast path — code-quality audit §6 found it targeted the wrong cache
+		// group, transients live under the `transient` group, not a bare
+		// `transient_`-prefixed key in the default group — so its result was
+		// immediately discarded and overwritten by set_transient() on the very
+		// next line regardless. Removed rather than fixed: set_transient()
+		// already goes through the object cache transparently on any host
+		// that has one configured, so there was nothing this second call
+		// added even with the correct group.)
+		set_transient( $key, $count + 1, $window_seconds );
 
 		return true;
 	}
@@ -78,10 +91,10 @@ class RateLimiter {
 	 * @param string $action         Unique action identifier (e.g. 'email_intake').
 	 * @param string $from_email     Sender email address used as the rate-limit key.
 	 * @param int    $limit          Maximum submissions allowed in the window.
-	 * @param int    $window_seconds Length of the rolling window in seconds.
+	 * @param int    $window_seconds Length of the (fixed, not sliding — see class docblock) window in seconds.
 	 * @return true|WP_Error         true if within limit; WP_Error(429) when exceeded.
 	 */
-	public static function check_sender( string $action, string $from_email, int $limit, int $window_seconds = 3600 ): true|WP_Error {
+	public static function check_sender( string $action, string $from_email, int $limit, int $window_seconds = 3600 ): bool|WP_Error {
 		$key   = self::transient_key( $action, md5( strtolower( trim( $from_email ) ) ), $window_seconds );
 		$count = (int) get_transient( $key );
 
@@ -94,14 +107,10 @@ class RateLimiter {
 			);
 		}
 
-		if ( 0 === $count ) {
-			set_transient( $key, 1, $window_seconds );
-		} else {
-			if ( function_exists( 'wp_cache_incr' ) ) {
-				wp_cache_incr( 'transient_' . $key );
-			}
-			set_transient( $key, $count + 1, $window_seconds );
-		}
+		// See check()'s identical line for why this is unconditional now — the
+		// 0-vs-not-0 branch existed only to gate a dead wp_cache_incr() call
+		// (code-quality audit §6); $count + 1 already equals 1 in the 0 case.
+		set_transient( $key, $count + 1, $window_seconds );
 
 		return true;
 	}

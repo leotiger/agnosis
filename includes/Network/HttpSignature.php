@@ -49,7 +49,7 @@ class HttpSignature {
 	 * @param WP_REST_Request $request Incoming REST request.
 	 * @return true|WP_Error
 	 */
-	public static function verify( WP_REST_Request $request ): true|WP_Error {
+	public static function verify( WP_REST_Request $request ): bool|WP_Error {
 		if ( ! function_exists( 'openssl_verify' ) ) {
 			return new WP_Error(
 				'ap_sig_openssl_missing',
@@ -156,7 +156,7 @@ class HttpSignature {
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return true|WP_Error
 	 */
-	private static function verify_digest( WP_REST_Request $request ): true|WP_Error {
+	private static function verify_digest( WP_REST_Request $request ): bool|WP_Error {
 		$digest_header   = (string) $request->get_header( 'digest' );
 		$expected_digest = 'SHA-256=' . base64_encode( hash( 'sha256', $request->get_body(), true ) );
 

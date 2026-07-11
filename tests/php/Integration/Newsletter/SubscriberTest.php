@@ -233,6 +233,72 @@ class SubscriberTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// suppress() — bounce/complaint suppression (security audit §5a)
+	// =========================================================================
+
+	public function test_suppress_flips_pending_to_bounced(): void {
+		$sub = Subscriber::subscribe( 'bounced-pending@example.com' );
+
+		$this->assertTrue( Subscriber::suppress( 'bounced-pending@example.com' ) );
+
+		$row = Subscriber::find_by_token( $sub['token'] );
+		$this->assertSame( 'bounced', $row['status'] );
+		$this->assertNotEmpty( $row['bounced_at'] );
+	}
+
+	public function test_suppress_flips_confirmed_to_bounced(): void {
+		$sub = Subscriber::subscribe( 'bounced-confirmed@example.com' );
+		Subscriber::confirm( $sub['token'] );
+
+		$this->assertTrue( Subscriber::suppress( 'bounced-confirmed@example.com' ) );
+
+		$row = Subscriber::find_by_token( $sub['token'] );
+		$this->assertSame( 'bounced', $row['status'] );
+	}
+
+	public function test_suppress_leaves_unsubscribed_row_untouched(): void {
+		$sub = Subscriber::subscribe( 'already-gone@example.com' );
+		Subscriber::confirm( $sub['token'] );
+		Subscriber::unsubscribe( $sub['token'] );
+
+		// Already suppressed via unsubscribe — no row to flip, and
+		// unsubscribed_at must not be clobbered by a bounce timestamp.
+		$this->assertFalse( Subscriber::suppress( 'already-gone@example.com' ) );
+
+		$row = Subscriber::find_by_token( $sub['token'] );
+		$this->assertSame( 'unsubscribed', $row['status'] );
+	}
+
+	public function test_suppress_is_not_repeatable(): void {
+		Subscriber::subscribe( 'twice-bounced@example.com' );
+		Subscriber::suppress( 'twice-bounced@example.com' );
+
+		// Already 'bounced' — the guarded UPDATE matches nothing a second time.
+		$this->assertFalse( Subscriber::suppress( 'twice-bounced@example.com' ) );
+	}
+
+	public function test_suppress_unknown_email_returns_false(): void {
+		$this->assertFalse( Subscriber::suppress( 'never-subscribed@example.com' ) );
+	}
+
+	public function test_bounced_subscriber_excluded_from_confirmed_recipients(): void {
+		$sub = Subscriber::subscribe( 'excluded-bounce@example.com' );
+		Subscriber::confirm( $sub['token'] );
+		Subscriber::suppress( 'excluded-bounce@example.com' );
+
+		$emails = array_column( Subscriber::confirmed_recipients(), 'email' );
+		$this->assertNotContains( 'excluded-bounce@example.com', $emails );
+	}
+
+	public function test_counts_reflects_bounced_status(): void {
+		Subscriber::subscribe( 'countedbounce@example.com' );
+		Subscriber::suppress( 'countedbounce@example.com' );
+
+		$counts = Subscriber::counts();
+		$this->assertSame( 1, $counts['bounced'] );
+	}
+
+	// =========================================================================
 	// counts_by_locale() — audit §8 "locale coverage metric"
 	// =========================================================================
 

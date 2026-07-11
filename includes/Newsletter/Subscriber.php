@@ -207,6 +207,38 @@ class Subscriber {
 	}
 
 	/**
+	 * Suppress a subscriber address after a hard bounce or spam complaint
+	 * (security audit §5a) — called by Email\BounceHandler::record(), the
+	 * shared entry point both intake transports (Webhook's bounce/complaint
+	 * event route, Inbox's DSN header recognition) funnel through.
+	 *
+	 * Only flips 'pending'/'confirmed' rows — a subscriber already
+	 * 'unsubscribed' is already suppressed (no need to overwrite
+	 * unsubscribed_at with a bounce timestamp), and one already 'bounced'
+	 * is left alone rather than repeatedly bumping bounced_at on every
+	 * further bounce for the same dead address.
+	 *
+	 * @param string $email Sanitised email address.
+	 * @return bool True when a row existed and was suppressed by this call.
+	 */
+	public static function suppress( string $email ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_newsletter_subscribers
+				 SET status = 'bounced', bounced_at = %s
+				 WHERE email = %s AND status IN ('pending','confirmed')",
+				current_time( 'mysql' ),
+				$email
+			)
+		);
+
+		return (bool) $updated;
+	}
+
+	/**
 	 * Unsubscribe by token — works whether the subscriber was pending or confirmed.
 	 *
 	 * @return bool True on success, false when the token is unknown or already unsubscribed.
@@ -272,7 +304,7 @@ class Subscriber {
 	/**
 	 * Counts by status, for the admin dashboard.
 	 *
-	 * @return array{pending: int, confirmed: int, unsubscribed: int}
+	 * @return array{pending: int, confirmed: int, unsubscribed: int, bounced: int}
 	 */
 	public static function counts(): array {
 		global $wpdb;
@@ -283,7 +315,7 @@ class Subscriber {
 			ARRAY_A
 		);
 
-		$counts = [ 'pending' => 0, 'confirmed' => 0, 'unsubscribed' => 0 ];
+		$counts = [ 'pending' => 0, 'confirmed' => 0, 'unsubscribed' => 0, 'bounced' => 0 ];
 		foreach ( (array) $rows as $row ) {
 			$status = (string) ( $row['status'] ?? '' );
 			if ( isset( $counts[ $status ] ) ) {

@@ -85,7 +85,7 @@ class Scheduler {
 	 *
 	 * @return true|string True on success, or an error message.
 	 */
-	public function send_now( string $type ): true|string {
+	public function send_now( string $type ): bool|string {
 		if ( ! in_array( $type, self::TYPES, true ) ) {
 			return __( 'Unknown newsletter type.', 'agnosis' );
 		}
@@ -108,7 +108,7 @@ class Scheduler {
 	 *
 	 * @return true|string True on success, or an error message.
 	 */
-	public function send_test( string $type, string $to_email ): true|string {
+	public function send_test( string $type, string $to_email ): bool|string {
 		if ( ! in_array( $type, self::TYPES, true ) ) {
 			return __( 'Unknown newsletter type.', 'agnosis' );
 		}
@@ -208,6 +208,51 @@ class Scheduler {
 		);
 
 		return $sent_at ? (string) $sent_at : null;
+	}
+
+	/**
+	 * Most recent issue id for $type, regardless of its status (draft/
+	 * sending/sent) — an issue reaches 'sent' once it has zero *pending* rows
+	 * left (QueueProcessor::maybe_complete_issue()), so a 'sent' issue can
+	 * still have permanently-'failed' recipient rows sitting in its queue.
+	 * Public for the Settings → Newsletter dashboard's retry-failed-
+	 * recipients button (fifth/sixth audit §5e).
+	 */
+	public function latest_issue_id( string $type ): ?int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$id = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}agnosis_newsletter_issues WHERE newsletter_type = %s ORDER BY id DESC LIMIT 1",
+				$type
+			)
+		);
+
+		return $id ? (int) $id : null;
+	}
+
+	/**
+	 * Count of terminally-'failed' queue rows belonging to $type's most
+	 * recent issue — 0 when there's no issue yet, or nothing failed. Public
+	 * for the same retry-failed-recipients button above; used to show the
+	 * count and disable the button when there's nothing to retry.
+	 */
+	public function failed_count_for_latest_issue( string $type ): int {
+		$issue_id = $this->latest_issue_id( $type );
+		if ( null === $issue_id ) {
+			return 0;
+		}
+
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d AND status = 'failed'",
+				$issue_id
+			)
+		);
 	}
 
 	/**

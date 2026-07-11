@@ -44,6 +44,24 @@ class Webhook {
 	 */
 	private const REPLAY_MEMORY_SECONDS = 600;
 
+	/**
+	 * Rate-limit bucket split (audit §3c). Previously a single
+	 * `email_inbound` bucket (60/60s, keyed by IP) was checked BEFORE the
+	 * HMAC signature — fine when the key is genuinely per-attacker, but on a
+	 * host where a misconfigured reverse proxy or certain CDN setups rewrite
+	 * every request to one shared REMOTE_ADDR, that bucket becomes global:
+	 * an unauthenticated flood of garbage starves the ESP's own legitimate
+	 * signed traffic in the exact same window. Verifying the signature
+	 * first and rate-limiting the two outcomes separately means a flood
+	 * that can never pass hash_equals() only ever spends the tight
+	 * UNVERIFIED bucket; a request that has proven it holds the shared
+	 * secret gets a bucket generous enough to never realistically matter,
+	 * on any host, regardless of REMOTE_ADDR quality.
+	 */
+	private const UNVERIFIED_RATE_LIMIT = 10;
+	private const VERIFIED_RATE_LIMIT   = 300;
+	private const RATE_LIMIT_WINDOW     = 60;
+
 	public function register_routes(): void {
 		register_rest_route(
 			'agnosis/v1',
@@ -51,6 +69,25 @@ class Webhook {
 			[
 				'methods'             => 'POST',
 				'callback'            => [ $this, 'handle' ],
+				'permission_callback' => [ $this, 'verify_signature' ],
+			]
+		);
+
+		// Bounce/complaint events (security audit §5a) — a sibling route, not a
+		// branch inside handle() above: event payloads (Mailgun/SendGrid/
+		// Postmark) are a structurally different thing from an inbound email
+		// payload, and mixing "is this a submission or an event?" guessing
+		// into handle()'s already-long alias-routing chain would only make
+		// both harder to follow. Reuses verify_signature() unchanged — same
+		// shared secret, same Mailgun-classic-triple / generic-HMAC schemes,
+		// same replay protection; point your ESP's bounce/complaint webhook at
+		// this URL instead of (or alongside) the inbound-routing one.
+		register_rest_route(
+			'agnosis/v1',
+			'/email/events',
+			[
+				'methods'             => 'POST',
+				'callback'            => [ $this, 'handle_bounce_event' ],
 				'permission_callback' => [ $this, 'verify_signature' ],
 			]
 		);
@@ -80,7 +117,10 @@ class Webhook {
 		// is Mailgun's own single routed address, but 'To'/'Cc' carry the full
 		// raw header, which can list several. Computed once, reused by both
 		// alias checks below (mirrors Email\Inbox's IMAP-side equivalent).
-		$recipients = $this->webhook_recipient_addresses( $payload );
+		// IntakeGates::recipient_addresses() (sixth audit §6) is the same
+		// parser Parser::parse_webhook_payload() uses — previously each file
+		// had its own byte-identical copy.
+		$recipients = IntakeGates::recipient_addresses( $payload );
 
 		// --- Goodbye alias: self-removal request (no attachment required) ---
 		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
@@ -181,6 +221,7 @@ class Webhook {
 				$body    = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
 
 				if ( '' === trim( $subject ) && '' === trim( $body ) ) {
+					( new CommunityBroadcast() )->send_empty_bounce( $user->ID );
 					$this->mark_alias_event( $payload, $user->ID, 'community_empty', $from_email );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_empty' ], 200 );
 				}
@@ -283,6 +324,153 @@ class Webhook {
 		return new WP_REST_Response( [ 'status' => 'queued', 'id' => $queue_id ], 202 );
 	}
 
+	// -------------------------------------------------------------------------
+	// Bounce/complaint events (security audit §5a)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Handle a bounce/complaint event webhook POST.
+	 *
+	 * Recognizes three payload shapes (each ESP's own native format — this
+	 * plugin does not ask the operator to reshape anything):
+	 *   - Postmark: a single JSON object, `RecordType` is `'Bounce'` or `'SpamComplaint'`.
+	 *   - Mailgun: `event`/`recipient`/`severity`, either at the top level
+	 *     (classic form-encoded webhooks) or nested under `event-data`
+	 *     (current JSON webhooks) — both shapes are checked.
+	 *   - SendGrid: a raw JSON array of event objects, one per address.
+	 *
+	 * Only HARD bounces and spam complaints suppress anything — a soft/
+	 * transient bounce (mailbox full, temporary server issue) is not "this
+	 * address is dead" and must not stop future sends on one blip; each
+	 * provider's own hard/soft distinction is checked before calling
+	 * BounceHandler::record().
+	 *
+	 * Always returns 200 (never a queue-worthy retry signal) — an
+	 * unrecognized payload shape or an address matching neither a
+	 * subscriber nor an artist is not an error the ESP should retry.
+	 */
+	public function handle_bounce_event( WP_REST_Request $request ): WP_REST_Response {
+		$json_params = $request->get_json_params();
+
+		// SendGrid posts a raw JSON array — not an object — so it never
+		// resembles the other two shapes below, which are always keyed arrays.
+		if ( is_array( $json_params ) && array_is_list( $json_params ) ) {
+			$processed = 0;
+			foreach ( $json_params as $event ) {
+				if ( is_array( $event ) && $this->process_sendgrid_event( $event ) ) {
+					++$processed;
+				}
+			}
+			return new WP_REST_Response( [ 'status' => 'processed', 'count' => $processed ], 200 );
+		}
+
+		$payload = $request->get_params();
+
+		if ( isset( $payload['RecordType'] ) ) {
+			$this->process_postmark_event( $payload );
+			return new WP_REST_Response( [ 'status' => 'processed' ], 200 );
+		}
+
+		// Mailgun: prefer the nested 'event-data' object (current JSON
+		// webhooks) when present, otherwise treat the top level as the event
+		// itself (classic form-encoded webhooks — the same shape handle()'s
+		// own Mailgun signature verification above already expects).
+		$event_data = is_array( $payload['event-data'] ?? null ) ? $payload['event-data'] : $payload;
+		if ( isset( $event_data['event'] ) ) {
+			$this->process_mailgun_event( $event_data );
+			return new WP_REST_Response( [ 'status' => 'processed' ], 200 );
+		}
+
+		Logger::warning( 'Webhook: /email/events received a payload that matched no known ESP event shape.', 'webhook' );
+		return new WP_REST_Response( [ 'status' => 'ignored', 'reason' => 'unrecognized_payload' ], 200 );
+	}
+
+	/**
+	 * @param array<string, mixed> $payload Postmark's own single-event JSON object.
+	 */
+	private function process_postmark_event( array $payload ): void {
+		$record_type = (string) ( $payload['RecordType'] ?? '' );
+		$email       = sanitize_email( (string) ( $payload['Email'] ?? '' ) );
+
+		if ( '' === $email ) {
+			return;
+		}
+
+		if ( 'SpamComplaint' === $record_type ) {
+			BounceHandler::record( $email, 'complaint', 'webhook' );
+			return;
+		}
+
+		if ( 'Bounce' === $record_type ) {
+			// Postmark's 'Type' field distinguishes 'HardBounce' from soft/
+			// transient variants (e.g. 'SoftBounce', 'Transient') — only the
+			// former means the address is actually dead.
+			$bounce_type = (string) ( $payload['Type'] ?? '' );
+			if ( false !== stripos( $bounce_type, 'hard' ) ) {
+				BounceHandler::record( $email, 'bounce', 'webhook' );
+			}
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $event_data Mailgun's event object — either the
+	 *                                          top-level payload (classic) or its
+	 *                                          nested 'event-data' (current JSON).
+	 */
+	private function process_mailgun_event( array $event_data ): void {
+		$event     = strtolower( (string) ( $event_data['event'] ?? '' ) );
+		$recipient = sanitize_email( (string) ( $event_data['recipient'] ?? '' ) );
+
+		if ( '' === $recipient ) {
+			return;
+		}
+
+		if ( 'complained' === $event ) {
+			BounceHandler::record( $recipient, 'complaint', 'webhook' );
+			return;
+		}
+
+		if ( 'failed' === $event ) {
+			// 'permanent' severity = hard bounce; 'temporary' is a delivery
+			// delay/retry Mailgun itself is still working on, not a dead address.
+			$severity = strtolower( (string) ( $event_data['severity'] ?? '' ) );
+			if ( 'permanent' === $severity ) {
+				BounceHandler::record( $recipient, 'bounce', 'webhook' );
+			}
+		}
+	}
+
+	/**
+	 * @param array<string, mixed> $event One element of SendGrid's raw JSON event array.
+	 * @return bool True when this event was recognized and acted on.
+	 */
+	private function process_sendgrid_event( array $event ): bool {
+		$type  = strtolower( (string) ( $event['event'] ?? '' ) );
+		$email = sanitize_email( (string) ( $event['email'] ?? '' ) );
+
+		if ( '' === $email ) {
+			return false;
+		}
+
+		if ( 'spamreport' === $type ) {
+			BounceHandler::record( $email, 'complaint', 'webhook' );
+			return true;
+		}
+
+		if ( 'bounce' === $type ) {
+			// SendGrid's own 'type' field distinguishes a hard 'bounce' from a
+			// transient 'blocked' — SendGrid itself retries the latter, so
+			// only 'bounce' means the address is actually dead.
+			$sg_type = strtolower( (string) ( $event['type'] ?? '' ) );
+			if ( 'bounce' === $sg_type ) {
+				BounceHandler::record( $email, 'bounce', 'webhook' );
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Opt-in SPF/DKIM authentication gate (fourth audit §3b).
 	 *
@@ -363,36 +551,26 @@ class Webhook {
 	 * Human-readable error text per alias-event reason — mirrors
 	 * Inbox::SKIP_REASONS's goodbye_* and community_* entries exactly (fifth
 	 * audit §5a/§3b), so the Inbox admin table reads identically regardless of
-	 * which transport a goodbye@/community@ message arrived on.
+	 * which transport a goodbye@/community@ message arrived on. Both this and
+	 * Inbox::SKIP_REASONS are now composed from one shared source,
+	 * IntakeGates::SHARED_ALIAS_REASONS (sixth audit §6) — previously each
+	 * was a separately hand-maintained copy of the same 10 entries.
 	 *
 	 * @var array<string, string>
 	 */
-	private const ALIAS_REASONS = [
-		'goodbye_non_artist'        => 'Skipped: goodbye request from a non-artist sender.',
-		'goodbye_handled'           => 'Goodbye request processed — self-removal confirmation sent.',
-		'goodbye_no_membership'     => 'Goodbye request could not be processed — no active membership found for this sender.',
-		'goodbye_throttled'         => 'Skipped: sender exceeded the daily self-removal (goodbye) request limit.',
-		'community_non_artist'      => 'Skipped: community broadcast request from a non-artist sender.',
-		'community_throttled'       => 'Skipped: sender exceeded the daily community broadcast limit.',
-		'community_empty'           => 'Skipped: community broadcast had no subject or body text.',
-		'community_auto_submitted'  => 'Skipped: message looked like an automated response (Auto-Submitted header), not a genuine community message.',
-		'community_too_long'        => 'Community broadcast exceeded the configured length limit — bounced back to sender, not broadcast.',
-		'community_handled'         => 'Community broadcast processed — sent to every other community member.',
-	];
+	private const ALIAS_REASONS = IntakeGates::SHARED_ALIAS_REASONS;
 
 	/**
 	 * Per-reason queue-row status override — mirrors Inbox::SKIP_STATUSES.
 	 * Reasons not listed here default to 'failed'; the three genuine-success
 	 * reasons are recorded as 'skipped' instead, so the Inbox admin table
-	 * doesn't show a red "Failed" badge for something that worked as intended.
+	 * doesn't show a red "Failed" badge for something that worked as
+	 * intended. Composed from IntakeGates::SHARED_ALIAS_STATUSES (sixth
+	 * audit §6) — see ALIAS_REASONS above.
 	 *
 	 * @var array<string, string>
 	 */
-	private const ALIAS_STATUSES = [
-		'goodbye_handled'    => 'skipped',
-		'community_handled'  => 'skipped',
-		'community_too_long' => 'skipped',
-	];
+	private const ALIAS_STATUSES = IntakeGates::SHARED_ALIAS_STATUSES;
 
 	/**
 	 * Record a goodbye@/community@ webhook event in the queue table so it's
@@ -466,42 +644,6 @@ class Webhook {
 	}
 
 	/**
-	 * Collect every To:/Cc: address in a webhook payload, lowercased (fifth
-	 * audit §5a — mirrors Email\Inbox::message_recipient_addresses() for the
-	 * IMAP path). Mailgun's 'recipient' field is the single address its own
-	 * routing matched, but 'To'/'Cc' carry the full raw header, which can
-	 * list several addresses — a message to `community@` that also CCs a
-	 * friend. Previously only 'recipient' (falling back to 'to') was ever
-	 * checked, so intent lost to header order exactly as on the IMAP path.
-	 *
-	 * @param array<string, mixed> $payload Webhook POST payload.
-	 * @return string[] Lowercased, sanitized email addresses.
-	 */
-	private function webhook_recipient_addresses( array $payload ): array {
-		$raw = [];
-		foreach ( [ 'recipient', 'to', 'To', 'cc', 'Cc' ] as $key ) {
-			if ( ! empty( $payload[ $key ] ) && is_string( $payload[ $key ] ) ) {
-				$raw[] = $payload[ $key ];
-			}
-		}
-
-		if ( empty( $raw ) ) {
-			return [];
-		}
-
-		// Extract bare email addresses out of "Name <addr>, Name2 <addr2>" or a
-		// plain comma-separated header string.
-		preg_match_all( '/[^\s,<>"]+@[^\s,<>"]+/', implode( ',', $raw ), $matches );
-
-		$addrs = array_map(
-		static fn( $e ) => strtolower( sanitize_email( $e ) ),
-		$matches[0]
-		);
-
-		return array_values( array_unique( array_filter( $addrs ) ) );
-	}
-
-	/**
 	 * Verify HMAC signature sent by the webhook provider.
 	 *
 	 * Each provider has its own signing scheme; we support Mailgun and a generic
@@ -516,20 +658,67 @@ class Webhook {
 	 * CDN, the artist's own outbox if they run the ESP) could replay it
 	 * indefinitely, each replay re-spending the AI pipeline (see handle()'s
 	 * queue UID fix, same audit finding, for the other half of this).
+	 *
+	 * Rate-limit ordering (sixth audit §3c): the signature is now matched
+	 * (via match_signature() below) BEFORE any rate limit is applied, and the
+	 * matched/unmatched outcomes are checked against two separate buckets —
+	 * see UNVERIFIED_RATE_LIMIT/VERIFIED_RATE_LIMIT above. Previously a single
+	 * shared bucket was checked first, keyed by IP; on a host where a
+	 * misconfigured reverse proxy collapses every REMOTE_ADDR into one value,
+	 * that made the bucket effectively global, so an unauthenticated flood of
+	 * garbage could starve the ESP's own legitimate signed traffic in the
+	 * same window.
 	 */
 	public function verify_signature( WP_REST_Request $request ): bool|WP_Error {
-		$rate = RateLimiter::check( 'email_inbound', 60, 60 );
+		$secret = get_option( 'agnosis_webhook_secret', '' );
+
+		if ( empty( $secret ) ) {
+			// No secret configured → reject all webhook requests. Not part of
+			// the flood-vs-legitimate-traffic bucket split below — a missing
+			// secret is an operator misconfiguration, not the abuse case §3c
+			// is about, so it isn't worth spending a rate-limit slot on.
+			return new WP_Error( 'agnosis_no_secret', __( 'Webhook secret not configured.', 'agnosis' ), [ 'status' => 403 ] );
+		}
+
+		$match = $this->match_signature( $request, $secret );
+
+		// Bucket split (audit §3c) — see the class docblock on
+		// UNVERIFIED_RATE_LIMIT/VERIFIED_RATE_LIMIT above for why.
+		$rate = $match['matched']
+			? RateLimiter::check( 'email_inbound_verified', self::VERIFIED_RATE_LIMIT, self::RATE_LIMIT_WINDOW )
+			: RateLimiter::check( 'email_inbound_unverified', self::UNVERIFIED_RATE_LIMIT, self::RATE_LIMIT_WINDOW );
 		if ( is_wp_error( $rate ) ) {
 			return $rate;
 		}
 
-		$secret = get_option( 'agnosis_webhook_secret', '' );
-
-		if ( empty( $secret ) ) {
-			// No secret configured → reject all webhook requests.
-			return new WP_Error( 'agnosis_no_secret', __( 'Webhook secret not configured.', 'agnosis' ), [ 'status' => 403 ] );
+		if ( ! $match['attempted'] ) {
+			// Neither a X-Agnosis-Signature header nor a full Mailgun triple
+			// was present at all — nothing here to have even attempted to
+			// verify, as distinct from "attempted and failed" below.
+			return new WP_Error( 'agnosis_invalid_signature', __( 'Invalid or missing webhook signature.', 'agnosis' ), [ 'status' => 403 ] );
 		}
 
+		if ( ! $match['matched'] ) {
+			return false;
+		}
+
+		if ( '' === $match['replay_key'] ) {
+			// Legacy generic scheme with no X-Agnosis-Timestamp header — no
+			// replay-memory key exists to check without one (back-compat).
+			return true;
+		}
+
+		return $this->check_replay_freshness( $match['timestamp'], $match['replay_key'] );
+	}
+
+	/**
+	 * Cryptographically match a request's signature against both supported
+	 * schemes, without any rate-limiting or replay/freshness side effects —
+	 * those happen in verify_signature() above, once, using this result.
+	 *
+	 * @return array{attempted: bool, matched: bool, timestamp: string, replay_key: string}
+	 */
+	private function match_signature( WP_REST_Request $request, string $secret ): array {
 		// --- Generic HMAC-SHA256 (default / custom senders) ---
 		$signature = $request->get_header( 'X-Agnosis-Signature' );
 		if ( $signature ) {
@@ -544,42 +733,39 @@ class Webhook {
 			$timestamp_header = $request->get_header( 'X-Agnosis-Timestamp' );
 			if ( $timestamp_header ) {
 				$expected = hash_hmac( 'sha256', $timestamp_header . $body, $secret );
-				if ( ! hash_equals( $expected, $signature ) ) {
-					return false;
-				}
-
-				$freshness = $this->check_replay_freshness( $timestamp_header, 'generic|' . $signature );
-				if ( is_wp_error( $freshness ) ) {
-					return $freshness;
-				}
-
-				return true;
+				return [
+					'attempted'  => true,
+					'matched'    => hash_equals( $expected, $signature ),
+					'timestamp'  => $timestamp_header,
+					'replay_key' => 'generic|' . $signature,
+				];
 			}
 
 			$expected = hash_hmac( 'sha256', $body, $secret );
-			return hash_equals( $expected, $signature );
+			return [
+				'attempted'  => true,
+				'matched'    => hash_equals( $expected, $signature ),
+				'timestamp'  => '',
+				'replay_key' => '',
+			];
 		}
 
 		// --- Mailgun ---
-		$mg_timestamp = $request->get_param( 'timestamp' );
-		$mg_token     = $request->get_param( 'token' );
-		$mg_signature = $request->get_param( 'signature' );
+		$mg_timestamp = (string) $request->get_param( 'timestamp' );
+		$mg_token     = (string) $request->get_param( 'token' );
+		$mg_signature = (string) $request->get_param( 'signature' );
 
-		if ( $mg_timestamp && $mg_token && $mg_signature ) {
+		if ( '' !== $mg_timestamp && '' !== $mg_token && '' !== $mg_signature ) {
 			$expected = hash_hmac( 'sha256', $mg_timestamp . $mg_token, $secret );
-			if ( ! hash_equals( $expected, $mg_signature ) ) {
-				return false;
-			}
-
-			$freshness = $this->check_replay_freshness( (string) $mg_timestamp, 'mailgun|' . $mg_token );
-			if ( is_wp_error( $freshness ) ) {
-				return $freshness;
-			}
-
-			return true;
+			return [
+				'attempted'  => true,
+				'matched'    => hash_equals( $expected, $mg_signature ),
+				'timestamp'  => $mg_timestamp,
+				'replay_key' => 'mailgun|' . $mg_token,
+			];
 		}
 
-		return new WP_Error( 'agnosis_invalid_signature', __( 'Invalid or missing webhook signature.', 'agnosis' ), [ 'status' => 403 ] );
+		return [ 'attempted' => false, 'matched' => false, 'timestamp' => '', 'replay_key' => '' ];
 	}
 
 	/**
@@ -597,7 +783,7 @@ class Webhook {
 	 *                               be replayed twice inside the freshness window.
 	 * @return true|WP_Error
 	 */
-	private function check_replay_freshness( string $timestamp_raw, string $replay_key_raw ): true|WP_Error {
+	private function check_replay_freshness( string $timestamp_raw, string $replay_key_raw ): bool|WP_Error {
 		if ( ! ctype_digit( $timestamp_raw ) || abs( time() - (int) $timestamp_raw ) > self::TIMESTAMP_FRESHNESS_SECONDS ) {
 			return new WP_Error(
 			'agnosis_webhook_stale_timestamp',

@@ -744,7 +744,40 @@ class ReviewConfirm {
 			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Address', 'agnosis' ) . '</label>'
 			. '<input type="text" name="event_address" value="' . esc_attr( $address ) . '" style="' . esc_attr( $input_style ) . '">'
 			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Timezone', 'agnosis' ) . '</label>'
-			. '<input type="text" name="event_timezone" value="' . esc_attr( $timezone ) . '" placeholder="Europe/Madrid" style="' . esc_attr( $input_style ) . '">';
+			. '<select name="event_timezone" style="' . esc_attr( $input_style ) . '">' . $this->timezone_options_html( $timezone ) . '</select>';
+	}
+
+	/**
+	 * `<option>`/`<optgroup>` markup for every IANA timezone identifier,
+	 * grouped by region (fifth/sixth audit §2b). Previously this was a free
+	 * `<input type="text">` with an "Europe/Madrid" placeholder — validated
+	 * server-side against `DateTimeZone::listIdentifiers()` in
+	 * sync_event_fields() below, but silently discarded (left unchanged)
+	 * when invalid, with no indication to the artist that what they typed
+	 * ("CET", "GMT+2", "Madrid" — all plausible things a non-technical person
+	 * types) didn't stick. A `<select>` removes the whole failure class: only
+	 * a real identifier can ever be submitted.
+	 *
+	 * @param string $selected Currently-set (or prefilled) identifier, may be ''.
+	 */
+	private function timezone_options_html( string $selected ): string {
+		$grouped = [];
+		foreach ( \DateTimeZone::listIdentifiers() as $identifier ) {
+			$region              = str_contains( $identifier, '/' ) ? strstr( $identifier, '/', true ) : __( 'Other', 'agnosis' );
+			$grouped[ $region ][] = $identifier;
+		}
+		ksort( $grouped );
+
+		$html = '<option value="">' . esc_html__( '— Not set —', 'agnosis' ) . '</option>';
+		foreach ( $grouped as $region => $identifiers ) {
+			$html .= '<optgroup label="' . esc_attr( (string) $region ) . '">';
+			foreach ( $identifiers as $identifier ) {
+				$html .= '<option value="' . esc_attr( $identifier ) . '"' . selected( $selected, $identifier, false ) . '>' . esc_html( $identifier ) . '</option>';
+			}
+			$html .= '</optgroup>';
+		}
+
+		return $html;
 	}
 
 	/**

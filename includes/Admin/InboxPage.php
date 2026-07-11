@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin;
 
+use Agnosis\Email\Inbox;
+use Agnosis\Publishing\PostCreator;
+
 class InboxPage {
 
 	private const PAGE = 'agnosis';
@@ -21,6 +24,47 @@ class InboxPage {
 	private const ALLOWED_MIME = [
 		'image/jpeg', 'image/jpg', 'image/png',
 		'image/webp', 'image/gif', 'image/tiff',
+	];
+
+	/**
+	 * Rows per page (security/ops audit §4c). Was a flat, unpaginated
+	 * `LIMIT 100` — a weekend of dictionary spam (every unregistered-sender
+	 * message becomes its own 'failed' row) pushed every real event off the
+	 * single page entirely, with no way to see the rest.
+	 */
+	private const PER_PAGE = 50;
+
+	/** Real ENUM values of agnosis_queue.status — the "All statuses" filter option is the empty string, meaning no WHERE clause on status at all. */
+	private const STATUSES = [ 'pending', 'processing', 'published', 'failed', 'skipped' ];
+
+	/**
+	 * Short, dropdown-friendly labels for the reason filter — keyed
+	 * identically to Inbox::SKIP_REASONS so a selected key can be translated
+	 * straight back into that map's prose for the actual `error`-column
+	 * match (see fetch_rows()). Deliberately shorter than the full prose:
+	 * that's meant for the Error column's tooltip, this is meant to fit in
+	 * a <select> without wrapping.
+	 *
+	 * @var array<string, string>
+	 */
+	private const REASON_FILTER_LABELS = [
+		'unregistered_sender'       => 'Unregistered sender',
+		'not_admitted'              => 'Not an admitted artist',
+		'throttled'                 => 'Rate-limited',
+		'auth_failed'               => 'SPF/DKIM failed',
+		'no_attachments'            => 'No valid attachment',
+		'goodbye_non_artist'        => 'Goodbye — non-artist sender',
+		'goodbye_handled'           => 'Member removed (goodbye)',
+		'goodbye_no_membership'     => 'Goodbye — no membership found',
+		'goodbye_throttled'         => 'Goodbye — rate-limited',
+		'community_non_artist'      => 'Community — non-artist sender',
+		'community_throttled'       => 'Community — rate-limited',
+		'community_empty'           => 'Community — empty message',
+		'community_auto_submitted'  => 'Community — auto-submitted',
+		'community_too_long'        => 'Community — too long (bounced)',
+		'community_handled'         => 'Community broadcast sent',
+		'bounce_handled'            => 'Bounce/complaint processed',
+		'bounce_unresolved'         => 'Bounce/complaint — address not found',
 	];
 
 	// -------------------------------------------------------------------------
@@ -64,15 +108,31 @@ class InboxPage {
 
 		$this->render_notices();
 
-		global $wpdb;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only GET filters/pagination, no state mutation; capability already checked above.
+		$status_filter = isset( $_GET['status_filter'] ) ? sanitize_key( wp_unslash( $_GET['status_filter'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$reason_filter = isset( $_GET['reason_filter'] ) ? sanitize_key( wp_unslash( $_GET['reason_filter'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- int cast makes wp_unslash() redundant (magic-quote slashing never affects digits); cast sits directly against the variable so WPCS's is_safe_casted() check recognizes it.
+		$paged = isset( $_GET['paged'] ) ? max( 1, (int) $_GET['paged'] ) : 1;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows = $wpdb->get_results(
-			"SELECT id, message_uid, artist_id, status, raw_email, error, created_at, updated_at
-			 FROM {$wpdb->prefix}agnosis_queue
-			 ORDER BY id DESC
-			 LIMIT 100"
-		);
+		// An unrecognized value from a tampered/stale URL is simply treated
+		// as "no filter" rather than erroring or matching nothing.
+		if ( ! in_array( $status_filter, self::STATUSES, true ) ) {
+			$status_filter = '';
+		}
+		if ( '' !== $reason_filter && ! isset( Inbox::SKIP_REASONS[ $reason_filter ] ) ) {
+			$reason_filter = '';
+		}
+
+		$result      = $this->fetch_rows( $status_filter, $reason_filter, $paged );
+		$rows        = $result['rows'];
+		$total_pages = (int) ceil( $result['total'] / self::PER_PAGE );
+
+		// Spam aggregation (audit §4c): only relevant when the operator
+		// hasn't already drilled into a specific reason — once they have
+		// (reason_filter === 'unregistered_sender' or anything else), the
+		// rows are shown directly instead of collapsed.
+		$unregistered_count = '' === $reason_filter ? $this->count_unregistered_sender_rows( $status_filter ) : 0;
 
 		?>
 		<div class="wrap agnosis-inbox">
@@ -82,10 +142,18 @@ class InboxPage {
 			</h1>
 
 			<?php $this->render_toolbar(); ?>
+			<?php $this->render_filters( $status_filter, $reason_filter ); ?>
+			<?php $this->render_unregistered_summary( $unregistered_count, $status_filter ); ?>
 
 			<?php if ( empty( $rows ) ) : ?>
 				<p style="margin-top:2rem;color:#666;">
-					<?php esc_html_e( 'No messages in the queue yet. Click "Poll Inbox" to fetch messages from your IMAP account.', 'agnosis' ); ?>
+					<?php
+					echo esc_html(
+						( '' === $status_filter && '' === $reason_filter )
+							? __( 'No messages in the queue yet. Click "Poll Inbox" to fetch messages from your IMAP account.', 'agnosis' )
+							: __( 'No queue rows match this filter.', 'agnosis' )
+					);
+					?>
 				</p>
 			<?php else : ?>
 				<table class="wp-list-table widefat fixed striped agnosis-queue-table">
@@ -94,6 +162,7 @@ class InboxPage {
 							<th style="width:3.5rem"><?php esc_html_e( '#', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'From', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'Subject', 'agnosis' ); ?></th>
+							<th style="width:7rem"><?php esc_html_e( 'Endpoint', 'agnosis' ); ?></th>
 							<th style="width:7rem"><?php esc_html_e( 'Files', 'agnosis' ); ?></th>
 							<th style="width:8rem"><?php esc_html_e( 'Status', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'Received', 'agnosis' ); ?></th>
@@ -144,6 +213,7 @@ class InboxPage {
 									<?php endif; ?>
 								</td>
 								<td><?php echo esc_html( $subject ); ?></td>
+								<td><?php echo esc_html( $this->resolve_endpoint_label( $data, $skip_reason ) ); ?></td>
 								<td>
 									<?php
 									// Build data-URIs for viewable attachments (base64-encoded rows only).
@@ -195,11 +265,7 @@ class InboxPage {
 						<?php endforeach; ?>
 					</tbody>
 				</table>
-				<?php if ( count( $rows ) === 100 ) : ?>
-					<p style="color:#666;margin-top:.5rem;font-size:12px">
-						<?php esc_html_e( 'Showing the 100 most recent queue entries.', 'agnosis' ); ?>
-					</p>
-				<?php endif; ?>
+				<?php $this->render_pagination( $paged, $total_pages, $status_filter, $reason_filter ); ?>
 			<?php endif; ?>
 		</div>
 
@@ -332,6 +398,225 @@ class InboxPage {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
+	/**
+	 * Fetch one page of queue rows plus the total matching row count
+	 * (security/ops audit §4c). Extracted from render() as its own method so
+	 * the filter/pagination logic is directly testable without rendering HTML.
+	 *
+	 * When $reason_filter is empty, 'unregistered_sender' rows are excluded
+	 * from the result — see this class's own docblock on
+	 * render_unregistered_summary() for why: they're aggregated into one
+	 * summary line instead of listed individually, so a spam flood can't
+	 * push real events off the page. Explicitly filtering by
+	 * reason_filter === 'unregistered_sender' shows them directly.
+	 *
+	 * $wpdb returns every column as a string (or null for a NULL column) —
+	 * never native int/enum — hence the all-string shape below, matching
+	 * agnosis_queue's own schema in Activator::activate(). Callers already
+	 * cast id/artist_id to int where needed.
+	 *
+	 * @return array{rows: array<int, object{id: string, message_uid: string, artist_id: string|null, raw_email: string, status: string, error: string|null, created_at: string, updated_at: string}>, total: int}
+	 */
+	protected function fetch_rows( string $status_filter, string $reason_filter, int $paged ): array {
+		global $wpdb;
+
+		$where  = [];
+		$params = [];
+
+		if ( '' !== $status_filter ) {
+			$where[]  = 'status = %s';
+			$params[] = $status_filter;
+		}
+
+		if ( '' !== $reason_filter ) {
+			$where[]  = 'error = %s';
+			$params[] = Inbox::SKIP_REASONS[ $reason_filter ];
+		} else {
+			// error IS NULL must stay included here — SQL's != never matches
+			// NULL, so a bare "error != %s" would silently drop every
+			// pending/processing/published row (none of which ever set an
+			// error) right along with the unregistered_sender rows it's
+			// actually meant to exclude.
+			$where[]  = '( error IS NULL OR error != %s )';
+			$params[] = Inbox::SKIP_REASONS['unregistered_sender'];
+		}
+
+		$where_sql = 'WHERE ' . implode( ' AND ', $where );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where_sql (built just above) is assembled entirely from this method's own hardcoded '%s'-placeholder fragments, never raw input; the actual values are passed through $wpdb->prepare()'s $params array below, same as any other prepared query. The Plugin Check sniff can't trace that composition statically.
+		$total = (int) $wpdb->get_var(
+			// The literal query text carries no %s of its own — every placeholder
+			// lives inside $where_sql, built above from this method's own hardcoded
+			// clause fragments (never raw input), so phpcs can't statically count
+			// them; hence three placeholder sniffs ignored on the string line below.
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_queue {$where_sql}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $where_sql is built entirely from this method's own %s placeholders, never raw input.
+				$params
+			)
+		);
+
+		$offset = ( max( 1, $paged ) - 1 ) * self::PER_PAGE;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- same $where_sql composition as the COUNT query above: hardcoded '%s'-placeholder fragments only, values supplied via $wpdb->prepare()'s $params array.
+		$rows = $wpdb->get_results(
+			// Same reasoning as the COUNT query above: $where_sql's %s placeholders
+			// aren't visible to phpcs's static placeholder count, and the interpolation
+			// itself sits on its own concatenated line below purely so the same-line
+			// ignore comment lands on the token phpcs actually flags.
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$wpdb->prepare(
+				'SELECT id, message_uid, artist_id, status, raw_email, error, created_at, updated_at
+				 FROM ' . $wpdb->prefix . 'agnosis_queue '
+				. $where_sql // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $where_sql is built entirely from this method's own %s placeholders, never raw input.
+				. ' ORDER BY id DESC
+				 LIMIT %d OFFSET %d',
+				array_merge( $params, [ self::PER_PAGE, $offset ] )
+			)
+		);
+
+		return [ 'rows' => $rows, 'total' => $total ];
+	}
+
+	/**
+	 * Count of 'unregistered_sender' rows the current status filter would
+	 * otherwise include — these rows are always status='failed', so any
+	 * OTHER status filter (pending/processing/published/skipped) can never
+	 * contain one; only 'failed' or "all statuses" need the real count.
+	 */
+	protected function count_unregistered_sender_rows( string $status_filter ): int {
+		if ( '' !== $status_filter && 'failed' !== $status_filter ) {
+			return 0;
+		}
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_queue WHERE error = %s",
+				Inbox::SKIP_REASONS['unregistered_sender']
+			)
+		);
+	}
+
+	/**
+	 * Status/reason filter bar (security/ops audit §4c). A GET form (not
+	 * POST) — filtering is idempotent and read-only, so a bookmarked or
+	 * shared filtered URL just works, same as any WP list table's own
+	 * filter dropdowns.
+	 */
+	private function render_filters( string $status_filter, string $reason_filter ): void {
+		$status_labels = [
+			''            => __( 'All statuses', 'agnosis' ),
+			'pending'     => __( 'Pending', 'agnosis' ),
+			'processing'  => __( 'Processing', 'agnosis' ),
+			'published'   => __( 'Published', 'agnosis' ),
+			'failed'      => __( 'Failed', 'agnosis' ),
+			'skipped'     => __( 'Skipped', 'agnosis' ),
+		];
+		?>
+		<div class="tablenav top" style="margin:0 0 1rem">
+			<div class="alignleft actions">
+				<form method="get" style="display:inline-flex;gap:.5rem;align-items:center">
+					<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE ); ?>">
+					<select name="status_filter">
+						<?php foreach ( $status_labels as $value => $label ) : ?>
+							<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $status_filter, $value ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<select name="reason_filter">
+						<option value=""><?php esc_html_e( 'All reasons', 'agnosis' ); ?></option>
+						<?php foreach ( self::REASON_FILTER_LABELS as $key => $label ) : ?>
+							<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $reason_filter, $key ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<button type="submit" class="button"><?php esc_html_e( 'Filter', 'agnosis' ); ?></button>
+					<?php if ( '' !== $status_filter || '' !== $reason_filter ) : ?>
+						<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::PAGE ) ); ?>"><?php esc_html_e( 'Reset', 'agnosis' ); ?></a>
+					<?php endif; ?>
+				</form>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Collapsed "N messages from unregistered senders" summary line
+	 * (security/ops audit §4c). An unregistered-sender message becomes its
+	 * own 'failed' queue row (correct — the state machine needs it to avoid
+	 * re-fetching the same UID), but a weekend of dictionary spam can mean
+	 * hundreds of these, pushing every real event off the default view
+	 * entirely. Rather than listing each one, the default (no reason chosen)
+	 * view excludes them from the table (see fetch_rows()) and shows this one
+	 * line instead, linking through to the same rows filtered explicitly.
+	 */
+	private function render_unregistered_summary( int $count, string $status_filter ): void {
+		if ( $count <= 0 ) {
+			return;
+		}
+
+		$view_url = add_query_arg(
+			array_filter( [
+				'page'          => self::PAGE,
+				'status_filter' => $status_filter,
+				'reason_filter' => 'unregistered_sender',
+			] ),
+			admin_url( 'admin.php' )
+		);
+
+		printf(
+			'<p class="agnosis-unregistered-summary" style="background:#fef3c7;border-left:4px solid #d97706;padding:.6rem 1rem;margin:0 0 1rem;font-size:13px">%s</p>',
+			wp_kses(
+				sprintf(
+					/* translators: 1: number of collapsed messages, 2: URL to view them */
+					_n(
+						'%1$d message from an unregistered sender is hidden from this view. <a href="%2$s">View it</a>.',
+						'%1$d messages from unregistered senders are hidden from this view. <a href="%2$s">View them</a>.',
+						$count,
+						'agnosis'
+					),
+					number_format_i18n( $count ),
+					esc_url( $view_url )
+				),
+				[ 'a' => [ 'href' => [] ] ]
+			)
+		);
+	}
+
+	/** Prev/Next pager for the queue table (security/ops audit §4c) — replaces the old flat, unpaginated "showing the 100 most recent" notice. */
+	private function render_pagination( int $current_page, int $total_pages, string $status_filter, string $reason_filter ): void {
+		if ( $total_pages <= 1 ) {
+			return;
+		}
+
+		$base_args = array_filter( [
+			'page'          => self::PAGE,
+			'status_filter' => $status_filter,
+			'reason_filter' => $reason_filter,
+		] );
+		?>
+		<div class="tablenav-pages" style="margin-top:1rem">
+			<span class="displaying-num">
+				<?php
+				printf(
+					/* translators: 1: current page number, 2: total number of pages */
+					esc_html__( 'Page %1$d of %2$d', 'agnosis' ),
+					(int) $current_page,
+					(int) $total_pages
+				);
+				?>
+			</span>
+			<span style="margin-left:.75rem">
+				<?php if ( $current_page > 1 ) : ?>
+					<a class="button" href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'paged' => $current_page - 1 ] ), admin_url( 'admin.php' ) ) ); ?>">&larr; <?php esc_html_e( 'Previous', 'agnosis' ); ?></a>
+				<?php endif; ?>
+				<?php if ( $current_page < $total_pages ) : ?>
+					<a class="button" href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'paged' => $current_page + 1 ] ), admin_url( 'admin.php' ) ) ); ?>"><?php esc_html_e( 'Next', 'agnosis' ); ?> &rarr;</a>
+				<?php endif; ?>
+			</span>
+		</div>
+		<?php
+	}
+
 	private function render_toolbar(): void {
 		?>
 		<div class="agnosis-toolbar">
@@ -364,6 +649,35 @@ class InboxPage {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Label for the Endpoint column (patch 18) — which email address a
+	 * submission was sent to, or which alias it hit.
+	 *
+	 * goodbye@/community@/bounce events (security audit §5a) never carry a
+	 * normal submission shape — their raw_email is just `{"from":...,
+	 * "skip_reason":...}` (see Webhook::mark_alias_event()), so they're
+	 * labelled straight from $skip_reason rather than being handed to
+	 * PostCreator::resolve_endpoint_label(), which would otherwise fall
+	 * through to its "Artwork" default for lack of any recipient/subject
+	 * signal to read.
+	 *
+	 * @param array<string, mixed> $data        Decoded raw_email JSON for this row.
+	 * @param string               $skip_reason This row's skip_reason, if any (already
+	 *                                           extracted by the caller for the status badge).
+	 */
+	private function resolve_endpoint_label( array $data, string $skip_reason ): string {
+		if ( str_starts_with( $skip_reason, 'goodbye_' ) ) {
+			return __( 'Goodbye', 'agnosis' );
+		}
+		if ( str_starts_with( $skip_reason, 'community_' ) ) {
+			return __( 'Community', 'agnosis' );
+		}
+		if ( str_starts_with( $skip_reason, 'bounce_' ) ) {
+			return __( 'Bounce', 'agnosis' );
+		}
+		return PostCreator::resolve_endpoint_label( $data );
 	}
 
 	private function render_status_badge( string $status, ?string $wp_post_status = null, string $skip_reason = '' ): void {

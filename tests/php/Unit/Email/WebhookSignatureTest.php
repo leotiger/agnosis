@@ -20,8 +20,10 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Unit\Email;
 
+use Agnosis\Core\RateLimiter;
 use Agnosis\Email\Webhook;
 use PHPUnit\Framework\TestCase;
+use WP_Error;
 
 class WebhookSignatureTest extends TestCase {
 
@@ -34,6 +36,12 @@ class WebhookSignatureTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		self::$options = [];
+		// Bucket split (sixth audit §3c) — reset both so this file's own test
+		// count never depends on what ran before it in the same PHPUnit
+		// process (transients are a plain in-memory array for the whole run,
+		// per dev/bootstrap.php's stub).
+		RateLimiter::reset( 'email_inbound_verified', RateLimiter::client_ip(), 60 );
+		RateLimiter::reset( 'email_inbound_unverified', RateLimiter::client_ip(), 60 );
 	}
 
 	protected function tearDown(): void {
@@ -192,5 +200,75 @@ class WebhookSignatureTest extends TestCase {
 		$result = ( new Webhook() )->verify_signature( $request );
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// Rate-limit bucket split (sixth audit §3c)
+	//
+	// Previously a single 'email_inbound' bucket (60/60s, IP-keyed) was
+	// checked BEFORE the signature — on a host where a misconfigured reverse
+	// proxy collapses every REMOTE_ADDR into one value, that bucket becomes
+	// effectively global, so an unauthenticated flood of garbage could starve
+	// the ESP's own legitimate signed traffic in the same window. The
+	// signature is now matched first, and the matched/unmatched outcomes use
+	// two separate buckets (UNVERIFIED_RATE_LIMIT=10, VERIFIED_RATE_LIMIT=300,
+	// both per 60s) — these tests can't directly observe "which bucket", but
+	// they can observe the outcome: exhausting one must never affect the
+	// other.
+	// -------------------------------------------------------------------------
+
+	public function test_unverified_requests_are_throttled_after_ten_within_the_window(): void {
+		self::$options['agnosis_webhook_secret'] = self::TEST_SECRET;
+
+		for ( $i = 0; $i < 10; $i++ ) {
+			$request = new \WP_REST_Request(
+				headers: [ 'x-agnosis-signature' => 'definitely-wrong-signature' ],
+				body: self::TEST_BODY
+			);
+			$result = ( new Webhook() )->verify_signature( $request );
+			$this->assertFalse( $result, "Attempt #{$i} with a bad signature must return false — the tight bucket has room left." );
+		}
+
+		// The 11th unverified attempt within the same 60s window must now be
+		// throttled — UNVERIFIED_RATE_LIMIT is 10.
+		$request = new \WP_REST_Request(
+			headers: [ 'x-agnosis-signature' => 'definitely-wrong-signature' ],
+			body: self::TEST_BODY
+		);
+		$result = ( new Webhook() )->verify_signature( $request );
+
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$data = $result->get_error_data( 'agnosis_rate_limit' );
+		$this->assertSame( 429, $data['status'] ?? null );
+	}
+
+	public function test_verified_requests_use_a_separate_bucket_from_unverified(): void {
+		self::$options['agnosis_webhook_secret'] = self::TEST_SECRET;
+
+		// Exhaust the tight unverified bucket with garbage first.
+		for ( $i = 0; $i < 10; $i++ ) {
+			( new Webhook() )->verify_signature( new \WP_REST_Request(
+				headers: [ 'x-agnosis-signature' => 'definitely-wrong-signature' ],
+				body: self::TEST_BODY
+			) );
+		}
+		$throttled = ( new Webhook() )->verify_signature( new \WP_REST_Request(
+			headers: [ 'x-agnosis-signature' => 'definitely-wrong-signature' ],
+			body: self::TEST_BODY
+		) );
+		$this->assertInstanceOf( WP_Error::class, $throttled, 'Sanity check: the unverified bucket must actually be exhausted at this point.' );
+
+		// A validly signed request must still succeed — proving it draws from
+		// the separate, generous "verified" bucket, not the exhausted one.
+		$signature = hash_hmac( 'sha256', self::TEST_BODY, self::TEST_SECRET );
+		$verified_request = new \WP_REST_Request(
+			headers: [ 'x-agnosis-signature' => $signature ],
+			body: self::TEST_BODY
+		);
+
+		$this->assertTrue(
+			( new Webhook() )->verify_signature( $verified_request ),
+			'A validly signed request must succeed even while the unverified bucket is fully exhausted.'
+		);
 	}
 }

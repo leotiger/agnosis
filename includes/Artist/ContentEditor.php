@@ -192,7 +192,7 @@ class ContentEditor {
 	 * check_access() inside save_text() — mirrors ReviewEndpoints's existing
 	 * two-tier pattern.
 	 */
-	public function check_permission( WP_REST_Request $request ): true|WP_Error {
+	public function check_permission( WP_REST_Request $request ): bool|WP_Error {
 		if ( is_user_logged_in() ) {
 			return true;
 		}
@@ -562,7 +562,7 @@ class ContentEditor {
 	 *
 	 * @return true|WP_Error
 	 */
-	private function check_access( WP_REST_Request $request, int $post_id ): true|WP_Error {
+	private function check_access( WP_REST_Request $request, int $post_id ): bool|WP_Error {
 		unset( $request ); // Reserved for a future token path; not used today.
 
 		$user_id = get_current_user_id();
@@ -629,7 +629,7 @@ class ContentEditor {
 	 *
 	 * @return true|WP_Error
 	 */
-	private function check_own_language( int $user_id, int $post_id ): true|WP_Error {
+	private function check_own_language( int $user_id, int $post_id ): bool|WP_Error {
 		if ( ! LinguaForge::is_active() ) {
 			return true;
 		}
@@ -727,7 +727,7 @@ class ContentEditor {
 	 *
 	 * @return true|WP_Error
 	 */
-	private function write_field( int $post_id, string $target, string $value ): true|WP_Error {
+	private function write_field( int $post_id, string $target, string $value ): bool|WP_Error {
 		if ( str_starts_with( $target, '_' ) ) {
 			update_post_meta( $post_id, $target, $value );
 			return true;

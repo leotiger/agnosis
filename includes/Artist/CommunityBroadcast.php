@@ -81,6 +81,7 @@ namespace Agnosis\Artist;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\CommunityMailer;
+use Agnosis\Core\EmailFooter;
 use Agnosis\Core\Logger;
 
 class CommunityBroadcast {
@@ -179,6 +180,57 @@ class CommunityBroadcast {
 	}
 
 	/**
+	 * Tell the sender their message had no usable content instead of silently
+	 * dropping it (fifth/sixth audit §2c — parity with send_too_long_bounce()
+	 * above: a too-long message already got an explanation; an empty one
+	 * — e.g. an artist whose mail client sent an HTML-only body the parser
+	 * reduced to nothing — previously got only silence, recorded internally
+	 * as 'community_empty' with no reply at all, so the artist believed
+	 * their announcement went out).
+	 *
+	 * Sent in the sender's own account locale, same as every other
+	 * per-recipient email in this plugin.
+	 *
+	 * @param int $sender_id WP user ID of the artist whose message was empty.
+	 */
+	public function send_empty_bounce( int $sender_id ): void {
+		$sender = get_userdata( $sender_id );
+		if ( ! $sender ) {
+			return;
+		}
+
+		$locale = (string) get_user_meta( $sender_id, 'locale', true );
+		if ( '' !== $locale ) {
+			switch_to_locale( $locale );
+		}
+
+		$site_name = get_bloginfo( 'name' );
+		$subject   = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] Your community message was not sent — no content found', 'agnosis' ),
+			$site_name
+		);
+
+		$body = sprintf(
+			/* translators: 1: sender's display name, 2: site name */
+			__( "Hi %1\$s,\n\nYour message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.\n\nPlease try sending it again with plain text included.\n\n— %2\$s", 'agnosis' ),
+			$sender->display_name,
+			$site_name
+		);
+
+		wp_mail( $sender->user_email, $subject, $body, CommunityMailer::text_headers() );
+
+		if ( '' !== $locale ) {
+			restore_current_locale();
+		}
+
+		Logger::info(
+			sprintf( 'CommunityBroadcast: message from artist #%d had no usable subject or body — bounced, not broadcast.', $sender_id ),
+			'community-broadcast'
+		);
+	}
+
+	/**
 	 * Relay $subject/$body from $sender_id to every other admitted artist.
 	 *
 	 * Callers (Email\Inbox / Email\Webhook) are responsible for verifying the
@@ -205,10 +257,23 @@ class CommunityBroadcast {
 			return 0;
 		}
 
+		// Excludes an artist who has muted community broadcasts (security audit
+		// §5b — the practical alternative to muting was the spam button, the
+		// single worst outcome for the shared domain's reputation). Same
+		// OR/NOT EXISTS meta_query shape as Newsletter\Scheduler::artist_recipients()'s
+		// newsletter opt-out, applied to the separate `_agnosis_broadcast_optout`
+		// flag — muting broadcasts says nothing about the newsletter or vote
+		// emails, which are independent preferences (see also
+		// AdmissionNotification::on_application_received()'s vote-email-mode filter).
 		$recipients = get_users( [
-			'role'    => 'agnosis_artist',
-			'exclude' => [ $sender_id ],
-			'fields'  => [ 'ID', 'user_email', 'display_name' ],
+			'role'       => 'agnosis_artist',
+			'exclude'    => [ $sender_id ],
+			'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- small table (admitted artists only), acceptable.
+				'relation' => 'OR',
+				[ 'key' => '_agnosis_broadcast_optout', 'compare' => 'NOT EXISTS' ],
+				[ 'key' => '_agnosis_broadcast_optout', 'value' => '1', 'compare' => '!=' ],
+			],
+			'fields'     => [ 'ID', 'user_email', 'display_name' ],
 		] );
 
 		if ( empty( $recipients ) ) {
@@ -281,7 +346,7 @@ class CommunityBroadcast {
 					switch_to_locale( $locale );
 				}
 
-				$this->send_one( $recipient->user_email, $sender, $translated_subject, $translated_body );
+				$this->send_one( $recipient->user_email, (int) $recipient->ID, $sender, $translated_subject, $translated_body );
 				++$sent;
 
 				if ( '' !== $locale ) {
@@ -309,7 +374,7 @@ class CommunityBroadcast {
 	 * plugin (Departure/CommunityCap vote emails) — there is no HTML template
 	 * to reuse here and nothing visual to convey.
 	 */
-	private function send_one( string $to, \WP_User $sender, string $subject, string $body ): void {
+	private function send_one( string $to, int $recipient_id, \WP_User $sender, string $subject, string $body ): void {
 		$site_name = get_bloginfo( 'name' );
 
 		$mail_subject = sprintf(
@@ -351,6 +416,18 @@ class CommunityBroadcast {
 			$lines[] = sprintf( __( 'This message was sent by %s.', 'agnosis' ), $sender->display_name );
 		}
 		$lines[] = '';
+
+		// Security audit §5b/§4a: a recipient annoyed by broadcast volume
+		// otherwise has no dial short of the spam button. Empty when
+		// $recipient_id somehow isn't an artist (EmailFooter::is_artist() —
+		// shouldn't happen here since broadcast()'s own query is role-scoped,
+		// but handled gracefully rather than assumed).
+		$prefs_line = EmailFooter::preferences_plain_text( $recipient_id );
+		if ( '' !== $prefs_line ) {
+			$lines[] = $prefs_line;
+			$lines[] = '';
+		}
+
 		$lines[] = $site_name;
 
 		$headers = CommunityMailer::text_headers();

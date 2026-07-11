@@ -814,6 +814,46 @@ class Notification {
 				. '</div>';
 		}
 
+		// replace@/[Event] title-miss suggestion (audit §2a) — a subject that
+		// doesn't exactly match one of the artist's existing titles still
+		// creates a brand-new post (unchanged, and correctly so — replace is
+		// destructive, never auto-merged on a fuzzy guess), but that used to
+		// read exactly like an ordinary new-artwork draft, so an artist who
+		// meant to update "Sunset Over the Harbor" would only discover the
+		// duplicate later. `_agnosis_merge_miss_suggestion` (JSON
+		// {type, title}) is written by PostCreator::create_post() whenever
+		// find_post_by_subject() missed AND gather_title_context()'s fuzzy AI
+		// comparison — the same "did you mean" machinery §2c already built for
+		// remove@/promote@ — found a plausible candidate among the artist's
+		// other posts.
+		$merge_miss_html = '';
+		$merge_miss_raw  = (string) get_post_meta( $post->ID, '_agnosis_merge_miss_suggestion', true );
+		$merge_miss      = $merge_miss_raw ? (array) json_decode( $merge_miss_raw, true ) : [];
+		$merge_miss_title = (string) ( $merge_miss['title'] ?? '' );
+
+		if ( '' !== $merge_miss_title ) {
+			// Two full, independently-translatable sentences rather than
+			// composing a translated verb fragment into another translated
+			// string via sprintf() — word order and grammar don't necessarily
+			// compose the same way across the 17 shipped locales.
+			$message = 'event_update' === ( $merge_miss['type'] ?? '' )
+				? sprintf(
+					/* translators: %s: fuzzy-matched event title suggestion */
+					esc_html__( 'Its subject line didn\'t exactly match one of your existing titles. If you meant to update an existing event, "%s", resend your email with that exact title instead.', 'agnosis' ),
+					esc_html( $merge_miss_title )
+				)
+				: sprintf(
+					/* translators: %s: fuzzy-matched artwork title suggestion */
+					esc_html__( 'Its subject line didn\'t exactly match one of your existing titles. If you meant to replace an existing artwork, "%s", resend your email with that exact title instead.', 'agnosis' ),
+					esc_html( $merge_miss_title )
+				);
+
+			$merge_miss_html = '<div style="background:#fef9ec;border-left:3px solid #f0a500;padding:14px 16px;border-radius:4px;margin:0 0 24px;font-size:17px;color:#555;">'
+				. '<strong style="color:#8a6200;">' . esc_html__( '📄 This was published as a new post', 'agnosis' ) . '</strong>'
+				. '<p style="margin:8px 0 0;">' . $message . '</p>'
+				. '</div>';
+		}
+
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$excerpt   = esc_html( $post->post_excerpt );
@@ -880,6 +920,10 @@ class Notification {
 
 		<?php if ( $dropped_links_html ) : ?>
 			<?php echo $dropped_links_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html() above. ?>
+		<?php endif; ?>
+
+		<?php if ( $merge_miss_html ) : ?>
+			<?php echo $merge_miss_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html()/esc_html__() above. ?>
 		<?php endif; ?>
 
 		<!-- Original title (artist's language) — the canonical name of the work -->

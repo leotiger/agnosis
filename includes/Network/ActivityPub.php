@@ -118,7 +118,7 @@ class ActivityPub {
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return true|WP_Error
 	 */
-	public function verify_inbox_signature( WP_REST_Request $request ): true|WP_Error {
+	public function verify_inbox_signature( WP_REST_Request $request ): bool|WP_Error {
 		return HttpSignature::verify( $request );
 	}
 

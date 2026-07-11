@@ -409,6 +409,82 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 	// Orphaned rows (issue deleted mid-send)
 	// =========================================================================
 
+	// =========================================================================
+	// retry_failed() (audit §5e — newsletter dashboard "Retry Failed" button)
+	// =========================================================================
+
+	public function test_retry_failed_resets_failed_rows_to_pending(): void {
+		$this->create_confirmed_subscriber( 'retry-me@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls, fn( array $atts ) => false );
+		$this->processor->process();
+		$this->processor->process();
+		$this->processor->process(); // exhausts MAX_ATTEMPTS — row becomes terminally 'failed'
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$row_before = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'failed', $row_before->status );
+		$this->assertSame( 3, (int) $row_before->attempts );
+
+		$requeued = $this->processor->retry_failed( (int) $issue->id );
+
+		$this->assertSame( 1, $requeued );
+		$row_after = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'pending', $row_after->status );
+		$this->assertSame( 0, (int) $row_after->attempts );
+		$this->assertNull( $row_after->resolved_at );
+	}
+
+	public function test_retry_failed_leaves_sent_rows_untouched(): void {
+		$this->create_confirmed_subscriber( 'sent-ok@example.com' );
+		$this->create_confirmed_subscriber( 'failing@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls, fn( array $atts ) => 'failing@example.com' !== $atts['to'] );
+		$this->processor->process();
+		$this->processor->process();
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$requeued = $this->processor->retry_failed( (int) $issue->id );
+
+		$this->assertSame( 1, $requeued, 'Only the terminally-failed row should be reset — the already-sent row must not count.' );
+
+		global $wpdb;
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT recipient_email, status FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d",
+				$issue->id
+			),
+			ARRAY_A
+		);
+		$by_email = array_column( $rows, 'status', 'recipient_email' );
+		$this->assertSame( 'sent', $by_email['sent-ok@example.com'] );
+		$this->assertSame( 'pending', $by_email['failing@example.com'] );
+	}
+
+	public function test_retry_failed_returns_zero_when_nothing_failed(): void {
+		$this->create_confirmed_subscriber( 'ok-only@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertSame( 0, $this->processor->retry_failed( (int) $issue->id ) );
+	}
+
+	public function test_retry_failed_returns_zero_for_unknown_issue(): void {
+		$this->assertSame( 0, $this->processor->retry_failed( 999999 ) );
+	}
+
 	public function test_orphaned_queue_row_is_marked_failed_without_sending(): void {
 		global $wpdb;
 

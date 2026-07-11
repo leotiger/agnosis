@@ -80,4 +80,52 @@ class InboxCleanupDebugPruneTest extends \WP_UnitTestCase {
 			'With retention configured to 3 days, a 5-day-old dump must be pruned even though it is well within the 14-day default.'
 		);
 	}
+
+	// -------------------------------------------------------------------------
+	// agnosis_imap_cleanup_days default alignment (audit §5e) — cleanup_queue()
+	// previously fell back to 30 days when the option row was missing, while
+	// Settings/Activator both document and seed 7. Regression coverage: seed a
+	// queue row aged between the two (10 days — older than the aligned 7-day
+	// default, younger than the old drifted 30-day one) with NO option row
+	// present at all, so the fallback itself is what's under test.
+	// -------------------------------------------------------------------------
+
+	private function seed_queue_row( string $uid, string $status, int $age_days ): void {
+		global $wpdb;
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prefix . 'agnosis_queue',
+			[
+				'message_uid' => $uid,
+				'raw_email'   => '{}',
+				'status'      => $status,
+				'created_at'  => gmdate( 'Y-m-d H:i:s', time() - $age_days * DAY_IN_SECONDS ),
+			],
+			[ '%s', '%s', '%s', '%s' ]
+		);
+	}
+
+	private function queue_row_exists( string $uid ): bool {
+		global $wpdb;
+		return null !== $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare( "SELECT id FROM {$wpdb->prefix}agnosis_queue WHERE message_uid = %s", $uid )
+		);
+	}
+
+	public function test_cleanup_queue_falls_back_to_seven_days_not_thirty_when_option_is_unset(): void {
+		delete_option( 'agnosis_imap_cleanup_days' );
+
+		$this->seed_queue_row( 'cleanup-drift-old-10d', 'published', 10 );
+		$this->seed_queue_row( 'cleanup-drift-new-5d', 'published', 5 );
+
+		( new Inbox() )->cleanup();
+
+		$this->assertFalse(
+			$this->queue_row_exists( 'cleanup-drift-old-10d' ),
+			'With the option unset, the fallback must be 7 days (matching Settings/Activator) — a 10-day-old row must be pruned. Before the §5e fix, cleanup_queue() fell back to 30 days here and would have wrongly kept this row.'
+		);
+		$this->assertTrue(
+			$this->queue_row_exists( 'cleanup-drift-new-5d' ),
+			'A 5-day-old row is within the 7-day fallback and must survive.'
+		);
+	}
 }

@@ -425,7 +425,10 @@ class Parser {
 	public function parse_webhook_payload( array $payload ): ?array {
 		$from         = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
 		$to_address   = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
-		$to_addresses = $this->extract_recipient_addresses( $payload );
+		// IntakeGates::recipient_addresses() (sixth audit §6) is the same
+		// parser Webhook::handle() uses — previously each file had its own
+		// byte-identical copy.
+		$to_addresses = IntakeGates::recipient_addresses( $payload );
 		$subject      = sanitize_text_field( $payload['subject'] ?? '' );
 		$description  = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
 		$attachments  = [];
@@ -435,10 +438,39 @@ class Parser {
 		for ( $i = 1; $i <= $attachment_count; $i++ ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- request authenticated via HMAC in Webhook::verify_signature(); file type/size validated below.
 			$file = $_FILES[ 'attachment-' . $i ] ?? null;
-			if ( null === $file || ! $this->is_allowed_mime( $file['type'] ) ) {
+			if ( null === $file ) {
 				continue;
 			}
-			if ( $file['size'] > $this->max_bytes_for( $file['type'] ) ) {
+
+			// audit §3e: previously trusted $file['type'] — entirely
+			// sender-declared, no byte-level check at all — while the IMAP
+			// path always fileinfo-sniffs first. Same fallback order as
+			// parse_imap_message() above: the declared type is only trusted
+			// once the actual bytes fail to sniff as anything on the
+			// allow-list, never trusted first.
+			$declared  = strtolower( (string) ( $file['type'] ?? '' ) );
+			$sniffed   = $this->sniff_mime_from_path( (string) ( $file['tmp_name'] ?? '' ) );
+			$mime_used = $sniffed;
+
+			if ( ! $this->is_allowed_mime( $sniffed ) ) {
+				Logger::info(
+					sprintf(
+						'Parser: webhook attachment "%s" — sniffed mime "%s" not allowed; declared type "%s".',
+						(string) ( $file['name'] ?? '' ) ?: 'unknown',
+						$sniffed ?: '(empty)',
+						$declared ?: '(empty)'
+					),
+					'inbox'
+				);
+
+				if ( $this->is_allowed_mime( $declared ) ) {
+					$mime_used = $declared;
+				} else {
+					continue;
+				}
+			}
+
+			if ( (int) ( $file['size'] ?? 0 ) > $this->max_bytes_for( $mime_used ) ) {
 				continue;
 			}
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
@@ -446,7 +478,7 @@ class Parser {
 			if ( false !== $data ) {
 				$attachments[] = [
 					'filename' => sanitize_file_name( $file['name'] ),
-					'mime'     => $file['type'],
+					'mime'     => $mime_used,
 					'data'     => $data,
 				];
 			}
@@ -472,44 +504,36 @@ class Parser {
 	// Private helpers
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Collect every To:/Cc: address from a webhook payload (fifth audit §5a).
-	 *
-	 * Mailgun's 'recipient' field is the single address its own routing
-	 * matched, but 'To'/'Cc' carry the full raw header — which can list
-	 * several addresses (e.g. a message to `community@` that also CCs a
-	 * friend). Previously only 'recipient' (falling back to 'to') was ever
-	 * checked, so — same as the IMAP path — intent lost to header order.
-	 *
-	 * @param array<string, mixed> $payload Webhook POST payload.
-	 * @return string[] Lowercased, sanitized email addresses.
-	 */
-	private function extract_recipient_addresses( array $payload ): array {
-		$raw = [];
-		foreach ( [ 'recipient', 'to', 'To', 'cc', 'Cc' ] as $key ) {
-			if ( ! empty( $payload[ $key ] ) && is_string( $payload[ $key ] ) ) {
-				$raw[] = $payload[ $key ];
-			}
-		}
-
-		if ( empty( $raw ) ) {
-			return [];
-		}
-
-		// Extract bare email addresses out of "Name <addr>, Name2 <addr2>" or a
-		// plain comma-separated header string.
-		preg_match_all( '/[^\s,<>"]+@[^\s,<>"]+/', implode( ',', $raw ), $matches );
-
-		$addrs = array_map(
-			static fn( $e ) => strtolower( sanitize_email( $e ) ),
-			$matches[0]
-		);
-
-		return array_values( array_unique( array_filter( $addrs ) ) );
-	}
-
 	private function is_allowed_mime( string $mime ): bool {
 		return in_array( strtolower( $mime ), self::ALLOWED_MIME, true );
+	}
+
+	/**
+	 * Sniff a file's real MIME type from its actual bytes via PHP's fileinfo
+	 * extension (audit §3e). Mirrors parse_imap_message()'s own convention —
+	 * webklex's Attachment::getMimeType() never trusts a declared
+	 * Content-Type on its own either — so the webhook path (previously the
+	 * only one of the two intake transports that accepted
+	 * `$_FILES[...]['type']`, entirely sender-declared, with no byte-level
+	 * check at all) now applies the same sniff-first rule. Returns '' if the
+	 * file can't be read or fileinfo itself is unavailable, so callers fall
+	 * through to the declared-type fallback exactly as the IMAP path does
+	 * when its own sniff comes back empty or unrecognized.
+	 */
+	private function sniff_mime_from_path( string $path ): string {
+		if ( '' === $path || ! is_readable( $path ) ) {
+			return '';
+		}
+		if ( ! function_exists( 'finfo_open' ) ) {
+			return '';
+		}
+		$finfo = finfo_open( FILEINFO_MIME_TYPE );
+		if ( false === $finfo ) {
+			return '';
+		}
+		$mime = finfo_file( $finfo, $path );
+		finfo_close( $finfo );
+		return strtolower( (string) ( $mime ?: '' ) );
 	}
 
 	/** Maximum accepted byte size for a given attachment MIME type. */

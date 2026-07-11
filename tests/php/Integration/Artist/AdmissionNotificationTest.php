@@ -306,6 +306,70 @@ class AdmissionNotificationTest extends \WP_UnitTestCase {
 		$this->assertEmpty( $this->sent_mails );
 	}
 
+	public function test_received_skips_instant_email_for_digest_mode_artist(): void {
+		// Security audit §5b/§4a: an artist who switched to digest mode must
+		// not also get the instant per-application email — Artist\VoteDigest's
+		// daily cron is what delivers it to them instead.
+		$digest_artist  = $this->create_artist( 'digest-mode@example.com' );
+		$instant_artist = $this->create_artist( 'instant-mode@example.com' );
+		update_user_meta( $digest_artist, '_agnosis_vote_email_mode', 'digest' );
+		$application_id = $this->insert_application( 'digestapp@example.com', 'Digest Applicant' );
+
+		$this->start_mail_capture();
+		$this->notification->on_application_received( $application_id, 'digestapp@example.com', 'Digest Applicant' );
+		$this->remove_mail_capture();
+
+		$this->assertEmpty( $this->mails_to( 'digest-mode@example.com' ), 'A digest-mode artist must not receive the instant vote email.' );
+		$this->assertNotEmpty( $this->mails_to( 'instant-mode@example.com' ), 'An instant-mode (default) artist must still receive it immediately.' );
+	}
+
+	public function test_received_vote_mode_value_other_than_digest_still_gets_instant_email(): void {
+		// Mirrors the same "only the literal expected value opts out" convention
+		// used by the broadcast-mute meta and Scheduler::artist_recipients().
+		$artist = $this->create_artist( 'stale-vote-meta@example.com' );
+		update_user_meta( $artist, '_agnosis_vote_email_mode', 'nonsense' );
+		$application_id = $this->insert_application( 'staleapp@example.com', 'Stale Meta Applicant' );
+
+		$this->start_mail_capture();
+		$this->notification->on_application_received( $application_id, 'staleapp@example.com', 'Stale Meta Applicant' );
+		$this->remove_mail_capture();
+
+		$this->assertNotEmpty( $this->mails_to( 'stale-vote-meta@example.com' ) );
+	}
+
+	public function test_received_admin_summary_mentions_deferred_digest_count(): void {
+		$this->create_artist( 'instant-a@example.com' );
+		$digest_artist = $this->create_artist( 'digest-a@example.com' );
+		update_user_meta( $digest_artist, '_agnosis_vote_email_mode', 'digest' );
+		$application_id = $this->insert_application( 'summary@example.com', 'Summary Applicant' );
+
+		$this->start_mail_capture();
+		$this->notification->on_application_received( $application_id, 'summary@example.com', 'Summary Applicant' );
+		$this->remove_mail_capture();
+
+		// The default WP test admin's user_email typically equals the
+		// admin_email option, so mails_to() can return two distinct emails
+		// here: get_admin_user_id()'s vote-email fallback (sent first, since
+		// that admin account isn't an agnosis_artist) AND the plain-text
+		// admin summary (sent last) — both to the same address. Locate the
+		// summary specifically by its unique opening line rather than
+		// assuming index 0, since send order isn't this test's concern.
+		$admin_email = get_option( 'admin_email' );
+		$admin_mails = $this->mails_to( $admin_email );
+		$this->assertNotEmpty( $admin_mails );
+
+		$summary_mail = null;
+		foreach ( $admin_mails as $mail ) {
+			if ( str_contains( $mail['message'], 'Application ID:' ) ) {
+				$summary_mail = $mail;
+				break;
+			}
+		}
+		$this->assertNotNull( $summary_mail, 'Admin summary email (identified by its "Application ID:" opening line) was not found among mails to admin_email.' );
+		$this->assertStringContainsString( 'Notified 1 artist(s) immediately.', $summary_mail['message'] );
+		$this->assertStringContainsString( '1 more will see it in their next daily digest.', $summary_mail['message'] );
+	}
+
 	// =========================================================================
 	// on_application_expired()
 	// =========================================================================

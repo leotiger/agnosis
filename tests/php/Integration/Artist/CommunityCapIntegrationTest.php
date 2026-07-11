@@ -57,6 +57,26 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Confirm an application via the real Admission::confirm_application() —
+	 * double opt-in (security audit §3a/§4a) means apply() alone only ever
+	 * parks a row as 'unverified'; the pending-vs-waitlisted decision this
+	 * whole test file is about only happens here, at confirmation time
+	 * (CommunityCap is (re-)checked inside confirm_application(), not
+	 * inside apply() anymore). Mirrors the applicant clicking the
+	 * confirmation email's link immediately after applying.
+	 *
+	 * @return array{id: int, status: string, display_name: string, email: string}|false
+	 */
+	private function confirm( int $application_id ): array|false {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$token = $wpdb->get_var(
+			$wpdb->prepare( "SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d", $application_id )
+		);
+		return ( new Admission() )->confirm_application( (string) $token );
+	}
+
 	// -------------------------------------------------------------------------
 	// CommunityCap state
 	// -------------------------------------------------------------------------
@@ -90,8 +110,17 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$res  = $this->apply( 'waitlisted@example.com' );
 		$data = $res->get_data();
 
-		$this->assertSame( 202, $res->get_status() );
-		$this->assertSame( 'waitlisted', $data['status'] );
+		// Double opt-in (security audit §3a/§4a): apply() itself no longer
+		// decides pending vs waitlisted — every application parks as
+		// 'unverified' first, regardless of community capacity at apply()
+		// time. The cap is (re-)checked only at confirm_application() time.
+		$this->assertSame( 201, $res->get_status() );
+		$this->assertSame( 'pending_confirmation', $data['status'] );
+		$this->assertSame( 'unverified', $this->status_of( (int) $data['application_id'] ) );
+
+		$result = $this->confirm( (int) $data['application_id'] );
+		$this->assertNotFalse( $result );
+		$this->assertSame( 'waitlisted', $result['status'] );
 		$this->assertSame( 'waitlisted', $this->status_of( (int) $data['application_id'] ) );
 	}
 
@@ -103,7 +132,12 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$data = $res->get_data();
 
 		$this->assertSame( 201, $res->get_status() );
-		$this->assertSame( 'applied', $data['status'] );
+		$this->assertSame( 'pending_confirmation', $data['status'] );
+		$this->assertSame( 'unverified', $this->status_of( (int) $data['application_id'] ) );
+
+		$result = $this->confirm( (int) $data['application_id'] );
+		$this->assertNotFalse( $result );
+		$this->assertSame( 'pending', $result['status'] );
 		$this->assertSame( 'pending', $this->status_of( (int) $data['application_id'] ) );
 	}
 
@@ -128,6 +162,7 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$a2 = $this->create_artist(); // 2 active < cap 3 → capacity at apply time
 
 		$app_id = (int) $this->apply( 'cand@example.com' )->get_data()['application_id'];
+		$this->confirm( $app_id );
 		$this->assertSame( 'pending', $this->status_of( $app_id ) );
 
 		$this->create_artist(); // 3 active = cap → now full
@@ -150,7 +185,9 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		update_option( 'agnosis_community_max_artists', 1 );
 
 		$first  = (int) $this->apply( 'first@example.com' )->get_data()['application_id'];
+		$this->confirm( $first );
 		$second = (int) $this->apply( 'second@example.com' )->get_data()['application_id'];
+		$this->confirm( $second );
 		$this->assertSame( 'waitlisted', $this->status_of( $first ) );
 		$this->assertSame( 'waitlisted', $this->status_of( $second ) );
 
@@ -167,6 +204,7 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$this->create_artist();
 		update_option( 'agnosis_community_max_artists', 1 );
 		$app = (int) $this->apply( 'wl@example.com' )->get_data()['application_id'];
+		$this->confirm( $app );
 
 		// No slot freed — advance must do nothing.
 		$this->assertSame( 0, ( new CommunityCap() )->advance_waitlist() );
@@ -178,6 +216,7 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		$a1 = $this->create_artist();
 		$a2 = $this->create_artist();
 		$app_id = (int) $this->apply( 'loop@example.com' )->get_data()['application_id'];
+		$this->confirm( $app_id );
 
 		$a3 = $this->create_artist(); // full at 3
 
@@ -204,6 +243,7 @@ class CommunityCapIntegrationTest extends \WP_UnitTestCase {
 		update_option( 'agnosis_community_max_artists', 1 ); // full
 
 		$app_id = (int) $this->apply( 'vip@example.com' )->get_data()['application_id'];
+		$this->confirm( $app_id );
 		$this->assertSame( 'waitlisted', $this->status_of( $app_id ) );
 
 		$ok = ( new Admission() )->admin_admit( $app_id );

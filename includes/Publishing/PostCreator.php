@@ -180,6 +180,26 @@ class PostCreator {
 	private array $last_dropped_links = [];
 
 	/**
+	 * Fuzzy title-match suggestion for the current handle() call, when it was
+	 * a replace@ or [Event] update whose subject matched no existing post
+	 * exactly (audit §2a). Reset unconditionally at the top of every handle()
+	 * call — not just inside the replace@/event@ branches — so a suggestion
+	 * from one queue row can never leak onto an unrelated later one that
+	 * doesn't touch either branch at all (same reset-then-conditionally-fill
+	 * shape as $last_dropped_links above, just triggered per-row instead of
+	 * per-build_post_content()-call). Populated via gather_title_context() —
+	 * the same fuzzy AI-comparison "did you mean" machinery §2c already built
+	 * for remove@/promote@ — and read by create_post() right after insertion,
+	 * written into the new post's `_agnosis_merge_miss_suggestion` meta so
+	 * Notification::build_email() can tell the artist this may be an
+	 * unintended duplicate, instead of the review email reading exactly like
+	 * an ordinary new-artwork draft.
+	 *
+	 * @var array{type: string, title: string}|array{}
+	 */
+	private array $pending_merge_miss_suggestion = [];
+
+	/**
 	 * Inject or auto-create the AI pipeline (and, from it, the embed policy).
 	 *
 	 * Accepts optional collaborators so tests can pass lightweight stubs
@@ -264,6 +284,10 @@ class PostCreator {
 			$is_replace = ( 'agnosis_replace' === $post_type );
 			$merge_into = 0;
 
+			// Reset unconditionally for every queue row, regardless of post
+			// type — see this property's own docblock for why (audit §2a).
+			$this->pending_merge_miss_suggestion = [];
+
 			if ( $is_replace ) {
 				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
 				$post_type  = $merge_into ? (string) get_post_type( $merge_into ) : 'agnosis_artwork';
@@ -283,6 +307,21 @@ class PostCreator {
 					Logger::info( sprintf( 'Queue #%d: replace@ — updating existing %s #%d.', $queue_id, $post_type, $merge_into ), 'publisher' );
 				} else {
 					Logger::info( sprintf( 'Queue #%d: replace@ — no existing post found, creating new artwork.', $queue_id ), 'publisher' );
+
+					// audit §2a: a replace@ miss doesn't fail silently — it fails
+					// WRONGLY, creating a duplicate that looks like an ordinary new
+					// artwork. Never auto-merge on a fuzzy guess (replace is
+					// destructive) — just carry a suggestion through to the review
+					// email via create_post()'s always-written meta below.
+					$miss_context = $this->gather_title_context(
+						$submission['subject'],
+						(int) $row->artist_id,
+						[ 'agnosis_artwork', 'agnosis_event' ],
+						[ 'draft', 'pending', 'publish' ]
+					);
+					if ( '' !== $miss_context['suggestion_title'] ) {
+						$this->pending_merge_miss_suggestion = [ 'type' => 'replace', 'title' => $miss_context['suggestion_title'] ];
+					}
 				}
 			}
 
@@ -581,16 +620,31 @@ class PostCreator {
 				// isn't just one). Instead it mirrors replace@: if the subject
 				// exactly matches an existing event's title, that event is
 				// updated in place (same address, no separate "replace" step);
-				// otherwise a new event post is created. No AI fuzzy detection
-				// here — that's tuned for artwork photo/description matching and
-				// doesn't apply to a plain title match. $singleton stays true for
-				// this type (still gates AI polish above) — only the merge
-				// decision changes.
+				// otherwise a new event post is created. The MERGE decision
+				// itself stays plain-title-match only — no AI fuzzy detection,
+				// that's tuned for artwork photo/description matching and
+				// doesn't apply here. $singleton stays true for this type
+				// (still gates AI polish above) — only the merge decision changes.
 				$merge_into = $this->find_post_by_subject( $submission['subject'], (int) $row->artist_id, 'agnosis_event' );
 				if ( $merge_into ) {
 					Logger::info( sprintf( 'Queue #%d: event@ — subject matches existing event #%d, updating in place.', $queue_id, $merge_into ), 'publisher' );
 				} else {
 					Logger::info( sprintf( 'Queue #%d: event@ — no title match, creating new event.', $queue_id ), 'publisher' );
+
+					// audit §2a: same silent-duplicate risk as replace@ above — a
+					// miss here still creates a new event (unchanged), but now
+					// carries a fuzzy suggestion through to the review email.
+					// Scoped to the artist's OTHER events only, not artwork —
+					// an event update wouldn't plausibly mean an artwork title.
+					$miss_context = $this->gather_title_context(
+						$submission['subject'],
+						(int) $row->artist_id,
+						'agnosis_event',
+						[ 'draft', 'pending', 'publish' ]
+					);
+					if ( '' !== $miss_context['suggestion_title'] ) {
+						$this->pending_merge_miss_suggestion = [ 'type' => 'event_update', 'title' => $miss_context['suggestion_title'] ];
+					}
 				}
 			} elseif ( $singleton ) {
 				// Remaining singleton types (biography) always merge into the one
@@ -776,6 +830,75 @@ class PostCreator {
 			}
 		}
 		return [ 'agnosis_artwork', false, $subject, false, false ];
+	}
+
+	/**
+	 * Human-readable label for which email endpoint routed a submission —
+	 * powers the Inbox admin table's Endpoint column (patch 18). Mirrors
+	 * resolve_post_type()'s own address-first, subject-indicator-fallback
+	 * order exactly, but returns a display string instead of the five-tuple
+	 * used to actually create the post, so a queue row's raw_email JSON can
+	 * be labelled directly — no Pipeline/Admission instantiation needed, and
+	 * it works identically for 'failed' rows that never reached create_post().
+	 *
+	 * @param array<string, mixed> $submission Raw email submission (as stored
+	 *                                          in agnosis_queue.raw_email).
+	 * @return string One of: Biography, Event, Pure, Photo, Replace, Remove,
+	 *                 Promote, Artwork (the same default resolve_post_type()
+	 *                 falls back to when neither a recipient address nor a
+	 *                 recognised subject indicator matches).
+	 */
+	public static function resolve_endpoint_label( array $submission ): string {
+		$addresses = array_map(
+			static fn( $a ) => strtolower( trim( (string) $a ) ),
+			(array) ( $submission['to_addresses'] ?? [ $submission['to_address'] ?? '' ] )
+		);
+		$addresses = array_values( array_filter( $addresses ) );
+
+		if ( ! empty( $addresses ) ) {
+			// Same option keys, same order, as resolve_post_type() above —
+			// pure@ before photo@ since both match the same post shape and
+			// pure@ is the more specific of the two.
+			$routes = [
+				'agnosis_email_bio'     => __( 'Biography', 'agnosis' ),
+				'agnosis_email_event'   => __( 'Event', 'agnosis' ),
+				'agnosis_email_pure'    => __( 'Pure', 'agnosis' ),
+				'agnosis_email_photo'   => __( 'Photo', 'agnosis' ),
+				'agnosis_email_replace' => __( 'Replace', 'agnosis' ),
+				'agnosis_email_remove'  => __( 'Remove', 'agnosis' ),
+				'agnosis_email_promote' => __( 'Promote', 'agnosis' ),
+			];
+			foreach ( $routes as $option => $label ) {
+				$addr = strtolower( trim( (string) get_option( $option, '' ) ) );
+				if ( $addr && in_array( $addr, $addresses, true ) ) {
+					return $label;
+				}
+			}
+		}
+
+		// Fallback: subject-line [Indicator] prefix — same INDICATORS table
+		// resolve_indicator() uses.
+		$subject = (string) ( $submission['subject'] ?? '' );
+		if ( preg_match( '/^\[([^\]]+)\]\s*/u', $subject, $m ) ) {
+			$keyword   = mb_strtolower( trim( $m[1] ), 'UTF-8' );
+			$indicator = self::INDICATORS[ $keyword ] ?? null;
+			if ( $indicator ) {
+				if ( $indicator['pure'] ) {
+					return __( 'Pure', 'agnosis' );
+				}
+				if ( $indicator['photo_only'] ) {
+					return __( 'Photo', 'agnosis' );
+				}
+				if ( 'agnosis_biography' === $indicator['post_type'] ) {
+					return __( 'Biography', 'agnosis' );
+				}
+				if ( 'agnosis_event' === $indicator['post_type'] ) {
+					return __( 'Event', 'agnosis' );
+				}
+			}
+		}
+
+		return __( 'Artwork', 'agnosis' );
 	}
 
 	/**
@@ -1348,7 +1471,7 @@ class PostCreator {
 		$primary  = $this->primary_result( $results );
 		$all_tags = array_unique( array_merge( ...array_column( $results, 'tags' ) ) );
 
-		$gallery      = $this->merge_gallery( $existing_id, $results );
+		$gallery      = $this->merge_gallery( $existing_id, $results, $post_type );
 		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '' );
 
 		// Keep the existing review token when updating so artist links stay valid.
@@ -1388,6 +1511,11 @@ class PostCreator {
 				// notice from an earlier attempt — Notification::build_email()
 				// treats '[]' the same as the meta being entirely absent.
 				'_agnosis_dropped_links'    => wp_json_encode( $this->last_dropped_links ),
+				// Same always-written, empty-clears-stale shape as dropped_links
+				// above — audit §2a's replace@/event@ "did you mean" suggestion.
+				// Empty array encodes to '[]', which Notification::build_email()
+				// treats identically to the meta being entirely absent.
+				'_agnosis_merge_miss_suggestion' => wp_json_encode( $this->pending_merge_miss_suggestion ),
 			],
 		];
 
@@ -1460,22 +1588,51 @@ class PostCreator {
 	 *
 	 * When updating an existing post, reuses already-uploaded images (matched by
 	 * MD5 hash of the original binary) to avoid duplicates in the media library.
-	 * Newly uploaded images are appended after existing ones.
+	 * Newly uploaded images are appended after existing ones — EXCEPT for
+	 * agnosis_biography (patch 18): a biography carries at most one image, so a
+	 * submission that includes a new one replaces whatever was there rather than
+	 * accumulating a gallery across resubmissions.
+	 *
+	 * Patch 18 bugfix: $existing_id can point at a post that was never created
+	 * via PostCreator::create_post() at all — e.g. Artist\ApplicationBiography
+	 * auto-creates an artist's first agnosis_biography draft straight from their
+	 * admission application (bio text + portfolio link), and its meta_input
+	 * never included '_agnosis_gallery_ids'. get_post_meta( $id, $key, true )
+	 * returns '' (an empty STRING) for a meta key that was never set at all —
+	 * distinct from a key set to an empty array — and PHP's (array) cast on a
+	 * scalar wraps it as a one-element array ( (array) '' === [ '' ] ), not [].
+	 * That stray '' then survived array_merge()/array_unique() into the
+	 * returned gallery, into build_post_content()'s $image_ids, and finally
+	 * into build_image_block( int $id ) — this file is strict_types=1, so that
+	 * threw a TypeError instead of silently coercing. Every artist whose
+	 * biography was auto-created on admission and who then emailed a photo to
+	 * bio@ for the first time hit this. Fixed by validating the meta value is
+	 * actually an array before trusting its contents, rather than blindly
+	 * casting whatever get_post_meta() returned.
 	 *
 	 * @param int                              $existing_id Post ID to merge into, or 0 for new.
 	 * @param array<int, array<string, mixed>> $results     AI pipeline results, one per attachment.
+	 * @param string                           $post_type   CPT slug — only agnosis_biography caps at one image.
 	 * @return int[] Ordered, deduplicated attachment IDs.
 	 */
-	private function merge_gallery( int $existing_id, array $results ): array {
+	private function merge_gallery( int $existing_id, array $results, string $post_type = 'agnosis_artwork' ): array {
 		$existing_hash_map = [];
 		$existing_gallery  = [];
 
 		if ( $existing_id ) {
-			$existing_gallery = (array) get_post_meta( $existing_id, '_agnosis_gallery_ids', true );
+			$raw_existing = get_post_meta( $existing_id, '_agnosis_gallery_ids', true );
+			// is_array() guard (not a bare (array) cast) — see this method's own
+			// docblock: get_post_meta() returns '' for a meta key that was never
+			// set, and (array) '' is [ '' ], not [] — a stray non-int id that
+			// later blew up build_image_block()'s int-typed parameter.
+			$existing_gallery = is_array( $raw_existing )
+				? array_values( array_filter( array_map( 'intval', $raw_existing ) ) )
+				: [];
+
 			foreach ( $existing_gallery as $att_id ) {
-				$h = (string) get_post_meta( (int) $att_id, '_agnosis_image_hash', true );
+				$h = (string) get_post_meta( $att_id, '_agnosis_image_hash', true );
 				if ( $h ) {
-					$existing_hash_map[ $h ] = (int) $att_id;
+					$existing_hash_map[ $h ] = $att_id;
 				}
 			}
 		}
@@ -1545,6 +1702,21 @@ class PostCreator {
 					update_post_meta( $attachment_id,    '_agnosis_original_attachment_id',  $orig_id );
 				}
 			}
+		}
+
+		// Biography carries at most one image (patch 18, confirmed product
+		// rule) — unlike artwork/event, a new photo REPLACES whatever was
+		// there instead of accumulating alongside it across resubmissions,
+		// and a single email with several attachments only ever keeps the
+		// first. Also self-heals a biography that already accumulated more
+		// than one image before this fix existed: the very next
+		// resubmission (with or without a new photo) trims it back down to
+		// one.
+		if ( 'agnosis_biography' === $post_type ) {
+			if ( ! empty( $new_gallery ) ) {
+				return [ $new_gallery[0] ];
+			}
+			return ! empty( $existing_gallery ) ? [ $existing_gallery[0] ] : [];
 		}
 
 		return array_values( array_unique( array_merge( $existing_gallery, $new_gallery ) ) );

@@ -130,6 +130,34 @@ class QueueProcessor {
 		}
 	}
 
+	/**
+	 * Reset every terminally-'failed' row for one issue back to 'pending'
+	 * with attempts=0 and resolved_at cleared, so the next cron tick retries
+	 * them (fifth/sixth audit §5e). Previously an outage longer than
+	 * MAX_ATTEMPTS worth of 5-minute cron ticks (~15 minutes) left those
+	 * recipients permanently skipped for the issue with no resend
+	 * affordance at all — an admin could not tell "SMTP hiccuped" from
+	 * "these addresses are actually broken" apart from reading the log.
+	 *
+	 * Public for the Settings → Newsletter dashboard's "Retry Failed" button
+	 * (Settings::handle_retry_failed_newsletter_recipients()).
+	 *
+	 * @return int Number of rows actually reset.
+	 */
+	public function retry_failed( int $issue_id ): int {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_newsletter_queue SET status = 'pending', attempts = 0, resolved_at = NULL WHERE issue_id = %d AND status = 'failed'",
+				$issue_id
+			)
+		);
+
+		return (int) $wpdb->rows_affected;
+	}
+
 	// -------------------------------------------------------------------------
 
 	/**

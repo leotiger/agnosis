@@ -78,8 +78,13 @@ class Inbox {
 	 * Cron callback — purge old IMAP messages, stale queue rows, old log
 	 * entries, and expired debug-tracing dumps.
 	 *
-	 * Reads `agnosis_imap_cleanup_days` (default 30). Any SEEN IMAP message
-	 * older than that threshold is permanently deleted. Queue rows that are
+	 * Reads `agnosis_imap_cleanup_days` (default 7 — matches the Settings
+	 * field's own documented default and the value Activator seeds on
+	 * install; audit §5e flagged this docblock and two other call sites for
+	 * previously reading 30 here instead, a documentation/behavior drift
+	 * that only ever bit a fresh install whose option row was somehow
+	 * missing). Any SEEN IMAP message older than that threshold is
+	 * permanently deleted. Queue rows that are
 	 * 'failed' or 'done' and older than the same threshold are also pruned.
 	 *
 	 * Debug dumps (fourth audit §5c) use their own, shorter-lived
@@ -389,6 +394,70 @@ class Inbox {
 	}
 
 	/**
+	 * Detect an IMAP UIDVALIDITY change and reset the UID cursor when one
+	 * occurs (reliability audit §5d).
+	 *
+	 * Per RFC 3501 §2.3.1.1, a UID is only guaranteed stable within one
+	 * UIDVALIDITY generation for a folder — a mailbox rebuild, a provider
+	 * migration, or the folder itself being recreated can (and in practice
+	 * does) make the server reissue UIDs starting from 1 again while
+	 * UIDVALIDITY changes to signal exactly that. Without this check,
+	 * `agnosis_imap_last_uid` survives such an event unnoticed: every new
+	 * message now has a UID below the stale cursor, `UID N+1:*`
+	 * (query_messages()) matches nothing ever again, and the failure is
+	 * silent — no error, the cron keeps running, the queue keeps "draining"
+	 * (there's simply nothing new in it) — indistinguishable from the
+	 * outside from "artists just stopped emailing."
+	 *
+	 * Called at the very top of process_messages(), before the cursor is
+	 * read, so a reset here lands in the very same poll: query_messages()
+	 * then takes its existing $last_uid === 0 branch and rescans the
+	 * date-bounded retention window instead of an empty `UID 1:*`.
+	 *
+	 * @param Folder $folder The currently selected/examined IMAP folder.
+	 */
+	private function check_uidvalidity( Folder $folder ): void {
+		try {
+			$status = $folder->getStatus();
+		} catch ( \Throwable $e ) {
+			// This is a diagnostic add-on to the cursor, never a prerequisite
+			// for polling — if the server doesn't answer STATUS cleanly,
+			// fall through and let the existing cursor logic run exactly as
+			// it did before this check existed, rather than failing the poll
+			// over a check whose whole purpose is preventing silent failure.
+			Logger::warning( 'Poll: could not read folder STATUS for the UIDVALIDITY check — ' . $e->getMessage(), 'inbox' );
+			return;
+		}
+
+		$current = (int) ( $status['uidvalidity'] ?? 0 );
+		if ( $current <= 0 ) {
+			return; // Server didn't report one (rare, but MUST is not MUST-implement-correctly) — nothing to compare.
+		}
+
+		$stored = (int) get_option( 'agnosis_imap_uidvalidity', 0 );
+
+		if ( 0 === $stored ) {
+			// First poll we've ever tracked UIDVALIDITY for this mailbox —
+			// nothing to compare against yet, just start tracking it.
+			update_option( 'agnosis_imap_uidvalidity', $current );
+			return;
+		}
+
+		if ( $stored !== $current ) {
+			Logger::warning(
+				sprintf(
+					'Poll: IMAP UIDVALIDITY changed (%d → %d) — the mailbox was rebuilt, migrated, or the folder recreated. Resetting the UID cursor to 0 so the next query rescans the retention window instead of silently matching nothing.',
+					$stored,
+					$current
+				),
+				'inbox'
+			);
+			update_option( 'agnosis_imap_last_uid', 0 );
+			update_option( 'agnosis_imap_uidvalidity', $current );
+		}
+	}
+
+	/**
 	 * Fetch recent messages and enqueue any not yet in the pipeline.
 	 *
 	 * We query ALL messages within the retention window rather than only UNSEEN
@@ -400,6 +469,11 @@ class Inbox {
 	 * @param Folder $folder
 	 */
 	private function process_messages( Folder $folder ): void {
+		// UIDVALIDITY guard (security/reliability audit §5d) — must run
+		// before the cursor below is read, so a reset here is picked up by
+		// this same poll cycle rather than the next one.
+		$this->check_uidvalidity( $folder );
+
 		// ---- Build the query — headers-first, UID-sequenced -----------------
 		//
 		// fetchBody(false): webklex fetches only RFC-822 headers on the first
@@ -456,6 +530,21 @@ class Inbox {
 				// below still performs the real admitted-artist gate.
 				$artist_user = $from_email ? get_user_by( 'email', $from_email ) : null;
 				$artist_id   = $artist_user ? $artist_user->ID : null;
+
+				// --- Bounce/complaint DSN (security audit §5a) — checked BEFORE the
+				// auth gate below, deliberately: a DSN is a legitimate delivery-status
+				// notification from the RECEIVING mail server, not a message an artist
+				// authenticated, so it will routinely fail SPF/DKIM-for-artist-domain
+				// checks when agnosis_require_email_auth is on. Requiring that gate
+				// here would silently discard the bounce signal that gate has nothing
+				// to do with. Previously (and still, when this doesn't match) every DSN
+				// fell through to "cheap gate 1" below and was recorded as an
+				// unregistered_sender skip — noise in the Inbox table that also threw
+				// away the one thing worth reading in the message.
+				if ( $this->is_bounce_dsn( $message ) ) {
+					$this->handle_bounce_dsn( $message, $from_email, $uid );
+					continue;
+				}
 
 				// --- Auth gate (opt-in, fourth audit §3b) — evaluated BEFORE any
 				// alias routing. Previously this ran as "cheap gate 3", ~40 lines
@@ -611,7 +700,10 @@ class Inbox {
 			return $messages;
 		}
 
-		$days  = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 30 ) );
+		// Default aligned to 7 (audit §5e) — matches the Settings field's own
+		// documented default and Activator's seeded value; this fallback is
+		// only ever consulted if that option row is somehow missing.
+		$days  = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 7 ) );
 		$since = new \DateTime( '-' . $days . ' days' );
 		$messages = $base->since( $since )->get();
 		Logger::info(
@@ -848,7 +940,8 @@ class Inbox {
 		$parsed = $this->parser->parse_broadcast_body( $message );
 
 		if ( '' === trim( $parsed['subject'] ) && '' === trim( $parsed['body'] ) ) {
-			Logger::warning( 'Community broadcast from <' . $from_email . '> was empty — ignored.', 'inbox' );
+			Logger::warning( 'Community broadcast from <' . $from_email . '> was empty — bounced.', 'inbox' );
+			( new CommunityBroadcast() )->send_empty_bounce( $user->ID );
 			$this->mark_no_artwork( $uid, $user->ID, 'community_empty', $from_email );
 			return;
 		}
@@ -878,6 +971,123 @@ class Inbox {
 	}
 
 	/**
+	 * Whether a message looks like a bounce/complaint DSN rather than a
+	 * genuine artist submission (security audit §5a) — checked in the same
+	 * cheap, header-only pass as the other gates in process_messages(),
+	 * before the auth gate or any admitted-sender check: a DSN's From
+	 * address is virtually never an admitted artist (it's the receiving
+	 * mail server's own mailer-daemon), so without this check every DSN
+	 * silently became an 'unregistered_sender' skip — the bounce signal
+	 * itself thrown away instead of feeding suppression.
+	 *
+	 * Two independent signals, either sufficient:
+	 *   - Content-Type: multipart/report (RFC 3462) — the standard MIME
+	 *     wrapper for both delivery-status (bounce) and feedback-report
+	 *     (spam complaint) notifications.
+	 *   - X-Failed-Recipients — not RFC-standard, but a de-facto header
+	 *     several common MTAs attach directly; cheaper to trust when present
+	 *     than parsing the body for anything.
+	 *
+	 * @param object $message Full IMAP message (read for headers only here).
+	 * @return bool
+	 */
+	private function is_bounce_dsn( object $message ): bool {
+		$content_type = '';
+		try {
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see passes_email_auth()'s docblock for why); real webklex Message always has getHeader().
+			$content_type = (string) $message->getHeader()->get( 'content-type' );
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw; not a DSN by this signal.
+		}
+
+		if ( false !== stripos( $content_type, 'multipart/report' ) ) {
+			return true;
+		}
+
+		$failed_recipients = '';
+		try {
+			// @phpstan-ignore-next-line -- same reasoning as above.
+			$failed_recipients = (string) $message->getHeader()->get( 'x-failed-recipients' );
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw.
+		}
+
+		return '' !== trim( $failed_recipients );
+	}
+
+	/**
+	 * Extract the failed recipient(s) from a recognized bounce/complaint DSN
+	 * and route each through Email\BounceHandler::record(), then mark the
+	 * message so it's never re-checked (security audit §5a).
+	 *
+	 * Address extraction, cheapest-first:
+	 *   1. X-Failed-Recipients header, if present — no body fetch needed.
+	 *   2. Otherwise the machine-readable delivery-status part's
+	 *      "Final-Recipient: rfc822; <addr>" line (RFC 3464) — the one body
+	 *      fetch this method performs, worth it since a message already
+	 *      recognized as a DSN is rare and the address is the entire point
+	 *      of reading it.
+	 *
+	 * A feedback-report (spam complaint) DSN carrying neither is logged and
+	 * skipped rather than guessed at — ARF's own address-of-record is
+	 * frequently the reporting mailbox provider's abuse desk, not the
+	 * complaining recipient, so guessing here risks suppressing the wrong
+	 * address entirely.
+	 *
+	 * @param object $message    Full IMAP message.
+	 * @param string $from_email The DSN's own sender (e.g. a mailer-daemon
+	 *                           address) — logged/persisted the same way
+	 *                           every other mark_no_artwork() call site does,
+	 *                           not the address that actually bounced.
+	 * @param string $uid        IMAP message UID (used for deduplication/logging).
+	 */
+	private function handle_bounce_dsn( object $message, string $from_email, string $uid ): void {
+		$recipients = [];
+
+		$failed_recipients_header = '';
+		try {
+			// @phpstan-ignore-next-line -- see is_bounce_dsn()'s docblock.
+			$failed_recipients_header = (string) $message->getHeader()->get( 'x-failed-recipients' );
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- header absent or library threw.
+		}
+
+		if ( '' !== trim( $failed_recipients_header ) ) {
+			foreach ( explode( ',', $failed_recipients_header ) as $addr ) {
+				$addr = sanitize_email( trim( $addr ) );
+				if ( '' !== $addr ) {
+					$recipients[] = $addr;
+				}
+			}
+		}
+
+		if ( empty( $recipients ) ) {
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object`; only ever a real webklex Message in practice for a message that reached this branch.
+			$body = (string) $message->getTextBody();
+			if ( preg_match_all( '/Final-Recipient:\s*rfc822;\s*([^\s,]+)/i', $body, $matches ) ) {
+				foreach ( $matches[1] as $addr ) {
+					$addr = sanitize_email( trim( $addr ) );
+					if ( '' !== $addr ) {
+						$recipients[] = $addr;
+					}
+				}
+			}
+		}
+
+		$recipients = array_values( array_unique( $recipients ) );
+
+		if ( empty( $recipients ) ) {
+			Logger::info( 'IMAP UID ' . $uid . ': recognized as a bounce/complaint DSN but no failed-recipient address could be extracted — skipped.', 'inbox' );
+			$this->mark_no_artwork( $uid, null, 'bounce_unresolved', $from_email );
+			return;
+		}
+
+		foreach ( $recipients as $addr ) {
+			BounceHandler::record( $addr, 'bounce', 'imap' );
+		}
+
+		Logger::info( 'IMAP UID ' . $uid . ': bounce/complaint DSN processed for ' . implode( ', ', $recipients ) . '.', 'inbox' );
+		$this->mark_no_artwork( $uid, null, 'bounce_handled', $from_email );
+	}
+
+	/**
 	 * Human-readable error text per skip reason — shown in the Inbox admin
 	 * table's Error column, and (via $reason) drives whether the sender's
 	 * identity is worth keeping on the row.
@@ -887,24 +1097,31 @@ class Inbox {
 	 * which made a content problem (no attachment) indistinguishable from an
 	 * identity problem (unknown sender) — see mark_no_artwork() below.
 	 *
+	 * Public (was private) as of the Inbox admin table's reason filter/spam
+	 * aggregation (audit §4c) — Admin\InboxPage matches this exact prose
+	 * against the queue row's `error` column to filter by reason and to
+	 * exclude 'unregistered_sender' rows from the default view, rather than
+	 * duplicating these strings in a second place that could drift out of
+	 * sync with them.
+	 *
+	 * The goodbye_ and community_ prefixed entries are composed from
+	 * IntakeGates::SHARED_ALIAS_REASONS (sixth audit §6) — the same shared
+	 * source Webhook::ALIAS_REASONS uses — spliced between this transport's
+	 * own IMAP-only gate reasons and its two bounce/DSN reasons (neither of
+	 * which the webhook transport has an equivalent for) via array `+`, which
+	 * preserves the exact same key order as before this refactor.
+	 *
 	 * @var array<string, string>
 	 */
-	private const SKIP_REASONS = [
-		'unregistered_sender'    => 'Skipped: sender is not a registered WordPress user.',
-		'not_admitted'           => 'Skipped: sender is registered but not an admitted artist.',
-		'throttled'              => 'Skipped: sender exceeded the per-hour intake limit.',
-		'auth_failed'            => 'Skipped: message failed SPF/DKIM authentication.',
-		'no_attachments'         => 'Skipped: no valid image, audio, or video attachment found in the message.',
-		'goodbye_non_artist'     => 'Skipped: goodbye request from a non-artist sender.',
-		'goodbye_handled'        => 'Goodbye request processed — self-removal confirmation sent.',
-		'goodbye_no_membership'  => 'Goodbye request could not be processed — no active membership found for this sender.',
-		'goodbye_throttled'      => 'Skipped: sender exceeded the daily self-removal (goodbye) request limit.',
-		'community_non_artist'   => 'Skipped: community broadcast request from a non-artist sender.',
-		'community_throttled'    => 'Skipped: sender exceeded the daily community broadcast limit.',
-		'community_empty'        => 'Skipped: community broadcast had no subject or body text.',
-		'community_auto_submitted' => 'Skipped: message looked like an automated response (Auto-Submitted header), not a genuine community message.',
-		'community_too_long'     => 'Community broadcast exceeded the configured length limit — bounced back to sender, not broadcast.',
-		'community_handled'      => 'Community broadcast processed — sent to every other community member.',
+	public const SKIP_REASONS = [
+		'unregistered_sender' => 'Skipped: sender is not a registered WordPress user.',
+		'not_admitted'        => 'Skipped: sender is registered but not an admitted artist.',
+		'throttled'           => 'Skipped: sender exceeded the per-hour intake limit.',
+		'auth_failed'         => 'Skipped: message failed SPF/DKIM authentication.',
+		'no_attachments'      => 'Skipped: no valid image, audio, or video attachment found in the message.',
+	] + IntakeGates::SHARED_ALIAS_REASONS + [
+		'bounce_handled'    => 'Bounce/complaint DSN processed — the failed recipient address was suppressed and/or an artist bounce counter was incremented.',
+		'bounce_unresolved' => 'Recognized as a bounce/complaint DSN, but no failed-recipient address could be extracted from it.',
 	];
 
 	/**
@@ -915,12 +1132,14 @@ class Inbox {
 	 * recorded as 'skipped' instead: not an artwork submission, but not a
 	 * failure either. See mark_no_artwork() below.
 	 *
+	 * Composed from IntakeGates::SHARED_ALIAS_STATUSES (sixth audit §6) plus
+	 * this transport's own two bounce/DSN statuses — see SKIP_REASONS above.
+	 *
 	 * @var array<string, string>
 	 */
-	private const SKIP_STATUSES = [
-		'goodbye_handled'    => 'skipped',
-		'community_handled'  => 'skipped',
-		'community_too_long' => 'skipped',
+	private const SKIP_STATUSES = IntakeGates::SHARED_ALIAS_STATUSES + [
+		'bounce_handled'    => 'skipped',
+		'bounce_unresolved' => 'skipped',
 	];
 
 	/**
@@ -1229,7 +1448,8 @@ class Inbox {
 			return;
 		}
 
-		$days   = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 30 ) );
+		// Default aligned to 7 (audit §5e) — see poll()'s identical fallback above.
+		$days   = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 7 ) );
 		$cutoff = new \DateTime( '-' . $days . ' days' );
 
 		try {
@@ -1268,7 +1488,8 @@ class Inbox {
 	private function cleanup_queue(): void {
 		global $wpdb;
 
-		$days = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 30 ) );
+		// Default aligned to 7 (audit §5e) — see poll()'s identical fallback above.
+		$days = max( 1, (int) get_option( 'agnosis_imap_cleanup_days', 7 ) );
 
 		$deleted = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- DELETE on custom table; caching does not apply to write queries.
 			$wpdb->prepare(

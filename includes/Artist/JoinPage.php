@@ -75,6 +75,7 @@ class JoinPage {
 						id="agnosis-join-name"
 						name="display_name"
 						autocomplete="name"
+						maxlength="100"
 						required
 					/>
 				</div>
@@ -99,6 +100,7 @@ class JoinPage {
 						id="agnosis-join-bio"
 						name="bio"
 						rows="4"
+						maxlength="5000"
 					></textarea>
 					<span class="agnosis-join__hint">
 						<?php esc_html_e( 'A few sentences about your practice, medium, and background.', 'agnosis' ); ?>
@@ -122,6 +124,7 @@ class JoinPage {
 						id="agnosis-join-statement"
 						name="statement"
 						rows="5"
+						maxlength="5000"
 					></textarea>
 				</div>
 
@@ -198,7 +201,12 @@ class JoinPage {
 			'apiUrl'      => rest_url( 'agnosis/v1/admission/apply' ),
 			'redirectUrl' => $this->success_redirect_url(),
 			'i18n'        => [
-				'success'          => __( 'Your application has been received. The community will be in touch!', 'agnosis' ),
+				// Double opt-in (security audit §3a/§4a): apply() itself only
+				// ever parks the application and emails a confirmation link —
+				// nothing is "received" by the community yet, so the success
+				// copy points the applicant at their inbox instead of implying
+				// review has already started.
+				'success'          => __( 'Almost there — check your inbox for a confirmation email and click the link to open your application for community review.', 'agnosis' ),
 				'error'            => __( 'Something went wrong. Please try again.', 'agnosis' ),
 				'requiredField'    => __( 'Please fill in all required fields.', 'agnosis' ),
 				'languageRequired' => __( 'Please select your language.', 'agnosis' ),

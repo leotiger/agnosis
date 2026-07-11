@@ -127,6 +127,28 @@ class Activator {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'pending'" );
 			}
+
+			// Double opt-in on applications (0.9.16 — security audit §3a/§4a): an
+			// applicant must prove control of the email address before apply()
+			// triggers the acknowledgment email + community vote blast. Add the
+			// single-use confirm_token column and extend status to include
+			// 'unverified', the parking state a row sits in between apply() and
+			// the artist clicking the confirmation link (Admission::confirm_application()).
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_confirm_token = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'confirm_token'" );
+			if ( empty( $has_confirm_token ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD COLUMN confirm_token VARCHAR(64) DEFAULT NULL AFTER removal_token" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications ADD UNIQUE KEY uq_confirm_token (confirm_token)" );
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$status_col_uv = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_applications LIKE 'status'" );
+			if ( $status_col_uv && false === strpos( (string) $status_col_uv->Type, 'unverified' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_applications MODIFY COLUMN status ENUM('unverified','pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'unverified'" );
+			}
 		}
 
 		// Add attempts to agnosis_newsletter_queue if missing (column added in 0.4.3,
@@ -176,18 +198,46 @@ class Activator {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_subscribers MODIFY COLUMN email VARCHAR(191) NOT NULL" );
 			}
+
+			// Bounce/complaint suppression (security audit §5a): a subscriber whose
+			// address hard-bounces or files a spam complaint is flipped to
+			// 'bounced' instead of being mailed forever — see
+			// Newsletter\Subscriber::suppress() and Email\BounceHandler::record().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_bounced_at = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_subscribers LIKE 'bounced_at'" );
+			if ( empty( $has_bounced_at ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_subscribers ADD COLUMN bounced_at DATETIME DEFAULT NULL AFTER unsubscribed_at" );
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$sub_status_col = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_subscribers LIKE 'status'" );
+			if ( $sub_status_col && false === strpos( (string) $sub_status_col->Type, 'bounced' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_subscribers MODIFY COLUMN status ENUM('pending','confirmed','unsubscribed','bounced') NOT NULL DEFAULT 'pending'" );
+			}
 		}
 
 		// Finish the upgrade with idempotent provisioning so a version bump fully
-		// applies: new tables (dbDelta), new default options, the role, and all
-		// scheduled events (incl. agnosis_check_cap_votes). Each step is a no-op when
-		// its target already exists. Managed-page creation needs $wp_rewrite
-		// (permalinks), which is NOT ready on plugins_loaded, so it is deferred to
-		// init in the same request.
+		// applies: new tables (dbDelta), new default options, the role, all
+		// scheduled events (incl. agnosis_check_cap_votes), and the default
+		// agnosis_medium terms. Each step is a no-op when its target already
+		// exists. Managed-page creation needs $wp_rewrite (permalinks), which is
+		// NOT ready on plugins_loaded, so it is deferred to init in the same
+		// request.
+		//
+		// seed_medium_terms() belongs in this list — its own docblock has always
+		// said "safe to call on every activation or upgrade" — but was only ever
+		// wired into activate() below. On any install that was already active
+		// before the agnosis_medium taxonomy shipped, activate() never runs
+		// again, so the 8 default terms never appeared even though this method
+		// (and the version-aware maybe_upgrade() gate itself) has been sitting
+		// right here the whole time.
 		self::create_tables();
 		self::seed_options();
 		self::register_roles();
 		self::schedule_events();
+		self::seed_medium_terms();
 		add_action( 'init', [ self::class, 'create_managed_pages' ], 99 );
 
 		// New rewrite rules (e.g. Newsletter\Archive's /newsletter/ routes,
@@ -238,6 +288,7 @@ class Activator {
 		wp_clear_scheduled_hook( 'agnosis_check_bans' );
 		wp_clear_scheduled_hook( 'agnosis_check_removal_votes' );
 		wp_clear_scheduled_hook( 'agnosis_check_cap_votes' );
+		wp_clear_scheduled_hook( 'agnosis_vote_digest' );
 		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
 		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
 		flush_rewrite_rules();
@@ -323,9 +374,14 @@ class Activator {
 		) $charset_collate;";
 
 		// Membership lifecycle — one row per applicant / artist / former member.
-		// status: pending → admitted | rejected | withdrawn | left | banned.
+		// status: unverified → pending | waitlisted → admitted | rejected | withdrawn | left | banned.
+		// 'unverified' (0.9.16, security audit §3a/§4a) is the double opt-in parking
+		// state: apply() writes the row here and emails only a confirm-your-application
+		// link — the acknowledgment + community vote blast never fire until
+		// Admission::confirm_application() flips it to pending/waitlisted.
 		// banned_until: NULL = permanent ban; future datetime = temporary ban (cron reinstates).
 		// removal_token: single-use CSPRNG hex token for self-removal email confirmation.
+		// confirm_token: single-use CSPRNG hex token for the double opt-in confirmation link; cleared on confirm.
 		// resolved_at is set whenever status leaves 'pending'.
 		$sql_applications = "CREATE TABLE {$wpdb->prefix}agnosis_applications (
 			id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -335,15 +391,17 @@ class Activator {
 			portfolio_url  VARCHAR(512)    DEFAULT NULL,
 			statement      TEXT            DEFAULT NULL,
 			language       VARCHAR(10)     DEFAULT NULL,
-			status         ENUM('pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'pending',
+			status         ENUM('unverified','pending','admitted','rejected','withdrawn','left','banned','waitlisted') NOT NULL DEFAULT 'unverified',
 			wp_user_id     BIGINT UNSIGNED DEFAULT NULL,
 			banned_until   DATETIME        DEFAULT NULL,
 			removal_token  VARCHAR(64)     DEFAULT NULL,
+			confirm_token  VARCHAR(64)     DEFAULT NULL,
 			applied_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			resolved_at    DATETIME        DEFAULT NULL,
 			PRIMARY KEY    (id),
 			UNIQUE KEY     uq_email (email),
 			UNIQUE KEY     uq_removal_token (removal_token),
+			UNIQUE KEY     uq_confirm_token (confirm_token),
 			KEY            idx_status (status),
 			KEY            idx_wp_user (wp_user_id)
 		) $charset_collate;";
@@ -435,12 +493,13 @@ class Activator {
 		$sql_newsletter_subscribers = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_subscribers (
 			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			email           VARCHAR(191)    NOT NULL,
-			status          ENUM('pending','confirmed','unsubscribed') NOT NULL DEFAULT 'pending',
+			status          ENUM('pending','confirmed','unsubscribed','bounced') NOT NULL DEFAULT 'pending',
 			token           VARCHAR(64)     NOT NULL,
 			locale          VARCHAR(10)     DEFAULT NULL,
 			created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			confirmed_at    DATETIME        DEFAULT NULL,
 			unsubscribed_at DATETIME        DEFAULT NULL,
+			bounced_at      DATETIME        DEFAULT NULL,
 			PRIMARY KEY     (id),
 			UNIQUE KEY      uq_email (email),
 			UNIQUE KEY      uq_token (token),
@@ -808,6 +867,11 @@ class Activator {
 		}
 		if ( ! wp_next_scheduled( 'agnosis_check_cap_votes' ) ) {
 			wp_schedule_event( time(), 'daily', 'agnosis_check_cap_votes' );
+		}
+		// Daily vote-email digest for artists in digest mode (security audit
+		// §5b/§4a) — see Artist\VoteDigest's own docblock.
+		if ( ! wp_next_scheduled( 'agnosis_vote_digest' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_vote_digest' );
 		}
 		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be

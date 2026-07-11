@@ -15,6 +15,19 @@
  * the real audio/video binary via upload_media()/upload_video() same as it
  * always has for images.
  *
+ * Also covers two patch 18 fixes to the same method:
+ *   - A merge target whose '_agnosis_gallery_ids' meta key was never set at
+ *     all (get_post_meta() then returns '', not an array) must not crash —
+ *     this is exactly what happened in production for every artist whose
+ *     biography was auto-created by Artist\ApplicationBiography (which never
+ *     wrote that meta key) and who then emailed a photo to bio@ for the
+ *     first time.
+ *   - agnosis_biography caps at exactly one image: a new photo replaces the
+ *     old one instead of accumulating, a single email with several
+ *     attachments keeps only the first, and a gallery that already
+ *     accumulated more than one image before this fix self-heals on the
+ *     next resubmission.
+ *
  * The method is private and is exercised via ReflectionMethod. A minimal
  * Pipeline stub is injected so no AI calls are made.
  *
@@ -66,12 +79,50 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 	 *
 	 * @param int                          $existing_post_id  0 for new post.
 	 * @param array<int, array<string, mixed>> $results       Pipeline results.
+	 * @param string                       $post_type         CPT slug — only agnosis_biography caps at one image.
 	 * @return int[]
 	 */
-	private function call_merge_gallery( int $existing_post_id, array $results ): array {
+	private function call_merge_gallery( int $existing_post_id, array $results, string $post_type = 'agnosis_artwork' ): array {
 		$ref = new \ReflectionMethod( PostCreator::class, 'merge_gallery' );
 		$ref->setAccessible( true );
-		return $ref->invoke( $this->creator, $existing_post_id, $results );
+		return $ref->invoke( $this->creator, $existing_post_id, $results, $post_type );
+	}
+
+	/**
+	 * A byte-valid 1x1 transparent GIF — real MIME sniffing
+	 * (wp_check_filetype_and_ext() inside wp_handle_sideload()) requires
+	 * actual file content, not an arbitrary placeholder string (same
+	 * reasoning as tiny_wav() above).
+	 */
+	private static function tiny_gif(): string {
+		return (string) base64_decode( 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7' );
+	}
+
+	/**
+	 * @param string $filename Distinct filenames (or a trailing NUL byte on the
+	 *                          data, same trick tiny_wav() callers use above) keep
+	 *                          two fixtures from deduplicating by content hash.
+	 * @return array<string, mixed> A pipeline result shaped like a real image
+	 *                               attachment — description_ok, no enhancement.
+	 */
+	private function image_result( string $filename, string $data ): array {
+		return [
+			'filename'             => $filename,
+			'original_data'        => $data,
+			'enhanced_data'        => $data,
+			'mime_type'            => 'image/gif',
+			'media_type'           => 'image',
+			'title'                => $filename,
+			'excerpt'              => '',
+			'body'                 => '',
+			'tags'                 => [],
+			'alt_text'             => '',
+			'description_ok'       => true,
+			'error'                => '',
+			'photo_quality_score'  => 8,
+			'photo_quality_issues' => [],
+			'enhanced'             => false,
+		];
 	}
 
 	/**
@@ -229,5 +280,111 @@ class PostCreatorGalleryAudioSkipTest extends \WP_UnitTestCase {
 
 		$this->assertCount( 1, $gallery, 'Only the audio entry should have uploaded successfully.' );
 		$this->assertSame( 'audio/wav', get_post_mime_type( $gallery[0] ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Missing/malformed '_agnosis_gallery_ids' meta on the merge target (patch 18)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Reproduces the exact production failure: a merge target whose
+	 * '_agnosis_gallery_ids' meta key was never set at all (e.g.
+	 * Artist\ApplicationBiography's auto-created biography draft, or any
+	 * post built via a bare wp_insert_post()) — get_post_meta() returns ''
+	 * for it, and merge_gallery() must not (array)-cast that blindly.
+	 */
+	public function test_merge_gallery_tolerates_missing_gallery_meta_on_existing_post(): void {
+		$existing_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'draft',
+			'post_title'  => 'About Someone',
+		] );
+		// Deliberately NOT seeding '_agnosis_gallery_ids' — this is the whole point.
+		$this->assertSame( '', get_post_meta( $existing_id, '_agnosis_gallery_ids', true ), 'Precondition: meta key must be genuinely absent, not an empty array.' );
+
+		$gallery = $this->call_merge_gallery( $existing_id, [ $this->image_result( 'portrait.gif', self::tiny_gif() ) ], 'agnosis_biography' );
+
+		$this->assertCount( 1, $gallery, 'A missing gallery meta key must not crash, and the new image must still upload.' );
+		$this->assertIsInt( $gallery[0] );
+		$this->assertSame( 'image/gif', get_post_mime_type( $gallery[0] ) );
+	}
+
+	/** Same missing-meta scenario, but with no new image either — must return [], not [""]. */
+	public function test_merge_gallery_tolerates_missing_gallery_meta_with_no_new_image(): void {
+		$existing_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'draft',
+			'post_title'  => 'About Someone Else',
+		] );
+
+		$gallery = $this->call_merge_gallery( $existing_id, [], 'agnosis_biography' );
+
+		$this->assertSame( [], $gallery );
+	}
+
+	// -------------------------------------------------------------------------
+	// Biography — one-image cap (patch 18)
+	// -------------------------------------------------------------------------
+
+	public function test_biography_new_image_replaces_existing_image(): void {
+		$existing_id  = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'draft',
+			'post_title'  => 'About the Artist',
+		] );
+		$old_photo_id = self::factory()->attachment->create();
+		update_post_meta( $existing_id, '_agnosis_gallery_ids', [ $old_photo_id ] );
+
+		$gallery = $this->call_merge_gallery( $existing_id, [ $this->image_result( 'new-portrait.gif', self::tiny_gif() ) ], 'agnosis_biography' );
+
+		$this->assertCount( 1, $gallery, 'A biography must never carry more than one image.' );
+		$this->assertNotSame( $old_photo_id, $gallery[0], 'A new biography photo must replace the old one, not sit alongside it.' );
+	}
+
+	public function test_biography_keeps_existing_image_when_resubmission_has_no_new_photo(): void {
+		$existing_id  = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'draft',
+			'post_title'  => 'About the Artist',
+		] );
+		$old_photo_id = self::factory()->attachment->create();
+		update_post_meta( $existing_id, '_agnosis_gallery_ids', [ $old_photo_id ] );
+
+		// A text-only bio update (no attachment) must not wipe the existing portrait.
+		$gallery = $this->call_merge_gallery( $existing_id, [], 'agnosis_biography' );
+
+		$this->assertSame( [ $old_photo_id ], $gallery );
+	}
+
+	public function test_biography_multiple_attachments_in_one_email_keep_only_the_first(): void {
+		$gif_a = self::tiny_gif();
+		$gif_b = self::tiny_gif() . "\x00"; // distinct content so it doesn't dedupe by hash against $gif_a.
+
+		$gallery = $this->call_merge_gallery(
+			0,
+			[ $this->image_result( 'a.gif', $gif_a ), $this->image_result( 'b.gif', $gif_b ) ],
+			'agnosis_biography'
+		);
+
+		$this->assertCount( 1, $gallery, 'A biography email with several attachments must still only keep one image.' );
+	}
+
+	public function test_biography_self_heals_a_gallery_that_already_accumulated_multiple_images(): void {
+		// Simulates a biography that accumulated more than one image before this
+		// fix existed — the very next resubmission (even text-only) must trim it
+		// back down to one rather than perpetuating the pre-fix state forever.
+		$existing_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'draft',
+			'post_title'  => 'About the Artist',
+		] );
+		$first  = self::factory()->attachment->create();
+		$second = self::factory()->attachment->create();
+		update_post_meta( $existing_id, '_agnosis_gallery_ids', [ $first, $second ] );
+
+		$gallery = $this->call_merge_gallery( $existing_id, [], 'agnosis_biography' );
+
+		$this->assertCount( 1, $gallery );
+		$this->assertSame( $first, $gallery[0], 'Trimming a legacy multi-image gallery keeps the first (oldest) image.' );
 	}
 }

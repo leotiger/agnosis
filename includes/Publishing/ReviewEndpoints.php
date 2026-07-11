@@ -265,7 +265,7 @@ class ReviewEndpoints {
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return true|WP_Error
 	 */
-	public function check_permission( WP_REST_Request $request ): true|WP_Error {
+	public function check_permission( WP_REST_Request $request ): bool|WP_Error {
 		if ( ! empty( sanitize_text_field( (string) $request->get_param( 'token' ) ) ) ) {
 			return true; // Token path — verified inside the callback.
 		}
@@ -279,7 +279,7 @@ class ReviewEndpoints {
 		);
 	}
 
-	private function check_access( WP_REST_Request $request, int $post_id ): true|WP_Error {
+	private function check_access( WP_REST_Request $request, int $post_id ): bool|WP_Error {
 		// Path 1 — token from query string (email link).
 		$token = sanitize_text_field( (string) $request->get_param( 'token' ) );
 		if ( ! empty( $token ) ) {
@@ -325,7 +325,7 @@ class ReviewEndpoints {
 	 * @param string $token   Token from the request.
 	 * @return true|WP_Error
 	 */
-	public static function verify_token( int $post_id, string $token ): true|WP_Error {
+	public static function verify_token( int $post_id, string $token ): bool|WP_Error {
 		$stored_token  = (string) get_post_meta( $post_id, '_agnosis_review_token', true );
 		$stored_expiry = (int) get_post_meta( $post_id, '_agnosis_review_expiry', true );
 

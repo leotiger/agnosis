@@ -803,4 +803,86 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		$this->assertSame( 'draft', get_post_status( $post_id ) );
 		$this->assertSame( $token, get_post_meta( $post_id, '_agnosis_review_token', true ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// Event timezone <select> (audit §2b) — previously a free-text input
+	// validated server-side against DateTimeZone::listIdentifiers() but
+	// silently discarded when invalid, with no indication to the artist that
+	// what they typed didn't stick. Now a <select> of every real identifier.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The GET-interstitial wp_die_handler interceptor set up in setUp() runs
+	 * wp_strip_all_tags() on the body before capturing it (see the class
+	 * docblock above and DeliverabilityTest's identical pattern) — so raw
+	 * markup (the `<select>`/`<optgroup>`/`<option selected>` tags themselves)
+	 * never survives into $e->body. timezone_options_html() is exercised
+	 * directly via reflection below instead, where the real HTML is available;
+	 * this GET test only confirms the field is actually wired into the real
+	 * approve form.
+	 */
+	public function test_handle_confirm_get_event_approve_form_includes_the_timezone_field(): void {
+		$token   = 'event-tz-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_event', $token );
+		update_post_meta( $post_id, '_agnosis_event_timezone', 'Europe/Madrid' );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'Timezone', $e->body );
+			$this->assertStringContainsString( 'Europe/Madrid', $e->body );
+		}
+	}
+
+	private function invoke_timezone_options_html( string $selected ): string {
+		$ref = new \ReflectionMethod( ReviewConfirm::class, 'timezone_options_html' );
+		$ref->setAccessible( true );
+		return (string) $ref->invoke( $this->confirm, $selected );
+	}
+
+	public function test_timezone_options_html_groups_identifiers_by_region_and_offers_not_set(): void {
+		$html = $this->invoke_timezone_options_html( '' );
+
+		$this->assertStringContainsString( '<optgroup label="Europe">', $html );
+		$this->assertStringContainsString( '<option value="Europe/Madrid">', $html );
+		$this->assertStringContainsString( '— Not set —', $html, 'An unset baseline must offer an explicit "not set" option rather than defaulting to some arbitrary identifier.' );
+	}
+
+	public function test_timezone_options_html_marks_the_selected_identifier(): void {
+		$html = $this->invoke_timezone_options_html( 'Europe/Madrid' );
+
+		$this->assertStringContainsString( '<option value="Europe/Madrid" selected=\'selected\'>', $html );
+		$this->assertStringNotContainsString( '<option value="Asia/Tokyo" selected', $html, 'Only the actually-selected identifier should carry the selected attribute.' );
+	}
+
+	public function test_handle_confirm_approve_event_persists_a_valid_selected_timezone(): void {
+		$token   = 'event-tz-token-ghi123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_event', $token );
+
+		$this->simulate_post( [
+			'agnosis_review'  => '1',
+			'id'              => (string) $post_id,
+			'action'          => 'approve',
+			'token'           => $token,
+			'body'            => 'Original body text.',
+			'orig_body'       => 'Original body text.',
+			'event_timezone'  => 'Asia/Tokyo',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->addToAssertionCount( 1 ); // redirect fired as expected.
+		}
+
+		$this->assertSame( 'Asia/Tokyo', get_post_meta( $post_id, '_agnosis_event_timezone', true ) );
+	}
 }

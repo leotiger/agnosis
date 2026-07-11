@@ -112,7 +112,11 @@
 				} );
 			} )
 			.then( function ( result ) {
-				if ( result.ok && result.data.status === 'applied' ) {
+				// 'pending_confirmation' (double opt-in, security audit §3a/§4a):
+				// the application isn't open for review yet — the artist still
+				// has to click the confirm link in their inbox. Treated as the
+				// same success path as the old 'applied' status used to be.
+				if ( result.ok && ( result.data.status === 'applied' || result.data.status === 'pending_confirmation' ) ) {
 					// Hide form, show success.
 					form.hidden = true;
 					showNotice( i18n.success || result.data.status, false );

@@ -27,6 +27,9 @@
  *
  *   maybe_upgrade()
  *     - Runs without error when tables already exist (idempotent upgrade path)
+ *     - Seeds the default agnosis_medium terms (patch 18) — an install that
+ *       predates the taxonomy never re-runs activate(), so this must also
+ *       happen on the version-gated upgrade path, not just activation.
  *
  * Note: create_tables() and schedule_events() are side effects of activate()
  * but are tested implicitly — table existence is a precondition for other tests.
@@ -350,6 +353,27 @@ class ActivatorTest extends \WP_UnitTestCase {
 		// This verifies the SHOW COLUMNS path doesn't error on existing tables.
 		$this->expectNotToPerformAssertions();
 		Activator::maybe_upgrade();
+	}
+
+	/**
+	 * Patch 18: seed_medium_terms() must run from maybe_upgrade(), not just
+	 * activate() — an install that was already active before the
+	 * agnosis_medium taxonomy shipped never re-runs activate(), so without
+	 * this the 8 default terms would never appear on that site even after
+	 * updating to a version that introduces them.
+	 */
+	public function test_maybe_upgrade_seeds_medium_terms(): void {
+		// No truncation needed — WP_UnitTestCase already gives each test a clean,
+		// rolled-back transaction, same assumption test_seed_medium_terms_inserts_
+		// canonical_mediums() above makes. seed_medium_terms() also registers the
+		// taxonomy itself if missing, so this exercises the exact "install that
+		// predates the taxonomy" path without touching it beforehand.
+		Activator::maybe_upgrade();
+
+		foreach ( PromptConfig::CANONICAL_MEDIUMS as $medium ) {
+			$term = get_term_by( 'name', $medium, 'agnosis_medium' );
+			$this->assertNotFalse( $term, "maybe_upgrade() should have seeded the '$medium' term." );
+		}
 	}
 
 	// =========================================================================

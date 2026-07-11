@@ -27,6 +27,7 @@ use Agnosis\Network\SubdomainRouter;
 class AdmissionNotification {
 
 	public function register_hooks(): void {
+		add_action( 'agnosis_application_unverified', [ $this, 'on_application_unverified' ], 10, 4 );
 		add_action( 'agnosis_artist_applied',     [ $this, 'on_application_received' ], 10, 3 );
 		add_action( 'agnosis_application_expired', [ $this, 'on_application_expired' ], 10, 1 );
 		add_action( 'agnosis_artist_admitted',     [ $this, 'on_artist_admitted' ],     10, 2 );
@@ -35,6 +36,65 @@ class AdmissionNotification {
 	// -------------------------------------------------------------------------
 	// Action callbacks
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Send the double opt-in "confirm your application" email (security audit
+	 * §3a/§4a) — the only email Admission::apply() itself triggers.
+	 * Deliberately short: a single confirm link, nothing else. Neither the
+	 * acknowledgment email nor the community vote blast fire from here — both
+	 * wait for Admission::confirm_application() to fire agnosis_artist_applied
+	 * (or agnosis_artist_waitlisted), handled by on_application_received()
+	 * below exactly as before. This is what closes the audit's two lanes: a
+	 * forged address can trigger this one short email to itself, but never
+	 * backscatter to a third party, and no attacker-controlled bio/portfolio/
+	 * statement content ever reaches the community until the sender proves
+	 * they control the inbox.
+	 *
+	 * @param int    $application_id Row ID in agnosis_applications.
+	 * @param string $email          Applicant's email address.
+	 * @param string $display_name   Applicant's display name.
+	 * @param string $token          Single-use confirm_token from Admission::apply().
+	 */
+	public function on_application_unverified( int $application_id, string $email, string $display_name, string $token ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$language = (string) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT language FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		$applicant_locale = '' !== $language ? Admission::iso_to_wp_locale( $language ) : '';
+		if ( '' !== $applicant_locale ) {
+			switch_to_locale( $applicant_locale );
+		}
+
+		$confirm_url = add_query_arg(
+			[
+				'agnosis_admission' => '1',
+				'action'            => 'confirm',
+				'token'             => $token,
+			],
+			home_url( '/' )
+		);
+
+		wp_mail(
+			$email,
+			sprintf(
+				/* translators: %s: community name */
+				__( 'Confirm your application to %s', 'agnosis' ),
+				get_bloginfo( 'name' )
+			),
+			$this->build_confirm_body( $display_name, $confirm_url ),
+			$this->html_headers()
+		);
+
+		if ( '' !== $applicant_locale ) {
+			restore_current_locale();
+		}
+	}
 
 	/**
 	 * Notify admin and every current artist that a new application has arrived.
@@ -70,10 +130,23 @@ class AdmissionNotification {
 		// Acknowledge the application to the applicant in their own language.
 		$this->send_application_acknowledgment( $application, $window );
 
-		// Collect all current artists.
+		// Collect current artists who want their vote emails instantly (the
+		// default) — excludes an artist who has switched to daily-digest mode
+		// (security audit §5b/§4a: the digest option doubles as an amplifier
+		// damper on §4a's community-wide vote blast). A digest-mode artist
+		// isn't skipped silently: Artist\VoteDigest's daily cron picks up every
+		// still-open application they haven't voted on yet, so nothing here
+		// needs to track "who still needs notifying" — see that class's own
+		// docblock for why re-deriving from open-applications-not-yet-voted-on
+		// is simpler and self-healing compared to a delta/queue approach.
 		$artists = get_users( [
-			'role'   => 'agnosis_artist',
-			'fields' => [ 'ID', 'user_email', 'display_name' ],
+			'role'       => 'agnosis_artist',
+			'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- small table (admitted artists only), acceptable.
+				'relation' => 'OR',
+				[ 'key' => '_agnosis_vote_email_mode', 'compare' => 'NOT EXISTS' ],
+				[ 'key' => '_agnosis_vote_email_mode', 'value' => 'digest', 'compare' => '!=' ],
+			],
+			'fields'     => [ 'ID', 'user_email', 'display_name' ],
 		] );
 
 		// Send one personalised email per artist.
@@ -97,7 +170,13 @@ class AdmissionNotification {
 		}
 
 		// Brief summary to the site admin address (no vote links — for archive/oversight).
-		$this->send_admin_summary( $application, count( $artists ), $window );
+		// $deferred_count reflects digest-mode artists who were deliberately
+		// excluded from $artists above, not an omission — worth surfacing so an
+		// operator reading this summary doesn't mistake a lower notified-count
+		// for something having gone wrong.
+		$total_artist_count = count( get_users( [ 'role' => 'agnosis_artist', 'fields' => 'ID' ] ) );
+		$deferred_count      = max( 0, $total_artist_count - count( $artists ) );
+		$this->send_admin_summary( $application, count( $artists ), $deferred_count, $window );
 	}
 
 	/**
@@ -280,6 +359,90 @@ class AdmissionNotification {
 		if ( '' !== $applicant_locale ) {
 			restore_current_locale();
 		}
+	}
+
+	/**
+	 * Build the HTML "confirm your application" email — deliberately the
+	 * shortest email in this class: a single link, no bio/portfolio/statement
+	 * echoed back (nothing has been shown to anyone else yet), and no
+	 * work-email footer, same reasoning as build_acknowledgment_body() below
+	 * — this recipient hasn't been admitted, so those addresses don't apply.
+	 */
+	private function build_confirm_body( string $display_name, string $confirm_url ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$accent    = '#7c6af7';
+		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 4px;';
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:18px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $display_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: community name */
+				esc_html__( 'One last step before %s can review your application: confirm this is really your email address.', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+
+		<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+		<tr><td>
+			<a href="<?php echo esc_url( $confirm_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
+				<?php esc_html_e( 'Confirm my application', 'agnosis' ); ?>
+			</a>
+		</td></tr>
+		</table>
+
+		<p style="margin:0;font-size:15px;color:#999;">
+			<?php esc_html_e( "If you didn't apply, simply ignore this email — nothing happens until this link is clicked.", 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**
@@ -521,6 +684,13 @@ class AdmissionNotification {
 			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
 		</p>
 		<?php endif; ?>
+		<?php // Security audit §5b/§4a: lets a chronic vote-blast recipient switch to a daily digest instead of the spam button. Same non-artist guard as edit_reminder_html() above. ?>
+		<?php $prefs_html = EmailFooter::preferences_html( $voter_id ); ?>
+		<?php if ( '' !== $prefs_html ) : ?>
+		<p style="margin:12px 0 0;text-align:center;">
+			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>
@@ -534,8 +704,15 @@ class AdmissionNotification {
 
 	/**
 	 * @param object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
+	 * @param int $artist_count   Artists emailed the vote request immediately.
+	 * @param int $deferred_count Digest-mode artists who will instead see this
+	 *                            application in their next Artist\VoteDigest run.
 	 */
-	private function send_admin_summary( object $application, int $artist_count, int $window ): void {
+	private function send_admin_summary( object $application, int $artist_count, int $deferred_count, int $window ): void {
+		$deferred_line = $deferred_count > 0
+			? sprintf( ' %d more will see it in their next daily digest.', $deferred_count )
+			: '';
+
 		wp_mail(
 			get_option( 'admin_email' ),
 			sprintf(
@@ -544,11 +721,12 @@ class AdmissionNotification {
 				$application->display_name
 			),
 			sprintf(
-				"Application ID: %d\nEmail: %s\nDisplay name: %s\n\nNotified %d artist(s). Voting window: %d day(s).",
+				"Application ID: %d\nEmail: %s\nDisplay name: %s\n\nNotified %d artist(s) immediately.%s Voting window: %d day(s).",
 				$application->id,
 				$application->email,
 				$application->display_name,
 				$artist_count,
+				$deferred_line,
 				$window
 			),
 			$this->text_headers()
@@ -714,6 +892,13 @@ class AdmissionNotification {
 			);
 			?>
 		</p>
+		<?php // Security audit §5b/§4a: a brand-new artist is about to start receiving broadcast/vote mail — the very first email they'd see this link in. ?>
+		<?php $prefs_html = EmailFooter::preferences_html( $user->ID ); ?>
+		<?php if ( '' !== $prefs_html ) : ?>
+		<p style="margin:12px 0 0;text-align:center;">
+			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
 	</td></tr>
 
 </table>

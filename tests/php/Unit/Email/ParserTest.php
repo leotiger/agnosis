@@ -219,6 +219,100 @@ class ParserTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// parse_webhook_payload() — attachment MIME sniffing (sixth audit §3e)
+	//
+	// Previously the webhook path trusted $_FILES[...]['type'] outright — a
+	// value that's entirely sender-declared, with no byte-level check at
+	// all — while the IMAP path (parse_imap_message(), above) always
+	// fileinfo-sniffs the real bytes first, falling back to the declared
+	// Content-Type only when the sniff itself doesn't recognize anything on
+	// the allow-list. These tests exercise that same sniff-then-declared-
+	// fallback order on the webhook path, now that both transports share it.
+	// -------------------------------------------------------------------------
+
+	/** A minimal (67-byte) but genuinely valid 1x1 PNG — real bytes finfo reliably sniffs as image/png. */
+	private const REAL_PNG_BYTES = "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xdc\xccY\xe7\x00\x00\x00\x00IEND\xaeB`\x82";
+
+	public function test_webhook_attachment_is_accepted_via_sniff_when_declared_type_is_not_allowed(): void {
+		$tmp = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
+		file_put_contents( $tmp, self::REAL_PNG_BYTES );
+
+		$_FILES['attachment-1'] = [
+			'name'     => 'photo',
+			'type'     => 'application/octet-stream', // not on the allow-list at all
+			'tmp_name' => $tmp,
+			'error'    => UPLOAD_ERR_OK,
+			'size'     => strlen( self::REAL_PNG_BYTES ),
+		];
+
+		$result = $this->parser->parse_webhook_payload( [
+			'sender'           => 'artist@example.com',
+			'subject'          => 'Real PNG, generic declared type',
+			'attachment-count' => 1,
+		] );
+
+		unlink( $tmp );
+		unset( $_FILES['attachment-1'] );
+
+		$this->assertIsArray( $result, 'Genuinely valid image bytes must be accepted via sniffing even when the declared type is not on the allow-list at all — the old code would have rejected this outright.' );
+		$this->assertSame( 'image/png', $result['attachments'][0]['mime'], 'The sniffed type, not the useless declared type, must be recorded.' );
+	}
+
+	public function test_webhook_attachment_falls_back_to_declared_type_when_sniff_is_not_allowed(): void {
+		// Mirrors parse_imap_message()'s own fallback: real bytes that don't
+		// sniff as anything on the allow-list (plain text here) still get
+		// accepted if the declared Content-Type is itself an allowed image
+		// type — documents the same back-compat this method has always had
+		// for a sender whose upload doesn't sniff cleanly.
+		$tmp = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
+		file_put_contents( $tmp, 'not actually image bytes at all' );
+
+		$_FILES['attachment-1'] = [
+			'name'     => 'artwork.jpg',
+			'type'     => 'image/jpeg',
+			'tmp_name' => $tmp,
+			'error'    => UPLOAD_ERR_OK,
+			'size'     => 32,
+		];
+
+		$result = $this->parser->parse_webhook_payload( [
+			'sender'           => 'artist@example.com',
+			'subject'          => 'Unsniffable body, allowed declared type',
+			'attachment-count' => 1,
+		] );
+
+		unlink( $tmp );
+		unset( $_FILES['attachment-1'] );
+
+		$this->assertIsArray( $result, 'An allowed declared type must still be trusted as a fallback when the actual bytes fail to sniff as anything recognized — matching the IMAP path\'s own convention.' );
+		$this->assertSame( 'image/jpeg', $result['attachments'][0]['mime'] );
+	}
+
+	public function test_webhook_attachment_is_rejected_when_neither_sniff_nor_declared_type_is_allowed(): void {
+		$tmp = tempnam( sys_get_temp_dir(), 'agnosis_test_' );
+		file_put_contents( $tmp, '%PDF-1.4 fake pdf bytes' );
+
+		$_FILES['attachment-1'] = [
+			'name'     => 'document.pdf',
+			'type'     => 'application/pdf',
+			'tmp_name' => $tmp,
+			'error'    => UPLOAD_ERR_OK,
+			'size'     => 23,
+		];
+
+		$result = $this->parser->parse_webhook_payload( [
+			'sender'           => 'a@b.com',
+			'subject'          => 'Doc',
+			'attachment-count' => 1,
+		] );
+
+		unlink( $tmp );
+		unset( $_FILES['attachment-1'] );
+
+		$this->assertNull( $result );
+	}
+
+	// -------------------------------------------------------------------------
 	// parse_webhook_payload() — to_addresses collection (fifth audit §5a)
 	//
 	// Previously untested at all: no test in this file ever asserted on the
@@ -345,7 +439,8 @@ class ParserTest extends TestCase {
 	// Previously PostCreator::resolve_post_type() only ever saw a single
 	// 'to_address' from the IMAP path too — this exercises
 	// parse_imap_message()'s own collection of every To:/Cc: recipient into
-	// 'to_addresses', mirroring the webhook path's extract_recipient_addresses().
+	// 'to_addresses', mirroring the webhook path's IntakeGates::recipient_addresses()
+	// (sixth audit §6 — this parser moved there from a private method on this class).
 	// No test anywhere previously called parse_imap_message() at all.
 	// -------------------------------------------------------------------------
 

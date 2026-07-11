@@ -252,6 +252,11 @@ if ( ! class_exists( 'WP_Error' ) ) {
         ) {}
         public function get_error_message(): string { return $this->message; }
         public function get_error_code(): string { return $this->code; }
+        // Real WP_Error::get_error_data() takes an optional $code and looks
+        // up that specific error's data; this stub only ever holds one error
+        // per instance (the only pattern used anywhere in this codebase), so
+        // $code is accepted for signature compatibility but unused.
+        public function get_error_data( string $code = '' ): mixed { return $this->data; }
     }
 }
 

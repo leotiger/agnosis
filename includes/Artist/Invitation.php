@@ -40,7 +40,7 @@ class Invitation {
 	 *
 	 * @return true|string True on success, or a translated error message.
 	 */
-	public function send( string $email, string $language ): true|string {
+	public function send( string $email, string $language ): bool|string {
 		return $this->deliver( $email, $language, false );
 	}
 
@@ -52,7 +52,7 @@ class Invitation {
 	 *
 	 * @return true|string True on success, or a translated error message.
 	 */
-	public function send_test( string $email, string $language ): true|string {
+	public function send_test( string $email, string $language ): bool|string {
 		return $this->deliver( $email, $language, true );
 	}
 
@@ -63,7 +63,7 @@ class Invitation {
 	/**
 	 * @return true|string True on success, or a translated error message.
 	 */
-	private function deliver( string $email, string $language, bool $is_test ): true|string {
+	private function deliver( string $email, string $language, bool $is_test ): bool|string {
 		if ( ! is_email( $email ) ) {
 			return __( 'Please enter a valid email address.', 'agnosis' );
 		}

@@ -631,6 +631,20 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$application_id = (int) ( $apply_response->get_data()['application_id'] ?? 0 );
 		$this->assertGreaterThan( 0, $application_id, 'Application must be created before it can be vouched.' );
 
+		// Double opt-in (security audit §3a/§4a): apply() alone only parks the
+		// row as 'unverified' now — confirm it via the real
+		// Admission::confirm_application() before it can be vouched, mirroring
+		// the applicant clicking the link in the confirmation email.
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$confirm_token = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+		( new \Agnosis\Artist\Admission() )->confirm_application( (string) $confirm_token );
+
 		wp_set_current_user( $voter );
 		rest_do_request( new \WP_REST_Request( 'POST', "/agnosis/v1/admission/vouch/{$application_id}" ) );
 

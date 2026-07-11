@@ -41,6 +41,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Core;
 
+use Agnosis\Artist\NotificationPreferences;
+
 class EmailFooter {
 
 	/**
@@ -224,6 +226,61 @@ class EmailFooter {
 		}
 
 		return esc_html__( 'Spotted something to fix after publishing? Log in and look for the pencil icon on your published page — you can correct the title, text, or photo yourself, no need to email us again.', 'agnosis' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Notification preferences link (security audit §5b/§4a)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Plain-text "manage notification preferences" line pointing at
+	 * NotificationPreferences' tokenized front end — lets an artist mute
+	 * community broadcasts or switch application-vote emails to a daily
+	 * digest without emailing anyone or logging in (see that class's
+	 * docblock). Gated to actual admitted artists only: the vote email's
+	 * admin fallback recipient (AdmissionNotification::get_admin_user_id())
+	 * may not hold the agnosis_artist role, and NotificationPreferences
+	 * itself would reject that account's token anyway — returning '' here
+	 * keeps a non-artist recipient from seeing a link that wouldn't work.
+	 *
+	 * @param int $artist_id WP user ID of the email recipient.
+	 */
+	public static function preferences_plain_text( int $artist_id ): string {
+		if ( ! self::is_artist( $artist_id ) ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: notification preferences link */
+			__( 'Manage notification preferences: %s', 'agnosis' ),
+			NotificationPreferences::prefs_url( $artist_id )
+		);
+	}
+
+	/**
+	 * HTML version of preferences_plain_text() — a single small, muted link,
+	 * pre-escaped so callers can echo it directly like html() above.
+	 *
+	 * @param int $artist_id WP user ID of the email recipient.
+	 */
+	public static function preferences_html( int $artist_id ): string {
+		if ( ! self::is_artist( $artist_id ) ) {
+			return '';
+		}
+
+		return sprintf(
+			'<a href="%s" style="color:#999;font-size:13px;text-decoration:underline;">%s</a>',
+			esc_url( NotificationPreferences::prefs_url( $artist_id ) ),
+			esc_html__( 'Manage notification preferences', 'agnosis' )
+		);
+	}
+
+	private static function is_artist( int $artist_id ): bool {
+		if ( $artist_id <= 0 ) {
+			return false;
+		}
+		$user = get_userdata( $artist_id );
+		return $user && in_array( 'agnosis_artist', (array) $user->roles, true );
 	}
 
 	/**

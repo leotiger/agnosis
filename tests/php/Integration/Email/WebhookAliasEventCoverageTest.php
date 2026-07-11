@@ -277,6 +277,36 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'no subject or body', $row->error );
 	}
 
+	/**
+	 * Audit §2c: previously an empty community broadcast was just dropped —
+	 * recorded in the queue (asserted above) but the sender received no
+	 * indication anything went wrong. Webhook::handle() now also triggers
+	 * CommunityBroadcast::send_empty_bounce() on this path; this asserts the
+	 * bounce email is actually sent, not just that the queue row is marked.
+	 */
+	public function test_community_empty_message_sends_a_bounce_to_the_sender(): void {
+		$sender = 'community-empty-bounce@example.com';
+		$this->create_admitted_artist( $sender );
+		$message_id = '<community-empty-bounce@example.com>';
+
+		$sent_mails  = [];
+		$mail_filter = function ( $pre, array $atts ) use ( &$sent_mails ): bool {
+			$sent_mails[] = $atts;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $mail_filter, 10, 2 );
+
+		$request = $this->community_request( $sender, '', '' );
+		$request->set_param( 'Message-Id', $message_id );
+		$this->webhook->handle( $request );
+
+		remove_filter( 'pre_wp_mail', $mail_filter, 10 );
+
+		$to_sender = array_values( array_filter( $sent_mails, fn( array $m ) => $m['to'] === $sender ) );
+		$this->assertCount( 1, $to_sender, 'An empty community broadcast must bounce exactly one explanatory email back to the sender.' );
+		$this->assertStringContainsString( 'no subject or message text', $to_sender[0]['message'] );
+	}
+
 	public function test_community_too_long_message_is_recorded_as_skipped(): void {
 		$sender = 'community-toolong-artist@example.com';
 		$this->create_admitted_artist( $sender );
@@ -319,8 +349,10 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 	// End-to-end CC scenario (fifth audit §5a) — every test above puts the
 	// alias address in Mailgun's own single-routed 'recipient' field. None of
-	// them prove webhook_recipient_addresses()'s actual reason for existing:
-	// that goodbye@/community@ still gets found when it only appears in a
+	// them prove IntakeGates::recipient_addresses()'s actual reason for
+	// existing (sixth audit §6 — this parser moved here from a private
+	// method on this class): that goodbye@/community@ still gets found
+	// when it only appears in a
 	// 'To'/'Cc' header alongside some other primary recipient. These two
 	// tests close that gap by deliberately leaving 'recipient' pointing
 	// somewhere else and only CC'ing the alias.

@@ -42,11 +42,14 @@ class WebhookReplayProtectionTest extends TestCase {
 		WebhookSignatureTest::$options = [];
 
 		// This suite makes many verify_signature() calls, each consuming one
-		// unit of the shared 'email_inbound' RateLimiter bucket (60/60s) — reset
-		// it so this file's own test count never depends on what ran before it
-		// in the same PHPUnit process (transients are a plain in-memory array
-		// for the whole run, per dev/bootstrap.php).
-		RateLimiter::reset( 'email_inbound', RateLimiter::client_ip(), 60 );
+		// unit of the shared 'email_inbound_verified' RateLimiter bucket
+		// (300/60s, audit §3c's bucket split — every request in this file is
+		// validly signed, so all of them land in the "verified" bucket, never
+		// the tight "unverified" one) — reset it so this file's own test count
+		// never depends on what ran before it in the same PHPUnit process
+		// (transients are a plain in-memory array for the whole run, per
+		// dev/bootstrap.php).
+		RateLimiter::reset( 'email_inbound_verified', RateLimiter::client_ip(), 60 );
 	}
 
 	protected function tearDown(): void {

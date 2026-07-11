@@ -71,8 +71,12 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 	// -------------------------------------------------------------------------
 
 	/** Create a WP user with the agnosis_artist role. */
-	private function create_artist(): int {
-		$id   = self::factory()->user->create( [ 'role' => 'subscriber' ] );
+	private function create_artist( string $email = '' ): int {
+		$args = [ 'role' => 'subscriber' ];
+		if ( $email ) {
+			$args['user_email'] = $email;
+		}
+		$id   = self::factory()->user->create( $args );
 		$user = get_user_by( 'id', $id );
 		$user->add_role( 'agnosis_artist' );
 		return $id;
@@ -93,7 +97,17 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Submit a valid application and return the application_id.
+	 * Submit a valid application, confirm it immediately, and return the
+	 * application_id.
+	 *
+	 * Double opt-in (security audit §3a/§4a): apply() alone only ever parks
+	 * the row as 'unverified' now — it no longer opens the application for
+	 * community review. Most of this file exercises what happens AFTER an
+	 * application is open for review (vouching, admission, status, redirect,
+	 * language capture), so this helper confirms right away, mirroring an
+	 * applicant who clicks the confirm link immediately. The double-opt-in
+	 * mechanics themselves (unverified parking, no notification pre-confirm,
+	 * single-use token, resend cooldown) are covered directly further below.
 	 *
 	 * Always includes a recognized `language` — apply() now rejects (400) any
 	 * request that omits it or sends one Lingua Forge isn't configured for
@@ -110,7 +124,39 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 			'statement'    => 'I want to share my work.',
 			'language'     => $language,
 		] );
-		return (int) ( $response->get_data()['application_id'] ?? 0 );
+		$application_id = (int) ( $response->get_data()['application_id'] ?? 0 );
+
+		if ( $application_id > 0 ) {
+			$this->confirm_application( $application_id );
+		}
+
+		return $application_id;
+	}
+
+	/**
+	 * Look up an application's confirm_token and confirm it via
+	 * Admission::confirm_application() directly — the real confirmation path
+	 * (AdmissionConfirm's template_redirect handler) isn't reachable through
+	 * rest_do_request(), so tests call the same method it calls.
+	 *
+	 * @return array{id: int, status: string, display_name: string, email: string}|false
+	 */
+	private function confirm_application( int $application_id ): array|false {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$token = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		if ( ! $token ) {
+			return false;
+		}
+
+		return ( new \Agnosis\Artist\Admission() )->confirm_application( (string) $token );
 	}
 
 	// -------------------------------------------------------------------------
@@ -126,7 +172,9 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		] );
 
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertSame( 'applied', $response->get_data()['status'] );
+		// Double opt-in (security audit §3a/§4a): apply() alone never opens
+		// the application for review — see the dedicated tests below.
+		$this->assertSame( 'pending_confirmation', $response->get_data()['status'] );
 	}
 
 	public function test_apply_returns_application_id(): void {
@@ -210,6 +258,163 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		] );
 
 		$this->assertSame( 3, $response->get_data()['vouches_required'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Double opt-in (security audit §3a/§4a)
+	// -------------------------------------------------------------------------
+
+	public function test_apply_parks_application_as_unverified(): void {
+		global $wpdb;
+
+		wp_set_current_user( 0 );
+		$this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'unverified@example.com',
+			'display_name' => 'Unverified Artist',
+			'language'     => 'en',
+		] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$status = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT status FROM {$wpdb->prefix}agnosis_applications WHERE email = %s",
+				'unverified@example.com'
+			)
+		);
+		$this->assertSame( 'unverified', $status );
+	}
+
+	public function test_apply_does_not_notify_artists_before_confirmation(): void {
+		$this->create_artist( 'watcher@example.com' );
+
+		$mails  = [];
+		$filter = function ( $pre, array $atts ) use ( &$mails ): bool {
+			$mails[] = $atts;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 2 );
+
+		wp_set_current_user( 0 );
+		$this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'noblast@example.com',
+			'display_name' => 'No Blast',
+			'language'     => 'en',
+		] );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$to_artist = array_filter( $mails, fn( array $m ) => 'watcher@example.com' === $m['to'] );
+		$this->assertEmpty( $to_artist, 'No artist should be notified before the applicant confirms their email.' );
+	}
+
+	public function test_confirm_application_opens_it_for_review_and_notifies_artists(): void {
+		global $wpdb;
+
+		$this->create_artist( 'confirmwatcher@example.com' );
+
+		wp_set_current_user( 0 );
+		$response       = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'toconfirm@example.com',
+			'display_name' => 'To Confirm',
+			'language'     => 'en',
+		] );
+		$application_id = (int) $response->get_data()['application_id'];
+
+		$mails  = [];
+		$filter = function ( $pre, array $atts ) use ( &$mails ): bool {
+			$mails[] = $atts;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 2 );
+
+		$result = $this->confirm_application( $application_id );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotFalse( $result );
+		$this->assertSame( 'pending', $result['status'] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$status = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT status FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+		$this->assertSame( 'pending', $status );
+
+		$to_artist = array_filter( $mails, fn( array $m ) => 'confirmwatcher@example.com' === $m['to'] );
+		$this->assertNotEmpty( $to_artist, 'The artist vote email must fire once the application is confirmed.' );
+	}
+
+	public function test_confirm_application_rejects_unknown_token(): void {
+		$result = ( new \Agnosis\Artist\Admission() )->confirm_application( 'not-a-real-token' );
+		$this->assertFalse( $result );
+	}
+
+	public function test_confirm_application_token_is_single_use(): void {
+		global $wpdb;
+
+		wp_set_current_user( 0 );
+		$response       = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'onceonly@example.com',
+			'display_name' => 'Once Only',
+			'language'     => 'en',
+		] );
+		$application_id = (int) $response->get_data()['application_id'];
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$token = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		$admission = new \Agnosis\Artist\Admission();
+		$first     = $admission->confirm_application( (string) $token );
+		$second    = $admission->confirm_application( (string) $token );
+
+		$this->assertNotFalse( $first );
+		$this->assertFalse( $second, 'The same confirm_token must not be usable twice.' );
+	}
+
+	public function test_apply_resend_within_cooldown_does_not_issue_new_token(): void {
+		global $wpdb;
+
+		wp_set_current_user( 0 );
+		$first          = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'resend@example.com',
+			'display_name' => 'Resend Artist',
+			'language'     => 'en',
+		] );
+		$application_id = (int) $first->get_data()['application_id'];
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$token_before = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		$second = $this->rest_post( '/agnosis/v1/admission/apply', [
+			'email'        => 'resend@example.com',
+			'display_name' => 'Resend Artist',
+			'language'     => 'en',
+		] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$token_after = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT confirm_token FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				$application_id
+			)
+		);
+
+		$this->assertSame( 201, $second->get_status() );
+		$this->assertSame( 'pending_confirmation', $second->get_data()['status'] );
+		$this->assertSame( $token_before, $token_after, 'A resubmission within the resend cooldown must not rotate the confirm token.' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -597,6 +802,7 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 			'language'     => 'es',
 		] );
 		$application_id = (int) $response->get_data()['application_id'];
+		$this->confirm_application( $application_id );
 
 		// Reach the vouch threshold — triggers maybe_admit() → wp_update_user with locale.
 		$this->rest_post( "/agnosis/v1/admission/vouch/{$application_id}", [], $artist1 );

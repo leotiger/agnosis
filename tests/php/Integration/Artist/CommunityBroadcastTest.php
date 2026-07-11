@@ -159,6 +159,37 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 		$this->assertEmpty( $this->sent_mails );
 	}
 
+	public function test_muted_artist_does_not_receive_a_broadcast(): void {
+		// Security audit §5b/§4a: an artist who has muted broadcasts via
+		// NotificationPreferences must be silently excluded, same as a
+		// non-artist would be.
+		$sender_id = $this->create_artist( 'sender-muted@example.com', 'Sender Muted Test' );
+		$muted_id  = $this->create_artist( 'muted@example.com', 'Muted Artist' );
+		$this->create_artist( 'unmuted@example.com', 'Unmuted Artist' );
+
+		update_user_meta( $muted_id, '_agnosis_broadcast_optout', '1' );
+
+		$sent = $this->broadcast->broadcast( $sender_id, 'Hello', 'A message.' );
+
+		$this->assertSame( 1, $sent );
+		$this->assertEmpty( $this->mails_to( 'muted@example.com' ), 'A muted artist must not receive a community broadcast.' );
+		$this->assertCount( 1, $this->mails_to( 'unmuted@example.com' ) );
+	}
+
+	public function test_broadcast_optout_value_other_than_1_still_receives(): void {
+		// Mirrors Newsletter\Scheduler::artist_recipients()'s own convention:
+		// only the literal '1' opts out, any other stored value (or none at
+		// all) is treated as still subscribed.
+		$sender_id = $this->create_artist( 'sender-stale@example.com', 'Sender Stale Meta' );
+		$stale_id  = $this->create_artist( 'stale-meta@example.com', 'Stale Meta Artist' );
+		update_user_meta( $stale_id, '_agnosis_broadcast_optout', '0' );
+
+		$sent = $this->broadcast->broadcast( $sender_id, 'Hello', 'A message.' );
+
+		$this->assertSame( 1, $sent );
+		$this->assertCount( 1, $this->mails_to( 'stale-meta@example.com' ) );
+	}
+
 	public function test_unknown_sender_id_sends_nothing(): void {
 		$this->create_artist( 'recipient4@example.com', 'Recipient Four' );
 
@@ -336,6 +367,40 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 
 	public function test_bounce_does_nothing_for_unknown_sender(): void {
 		$this->broadcast->send_too_long_bounce( 999999, 12345 );
+		$this->assertEmpty( $this->sent_mails );
+	}
+
+	// =========================================================================
+	// send_empty_bounce() (audit §2c) — mirrors send_too_long_bounce() above.
+	// Previously a community broadcast whose subject/body couldn't be parsed
+	// out of the inbound email (typically an HTML-only message with no
+	// plain-text part) was just silently dropped: the sender saw nothing,
+	// gave no clue why the community never got their message.
+	// =========================================================================
+
+	public function test_empty_bounce_sends_only_to_the_sender(): void {
+		$sender_id = $this->create_artist( 'emptybounce@example.com', 'Empty Bounce Sender' );
+		$this->create_artist( 'recipient12@example.com', 'Recipient Twelve' );
+
+		$this->broadcast->send_empty_bounce( $sender_id );
+
+		$this->assertCount( 1, $this->mails_to( 'emptybounce@example.com' ) );
+		$this->assertEmpty( $this->mails_to( 'recipient12@example.com' ), 'A bounced message must never reach any other community member.' );
+		$this->assertCount( 1, $this->sent_mails, 'Exactly one email (to the sender) must be sent, nothing else.' );
+	}
+
+	public function test_empty_bounce_body_explains_no_content_was_found(): void {
+		$sender_id = $this->create_artist( 'emptybounce2@example.com', 'Empty Bounce Sender Two' );
+
+		$this->broadcast->send_empty_bounce( $sender_id );
+
+		$mail = $this->mails_to( 'emptybounce2@example.com' )[0];
+		$this->assertStringContainsString( 'no subject or message text', $mail['message'] );
+		$this->assertStringContainsString( 'try sending it again with plain text', $mail['message'] );
+	}
+
+	public function test_empty_bounce_does_nothing_for_unknown_sender(): void {
+		$this->broadcast->send_empty_bounce( 999999 );
 		$this->assertEmpty( $this->sent_mails );
 	}
 }

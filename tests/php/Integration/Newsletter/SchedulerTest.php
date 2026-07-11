@@ -469,4 +469,79 @@ class SchedulerTest extends \WP_UnitTestCase {
 
 		$this->assertTrue( $this->scheduler->has_issue_in_flight( 'public' ) );
 	}
+
+	// =========================================================================
+	// latest_issue_id() / failed_count_for_latest_issue() (audit §5e — the
+	// newsletter dashboard's "Retry Failed" button, see Settings::
+	// render_retry_failed_button() and QueueProcessor::retry_failed()).
+	// =========================================================================
+
+	public function test_latest_issue_id_returns_null_when_no_issue_exists(): void {
+		$this->assertNull( $this->scheduler->latest_issue_id( 'public' ) );
+	}
+
+	public function test_latest_issue_id_returns_the_most_recently_created_issue(): void {
+		$this->insert_sent_issue( 'public', '2026-01-01 00:00:00' );
+		$this->insert_sent_issue( 'public', '2026-03-01 00:00:00' );
+		$latest = $this->get_latest_issue( 'public' );
+
+		$this->assertSame( (int) $latest->id, $this->scheduler->latest_issue_id( 'public' ) );
+	}
+
+	public function test_failed_count_for_latest_issue_is_zero_when_no_issue_exists(): void {
+		$this->assertSame( 0, $this->scheduler->failed_count_for_latest_issue( 'public' ) );
+	}
+
+	public function test_failed_count_for_latest_issue_counts_only_failed_rows_on_the_latest_issue(): void {
+		global $wpdb;
+
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->create_confirmed_subscriber( 'b@example.com' );
+		$this->create_confirmed_subscriber( 'c@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->get_latest_issue( 'public' );
+
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_newsletter_queue',
+			[ 'status' => 'failed' ],
+			[ 'issue_id' => $issue->id, 'recipient_email' => 'a@example.com' ],
+			[ '%s' ],
+			[ '%d', '%s' ]
+		);
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_newsletter_queue',
+			[ 'status' => 'failed' ],
+			[ 'issue_id' => $issue->id, 'recipient_email' => 'b@example.com' ],
+			[ '%s' ],
+			[ '%d', '%s' ]
+		);
+		// 'c@example.com' stays pending — must not be counted.
+
+		$this->assertSame( 2, $this->scheduler->failed_count_for_latest_issue( 'public' ) );
+	}
+
+	public function test_failed_count_for_latest_issue_ignores_older_issues(): void {
+		global $wpdb;
+
+		// An older issue with a failed row must not leak into the count for
+		// the newest issue of the same type.
+		$this->insert_sent_issue( 'public', '2026-01-01 00:00:00' );
+		$old_issue = $this->get_latest_issue( 'public' );
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_newsletter_queue',
+			[
+				'issue_id'          => $old_issue->id,
+				'recipient_email'   => 'old-failed@example.com',
+				'recipient_type'    => 'public',
+				'unsubscribe_token' => 'tok',
+				'status'            => 'failed',
+			],
+			[ '%d', '%s', '%s', '%s', '%s' ]
+		);
+
+		$this->create_confirmed_subscriber( 'new@example.com' );
+		$this->scheduler->send_now( 'public' );
+
+		$this->assertSame( 0, $this->scheduler->failed_count_for_latest_issue( 'public' ), 'Only the most recent issue\'s failed rows should be counted.' );
+	}
 }
