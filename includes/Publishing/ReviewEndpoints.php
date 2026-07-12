@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\AI\PromptConfig;
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use WP_REST_Request;
@@ -269,17 +271,76 @@ class ReviewEndpoints {
 		if ( ! $pending_for ) {
 			Logger::info( sprintf( 'finalize_publish(#%d): no pending-update meta — publishing this post directly (not a staged update).', $post_id ), 'review' );
 
-			$result = wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ], true );
+			// Native-language pipeline (Phase 3, 2026-07-12 — agnosis-audit/
+			// NATIVE-LANGUAGE-PIPELINE.md §4c): this is the one point every
+			// approval — staged or not — converges on, so it's where the
+			// artist's final native-language content (their original
+			// AI-generated result, or their edit of it, per ReviewConfirm) is
+			// translated to primary exactly once. Returns null (and changes
+			// nothing here) for the common case — no declared native language,
+			// or the artist already writes in the site's primary language.
+			$source     = get_post( $post_id );
+			$translated = $source instanceof \WP_Post ? $this->translate_native_content_to_primary( $source ) : null;
+
+			$update = [ 'ID' => $post_id, 'post_status' => 'publish' ];
+			if ( null !== $translated ) {
+				// post_title itself is never touched — it stays the artist's own
+				// verbatim words at rest, exactly as before this feature existed
+				// (see translate_native_content_to_primary()'s docblock).
+				$update['post_excerpt'] = $translated['excerpt'];
+				$update['post_content'] = $translated['content'];
+			}
+
+			$result = wp_update_post( $update, true );
 			if ( is_wp_error( $result ) ) {
 				Logger::error( sprintf( 'finalize_publish(#%d): direct publish failed — %s', $post_id, $result->get_error_message() ), 'review' );
 				return $result;
+			}
+
+			if ( null !== $translated ) {
+				update_post_meta( $post_id, '_agnosis_translated_title', $translated['display_title'] );
+
+				// Phase 2 (§4b) — preserve the native-language version that's
+				// about to be overwritten by the primary translation above, so
+				// Phase 4 has something to build the artist's own
+				// native-language sibling post from later. '_agnosis_native_lang'
+				// is already correct here — PostCreator::create_post() wrote it
+				// straight onto this exact post at intake, and this is a
+				// first-time publish, so $post_id is never replaced by a
+				// different post the way a staged update's target is.
+				update_post_meta( $post_id, '_agnosis_native_excerpt', $translated['native_excerpt'] );
+				update_post_meta( $post_id, '_agnosis_native_body', $translated['native_body'] );
+				update_post_meta( $post_id, '_agnosis_native_tags', wp_json_encode( $translated['native_tags'] ) );
+
+				if ( $source instanceof \WP_Post && 'agnosis_artwork' === $source->post_type
+					&& '' !== $translated['medium'] && in_array( $translated['medium'], PromptConfig::medium_terms(), true )
+				) {
+					wp_set_object_terms( $post_id, $translated['medium'], 'agnosis_medium' );
+				}
+
+				if ( ! empty( $translated['tags'] ) ) {
+					wp_set_post_tags( $post_id, $translated['tags'] );
+				}
 			}
 
 			delete_post_meta( $post_id, '_agnosis_review_token' );
 			delete_post_meta( $post_id, '_agnosis_review_expiry' );
 			delete_post_meta( $post_id, '_agnosis_review_backtranslation' );
 
-			do_action( 'agnosis_post_published', $post_id );
+			// Native-language pipeline (Phase 4, §4d): exclude the artist's own
+			// language from Lingua Forge's AI-driven fan-out when a native-language
+			// sibling is about to be created directly instead (sync_native_sibling()
+			// below) — otherwise LF would separately re-translate this exact
+			// language from the primary post it just spent an AI call producing.
+			// Native lang is read straight from post meta rather than gated on
+			// $translated !== null so this stays correct even if translation
+			// happened but the sibling sync below no-ops for some other reason.
+			$native_lang   = (string) get_post_meta( $post_id, '_agnosis_native_lang', true );
+			$exclude_langs = '' !== $native_lang ? [ $native_lang ] : [];
+
+			do_action( 'agnosis_post_published', $post_id, $exclude_langs );
+
+			LinguaForge::sync_native_sibling( $post_id );
 
 			return $post_id;
 		}
@@ -306,12 +367,19 @@ class ReviewEndpoints {
 			);
 		}
 
+		// Same native→primary translation the direct branch above performs —
+		// see translate_native_content_to_primary()'s docblock. $staging holds
+		// the artist's final native-language content (their original result,
+		// or their edit of it); when translation is needed, its OUTPUT (not
+		// $staging's own raw fields) is what gets written onto the live post.
+		$translated = $this->translate_native_content_to_primary( $staging );
+
 		$result = wp_update_post(
 			[
 				'ID'           => $pending_for,
-				'post_title'   => $staging->post_title,
-				'post_excerpt' => $staging->post_excerpt,
-				'post_content' => $staging->post_content,
+				'post_title'   => $staging->post_title, // never translated — artist's own words, always.
+				'post_excerpt' => null !== $translated ? $translated['excerpt'] : $staging->post_excerpt,
+				'post_content' => null !== $translated ? $translated['content'] : $staging->post_content,
 			],
 			true
 		);
@@ -356,6 +424,21 @@ class ReviewEndpoints {
 			'_agnosis_biography_portfolio_url',
 			'_agnosis_biography_portfolio_embedded',
 			'_agnosis_dropped_links',
+			// Phase 2 (§4b) — copied here so the target reflects the CURRENT
+			// submission's language/medium, same as every other meta key in
+			// this loop. Known limitation shared with the rest of this loop:
+			// since the copy is skipped when the staging draft's own value is
+			// '' (see the empty-value guard below), an artist who previously
+			// wrote in, say, Catalan and later switches to writing in the
+			// site's primary language won't have a stale '_agnosis_native_lang'
+			// actively cleared here — harmless today (Phase 4, the first
+			// consumer of this meta, doesn't exist yet), worth revisiting once
+			// it does. '_agnosis_native_excerpt'/'_agnosis_native_body' are NOT
+			// copied here — they only mean anything once a real translation
+			// actually happens (see the unconditional block below), never a
+			// static copy of the staging draft's own fields.
+			'_agnosis_native_lang',
+			'_agnosis_native_medium',
 		] as $meta_key ) {
 			$value = get_post_meta( $post_id, $meta_key, true );
 			if ( '' !== $value ) {
@@ -363,13 +446,39 @@ class ReviewEndpoints {
 			}
 		}
 
-		$tags = wp_get_post_tags( $post_id, [ 'fields' => 'names' ] );
+		// Translated tags (when translation happened) take priority over the
+		// staging draft's own native-language tag terms — see
+		// translate_native_content_to_primary()'s docblock. Falls back to the
+		// staging draft's own tags exactly as before this feature existed.
+		if ( null !== $translated && ! empty( $translated['tags'] ) ) {
+			$tags = $translated['tags'];
+		} else {
+			$tags = wp_get_post_tags( $post_id, [ 'fields' => 'names' ] );
+		}
 		// wp_get_post_tags() can return WP_Error (e.g. an invalid taxonomy) —
 		// a WP_Error object is never empty(), so the old bare `! empty( $tags )`
 		// check would have passed it straight into wp_set_post_tags(), which
 		// only accepts array|string for its second parameter.
 		if ( ! is_wp_error( $tags ) && ! empty( $tags ) ) {
 			wp_set_post_tags( $pending_for, $tags );
+		}
+
+		if ( null !== $translated ) {
+			update_post_meta( $pending_for, '_agnosis_translated_title', $translated['display_title'] );
+
+			// Phase 2 (§4b) — same preservation as the direct-publish branch
+			// above, here written onto $pending_for (the post that survives)
+			// rather than $post_id (the staging draft, about to be deleted a
+			// few lines below).
+			update_post_meta( $pending_for, '_agnosis_native_excerpt', $translated['native_excerpt'] );
+			update_post_meta( $pending_for, '_agnosis_native_body', $translated['native_body'] );
+			update_post_meta( $pending_for, '_agnosis_native_tags', wp_json_encode( $translated['native_tags'] ) );
+
+			if ( 'agnosis_artwork' === $target->post_type
+				&& '' !== $translated['medium'] && in_array( $translated['medium'], PromptConfig::medium_terms(), true )
+			) {
+				wp_set_object_terms( $pending_for, $translated['medium'], 'agnosis_medium' );
+			}
 		}
 
 		// Staging post was never meant to be kept — delete outright (skip
@@ -387,7 +496,15 @@ class ReviewEndpoints {
 		// explicit schedule_fanout() call Artist\ContentEditor already makes
 		// for its own direct-edit-to-published-content path, for the exact
 		// same reason.
-		LinguaForge::schedule_fanout( $pending_for );
+		//
+		// Native-language pipeline (Phase 4, §4d): excludes the artist's own
+		// language from this fan-out too, for the same reason the direct
+		// (first-time publish) branch above does — a native-language sibling is
+		// synced directly, below, rather than left to LF's AI translation.
+		$native_lang_for_target = (string) get_post_meta( $pending_for, '_agnosis_native_lang', true );
+		LinguaForge::schedule_fanout( $pending_for, '' !== $native_lang_for_target ? [ $native_lang_for_target ] : [] );
+
+		LinguaForge::sync_native_sibling( $pending_for );
 
 		Logger::info( sprintf( 'finalize_publish(#%d): staged update applied to #%d and staging draft deleted.', $post_id, $pending_for ), 'review' );
 
@@ -413,6 +530,136 @@ class ReviewEndpoints {
 			return trim( $matches[1] );
 		}
 		return '';
+	}
+
+	/**
+	 * Translate a native-language draft/staging post's excerpt/body/medium/tags
+	 * into the site's primary language in a single AI call, immediately before
+	 * publish — Phase 3 of the native-language pipeline redesign
+	 * (agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md §4c). Called from both
+	 * branches of finalize_publish() so a staged update and a first-time
+	 * publish are translated identically.
+	 *
+	 * post_title is deliberately EXCLUDED from what gets written back onto the
+	 * live post — it stays the artist's own verbatim words at rest everywhere
+	 * in this plugin (the dual-title design predates this feature; see
+	 * PostCreator::create_post()'s '_agnosis_original_title' handling and this
+	 * class's own callers, neither of which has ever translated post_title).
+	 * The translated title this method DOES produce is a separate,
+	 * display-only copy — 'display_title' in the return value — meant for
+	 * '_agnosis_translated_title' (Compat\LinguaForge's dual-title system),
+	 * exactly the meta PostCreator::create_post() seeds at intake with the raw
+	 * (at that point still native, not yet primary — see that method's own
+	 * docblock) AI title. This is the point that value actually becomes
+	 * trustworthy as a primary-language translation.
+	 *
+	 * Returns null — meaning "nothing to translate, publish $source's own
+	 * fields unchanged" — when: $source has no declared native language
+	 * (`_agnosis_native_lang`, only ever set by the native-first pipeline —
+	 * see PostCreator::create_post()), no AI provider is configured, the
+	 * artist's language already matches the site's primary language (the
+	 * common single-language case costs nothing extra, same convention every
+	 * other translation method in this codebase uses), or the translation call
+	 * itself fails (logged, falls back to publishing the native-language
+	 * content as-is rather than blocking the approval entirely).
+	 *
+	 * Also returns the untranslated native excerpt/body ('native_excerpt'/
+	 * 'native_body' below) — the design doc's Phase 2 (§4b, "hold the native
+	 * result, don't discard it") — so the caller can persist them onto the
+	 * post that actually survives (the target of a staged update, or $source
+	 * itself for a first-time publish) BEFORE they're overwritten with the
+	 * primary translation below. Deliberately captured HERE, at approval,
+	 * rather than at intake as §4b originally proposed: this is the point the
+	 * FINAL text is known — the artist's original AI-generated result, or
+	 * their edit of it if they changed anything on the confirm form — so
+	 * what's preserved is what was actually approved, not a possibly-stale
+	 * intake-time snapshot. Without this, once this method's caller writes the
+	 * primary translation over post_excerpt/post_content, the native-language
+	 * version would be gone entirely — the one thing Phase 4 (creating the
+	 * artist's own native-language sibling post, agnosis-audit/
+	 * NATIVE-LANGUAGE-PIPELINE.md §4d) needs to exist at all.
+	 *
+	 * @return array{display_title: string, excerpt: string, content: string, medium: string, tags: string[], native_excerpt: string, native_body: string, native_tags: string[]}|null
+	 */
+	private function translate_native_content_to_primary( \WP_Post $source ): ?array {
+		$native_lang = (string) get_post_meta( $source->ID, '_agnosis_native_lang', true );
+		if ( '' === $native_lang ) {
+			return null;
+		}
+
+		$translator = SubmissionTranslator::from_settings();
+		if ( null === $translator ) {
+			return null;
+		}
+
+		$primary_lang = $translator->resolve_target_language();
+		if ( $primary_lang === $native_lang ) {
+			return null; // Artist already writes in the site's primary language.
+		}
+
+		// Strip the leading image/gallery block(s) before translating — only
+		// the text content is ever sent to the AI, same convention
+		// save()/extract_image_blocks() already use for an artist-edited body.
+		$image_blocks = $this->extract_image_blocks( $source->post_content );
+		$remainder    = '' !== $image_blocks ? str_replace( $image_blocks, '', $source->post_content ) : $source->post_content;
+		$body_plain   = wp_strip_all_tags( $remainder );
+
+		$native_medium = (string) get_post_meta( $source->ID, '_agnosis_native_medium', true );
+		$native_tags   = wp_get_post_tags( $source->ID, [ 'fields' => 'names' ] );
+		$native_tags   = is_wp_error( $native_tags ) ? [] : $native_tags;
+
+		// Batched into ONE chat() call via translate_fields() — title, excerpt,
+		// body, medium, and tags together — rather than one call per field.
+		// This is the single AI call §7 of the design doc accounts for per
+		// cross-language approval.
+		$fields = array_filter(
+			[
+				'title'   => $source->post_title,
+				'excerpt' => $source->post_excerpt,
+				'body'    => $body_plain,
+				'medium'  => $native_medium,
+				'tags'    => implode( ' | ', $native_tags ),
+			],
+			static fn( $v ) => '' !== trim( (string) $v )
+		);
+
+		if ( empty( $fields ) ) {
+			return null; // Nothing with any text content to translate.
+		}
+
+		$translated = $translator->translate_fields( $fields, $primary_lang );
+		if ( empty( $translated ) ) {
+			Logger::warning(
+				sprintf( 'translate_native_content_to_primary(#%d): native→primary translation failed — publishing native-language content unchanged.', $source->ID ),
+				'review'
+			);
+			return null;
+		}
+
+		$body_block = isset( $translated['body'] ) && '' !== trim( $translated['body'] )
+			? '<!-- wp:paragraph --><p>' . wp_kses_post( $translated['body'] ) . '</p><!-- /wp:paragraph -->'
+			: '';
+		$content = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
+
+		$tags = isset( $translated['tags'] ) && '' !== trim( $translated['tags'] )
+			? array_values( array_filter( array_map( 'trim', explode( '|', $translated['tags'] ) ) ) )
+			: $native_tags; // Translation of the tag bundle failed/was skipped — keep the native names rather than dropping tags entirely.
+
+		return [
+			'display_title'  => $translated['title']   ?? $source->post_title,
+			'excerpt'        => $translated['excerpt'] ?? $source->post_excerpt,
+			'content'        => $content,
+			'medium'         => trim( $translated['medium'] ?? $native_medium ),
+			'tags'           => $tags,
+			// Phase 2 (§4b) — see this method's own docblock above. Native
+			// tags are the SAME $native_tags read above, before translation —
+			// kept distinct from 'tags' (the translated set applied to the
+			// primary post) since Phase 4 (§4d) needs the untranslated names
+			// for the native-language sibling.
+			'native_excerpt' => $source->post_excerpt,
+			'native_body'    => $body_plain,
+			'native_tags'    => $native_tags,
+		];
 	}
 
 	// -------------------------------------------------------------------------

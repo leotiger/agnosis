@@ -51,7 +51,7 @@ class DateFormatter {
 	 *                          string resolves the current request's language.
 	 */
 	public static function long_date( int $timestamp, string $lang = '' ): string {
-		$lang = '' !== $lang ? $lang : self::current_lang();
+		$lang = '' !== $lang ? $lang : LinguaForge::current_lang();
 
 		if ( class_exists( '\IntlDateFormatter' ) ) {
 			try {
@@ -126,23 +126,5 @@ class DateFormatter {
 		);
 
 		return null !== $replaced ? $replaced : $block_content;
-	}
-
-	/**
-	 * Resolve the current request's two-letter language code.
-	 *
-	 * Prefers Lingua Forge's own LF_LANG constant — set by its language
-	 * router for the current request, the authoritative "what language is
-	 * this page actually being viewed in" signal — over get_locale(), since
-	 * LF's routing does not switch the global WordPress locale when serving
-	 * a translated post (confirmed via Compat\LinguaForge's own use of the
-	 * same constant elsewhere, e.g. current_lang_path_prefix()).
-	 */
-	private static function current_lang(): string {
-		if ( defined( 'LF_LANG' ) && '' !== LF_LANG ) {
-			return (string) LF_LANG;
-		}
-
-		return LinguaForge::locale_to_lang( get_locale() );
 	}
 }

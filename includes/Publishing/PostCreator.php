@@ -22,6 +22,7 @@ namespace Agnosis\Publishing;
 
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\PromptConfig;
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\Admission;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Debug;
@@ -383,6 +384,37 @@ class PostCreator {
 					$found ? '' : sprintf( 'Skipped: promote@ found no published artwork titled "%s" for this artist — feedback email sent.', trim( (string) $submission['subject'] ) )
 				);
 				return;
+			}
+
+			// ---- pure@ with no attachment: generate a text-poster image --------
+			// Poetry (or any text-only submission) is still art — pure@ no
+			// longer requires a photo (Email\Parser::parse_imap_message()/
+			// parse_webhook_payload() now let a text-only submission through).
+			// agnosis_artwork still needs SOME visual for the gallery, though,
+			// so when the artist sent text with no photo, generate one:
+			// TextPosterGenerator renders the submission's own words as a
+			// poster (see that class's docblock for the "edge-to-edge
+			// overflow" design) and this injects it as a synthetic attachment
+			// — same shape Parser itself would have produced — so the rest of
+			// this method (binary loading below, Pipeline::process_raw(),
+			// merge_gallery()) treats it exactly like a normally-submitted photo.
+			if ( $pure && empty( $submission['attachments'] ) ) {
+				$poster_source = '' !== trim( (string) ( $submission['description'] ?? '' ) )
+					? (string) $submission['description']
+					: (string) $submission['subject'];
+
+				$poster_blob = TextPosterGenerator::generate( (string) $submission['subject'], $poster_source );
+
+				if ( null !== $poster_blob ) {
+					$submission['attachments'][] = [
+						'filename' => 'pure-poster-' . uniqid() . '.png',
+						'mime'     => 'image/png',
+						'data'     => $poster_blob,
+					];
+					Logger::info( sprintf( 'Queue #%d: pure@ submission had no photo — generated a text-poster image from the artist\'s own words.', $queue_id ), 'publisher' );
+				} else {
+					Logger::warning( sprintf( 'Queue #%d: pure@ submission had no photo and poster generation failed (Imagick/font unavailable, or an error) — publishing text-only.', $queue_id ), 'publisher' );
+				}
 			}
 
 			// ---- Load attachment binaries ---------------------------------------
@@ -1029,6 +1061,9 @@ class PostCreator {
 			return 0;
 		}
 
+		// 'fields' => 'ids' guarantees an int[] at runtime; phpstan can't see
+		// through the array_merge() to confirm it statically, hence the assert.
+		/** @var array<int, int> $staging */
 		$staging = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
@@ -1047,6 +1082,8 @@ class PostCreator {
 			return $post_id;
 		}
 
+		// Same phpstan reasoning as $staging above.
+		/** @var array<int, int> $existing */
 		$existing = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
@@ -1102,6 +1139,9 @@ class PostCreator {
 		// If it matches an existing post title exactly, it's the same artwork.
 		$subject = trim( (string) ( $submission['subject'] ?? '' ) );
 		if ( $subject ) {
+			// 'fields' => 'ids' guarantees an int[] at runtime; phpstan can't
+			// see through the array_merge() to confirm it statically, hence the assert.
+			/** @var array<int, int> $exact */
 			$exact = get_posts( array_merge( [
 				'post_type'      => 'agnosis_artwork',
 				'author'         => $artist_id,
@@ -1251,6 +1291,9 @@ class PostCreator {
 		if ( ! $subject || ! $artist_id ) {
 			return 0;
 		}
+		// 'fields' => 'ids' guarantees an int[] at runtime; phpstan can't see
+		// through the array_merge() to confirm it statically, hence the assert.
+		/** @var array<int, int> $matches */
 		$matches = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
@@ -1671,7 +1714,23 @@ class PostCreator {
 		// the name the artist gave their work, in their own language.  The AI-generated
 		// translation (site language) is stored separately in _agnosis_translated_title
 		// and surfaced to visitors via the agnosis/artwork-title block.
+		//
+		// Native-language pipeline (Phase 1, 2026-07-12 — agnosis-audit/
+		// NATIVE-LANGUAGE-PIPELINE.md §4a/§4b): the AI description pipeline no
+		// longer pre-translates the artist's submission to primary language
+		// before generating title/excerpt/body/medium — Pipeline::process()
+		// now runs natively, in the artist's own language. That means $ai_title
+		// here (and $primary['excerpt']/$post_content below) are the artist's
+		// OWN language, not yet primary — so _agnosis_translated_title's stored
+		// value is, at this exact moment, simply a second copy of the native
+		// title, not a real translation. ReviewEndpoints::finalize_publish()
+		// (§4c, Phase 3) is what actually produces the primary-language
+		// translation and overwrites _agnosis_translated_title with it, at
+		// approval time — the one point downstream code should treat that meta
+		// as trustworthy. Nothing between intake and approval reads it as if it
+		// were already primary-language.
 		$ai_title = $primary['title'] ?? '';
+		$native_lang = SubmissionTranslator::resolve_artist_lang( $artist_id );
 		$post_data = [
 			'post_title'   => '' !== $original_title ? $original_title : ( $ai_title ?: __( 'Untitled', 'agnosis' ) ),
 			'post_excerpt' => $primary['excerpt'] ?? '',
@@ -1688,6 +1747,16 @@ class PostCreator {
 				'_agnosis_review_expiry'    => $review_expiry,
 				'_agnosis_queue_id'         => $queue_id,
 				'_agnosis_translated_title' => $ai_title,
+				// The artist's own language (ISO 639-1), resolved once from
+				// their WP user locale at intake — the persisted signal every
+				// downstream consumer (ReviewConfirm's display logic,
+				// Notification's review-email preview, ReviewEndpoints'
+				// approval-time translation) uses to know this content is
+				// natively-generated rather than re-deriving the artist's
+				// locale live each time. '' when undeclared/unknown, same
+				// graceful-degradation convention SubmissionTranslator itself
+				// uses elsewhere.
+				'_agnosis_native_lang'      => $native_lang,
 				// Written every time (not just when non-empty) so a resubmission
 				// that no longer has any dropped link correctly clears a stale
 				// notice from an earlier attempt — Notification::build_email()
@@ -2021,10 +2090,34 @@ class PostCreator {
 			}
 		}
 
+		// Biography and event single templates both render wp:post-featured-image
+		// above wp:post-content (single-agnosis_biography.html,
+		// single-agnosis_event.html — agnosis-theme) — write_post_meta() already
+		// sets a featured image whenever the gallery is non-empty, via the same
+		// pick_thumbnail_id() logic reused directly below. Adding that same
+		// image here too, as a leading wp:image block, would show it a second
+		// time: once as the sidebar/hero featured image, once again at the top
+		// of the body. Artwork's own template has no featured-image block at
+		// all — the gallery block IS the page's content there — so it's
+		// unaffected.
+		//
+		// Scoped precisely to "this is the exact attachment that becomes the
+		// featured image", not just "there's only one image" — pick_thumbnail_id()
+		// prefers a video's poster frame over a genuine image when both are
+		// present in the same gallery, so a lone photo submitted alongside a
+		// video would NOT be the featured image in that case, and must still
+		// get its own content block or it would vanish from the post entirely.
+		// $gallery is guaranteed non-empty here — the empty-gallery case already
+		// returned above, before $image_ids/$media_blocks were even built.
+		$thumbnail_id     = $this->pick_thumbnail_id( $gallery );
+		$skip_solo_image  = in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true )
+			&& count( $image_ids ) === 1
+			&& $thumbnail_id === $image_ids[0];
+
 		$image_block = '';
 		if ( count( $image_ids ) > 1 ) {
 			$image_block = $this->build_gallery_block( $image_ids ) . "\n\n";
-		} elseif ( count( $image_ids ) === 1 ) {
+		} elseif ( count( $image_ids ) === 1 && ! $skip_solo_image ) {
 			$image_block = $this->build_image_block( $image_ids[0] ) . "\n\n";
 		}
 
@@ -2172,6 +2265,24 @@ class PostCreator {
 		// the admin can assign manually from the edit screen.
 		if ( 'agnosis_artwork' === $post_type ) {
 			$medium = trim( $primary['medium'] ?? '' );
+
+			// Native-language pipeline (Phase 1/3): the AI's medium pick is now
+			// in the artist's own language, not necessarily primary, so the
+			// in_array() match below will legitimately miss for a non-primary-
+			// language artist — that's expected here, not a bug, and is exactly
+			// why the raw value is preserved in _agnosis_native_medium
+			// regardless of whether it matched: ReviewEndpoints::finalize_publish()
+			// (§4c, Phase 3) translates it to primary and re-runs this same
+			// match at approval time, once the term name is actually comparable
+			// to the (primary-language) controlled vocabulary. Stored
+			// unconditionally whenever the AI returned a medium at all — for a
+			// primary-language artist this is just a redundant copy of a value
+			// that already matched below; harmless, and simpler than branching
+			// on whether translation will actually be needed later.
+			if ( $medium ) {
+				update_post_meta( $post_id, '_agnosis_native_medium', $medium );
+			}
+
 			if ( $medium && in_array( $medium, PromptConfig::medium_terms(), true ) ) {
 				wp_set_object_terms( $post_id, $medium, 'agnosis_medium' );
 			}

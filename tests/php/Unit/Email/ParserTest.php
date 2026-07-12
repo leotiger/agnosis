@@ -27,7 +27,14 @@ class ParserTest extends TestCase {
 	// parse_webhook_payload
 	// -------------------------------------------------------------------------
 
-	public function test_parse_webhook_returns_null_when_no_attachments(): void {
+	/**
+	 * Poetry is art too, and a biography can be text-only — a submission with
+	 * no attachment is no longer automatically rejected as long as it carries
+	 * real text (see parse_webhook_payload()'s relaxed gate). This test used
+	 * to assert the opposite (null); the payload here is exactly the shape a
+	 * text-only bio@/pure@ email arrives as.
+	 */
+	public function test_parse_webhook_accepts_a_text_only_submission_with_no_attachments(): void {
 		$payload = [
 			'sender'           => 'artist@example.com',
 			'subject'          => 'My new painting',
@@ -37,7 +44,22 @@ class ParserTest extends TestCase {
 
 		$result = $this->parser->parse_webhook_payload( $payload );
 
-		$this->assertNull( $result );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Here is my artwork.', $result['description'] );
+		$this->assertSame( [], $result['attachments'] );
+	}
+
+	public function test_parse_webhook_returns_null_when_no_attachments_and_no_text(): void {
+		$payload = [
+			'sender'           => 'artist@example.com',
+			'subject'          => 'Empty',
+			'stripped-text'    => '',
+			'attachment-count' => 0,
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertNull( $result, 'Nothing usable — no attachment and no real text — must still be rejected.' );
 	}
 
 	public function test_parse_webhook_returns_null_when_attachment_count_missing(): void {
@@ -523,10 +545,30 @@ class ParserTest extends TestCase {
 		$this->assertSame( [], $result['to_addresses'] );
 	}
 
-	public function test_parse_imap_returns_null_without_valid_attachments_regardless_of_recipients(): void {
+	/**
+	 * Poetry is art too, and a biography can be text-only — a message with no
+	 * attachment is no longer automatically rejected as long as it carries
+	 * real text. FakeParserImapMessage's default text_body ('Test body.') is
+	 * non-empty, so this is exactly that shape.
+	 */
+	public function test_parse_imap_accepts_a_text_only_message_with_no_attachments(): void {
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			fake_attachments: [] // No attachments at all.
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Test body.', $result['description'] );
+		$this->assertSame( [], $result['attachments'] );
+	}
+
+	public function test_parse_imap_returns_null_without_attachments_or_text_regardless_of_recipients(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			text_body: '',
+			fake_attachments: [] // No attachments and no text — nothing usable at all.
 		);
 
 		$result = $this->parser->parse_imap_message( $message );

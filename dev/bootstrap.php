@@ -306,15 +306,38 @@ if ( ! class_exists( 'ImagickPixel' ) ) {
         public function __construct( string $color = '' ) {}
     }
 }
+if ( ! class_exists( 'ImagickDraw' ) ) {
+    // TextPosterGenerator's only use of ImagickDraw is to carry font/size/
+    // colour settings into queryFontMetrics()/annotateImage() below — this
+    // fake just records exactly the two properties queryFontMetrics() needs
+    // (font size drives the fake's deterministic width formula) and no-ops
+    // everything else, same "record just enough state" philosophy as the
+    // fake Imagick class itself.
+    class ImagickDraw {
+        public string $font      = '';
+        public float $font_size  = 12.0;
+
+        public function setFont( string $font ): bool { $this->font = $font; return true; }
+        public function setFontSize( float $size ): bool { $this->font_size = $size; return true; }
+        public function setFillColor( ImagickPixel $color ): bool { return true; }
+        public function setFillAlpha( float $alpha ): bool { return true; }
+        public function setTextAntialias( bool $antialias ): bool { return true; }
+        public function setTextAlignment( int $alignment ): bool { return true; }
+    }
+}
 if ( ! class_exists( 'Imagick' ) ) {
     class Imagick {
         const FILTER_LANCZOS = 1;
 
         private int $width      = 0;
         private int $height     = 0;
+        private string $format  = 'jpeg';
         /** @var array<int, array{0:int,1:int}> Parsed page dimensions — PDF sources only. */
         private array $pages    = [];
         private int $page_index = 0;
+
+        /** @var string[] Texts passed to annotateImage() — TextPosterGeneratorTest introspection only. */
+        public array $drawn_texts = [];
 
         public function newImage( int $width, int $height, ImagickPixel $background ): bool {
             $this->width  = $width;
@@ -358,7 +381,8 @@ if ( ! class_exists( 'Imagick' ) ) {
         }
 
         public function setImageFormat( string $format ): bool {
-            return true; // No-op — format is implicit in the fake blob's own prefix.
+            $this->format = $format; // Read back by getImageBlob() below.
+            return true;
         }
 
         public function setImageCompressionQuality( int $quality ): bool {
@@ -392,7 +416,47 @@ if ( ! class_exists( 'Imagick' ) ) {
         }
 
         public function getImageBlob(): string {
-            return sprintf( 'FAKEJPEG:%dx%d', $this->width, $this->height );
+            return sprintf( 'FAKE%s:%dx%d', strtoupper( $this->format ), $this->width, $this->height );
+        }
+
+        /**
+         * Deterministic stand-in for real font-metric measurement — used only
+         * by TextPosterGenerator::fit_font_size()/generate(), which read
+         * 'textWidth' (to scale a line to the canvas width) and 'ascender'
+         * (to vertically centre a baseline). Character width is a fixed
+         * 0.55x-of-font-size approximation (a reasonable average for a
+         * proportional sans-serif at any size), so results scale predictably
+         * with $draw->font_size and strlen($text) without needing a real font
+         * rasteriser — TextPosterGeneratorTest asserts on that predictable
+         * scaling, not on pixel-exact metrics.
+         *
+         * @return array<string, float>
+         */
+        public function queryFontMetrics( ImagickDraw $draw, string $text ): array {
+            $char_width = $draw->font_size * 0.55;
+            $width      = strlen( $text ) * $char_width;
+            return [
+                'characterWidth'       => $char_width,
+                'characterHeight'      => $draw->font_size,
+                'ascender'             => $draw->font_size * 0.8,
+                'descender'            => -$draw->font_size * 0.2,
+                'textWidth'            => $width,
+                'textHeight'           => $draw->font_size * 1.2,
+                'maxHorizontalAdvance' => $width,
+                'boundingBox'          => [ 'x1' => 0.0, 'y1' => 0.0, 'x2' => $width, 'y2' => $draw->font_size ],
+                'originX'              => 0.0,
+                'originY'              => 0.0,
+            ];
+        }
+
+        /** No-op — records the text drawn (see $drawn_texts) rather than rendering anything. */
+        public function annotateImage( ImagickDraw $draw, float $x, float $y, float $angle, string $text ): bool {
+            $this->drawn_texts[] = $text;
+            return true;
+        }
+
+        public function clear(): bool {
+            return true;
         }
 
         public function destroy(): bool {

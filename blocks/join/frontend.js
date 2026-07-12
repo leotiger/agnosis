@@ -40,6 +40,28 @@
 			return;
 		}
 
+		// Keep the free-text bio/statement textareas' `lang` attribute in sync
+		// with whatever language the applicant picks in the select below them,
+		// so the browser's spellcheck matches what they're actually typing.
+		// Can't be resolved server-side at render time — the select sits after
+		// these fields in the DOM and nothing is chosen yet on first render —
+		// so this is wired up client-side once the applicant actually makes a
+		// choice (and again on every subsequent change, in case they pick a
+		// different language after already writing something).
+		var languageSelect = form.querySelector( '[name="language"]' );
+		var bioField       = form.querySelector( '[name="bio"]' );
+		var statementField = form.querySelector( '[name="statement"]' );
+		if ( languageSelect ) {
+			languageSelect.addEventListener( 'change', function () {
+				if ( bioField ) {
+					bioField.lang = languageSelect.value;
+				}
+				if ( statementField ) {
+					statementField.lang = languageSelect.value;
+				}
+			} );
+		}
+
 		function showNotice( message, isError ) {
 			notice.textContent = message;
 			notice.className   = 'agnosis-join__notice' + ( isError ? ' agnosis-join__notice--error' : ' agnosis-join__notice--success' );

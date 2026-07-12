@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Turnstile;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -208,6 +209,20 @@ class SubmissionsPage {
 		// Tags for the edit field.
 		$tags     = get_the_tags( $post->ID );
 		$tags_csv = $tags ? implode( ', ', array_column( (array) $tags, 'name' ) ) : '';
+
+		// Same reasoning as ReviewConfirm::render_approve_confirm()'s identical
+		// lookup: title/excerpt/body here are the artist's own draft, always in
+		// one specific known language, not the page-chrome language — so an
+		// explicit `lang` attribute lets the browser spellcheck it correctly
+		// regardless of what language the artist's own browser/OS is set to.
+		// Falls back to the artist's resolved language (SubmissionTranslator's
+		// same "what language does this artist write in" single source of
+		// truth used at intake) for the rare draft predating this meta field.
+		$native_lang = (string) get_post_meta( $post->ID, '_agnosis_native_lang', true );
+		if ( '' === $native_lang ) {
+			$native_lang = SubmissionTranslator::resolve_artist_lang( (int) $post->post_author );
+		}
+		$lang_attr = '' !== $native_lang ? ' lang="' . esc_attr( $native_lang ) . '"' : '';
 		?>
 		<div class="agnosis-card" id="agnosis-card-<?php echo esc_attr( (string) $post->ID ); ?>" data-post-id="<?php echo esc_attr( (string) $post->ID ); ?>">
 
@@ -255,21 +270,24 @@ class SubmissionsPage {
 					<input class="agnosis-input" type="text"
 						   id="agnosis-title-<?php echo esc_attr( (string) $post->ID ); ?>"
 						   name="title"
-						   value="<?php echo esc_attr( $post->post_title ); ?>">
+						   value="<?php echo esc_attr( $post->post_title ); ?>"
+						   <?php echo $lang_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already esc_attr()'d above. ?>>
 
 					<label class="agnosis-label" for="agnosis-excerpt-<?php echo esc_attr( (string) $post->ID ); ?>">
 						<?php esc_html_e( 'One-line description', 'agnosis' ); ?>
 					</label>
 					<textarea class="agnosis-input" rows="2"
 							  id="agnosis-excerpt-<?php echo esc_attr( (string) $post->ID ); ?>"
-							  name="excerpt"><?php echo esc_textarea( $post->post_excerpt ); ?></textarea>
+							  name="excerpt"
+							  <?php echo $lang_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already esc_attr()'d above. ?>><?php echo esc_textarea( $post->post_excerpt ); ?></textarea>
 
 					<label class="agnosis-label" for="agnosis-body-<?php echo esc_attr( (string) $post->ID ); ?>">
 						<?php esc_html_e( 'Description', 'agnosis' ); ?>
 					</label>
 					<textarea class="agnosis-input" rows="6"
 							  id="agnosis-body-<?php echo esc_attr( (string) $post->ID ); ?>"
-							  name="body"><?php echo esc_textarea( $body_text ); ?></textarea>
+							  name="body"
+							  <?php echo $lang_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already esc_attr()'d above. ?>><?php echo esc_textarea( $body_text ); ?></textarea>
 
 					<label class="agnosis-label" for="agnosis-tags-<?php echo esc_attr( (string) $post->ID ); ?>">
 						<?php esc_html_e( 'Tags (comma-separated)', 'agnosis' ); ?>

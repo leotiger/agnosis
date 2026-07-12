@@ -34,33 +34,25 @@
  * post's title/excerpt/body as an editable form rather than a plain button.
  * post_title is always already in the artist's own language (dual-title
  * design, never AI-translated — see Compat\LinguaForge), so it's shown as-is.
- * Excerpt/body are AI-authored in the site's primary language at this stage
- * (audit §3d — "content at rest is always primary-language"), so they are
- * back-translated for display via SubmissionTranslator::translate_text() — the
- * same lightweight, single-purpose translate call Notification.php already
- * uses for the review email preview, deliberately NOT the full generative
- * writing pipeline that produced the draft ("bypass AI" per the artist's own
- * framing of this feature).
  *
- * That back-translation is cached in `_agnosis_review_backtranslation` post
- * meta, keyed by a hash of the current excerpt/body and the artist's language.
- * Without this cache, every GET — including a mail-scanner prefetch, and
- * every time the artist reopens the same link — would re-spend an AI call;
- * with it, translation happens at most once per edit generation.
+ * Native-language pipeline (agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md,
+ * Phases 1/3/5 — 2026-07-12/13): excerpt/body are also now shown as-is,
+ * with no translation of any kind at this stage. The description AI writes
+ * natively, in the artist's own language, at intake (Phase 1) — content at
+ * rest here genuinely IS the artist's own words, not an AI-authored
+ * primary-language draft needing back-translation to be readable. Nothing is
+ * translated until `ReviewEndpoints::finalize_publish()` converts the FINAL
+ * (possibly artist-edited) result to the site's primary language exactly
+ * once, at actual publish time — strictly after this page has already been
+ * shown and submitted (Phase 3). This class does not call the AI translator
+ * at all any more; see get_display_text()'s docblock for what used to be
+ * here and why it was removed outright rather than kept as a fallback
+ * (Phase 5).
  *
- * That cache is now (fifth audit §4b) usually already warm by the time this
- * page is ever requested: `Notification::on_post_drafted()` translates the
- * full excerpt+body once when the review email is sent and writes it into
- * this exact cache entry under the same hash/lang scheme, so get_display_text()
- * below almost always finds a hit on the artist's first (and only) visit
- * rather than translating a second time into what used to be a separate call.
- *
- * If the artist changes anything, the edited excerpt/body are translated back
- * into the primary language on submit (again via translate_text(), not the
- * generative pipeline) and the post is saved-and-published in one call via the
- * existing PUT /agnosis/v1/review/{id} route. If nothing changed, the plain
- * POST /agnosis/v1/review/{id}/approve route runs exactly as before — no
- * translation call at all in the common case.
+ * If the artist changes anything, the edited excerpt/body are saved and
+ * published in one call via the existing PUT /agnosis/v1/review/{id} route,
+ * unchanged from whatever the artist typed. If nothing changed, the plain
+ * POST /agnosis/v1/review/{id}/approve route runs exactly as before.
  *
  * Safeguard: if the submitted title or body is blank after trimming, the whole
  * approval is cancelled — nothing is published or changed, and the token is
@@ -99,22 +91,9 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
-use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\ApplicationBiography;
 
 class ReviewConfirm {
-
-	/**
-	 * Post meta key caching the artist-language back-translation of the
-	 * excerpt/body shown on the approve confirm form. See class docblock.
-	 *
-	 * Public (fifth audit §4b): `Notification::on_post_drafted()` writes into
-	 * this same cache — under the identical `hash`/`lang` scheme
-	 * get_display_text() below reads — when it translates the review email,
-	 * so the artist's click-through to this confirm page almost always
-	 * cache-hits instead of re-translating into a second cache.
-	 */
-	public const BACKTRANSLATION_META = '_agnosis_review_backtranslation';
 
 	/**
 	 * Which of title/excerpt/body are editable on the approve confirm form,
@@ -450,50 +429,30 @@ class ReviewConfirm {
 			return;
 		}
 
-		// Something changed — translate the edited excerpt/body back into the
-		// site's primary language (translate_text(), not the generative
-		// pipeline) before writing them. post_title is never translated for any
-		// CPT: it stays the artist's own words verbatim everywhere in this
-		// plugin (PostCreator::create_post()'s $original_title is passed through
-		// unchanged regardless of post type), so it is passed straight through.
-		$artist_lang = $this->resolve_artist_lang( (int) $post->post_author );
-		$translator  = SubmissionTranslator::from_settings();
-
-		$primary_excerpt = $excerpt;
-		$primary_body    = $body;
-
-		if ( null !== $translator && '' !== $artist_lang ) {
-			$primary_lang = $translator->resolve_target_language();
-
-			if ( $primary_lang !== $artist_lang ) {
-				if ( $has_excerpt ) {
-					$primary_excerpt = '' !== trim( $excerpt ) ? $translator->translate_text( $excerpt, $primary_lang ) : '';
-				}
-				$primary_body = $translator->translate_text( $body, $primary_lang );
-
-				// Title changed too — refresh the AI-generated display title
-				// (_agnosis_translated_title) so it doesn't go stale next to a
-				// corrected original title. Same regeneration ContentEditor's
-				// propagate_title() performs for a post-publish title edit.
-				// Artwork-only: the dual-title display-title system
-				// (Compat\LinguaForge::hold_artist_title()) is specific to
-				// agnosis_artwork — biography/event titles are translated
-				// normally by Lingua Forge's own post-publish fan-out, nothing
-				// to pre-seed here.
-				if ( $has_title && 'agnosis_artwork' === $post->post_type && trim( $title ) !== trim( $orig_title ) ) {
-					$display_title = $translator->translate_text( $title, $primary_lang );
-					if ( '' !== $display_title ) {
-						update_post_meta( $id, '_agnosis_translated_title', $display_title );
-					}
-				}
-			}
-		}
-
+		// Something changed. post_title is never translated for any CPT — it
+		// stays the artist's own words verbatim everywhere in this plugin
+		// (PostCreator::create_post()'s $original_title is passed through
+		// unchanged regardless of post type), so it is passed straight through
+		// exactly as always.
+		//
+		// Native-language pipeline (Phase 3, 2026-07-12 — agnosis-audit/
+		// NATIVE-LANGUAGE-PIPELINE.md §4c/§4e): excerpt/body are no longer
+		// forward-translated to primary language here at all — this class no
+		// longer needs to know or care what the site's primary language is.
+		// They are saved in whatever language the artist is actually editing
+		// in (native at rest, per Phase 1) exactly as submitted, and
+		// ReviewEndpoints::finalize_publish() is what translates the FINAL
+		// text — this edit, or the untouched original if nothing changed — to
+		// primary exactly once, at the moment of actual publish. That same
+		// method also regenerates `_agnosis_translated_title` centrally for
+		// every approval that needs it, so the title-specific regeneration
+		// this branch used to perform here is gone too — one call, one place,
+		// instead of a small one here plus a bigger one there.
 		$rest_request = new \WP_REST_Request( 'PUT', '/agnosis/v1/review/' . $id );
 		$rest_request->set_param( 'token', $token );
 		$rest_request->set_param( 'title', $title );
-		$rest_request->set_param( 'excerpt', $primary_excerpt );
-		$rest_request->set_param( 'body', $primary_body );
+		$rest_request->set_param( 'excerpt', $excerpt );
+		$rest_request->set_param( 'body', $body );
 		$rest_request->set_param( 'publish', true );
 
 		$response = rest_do_request( $rest_request );
@@ -533,11 +492,33 @@ class ReviewConfirm {
 	private function sync_extra_fields( int $id, string $post_type, array $source ): void {
 		if ( 'agnosis_biography' === $post_type ) {
 			$this->sync_portfolio_embed( $id, $source );
+			$this->sync_social_links( $id, $source );
 			return;
 		}
 
 		if ( 'agnosis_event' === $post_type ) {
 			$this->sync_event_fields( $id, $source );
+		}
+	}
+
+	/**
+	 * Re-apply the biography approve form's three optional social-link
+	 * fields. Unlike the portfolio link (sync_portfolio_embed()), these never
+	 * become embed blocks and are never vetted by EmbedPolicy — they're
+	 * plain outbound `<a href>` links rendered as icons by
+	 * Publishing\SocialLinks, not remote content pulled into the page, so
+	 * there's nothing here that needs a fetch/AI trust check. Always
+	 * re-applies all three straight from the submitted form, same
+	 * always-write convention as sync_event_fields() below — an artist
+	 * clearing a field is exactly as valid an edit as changing it.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_social_links( int $id, array $source ): void {
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$raw = (string) wp_unslash( $source[ "social_url_{$i}" ] ?? '' );
+			$url = '' !== trim( $raw ) ? esc_url_raw( trim( $raw ) ) : '';
+			update_post_meta( $id, "_agnosis_biography_social_url_{$i}", $url );
 		}
 	}
 
@@ -714,7 +695,12 @@ class ReviewConfirm {
 	 */
 	private function extra_prefill_from_source( string $post_type, array $source ): array {
 		if ( 'agnosis_biography' === $post_type ) {
-			return [ 'portfolio_url' => sanitize_text_field( wp_unslash( $source['portfolio_url'] ?? '' ) ) ];
+			return [
+				'portfolio_url' => sanitize_text_field( wp_unslash( $source['portfolio_url'] ?? '' ) ),
+				'social_url_1'  => sanitize_text_field( wp_unslash( $source['social_url_1'] ?? '' ) ),
+				'social_url_2'  => sanitize_text_field( wp_unslash( $source['social_url_2'] ?? '' ) ),
+				'social_url_3'  => sanitize_text_field( wp_unslash( $source['social_url_3'] ?? '' ) ),
+			];
 		}
 
 		if ( 'agnosis_event' === $post_type ) {
@@ -732,15 +718,15 @@ class ReviewConfirm {
 
 	/**
 	 * Render the extra structured-field inputs appended to the approve form,
-	 * after the title/excerpt/body fields — biography gets a portfolio link,
-	 * event gets date/hour/location/timezone/address. Returns '' for artwork
-	 * (no extra fields defined).
+	 * after the title/excerpt/body fields — biography gets a portfolio link
+	 * plus three optional social links, event gets date/hour/location/
+	 * timezone/address. Returns '' for artwork (no extra fields defined).
 	 *
 	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
 	 */
 	private function render_extra_fields_html( string $post_type, int $post_id, array $prefill ): string {
 		if ( 'agnosis_biography' === $post_type ) {
-			return $this->render_portfolio_field( $post_id, $prefill );
+			return $this->render_portfolio_field( $post_id, $prefill ) . $this->render_social_link_fields( $post_id, $prefill );
 		}
 
 		if ( 'agnosis_event' === $post_type ) {
@@ -762,6 +748,39 @@ class ReviewConfirm {
 
 		return '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Portfolio link', 'agnosis' ) . '</label>'
 			. '<input type="url" name="portfolio_url" value="' . esc_attr( $value ) . '" placeholder="https://" style="' . esc_attr( $input_style ) . '">';
+	}
+
+	/**
+	 * Three optional social-profile link inputs — auto-detected (facebook,
+	 * instagram, bandcamp, …) and rendered as an icon row on the published
+	 * biography page (see Publishing\SocialLinks, Artist\Profile's
+	 * agnosis/biography-social-links block). Deliberately no platform-name
+	 * label per field — the artist just pastes a URL, detection happens at
+	 * render time from the URL itself, nothing to pick from here.
+	 *
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_social_link_fields( int $post_id, array $prefill ): string {
+		$label_style = 'display:block;font-size:14px;color:#888;margin:0 0 4px;';
+		$input_style = 'width:100%;box-sizing:border-box;padding:10px;font-size:16px;font-family:inherit;border:1px solid #ddd;border-radius:6px;margin:0 0 16px;';
+
+		$html = '';
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$key      = "social_url_{$i}";
+			$baseline = (string) get_post_meta( $post_id, "_agnosis_biography_social_url_{$i}", true );
+			$value    = $prefill[ $key ] ?? $baseline;
+
+			$html .= '<label style="' . esc_attr( $label_style ) . '">'
+				. sprintf(
+					/* translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required. */
+					esc_html__( 'Social link %d (optional)', 'agnosis' ),
+					$i
+				)
+				. '</label>'
+				. '<input type="url" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" placeholder="https://" style="' . esc_attr( $input_style ) . '">';
+		}
+
+		return $html;
 	}
 
 	/**
@@ -877,81 +896,33 @@ class ReviewConfirm {
 	}
 
 	/**
-	 * Resolve an artist's language code (ISO 639-1) from their WP user locale.
+	 * Return [excerpt, body] for display on the approve confirm form.
 	 *
-	 * Mirrors the inline conversion Notification::on_post_drafted() already
-	 * uses ('es_ES' → 'es'), kept independent of Lingua Forge here — this page
-	 * must work whether or not LF is active, same as SubmissionTranslator
-	 * itself. Returns '' when the artist has no declared locale (nothing to
-	 * back-translate against).
-	 */
-	private function resolve_artist_lang( int $artist_id ): string {
-		$locale = (string) get_user_meta( $artist_id, 'locale', true );
-		if ( '' === $locale ) {
-			return '';
-		}
-		return strtolower( substr( $locale, 0, 2 ) );
-	}
-
-	/**
-	 * Return [excerpt, body] in the artist's own language for display on the
-	 * approve confirm form, translating and caching on first use.
+	 * Native-language pipeline (agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md):
+	 * a submission's excerpt/body are written in the artist's own language at
+	 * intake (Phase 1) and stay that way at rest until
+	 * `ReviewEndpoints::finalize_publish()` translates the final, possibly
+	 * artist-edited result to the site's primary language exactly once, at
+	 * actual publish time — which happens strictly AFTER this confirm page is
+	 * ever shown (Phase 3). So by the time an artist sees this form, there is
+	 * nothing left to translate: the content is already in their own
+	 * language, verbatim.
 	 *
-	 * Returns the untranslated post fields as-is (no AI call at all) when: the
-	 * artist has no declared locale, no AI provider is configured, or the
-	 * artist's language already matches the site's primary language — the
-	 * common single-language case costs nothing extra.
+	 * Phase 5 (2026-07-13): this used to back-translate a genuinely
+	 * primary-language excerpt/body into the artist's language here, on
+	 * demand, cached in a now-deleted `_agnosis_review_backtranslation`
+	 * postmeta entry — necessary before Phase 1 existed, since content really
+	 * was primary-language at rest at this stage back then. Deleted outright
+	 * rather than kept as a fallback: the only posts it could still matter
+	 * for are drafts created before Phase 1 shipped (2026-07-12) whose
+	 * review-link token (7-day default expiry) hadn't yet lapsed — a
+	 * shrinking, self-resolving edge case, not worth carrying dead
+	 * translation machinery for.
 	 *
 	 * @return array{0:string,1:string}
 	 */
 	private function get_display_text( \WP_Post $post ): array {
-		$body_plain = wp_strip_all_tags( (string) $post->post_content );
-
-		$artist_lang = $this->resolve_artist_lang( (int) $post->post_author );
-		if ( '' === $artist_lang ) {
-			return [ $post->post_excerpt, $body_plain ];
-		}
-
-		$translator = SubmissionTranslator::from_settings();
-		if ( null === $translator ) {
-			return [ $post->post_excerpt, $body_plain ];
-		}
-
-		$primary_lang = $translator->resolve_target_language();
-		if ( $primary_lang === $artist_lang ) {
-			return [ $post->post_excerpt, $body_plain ];
-		}
-
-		$source_hash = md5( $post->post_excerpt . '|' . $body_plain );
-		$cached      = get_post_meta( $post->ID, self::BACKTRANSLATION_META, true );
-
-		if (
-			is_array( $cached )
-			&& ( $cached['hash'] ?? '' ) === $source_hash
-			&& ( $cached['lang'] ?? '' ) === $artist_lang
-		) {
-			return [ (string) $cached['excerpt'], (string) $cached['body'] ];
-		}
-
-		// Not cached, or the source text/artist language changed since the
-		// cache was built — this is the only point in the whole confirm flow
-		// that spends an AI call on a plain GET. Cached immediately below so a
-		// mail-scanner prefetch or a second visit to the same link never
-		// re-spends it.
-		$excerpt_display = '' !== trim( $post->post_excerpt ) ? $translator->translate_text( $post->post_excerpt, $artist_lang ) : '';
-		$body_display    = '' !== trim( $body_plain ) ? $translator->translate_text( $body_plain, $artist_lang ) : '';
-
-		update_post_meta( $post->ID, self::BACKTRANSLATION_META, [
-			'hash'    => $source_hash,
-			'lang'    => $artist_lang,
-			'excerpt' => $excerpt_display,
-			'body'    => $body_display,
-		] );
-
-		return [
-			'' !== $excerpt_display ? $excerpt_display : $post->post_excerpt,
-			'' !== $body_display ? $body_display : $body_plain,
-		];
+		return [ $post->post_excerpt, wp_strip_all_tags( (string) $post->post_content ) ];
 	}
 
 	// -------------------------------------------------------------------------
@@ -1071,6 +1042,20 @@ class ReviewConfirm {
 		$excerpt = $prefill['excerpt'] ?? $baseline_excerpt;
 		$body    = $prefill['body']    ?? $baseline_body;
 
+		// Unlike the visitor-facing contact/join forms (where we never know in
+		// advance what language the writer will use, so the field is left to
+		// inherit the page's own lang), the text edited here is *always* in one
+		// specific known language — the artist's own (`_agnosis_native_lang`,
+		// set once at intake by PostCreator::create_post() — see that
+		// constant's own docblock). Without an explicit `lang` attribute the
+		// browser has no way to know to spellcheck a Spanish artist's bio in
+		// Spanish when the staff reviewer's own browser/OS is set to English —
+		// it would either silently skip spellcheck or, worse, flag every word
+		// as a misspelling. Omitted entirely when unset (older posts predating
+		// this meta field), same as every other native_lang consumer here.
+		$native_lang = (string) get_post_meta( $post->ID, '_agnosis_native_lang', true );
+		$lang_attr   = '' !== $native_lang ? ' lang="' . esc_attr( $native_lang ) . '"' : '';
+
 		$error_html = '' !== $error
 			? '<p style="background:#fef2f2;color:#c0392b;border:1px solid #fad7d7;border-radius:6px;padding:12px 16px;font-size:15px;margin:0 0 20px;">' . esc_html( $error ) . '</p>'
 			: '';
@@ -1089,20 +1074,20 @@ class ReviewConfirm {
 		if ( $has_title ) {
 			$fields_html .= '<input type="hidden" name="orig_title" value="' . esc_attr( $baseline_title ) . '">'
 				. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Title', 'agnosis' ) . '</label>'
-				. '<input type="text" name="title" value="' . esc_attr( $title ) . '" style="' . esc_attr( $input_style ) . '">';
+				. '<input type="text" name="title" value="' . esc_attr( $title ) . '" style="' . esc_attr( $input_style ) . '"' . $lang_attr . '>';
 		} else {
-			$fields_html .= '<p style="font-size:20px;font-weight:700;margin:0 0 16px;">' . esc_html( $baseline_title ) . '</p>';
+			$fields_html .= '<p style="font-size:20px;font-weight:700;margin:0 0 16px;"' . $lang_attr . '>' . esc_html( $baseline_title ) . '</p>';
 		}
 
 		if ( $has_excerpt ) {
 			$fields_html .= '<input type="hidden" name="orig_excerpt" value="' . esc_attr( $baseline_excerpt ) . '">'
 				. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Short description', 'agnosis' ) . '</label>'
-				. '<textarea name="excerpt" rows="2" style="' . esc_attr( $input_style ) . '">' . esc_textarea( $excerpt ) . '</textarea>';
+				. '<textarea name="excerpt" rows="2" style="' . esc_attr( $input_style ) . '"' . $lang_attr . '>' . esc_textarea( $excerpt ) . '</textarea>';
 		}
 
 		$fields_html .= '<input type="hidden" name="orig_body" value="' . esc_attr( $baseline_body ) . '">'
 			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Full text', 'agnosis' ) . '</label>'
-			. '<textarea name="body" rows="10" style="' . esc_attr( $body_style ) . '">' . esc_textarea( $body ) . '</textarea>';
+			. '<textarea name="body" rows="10" style="' . esc_attr( $body_style ) . '"' . $lang_attr . '>' . esc_textarea( $body ) . '</textarea>';
 
 		// Extra structured fields (portfolio link / event date-hour-location-
 		// timezone-address) — added below the free-text fields above, per

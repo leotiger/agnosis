@@ -1,0 +1,85 @@
+/* Agnosis Contact Form block — frontend form styles.
+ * Follows the theme's black-and-white palette, same conventions as
+ * blocks/newsletter-signup/frontend.css — this form is single-column
+ * (name/email/message stack, unlike the signup form's two-field row) since
+ * it renders inside the popover panel's narrower column.
+ */
+
+.agnosis-contact-form {
+	max-width: 32rem;
+}
+
+.agnosis-contact-form__form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.8rem;
+}
+
+.agnosis-contact-form__field label {
+	display:        block;
+	font-size:      0.85rem;
+	font-weight:    600;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	margin-bottom:  0.4rem;
+}
+
+.agnosis-contact-form__field input[type="text"],
+.agnosis-contact-form__field input[type="email"],
+.agnosis-contact-form__field textarea {
+	width:   100%;
+	padding: 0.7rem 0.9rem;
+	border:  1px solid currentColor;
+	background: transparent;
+	color:   inherit;
+	font:    inherit;
+	resize:  vertical;
+}
+
+.agnosis-contact-form__submit {
+	align-self:      flex-start;
+	padding:         0.75rem 1.4rem;
+	border:          1px solid currentColor;
+	border-radius:   0;
+	background:      var(--wp--preset--color--foreground, #111);
+	color:           var(--wp--preset--color--background, #fff);
+	font-family:     inherit;
+	font-size:       0.9rem;
+	font-weight:     600;
+	letter-spacing:  0.05em;
+	text-transform:  uppercase;
+	cursor:          pointer;
+	transition:      opacity 0.15s ease;
+}
+
+.agnosis-contact-form__submit:hover {
+	opacity: 0.75;
+}
+
+.agnosis-contact-form__submit:disabled {
+	opacity: 0.4;
+	cursor:  not-allowed;
+}
+
+.agnosis-contact-form__notice {
+	margin-top:  0.8rem;
+	padding:     1rem 1.2rem;
+	border-left: 3px solid currentColor;
+	font-size:   0.95rem;
+	line-height: 1.5;
+}
+
+.agnosis-contact-form__notice--success {
+	border-color: #1a7a1a;
+	color:        #1a7a1a;
+}
+
+.agnosis-contact-form__notice--error {
+	border-color: #c00;
+	color:        #c00;
+}
+
+/* Editor placeholder */
+.agnosis-contact-form-editor .components-placeholder {
+	border: 1px dashed currentColor;
+}

@@ -20,7 +20,6 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
-use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
@@ -442,80 +441,38 @@ class Notification {
 		// language).  _agnosis_translated_title holds the AI-generated site title (site
 		// language).  The email shows both so the artist understands what will be
 		// published, even if they don't speak the site's primary language.
-		$site_title = (string) get_post_meta( $post_id, '_agnosis_translated_title', true );
+		//
+		// Native-language pipeline (agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md):
+		// every draft is now native-first (Phase 1, 2026-07-12) — carries
+		// `_agnosis_native_lang`, set at intake by PostCreator::create_post().
+		// $site_title read here is therefore NOT yet a real primary-language
+		// translation for a native-first draft — PostCreator seeds
+		// `_agnosis_translated_title` with the AI's own (still native) title at
+		// intake, and only ReviewEndpoints::finalize_publish() turns it into a
+		// genuine primary-language value, at approval. Showing it as "here's
+		// your title in the site's language" at draft/review-email time would
+		// be actively wrong, not just imprecise, so it's treated as not
+		// meaningful yet for a native-first draft.
+		//
+		// Phase 5 (2026-07-13): this used to also back-translate a genuinely
+		// primary-language excerpt/body into the artist's own language here for
+		// the email preview, caching the result into
+		// ReviewConfirm::BACKTRANSLATION_META so the artist's click-through to
+		// the confirm page almost always found a warm cache. That whole path is
+		// now unreachable going forward — is_native_draft is true for every
+		// submission the native-first pipeline creates, and false only when the
+		// artist's locale itself can't be resolved (in which case $artist_locale
+		// below is also '', so there was nothing to translate from anyway) — so
+		// it was deleted outright rather than kept as permanently dead code.
+		// $body_preview in build_email() below already falls back correctly to
+		// the post's own (native-language) content whenever no back-translated
+		// preview is supplied.
+		$is_native_draft = '' !== (string) get_post_meta( $post_id, '_agnosis_native_lang', true );
+		$site_title       = $is_native_draft ? '' : (string) get_post_meta( $post_id, '_agnosis_translated_title', true );
 
 		$artist_locale           = (string) get_user_meta( $artist_id, 'locale', true );
-		$site_locale             = get_locale();
-		$translated_site_title   = ''; // Site title back-translated to artist's language.
-		$translated_body_preview = ''; // Body preview back-translated to artist's language.
-
-		// Primary-language source values, captured before anything below may
-		// overwrite $post->post_excerpt — needed both to hash-match and to warm
-		// ReviewConfirm::BACKTRANSLATION_META using its exact hash scheme (§4b).
-		$primary_excerpt    = $post->post_excerpt;
-		$primary_body_plain = wp_strip_all_tags( (string) $post->post_content );
-
-		if ( '' !== $artist_locale && $artist_locale !== $site_locale ) {
-			// ISO 639-1 code: 'es_ES' → 'es', 'zh_TW' → 'zh' (good enough for SubmissionTranslator::language_names() lookup).
-			$lang_code  = strtolower( substr( $artist_locale, 0, 2 ) );
-			$translator = SubmissionTranslator::from_settings();
-
-			if ( null !== $translator ) {
-				// fifth audit §4b: batch title + excerpt + FULL body into a single
-				// JSON-envelope chat() call (translate_fields()) instead of three
-				// separate translate_text() round trips, each paying its own
-				// prompt envelope. Translating the full body here (not just the
-				// 80-word preview this email shows) costs more up front, but lets
-				// the result double as ReviewConfirm::get_display_text()'s cache
-				// below — almost every artist clicks through to that confirm
-				// page, which previously re-translated the same excerpt+full-body
-				// into a SEPARATE cache on the very next request. Net effect: up
-				// to ~5 translation calls per cross-language draft down to this
-				// one call, plus a near-guaranteed cache hit afterwards instead of
-				// 1–2 more calls there too.
-				$translated = $translator->translate_fields(
-					[
-						'title'   => $site_title,
-						'excerpt' => $primary_excerpt,
-						'body'    => $primary_body_plain,
-					],
-					$lang_code
-				);
-
-				// Only keep the title if meaningfully different from the artist's
-				// own original title (post_title is never translated — it's kept
-				// verbatim everywhere in this plugin).
-				if ( isset( $translated['title'] ) && $translated['title'] !== $post->post_title ) {
-					$translated_site_title = $translated['title'];
-				}
-
-				$translated_excerpt = $translated['excerpt'] ?? $primary_excerpt;
-				$translated_body    = $translated['body'] ?? $primary_body_plain;
-
-				$post->post_excerpt      = $translated_excerpt ?: $primary_excerpt;
-				$translated_body_preview = '' !== trim( $translated_body ) ? wp_trim_words( $translated_body, 80 ) : '';
-
-				// Warm ReviewConfirm's confirm-page cache — same key, same hash
-				// scheme — so the click-through from this very email almost
-				// always cache-hits instead of re-translating. Skipped when the
-				// batch call didn't actually return a translated body (total
-				// failure, or the draft has no body text at all): nothing worth
-				// caching, and get_display_text() still tries fresh on click,
-				// same safety net that existed before this fix.
-				if ( '' !== trim( $primary_body_plain ) && isset( $translated['body'] ) ) {
-					update_post_meta(
-						$post_id,
-						ReviewConfirm::BACKTRANSLATION_META,
-						[
-							'hash'    => md5( $primary_excerpt . '|' . $primary_body_plain ),
-							'lang'    => $lang_code,
-							'excerpt' => $translated_excerpt,
-							'body'    => $translated_body,
-						]
-					);
-				}
-			}
-		}
+		$translated_site_title   = ''; // Site title back-translated to artist's language — legacy field, always '' now (see above).
+		$translated_body_preview = ''; // Body preview back-translated to artist's language — legacy field, always '' now (see above).
 
 		// Switch locale so UI strings (buttons, labels) are in the artist's language.
 		if ( '' !== $artist_locale ) {
@@ -857,15 +814,11 @@ class Notification {
 		$site_name = esc_html( get_bloginfo( 'name' ) );
 		$title     = esc_html( $post->post_title );
 		$excerpt   = esc_html( $post->post_excerpt );
-		// Strip blocks / shortcodes for the email body preview. When the artist's
-		// language differs from the site's primary language, on_post_drafted()
-		// already back-translated this same trimmed preview via SubmissionTranslator
-		// (post_content at this stage is 100% AI-authored text in the site's
-		// primary language, not the artist's own words — the artist could not
-		// otherwise read what they're about to approve). Fall back to the
-		// site-language preview when no back-translation was produced (same
-		// locale, no AI provider configured, or the translate call returned
-		// empty) so the email never renders with an empty body.
+		// Strip blocks / shortcodes for the email body preview. $translated_body_preview
+		// is always '' now (Phase 5, agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md —
+		// see on_post_drafted()'s docblock note), so this always falls through to
+		// post_content directly — already in the artist's own language, per the
+		// native-first pipeline (Phase 1).
 		$body_preview = esc_html(
 			'' !== $translated_body_preview
 				? $translated_body_preview

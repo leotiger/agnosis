@@ -275,6 +275,22 @@ class Profile {
 				'uses_context'    => [ 'postId' ],
 			]
 		);
+
+		// agnosis/biography-social-links — an icon row of the biography approve
+		// form's portfolio link + up to three social links (_agnosis_biography_
+		// portfolio_url, _agnosis_biography_social_url_1/2/3 — see
+		// Publishing\ReviewConfirm). The platform for each URL is auto-detected
+		// at render time (Publishing\SocialLinks::detect_service()) — nothing is
+		// stored beyond the raw URLs, so there's no separate "service" value that
+		// could ever drift out of sync with the link itself. Returns '' (no
+		// space taken) when the biography has no links at all yet.
+		register_block_type(
+			'agnosis/biography-social-links',
+			[
+				'render_callback' => [ $this, 'render_biography_social_links' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
 	}
 
 	/**
@@ -485,6 +501,44 @@ class Profile {
 			$h1,
 			esc_html( $translation )
 		);
+	}
+
+	/**
+	 * Render callback for the agnosis/biography-social-links block.
+	 *
+	 * Reads the portfolio link plus the three optional social links off the
+	 * biography's own postmeta (all set once, at approval, by
+	 * Publishing\ReviewConfirm — see that class's render_social_link_fields()/
+	 * sync_social_links()), auto-detects each one's platform from its host,
+	 * and renders the whole row through WordPress core's own Social Icons
+	 * block (Publishing\SocialLinks::render_icon_row()) — real core icons and
+	 * default styling, not a bespoke icon set. Portfolio link is included in
+	 * the same row deliberately: it's just as much an outbound "find me
+	 * elsewhere" link as the three social ones, only pre-existing.
+	 *
+	 * No ContentEditor editable-region wrapper here (unlike
+	 * render_event_location()/render_event_date() above) — the three social
+	 * fields are reachable post-publish via ContentEditor's generic REST
+	 * field-edit endpoint (Artist\ContentEditor::EDITABLE_FIELDS), but have no
+	 * on-page click-to-edit affordance yet, same "backend-capable, no visual
+	 * affordance yet" state event_timezone has had since 2026-07-10.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when no links are set.
+	 */
+	public function render_biography_social_links( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+
+		$urls = [
+			get_post_meta( $post_id, '_agnosis_biography_portfolio_url', true ),
+			get_post_meta( $post_id, '_agnosis_biography_social_url_1', true ),
+			get_post_meta( $post_id, '_agnosis_biography_social_url_2', true ),
+			get_post_meta( $post_id, '_agnosis_biography_social_url_3', true ),
+		];
+
+		return \Agnosis\Publishing\SocialLinks::render_icon_row( array_map( 'strval', $urls ) );
 	}
 
 	// -------------------------------------------------------------------------

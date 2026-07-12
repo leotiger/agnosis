@@ -38,7 +38,11 @@ namespace Agnosis\Tests\Integration\Publishing;
 use Agnosis\AI\Pipeline;
 use Agnosis\Publishing\PostCreator;
 use Agnosis\Publishing\ReviewEndpoints;
+use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
 use WP_REST_Request;
+
+require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
+require_once __DIR__ . '/../AI/Stubs/wp_ai_provider_namespace_stubs.php';
 
 class PostCreatorMergeRedraftsPublishedTargetTest extends \WP_UnitTestCase {
 
@@ -248,6 +252,94 @@ class PostCreatorMergeRedraftsPublishedTargetTest extends \WP_UnitTestCase {
 			$published_fired,
 			'Applying a staged update to already-live content must not re-fire agnosis_post_published (it was never unpublished — no re-broadcast/re-translate is warranted).'
 		);
+	}
+
+	/**
+	 * Native-language pipeline regression coverage (Phase 6, agnosis-audit/
+	 * NATIVE-LANGUAGE-PIPELINE.md §6) — Phase 3/4 both modify
+	 * ReviewEndpoints::finalize_publish(), the exact method the "true staging"
+	 * tests above exercise, but none of them ever set the artist's locale, so
+	 * _agnosis_native_lang always resolved to '' and every native-language
+	 * code path in finalize_publish()'s staged branch was a no-op throughout
+	 * this whole file. This test is the one place staging and the
+	 * native-language pipeline are exercised TOGETHER: a non-primary-language
+	 * artist's staged update must be translated exactly once and the
+	 * TRANSLATED result — not the staging draft's own native-language text —
+	 * must land on the live post, with the native-language meta following it
+	 * there rather than being lost with the deleted staging draft.
+	 */
+	public function test_approving_a_staged_biography_update_from_a_non_primary_language_artist_translates_once_onto_the_live_post(): void {
+		update_user_meta( $this->artist_id, 'locale', 'es_ES' );
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [
+			'title' => 'About the Artist (translated)',
+			'body'  => 'Translated biography text.',
+		] );
+
+		$live_id = $this->create_published_biography_without_token();
+
+		$queue_id = $this->insert_bio_queue_row( 'test-redraft-6' );
+		$creator  = new PostCreator( $this->make_pipeline() );
+		$creator->handle( $queue_id );
+
+		$staging = get_posts( [
+			'post_type'      => 'agnosis_biography',
+			'author'         => $this->artist_id,
+			'post_status'    => 'draft',
+			'meta_key'       => '_agnosis_pending_update_for',
+			'meta_value'     => (string) $live_id,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		] );
+		$this->assertNotEmpty( $staging );
+		$staging_id = (int) $staging[0];
+		$this->assertSame(
+			'es',
+			get_post_meta( $staging_id, '_agnosis_native_lang', true ),
+			'Fixture sanity check: PostCreator::create_post() must resolve and persist the artist\'s locale onto the staging draft, same as any first-time submission.'
+		);
+		$token = (string) get_post_meta( $staging_id, '_agnosis_review_token', true );
+
+		$endpoints = new ReviewEndpoints();
+		$request   = new WP_REST_Request( 'POST', '/agnosis/v1/review/' . $staging_id . '/approve' );
+		$request->set_param( 'id', $staging_id );
+		$request->set_param( 'token', $token );
+		$response = $endpoints->approve( $request );
+
+		$this->assertFalse(
+			is_wp_error( $response ),
+			is_wp_error( $response ) ? 'approve() returned an error: ' . $response->get_error_message() : ''
+		);
+
+		$this->assertCount(
+			1,
+			WpAiClientTestRegistry::$prompts,
+			'A staged update from a non-primary-language artist must be translated exactly once, same as a first-time publish.'
+		);
+
+		$live = get_post( $live_id );
+		$this->assertSame( 'publish', $live->post_status, 'The live post must remain published throughout, exactly as every other test in this file already proves for the same-language case.' );
+		$this->assertStringContainsString(
+			'Translated biography text.',
+			$live->post_content,
+			'The TRANSLATED content must land on the live post — not the staging draft\'s original native-language text, which is what a caller forgetting to route through translate_native_content_to_primary() would produce instead.'
+		);
+
+		$this->assertSame(
+			'es',
+			get_post_meta( $live_id, '_agnosis_native_lang', true ),
+			'Native-language meta must be copied onto the surviving live post, not lost with the deleted staging draft.'
+		);
+		$this->assertStringContainsString(
+			'Updated biography text.',
+			(string) get_post_meta( $live_id, '_agnosis_native_body', true ),
+			'Phase 2: the pre-translation native text must be preserved on the post that actually survives.'
+		);
+
+		$this->assertNull( get_post( $staging_id ), 'The staging draft must still be deleted once its update is applied, exactly as the same-language case already proves.' );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
 	}
 
 	public function test_approving_a_staged_biography_update_with_no_new_photo_keeps_the_existing_one(): void {

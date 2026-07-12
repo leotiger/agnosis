@@ -35,10 +35,31 @@ class FakeLinguaForge {
 	 */
 	public static array $translations = [];
 
+	/**
+	 * Mirrors linguaforge_get_trid()/linguaforge_set_trid(): post ID => TRID
+	 * string. Real Lingua Forge stores this as plain `_lf_trid` postmeta (see
+	 * NATIVE-LANGUAGE-PIPELINE.md §4d — "a translation group is nothing more
+	 * than a shared _lf_trid value") — this in-memory map is the test-only
+	 * equivalent, added for Compat\LinguaForge::sync_native_sibling()
+	 * coverage (Phase 6).
+	 *
+	 * @var array<int, string>
+	 */
+	public static array $trids = [];
+
+	/** Post IDs passed to linguaforge_clear_translation_cache(), in call order. */
+	public static array $cache_cleared_for = [];
+
+	/** Post IDs passed to linguaforge_mark_translation_synced(), in call order. */
+	public static array $marked_synced = [];
+
 	/** Call from setUp()/tearDown() so state never bleeds between tests. */
 	public static function reset(): void {
-		self::$source_language = 'en';
-		self::$translations    = [];
+		self::$source_language   = 'en';
+		self::$translations      = [];
+		self::$trids             = [];
+		self::$cache_cleared_for = [];
+		self::$marked_synced     = [];
 	}
 
 	/** Convenience for tests: record post $translated_id as $lang's translation of $original_id. */

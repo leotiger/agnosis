@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-11T19:34+00:00\n"
+"POT-Creation-Date: 2026-07-12T12:34+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:10+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Indonesian\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:192
-#: includes/Publishing/SubmissionsPage.php:62
+#: includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -84,10 +84,144 @@ msgstr "Halaman galeri"
 msgid "Prev"
 msgstr "Sebelumnya"
 
-#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:282
+#: blocks/gallery-overview/render.php:383
+#: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "Berikutnya"
+
+#: includes/Admin/ContactMessagesPage.php:45
+#: includes/Admin/ContactMessagesPage.php:46
+#: includes/Admin/ContactMessagesPage.php:77
+#, fuzzy
+msgid "Contact Messages"
+msgstr "Pesan"
+
+#: includes/Admin/ContactMessagesPage.php:87
+#, fuzzy
+msgid "No contact messages yet."
+msgstr "Belum ada anggota yang diterima."
+
+#: includes/Admin/ContactMessagesPage.php:88
+msgid "No messages match this filter."
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:96 includes/Admin/InboxPage.php:162
+msgid "#"
+msgstr "#"
+
+#: includes/Admin/ContactMessagesPage.php:97 includes/Admin/Settings.php:1911
+#: includes/Admin/Settings.php:2205
+msgid "Artist"
+msgstr "Seniman"
+
+#: includes/Admin/ContactMessagesPage.php:98 includes/Admin/InboxPage.php:163
+msgid "From"
+msgstr "Dari"
+
+#: includes/Admin/ContactMessagesPage.php:99 includes/Admin/Settings.php:1420
+#: includes/Artist/ContactForm.php:115 includes/Artist/ContactFormBlock.php:111
+msgid "Message"
+msgstr "Pesan"
+
+#: includes/Admin/ContactMessagesPage.php:100 includes/Admin/InboxPage.php:167
+#: includes/Admin/Settings.php:1912 includes/Admin/Settings.php:2198
+msgid "Status"
+msgstr "Status"
+
+#: includes/Admin/ContactMessagesPage.php:101 includes/Admin/InboxPage.php:168
+msgid "Received"
+msgstr "Diterima"
+
+#: includes/Admin/ContactMessagesPage.php:102 includes/Admin/InboxPage.php:170
+#: includes/Admin/Settings.php:1760 includes/Admin/Settings.php:1914
+msgid "Actions"
+msgstr "Tindakan"
+
+#. translators: %d: WP user ID of a no-longer-existing artist account
+#: includes/Admin/ContactMessagesPage.php:113
+#, php-format
+msgid "(deleted artist #%d)"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:159 includes/Admin/InboxPage.php:878
+#: includes/Admin/QueueController.php:31 includes/Admin/QueueController.php:60
+#: includes/Admin/QueueController.php:95 includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
+#: includes/Admin/Settings.php:1833 includes/Admin/Settings.php:1862
+#: includes/Admin/Settings.php:2040 includes/Admin/Settings.php:2072
+#: includes/Admin/Settings.php:2099 includes/Admin/Settings.php:2395
+#: includes/Admin/Settings.php:2424 includes/Admin/Settings.php:2452
+#: includes/Admin/Settings.php:2526 includes/Admin/Settings.php:2553
+#: includes/Admin/Settings.php:2790 includes/Admin/Settings.php:2809
+#: includes/Admin/Settings.php:2828
+msgid "You do not have permission to perform this action."
+msgstr "Anda tidak memiliki izin untuk melakukan tindakan ini."
+
+#: includes/Admin/ContactMessagesPage.php:182
+#, fuzzy
+msgid "Message deleted."
+msgstr "Pesan"
+
+#: includes/Admin/ContactMessagesPage.php:240 includes/Admin/InboxPage.php:509
+msgid "All statuses"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:241
+#: includes/Admin/ContactMessagesPage.php:300
+msgid "Sent"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:242
+#: includes/Admin/ContactMessagesPage.php:302
+#, fuzzy
+msgid "Rejected"
+msgstr "Tolak"
+
+#: includes/Admin/ContactMessagesPage.php:254 includes/Admin/InboxPage.php:532
+msgid "Filter"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:534
+msgid "Reset"
+msgstr ""
+
+#. translators: 1: current page number, 2: total number of pages
+#: includes/Admin/ContactMessagesPage.php:280 includes/Admin/InboxPage.php:602
+#, fuzzy, php-format
+msgid "Page %1$d of %2$d"
+msgstr "%1$d / %2$d"
+
+#: includes/Admin/ContactMessagesPage.php:288 includes/Admin/InboxPage.php:277
+#: includes/Admin/InboxPage.php:610
+msgid "Previous"
+msgstr "Sebelumnya"
+
+#: includes/Admin/ContactMessagesPage.php:317
+#, fuzzy
+msgid "Delete this message?"
+msgstr "Hapus baris antrean ini?"
+
+#: includes/Admin/ContactMessagesPage.php:322 includes/Admin/InboxPage.php:784
+#: includes/Admin/Settings.php:2008
+msgid "Delete"
+msgstr "Hapus"
+
+#: includes/Admin/ContactMessagesPage.php:334 includes/Admin/InboxPage.php:795
+msgid "just now"
+msgstr "baru saja"
+
+#. translators: %d: number of minutes
+#: includes/Admin/ContactMessagesPage.php:339 includes/Admin/InboxPage.php:800
+#, php-format
+msgid "%dm ago"
+msgstr "%dm yang lalu"
+
+#. translators: %d: number of hours
+#: includes/Admin/ContactMessagesPage.php:344 includes/Admin/InboxPage.php:805
+#, php-format
+msgid "%dh ago"
+msgstr "%dj yang lalu"
 
 #: includes/Admin/Deliverability.php:220
 #, fuzzy
@@ -120,14 +254,6 @@ msgstr ""
 msgid "No queue rows match this filter."
 msgstr ""
 
-#: includes/Admin/InboxPage.php:162
-msgid "#"
-msgstr "#"
-
-#: includes/Admin/InboxPage.php:163
-msgid "From"
-msgstr "Dari"
-
 #: includes/Admin/InboxPage.php:164
 msgid "Subject"
 msgstr "Subjek"
@@ -140,23 +266,9 @@ msgstr ""
 msgid "Files"
 msgstr "Berkas"
 
-#: includes/Admin/InboxPage.php:167 includes/Admin/Settings.php:1912
-#: includes/Admin/Settings.php:2198
-msgid "Status"
-msgstr "Status"
-
-#: includes/Admin/InboxPage.php:168
-msgid "Received"
-msgstr "Diterima"
-
 #: includes/Admin/InboxPage.php:169
 msgid "Error"
 msgstr "Galat"
-
-#: includes/Admin/InboxPage.php:170 includes/Admin/Settings.php:1760
-#: includes/Admin/Settings.php:1914
-msgid "Actions"
-msgstr "Tindakan"
 
 #: includes/Admin/InboxPage.php:212
 msgid "unregistered sender"
@@ -170,13 +282,11 @@ msgstr "Baris lama — hapus dan ambil ulang untuk pratinjau"
 msgid "Attachment viewer"
 msgstr "Penampil lampiran"
 
-#: includes/Admin/InboxPage.php:276 includes/Newsletter/PopoverBlock.php:121
+#: includes/Admin/InboxPage.php:276
+#: includes/Network/SubdomainNavigation.php:482
+#: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
 msgstr "Tutup"
-
-#: includes/Admin/InboxPage.php:277 includes/Admin/InboxPage.php:610
-msgid "Previous"
-msgstr "Sebelumnya"
 
 #: includes/Admin/InboxPage.php:354
 msgid "Queue row deleted. Poll Inbox to re-fetch the message."
@@ -208,10 +318,6 @@ msgstr ""
 msgid "Processed %d pending item(s)."
 msgstr "%d item tertunda telah diproses."
 
-#: includes/Admin/InboxPage.php:509
-msgid "All statuses"
-msgstr ""
-
 #: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:715
 msgid "Pending"
 msgstr "Tertunda"
@@ -238,14 +344,6 @@ msgstr "Dilewati"
 msgid "All reasons"
 msgstr "Semua Acara"
 
-#: includes/Admin/InboxPage.php:532
-msgid "Filter"
-msgstr ""
-
-#: includes/Admin/InboxPage.php:534
-msgid "Reset"
-msgstr ""
-
 #. translators: 1: number of collapsed messages, 2: URL to view them
 #: includes/Admin/InboxPage.php:571
 #, php-format
@@ -256,12 +354,6 @@ msgid_plural ""
 "%1$d messages from unregistered senders are hidden from this view. <a href="
 "\"%2$s\">View them</a>."
 msgstr[0] ""
-
-#. translators: 1: current page number, 2: total number of pages
-#: includes/Admin/InboxPage.php:602
-#, fuzzy, php-format
-msgid "Page %1$d of %2$d"
-msgstr "%1$d / %2$d"
 
 #: includes/Admin/InboxPage.php:629
 msgid "Poll Inbox"
@@ -337,40 +429,6 @@ msgstr "Berjalan…"
 #: includes/Admin/InboxPage.php:779
 msgid "Delete this queue row?"
 msgstr "Hapus baris antrean ini?"
-
-#: includes/Admin/InboxPage.php:784 includes/Admin/Settings.php:2008
-msgid "Delete"
-msgstr "Hapus"
-
-#: includes/Admin/InboxPage.php:795
-msgid "just now"
-msgstr "baru saja"
-
-#. translators: %d: number of minutes
-#: includes/Admin/InboxPage.php:800
-#, php-format
-msgid "%dm ago"
-msgstr "%dm yang lalu"
-
-#. translators: %d: number of hours
-#: includes/Admin/InboxPage.php:805
-#, php-format
-msgid "%dh ago"
-msgstr "%dj yang lalu"
-
-#: includes/Admin/InboxPage.php:878 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
-#: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
-#: includes/Admin/Settings.php:1833 includes/Admin/Settings.php:1862
-#: includes/Admin/Settings.php:2040 includes/Admin/Settings.php:2072
-#: includes/Admin/Settings.php:2099 includes/Admin/Settings.php:2395
-#: includes/Admin/Settings.php:2424 includes/Admin/Settings.php:2452
-#: includes/Admin/Settings.php:2526 includes/Admin/Settings.php:2553
-#: includes/Admin/Settings.php:2790 includes/Admin/Settings.php:2809
-#: includes/Admin/Settings.php:2828
-msgid "You do not have permission to perform this action."
-msgstr "Anda tidak memiliki izin untuk melakukan tindakan ini."
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -600,7 +658,7 @@ msgid "Select Image"
 msgstr "Pilih Gambar"
 
 #: includes/Admin/Settings.php:374 includes/Core/EmailFooter.php:85
-#: includes/Publishing/PostCreator.php:868
+#: includes/Publishing/PostCreator.php:933
 msgid "Remove"
 msgstr "Hapus"
 
@@ -1996,10 +2054,6 @@ msgstr "Tingkat"
 msgid "Context"
 msgstr "Konteks"
 
-#: includes/Admin/Settings.php:1420
-msgid "Message"
-msgstr "Pesan"
-
 #: includes/Admin/Settings.php:1491
 msgid "Inbox Tools"
 msgstr "Alat Inbox"
@@ -2235,10 +2289,6 @@ msgstr "Tolak"
 #: includes/Admin/Settings.php:1906
 msgid "No admitted members yet."
 msgstr "Belum ada anggota yang diterima."
-
-#: includes/Admin/Settings.php:1911 includes/Admin/Settings.php:2205
-msgid "Artist"
-msgstr "Seniman"
 
 #: includes/Admin/Settings.php:1913
 msgid "Joined"
@@ -2504,7 +2554,7 @@ msgstr ""
 "Seniman tidak menyertakan subjek atau pesan apa pun dalam kiriman ini — "
 "biarkan gambar berbicara sepenuhnya untuk dirinya sendiri."
 
-#: includes/Artist/Admission.php:107
+#: includes/Artist/Admission.php:107 includes/Artist/ContactForm.php:103
 msgid "Name"
 msgstr ""
 
@@ -2520,8 +2570,8 @@ msgstr "Biografi:"
 msgid "Statement"
 msgstr "Pernyataan:"
 
-#. translators: 1: field name (e.g. "Bio"), 2: maximum character count
-#: includes/Artist/Admission.php:177
+#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
+#: includes/Artist/Admission.php:177 includes/Artist/ContactForm.php:142
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr ""
@@ -2613,7 +2663,7 @@ msgid "Thanks, %s!"
 msgstr ""
 
 #: includes/Artist/AdmissionConfirm.php:159
-#: includes/Artist/NotificationPreferences.php:236
+#: includes/Artist/NotificationPreferences.php:259
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Kesalahan tautan"
@@ -2654,12 +2704,12 @@ msgstr "Kami telah menerima permohonan Anda ke %s"
 #: includes/Artist/AdmissionNotification.php:613
 #: includes/Artist/AdmissionNotification.php:746
 #: includes/Artist/AdmissionNotification.php:819
-#: includes/Artist/VoteDigest.php:161 includes/Publishing/Notification.php:250
-#: includes/Publishing/Notification.php:367
-#: includes/Publishing/Notification.php:604
-#: includes/Publishing/Notification.php:904
-#: includes/Publishing/Notification.php:1219
-#: includes/Publishing/Notification.php:1374
+#: includes/Artist/VoteDigest.php:161 includes/Publishing/Notification.php:249
+#: includes/Publishing/Notification.php:366
+#: includes/Publishing/Notification.php:561
+#: includes/Publishing/Notification.php:857
+#: includes/Publishing/Notification.php:1172
+#: includes/Publishing/Notification.php:1327
 #, php-format
 msgid "Hi %s,"
 msgstr "Hai %s,"
@@ -2688,12 +2738,12 @@ msgstr ""
 #: includes/Artist/AdmissionNotification.php:890
 #: includes/Artist/Invitation.php:177 includes/Artist/VoteDigest.php:218
 #: includes/Newsletter/Mailer.php:101 includes/Newsletter/Subscription.php:166
-#: includes/Publishing/Notification.php:306
-#: includes/Publishing/Notification.php:391
-#: includes/Publishing/Notification.php:669
-#: includes/Publishing/Notification.php:1013
-#: includes/Publishing/Notification.php:1247
-#: includes/Publishing/Notification.php:1437
+#: includes/Publishing/Notification.php:305
+#: includes/Publishing/Notification.php:390
+#: includes/Publishing/Notification.php:626
+#: includes/Publishing/Notification.php:966
+#: includes/Publishing/Notification.php:1200
+#: includes/Publishing/Notification.php:1390
 #, php-format
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — seni bermekaran dari kehampaan"
@@ -3074,82 +3124,158 @@ msgstr "Usulan tidak ditemukan."
 msgid "This vote is not currently open."
 msgstr "Pemungutan suara ini saat ini belum dibuka."
 
-#: includes/Artist/ContentEditor.php:201 includes/Artist/ContentEditor.php:572
-#: includes/Publishing/ReviewEndpoints.php:399
-#: includes/Publishing/ReviewEndpoints.php:416
+#: includes/Artist/ContactForm.php:169
+msgid "This artist can't be reached through this form right now."
+msgstr ""
+
+#: includes/Artist/ContactForm.php:214 includes/Artist/ContactFormBlock.php:153
+msgid "Thanks — your message has been sent."
+msgstr ""
+
+#: includes/Artist/ContactForm.php:278
+msgid ""
+"Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
+"contacting the artist about their work"
+msgstr ""
+
+#: includes/Artist/ContactForm.php:302
+msgid "Flagged by automatic content review."
+msgstr ""
+
+#. translators: %s: visitor's name, or their email address if no name was given
+#: includes/Artist/ContactForm.php:402
+#, php-format
+msgid "New message from %s via your Agnosis contact form"
+msgstr ""
+
+#. translators: %s: visitor's name, or a placeholder if none was given
+#: includes/Artist/ContactForm.php:409
+#, fuzzy, php-format
+msgid "From: %s"
+msgstr "Dari"
+
+#: includes/Artist/ContactForm.php:410
+#, fuzzy
+msgid "(no name provided)"
+msgstr "Penyedia peningkatan"
+
+#. translators: %s: visitor's own email address, for the artist to reply to directly.
+#: includes/Artist/ContactForm.php:414
+#, fuzzy, php-format
+msgid "Email: %s"
+msgstr "Alamat email"
+
+#: includes/Artist/ContactForm.php:423
+msgid "Original message, as submitted:"
+msgstr ""
+
+#: includes/Artist/ContactFormBlock.php:87
+#, fuzzy
+msgid "Your name (optional)"
+msgstr "Nama Anda"
+
+#: includes/Artist/ContactFormBlock.php:98
+#, fuzzy
+msgid "Your email address"
+msgstr "Alamat email pengirim"
+
+#: includes/Artist/ContactFormBlock.php:105
+#: includes/Newsletter/SignupBlock.php:65
+msgid "you@example.com"
+msgstr "you@example.com"
+
+#: includes/Artist/ContactFormBlock.php:123
+#, fuzzy
+msgid "Send message"
+msgstr "Kirim Tes"
+
+#: includes/Artist/ContactFormBlock.php:154
+#: includes/Artist/ContentEditor.php:1010 includes/Artist/JoinPage.php:210
+#: includes/Newsletter/SignupBlock.php:140
+msgid "Something went wrong. Please try again."
+msgstr "Terjadi kesalahan. Silakan coba lagi."
+
+#: includes/Artist/ContentEditor.php:214 includes/Artist/ContentEditor.php:595
+#: includes/Publishing/ReviewEndpoints.php:698
+#: includes/Publishing/ReviewEndpoints.php:715
 msgid "Authentication required."
 msgstr "Autentikasi diperlukan."
 
-#: includes/Artist/ContentEditor.php:226
+#: includes/Artist/ContentEditor.php:239
 msgid "This field cannot be edited here."
 msgstr "Bidang ini tidak dapat diedit di sini."
 
-#: includes/Artist/ContentEditor.php:237
+#: includes/Artist/ContentEditor.php:250
 msgid "That date could not be understood."
 msgstr "Tanggal tersebut tidak dapat dipahami."
 
-#: includes/Artist/ContentEditor.php:245
+#: includes/Artist/ContentEditor.php:258
 msgid "That does not look like a valid timezone (e.g. \"Europe/Madrid\")."
 msgstr ""
 
-#: includes/Artist/ContentEditor.php:253
+#: includes/Artist/ContentEditor.php:268
+msgid ""
+"That does not look like a valid link (must start with http:// or https://)."
+msgstr ""
+
+#: includes/Artist/ContentEditor.php:276
 msgid "The title cannot be empty."
 msgstr "Judul tidak boleh kosong."
 
-#: includes/Artist/ContentEditor.php:292 includes/Artist/ContentEditor.php:985
+#: includes/Artist/ContentEditor.php:315 includes/Artist/ContentEditor.php:1009
 msgid "Saved — translations will update within a few minutes."
 msgstr "Tersimpan — terjemahan akan diperbarui dalam beberapa menit."
 
-#: includes/Artist/ContentEditor.php:330
+#: includes/Artist/ContentEditor.php:353
 msgid "No image file was received."
 msgstr "Tidak ada berkas gambar yang diterima."
 
-#: includes/Artist/ContentEditor.php:339
+#: includes/Artist/ContentEditor.php:362
 msgid "Please upload a JPEG, PNG, WebP, or GIF image."
 msgstr "Harap unggah gambar JPEG, PNG, WebP, atau GIF."
 
-#: includes/Artist/ContentEditor.php:350
+#: includes/Artist/ContentEditor.php:373
 msgid "The uploaded file could not be read."
 msgstr "Berkas yang diunggah tidak dapat dibaca."
 
-#: includes/Artist/ContentEditor.php:362
-#: includes/Publishing/PostCreator.php:1581
+#: includes/Artist/ContentEditor.php:385
+#: includes/Publishing/PostCreator.php:1735
 msgid "Untitled"
 msgstr "Tanpa judul"
 
-#: includes/Artist/ContentEditor.php:395 includes/Artist/ContentEditor.php:989
+#: includes/Artist/ContentEditor.php:418 includes/Artist/ContentEditor.php:1013
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr "Foto diganti — versi asli tetap disimpan dan dapat dipulihkan nanti."
 
-#: includes/Artist/ContentEditor.php:429
+#: includes/Artist/ContentEditor.php:452
 msgid "There is no photo to restore."
 msgstr "Tidak ada foto untuk dipulihkan."
 
-#: includes/Artist/ContentEditor.php:438
+#: includes/Artist/ContentEditor.php:461
 msgid "No earlier version of this photo was found."
 msgstr "Tidak ditemukan versi foto sebelumnya."
 
-#: includes/Artist/ContentEditor.php:467 includes/Artist/ContentEditor.php:992
+#: includes/Artist/ContentEditor.php:490 includes/Artist/ContentEditor.php:1016
 msgid "Restored the earlier photo."
 msgstr "Berhasil memulihkan foto sebelumnya."
 
-#: includes/Artist/ContentEditor.php:580
+#: includes/Artist/ContentEditor.php:603
 msgid "Only admitted artists may edit their own content."
 msgstr "Hanya artis yang diterima yang dapat mengedit konten mereka sendiri."
 
-#: includes/Artist/ContentEditor.php:589
+#: includes/Artist/ContentEditor.php:612
 msgid "Content not found."
 msgstr "Konten tidak ditemukan."
 
-#: includes/Artist/ContentEditor.php:597
+#: includes/Artist/ContentEditor.php:620
 msgid "Only published content can be corrected here."
 msgstr "Hanya konten yang sudah dipublikasikan yang dapat diperbaiki di sini."
 
-#: includes/Artist/ContentEditor.php:607
+#: includes/Artist/ContentEditor.php:630
 msgid "You may only edit your own content."
 msgstr "Anda hanya dapat mengedit konten milik Anda sendiri."
 
-#: includes/Artist/ContentEditor.php:654
+#: includes/Artist/ContentEditor.php:677
 msgid ""
 "This page is not in your own language. Edit the version in your language "
 "instead."
@@ -3157,41 +3283,36 @@ msgstr ""
 "Halaman ini bukan dalam bahasa Anda sendiri. Edit versi dalam bahasa Anda "
 "sebagai gantinya."
 
-#: includes/Artist/ContentEditor.php:746
+#: includes/Artist/ContentEditor.php:770
 msgid "Unsupported field target."
 msgstr "Target bidang tidak didukung."
 
-#: includes/Artist/ContentEditor.php:982
+#: includes/Artist/ContentEditor.php:1006
 msgid "Save"
 msgstr "Simpan"
 
-#: includes/Artist/ContentEditor.php:983
-#: includes/Publishing/SubmissionsPage.php:287
+#: includes/Artist/ContentEditor.php:1007
+#: includes/Publishing/SubmissionsPage.php:305
 msgid "Cancel"
 msgstr "Batal"
 
-#: includes/Artist/ContentEditor.php:984
+#: includes/Artist/ContentEditor.php:1008
 msgid "Saving…"
 msgstr "Menyimpan…"
 
-#: includes/Artist/ContentEditor.php:986 includes/Artist/JoinPage.php:210
-#: includes/Newsletter/SignupBlock.php:140
-msgid "Something went wrong. Please try again."
-msgstr "Terjadi kesalahan. Silakan coba lagi."
-
-#: includes/Artist/ContentEditor.php:987
+#: includes/Artist/ContentEditor.php:1011
 msgid "Replace photo"
 msgstr "Ganti foto"
 
-#: includes/Artist/ContentEditor.php:988
+#: includes/Artist/ContentEditor.php:1012
 msgid "Uploading…"
 msgstr "Mengunggah…"
 
-#: includes/Artist/ContentEditor.php:990
+#: includes/Artist/ContentEditor.php:1014
 msgid "Restore earlier photo"
 msgstr "Pulihkan foto sebelumnya"
 
-#: includes/Artist/ContentEditor.php:991
+#: includes/Artist/ContentEditor.php:1015
 msgid "Restoring…"
 msgstr "Memulihkan…"
 
@@ -3207,7 +3328,7 @@ msgid ""
 "deleted. Nothing tied to you is stored here anymore."
 msgstr ""
 
-#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:292
+#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:305
 msgid "Link expired or already used"
 msgstr "Tautan kedaluwarsa atau sudah digunakan"
 
@@ -3218,7 +3339,7 @@ msgid ""
 msgstr ""
 
 #: includes/Artist/Departure.php:185
-#: includes/Publishing/SubmissionsPage.php:162
+#: includes/Publishing/SubmissionsPage.php:163
 msgid "You must be logged in."
 msgstr "Anda harus masuk."
 
@@ -3592,64 +3713,77 @@ msgstr "Hampir selesai — periksa kotak masuk Anda untuk tautan konfirmasi."
 msgid "Please fill in all required fields."
 msgstr "Harap isi semua kolom wajib."
 
-#: includes/Artist/NotificationPreferences.php:109
+#: includes/Artist/NotificationPreferences.php:116
 #, fuzzy
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "Tautan suara ini tidak valid atau telah dimanipulasi."
 
-#: includes/Artist/NotificationPreferences.php:115
+#: includes/Artist/NotificationPreferences.php:122
 msgid "This preferences link is no longer valid for this account."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:201
-#: includes/Artist/NotificationPreferences.php:215
+#: includes/Artist/NotificationPreferences.php:219
+#: includes/Artist/NotificationPreferences.php:235
 msgid "Notification preferences"
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:206
+#: includes/Artist/NotificationPreferences.php:224
 msgid "Mute community broadcast messages from other artists."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:207
+#: includes/Artist/NotificationPreferences.php:225
 #, fuzzy
 msgid "Application vote emails"
 msgstr "Permohonan tidak ditemukan."
 
-#: includes/Artist/NotificationPreferences.php:209
+#: includes/Artist/NotificationPreferences.php:227
 msgid "Instantly, one email per application (default)."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:211
+#: includes/Artist/NotificationPreferences.php:229
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:212
-msgid "Save preferences"
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:225
-msgid "Community broadcasts are now muted."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:226
-msgid "You'll continue to receive community broadcasts."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:228
-msgid "You'll receive one daily digest of applications awaiting your vote."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:229
-msgid "You'll receive an email as soon as each new application arrives."
+#: includes/Artist/NotificationPreferences.php:231
+msgid ""
+"Turn off the contact form on my page — visitors won't be able to message me."
 msgstr ""
 
 #: includes/Artist/NotificationPreferences.php:232
+msgid "Save preferences"
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:245
+msgid "Community broadcasts are now muted."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:246
+msgid "You'll continue to receive community broadcasts."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:248
+msgid "You'll receive one daily digest of applications awaiting your vote."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:249
+msgid "You'll receive an email as soon as each new application arrives."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:251
+msgid "The contact form on your page is now turned off."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:252
+msgid "Visitors can still reach you through the contact form on your page."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:255
 msgid "Preferences saved"
 msgstr ""
 
-#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:495
-#: includes/Artist/Profile.php:508
+#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:549
+#: includes/Artist/Profile.php:562
 msgid "Artworks"
 msgstr "Karya"
 
@@ -3664,13 +3798,13 @@ msgstr "Biografi"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
 #: includes/Core/EmailFooter.php:73
-#: includes/Network/SubdomainNavigation.php:133
-#: includes/Network/SubdomainNavigation.php:334
-#: includes/Publishing/PostCreator.php:863
-#: includes/Publishing/PostCreator.php:893
+#: includes/Network/SubdomainNavigation.php:134
+#: includes/Network/SubdomainNavigation.php:357
+#: includes/Publishing/PostCreator.php:928
+#: includes/Publishing/PostCreator.php:958
 #: blocks/artist-breadcrumb/editor.js:210
-#: blocks/breadcrumb-icon-link/editor.js:66
-#: blocks/breadcrumb-icon-link/editor.js:99
+#: blocks/breadcrumb-icon-link/editor.js:79
+#: blocks/breadcrumb-icon-link/editor.js:113
 msgid "Biography"
 msgstr "Biografi"
 
@@ -3708,17 +3842,17 @@ msgstr "Semua Biografi"
 
 #: includes/Artist/Profile.php:89 includes/Artist/Profile.php:91
 #: includes/Artist/Profile.php:101 includes/Core/EmailFooter.php:77
-#: includes/Network/SubdomainNavigation.php:139
-#: includes/Network/SubdomainNavigation.php:340
+#: includes/Network/SubdomainNavigation.php:140
+#: includes/Network/SubdomainNavigation.php:363
 #: blocks/artist-breadcrumb/editor.js:221
-#: blocks/breadcrumb-icon-link/editor.js:67
-#: blocks/breadcrumb-icon-link/editor.js:100
+#: blocks/breadcrumb-icon-link/editor.js:80
+#: blocks/breadcrumb-icon-link/editor.js:114
 msgid "Events"
 msgstr "Acara"
 
 #: includes/Artist/Profile.php:92 includes/Artist/Profile.php:102
-#: includes/Publishing/PostCreator.php:864
-#: includes/Publishing/PostCreator.php:896
+#: includes/Publishing/PostCreator.php:929
+#: includes/Publishing/PostCreator.php:961
 msgid "Event"
 msgstr "Acara"
 
@@ -3786,52 +3920,52 @@ msgstr "Tambah Medium Baru"
 msgid "New Medium Name"
 msgstr "Nama Medium Baru"
 
-#: includes/Artist/Profile.php:496 includes/Artist/Profile.php:509
-#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:901
+#: includes/Artist/Profile.php:550 includes/Artist/Profile.php:563
+#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:966
 msgid "Artwork"
 msgstr "Karya Seni"
 
-#: includes/Artist/Profile.php:497
+#: includes/Artist/Profile.php:551
 msgid "Add New"
 msgstr "Tambah Baru"
 
-#: includes/Artist/Profile.php:498
+#: includes/Artist/Profile.php:552
 msgid "Add New Artwork"
 msgstr "Tambah Karya Seni Baru"
 
-#: includes/Artist/Profile.php:499
+#: includes/Artist/Profile.php:553
 msgid "Edit Artwork"
 msgstr "Edit Karya Seni"
 
-#: includes/Artist/Profile.php:500
+#: includes/Artist/Profile.php:554
 msgid "New Artwork"
 msgstr "Karya Seni Baru"
 
-#: includes/Artist/Profile.php:501
+#: includes/Artist/Profile.php:555
 msgid "View Artwork"
 msgstr "Lihat Karya Seni"
 
-#: includes/Artist/Profile.php:502
+#: includes/Artist/Profile.php:556
 msgid "Search Artworks"
 msgstr "Cari Karya Seni"
 
-#: includes/Artist/Profile.php:503
+#: includes/Artist/Profile.php:557
 msgid "No artworks found."
 msgstr "Tidak ada karya seni yang ditemukan."
 
-#: includes/Artist/Profile.php:504
+#: includes/Artist/Profile.php:558
 msgid "No artworks in trash."
 msgstr "Tidak ada karya seni di tempat sampah."
 
-#: includes/Artist/Profile.php:505
+#: includes/Artist/Profile.php:559
 msgid "All Artworks"
 msgstr "Semua Karya Seni"
 
-#: includes/Artist/Profile.php:506
+#: includes/Artist/Profile.php:560
 msgid "Artwork Archives"
 msgstr "Arsip Karya Seni"
 
-#: includes/Artist/Profile.php:507
+#: includes/Artist/Profile.php:561
 msgid "Artwork Attributes"
 msgstr "Atribut Karya Seni"
 
@@ -3937,19 +4071,19 @@ msgid "%d positive vote recorded so far."
 msgid_plural "%d positive votes recorded so far."
 msgstr[0] "%d suara positif telah tercatat sejauh ini."
 
-#: includes/Compat/LinguaForge.php:1190
+#: includes/Compat/LinguaForge.php:1609
 msgid "is active and configured for"
 msgstr "aktif dan dikonfigurasi untuk"
 
-#: includes/Compat/LinguaForge.php:1191
+#: includes/Compat/LinguaForge.php:1610
 msgid "Subdomain"
 msgstr "Subdomain"
 
-#: includes/Compat/LinguaForge.php:1192
+#: includes/Compat/LinguaForge.php:1611
 msgid "routing mode"
 msgstr "mode perutean"
 
-#: includes/Compat/LinguaForge.php:1194
+#: includes/Compat/LinguaForge.php:1613
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -3957,39 +4091,39 @@ msgstr ""
 "Ini bertentangan dengan subdomain seniman Agnosis — kedua plugin akan "
 "mengklaim namespace subdomain yang sama."
 
-#: includes/Compat/LinguaForge.php:1195
+#: includes/Compat/LinguaForge.php:1614
 msgid "Artist subdomain routing is"
 msgstr "Routing subdomain artis adalah"
 
-#: includes/Compat/LinguaForge.php:1196
+#: includes/Compat/LinguaForge.php:1615
 msgid "completely inactive"
 msgstr "sepenuhnya tidak aktif"
 
-#: includes/Compat/LinguaForge.php:1197
+#: includes/Compat/LinguaForge.php:1616
 msgid "until this is resolved."
 msgstr "sampai ini diselesaikan."
 
-#: includes/Compat/LinguaForge.php:1199
+#: includes/Compat/LinguaForge.php:1618
 msgid "Fix: open"
 msgstr "Perbaikan: buka"
 
-#: includes/Compat/LinguaForge.php:1200
+#: includes/Compat/LinguaForge.php:1619
 msgid "Settings"
 msgstr "Pengaturan"
 
-#: includes/Compat/LinguaForge.php:1200
+#: includes/Compat/LinguaForge.php:1619
 msgid "Language Router"
 msgstr "Pengarah Bahasa"
 
-#: includes/Compat/LinguaForge.php:1201
+#: includes/Compat/LinguaForge.php:1620
 msgid "and switch the URL strategy to"
 msgstr "dan ubah strategi URL ke"
 
-#: includes/Compat/LinguaForge.php:1202
+#: includes/Compat/LinguaForge.php:1621
 msgid "Path prefix (subfolder)"
 msgstr "Awalan jalur (subfolder)"
 
-#: includes/Compat/LinguaForge.php:1203
+#: includes/Compat/LinguaForge.php:1622
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -3997,23 +4131,23 @@ msgstr ""
 "Ini adalah default LinguaForge dan memungkinkan subdomain artis berdampingan "
 "dengan subfolder bahasa"
 
-#: includes/Compat/LinguaForge.php:1208
+#: includes/Compat/LinguaForge.php:1627
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Routing Subdomain Artis dinonaktifkan"
 
-#: includes/Compat/LinguaForge.php:1218
+#: includes/Compat/LinguaForge.php:1637
 msgid "Open LinguaForge Settings"
 msgstr "Buka Pengaturan LinguaForge"
 
-#: includes/Core/Activator.php:586 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:612 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis Artist"
 
-#: includes/Core/Activator.php:699
+#: includes/Core/Activator.php:725
 msgid "My Submissions"
 msgstr "Pengajuan Saya"
 
-#: includes/Core/Activator.php:841
+#: includes/Core/Activator.php:867
 msgid "Join"
 msgstr "Bergabung"
 
@@ -4029,7 +4163,7 @@ msgstr "Perbarui biografi artis Anda."
 msgid "Announce an upcoming event."
 msgstr "Umumkan acara yang akan datang."
 
-#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:867
+#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:932
 msgid "Replace"
 msgstr "Ganti"
 
@@ -4048,7 +4182,7 @@ msgstr ""
 "Minta karya seni atau acara yang sudah ada untuk dihapus — subjek harus "
 "cocok dengan judulnya."
 
-#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:869
+#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:934
 msgid "Promote"
 msgstr "Promosikan"
 
@@ -4069,8 +4203,8 @@ msgstr ""
 "Publikasikan foto persis seperti yang dikirim — tanpa peningkatan AI, tanpa "
 "pemeriksaan kualitas."
 
-#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:865
-#: includes/Publishing/PostCreator.php:887
+#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:930
+#: includes/Publishing/PostCreator.php:952
 msgid "Pure"
 msgstr "Murni"
 
@@ -4211,6 +4345,26 @@ msgstr "Dokumen aktor tidak mengandung field publicKey.publicKeyPem."
 #: includes/Network/Node.php:84
 msgid "Node URL is required."
 msgstr "URL node diperlukan."
+
+#. translators: %s: artist display name
+#: includes/Network/SubdomainNavigation.php:451
+#, fuzzy, php-format
+msgid "Contact %s"
+msgstr "Konteks"
+
+#: includes/Network/SubdomainNavigation.php:452
+msgid "Contact this artist"
+msgstr ""
+
+#. translators: %s: artist display name
+#: includes/Network/SubdomainNavigation.php:456
+#, php-format
+msgid "Get in touch with %s"
+msgstr ""
+
+#: includes/Network/SubdomainNavigation.php:457
+msgid "Get in touch"
+msgstr ""
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."
@@ -4412,10 +4566,6 @@ msgstr ""
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "Draf intro %1$s untuk %2$s — tinjau sebelum dikirim"
 
-#: includes/Newsletter/SignupBlock.php:65
-msgid "you@example.com"
-msgstr "you@example.com"
-
 #: includes/Newsletter/SignupBlock.php:71
 msgid "Language"
 msgstr "Bahasa"
@@ -4568,31 +4718,31 @@ msgstr ""
 "per artis untuk ikhtisar beranda."
 
 #. translators: %s: artwork or event title
-#: includes/Publishing/Notification.php:64
+#: includes/Publishing/Notification.php:63
 #, php-format
 msgid "[Agnosis] Confirm removal of: %s"
 msgstr "[Agnosis] Konfirmasi penghapusan: %s"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:116
+#: includes/Publishing/Notification.php:115
 #, fuzzy, php-format
 msgid "[%s] We couldn't find that artwork or event"
 msgstr "[%s] Kami tidak dapat menemukan foto di email Anda"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:178
+#: includes/Publishing/Notification.php:177
 #, php-format
 msgid "[%s] Your artwork is now featured"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:185
+#: includes/Publishing/Notification.php:184
 #, fuzzy, php-format
 msgid "[%s] We couldn't find that artwork"
 msgstr "[%s] Kami tidak dapat menemukan foto di email Anda"
 
 #. translators: %s: the subject line the artist sent
-#: includes/Publishing/Notification.php:227
+#: includes/Publishing/Notification.php:226
 #, php-format
 msgid ""
 "We received a removal request for \"%s\", but couldn't find an artwork or "
@@ -4600,7 +4750,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: the subject line the artist sent
-#: includes/Publishing/Notification.php:229
+#: includes/Publishing/Notification.php:228
 #, php-format
 msgid ""
 "We received a request to feature \"%s\", but couldn't find a published "
@@ -4608,29 +4758,29 @@ msgid ""
 msgstr ""
 
 #. translators: %s: suggested title
-#: includes/Publishing/Notification.php:265
+#: includes/Publishing/Notification.php:264
 #, php-format
 msgid "Did you mean \"%s\"?"
 msgstr ""
 
-#: includes/Publishing/Notification.php:273
+#: includes/Publishing/Notification.php:272
 #, fuzzy
 msgid "Yes, remove this instead"
 msgstr "Ya, hapus %s ini"
 
-#: includes/Publishing/Notification.php:277
+#: includes/Publishing/Notification.php:276
 msgid "Or simply resend your original email with that exact title."
 msgstr ""
 
-#: includes/Publishing/Notification.php:281
+#: includes/Publishing/Notification.php:280
 msgid "Resend your original email with that exact title."
 msgstr ""
 
-#: includes/Publishing/Notification.php:288
+#: includes/Publishing/Notification.php:287
 msgid "Your current titles:"
 msgstr ""
 
-#: includes/Publishing/Notification.php:297
+#: includes/Publishing/Notification.php:296
 msgid ""
 "Titles are matched exactly, so a small difference in wording is enough to "
 "miss — double-check spelling, capitalization, and punctuation against the "
@@ -4638,43 +4788,43 @@ msgid ""
 msgstr ""
 
 #. translators: %s: artwork title
-#: includes/Publishing/Notification.php:376
+#: includes/Publishing/Notification.php:375
 #, fuzzy, php-format
 msgid "\"%s\" is now your featured artwork on the gallery overview."
 msgstr "Tampilkan karya seni ini di ikhtisar galeri"
 
-#: includes/Publishing/Notification.php:382
+#: includes/Publishing/Notification.php:381
 msgid ""
 "Any previously featured artwork has been unfeatured automatically — only one "
 "piece is featured at a time."
 msgstr ""
 
 #. translators: %s: artwork title (in the artist's own language)
-#: includes/Publishing/Notification.php:530
+#: includes/Publishing/Notification.php:487
 #, php-format
 msgid "[Agnosis] Your submission is ready to review: %s"
 msgstr "[Agnosis] Pengajuan Anda siap ditinjau: %s"
 
-#: includes/Publishing/Notification.php:581
+#: includes/Publishing/Notification.php:538
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1116
+#: includes/Publishing/ReviewConfirm.php:1140
 msgid "event"
 msgstr "acara"
 
-#: includes/Publishing/Notification.php:581
+#: includes/Publishing/Notification.php:538
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1117
+#: includes/Publishing/ReviewConfirm.php:1141
 msgid "artwork"
 msgstr "karya seni"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:614
+#: includes/Publishing/Notification.php:571
 #, php-format
 msgid "We received a removal request for the following %s:"
 msgstr "Kami menerima permintaan penghapusan untuk %s berikut:"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:628
+#: includes/Publishing/Notification.php:585
 #, php-format
 msgid ""
 "If you want to permanently remove this %s, click the button below. This "
@@ -4684,13 +4834,13 @@ msgstr ""
 "Tindakan ini tidak dapat dibatalkan."
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:640
+#: includes/Publishing/Notification.php:597
 #, php-format
 msgid "Yes, remove this %s"
 msgstr "Ya, hapus %s ini"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:652
+#: includes/Publishing/Notification.php:609
 #, php-format
 msgid ""
 "If you did not request this removal, simply ignore this email — your %s will "
@@ -4699,15 +4849,15 @@ msgstr ""
 "Jika Anda tidak meminta penghapusan ini, abaikan saja email ini — %s Anda "
 "akan tetap dipublikasikan."
 
-#: includes/Publishing/Notification.php:659
+#: includes/Publishing/Notification.php:616
 msgid "This confirmation link expires in 7 days."
 msgstr "Tautan konfirmasi ini kedaluwarsa dalam 7 hari."
 
-#: includes/Publishing/Notification.php:744
+#: includes/Publishing/Notification.php:701
 msgid "📷 Photo enhanced automatically"
 msgstr "📷 Foto diperbaiki secara otomatis"
 
-#: includes/Publishing/Notification.php:747
+#: includes/Publishing/Notification.php:704
 msgid ""
 "We detected some photographic issues and applied AI correction to improve "
 "visibility of your artwork:"
@@ -4715,7 +4865,7 @@ msgstr ""
 "Kami mendeteksi beberapa masalah pada foto dan menerapkan koreksi AI untuk "
 "meningkatkan keterlihatan karya seni Anda:"
 
-#: includes/Publishing/Notification.php:751
+#: includes/Publishing/Notification.php:708
 msgid ""
 "The artwork itself has not been altered — only the photograph quality was "
 "corrected."
@@ -4723,35 +4873,35 @@ msgstr ""
 "Karya seninya sendiri tidak diubah — hanya kualitas fotonya yang diperbaiki."
 
 #. translators: %d: photo quality score out of 10
-#: includes/Publishing/Notification.php:758
+#: includes/Publishing/Notification.php:715
 #, php-format
 msgid "📷 Photo quality score: %d/10"
 msgstr "📷 Skor kualitas foto: %d/10"
 
-#: includes/Publishing/Notification.php:802
+#: includes/Publishing/Notification.php:759
 msgid ""
 "Double-check the link is correct — you can fix or remove it in the form "
 "below before publishing."
 msgstr ""
 
-#: includes/Publishing/Notification.php:803
+#: includes/Publishing/Notification.php:760
 msgid ""
 "If the link was correct, its destination may simply not be from a source "
 "this site automatically embeds."
 msgstr ""
 
-#: includes/Publishing/Notification.php:807
+#: includes/Publishing/Notification.php:764
 msgid "🔗 A link was not included"
 msgid_plural "🔗 Some links were not included"
 msgstr[0] ""
 
-#: includes/Publishing/Notification.php:810
+#: includes/Publishing/Notification.php:767
 msgid ""
 "The following couldn't be automatically embedded, so they were left out:"
 msgstr ""
 
 #. translators: %s: fuzzy-matched event title suggestion
-#: includes/Publishing/Notification.php:842
+#: includes/Publishing/Notification.php:799
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
@@ -4760,7 +4910,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: fuzzy-matched artwork title suggestion
-#: includes/Publishing/Notification.php:847
+#: includes/Publishing/Notification.php:804
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
@@ -4768,11 +4918,11 @@ msgid ""
 "exact title instead."
 msgstr ""
 
-#: includes/Publishing/Notification.php:852
+#: includes/Publishing/Notification.php:809
 msgid "📄 This was published as a new post"
 msgstr ""
 
-#: includes/Publishing/Notification.php:910
+#: includes/Publishing/Notification.php:863
 msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
@@ -4781,36 +4931,36 @@ msgstr ""
 "silakan lihat dan beri tahu kami apakah sudah siap untuk dipublikasikan."
 
 #. translators: %s: the AI-generated site title in the site's primary language
-#: includes/Publishing/Notification.php:938
+#: includes/Publishing/Notification.php:891
 #, php-format
 msgid "On the site: %s"
 msgstr "Di situs: %s"
 
 #. translators: %s: the site title translated back into the artist's language
-#: includes/Publishing/Notification.php:951
+#: includes/Publishing/Notification.php:904
 #, php-format
 msgid "In your language: %s"
 msgstr "Dalam bahasa Anda: %s"
 
-#: includes/Publishing/Notification.php:972
+#: includes/Publishing/Notification.php:925
 msgid "Looks great — Publish it"
 msgstr "Bagus sekali — Publikasikan"
 
-#: includes/Publishing/Notification.php:975
-#: includes/Publishing/SubmissionsPage.php:242
+#: includes/Publishing/Notification.php:928
+#: includes/Publishing/SubmissionsPage.php:257
 msgid "Discard"
 msgstr "Buang"
 
-#: includes/Publishing/Notification.php:982
+#: includes/Publishing/Notification.php:935
 msgid "Want to tweak the title, text or tags before publishing?"
 msgstr "Ingin menyesuaikan judul, teks, atau tag sebelum memublikasikan?"
 
-#: includes/Publishing/Notification.php:984
+#: includes/Publishing/Notification.php:937
 msgid "Open your submissions page →"
 msgstr "Buka halaman pengiriman Anda →"
 
 #. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
-#: includes/Publishing/Notification.php:994
+#: includes/Publishing/Notification.php:947
 #, fuzzy, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
@@ -4823,18 +4973,18 @@ msgstr[0] ""
 "Anda tetap sebagai draf sampai Anda memutuskan."
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1111
+#: includes/Publishing/Notification.php:1064
 #, php-format
 msgid "[%s] We couldn't process your submission"
 msgstr "[%s] Kami tidak dapat memproses pengiriman Anda"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1170
+#: includes/Publishing/Notification.php:1123
 #, php-format
 msgid "[%s] We couldn't find a photo in your email"
 msgstr "[%s] Kami tidak dapat menemukan foto di email Anda"
 
-#: includes/Publishing/Notification.php:1225
+#: includes/Publishing/Notification.php:1178
 msgid ""
 "We received your email, but couldn't process a usable photo, audio, or video "
 "file from it — so nothing was published. This can happen when an image is "
@@ -4849,11 +4999,11 @@ msgstr ""
 "file datang dalam format yang tidak bisa dikonversi oleh server ini "
 "(misalnya foto iPhone yang disimpan dalam format HEIC/HEIF)."
 
-#: includes/Publishing/Notification.php:1229
+#: includes/Publishing/Notification.php:1182
 msgid "To resend correctly:"
 msgstr "Untuk mengirim ulang dengan benar:"
 
-#: includes/Publishing/Notification.php:1231
+#: includes/Publishing/Notification.php:1184
 msgid ""
 "Use your mail app's \"Attach file\" (usually a paperclip icon) rather than "
 "\"Insert photo\" or pasting the image directly into the message body."
@@ -4862,7 +5012,7 @@ msgstr ""
 "kertas) daripada \"Sisipkan foto\" atau menempelkan gambar langsung ke isi "
 "pesan."
 
-#: includes/Publishing/Notification.php:1232
+#: includes/Publishing/Notification.php:1185
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
 "Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
@@ -4872,7 +5022,7 @@ msgstr ""
 "\"Paling Kompatibel\" sebelum mengambil atau mengirimnya, atau gunakan \"Opsi"
 "\" di Mail untuk mengirimnya sebagai JPEG."
 
-#: includes/Publishing/Notification.php:1233
+#: includes/Publishing/Notification.php:1186
 msgid ""
 "Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
@@ -4882,7 +5032,7 @@ msgstr ""
 "gambar; MP3, WAV, M4A, OGG, atau FLAC untuk audio; MP4, MOV, AVI, WebM, OGG, "
 "atau MPEG untuk video."
 
-#: includes/Publishing/Notification.php:1238
+#: includes/Publishing/Notification.php:1191
 msgid ""
 "Once it's properly attached, just send it to the same address again — we'll "
 "pick it up automatically."
@@ -4890,7 +5040,7 @@ msgstr ""
 "Setelah terpasang dengan benar, cukup kirimkan ke alamat yang sama lagi — "
 "kami akan mengambilnya secara otomatis."
 
-#: includes/Publishing/Notification.php:1289
+#: includes/Publishing/Notification.php:1242
 msgid ""
 "The photo is too dark to show your artwork clearly. Try photographing near a "
 "large window in daylight, or use a soft lamp aimed at the work from the side."
@@ -4899,7 +5049,7 @@ msgstr ""
 "memotret di dekat jendela besar pada siang hari, atau gunakan lampu lembut "
 "yang diarahkan ke karya dari samping."
 
-#: includes/Publishing/Notification.php:1290
+#: includes/Publishing/Notification.php:1243
 msgid ""
 "The photo is underexposed (too dark). Try photographing near a large window "
 "in daylight, or use a soft lamp aimed at the work from the side."
@@ -4908,7 +5058,7 @@ msgstr ""
 "pada siang hari, atau gunakan lampu lembut yang diarahkan ke karya dari "
 "samping."
 
-#: includes/Publishing/Notification.php:1291
+#: includes/Publishing/Notification.php:1244
 msgid ""
 "The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
 "flash pointed straight at the artwork — diffuse or indirect light works best."
@@ -4917,7 +5067,7 @@ msgstr ""
 "atau flash yang diarahkan lurus ke karya seni — cahaya tidak langsung atau "
 "difus bekerja paling baik."
 
-#: includes/Publishing/Notification.php:1292
+#: includes/Publishing/Notification.php:1245
 msgid ""
 "The photo is too bright or washed out. Avoid direct sunlight or flash — "
 "diffuse light or shade gives more even tones."
@@ -4925,7 +5075,7 @@ msgstr ""
 "Foto terlalu terang atau pudar. Hindari sinar matahari langsung atau flash — "
 "cahaya difus atau teduh menghasilkan warna yang lebih merata."
 
-#: includes/Publishing/Notification.php:1293
+#: includes/Publishing/Notification.php:1246
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
 "slightly or photograph at an angle to eliminate reflections from the surface."
@@ -4933,7 +5083,7 @@ msgstr ""
 "Ada silau atau pantulan terang pada karya seni. Miringkan kanvas sedikit "
 "atau ambil foto dari sudut untuk menghilangkan pantulan dari permukaan."
 
-#: includes/Publishing/Notification.php:1294
+#: includes/Publishing/Notification.php:1247
 msgid ""
 "There is a reflection on the artwork surface. Tilt the canvas slightly or "
 "change your angle to eliminate it."
@@ -4941,7 +5091,7 @@ msgstr ""
 "Ada pantulan pada permukaan karya seni. Miringkan kanvas sedikit atau ubah "
 "sudut Anda untuk menghilangkannya."
 
-#: includes/Publishing/Notification.php:1296
+#: includes/Publishing/Notification.php:1249
 msgid ""
 "The image is blurry. Rest your phone or camera on a stable surface, use the "
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
@@ -4951,7 +5101,7 @@ msgstr ""
 "gunakan timer otomatis, dan pastikan karya seni memenuhi sebagian besar "
 "bingkai agar fokus otomatis menguncinya."
 
-#: includes/Publishing/Notification.php:1297
+#: includes/Publishing/Notification.php:1250
 msgid ""
 "The image is out of focus. Tap on the artwork on your phone screen before "
 "shooting to make sure autofocus locks on it, and hold the camera still."
@@ -4959,7 +5109,7 @@ msgstr ""
 "Gambar tidak fokus. Ketuk karya seni di layar ponsel Anda sebelum memotret "
 "agar fokus otomatis menguncinya, dan pegang kamera tetap stabil."
 
-#: includes/Publishing/Notification.php:1298
+#: includes/Publishing/Notification.php:1251
 msgid ""
 "There is motion blur. Hold the camera very still or use a tripod; press the "
 "shutter gently or use the self-timer to avoid shake."
@@ -4968,7 +5118,7 @@ msgstr ""
 "tekan tombol rana dengan lembut atau gunakan timer otomatis untuk "
 "menghindari guncangan."
 
-#: includes/Publishing/Notification.php:1299
+#: includes/Publishing/Notification.php:1252
 msgid ""
 "Camera shake is visible. Use a tripod or rest the camera on a flat surface "
 "and use the self-timer to avoid movement when pressing the shutter."
@@ -4977,7 +5127,7 @@ msgstr ""
 "datar dan gunakan timer otomatis untuk menghindari gerakan saat menekan "
 "tombol rana."
 
-#: includes/Publishing/Notification.php:1301
+#: includes/Publishing/Notification.php:1254
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and make sure you're close enough that the artwork fills the frame."
@@ -4986,7 +5136,7 @@ msgstr ""
 "ponsel Anda dan pastikan Anda cukup dekat sehingga karya seni memenuhi "
 "bingkai."
 
-#: includes/Publishing/Notification.php:1302
+#: includes/Publishing/Notification.php:1255
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and fill the frame with the artwork."
@@ -4994,7 +5144,7 @@ msgstr ""
 "Resolusi gambar terlalu rendah. Gunakan pengaturan kualitas tertinggi di "
 "ponsel Anda dan penuhi bingkai dengan karya seni."
 
-#: includes/Publishing/Notification.php:1303
+#: includes/Publishing/Notification.php:1256
 msgid ""
 "The image is pixelated. Shoot from closer or use a higher resolution setting "
 "on your camera."
@@ -5002,8 +5152,8 @@ msgstr ""
 "Gambar berpiksel. Ambil foto dari jarak lebih dekat atau gunakan pengaturan "
 "resolusi yang lebih tinggi pada kamera Anda."
 
-#: includes/Publishing/Notification.php:1305
-#: includes/Publishing/Notification.php:1306
+#: includes/Publishing/Notification.php:1258
+#: includes/Publishing/Notification.php:1259
 msgid ""
 "The photo has a strong colour cast. Shoot under neutral daylight or use your "
 "phone's Auto White Balance setting for more accurate colours."
@@ -5012,7 +5162,7 @@ msgstr ""
 "yang netral atau gunakan pengaturan Auto White Balance di ponsel Anda untuk "
 "warna yang lebih akurat."
 
-#: includes/Publishing/Notification.php:1307
+#: includes/Publishing/Notification.php:1260
 msgid ""
 "The photo looks too yellow or warm. Shoot under natural daylight or switch "
 "your phone's white balance to Daylight / Cloudy."
@@ -5020,7 +5170,7 @@ msgstr ""
 "Foto terlihat terlalu kuning atau hangat. Ambil foto di bawah cahaya siang "
 "alami atau ubah white balance ponsel Anda ke Daylight / Cloudy."
 
-#: includes/Publishing/Notification.php:1308
+#: includes/Publishing/Notification.php:1261
 msgid ""
 "The photo has a cold blue tint. Move the artwork to a warmer, more natural "
 "light source or adjust your camera's white balance."
@@ -5028,7 +5178,7 @@ msgstr ""
 "Foto memiliki rona biru yang dingin. Pindahkan karya seni ke sumber cahaya "
 "yang lebih hangat dan alami atau sesuaikan white balance kamera Anda."
 
-#: includes/Publishing/Notification.php:1310
+#: includes/Publishing/Notification.php:1263
 msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
@@ -5036,7 +5186,7 @@ msgstr ""
 "Sebagian karya seni tampak terpotong dari bingkai. Mundur sedikit dan "
 "pastikan seluruh karya terlihat sebelum memotret."
 
-#: includes/Publishing/Notification.php:1311
+#: includes/Publishing/Notification.php:1264
 msgid ""
 "The artwork is photographed at an angle, causing distortion. Shoot straight "
 "on, with the camera parallel to the canvas."
@@ -5044,7 +5194,7 @@ msgstr ""
 "Karya seni difoto dari sudut miring, menyebabkan distorsi. Ambil foto dari "
 "depan, dengan kamera sejajar dengan kanvas."
 
-#: includes/Publishing/Notification.php:1312
+#: includes/Publishing/Notification.php:1265
 msgid ""
 "The artwork looks distorted or skewed. Position your camera directly in "
 "front of the artwork, parallel to its surface."
@@ -5052,7 +5202,7 @@ msgstr ""
 "Karya seni terlihat terdistorsi atau miring. Posisikan kamera Anda tepat di "
 "depan karya seni, sejajar dengan permukaannya."
 
-#: includes/Publishing/Notification.php:1313
+#: includes/Publishing/Notification.php:1266
 msgid ""
 "There is a shadow across part of the artwork. Reposition your light source "
 "or move the artwork so no shadows fall on the surface."
@@ -5061,7 +5211,7 @@ msgstr ""
 "cahaya Anda atau pindahkan karya seni agar tidak ada bayangan jatuh ke "
 "permukaan."
 
-#: includes/Publishing/Notification.php:1380
+#: includes/Publishing/Notification.php:1333
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
 "for us to show your artwork clearly. We didn't publish it — but please don't "
@@ -5072,16 +5222,16 @@ msgstr ""
 "— tetapi jangan berkecil hati! Mengambil ulang foto biasanya sudah cukup."
 
 #. translators: %d: quality score out of 10
-#: includes/Publishing/Notification.php:1389
+#: includes/Publishing/Notification.php:1342
 #, php-format
 msgid "📷 Photo quality score: %d / 10"
 msgstr "📷 Skor kualitas foto: %d / 10"
 
-#: includes/Publishing/Notification.php:1395
+#: includes/Publishing/Notification.php:1348
 msgid "Here's what our AI detected and how to fix it:"
 msgstr "Berikut yang terdeteksi oleh AI kami dan cara memperbaikinya:"
 
-#: includes/Publishing/Notification.php:1402
+#: includes/Publishing/Notification.php:1355
 msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
@@ -5089,11 +5239,11 @@ msgstr ""
 "Secara keseluruhan, kualitas foto terlalu rendah untuk diproses AI kami "
 "dengan jelas pada karya seni."
 
-#: includes/Publishing/Notification.php:1408
+#: includes/Publishing/Notification.php:1361
 msgid "💡 Quick tips for a great artwork photo"
 msgstr "💡 Tips cepat untuk foto karya seni yang bagus"
 
-#: includes/Publishing/Notification.php:1410
+#: includes/Publishing/Notification.php:1363
 msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
@@ -5101,7 +5251,7 @@ msgstr ""
 "Gunakan cahaya alami — posisikan karya seni dekat jendela pada hari mendung "
 "untuk mendapatkan cahaya yang merata dan lembut."
 
-#: includes/Publishing/Notification.php:1411
+#: includes/Publishing/Notification.php:1364
 msgid ""
 "Shoot straight on — hold your phone parallel to the canvas to avoid "
 "perspective distortion."
@@ -5109,7 +5259,7 @@ msgstr ""
 "Ambil dari depan — pegang ponsel Anda sejajar dengan kanvas untuk "
 "menghindari distorsi perspektif."
 
-#: includes/Publishing/Notification.php:1412
+#: includes/Publishing/Notification.php:1365
 msgid ""
 "Fill the frame — let the artwork take up most of the shot; crop out "
 "distracting backgrounds."
@@ -5117,7 +5267,7 @@ msgstr ""
 "Penuhi bingkai — biarkan karya seni mengisi sebagian besar foto; potong "
 "latar belakang yang mengganggu."
 
-#: includes/Publishing/Notification.php:1413
+#: includes/Publishing/Notification.php:1366
 msgid ""
 "Hold still — tap the artwork on your screen to focus, then press the shutter "
 "gently or use a self-timer."
@@ -5125,7 +5275,7 @@ msgstr ""
 "Tahan tetap — ketuk karya seni di layar Anda untuk fokus, lalu tekan rana "
 "dengan lembut atau gunakan timer otomatis."
 
-#: includes/Publishing/Notification.php:1418
+#: includes/Publishing/Notification.php:1371
 msgid ""
 "Once you have a clearer photo, just email it to the same address as before — "
 "we'll pick it up automatically."
@@ -5133,7 +5283,7 @@ msgstr ""
 "Setelah Anda memiliki foto yang lebih jelas, cukup kirim email ke alamat "
 "yang sama seperti sebelumnya — kami akan mengambilnya secara otomatis."
 
-#: includes/Publishing/Notification.php:1423
+#: includes/Publishing/Notification.php:1376
 msgid ""
 "Your previous submission is saved in your submissions page in case you want "
 "to review what was sent."
@@ -5141,29 +5291,29 @@ msgstr ""
 "Pengajuan Anda sebelumnya tersimpan di halaman pengajuan Anda jika Anda "
 "ingin meninjau apa yang telah dikirim."
 
-#: includes/Publishing/Notification.php:1425
+#: includes/Publishing/Notification.php:1378
 msgid "View submissions →"
 msgstr "Lihat pengajuan →"
 
-#: includes/Publishing/PostCreator.php:866
-#: includes/Publishing/PostCreator.php:890
+#: includes/Publishing/PostCreator.php:931
+#: includes/Publishing/PostCreator.php:955
 #, fuzzy
 msgid "Photo"
 msgstr "Hanya Foto"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1802
+#: includes/Publishing/PostCreator.php:1966
 #, php-format
 msgid "%s (original)"
 msgstr "%s (asli)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1865
+#: includes/Publishing/PostCreator.php:2029
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (bingkai poster)"
 
-#: includes/Publishing/PostCreator.php:2202
+#: includes/Publishing/PostCreator.php:2408
 msgid "Failed to insert attachment."
 msgstr "Gagal menyisipkan lampiran."
 
@@ -5207,71 +5357,76 @@ msgstr ""
 msgid "Invalid removal token."
 msgstr "Token penghapusan tidak valid."
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:255
+#, fuzzy
+msgid "View it live"
+msgstr "Lihat secara online."
+
+#: includes/Publishing/ReviewConfirm.php:298
 #, fuzzy
 msgid "Biography published"
 msgstr "Karya seni dipublikasikan"
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:298
 #, fuzzy
 msgid "Your biography has been published."
 msgstr "%s Anda telah dihapus."
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:299
 #, fuzzy
 msgid "Event published"
 msgstr "Karya seni dipublikasikan"
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:299
 #, fuzzy
 msgid "The event has been published."
 msgstr "Karya seni telah dipublikasikan ke galeri."
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:300
 msgid "Artwork published"
 msgstr "Karya seni dipublikasikan"
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:300
 msgid "The artwork has been published to the gallery."
 msgstr "Karya seni telah dipublikasikan ke galeri."
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:301
 msgid "Submission discarded"
 msgstr "Pengajuan dibuang"
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:301
 msgid "The submission has been discarded."
 msgstr "Pengajuan telah dibuang."
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:302
 #, fuzzy
 msgid "Biography removed"
 msgstr "Biografi"
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:302
 #, fuzzy
 msgid "Your biography has been removed."
 msgstr "%s Anda telah dihapus."
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:303
 #, fuzzy
 msgid "Event removed"
 msgstr "Karya seni dihapus"
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:303
 #, fuzzy
 msgid "The event has been removed."
 msgstr "%s Anda telah dihapus."
 
-#: includes/Publishing/ReviewConfirm.php:291
+#: includes/Publishing/ReviewConfirm.php:304
 msgid "Artwork removed"
 msgstr "Karya seni dihapus"
 
-#: includes/Publishing/ReviewConfirm.php:291
+#: includes/Publishing/ReviewConfirm.php:304
 msgid "Your artwork has been removed from the gallery."
 msgstr "Karya seni Anda telah dihapus dari galeri."
 
-#: includes/Publishing/ReviewConfirm.php:292
+#: includes/Publishing/ReviewConfirm.php:305
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -5279,254 +5434,260 @@ msgstr ""
 "Tautan ini mungkin sudah digunakan atau mungkin telah kedaluwarsa. Silakan "
 "masuk untuk mengelola pengajuan Anda."
 
-#: includes/Publishing/ReviewConfirm.php:393
+#: includes/Publishing/ReviewConfirm.php:409
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:394
+#: includes/Publishing/ReviewConfirm.php:410
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:724
+#: includes/Publishing/ReviewConfirm.php:749
 #, fuzzy
 msgid "Portfolio link"
 msgstr "Portofolio ↗"
 
-#: includes/Publishing/ReviewConfirm.php:750
+#. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
+#: includes/Publishing/ReviewConfirm.php:776
+#, php-format
+msgid "Social link %d (optional)"
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:808
 msgid "Date"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:752
+#: includes/Publishing/ReviewConfirm.php:810
 msgid "Hour"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:755
+#: includes/Publishing/ReviewConfirm.php:813
 #, fuzzy
 msgid "Location"
 msgstr "Tindakan"
 
-#: includes/Publishing/ReviewConfirm.php:757
+#: includes/Publishing/ReviewConfirm.php:815
 #, fuzzy
 msgid "Address"
 msgstr "Alamat email"
 
-#: includes/Publishing/ReviewConfirm.php:759
+#: includes/Publishing/ReviewConfirm.php:817
 #, fuzzy
 msgid "Timezone"
 msgstr "Waktu"
 
-#: includes/Publishing/ReviewConfirm.php:779
+#: includes/Publishing/ReviewConfirm.php:837
 msgid "Other"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:784
+#: includes/Publishing/ReviewConfirm.php:842
 msgid "— Not set —"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:952
+#: includes/Publishing/ReviewConfirm.php:962
 msgid "Discard this submission?"
 msgstr "Buang pengajuan ini?"
 
-#: includes/Publishing/ReviewConfirm.php:953
+#: includes/Publishing/ReviewConfirm.php:963
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr ""
 "Ini akan membuang pengajuan secara permanen — pengajuan ini tidak akan "
 "dipublikasikan."
 
-#: includes/Publishing/ReviewConfirm.php:954
+#: includes/Publishing/ReviewConfirm.php:964
 msgid "Yes, discard it"
 msgstr "Ya, buang"
 
-#: includes/Publishing/ReviewConfirm.php:957
+#: includes/Publishing/ReviewConfirm.php:967
 msgid "Remove this artwork?"
 msgstr "Hapus karya seni ini?"
 
-#: includes/Publishing/ReviewConfirm.php:958
+#: includes/Publishing/ReviewConfirm.php:968
 msgid "This will remove the published artwork from the gallery."
 msgstr "Ini akan menghapus karya seni yang sudah dipublikasikan dari galeri."
 
-#: includes/Publishing/ReviewConfirm.php:959
+#: includes/Publishing/ReviewConfirm.php:969
 msgid "Yes, remove it"
 msgstr "Ya, hapus"
 
-#: includes/Publishing/ReviewConfirm.php:1052
-#: includes/Publishing/SubmissionsPage.php:253
+#: includes/Publishing/ReviewConfirm.php:1076
+#: includes/Publishing/SubmissionsPage.php:268
 msgid "Title"
 msgstr "Judul"
 
-#: includes/Publishing/ReviewConfirm.php:1060
+#: includes/Publishing/ReviewConfirm.php:1084
 #, fuzzy
 msgid "Short description"
 msgstr "Deskripsi"
 
-#: includes/Publishing/ReviewConfirm.php:1065
+#: includes/Publishing/ReviewConfirm.php:1089
 msgid "Full text"
 msgstr ""
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1075
+#: includes/Publishing/ReviewConfirm.php:1099
 #, fuzzy, php-format
 msgid "Publish this %s?"
 msgstr "Publikasikan karya seni ini?"
 
-#: includes/Publishing/ReviewConfirm.php:1098
+#: includes/Publishing/ReviewConfirm.php:1122
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:1104
-#: includes/Publishing/SubmissionsPage.php:233
+#: includes/Publishing/ReviewConfirm.php:1128
+#: includes/Publishing/SubmissionsPage.php:248
 msgid "Publish it"
 msgstr "Publikasikan"
 
-#: includes/Publishing/ReviewConfirm.php:1115
+#: includes/Publishing/ReviewConfirm.php:1139
 #, fuzzy
 msgid "biography"
 msgstr "Biografi"
 
-#: includes/Publishing/ReviewEndpoints.php:98
-#: includes/Publishing/ReviewEndpoints.php:170
-#: includes/Publishing/ReviewEndpoints.php:202
+#: includes/Publishing/ReviewEndpoints.php:102
+#: includes/Publishing/ReviewEndpoints.php:174
+#: includes/Publishing/ReviewEndpoints.php:206
 msgid "Submission not found."
 msgstr "Pengajuan tidak ditemukan."
 
-#: includes/Publishing/ReviewEndpoints.php:107
-#: includes/Publishing/ReviewEndpoints.php:179
-#: includes/Publishing/ReviewEndpoints.php:211
+#: includes/Publishing/ReviewEndpoints.php:111
+#: includes/Publishing/ReviewEndpoints.php:183
+#: includes/Publishing/ReviewEndpoints.php:215
 msgid "This submission is not awaiting review."
 msgstr "Pengajuan ini tidak sedang menunggu peninjauan."
 
-#: includes/Publishing/ReviewEndpoints.php:287
+#: includes/Publishing/ReviewEndpoints.php:365
 #, fuzzy
 msgid "The original published item could not be found."
 msgstr "Edisi newsletter ini tidak dapat ditemukan."
 
-#: includes/Publishing/ReviewEndpoints.php:432
+#: includes/Publishing/ReviewEndpoints.php:731
 msgid "You do not have permission to review this submission."
 msgstr "Anda tidak memiliki izin untuk meninjau pengajuan ini."
 
-#: includes/Publishing/ReviewEndpoints.php:457
+#: includes/Publishing/ReviewEndpoints.php:756
 msgid "Review link not found or already used."
 msgstr "Tautan peninjauan tidak ditemukan atau sudah digunakan."
 
-#: includes/Publishing/ReviewEndpoints.php:465
+#: includes/Publishing/ReviewEndpoints.php:764
 msgid "Invalid review token."
 msgstr "Token peninjauan tidak valid."
 
-#: includes/Publishing/ReviewEndpoints.php:473
+#: includes/Publishing/ReviewEndpoints.php:772
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Tautan peninjauan ini telah kedaluwarsa. Silakan masuk untuk mengelola "
 "pengajuan Anda."
 
-#: includes/Publishing/SubmissionsPage.php:123
+#: includes/Publishing/SubmissionsPage.php:124
 msgid "No submissions awaiting review."
 msgstr "Tidak ada pengajuan yang menunggu peninjauan."
 
-#: includes/Publishing/SubmissionsPage.php:237
+#: includes/Publishing/SubmissionsPage.php:252
 msgid "Make changes"
 msgstr "Lakukan perubahan"
 
-#: includes/Publishing/SubmissionsPage.php:261
+#: includes/Publishing/SubmissionsPage.php:277
 msgid "One-line description"
 msgstr "Deskripsi satu baris"
 
-#: includes/Publishing/SubmissionsPage.php:268
+#: includes/Publishing/SubmissionsPage.php:285
 msgid "Description"
 msgstr "Deskripsi"
 
-#: includes/Publishing/SubmissionsPage.php:275
+#: includes/Publishing/SubmissionsPage.php:293
 msgid "Tags (comma-separated)"
 msgstr "Tag (dipisahkan koma)"
 
-#: includes/Publishing/SubmissionsPage.php:284
+#: includes/Publishing/SubmissionsPage.php:302
 msgid "Save &amp; Publish"
 msgstr "Simpan &amp; Terbitkan"
 
-#: includes/Publishing/SubmissionsPage.php:372
+#: includes/Publishing/SubmissionsPage.php:390
 msgid "Publishing…"
 msgstr "Memublikasikan…"
 
-#: includes/Publishing/SubmissionsPage.php:380
-#: includes/Publishing/SubmissionsPage.php:452
+#: includes/Publishing/SubmissionsPage.php:398
+#: includes/Publishing/SubmissionsPage.php:470
 msgid "Published ✓"
 msgstr "Dipublikasikan ✓"
 
-#: includes/Publishing/SubmissionsPage.php:382
-#: includes/Publishing/SubmissionsPage.php:407
-#: includes/Publishing/SubmissionsPage.php:454
+#: includes/Publishing/SubmissionsPage.php:400
+#: includes/Publishing/SubmissionsPage.php:425
+#: includes/Publishing/SubmissionsPage.php:472
 msgid "Something went wrong."
 msgstr "Ada yang salah."
 
-#: includes/Publishing/SubmissionsPage.php:387
-#: includes/Publishing/SubmissionsPage.php:412
-#: includes/Publishing/SubmissionsPage.php:459
+#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:430
+#: includes/Publishing/SubmissionsPage.php:477
 msgid "Could not connect. Please try again."
 msgstr "Tidak dapat terhubung. Silakan coba lagi."
 
-#: includes/Publishing/SubmissionsPage.php:395
+#: includes/Publishing/SubmissionsPage.php:413
 msgid "Discard this submission? This cannot be undone."
 msgstr "Buang pengajuan ini? Ini tidak dapat dibatalkan."
 
-#: includes/Publishing/SubmissionsPage.php:397
+#: includes/Publishing/SubmissionsPage.php:415
 msgid "Discarding…"
 msgstr "Membuang…"
 
-#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:423
 msgid "Discarded."
 msgstr "Dibuang."
 
-#: includes/Publishing/SubmissionsPage.php:442
+#: includes/Publishing/SubmissionsPage.php:460
 msgid "Saving and publishing…"
 msgstr "Menyimpan dan menerbitkan…"
 
-#: includes/Publishing/SubmissionsPage.php:562
+#: includes/Publishing/SubmissionsPage.php:580
 msgid "Log in to view your submissions"
 msgstr "Masuk untuk melihat kiriman Anda"
 
-#: includes/Publishing/SubmissionsPage.php:567
+#: includes/Publishing/SubmissionsPage.php:585
 msgid "Username or email address"
 msgstr "Nama pengguna atau alamat email"
 
-#: includes/Publishing/SubmissionsPage.php:568
+#: includes/Publishing/SubmissionsPage.php:586
 msgid "Password"
 msgstr "Kata sandi"
 
-#: includes/Publishing/SubmissionsPage.php:569
+#: includes/Publishing/SubmissionsPage.php:587
 msgid "Log in"
 msgstr "Masuk"
 
-#: includes/Publishing/SubmissionsPage.php:571
+#: includes/Publishing/SubmissionsPage.php:589
 msgid "Remember me"
 msgstr "Ingat saya"
 
-#: includes/Publishing/SubmissionsPage.php:577
+#: includes/Publishing/SubmissionsPage.php:595
 msgid "Forgot your password?"
 msgstr "Lupa kata sandi Anda?"
 
 #: blocks/artist-breadcrumb/editor.js:46
-#: blocks/breadcrumb-icon-link/editor.js:54
+#: blocks/breadcrumb-icon-link/editor.js:63
 msgid "Book"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:47
-#: blocks/breadcrumb-icon-link/editor.js:55
+#: blocks/breadcrumb-icon-link/editor.js:64
 msgid "Person"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:51
-#: blocks/breadcrumb-icon-link/editor.js:58
+#: blocks/breadcrumb-icon-link/editor.js:67
 msgid "Calendar"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:52
-#: blocks/breadcrumb-icon-link/editor.js:59
+#: blocks/breadcrumb-icon-link/editor.js:68
 #, fuzzy
 msgid "Pin"
 msgstr "Tertunda"
@@ -5589,36 +5750,73 @@ msgstr ""
 msgid "Artist Name"
 msgstr "Nama Artis"
 
-#: blocks/breadcrumb-icon-link/editor.js:94
+#: blocks/breadcrumb-icon-link/editor.js:71
+#: blocks/newsletter-popover/editor.js:28
+msgid "Envelope"
+msgstr "Amplop"
+
+#: blocks/breadcrumb-icon-link/editor.js:72
+msgid "Speech bubble"
+msgstr ""
+
+#: blocks/breadcrumb-icon-link/editor.js:81
+#: blocks/breadcrumb-icon-link/editor.js:115
+#, fuzzy
+msgid "Contact"
+msgstr "Konteks"
+
+#: blocks/breadcrumb-icon-link/editor.js:108
 #, fuzzy
 msgid "Link settings"
 msgstr "Pengaturan"
 
-#: blocks/breadcrumb-icon-link/editor.js:96
+#: blocks/breadcrumb-icon-link/editor.js:110
 #, fuzzy
 msgid "Link type"
 msgstr "Kesalahan tautan"
 
-#: blocks/breadcrumb-icon-link/editor.js:109
+#: blocks/breadcrumb-icon-link/editor.js:124
 msgid "Icon"
 msgstr ""
 
-#: blocks/breadcrumb-icon-link/editor.js:145
+#: blocks/breadcrumb-icon-link/editor.js:160
 #, fuzzy
 msgid "Biography Icon"
 msgstr "Biografi"
 
-#: blocks/breadcrumb-icon-link/editor.js:146
+#: blocks/breadcrumb-icon-link/editor.js:161
 msgid "Icon-only link to the artist’s biography."
 msgstr ""
 
-#: blocks/breadcrumb-icon-link/editor.js:155
+#: blocks/breadcrumb-icon-link/editor.js:170
 #, fuzzy
 msgid "Events Icon"
 msgstr "Acara"
 
-#: blocks/breadcrumb-icon-link/editor.js:156
+#: blocks/breadcrumb-icon-link/editor.js:171
 msgid "Icon-only link to the artist’s events archive."
+msgstr ""
+
+#: blocks/breadcrumb-icon-link/editor.js:180
+#, fuzzy
+msgid "Contact Icon"
+msgstr "Acara"
+
+#: blocks/breadcrumb-icon-link/editor.js:181
+msgid ""
+"Opens a popover with a form to message the artist directly. Hidden "
+"automatically if the artist has turned contact messages off."
+msgstr ""
+
+#: blocks/contact-form/editor.js:28
+#, fuzzy
+msgid "Artist Contact Form"
+msgstr "Buletin artis"
+
+#: blocks/contact-form/editor.js:29
+msgid ""
+"Lets a visitor message the current artist subdomain’s artist. Content is "
+"rendered live on the frontend, for the artist currently being viewed."
 msgstr ""
 
 #: blocks/gallery-overview/editor.js:63
@@ -5662,10 +5860,6 @@ msgstr ""
 #: blocks/newsletter-popover/editor.js:27
 msgid "Bell"
 msgstr "Lonceng"
-
-#: blocks/newsletter-popover/editor.js:28
-msgid "Envelope"
-msgstr "Amplop"
 
 #: blocks/newsletter-popover/editor.js:29
 msgid "Star"
@@ -5724,8 +5918,8 @@ msgstr ""
 "Tidak menampilkan apa pun di situs utama Agnosis."
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
-#: blocks/breadcrumb-icon-link/block.json blocks/join/block.json
-#: blocks/submissions/block.json
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+#: blocks/join/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "artist"
 msgstr "artis"
@@ -5741,9 +5935,9 @@ msgid "subdomain"
 msgstr "subdomain"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
-#: blocks/breadcrumb-icon-link/block.json blocks/join/block.json
-#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
-#: blocks/submissions/block.json
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+#: blocks/join/block.json blocks/newsletter-popover/block.json
+#: blocks/newsletter-signup/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
 msgstr "agnosis"
@@ -5769,8 +5963,9 @@ msgstr ""
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block description"
 msgid ""
-"A single icon-only link (Biography or Events) to the current artist's own "
-"content. Renders nothing if the artist has none yet, or off an artist "
+"A single icon-only link (Biography, Events, or a Contact popover) to/about "
+"the current artist. Renders nothing if there's nothing to show (no biography/"
+"events yet, or the artist has turned contact off), or off an artist "
 "subdomain."
 msgstr ""
 
@@ -5786,10 +5981,40 @@ msgctxt "block keyword"
 msgid "events"
 msgstr "acara"
 
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+msgctxt "block keyword"
+msgid "contact"
+msgstr ""
+
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
 msgid "icon"
 msgstr ""
+
+#: blocks/contact-form/block.json
+#, fuzzy
+msgctxt "block title"
+msgid "Artist Contact Form"
+msgstr "Buletin artis"
+
+#: blocks/contact-form/block.json
+msgctxt "block description"
+msgid ""
+"Contact form letting a visitor message the current artist subdomain's "
+"artist. Submits to a per-artist REST endpoint; the message is moderated, "
+"translated into the artist's own language, and emailed to them."
+msgstr ""
+
+#: blocks/contact-form/block.json
+#, fuzzy
+msgctxt "block keyword"
+msgid "message"
+msgstr "Pesan"
+
+#: blocks/contact-form/block.json blocks/newsletter-signup/block.json
+msgctxt "block keyword"
+msgid "email"
+msgstr "email"
 
 #: blocks/gallery-overview/block.json
 msgctxt "block title"
@@ -5913,11 +6138,6 @@ msgid ""
 msgstr ""
 "Formulir pendaftaran email untuk buletin publik (double opt-in). Mengirim ke "
 "endpoint REST langganan buletin."
-
-#: blocks/newsletter-signup/block.json
-msgctxt "block keyword"
-msgid "email"
-msgstr "email"
 
 #: blocks/newsletter-signup/block.json
 msgctxt "block keyword"

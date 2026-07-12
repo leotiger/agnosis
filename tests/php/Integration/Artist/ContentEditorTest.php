@@ -281,6 +281,130 @@ class ContentEditorTest extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Biography social links (2026-07-13) — set once at approval by
+	// Publishing\ReviewConfirm, correctable afterward here. No on-page
+	// click-to-edit affordance yet (see EDITABLE_FIELDS's own comment) — these
+	// tests exercise the REST capability directly, same as this file already
+	// does for content/excerpt/event fields.
+	// -------------------------------------------------------------------------
+
+	public function test_biography_social_link_editable(): void {
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->edit( $bio_id, 'social_url_1', 'https://instagram.com/artist', $this->artist_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'https://instagram.com/artist', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+	}
+
+	public function test_biography_all_three_social_links_independently_editable(): void {
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$this->edit( $bio_id, 'social_url_1', 'https://instagram.com/artist', $this->artist_id );
+		$this->edit( $bio_id, 'social_url_2', 'https://bandcamp.com/artist', $this->artist_id );
+		$this->edit( $bio_id, 'social_url_3', 'https://wa.me/1234567890', $this->artist_id );
+
+		$this->assertSame( 'https://instagram.com/artist', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+		$this->assertSame( 'https://bandcamp.com/artist', get_post_meta( $bio_id, '_agnosis_biography_social_url_2', true ) );
+		$this->assertSame( 'https://wa.me/1234567890', get_post_meta( $bio_id, '_agnosis_biography_social_url_3', true ) );
+	}
+
+	public function test_biography_social_link_can_be_cleared(): void {
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+		update_post_meta( $bio_id, '_agnosis_biography_social_url_1', 'https://instagram.com/artist' );
+
+		$response = $this->edit( $bio_id, 'social_url_1', '', $this->artist_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+	}
+
+	public function test_biography_social_link_rejects_a_non_http_scheme(): void {
+		// esc_url_raw() (sanitize_value()'s own sanitizer for this field)
+		// allows several non-web schemes (ftp, mailto, tel, …) through
+		// unchanged via wp_allowed_protocols() — a scheme like "ftp://"
+		// survives sanitization as a non-empty value, so this is the branch
+		// the http(s)-only validation actually has to catch. A value with no
+		// recognizable scheme at all ("not a url") is handled differently —
+		// see test_biography_social_link_garbage_input_is_sanitized_to_empty_below.
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->edit( $bio_id, 'social_url_1', 'ftp://example.com/file', $this->artist_id );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+	}
+
+	public function test_biography_social_link_schemeless_text_is_treated_as_an_implied_http_url(): void {
+		// WordPress's own clean_url() (esc_url_raw()'s underlying sanitizer)
+		// prepends "http://" to any string that has no scheme (no ':') and
+		// doesn't start with '/', '#', or '?' — a best-effort "the user meant
+		// a web address" assumption baked into core, not something this
+		// class controls. So free text like "not a url" doesn't sanitize
+		// down to '' — it becomes an "http://"-prefixed, percent-encoded
+		// value that DOES pass the http(s)-scheme check (200, not 400).
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->edit( $bio_id, 'social_url_1', 'not a url', $this->artist_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertStringStartsWith( 'http://', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+	}
+
+	public function test_biography_social_link_relative_path_is_rejected(): void {
+		// A schemeless value that DOES start with '/' is exactly what
+		// clean_url()'s "imply http://" heuristic deliberately leaves alone
+		// (it looks like a relative path, not free text) — so this is the
+		// genuinely reachable "no recognizable scheme" rejection case.
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->edit( $bio_id, 'social_url_1', '/just/a/path', $this->artist_id );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $bio_id, '_agnosis_biography_social_url_1', true ) );
+	}
+
+	public function test_biography_portfolio_url_is_not_content_editor_editable(): void {
+		// Deliberate: portfolio_url has only ever been approval-form-editable
+		// (Publishing\ReviewConfirm's EmbedPolicy-gated sync) — adding the
+		// social links to EDITABLE_FIELDS must not have accidentally also
+		// exposed this one, which has different (embed-vetting) semantics.
+		$bio_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->edit( $bio_id, 'portfolio_url', 'https://example.com/portfolio', $this->artist_id );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	// -------------------------------------------------------------------------
 	// Translation coherence (§7c, reassessed 2026-07-06)
 	// -------------------------------------------------------------------------
 

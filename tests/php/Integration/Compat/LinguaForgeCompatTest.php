@@ -50,6 +50,7 @@ namespace Agnosis\Tests\Integration\Compat;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
+use Agnosis\Tests\Integration\Support\FakeLinguaForge;
 
 // LF constants and global function stubs live in a separate file to satisfy
 // Universal.Files.SeparateFunctionsFromOO (no function declarations alongside OO).
@@ -105,6 +106,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		self::$queue_calls   = [];
 		self::$sync_templates_calls = [];
 		self::$trigger_return = null;
+		FakeLinguaForge::reset();
 
 		$this->artwork_id = self::factory()->post->create( [
 			'post_type'    => 'agnosis_artwork',
@@ -124,6 +126,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		self::$queue_calls    = [];
 		self::$sync_templates_calls = [];
 		self::$trigger_return = null;
+		FakeLinguaForge::reset();
 		delete_option( 'agnosis_term_translations' );
 		parent::tearDown();
 	}
@@ -290,6 +293,60 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		$this->assertCount( 1, self::$queue_calls );
 		$this->assertSame( 'es', self::$queue_calls[0]['target_lang'] );
+	}
+
+	// ── $exclude_langs plumbing (native-language pipeline, Phase 4/6 —
+	// agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md §4d/§6) ───────────────────────
+	//
+	// finalize_publish() computes $exclude_langs from a post's own
+	// _agnosis_native_lang and passes it through do_action('agnosis_post_published',
+	// $post_id, $exclude_langs) / LinguaForge::schedule_fanout() directly — these
+	// tests confirm that value actually reaches the queued cron event and, once
+	// dispatched, is honored by request_translations() rather than being lost or
+	// ignored anywhere along the chain.
+
+	public function test_schedule_fanout_with_exclude_langs_schedules_cron_carrying_both_args(): void {
+		LinguaForge::schedule_fanout( $this->artwork_id, [ 'es' ] );
+
+		$this->assertNotFalse(
+			wp_next_scheduled( 'agnosis_dispatch_lf_translations', [ $this->artwork_id, [ 'es' ] ] ),
+			'A non-empty exclude list must be scheduled as the cron event\'s second arg — this is exactly what dispatch_translations()/request_translations() receive at dispatch time.'
+		);
+	}
+
+	public function test_schedule_fanout_without_exclude_langs_keeps_the_original_one_arg_signature(): void {
+		LinguaForge::schedule_fanout( $this->artwork_id );
+
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_dispatch_lf_translations', [ $this->artwork_id ] ) );
+		$this->assertFalse(
+			wp_next_scheduled( 'agnosis_dispatch_lf_translations', [ $this->artwork_id, [] ] ),
+			'Must not schedule under the two-arg shape with an empty array — wp_next_scheduled()\'s dedup match is keyed on the exact args array, so this would silently stop matching the pre-existing one-arg lookups every normal (non-excluding) publish path already relies on.'
+		);
+	}
+
+	public function test_request_translations_with_exclude_langs_skips_source_and_excluded_languages(): void {
+		self::$lf_languages = [ 'en', 'es', 'fr', 'de' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+
+		( new LinguaForge() )->request_translations( $this->artwork_id, [ 'es' ] );
+
+		$this->assertCount( 2, self::$queue_calls );
+		$langs = array_column( self::$queue_calls, 'target_lang' );
+		$this->assertContains( 'fr', $langs );
+		$this->assertContains( 'de', $langs );
+		$this->assertNotContains( 'es', $langs, 'The excluded (native) language must never be queued for LF\'s own AI translation — a native-language sibling is synced directly instead (sync_native_sibling()).' );
+		$this->assertNotContains( 'en', $langs, 'The source language is always excluded regardless of $exclude_langs.' );
+	}
+
+	public function test_dispatch_translations_forwards_exclude_langs_to_request_translations(): void {
+		self::$lf_languages = [ 'en', 'es', 'fr' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+
+		( new LinguaForge() )->dispatch_translations( $this->artwork_id, [ 'es' ] );
+
+		$langs = array_column( self::$queue_calls, 'target_lang' );
+		$this->assertContains( 'fr', $langs );
+		$this->assertNotContains( 'es', $langs, 'dispatch_translations() must forward $exclude_langs through to request_translations(), not just accept and drop it.' );
 	}
 
 	// ── filter_og_image() ────────────────────────────────────────────────────
@@ -1157,5 +1214,150 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		delete_option( 'agnosis_ai_provider' );
 		WpAiClientTestRegistry::reset();
+	}
+
+	// ── sync_native_sibling(): native-language pipeline Phase 4/6 fidelity ────
+	// (agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md §4d/§6 Phase 6b) ─────────────
+	//
+	// Uses the linguaforge_get_trid()/set_trid()/get_translations()/
+	// clear_translation_cache()/mark_translation_synced() stubs added to
+	// Support/linguaforge-function-stubs.php + FakeLinguaForge specifically for
+	// this coverage. No AI provider is configured in any test below — proving
+	// the core claim these tests exist for: the native sibling's content comes
+	// straight from the preserved _agnosis_native_excerpt/_agnosis_native_body
+	// meta, byte for byte, with zero AI involvement (WpAiClientTestRegistry::$prompts
+	// stays empty throughout).
+
+	/** Find the sibling post carrying $trid as its own real _lf_trid postmeta (never the primary post itself — see below). */
+	private function find_sibling_by_trid( string $trid, int $exclude_id ): ?\WP_Post {
+		// sync_native_sibling() only ever writes _lf_trid/_lf_lang as REAL
+		// postmeta onto the newly-created SIBLING (create_native_sibling_post()) —
+		// the primary post's own trid lives solely in FakeLinguaForge::$trids
+		// (the linguaforge_get_trid()/set_trid() stub backing), never as real
+		// postmeta on the primary post in this test double. Scoping the query to
+		// $trid and excluding the primary's own ID is therefore sufficient to
+		// find exactly the sibling, with no ambiguity.
+		$ids = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'meta_key'       => '_lf_trid', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- test-only, tiny fixture set.
+			'meta_value'     => $trid, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- test-only, tiny fixture set.
+			'post_status'    => 'any',
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+		] );
+		$ids = array_values( array_diff( array_map( 'intval', $ids ), [ $exclude_id ] ) );
+		return isset( $ids[0] ) ? get_post( $ids[0] ) : null;
+	}
+
+	public function test_sync_native_sibling_creates_a_new_post_with_exact_native_content(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Un resumen final, tal como lo escribió el artista.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo final, editado por el artista.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_tags', wp_json_encode( [ 'Paisaje', 'Costero' ] ) );
+		update_post_meta( $this->artwork_id, '_agnosis_native_medium', 'Óleo' );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$trid = FakeLinguaForge::$trids[ $this->artwork_id ] ?? '';
+		$this->assertNotSame( '', $trid, 'sync_native_sibling() must generate and set a TRID for the primary post when none existed yet.' );
+
+		$sibling = $this->find_sibling_by_trid( $trid, $this->artwork_id );
+		$this->assertInstanceOf( \WP_Post::class, $sibling, 'A native-language sibling post must be created.' );
+
+		$this->assertSame( get_post( $this->artwork_id )->post_title, $sibling->post_title, 'post_title must mirror the primary post verbatim — never translated, per the dual-title invariant.' );
+		$this->assertSame( 'Un resumen final, tal como lo escribió el artista.', $sibling->post_excerpt, 'The sibling excerpt must match the preserved native excerpt exactly, byte for byte.' );
+		$this->assertStringContainsString( 'Cuerpo final, editado por el artista.', $sibling->post_content, 'The sibling body must contain the preserved native body exactly, byte for byte.' );
+		$this->assertSame( 'es', get_post_meta( $sibling->ID, '_lf_lang', true ) );
+		$this->assertSame( $trid, get_post_meta( $sibling->ID, '_lf_trid', true ) );
+
+		$this->assertSame(
+			[],
+			WpAiClientTestRegistry::$prompts,
+			'sync_native_sibling() must never call the AI translator — the whole point is a zero-cost sibling built from already-native, already-approved content.'
+		);
+
+		$this->assertContains( $sibling->ID, FakeLinguaForge::$cache_cleared_for, 'linguaforge_clear_translation_cache() must be called for the new sibling, or it stays invisible to LF\'s own translation-lookup UI/queries for up to an hour.' );
+		$this->assertContains( $sibling->ID, FakeLinguaForge::$marked_synced );
+
+		// wp_get_post_terms() doesn't guarantee insertion order (WP's own
+		// default term ordering), so this compares as a set rather than
+		// assertSame() — order was never the claim, exact membership was.
+		$this->assertEqualsCanonicalizing(
+			[ 'Paisaje', 'Costero' ],
+			wp_get_post_terms( $sibling->ID, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
+			'Native tags must be assigned directly from _agnosis_native_tags, not re-derived from any translated set.'
+		);
+		$this->assertSame(
+			[ 'Óleo' ],
+			wp_get_post_terms( $sibling->ID, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
+			'Native medium must be assigned directly from _agnosis_native_medium.'
+		);
+	}
+
+	public function test_sync_native_sibling_updates_an_existing_sibling_in_place_and_resyncs_the_title(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Versión anterior.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo anterior.' );
+
+		$existing_sibling_id = self::factory()->post->create( [
+			'post_type'    => 'agnosis_artwork',
+			'post_status'  => 'publish',
+			'post_title'   => 'Stale Title',
+			'post_excerpt' => 'Stale excerpt.',
+			'post_content' => 'Stale content.',
+		] );
+		FakeLinguaForge::link( $this->artwork_id, 'es', $existing_sibling_id );
+
+		// Resubmission (e.g. replace@): the artist's title and native text have
+		// since changed — post_title must be RE-SYNCED on every update, not just
+		// written once at creation (see update_native_sibling_post()'s docblock).
+		wp_update_post( [ 'ID' => $this->artwork_id, 'post_title' => 'Updated Title' ] );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Versión final, editada.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo final, editado.' );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$sibling = get_post( $existing_sibling_id );
+		$this->assertSame( 'Updated Title', $sibling->post_title, 'post_title must be re-synced on every update to keep mirroring the primary post exactly, forever.' );
+		$this->assertSame( 'Versión final, editada.', $sibling->post_excerpt );
+		$this->assertStringContainsString( 'Cuerpo final, editado.', $sibling->post_content );
+		$this->assertStringNotContainsString( 'Cuerpo anterior.', $sibling->post_content, 'Stale native content from before the resubmission must not linger.' );
+
+		$all_artwork_ids = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'post_status'    => 'any',
+			'fields'         => 'ids',
+			'posts_per_page' => -1,
+		] );
+		$this->assertCount( 2, $all_artwork_ids, 'Updating an existing sibling must never create a second post.' );
+
+		$this->assertSame( [], WpAiClientTestRegistry::$prompts );
+	}
+
+	public function test_sync_native_sibling_no_ops_when_native_lang_matches_primary(): void {
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'en' ); // Artist already writes in the primary language.
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Should never be used.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Should never be used.' );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$this->assertSame( '', FakeLinguaForge::$trids[ $this->artwork_id ] ?? '', 'No sibling work of any kind should happen — the primary post already serves as the "native" one.' );
+	}
+
+	public function test_sync_native_sibling_no_ops_without_preserved_native_content(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		// _agnosis_native_excerpt/_agnosis_native_body deliberately left unset —
+		// e.g. a post that was never translated to begin with.
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$this->assertSame( '', FakeLinguaForge::$trids[ $this->artwork_id ] ?? '', 'Nothing to build a sibling from — must no-op cleanly rather than create an empty post.' );
 	}
 }

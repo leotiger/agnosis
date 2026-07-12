@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Core;
 
+use Agnosis\Admin\ContactMessagesPage;
 use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
@@ -21,6 +22,8 @@ use Agnosis\Artist\ApplicationBiography;
 use Agnosis\Artist\CommunityCap;
 use Agnosis\Artist\CommunityCapVote;
 use Agnosis\Artist\CommunityCapNotification;
+use Agnosis\Artist\ContactForm;
+use Agnosis\Artist\ContactFormBlock;
 use Agnosis\Artist\ContentEditor;
 use Agnosis\Artist\AdmissionConfirm;
 use Agnosis\Artist\Departure;
@@ -106,6 +109,12 @@ class Plugin {
 			$this->loader->add_action( 'admin_menu',            $inbox_page, 'register_menu' );
 			$this->loader->add_action( 'admin_enqueue_scripts', $inbox_page, 'enqueue_assets' );
 			$this->loader->add_action( 'admin_post_agnosis_test_inbox', $inbox_page, 'handle_test_inbox' );
+
+			// Contact messages page — submenu under Agnosis, reviewing every
+			// row Artist\ContactForm has stored (sent and rejected alike).
+			$contact_messages_page = new ContactMessagesPage();
+			$this->loader->add_action( 'admin_menu', $contact_messages_page, 'register_menu' );
+			$this->loader->add_action( 'admin_post_agnosis_delete_contact_message', $contact_messages_page, 'handle_delete_message' );
 
 			// Configuration page — submenu under Agnosis.
 			$settings = new Settings();
@@ -244,6 +253,14 @@ class Plugin {
 		// audit §5b).
 		$notification_preferences = new NotificationPreferences();
 		$notification_preferences->register_hooks();
+
+		// Visitor-to-artist contact form — REST endpoint behind the
+		// breadcrumb's contact popover (SubdomainNavigation, blocks/contact-form).
+		$contact_form = new ContactForm();
+		$this->loader->add_action( 'rest_api_init', $contact_form, 'register_routes' );
+
+		$contact_form_block = new ContactFormBlock();
+		$this->loader->add_action( 'init', $contact_form_block, 'register_block' );
 
 		$join = new JoinPage();
 		$this->loader->add_action( 'init', $join, 'register_block' );

@@ -10,16 +10,23 @@
  * spam button, which trains their mailbox provider against the whole shared
  * sending domain and degrades delivery for everyone, not just them (see
  * §5a/§5c on why that reputation matters so much here). This class is the
- * "dial" the audit calls for: two independent per-artist preferences,
+ * "dial" the audit calls for: independent per-artist preferences,
  *   - `_agnosis_broadcast_optout` ('1' mutes community broadcasts entirely —
  *     honored by CommunityBroadcast::broadcast()'s recipient query)
  *   - `_agnosis_vote_email_mode`  ('instant', the default, or 'digest' —
  *     honored by AdmissionNotification::on_application_received() choosing
  *     who gets the vote email immediately vs. Artist\VoteDigest's daily
  *     rollup for everyone else)
+ *   - `_agnosis_contact_optout`  ('1' turns off the visitor contact form
+ *     entirely — honored by Artist\ContactForm::contactable_artist(), which
+ *     also hides the contact icon itself (SubdomainNavigation's
+ *     `type=contact` breadcrumb link) so an opted-out artist's page never
+ *     even offers a form nobody will read; 2026-07-12)
  * deliberately NOT including an "off" option for vote emails — per the
  * audit, voting is a membership duty, not something to silence entirely;
- * "digest" is the throttle, not "never".
+ * "digest" is the throttle, not "never". The contact form has no such
+ * membership-duty framing — replying to a stranger's message is discretionary,
+ * not a community obligation — so it gets a plain on/off toggle instead.
  *
  * Working with Agnosis is entirely email-based by design (see
  * AdmissionNotification::on_artist_admitted()'s docblock — no login is ever
@@ -35,7 +42,7 @@
  * artist's own user ID and wp_salt('auth'), the same "no DB row needed"
  * approach AdmissionNotification::vote_url() already uses, just without that
  * one's single-action ('yes'/'no') component baked into the hash. Its only
- * capability is viewing/editing that one artist's own two preferences below
+ * capability is viewing/editing that one artist's own preferences below
  * — a narrow, bounded blast radius if a token were ever leaked.
  *
  * URL shape: ?agnosis_prefs=1&artist=<user_id>&token=<hmac>
@@ -145,6 +152,7 @@ class NotificationPreferences {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- see handle()'s docblock: the HMAC token is this flow's nonce equivalent.
 		$mute_broadcasts = ! empty( $source['mute_broadcasts'] );
 		$vote_mode       = sanitize_key( wp_unslash( $source['vote_mode'] ?? 'instant' ) );
+		$contact_optout  = ! empty( $source['contact_optout'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
 		if ( ! in_array( $vote_mode, self::VOTE_MODES, true ) ) {
@@ -166,7 +174,13 @@ class NotificationPreferences {
 			delete_user_meta( $artist_id, '_agnosis_vote_email_mode' );
 		}
 
-		$this->render_saved( $mute_broadcasts, $vote_mode );
+		if ( $contact_optout ) {
+			update_user_meta( $artist_id, '_agnosis_contact_optout', '1' );
+		} else {
+			delete_user_meta( $artist_id, '_agnosis_contact_optout' );
+		}
+
+		$this->render_saved( $mute_broadcasts, $vote_mode, $contact_optout );
 	}
 
 	// -------------------------------------------------------------------------
@@ -174,8 +188,9 @@ class NotificationPreferences {
 	// -------------------------------------------------------------------------
 
 	private function render_form( int $artist_id, string $token ): void {
-		$muted     = '1' === get_user_meta( $artist_id, '_agnosis_broadcast_optout', true );
-		$vote_mode = 'digest' === get_user_meta( $artist_id, '_agnosis_vote_email_mode', true ) ? 'digest' : 'instant';
+		$muted          = '1' === get_user_meta( $artist_id, '_agnosis_broadcast_optout', true );
+		$vote_mode      = 'digest' === get_user_meta( $artist_id, '_agnosis_vote_email_mode', true ) ? 'digest' : 'instant';
+		$contact_opted_out = '1' === get_user_meta( $artist_id, '_agnosis_contact_optout', true );
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:60px auto;font-family:Georgia,serif;color:#222;padding:0 20px;">'
@@ -195,7 +210,10 @@ class NotificationPreferences {
 			. '<label style="display:block;margin:0 0 24px;font-size:17px;">'
 			. '<input type="radio" name="vote_mode" value="digest" %10$s style="margin-right:8px;">%11$s'
 			. '</label>'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%12$s</button>'
+			. '<label style="display:block;margin:0 0 24px;font-size:17px;line-height:1.5;">'
+			. '<input type="checkbox" name="contact_optout" value="1" %12$s style="margin-right:8px;">%13$s'
+			. '</label>'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%14$s</button>'
 			. '</form>'
 			. '</div>',
 			esc_html__( 'Notification preferences', 'agnosis' ),
@@ -209,6 +227,8 @@ class NotificationPreferences {
 			esc_html__( 'Instantly, one email per application (default).', 'agnosis' ),
 			checked( $vote_mode, 'digest', false ),
 			esc_html__( 'Once a day, a single digest of every application still awaiting my vote.', 'agnosis' ),
+			checked( $contact_opted_out, true, false ),
+			esc_html__( "Turn off the contact form on my page — visitors won't be able to message me.", 'agnosis' ),
 			esc_html__( 'Save preferences', 'agnosis' )
 		);
 
@@ -219,7 +239,7 @@ class NotificationPreferences {
 	// Result pages (POST)
 	// -------------------------------------------------------------------------
 
-	private function render_saved( bool $muted, string $vote_mode ): void {
+	private function render_saved( bool $muted, string $vote_mode, bool $contact_opted_out = false ): void {
 		$lines = [
 			$muted
 				? __( 'Community broadcasts are now muted.', 'agnosis' )
@@ -227,6 +247,9 @@ class NotificationPreferences {
 			'digest' === $vote_mode
 				? __( "You'll receive one daily digest of applications awaiting your vote.", 'agnosis' )
 				: __( "You'll receive an email as soon as each new application arrives.", 'agnosis' ),
+			$contact_opted_out
+				? __( 'The contact form on your page is now turned off.', 'agnosis' )
+				: __( 'Visitors can still reach you through the contact form on your page.', 'agnosis' ),
 		];
 
 		$this->render_page( __( 'Preferences saved', 'agnosis' ), implode( ' ', $lines ), false );

@@ -14,8 +14,11 @@
  *   - Invalid/tampered/empty token → error page, no side effects.
  *   - Valid token for a non-existent or non-artist user → error page.
  *   - GET renders the form, pre-filled with current preference state.
- *   - POST saves both preferences (mute_broadcasts + vote_mode) as user meta.
- *   - Omitting mute_broadcasts on POST clears the mute (checkbox unchecked).
+ *   - POST saves all three preferences (mute_broadcasts + vote_mode +
+ *     contact_optout, added 2026-07-12 alongside the contact-form feature)
+ *     as user meta.
+ *   - Omitting mute_broadcasts/contact_optout on POST clears each
+ *     (checkbox unchecked).
  *   - An invalid vote_mode value falls back to 'instant' (meta cleared).
  *   - prefs_url() produces a token that round-trips through handle().
  *
@@ -50,8 +53,8 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 	}
 
 	protected function tearDown(): void {
-		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'], $_GET['contact_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'], $_POST['contact_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'] );
 		parent::tearDown();
 	}
@@ -178,6 +181,7 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		$artist = $this->create_artist( 'previously-saved@example.com' );
 		update_user_meta( $artist, '_agnosis_broadcast_optout', '1' );
 		update_user_meta( $artist, '_agnosis_vote_email_mode', 'digest' );
+		update_user_meta( $artist, '_agnosis_contact_optout', '1' );
 
 		// setUp()'s interceptor runs $message through wp_strip_all_tags(), which
 		// discards the checked/unchecked attribute this test needs to inspect.
@@ -217,6 +221,7 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		// below; this is real, correctly-escaped markup, not a typo.
 		$this->assertStringContainsString( 'name="mute_broadcasts" value="1"  checked=\'checked\'', $raw_html );
 		$this->assertStringContainsString( 'name="vote_mode" value="digest"  checked=\'checked\'', $raw_html );
+		$this->assertStringContainsString( 'name="contact_optout" value="1"  checked=\'checked\'', $raw_html );
 	}
 
 	// =========================================================================
@@ -242,6 +247,45 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 
 		$this->assertSame( '1', get_user_meta( $artist, '_agnosis_broadcast_optout', true ) );
 		$this->assertSame( 'digest', get_user_meta( $artist, '_agnosis_vote_email_mode', true ) );
+	}
+
+	public function test_post_saves_contact_optout(): void {
+		$artist = $this->create_artist( 'save-contact-optout@example.com' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_prefs']    = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']           = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']            = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']        = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['contact_optout']   = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->prefs->handle();
+			$this->fail( 'Expected the saved page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+		}
+
+		$this->assertSame( '1', get_user_meta( $artist, '_agnosis_contact_optout', true ) );
+	}
+
+	public function test_post_omitting_contact_optout_clears_it(): void {
+		$artist = $this->create_artist( 'clear-contact-optout@example.com' );
+		update_user_meta( $artist, '_agnosis_contact_optout', '1' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_prefs']    = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']           = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']            = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']        = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// contact_optout deliberately absent — an unchecked checkbox submits nothing.
+
+		try {
+			$this->prefs->handle();
+		} catch ( DieCapture $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- expected: handle() always wp_die()s on a successful save, nothing to assert on the exception itself here.
+		}
+
+		$this->assertSame( '', get_user_meta( $artist, '_agnosis_contact_optout', true ) );
 	}
 
 	public function test_post_omitting_mute_broadcasts_clears_the_mute(): void {

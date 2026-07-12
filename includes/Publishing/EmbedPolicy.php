@@ -255,9 +255,16 @@ class EmbedPolicy {
 	 * Settings choices. An empty return means AI review has nothing configured
 	 * to check against.
 	 *
+	 * Public (not just this class's own is_allowed()) so Artist\ContactForm
+	 * can reuse the same admin-configured adult/commercial/gambling/custom
+	 * categories for contact-message moderation instead of duplicating these
+	 * option reads under a second set of settings — one admin-facing
+	 * "disallowed content" configuration for the whole site, not one per
+	 * feature.
+	 *
 	 * @return string[]
 	 */
-	private static function disallowed_categories(): array {
+	public static function disallowed_categories(): array {
 		$categories = [];
 
 		if ( get_option( 'agnosis_embed_block_adult', true ) ) {

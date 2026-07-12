@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/contact-form",
+	"version": "0.1.0",
+	"title": "Artist Contact Form",
+	"category": "agnosis",
+	"icon": "email",
+	"description": "Contact form letting a visitor message the current artist subdomain's artist. Submits to a per-artist REST endpoint; the message is moderated, translated into the artist's own language, and emailed to them.",
+	"keywords": [ "contact", "message", "email", "artist", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"reusable": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
+	},
+	"example": {}
+}

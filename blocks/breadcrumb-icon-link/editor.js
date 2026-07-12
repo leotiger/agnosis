@@ -47,6 +47,15 @@
 			calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
 			pin:      '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>',
 		},
+		// 2026-07-12 — mirrors Agnosis\Network\SubdomainNavigation::LINK_ICON_SETS's
+		// own 'contact' entry (kept in sync by hand, same tradeoff as the two
+		// sets above). The editor preview still renders as a plain icon link
+		// like biography/events — the popover trigger/panel behaviour only
+		// exists in the PHP render_callback's frontend output.
+		contact: {
+			mail:    '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 6 10 7 10-7"></path>',
+			message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>',
+		},
 	};
 
 	var ICON_OPTIONS = {
@@ -58,19 +67,24 @@
 			{ label: __( 'Calendar', 'agnosis' ), value: 'calendar' },
 			{ label: __( 'Pin', 'agnosis' ), value: 'pin' },
 		],
+		contact: [
+			{ label: __( 'Envelope', 'agnosis' ), value: 'mail' },
+			{ label: __( 'Speech bubble', 'agnosis' ), value: 'message' },
+		],
 	};
 
-	var DEFAULT_ICON = { biography: 'book', events: 'calendar' };
+	var DEFAULT_ICON = { biography: 'book', events: 'calendar', contact: 'mail' };
 
 	var LABELS = {
 		biography: __( 'Biography', 'agnosis' ),
 		events:    __( 'Events', 'agnosis' ),
+		contact:   __( 'Contact', 'agnosis' ),
 	};
 
 	blocks.registerBlockType( 'agnosis/breadcrumb-icon-link', {
 
 		edit: function ( props ) {
-			var type = 'events' === props.attributes.type ? 'events' : 'biography';
+			var type = ICON_SETS[ props.attributes.type ] ? props.attributes.type : 'biography';
 			var icon = props.attributes.icon || DEFAULT_ICON[ type ];
 			var set  = ICON_SETS[ type ] || {};
 
@@ -98,6 +112,7 @@
 							options:  [
 								{ label: __( 'Biography', 'agnosis' ), value: 'biography' },
 								{ label: __( 'Events', 'agnosis' ), value: 'events' },
+								{ label: __( 'Contact', 'agnosis' ), value: 'contact' },
 							],
 							onChange: function ( value ) {
 								// Reset icon to the new type's default rather than
@@ -156,6 +171,16 @@
 		description: __( 'Icon-only link to the artist’s events archive.', 'agnosis' ),
 		icon:       'calendar-alt',
 		attributes: { type: 'events' },
+		isActive:   [ 'type' ],
+		scope:      [ 'inserter' ],
+	} );
+
+	blocks.registerBlockVariation( 'agnosis/breadcrumb-icon-link', {
+		name:       'contact',
+		title:      __( 'Contact Icon', 'agnosis' ),
+		description: __( 'Opens a popover with a form to message the artist directly. Hidden automatically if the artist has turned contact messages off.', 'agnosis' ),
+		icon:       'email',
+		attributes: { type: 'contact' },
 		isActive:   [ 'type' ],
 		scope:      [ 'inserter' ],
 	} );

@@ -558,6 +558,31 @@ class Activator {
 			KEY               idx_status (status)
 		) $charset_collate;";
 
+		// Contact-form submissions — a visitor's message to an artist, sent through
+		// the breadcrumb contact popover (Artist\ContactForm). Every submission is
+		// stored, accepted or not, so an admin has a real audit trail (not just the
+		// rejected ones) — see that class's own docblock for the full flow.
+		// message is the visitor's own words, exactly as submitted, in whatever
+		// language they wrote it; translated_message is the AI translation into the
+		// artist's own language actually emailed to them (empty when rejected, or
+		// when the artist's language couldn't be resolved and the original was sent
+		// as-is). rejection_reason is empty for a sent message.
+		$sql_contact_messages = "CREATE TABLE {$wpdb->prefix}agnosis_contact_messages (
+			id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			artist_id          BIGINT UNSIGNED NOT NULL,
+			visitor_name       VARCHAR(255)    DEFAULT NULL,
+			visitor_email      VARCHAR(255)    NOT NULL,
+			message            TEXT            NOT NULL,
+			translated_message TEXT            DEFAULT NULL,
+			status             ENUM('sent','rejected') NOT NULL DEFAULT 'sent',
+			rejection_reason   VARCHAR(255)    DEFAULT NULL,
+			ip                 VARCHAR(45)     DEFAULT NULL,
+			created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY        (id),
+			KEY                idx_artist (artist_id),
+			KEY                idx_status (status)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
@@ -573,6 +598,7 @@ class Activator {
 		dbDelta( $sql_newsletter_subscribers );
 		dbDelta( $sql_newsletter_issues );
 		dbDelta( $sql_newsletter_queue );
+		dbDelta( $sql_contact_messages );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}

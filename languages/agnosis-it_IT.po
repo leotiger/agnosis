@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-11T19:34+00:00\n"
+"POT-Creation-Date: 2026-07-12T12:34+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:12+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Italian\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:192
-#: includes/Publishing/SubmissionsPage.php:62
+#: includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -84,10 +84,144 @@ msgstr "Pagine della galleria"
 msgid "Prev"
 msgstr "Prec"
 
-#: blocks/gallery-overview/render.php:383 includes/Admin/InboxPage.php:282
+#: blocks/gallery-overview/render.php:383
+#: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "Succ"
+
+#: includes/Admin/ContactMessagesPage.php:45
+#: includes/Admin/ContactMessagesPage.php:46
+#: includes/Admin/ContactMessagesPage.php:77
+#, fuzzy
+msgid "Contact Messages"
+msgstr "Messaggio"
+
+#: includes/Admin/ContactMessagesPage.php:87
+#, fuzzy
+msgid "No contact messages yet."
+msgstr "Nessun membro ammesso ancora."
+
+#: includes/Admin/ContactMessagesPage.php:88
+msgid "No messages match this filter."
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:96 includes/Admin/InboxPage.php:162
+msgid "#"
+msgstr "#"
+
+#: includes/Admin/ContactMessagesPage.php:97 includes/Admin/Settings.php:1911
+#: includes/Admin/Settings.php:2205
+msgid "Artist"
+msgstr "Artista"
+
+#: includes/Admin/ContactMessagesPage.php:98 includes/Admin/InboxPage.php:163
+msgid "From"
+msgstr "Da"
+
+#: includes/Admin/ContactMessagesPage.php:99 includes/Admin/Settings.php:1420
+#: includes/Artist/ContactForm.php:115 includes/Artist/ContactFormBlock.php:111
+msgid "Message"
+msgstr "Messaggio"
+
+#: includes/Admin/ContactMessagesPage.php:100 includes/Admin/InboxPage.php:167
+#: includes/Admin/Settings.php:1912 includes/Admin/Settings.php:2198
+msgid "Status"
+msgstr "Stato"
+
+#: includes/Admin/ContactMessagesPage.php:101 includes/Admin/InboxPage.php:168
+msgid "Received"
+msgstr "Ricevuto"
+
+#: includes/Admin/ContactMessagesPage.php:102 includes/Admin/InboxPage.php:170
+#: includes/Admin/Settings.php:1760 includes/Admin/Settings.php:1914
+msgid "Actions"
+msgstr "Azioni"
+
+#. translators: %d: WP user ID of a no-longer-existing artist account
+#: includes/Admin/ContactMessagesPage.php:113
+#, php-format
+msgid "(deleted artist #%d)"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:159 includes/Admin/InboxPage.php:878
+#: includes/Admin/QueueController.php:31 includes/Admin/QueueController.php:60
+#: includes/Admin/QueueController.php:95 includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
+#: includes/Admin/Settings.php:1833 includes/Admin/Settings.php:1862
+#: includes/Admin/Settings.php:2040 includes/Admin/Settings.php:2072
+#: includes/Admin/Settings.php:2099 includes/Admin/Settings.php:2395
+#: includes/Admin/Settings.php:2424 includes/Admin/Settings.php:2452
+#: includes/Admin/Settings.php:2526 includes/Admin/Settings.php:2553
+#: includes/Admin/Settings.php:2790 includes/Admin/Settings.php:2809
+#: includes/Admin/Settings.php:2828
+msgid "You do not have permission to perform this action."
+msgstr "Non hai l'autorizzazione per eseguire questa azione."
+
+#: includes/Admin/ContactMessagesPage.php:182
+#, fuzzy
+msgid "Message deleted."
+msgstr "Messaggio"
+
+#: includes/Admin/ContactMessagesPage.php:240 includes/Admin/InboxPage.php:509
+msgid "All statuses"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:241
+#: includes/Admin/ContactMessagesPage.php:300
+msgid "Sent"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:242
+#: includes/Admin/ContactMessagesPage.php:302
+#, fuzzy
+msgid "Rejected"
+msgstr "Rifiuta"
+
+#: includes/Admin/ContactMessagesPage.php:254 includes/Admin/InboxPage.php:532
+msgid "Filter"
+msgstr ""
+
+#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:534
+msgid "Reset"
+msgstr ""
+
+#. translators: 1: current page number, 2: total number of pages
+#: includes/Admin/ContactMessagesPage.php:280 includes/Admin/InboxPage.php:602
+#, fuzzy, php-format
+msgid "Page %1$d of %2$d"
+msgstr "%1$d / %2$d"
+
+#: includes/Admin/ContactMessagesPage.php:288 includes/Admin/InboxPage.php:277
+#: includes/Admin/InboxPage.php:610
+msgid "Previous"
+msgstr "Precedente"
+
+#: includes/Admin/ContactMessagesPage.php:317
+#, fuzzy
+msgid "Delete this message?"
+msgstr "Eliminare questa riga della coda?"
+
+#: includes/Admin/ContactMessagesPage.php:322 includes/Admin/InboxPage.php:784
+#: includes/Admin/Settings.php:2008
+msgid "Delete"
+msgstr "Elimina"
+
+#: includes/Admin/ContactMessagesPage.php:334 includes/Admin/InboxPage.php:795
+msgid "just now"
+msgstr "proprio adesso"
+
+#. translators: %d: number of minutes
+#: includes/Admin/ContactMessagesPage.php:339 includes/Admin/InboxPage.php:800
+#, php-format
+msgid "%dm ago"
+msgstr "%dm fa"
+
+#. translators: %d: number of hours
+#: includes/Admin/ContactMessagesPage.php:344 includes/Admin/InboxPage.php:805
+#, php-format
+msgid "%dh ago"
+msgstr "%dh fa"
 
 #: includes/Admin/Deliverability.php:220
 #, fuzzy
@@ -120,14 +254,6 @@ msgstr ""
 msgid "No queue rows match this filter."
 msgstr ""
 
-#: includes/Admin/InboxPage.php:162
-msgid "#"
-msgstr "#"
-
-#: includes/Admin/InboxPage.php:163
-msgid "From"
-msgstr "Da"
-
 #: includes/Admin/InboxPage.php:164
 msgid "Subject"
 msgstr "Oggetto"
@@ -140,23 +266,9 @@ msgstr ""
 msgid "Files"
 msgstr "File"
 
-#: includes/Admin/InboxPage.php:167 includes/Admin/Settings.php:1912
-#: includes/Admin/Settings.php:2198
-msgid "Status"
-msgstr "Stato"
-
-#: includes/Admin/InboxPage.php:168
-msgid "Received"
-msgstr "Ricevuto"
-
 #: includes/Admin/InboxPage.php:169
 msgid "Error"
 msgstr "Errore"
-
-#: includes/Admin/InboxPage.php:170 includes/Admin/Settings.php:1760
-#: includes/Admin/Settings.php:1914
-msgid "Actions"
-msgstr "Azioni"
 
 #: includes/Admin/InboxPage.php:212
 msgid "unregistered sender"
@@ -171,13 +283,11 @@ msgstr ""
 msgid "Attachment viewer"
 msgstr "Visualizzatore allegati"
 
-#: includes/Admin/InboxPage.php:276 includes/Newsletter/PopoverBlock.php:121
+#: includes/Admin/InboxPage.php:276
+#: includes/Network/SubdomainNavigation.php:482
+#: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
 msgstr "Chiudi"
-
-#: includes/Admin/InboxPage.php:277 includes/Admin/InboxPage.php:610
-msgid "Previous"
-msgstr "Precedente"
 
 #: includes/Admin/InboxPage.php:354
 msgid "Queue row deleted. Poll Inbox to re-fetch the message."
@@ -213,10 +323,6 @@ msgstr ""
 msgid "Processed %d pending item(s)."
 msgstr "Elaborati %d elemento/i in sospeso."
 
-#: includes/Admin/InboxPage.php:509
-msgid "All statuses"
-msgstr ""
-
 #: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:715
 msgid "Pending"
 msgstr "In sospeso"
@@ -243,14 +349,6 @@ msgstr "Saltato"
 msgid "All reasons"
 msgstr "Tutti gli eventi"
 
-#: includes/Admin/InboxPage.php:532
-msgid "Filter"
-msgstr ""
-
-#: includes/Admin/InboxPage.php:534
-msgid "Reset"
-msgstr ""
-
 #. translators: 1: number of collapsed messages, 2: URL to view them
 #: includes/Admin/InboxPage.php:571
 #, php-format
@@ -262,12 +360,6 @@ msgid_plural ""
 "\"%2$s\">View them</a>."
 msgstr[0] ""
 msgstr[1] ""
-
-#. translators: 1: current page number, 2: total number of pages
-#: includes/Admin/InboxPage.php:602
-#, fuzzy, php-format
-msgid "Page %1$d of %2$d"
-msgstr "%1$d / %2$d"
 
 #: includes/Admin/InboxPage.php:629
 msgid "Poll Inbox"
@@ -343,40 +435,6 @@ msgstr "In esecuzione…"
 #: includes/Admin/InboxPage.php:779
 msgid "Delete this queue row?"
 msgstr "Eliminare questa riga della coda?"
-
-#: includes/Admin/InboxPage.php:784 includes/Admin/Settings.php:2008
-msgid "Delete"
-msgstr "Elimina"
-
-#: includes/Admin/InboxPage.php:795
-msgid "just now"
-msgstr "proprio adesso"
-
-#. translators: %d: number of minutes
-#: includes/Admin/InboxPage.php:800
-#, php-format
-msgid "%dm ago"
-msgstr "%dm fa"
-
-#. translators: %d: number of hours
-#: includes/Admin/InboxPage.php:805
-#, php-format
-msgid "%dh ago"
-msgstr "%dh fa"
-
-#: includes/Admin/InboxPage.php:878 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
-#: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
-#: includes/Admin/Settings.php:1833 includes/Admin/Settings.php:1862
-#: includes/Admin/Settings.php:2040 includes/Admin/Settings.php:2072
-#: includes/Admin/Settings.php:2099 includes/Admin/Settings.php:2395
-#: includes/Admin/Settings.php:2424 includes/Admin/Settings.php:2452
-#: includes/Admin/Settings.php:2526 includes/Admin/Settings.php:2553
-#: includes/Admin/Settings.php:2790 includes/Admin/Settings.php:2809
-#: includes/Admin/Settings.php:2828
-msgid "You do not have permission to perform this action."
-msgstr "Non hai l'autorizzazione per eseguire questa azione."
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -613,7 +671,7 @@ msgid "Select Image"
 msgstr "Seleziona immagine"
 
 #: includes/Admin/Settings.php:374 includes/Core/EmailFooter.php:85
-#: includes/Publishing/PostCreator.php:868
+#: includes/Publishing/PostCreator.php:933
 msgid "Remove"
 msgstr "Rimuovi"
 
@@ -2036,10 +2094,6 @@ msgstr "Livello"
 msgid "Context"
 msgstr "Contesto"
 
-#: includes/Admin/Settings.php:1420
-msgid "Message"
-msgstr "Messaggio"
-
 #: includes/Admin/Settings.php:1491
 msgid "Inbox Tools"
 msgstr "Strumenti della posta in arrivo"
@@ -2276,10 +2330,6 @@ msgstr "Rifiuta"
 #: includes/Admin/Settings.php:1906
 msgid "No admitted members yet."
 msgstr "Nessun membro ammesso ancora."
-
-#: includes/Admin/Settings.php:1911 includes/Admin/Settings.php:2205
-msgid "Artist"
-msgstr "Artista"
 
 #: includes/Admin/Settings.php:1913
 msgid "Joined"
@@ -2548,7 +2598,7 @@ msgstr ""
 "L’artista non ha inviato né oggetto né messaggio con questa submission — "
 "lascia che sia l’immagine a parlare completamente da sola."
 
-#: includes/Artist/Admission.php:107
+#: includes/Artist/Admission.php:107 includes/Artist/ContactForm.php:103
 msgid "Name"
 msgstr ""
 
@@ -2564,8 +2614,8 @@ msgstr "Bio:"
 msgid "Statement"
 msgstr "Dichiarazione:"
 
-#. translators: 1: field name (e.g. "Bio"), 2: maximum character count
-#: includes/Artist/Admission.php:177
+#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
+#: includes/Artist/Admission.php:177 includes/Artist/ContactForm.php:142
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr ""
@@ -2657,7 +2707,7 @@ msgid "Thanks, %s!"
 msgstr ""
 
 #: includes/Artist/AdmissionConfirm.php:159
-#: includes/Artist/NotificationPreferences.php:236
+#: includes/Artist/NotificationPreferences.php:259
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Errore del link"
@@ -2698,12 +2748,12 @@ msgstr "Abbiamo ricevuto la tua candidatura a %s"
 #: includes/Artist/AdmissionNotification.php:613
 #: includes/Artist/AdmissionNotification.php:746
 #: includes/Artist/AdmissionNotification.php:819
-#: includes/Artist/VoteDigest.php:161 includes/Publishing/Notification.php:250
-#: includes/Publishing/Notification.php:367
-#: includes/Publishing/Notification.php:604
-#: includes/Publishing/Notification.php:904
-#: includes/Publishing/Notification.php:1219
-#: includes/Publishing/Notification.php:1374
+#: includes/Artist/VoteDigest.php:161 includes/Publishing/Notification.php:249
+#: includes/Publishing/Notification.php:366
+#: includes/Publishing/Notification.php:561
+#: includes/Publishing/Notification.php:857
+#: includes/Publishing/Notification.php:1172
+#: includes/Publishing/Notification.php:1327
 #, php-format
 msgid "Hi %s,"
 msgstr "Ciao %s,"
@@ -2732,12 +2782,12 @@ msgstr ""
 #: includes/Artist/AdmissionNotification.php:890
 #: includes/Artist/Invitation.php:177 includes/Artist/VoteDigest.php:218
 #: includes/Newsletter/Mailer.php:101 includes/Newsletter/Subscription.php:166
-#: includes/Publishing/Notification.php:306
-#: includes/Publishing/Notification.php:391
-#: includes/Publishing/Notification.php:669
-#: includes/Publishing/Notification.php:1013
-#: includes/Publishing/Notification.php:1247
-#: includes/Publishing/Notification.php:1437
+#: includes/Publishing/Notification.php:305
+#: includes/Publishing/Notification.php:390
+#: includes/Publishing/Notification.php:626
+#: includes/Publishing/Notification.php:966
+#: includes/Publishing/Notification.php:1200
+#: includes/Publishing/Notification.php:1390
 #, php-format
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — arte che sboccia dall'oblio"
@@ -3119,84 +3169,160 @@ msgstr "Proposta non trovata."
 msgid "This vote is not currently open."
 msgstr "Questa votazione non è attualmente aperta."
 
-#: includes/Artist/ContentEditor.php:201 includes/Artist/ContentEditor.php:572
-#: includes/Publishing/ReviewEndpoints.php:399
-#: includes/Publishing/ReviewEndpoints.php:416
+#: includes/Artist/ContactForm.php:169
+msgid "This artist can't be reached through this form right now."
+msgstr ""
+
+#: includes/Artist/ContactForm.php:214 includes/Artist/ContactFormBlock.php:153
+msgid "Thanks — your message has been sent."
+msgstr ""
+
+#: includes/Artist/ContactForm.php:278
+msgid ""
+"Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
+"contacting the artist about their work"
+msgstr ""
+
+#: includes/Artist/ContactForm.php:302
+msgid "Flagged by automatic content review."
+msgstr ""
+
+#. translators: %s: visitor's name, or their email address if no name was given
+#: includes/Artist/ContactForm.php:402
+#, php-format
+msgid "New message from %s via your Agnosis contact form"
+msgstr ""
+
+#. translators: %s: visitor's name, or a placeholder if none was given
+#: includes/Artist/ContactForm.php:409
+#, fuzzy, php-format
+msgid "From: %s"
+msgstr "Da"
+
+#: includes/Artist/ContactForm.php:410
+#, fuzzy
+msgid "(no name provided)"
+msgstr "Provider di miglioramento"
+
+#. translators: %s: visitor's own email address, for the artist to reply to directly.
+#: includes/Artist/ContactForm.php:414
+#, fuzzy, php-format
+msgid "Email: %s"
+msgstr "Indirizzo email"
+
+#: includes/Artist/ContactForm.php:423
+msgid "Original message, as submitted:"
+msgstr ""
+
+#: includes/Artist/ContactFormBlock.php:87
+#, fuzzy
+msgid "Your name (optional)"
+msgstr "Il tuo nome"
+
+#: includes/Artist/ContactFormBlock.php:98
+#, fuzzy
+msgid "Your email address"
+msgstr "Indirizzo email del mittente"
+
+#: includes/Artist/ContactFormBlock.php:105
+#: includes/Newsletter/SignupBlock.php:65
+msgid "you@example.com"
+msgstr "tu@example.com"
+
+#: includes/Artist/ContactFormBlock.php:123
+#, fuzzy
+msgid "Send message"
+msgstr "Invia test"
+
+#: includes/Artist/ContactFormBlock.php:154
+#: includes/Artist/ContentEditor.php:1010 includes/Artist/JoinPage.php:210
+#: includes/Newsletter/SignupBlock.php:140
+msgid "Something went wrong. Please try again."
+msgstr "Qualcosa è andato storto. Riprova."
+
+#: includes/Artist/ContentEditor.php:214 includes/Artist/ContentEditor.php:595
+#: includes/Publishing/ReviewEndpoints.php:698
+#: includes/Publishing/ReviewEndpoints.php:715
 msgid "Authentication required."
 msgstr "Autenticazione richiesta."
 
-#: includes/Artist/ContentEditor.php:226
+#: includes/Artist/ContentEditor.php:239
 msgid "This field cannot be edited here."
 msgstr "Questo campo non può essere modificato qui."
 
-#: includes/Artist/ContentEditor.php:237
+#: includes/Artist/ContentEditor.php:250
 msgid "That date could not be understood."
 msgstr "Questa data non è stata compresa."
 
-#: includes/Artist/ContentEditor.php:245
+#: includes/Artist/ContentEditor.php:258
 msgid "That does not look like a valid timezone (e.g. \"Europe/Madrid\")."
 msgstr ""
 
-#: includes/Artist/ContentEditor.php:253
+#: includes/Artist/ContentEditor.php:268
+msgid ""
+"That does not look like a valid link (must start with http:// or https://)."
+msgstr ""
+
+#: includes/Artist/ContentEditor.php:276
 msgid "The title cannot be empty."
 msgstr "Il titolo non può essere vuoto."
 
-#: includes/Artist/ContentEditor.php:292 includes/Artist/ContentEditor.php:985
+#: includes/Artist/ContentEditor.php:315 includes/Artist/ContentEditor.php:1009
 msgid "Saved — translations will update within a few minutes."
 msgstr "Salvato — le traduzioni si aggiorneranno entro pochi minuti."
 
-#: includes/Artist/ContentEditor.php:330
+#: includes/Artist/ContentEditor.php:353
 msgid "No image file was received."
 msgstr "Nessun file immagine è stato ricevuto."
 
-#: includes/Artist/ContentEditor.php:339
+#: includes/Artist/ContentEditor.php:362
 msgid "Please upload a JPEG, PNG, WebP, or GIF image."
 msgstr "Carica un'immagine JPEG, PNG, WebP o GIF."
 
-#: includes/Artist/ContentEditor.php:350
+#: includes/Artist/ContentEditor.php:373
 msgid "The uploaded file could not be read."
 msgstr "Il file caricato non è stato possibile leggerlo."
 
-#: includes/Artist/ContentEditor.php:362
-#: includes/Publishing/PostCreator.php:1581
+#: includes/Artist/ContentEditor.php:385
+#: includes/Publishing/PostCreator.php:1735
 msgid "Untitled"
 msgstr "Senza titolo"
 
-#: includes/Artist/ContentEditor.php:395 includes/Artist/ContentEditor.php:989
+#: includes/Artist/ContentEditor.php:418 includes/Artist/ContentEditor.php:1013
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr ""
 "Foto sostituita — l'originale è stato conservato e può essere ripristinato "
 "in seguito."
 
-#: includes/Artist/ContentEditor.php:429
+#: includes/Artist/ContentEditor.php:452
 msgid "There is no photo to restore."
 msgstr "Non c'è nessuna foto da ripristinare."
 
-#: includes/Artist/ContentEditor.php:438
+#: includes/Artist/ContentEditor.php:461
 msgid "No earlier version of this photo was found."
 msgstr "Non è stata trovata alcuna versione precedente di questa foto."
 
-#: includes/Artist/ContentEditor.php:467 includes/Artist/ContentEditor.php:992
+#: includes/Artist/ContentEditor.php:490 includes/Artist/ContentEditor.php:1016
 msgid "Restored the earlier photo."
 msgstr "Foto precedente ripristinata."
 
-#: includes/Artist/ContentEditor.php:580
+#: includes/Artist/ContentEditor.php:603
 msgid "Only admitted artists may edit their own content."
 msgstr "Solo gli artisti ammessi possono modificare i propri contenuti."
 
-#: includes/Artist/ContentEditor.php:589
+#: includes/Artist/ContentEditor.php:612
 msgid "Content not found."
 msgstr "Contenuto non trovato."
 
-#: includes/Artist/ContentEditor.php:597
+#: includes/Artist/ContentEditor.php:620
 msgid "Only published content can be corrected here."
 msgstr "Qui possono essere corretti solo i contenuti pubblicati."
 
-#: includes/Artist/ContentEditor.php:607
+#: includes/Artist/ContentEditor.php:630
 msgid "You may only edit your own content."
 msgstr "Puoi modificare solo i tuoi contenuti."
 
-#: includes/Artist/ContentEditor.php:654
+#: includes/Artist/ContentEditor.php:677
 msgid ""
 "This page is not in your own language. Edit the version in your language "
 "instead."
@@ -3204,41 +3330,36 @@ msgstr ""
 "Questa pagina non è nella tua lingua. Modifica invece la versione nella tua "
 "lingua."
 
-#: includes/Artist/ContentEditor.php:746
+#: includes/Artist/ContentEditor.php:770
 msgid "Unsupported field target."
 msgstr "Destinazione del campo non supportata."
 
-#: includes/Artist/ContentEditor.php:982
+#: includes/Artist/ContentEditor.php:1006
 msgid "Save"
 msgstr "Salva"
 
-#: includes/Artist/ContentEditor.php:983
-#: includes/Publishing/SubmissionsPage.php:287
+#: includes/Artist/ContentEditor.php:1007
+#: includes/Publishing/SubmissionsPage.php:305
 msgid "Cancel"
 msgstr "Annulla"
 
-#: includes/Artist/ContentEditor.php:984
+#: includes/Artist/ContentEditor.php:1008
 msgid "Saving…"
 msgstr "Salvataggio…"
 
-#: includes/Artist/ContentEditor.php:986 includes/Artist/JoinPage.php:210
-#: includes/Newsletter/SignupBlock.php:140
-msgid "Something went wrong. Please try again."
-msgstr "Qualcosa è andato storto. Riprova."
-
-#: includes/Artist/ContentEditor.php:987
+#: includes/Artist/ContentEditor.php:1011
 msgid "Replace photo"
 msgstr "Sostituisci foto"
 
-#: includes/Artist/ContentEditor.php:988
+#: includes/Artist/ContentEditor.php:1012
 msgid "Uploading…"
 msgstr "Caricamento…"
 
-#: includes/Artist/ContentEditor.php:990
+#: includes/Artist/ContentEditor.php:1014
 msgid "Restore earlier photo"
 msgstr "Ripristina foto precedente"
 
-#: includes/Artist/ContentEditor.php:991
+#: includes/Artist/ContentEditor.php:1015
 msgid "Restoring…"
 msgstr "Ripristino…"
 
@@ -3254,7 +3375,7 @@ msgid ""
 "deleted. Nothing tied to you is stored here anymore."
 msgstr ""
 
-#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:292
+#: includes/Artist/Departure.php:120 includes/Publishing/ReviewConfirm.php:305
 msgid "Link expired or already used"
 msgstr "Link scaduto o già utilizzato"
 
@@ -3265,7 +3386,7 @@ msgid ""
 msgstr ""
 
 #: includes/Artist/Departure.php:185
-#: includes/Publishing/SubmissionsPage.php:162
+#: includes/Publishing/SubmissionsPage.php:163
 msgid "You must be logged in."
 msgstr "Devi aver effettuato l'accesso."
 
@@ -3639,64 +3760,77 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "Compila tutti i campi obbligatori."
 
-#: includes/Artist/NotificationPreferences.php:109
+#: includes/Artist/NotificationPreferences.php:116
 #, fuzzy
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "Questo link di voto non è valido o è stato manomesso."
 
-#: includes/Artist/NotificationPreferences.php:115
+#: includes/Artist/NotificationPreferences.php:122
 msgid "This preferences link is no longer valid for this account."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:201
-#: includes/Artist/NotificationPreferences.php:215
+#: includes/Artist/NotificationPreferences.php:219
+#: includes/Artist/NotificationPreferences.php:235
 msgid "Notification preferences"
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:206
+#: includes/Artist/NotificationPreferences.php:224
 msgid "Mute community broadcast messages from other artists."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:207
+#: includes/Artist/NotificationPreferences.php:225
 #, fuzzy
 msgid "Application vote emails"
 msgstr "Candidatura non trovata."
 
-#: includes/Artist/NotificationPreferences.php:209
+#: includes/Artist/NotificationPreferences.php:227
 msgid "Instantly, one email per application (default)."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:211
+#: includes/Artist/NotificationPreferences.php:229
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
 
-#: includes/Artist/NotificationPreferences.php:212
-msgid "Save preferences"
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:225
-msgid "Community broadcasts are now muted."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:226
-msgid "You'll continue to receive community broadcasts."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:228
-msgid "You'll receive one daily digest of applications awaiting your vote."
-msgstr ""
-
-#: includes/Artist/NotificationPreferences.php:229
-msgid "You'll receive an email as soon as each new application arrives."
+#: includes/Artist/NotificationPreferences.php:231
+msgid ""
+"Turn off the contact form on my page — visitors won't be able to message me."
 msgstr ""
 
 #: includes/Artist/NotificationPreferences.php:232
+msgid "Save preferences"
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:245
+msgid "Community broadcasts are now muted."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:246
+msgid "You'll continue to receive community broadcasts."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:248
+msgid "You'll receive one daily digest of applications awaiting your vote."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:249
+msgid "You'll receive an email as soon as each new application arrives."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:251
+msgid "The contact form on your page is now turned off."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:252
+msgid "Visitors can still reach you through the contact form on your page."
+msgstr ""
+
+#: includes/Artist/NotificationPreferences.php:255
 msgid "Preferences saved"
 msgstr ""
 
-#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:495
-#: includes/Artist/Profile.php:508
+#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:549
+#: includes/Artist/Profile.php:562
 msgid "Artworks"
 msgstr "Opere"
 
@@ -3711,13 +3845,13 @@ msgstr "Biografie"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
 #: includes/Core/EmailFooter.php:73
-#: includes/Network/SubdomainNavigation.php:133
-#: includes/Network/SubdomainNavigation.php:334
-#: includes/Publishing/PostCreator.php:863
-#: includes/Publishing/PostCreator.php:893
+#: includes/Network/SubdomainNavigation.php:134
+#: includes/Network/SubdomainNavigation.php:357
+#: includes/Publishing/PostCreator.php:928
+#: includes/Publishing/PostCreator.php:958
 #: blocks/artist-breadcrumb/editor.js:210
-#: blocks/breadcrumb-icon-link/editor.js:66
-#: blocks/breadcrumb-icon-link/editor.js:99
+#: blocks/breadcrumb-icon-link/editor.js:79
+#: blocks/breadcrumb-icon-link/editor.js:113
 msgid "Biography"
 msgstr "Biografia"
 
@@ -3755,17 +3889,17 @@ msgstr "Tutte le biografie"
 
 #: includes/Artist/Profile.php:89 includes/Artist/Profile.php:91
 #: includes/Artist/Profile.php:101 includes/Core/EmailFooter.php:77
-#: includes/Network/SubdomainNavigation.php:139
-#: includes/Network/SubdomainNavigation.php:340
+#: includes/Network/SubdomainNavigation.php:140
+#: includes/Network/SubdomainNavigation.php:363
 #: blocks/artist-breadcrumb/editor.js:221
-#: blocks/breadcrumb-icon-link/editor.js:67
-#: blocks/breadcrumb-icon-link/editor.js:100
+#: blocks/breadcrumb-icon-link/editor.js:80
+#: blocks/breadcrumb-icon-link/editor.js:114
 msgid "Events"
 msgstr "Eventi"
 
 #: includes/Artist/Profile.php:92 includes/Artist/Profile.php:102
-#: includes/Publishing/PostCreator.php:864
-#: includes/Publishing/PostCreator.php:896
+#: includes/Publishing/PostCreator.php:929
+#: includes/Publishing/PostCreator.php:961
 msgid "Event"
 msgstr "Evento"
 
@@ -3833,52 +3967,52 @@ msgstr "Aggiungi nuovo medium"
 msgid "New Medium Name"
 msgstr "Nome del nuovo medium"
 
-#: includes/Artist/Profile.php:496 includes/Artist/Profile.php:509
-#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:901
+#: includes/Artist/Profile.php:550 includes/Artist/Profile.php:563
+#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:966
 msgid "Artwork"
 msgstr "Opera d'arte"
 
-#: includes/Artist/Profile.php:497
+#: includes/Artist/Profile.php:551
 msgid "Add New"
 msgstr "Aggiungi nuovo"
 
-#: includes/Artist/Profile.php:498
+#: includes/Artist/Profile.php:552
 msgid "Add New Artwork"
 msgstr "Aggiungi nuova opera d'arte"
 
-#: includes/Artist/Profile.php:499
+#: includes/Artist/Profile.php:553
 msgid "Edit Artwork"
 msgstr "Modifica opera d'arte"
 
-#: includes/Artist/Profile.php:500
+#: includes/Artist/Profile.php:554
 msgid "New Artwork"
 msgstr "Nuova opera d'arte"
 
-#: includes/Artist/Profile.php:501
+#: includes/Artist/Profile.php:555
 msgid "View Artwork"
 msgstr "Visualizza opera d'arte"
 
-#: includes/Artist/Profile.php:502
+#: includes/Artist/Profile.php:556
 msgid "Search Artworks"
 msgstr "Cerca opere d'arte"
 
-#: includes/Artist/Profile.php:503
+#: includes/Artist/Profile.php:557
 msgid "No artworks found."
 msgstr "Nessuna opera d'arte trovata."
 
-#: includes/Artist/Profile.php:504
+#: includes/Artist/Profile.php:558
 msgid "No artworks in trash."
 msgstr "Nessuna opera d'arte nel cestino."
 
-#: includes/Artist/Profile.php:505
+#: includes/Artist/Profile.php:559
 msgid "All Artworks"
 msgstr "Tutte le opere d'arte"
 
-#: includes/Artist/Profile.php:506
+#: includes/Artist/Profile.php:560
 msgid "Artwork Archives"
 msgstr "Archivi delle opere d'arte"
 
-#: includes/Artist/Profile.php:507
+#: includes/Artist/Profile.php:561
 msgid "Artwork Attributes"
 msgstr "Attributi dell'opera d'arte"
 
@@ -3987,19 +4121,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "%d voto positivo registrato finora."
 msgstr[1] "%d voti positivi registrati finora."
 
-#: includes/Compat/LinguaForge.php:1190
+#: includes/Compat/LinguaForge.php:1609
 msgid "is active and configured for"
 msgstr "è attivo e configurato per"
 
-#: includes/Compat/LinguaForge.php:1191
+#: includes/Compat/LinguaForge.php:1610
 msgid "Subdomain"
 msgstr "Sottodominio"
 
-#: includes/Compat/LinguaForge.php:1192
+#: includes/Compat/LinguaForge.php:1611
 msgid "routing mode"
 msgstr "modalità di routing"
 
-#: includes/Compat/LinguaForge.php:1194
+#: includes/Compat/LinguaForge.php:1613
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -4008,39 +4142,39 @@ msgstr ""
 "entrambi i plugin rivendicherebbero lo stesso spazio dei nomi dei "
 "sottodomini."
 
-#: includes/Compat/LinguaForge.php:1195
+#: includes/Compat/LinguaForge.php:1614
 msgid "Artist subdomain routing is"
 msgstr "Il routing dei sottodomini degli artisti è"
 
-#: includes/Compat/LinguaForge.php:1196
+#: includes/Compat/LinguaForge.php:1615
 msgid "completely inactive"
 msgstr "completamente inattivo"
 
-#: includes/Compat/LinguaForge.php:1197
+#: includes/Compat/LinguaForge.php:1616
 msgid "until this is resolved."
 msgstr "finché il problema non viene risolto."
 
-#: includes/Compat/LinguaForge.php:1199
+#: includes/Compat/LinguaForge.php:1618
 msgid "Fix: open"
 msgstr "Correzione: apri"
 
-#: includes/Compat/LinguaForge.php:1200
+#: includes/Compat/LinguaForge.php:1619
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: includes/Compat/LinguaForge.php:1200
+#: includes/Compat/LinguaForge.php:1619
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:1201
+#: includes/Compat/LinguaForge.php:1620
 msgid "and switch the URL strategy to"
 msgstr "e imposta la strategia dell’URL su"
 
-#: includes/Compat/LinguaForge.php:1202
+#: includes/Compat/LinguaForge.php:1621
 msgid "Path prefix (subfolder)"
 msgstr "Prefisso del percorso (sottocartella)"
 
-#: includes/Compat/LinguaForge.php:1203
+#: includes/Compat/LinguaForge.php:1622
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -4048,23 +4182,23 @@ msgstr ""
 "Questa è l’impostazione predefinita di LinguaForge e consente ai sottodomini "
 "degli artisti di coesistere con le sottocartelle linguistiche"
 
-#: includes/Compat/LinguaForge.php:1208
+#: includes/Compat/LinguaForge.php:1627
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — il routing dei sottodomini degli artisti è disattivato"
 
-#: includes/Compat/LinguaForge.php:1218
+#: includes/Compat/LinguaForge.php:1637
 msgid "Open LinguaForge Settings"
 msgstr "Apri le impostazioni di LinguaForge"
 
-#: includes/Core/Activator.php:586 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:612 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Artista Agnosis"
 
-#: includes/Core/Activator.php:699
+#: includes/Core/Activator.php:725
 msgid "My Submissions"
 msgstr "Le mie segnalazioni"
 
-#: includes/Core/Activator.php:841
+#: includes/Core/Activator.php:867
 msgid "Join"
 msgstr "Unisciti"
 
@@ -4080,7 +4214,7 @@ msgstr "Aggiorna la tua biografia artistica."
 msgid "Announce an upcoming event."
 msgstr "Annuncia un evento imminente."
 
-#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:867
+#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:932
 msgid "Replace"
 msgstr "Sostituisci"
 
@@ -4099,7 +4233,7 @@ msgstr ""
 "Richiedi che un’opera o un evento esistente venga rimosso — l’oggetto deve "
 "corrispondere al suo titolo."
 
-#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:869
+#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:934
 msgid "Promote"
 msgstr "Promuovi"
 
@@ -4120,8 +4254,8 @@ msgstr ""
 "Pubblica una foto esattamente come inviata — nessun miglioramento AI, nessun "
 "controllo qualità."
 
-#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:865
-#: includes/Publishing/PostCreator.php:887
+#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:930
+#: includes/Publishing/PostCreator.php:952
 msgid "Pure"
 msgstr "Pure"
 
@@ -4264,6 +4398,26 @@ msgstr "Il documento dell’actor non contiene il campo publicKey.publicKeyPem."
 #: includes/Network/Node.php:84
 msgid "Node URL is required."
 msgstr "L’URL del nodo è obbligatorio."
+
+#. translators: %s: artist display name
+#: includes/Network/SubdomainNavigation.php:451
+#, fuzzy, php-format
+msgid "Contact %s"
+msgstr "Contesto"
+
+#: includes/Network/SubdomainNavigation.php:452
+msgid "Contact this artist"
+msgstr ""
+
+#. translators: %s: artist display name
+#: includes/Network/SubdomainNavigation.php:456
+#, php-format
+msgid "Get in touch with %s"
+msgstr ""
+
+#: includes/Network/SubdomainNavigation.php:457
+msgid "Get in touch"
+msgstr ""
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."
@@ -4473,10 +4627,6 @@ msgstr ""
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "Bozza introduttiva di %1$s per %2$s — revisiona prima dell’invio"
 
-#: includes/Newsletter/SignupBlock.php:65
-msgid "you@example.com"
-msgstr "tu@example.com"
-
 #: includes/Newsletter/SignupBlock.php:71
 msgid "Language"
 msgstr "Lingua"
@@ -4629,31 +4779,31 @@ msgstr ""
 "un’opera per artista per la panoramica della homepage."
 
 #. translators: %s: artwork or event title
-#: includes/Publishing/Notification.php:64
+#: includes/Publishing/Notification.php:63
 #, php-format
 msgid "[Agnosis] Confirm removal of: %s"
 msgstr "[Agnosis] Conferma la rimozione di: %s"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:116
+#: includes/Publishing/Notification.php:115
 #, fuzzy, php-format
 msgid "[%s] We couldn't find that artwork or event"
 msgstr "[%s] Non abbiamo trovato una foto nella tua email"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:178
+#: includes/Publishing/Notification.php:177
 #, php-format
 msgid "[%s] Your artwork is now featured"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:185
+#: includes/Publishing/Notification.php:184
 #, fuzzy, php-format
 msgid "[%s] We couldn't find that artwork"
 msgstr "[%s] Non abbiamo trovato una foto nella tua email"
 
 #. translators: %s: the subject line the artist sent
-#: includes/Publishing/Notification.php:227
+#: includes/Publishing/Notification.php:226
 #, php-format
 msgid ""
 "We received a removal request for \"%s\", but couldn't find an artwork or "
@@ -4661,7 +4811,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: the subject line the artist sent
-#: includes/Publishing/Notification.php:229
+#: includes/Publishing/Notification.php:228
 #, php-format
 msgid ""
 "We received a request to feature \"%s\", but couldn't find a published "
@@ -4669,29 +4819,29 @@ msgid ""
 msgstr ""
 
 #. translators: %s: suggested title
-#: includes/Publishing/Notification.php:265
+#: includes/Publishing/Notification.php:264
 #, php-format
 msgid "Did you mean \"%s\"?"
 msgstr ""
 
-#: includes/Publishing/Notification.php:273
+#: includes/Publishing/Notification.php:272
 #, fuzzy
 msgid "Yes, remove this instead"
 msgstr "Sì, rimuovi questo/a %s"
 
-#: includes/Publishing/Notification.php:277
+#: includes/Publishing/Notification.php:276
 msgid "Or simply resend your original email with that exact title."
 msgstr ""
 
-#: includes/Publishing/Notification.php:281
+#: includes/Publishing/Notification.php:280
 msgid "Resend your original email with that exact title."
 msgstr ""
 
-#: includes/Publishing/Notification.php:288
+#: includes/Publishing/Notification.php:287
 msgid "Your current titles:"
 msgstr ""
 
-#: includes/Publishing/Notification.php:297
+#: includes/Publishing/Notification.php:296
 msgid ""
 "Titles are matched exactly, so a small difference in wording is enough to "
 "miss — double-check spelling, capitalization, and punctuation against the "
@@ -4699,43 +4849,43 @@ msgid ""
 msgstr ""
 
 #. translators: %s: artwork title
-#: includes/Publishing/Notification.php:376
+#: includes/Publishing/Notification.php:375
 #, fuzzy, php-format
 msgid "\"%s\" is now your featured artwork on the gallery overview."
 msgstr "Metti in evidenza quest’opera nella panoramica della galleria"
 
-#: includes/Publishing/Notification.php:382
+#: includes/Publishing/Notification.php:381
 msgid ""
 "Any previously featured artwork has been unfeatured automatically — only one "
 "piece is featured at a time."
 msgstr ""
 
 #. translators: %s: artwork title (in the artist's own language)
-#: includes/Publishing/Notification.php:530
+#: includes/Publishing/Notification.php:487
 #, php-format
 msgid "[Agnosis] Your submission is ready to review: %s"
 msgstr "[Agnosis] La tua proposta è pronta per la revisione: %s"
 
-#: includes/Publishing/Notification.php:581
+#: includes/Publishing/Notification.php:538
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1116
+#: includes/Publishing/ReviewConfirm.php:1140
 msgid "event"
 msgstr "evento"
 
-#: includes/Publishing/Notification.php:581
+#: includes/Publishing/Notification.php:538
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1117
+#: includes/Publishing/ReviewConfirm.php:1141
 msgid "artwork"
 msgstr "opera"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:614
+#: includes/Publishing/Notification.php:571
 #, php-format
 msgid "We received a removal request for the following %s:"
 msgstr "Abbiamo ricevuto una richiesta di rimozione per il seguente %s:"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:628
+#: includes/Publishing/Notification.php:585
 #, php-format
 msgid ""
 "If you want to permanently remove this %s, click the button below. This "
@@ -4745,13 +4895,13 @@ msgstr ""
 "sotto. Questa azione non può essere annullata."
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:640
+#: includes/Publishing/Notification.php:597
 #, php-format
 msgid "Yes, remove this %s"
 msgstr "Sì, rimuovi questo/a %s"
 
 #. translators: %s: "artwork" or "event"
-#: includes/Publishing/Notification.php:652
+#: includes/Publishing/Notification.php:609
 #, php-format
 msgid ""
 "If you did not request this removal, simply ignore this email — your %s will "
@@ -4760,15 +4910,15 @@ msgstr ""
 "Se non hai richiesto questa rimozione, ignora semplicemente questa email — "
 "il/la tuo/a %s resterà pubblicato/a."
 
-#: includes/Publishing/Notification.php:659
+#: includes/Publishing/Notification.php:616
 msgid "This confirmation link expires in 7 days."
 msgstr "Questo link di conferma scade tra 7 giorni."
 
-#: includes/Publishing/Notification.php:744
+#: includes/Publishing/Notification.php:701
 msgid "📷 Photo enhanced automatically"
 msgstr "📷 Foto migliorata automaticamente"
 
-#: includes/Publishing/Notification.php:747
+#: includes/Publishing/Notification.php:704
 msgid ""
 "We detected some photographic issues and applied AI correction to improve "
 "visibility of your artwork:"
@@ -4776,7 +4926,7 @@ msgstr ""
 "Abbiamo rilevato alcuni problemi fotografici e applicato una correzione AI "
 "per migliorare la visibilità della tua opera:"
 
-#: includes/Publishing/Notification.php:751
+#: includes/Publishing/Notification.php:708
 msgid ""
 "The artwork itself has not been altered — only the photograph quality was "
 "corrected."
@@ -4785,36 +4935,36 @@ msgstr ""
 "della fotografia."
 
 #. translators: %d: photo quality score out of 10
-#: includes/Publishing/Notification.php:758
+#: includes/Publishing/Notification.php:715
 #, php-format
 msgid "📷 Photo quality score: %d/10"
 msgstr "📷 Punteggio qualità foto: %d/10"
 
-#: includes/Publishing/Notification.php:802
+#: includes/Publishing/Notification.php:759
 msgid ""
 "Double-check the link is correct — you can fix or remove it in the form "
 "below before publishing."
 msgstr ""
 
-#: includes/Publishing/Notification.php:803
+#: includes/Publishing/Notification.php:760
 msgid ""
 "If the link was correct, its destination may simply not be from a source "
 "this site automatically embeds."
 msgstr ""
 
-#: includes/Publishing/Notification.php:807
+#: includes/Publishing/Notification.php:764
 msgid "🔗 A link was not included"
 msgid_plural "🔗 Some links were not included"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Publishing/Notification.php:810
+#: includes/Publishing/Notification.php:767
 msgid ""
 "The following couldn't be automatically embedded, so they were left out:"
 msgstr ""
 
 #. translators: %s: fuzzy-matched event title suggestion
-#: includes/Publishing/Notification.php:842
+#: includes/Publishing/Notification.php:799
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
@@ -4823,7 +4973,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: fuzzy-matched artwork title suggestion
-#: includes/Publishing/Notification.php:847
+#: includes/Publishing/Notification.php:804
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
@@ -4831,11 +4981,11 @@ msgid ""
 "exact title instead."
 msgstr ""
 
-#: includes/Publishing/Notification.php:852
+#: includes/Publishing/Notification.php:809
 msgid "📄 This was published as a new post"
 msgstr ""
 
-#: includes/Publishing/Notification.php:910
+#: includes/Publishing/Notification.php:863
 msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
@@ -4844,36 +4994,36 @@ msgstr ""
 "AI — dai un’occhiata e facci sapere se è pronta per la pubblicazione."
 
 #. translators: %s: the AI-generated site title in the site's primary language
-#: includes/Publishing/Notification.php:938
+#: includes/Publishing/Notification.php:891
 #, php-format
 msgid "On the site: %s"
 msgstr "Sul sito: %s"
 
 #. translators: %s: the site title translated back into the artist's language
-#: includes/Publishing/Notification.php:951
+#: includes/Publishing/Notification.php:904
 #, php-format
 msgid "In your language: %s"
 msgstr "Nella tua lingua: %s"
 
-#: includes/Publishing/Notification.php:972
+#: includes/Publishing/Notification.php:925
 msgid "Looks great — Publish it"
 msgstr "Sembra perfetto — pubblicalo"
 
-#: includes/Publishing/Notification.php:975
-#: includes/Publishing/SubmissionsPage.php:242
+#: includes/Publishing/Notification.php:928
+#: includes/Publishing/SubmissionsPage.php:257
 msgid "Discard"
 msgstr "Scarta"
 
-#: includes/Publishing/Notification.php:982
+#: includes/Publishing/Notification.php:935
 msgid "Want to tweak the title, text or tags before publishing?"
 msgstr "Vuoi modificare il titolo, il testo o i tag prima di pubblicare?"
 
-#: includes/Publishing/Notification.php:984
+#: includes/Publishing/Notification.php:937
 msgid "Open your submissions page →"
 msgstr "Apri la pagina delle tue proposte →"
 
 #. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
-#: includes/Publishing/Notification.php:994
+#: includes/Publishing/Notification.php:947
 #, fuzzy, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
@@ -4889,18 +5039,18 @@ msgstr[1] ""
 "rimane in bozza finché non decidi."
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1111
+#: includes/Publishing/Notification.php:1064
 #, php-format
 msgid "[%s] We couldn't process your submission"
 msgstr "[%s] Non siamo riusciti a elaborare la tua proposta"
 
 #. translators: %s: site name
-#: includes/Publishing/Notification.php:1170
+#: includes/Publishing/Notification.php:1123
 #, php-format
 msgid "[%s] We couldn't find a photo in your email"
 msgstr "[%s] Non abbiamo trovato una foto nella tua email"
 
-#: includes/Publishing/Notification.php:1225
+#: includes/Publishing/Notification.php:1178
 msgid ""
 "We received your email, but couldn't process a usable photo, audio, or video "
 "file from it — so nothing was published. This can happen when an image is "
@@ -4915,11 +5065,11 @@ msgstr ""
 "arriva in un formato che questo server non riesce a convertire (ad esempio, "
 "una foto iPhone salvata in formato HEIC/HEIF)."
 
-#: includes/Publishing/Notification.php:1229
+#: includes/Publishing/Notification.php:1182
 msgid "To resend correctly:"
 msgstr "Per reinviare correttamente:"
 
-#: includes/Publishing/Notification.php:1231
+#: includes/Publishing/Notification.php:1184
 msgid ""
 "Use your mail app's \"Attach file\" (usually a paperclip icon) rather than "
 "\"Insert photo\" or pasting the image directly into the message body."
@@ -4928,7 +5078,7 @@ msgstr ""
 "graffetta) invece di \"Inserisci foto\" o di incollare l’immagine "
 "direttamente nel corpo del messaggio."
 
-#: includes/Publishing/Notification.php:1232
+#: includes/Publishing/Notification.php:1185
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
 "Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
@@ -4938,7 +5088,7 @@ msgstr ""
 "Impostazioni → Fotocamera → Formati su \"Più compatibile\" prima di "
 "scattarla o inviarla, oppure usa \"Opzioni\" in Mail per inviarla come JPEG."
 
-#: includes/Publishing/Notification.php:1233
+#: includes/Publishing/Notification.php:1186
 msgid ""
 "Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
@@ -4948,7 +5098,7 @@ msgstr ""
 "MP3, WAV, M4A, OGG o FLAC per l’audio; MP4, MOV, AVI, WebM, OGG o MPEG per "
 "il video."
 
-#: includes/Publishing/Notification.php:1238
+#: includes/Publishing/Notification.php:1191
 msgid ""
 "Once it's properly attached, just send it to the same address again — we'll "
 "pick it up automatically."
@@ -4956,7 +5106,7 @@ msgstr ""
 "Una volta allegato correttamente, invialo di nuovo allo stesso indirizzo — "
 "lo ritireremo automaticamente."
 
-#: includes/Publishing/Notification.php:1289
+#: includes/Publishing/Notification.php:1242
 msgid ""
 "The photo is too dark to show your artwork clearly. Try photographing near a "
 "large window in daylight, or use a soft lamp aimed at the work from the side."
@@ -4965,7 +5115,7 @@ msgstr ""
 "fotografarla vicino a una grande finestra in pieno giorno, oppure usa una "
 "lampada morbida puntata sull’opera di lato."
 
-#: includes/Publishing/Notification.php:1290
+#: includes/Publishing/Notification.php:1243
 msgid ""
 "The photo is underexposed (too dark). Try photographing near a large window "
 "in daylight, or use a soft lamp aimed at the work from the side."
@@ -4974,7 +5124,7 @@ msgstr ""
 "grande finestra in pieno giorno, oppure usa una lampada morbida puntata "
 "sull’opera di lato."
 
-#: includes/Publishing/Notification.php:1291
+#: includes/Publishing/Notification.php:1244
 msgid ""
 "The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
 "flash pointed straight at the artwork — diffuse or indirect light works best."
@@ -4983,7 +5133,7 @@ msgstr ""
 "del sole o il flash puntato dritto sull’opera — la luce diffusa o indiretta "
 "funziona meglio."
 
-#: includes/Publishing/Notification.php:1292
+#: includes/Publishing/Notification.php:1245
 msgid ""
 "The photo is too bright or washed out. Avoid direct sunlight or flash — "
 "diffuse light or shade gives more even tones."
@@ -4991,7 +5141,7 @@ msgstr ""
 "La foto è troppo luminosa o sbiadita. Evita la luce diretta del sole o il "
 "flash — la luce diffusa o l’ombra offrono tonalità più uniformi."
 
-#: includes/Publishing/Notification.php:1293
+#: includes/Publishing/Notification.php:1246
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
 "slightly or photograph at an angle to eliminate reflections from the surface."
@@ -5000,7 +5150,7 @@ msgstr ""
 "tela o fotografa da un’angolazione diversa per eliminare i riflessi dalla "
 "superficie."
 
-#: includes/Publishing/Notification.php:1294
+#: includes/Publishing/Notification.php:1247
 msgid ""
 "There is a reflection on the artwork surface. Tilt the canvas slightly or "
 "change your angle to eliminate it."
@@ -5008,7 +5158,7 @@ msgstr ""
 "C’è un riflesso sulla superficie dell’opera. Inclina leggermente la tela o "
 "cambia angolazione per eliminarlo."
 
-#: includes/Publishing/Notification.php:1296
+#: includes/Publishing/Notification.php:1249
 msgid ""
 "The image is blurry. Rest your phone or camera on a stable surface, use the "
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
@@ -5018,7 +5168,7 @@ msgstr ""
 "stabile, usa l’autoscatto e assicurati che l’opera riempia la maggior parte "
 "dell’inquadratura così che l’autofocus la metta a fuoco."
 
-#: includes/Publishing/Notification.php:1297
+#: includes/Publishing/Notification.php:1250
 msgid ""
 "The image is out of focus. Tap on the artwork on your phone screen before "
 "shooting to make sure autofocus locks on it, and hold the camera still."
@@ -5027,7 +5177,7 @@ msgstr ""
 "scattare per assicurarti che l’autofocus la metta a fuoco, e tieni ferma la "
 "fotocamera."
 
-#: includes/Publishing/Notification.php:1298
+#: includes/Publishing/Notification.php:1251
 msgid ""
 "There is motion blur. Hold the camera very still or use a tripod; press the "
 "shutter gently or use the self-timer to avoid shake."
@@ -5036,7 +5186,7 @@ msgstr ""
 "premi delicatamente l’otturatore oppure usa l’autoscatto per evitare "
 "vibrazioni."
 
-#: includes/Publishing/Notification.php:1299
+#: includes/Publishing/Notification.php:1252
 msgid ""
 "Camera shake is visible. Use a tripod or rest the camera on a flat surface "
 "and use the self-timer to avoid movement when pressing the shutter."
@@ -5045,7 +5195,7 @@ msgstr ""
 "fotocamera su una superficie piana e usa l’autoscatto per evitare movimenti "
 "quando premi l’otturatore."
 
-#: includes/Publishing/Notification.php:1301
+#: includes/Publishing/Notification.php:1254
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and make sure you're close enough that the artwork fills the frame."
@@ -5054,7 +5204,7 @@ msgstr ""
 "qualità del telefono e assicurati di essere abbastanza vicino da far "
 "riempire l’inquadratura all’opera."
 
-#: includes/Publishing/Notification.php:1302
+#: includes/Publishing/Notification.php:1255
 msgid ""
 "The image resolution is too low. Use your phone's highest quality setting "
 "and fill the frame with the artwork."
@@ -5062,7 +5212,7 @@ msgstr ""
 "La risoluzione dell’immagine è troppo bassa. Usa l’impostazione di massima "
 "qualità del telefono e riempi l’inquadratura con l’opera."
 
-#: includes/Publishing/Notification.php:1303
+#: includes/Publishing/Notification.php:1256
 msgid ""
 "The image is pixelated. Shoot from closer or use a higher resolution setting "
 "on your camera."
@@ -5070,8 +5220,8 @@ msgstr ""
 "L’immagine è pixellata. Scatta da più vicino oppure usa un’impostazione di "
 "risoluzione più alta sulla fotocamera."
 
-#: includes/Publishing/Notification.php:1305
-#: includes/Publishing/Notification.php:1306
+#: includes/Publishing/Notification.php:1258
+#: includes/Publishing/Notification.php:1259
 msgid ""
 "The photo has a strong colour cast. Shoot under neutral daylight or use your "
 "phone's Auto White Balance setting for more accurate colours."
@@ -5080,7 +5230,7 @@ msgstr ""
 "oppure usa l’impostazione Auto White Balance del telefono per colori più "
 "accurati."
 
-#: includes/Publishing/Notification.php:1307
+#: includes/Publishing/Notification.php:1260
 msgid ""
 "The photo looks too yellow or warm. Shoot under natural daylight or switch "
 "your phone's white balance to Daylight / Cloudy."
@@ -5088,7 +5238,7 @@ msgstr ""
 "La foto appare troppo gialla o calda. Scatta sotto luce naturale diurna "
 "oppure imposta il bilanciamento del bianco del telefono su Daylight / Cloudy."
 
-#: includes/Publishing/Notification.php:1308
+#: includes/Publishing/Notification.php:1261
 msgid ""
 "The photo has a cold blue tint. Move the artwork to a warmer, more natural "
 "light source or adjust your camera's white balance."
@@ -5097,7 +5247,7 @@ msgstr ""
 "più calda e naturale oppure regola il bilanciamento del bianco della "
 "fotocamera."
 
-#: includes/Publishing/Notification.php:1310
+#: includes/Publishing/Notification.php:1263
 msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
@@ -5106,7 +5256,7 @@ msgstr ""
 "Fai qualche passo indietro e assicurati che l’intera opera sia visibile "
 "prima di scattare."
 
-#: includes/Publishing/Notification.php:1311
+#: includes/Publishing/Notification.php:1264
 msgid ""
 "The artwork is photographed at an angle, causing distortion. Shoot straight "
 "on, with the camera parallel to the canvas."
@@ -5114,7 +5264,7 @@ msgstr ""
 "L’opera è fotografata di sbieco, causando distorsione. Scatta frontalmente, "
 "con la fotocamera parallela alla tela."
 
-#: includes/Publishing/Notification.php:1312
+#: includes/Publishing/Notification.php:1265
 msgid ""
 "The artwork looks distorted or skewed. Position your camera directly in "
 "front of the artwork, parallel to its surface."
@@ -5122,7 +5272,7 @@ msgstr ""
 "L’opera appare distorta o inclinata. Posiziona la fotocamera direttamente "
 "davanti all’opera, parallela alla sua superficie."
 
-#: includes/Publishing/Notification.php:1313
+#: includes/Publishing/Notification.php:1266
 msgid ""
 "There is a shadow across part of the artwork. Reposition your light source "
 "or move the artwork so no shadows fall on the surface."
@@ -5130,7 +5280,7 @@ msgstr ""
 "C’è un’ombra su una parte dell’opera. Riposiziona la fonte di luce oppure "
 "sposta l’opera in modo che non cadano ombre sulla superficie."
 
-#: includes/Publishing/Notification.php:1380
+#: includes/Publishing/Notification.php:1333
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
 "for us to show your artwork clearly. We didn't publish it — but please don't "
@@ -5141,16 +5291,16 @@ msgstr ""
 "— ma non scoraggiarti! Di solito basta rifare lo scatto."
 
 #. translators: %d: quality score out of 10
-#: includes/Publishing/Notification.php:1389
+#: includes/Publishing/Notification.php:1342
 #, php-format
 msgid "📷 Photo quality score: %d / 10"
 msgstr "📷 Punteggio qualità foto: %d / 10"
 
-#: includes/Publishing/Notification.php:1395
+#: includes/Publishing/Notification.php:1348
 msgid "Here's what our AI detected and how to fix it:"
 msgstr "Ecco cosa ha rilevato la nostra AI e come risolverlo:"
 
-#: includes/Publishing/Notification.php:1402
+#: includes/Publishing/Notification.php:1355
 msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
@@ -5158,11 +5308,11 @@ msgstr ""
 "La qualità complessiva della foto era troppo bassa perché la nostra IA "
 "potesse elaborare chiaramente l'opera."
 
-#: includes/Publishing/Notification.php:1408
+#: includes/Publishing/Notification.php:1361
 msgid "💡 Quick tips for a great artwork photo"
 msgstr "💡 Consigli rapidi per una foto d'opera d'arte perfetta"
 
-#: includes/Publishing/Notification.php:1410
+#: includes/Publishing/Notification.php:1363
 msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
@@ -5170,7 +5320,7 @@ msgstr ""
 "Usa la luce naturale — posiziona l'opera vicino a una finestra in una "
 "giornata nuvolosa per ottenere una luce uniforme e morbida."
 
-#: includes/Publishing/Notification.php:1411
+#: includes/Publishing/Notification.php:1364
 msgid ""
 "Shoot straight on — hold your phone parallel to the canvas to avoid "
 "perspective distortion."
@@ -5178,7 +5328,7 @@ msgstr ""
 "Scatta frontalmente — tieni il telefono parallelo alla tela per evitare "
 "distorsioni prospettiche."
 
-#: includes/Publishing/Notification.php:1412
+#: includes/Publishing/Notification.php:1365
 msgid ""
 "Fill the frame — let the artwork take up most of the shot; crop out "
 "distracting backgrounds."
@@ -5186,7 +5336,7 @@ msgstr ""
 "Inquadra da vicino — fai in modo che l'opera occupi gran parte "
 "dell'inquadratura; ritaglia gli sfondi che distraggono."
 
-#: includes/Publishing/Notification.php:1413
+#: includes/Publishing/Notification.php:1366
 msgid ""
 "Hold still — tap the artwork on your screen to focus, then press the shutter "
 "gently or use a self-timer."
@@ -5194,7 +5344,7 @@ msgstr ""
 "Tieni ferma la mano — tocca l'opera sullo schermo per mettere a fuoco, poi "
 "premi delicatamente l'otturatore oppure usa un autoscatto."
 
-#: includes/Publishing/Notification.php:1418
+#: includes/Publishing/Notification.php:1371
 msgid ""
 "Once you have a clearer photo, just email it to the same address as before — "
 "we'll pick it up automatically."
@@ -5202,7 +5352,7 @@ msgstr ""
 "Una volta ottenuta una foto più nitida, inviala semplicemente via email allo "
 "stesso indirizzo di prima — la rileveremo automaticamente."
 
-#: includes/Publishing/Notification.php:1423
+#: includes/Publishing/Notification.php:1376
 msgid ""
 "Your previous submission is saved in your submissions page in case you want "
 "to review what was sent."
@@ -5210,29 +5360,29 @@ msgstr ""
 "La tua inviazione precedente è salvata nella pagina delle tue inviazioni, "
 "nel caso tu voglia rivedere ciò che è stato inviato."
 
-#: includes/Publishing/Notification.php:1425
+#: includes/Publishing/Notification.php:1378
 msgid "View submissions →"
 msgstr "Visualizza le inviazioni →"
 
-#: includes/Publishing/PostCreator.php:866
-#: includes/Publishing/PostCreator.php:890
+#: includes/Publishing/PostCreator.php:931
+#: includes/Publishing/PostCreator.php:955
 #, fuzzy
 msgid "Photo"
 msgstr "Solo foto"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1802
+#: includes/Publishing/PostCreator.php:1966
 #, php-format
 msgid "%s (original)"
 msgstr "%s (originale)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:1865
+#: includes/Publishing/PostCreator.php:2029
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (cornice per poster)"
 
-#: includes/Publishing/PostCreator.php:2202
+#: includes/Publishing/PostCreator.php:2408
 msgid "Failed to insert attachment."
 msgstr "Impossibile inserire l'allegato."
 
@@ -5274,71 +5424,76 @@ msgstr "Il link di rimozione è scaduto. Invia un'altra richiesta di rimozione."
 msgid "Invalid removal token."
 msgstr "Token di rimozione non valido."
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:255
+#, fuzzy
+msgid "View it live"
+msgstr "Visualizzala online."
+
+#: includes/Publishing/ReviewConfirm.php:298
 #, fuzzy
 msgid "Biography published"
 msgstr "Opera pubblicata"
 
-#: includes/Publishing/ReviewConfirm.php:285
+#: includes/Publishing/ReviewConfirm.php:298
 #, fuzzy
 msgid "Your biography has been published."
 msgstr "Il tuo %s è stato rimosso."
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:299
 #, fuzzy
 msgid "Event published"
 msgstr "Opera pubblicata"
 
-#: includes/Publishing/ReviewConfirm.php:286
+#: includes/Publishing/ReviewConfirm.php:299
 #, fuzzy
 msgid "The event has been published."
 msgstr "L'opera è stata pubblicata nella galleria."
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:300
 msgid "Artwork published"
 msgstr "Opera pubblicata"
 
-#: includes/Publishing/ReviewConfirm.php:287
+#: includes/Publishing/ReviewConfirm.php:300
 msgid "The artwork has been published to the gallery."
 msgstr "L'opera è stata pubblicata nella galleria."
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:301
 msgid "Submission discarded"
 msgstr "Invio scartato"
 
-#: includes/Publishing/ReviewConfirm.php:288
+#: includes/Publishing/ReviewConfirm.php:301
 msgid "The submission has been discarded."
 msgstr "L'invio è stato scartato."
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:302
 #, fuzzy
 msgid "Biography removed"
 msgstr "Biografia"
 
-#: includes/Publishing/ReviewConfirm.php:289
+#: includes/Publishing/ReviewConfirm.php:302
 #, fuzzy
 msgid "Your biography has been removed."
 msgstr "Il tuo %s è stato rimosso."
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:303
 #, fuzzy
 msgid "Event removed"
 msgstr "Opera rimossa"
 
-#: includes/Publishing/ReviewConfirm.php:290
+#: includes/Publishing/ReviewConfirm.php:303
 #, fuzzy
 msgid "The event has been removed."
 msgstr "Il tuo %s è stato rimosso."
 
-#: includes/Publishing/ReviewConfirm.php:291
+#: includes/Publishing/ReviewConfirm.php:304
 msgid "Artwork removed"
 msgstr "Opera rimossa"
 
-#: includes/Publishing/ReviewConfirm.php:291
+#: includes/Publishing/ReviewConfirm.php:304
 msgid "Your artwork has been removed from the gallery."
 msgstr "La tua opera è stata rimossa dalla galleria."
 
-#: includes/Publishing/ReviewConfirm.php:292
+#: includes/Publishing/ReviewConfirm.php:305
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -5346,251 +5501,257 @@ msgstr ""
 "Questo link potrebbe essere già stato utilizzato o potrebbe essere scaduto. "
 "Accedi per gestire i tuoi invii."
 
-#: includes/Publishing/ReviewConfirm.php:393
+#: includes/Publishing/ReviewConfirm.php:409
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:394
+#: includes/Publishing/ReviewConfirm.php:410
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:724
+#: includes/Publishing/ReviewConfirm.php:749
 #, fuzzy
 msgid "Portfolio link"
 msgstr "Portfolio ↗"
 
-#: includes/Publishing/ReviewConfirm.php:750
+#. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
+#: includes/Publishing/ReviewConfirm.php:776
+#, php-format
+msgid "Social link %d (optional)"
+msgstr ""
+
+#: includes/Publishing/ReviewConfirm.php:808
 msgid "Date"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:752
+#: includes/Publishing/ReviewConfirm.php:810
 msgid "Hour"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:755
+#: includes/Publishing/ReviewConfirm.php:813
 #, fuzzy
 msgid "Location"
 msgstr "Azione"
 
-#: includes/Publishing/ReviewConfirm.php:757
+#: includes/Publishing/ReviewConfirm.php:815
 #, fuzzy
 msgid "Address"
 msgstr "Indirizzo email"
 
-#: includes/Publishing/ReviewConfirm.php:759
+#: includes/Publishing/ReviewConfirm.php:817
 #, fuzzy
 msgid "Timezone"
 msgstr "Ora"
 
-#: includes/Publishing/ReviewConfirm.php:779
+#: includes/Publishing/ReviewConfirm.php:837
 msgid "Other"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:784
+#: includes/Publishing/ReviewConfirm.php:842
 msgid "— Not set —"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:952
+#: includes/Publishing/ReviewConfirm.php:962
 msgid "Discard this submission?"
 msgstr "Scartare questo invio?"
 
-#: includes/Publishing/ReviewConfirm.php:953
+#: includes/Publishing/ReviewConfirm.php:963
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "Questo scarterà definitivamente l'invio — non verrà pubblicato."
 
-#: includes/Publishing/ReviewConfirm.php:954
+#: includes/Publishing/ReviewConfirm.php:964
 msgid "Yes, discard it"
 msgstr "Sì, scartalo"
 
-#: includes/Publishing/ReviewConfirm.php:957
+#: includes/Publishing/ReviewConfirm.php:967
 msgid "Remove this artwork?"
 msgstr "Rimuovere questa opera?"
 
-#: includes/Publishing/ReviewConfirm.php:958
+#: includes/Publishing/ReviewConfirm.php:968
 msgid "This will remove the published artwork from the gallery."
 msgstr "Questo rimuoverà l'opera pubblicata dalla galleria."
 
-#: includes/Publishing/ReviewConfirm.php:959
+#: includes/Publishing/ReviewConfirm.php:969
 msgid "Yes, remove it"
 msgstr "Sì, rimuovila"
 
-#: includes/Publishing/ReviewConfirm.php:1052
-#: includes/Publishing/SubmissionsPage.php:253
+#: includes/Publishing/ReviewConfirm.php:1076
+#: includes/Publishing/SubmissionsPage.php:268
 msgid "Title"
 msgstr "Titolo"
 
-#: includes/Publishing/ReviewConfirm.php:1060
+#: includes/Publishing/ReviewConfirm.php:1084
 #, fuzzy
 msgid "Short description"
 msgstr "Descrizione"
 
-#: includes/Publishing/ReviewConfirm.php:1065
+#: includes/Publishing/ReviewConfirm.php:1089
 msgid "Full text"
 msgstr ""
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1075
+#: includes/Publishing/ReviewConfirm.php:1099
 #, fuzzy, php-format
 msgid "Publish this %s?"
 msgstr "Pubblicare questa opera?"
 
-#: includes/Publishing/ReviewConfirm.php:1098
+#: includes/Publishing/ReviewConfirm.php:1122
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:1104
-#: includes/Publishing/SubmissionsPage.php:233
+#: includes/Publishing/ReviewConfirm.php:1128
+#: includes/Publishing/SubmissionsPage.php:248
 msgid "Publish it"
 msgstr "Pubblicala"
 
-#: includes/Publishing/ReviewConfirm.php:1115
+#: includes/Publishing/ReviewConfirm.php:1139
 #, fuzzy
 msgid "biography"
 msgstr "Biografia"
 
-#: includes/Publishing/ReviewEndpoints.php:98
-#: includes/Publishing/ReviewEndpoints.php:170
-#: includes/Publishing/ReviewEndpoints.php:202
+#: includes/Publishing/ReviewEndpoints.php:102
+#: includes/Publishing/ReviewEndpoints.php:174
+#: includes/Publishing/ReviewEndpoints.php:206
 msgid "Submission not found."
 msgstr "Invio non trovato."
 
-#: includes/Publishing/ReviewEndpoints.php:107
-#: includes/Publishing/ReviewEndpoints.php:179
-#: includes/Publishing/ReviewEndpoints.php:211
+#: includes/Publishing/ReviewEndpoints.php:111
+#: includes/Publishing/ReviewEndpoints.php:183
+#: includes/Publishing/ReviewEndpoints.php:215
 msgid "This submission is not awaiting review."
 msgstr "Questo invio non è in attesa di revisione."
 
-#: includes/Publishing/ReviewEndpoints.php:287
+#: includes/Publishing/ReviewEndpoints.php:365
 #, fuzzy
 msgid "The original published item could not be found."
 msgstr "Non è stato possibile trovare questo numero della newsletter."
 
-#: includes/Publishing/ReviewEndpoints.php:432
+#: includes/Publishing/ReviewEndpoints.php:731
 msgid "You do not have permission to review this submission."
 msgstr "Non hai il permesso di revisionare questo invio."
 
-#: includes/Publishing/ReviewEndpoints.php:457
+#: includes/Publishing/ReviewEndpoints.php:756
 msgid "Review link not found or already used."
 msgstr "Link di revisione non trovato o già utilizzato."
 
-#: includes/Publishing/ReviewEndpoints.php:465
+#: includes/Publishing/ReviewEndpoints.php:764
 msgid "Invalid review token."
 msgstr "Token di revisione non valido."
 
-#: includes/Publishing/ReviewEndpoints.php:473
+#: includes/Publishing/ReviewEndpoints.php:772
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr "Questo link di revisione è scaduto. Accedi per gestire i tuoi invii."
 
-#: includes/Publishing/SubmissionsPage.php:123
+#: includes/Publishing/SubmissionsPage.php:124
 msgid "No submissions awaiting review."
 msgstr "Nessun invio in attesa di revisione."
 
-#: includes/Publishing/SubmissionsPage.php:237
+#: includes/Publishing/SubmissionsPage.php:252
 msgid "Make changes"
 msgstr "Apporta modifiche"
 
-#: includes/Publishing/SubmissionsPage.php:261
+#: includes/Publishing/SubmissionsPage.php:277
 msgid "One-line description"
 msgstr "Descrizione in una riga"
 
-#: includes/Publishing/SubmissionsPage.php:268
+#: includes/Publishing/SubmissionsPage.php:285
 msgid "Description"
 msgstr "Descrizione"
 
-#: includes/Publishing/SubmissionsPage.php:275
+#: includes/Publishing/SubmissionsPage.php:293
 msgid "Tags (comma-separated)"
 msgstr "Tag (separati da virgole)"
 
-#: includes/Publishing/SubmissionsPage.php:284
+#: includes/Publishing/SubmissionsPage.php:302
 msgid "Save &amp; Publish"
 msgstr "Salva e pubblica"
 
-#: includes/Publishing/SubmissionsPage.php:372
+#: includes/Publishing/SubmissionsPage.php:390
 msgid "Publishing…"
 msgstr "Pubblicazione…"
 
-#: includes/Publishing/SubmissionsPage.php:380
-#: includes/Publishing/SubmissionsPage.php:452
+#: includes/Publishing/SubmissionsPage.php:398
+#: includes/Publishing/SubmissionsPage.php:470
 msgid "Published ✓"
 msgstr "Pubblicato ✓"
 
-#: includes/Publishing/SubmissionsPage.php:382
-#: includes/Publishing/SubmissionsPage.php:407
-#: includes/Publishing/SubmissionsPage.php:454
+#: includes/Publishing/SubmissionsPage.php:400
+#: includes/Publishing/SubmissionsPage.php:425
+#: includes/Publishing/SubmissionsPage.php:472
 msgid "Something went wrong."
 msgstr "Qualcosa è andato storto."
 
-#: includes/Publishing/SubmissionsPage.php:387
-#: includes/Publishing/SubmissionsPage.php:412
-#: includes/Publishing/SubmissionsPage.php:459
+#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:430
+#: includes/Publishing/SubmissionsPage.php:477
 msgid "Could not connect. Please try again."
 msgstr "Impossibile connettersi. Riprova."
 
-#: includes/Publishing/SubmissionsPage.php:395
+#: includes/Publishing/SubmissionsPage.php:413
 msgid "Discard this submission? This cannot be undone."
 msgstr ""
 "Scartare questa candidatura? Questa operazione non può essere annullata."
 
-#: includes/Publishing/SubmissionsPage.php:397
+#: includes/Publishing/SubmissionsPage.php:415
 msgid "Discarding…"
 msgstr "Scarto in corso…"
 
-#: includes/Publishing/SubmissionsPage.php:405
+#: includes/Publishing/SubmissionsPage.php:423
 msgid "Discarded."
 msgstr "Scartato."
 
-#: includes/Publishing/SubmissionsPage.php:442
+#: includes/Publishing/SubmissionsPage.php:460
 msgid "Saving and publishing…"
 msgstr "Salvataggio e pubblicazione in corso…"
 
-#: includes/Publishing/SubmissionsPage.php:562
+#: includes/Publishing/SubmissionsPage.php:580
 msgid "Log in to view your submissions"
 msgstr "Accedi per visualizzare le tue candidature"
 
-#: includes/Publishing/SubmissionsPage.php:567
+#: includes/Publishing/SubmissionsPage.php:585
 msgid "Username or email address"
 msgstr "Nome utente o indirizzo email"
 
-#: includes/Publishing/SubmissionsPage.php:568
+#: includes/Publishing/SubmissionsPage.php:586
 msgid "Password"
 msgstr "Password"
 
-#: includes/Publishing/SubmissionsPage.php:569
+#: includes/Publishing/SubmissionsPage.php:587
 msgid "Log in"
 msgstr "Accedi"
 
-#: includes/Publishing/SubmissionsPage.php:571
+#: includes/Publishing/SubmissionsPage.php:589
 msgid "Remember me"
 msgstr "Ricordami"
 
-#: includes/Publishing/SubmissionsPage.php:577
+#: includes/Publishing/SubmissionsPage.php:595
 msgid "Forgot your password?"
 msgstr "Hai dimenticato la password?"
 
 #: blocks/artist-breadcrumb/editor.js:46
-#: blocks/breadcrumb-icon-link/editor.js:54
+#: blocks/breadcrumb-icon-link/editor.js:63
 msgid "Book"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:47
-#: blocks/breadcrumb-icon-link/editor.js:55
+#: blocks/breadcrumb-icon-link/editor.js:64
 msgid "Person"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:51
-#: blocks/breadcrumb-icon-link/editor.js:58
+#: blocks/breadcrumb-icon-link/editor.js:67
 msgid "Calendar"
 msgstr ""
 
 #: blocks/artist-breadcrumb/editor.js:52
-#: blocks/breadcrumb-icon-link/editor.js:59
+#: blocks/breadcrumb-icon-link/editor.js:68
 #, fuzzy
 msgid "Pin"
 msgstr "In sospeso"
@@ -5653,36 +5814,73 @@ msgstr ""
 msgid "Artist Name"
 msgstr "Nome dell'artista"
 
-#: blocks/breadcrumb-icon-link/editor.js:94
+#: blocks/breadcrumb-icon-link/editor.js:71
+#: blocks/newsletter-popover/editor.js:28
+msgid "Envelope"
+msgstr "Busta"
+
+#: blocks/breadcrumb-icon-link/editor.js:72
+msgid "Speech bubble"
+msgstr ""
+
+#: blocks/breadcrumb-icon-link/editor.js:81
+#: blocks/breadcrumb-icon-link/editor.js:115
+#, fuzzy
+msgid "Contact"
+msgstr "Contesto"
+
+#: blocks/breadcrumb-icon-link/editor.js:108
 #, fuzzy
 msgid "Link settings"
 msgstr "Impostazioni"
 
-#: blocks/breadcrumb-icon-link/editor.js:96
+#: blocks/breadcrumb-icon-link/editor.js:110
 #, fuzzy
 msgid "Link type"
 msgstr "Errore del link"
 
-#: blocks/breadcrumb-icon-link/editor.js:109
+#: blocks/breadcrumb-icon-link/editor.js:124
 msgid "Icon"
 msgstr ""
 
-#: blocks/breadcrumb-icon-link/editor.js:145
+#: blocks/breadcrumb-icon-link/editor.js:160
 #, fuzzy
 msgid "Biography Icon"
 msgstr "Biografia"
 
-#: blocks/breadcrumb-icon-link/editor.js:146
+#: blocks/breadcrumb-icon-link/editor.js:161
 msgid "Icon-only link to the artist’s biography."
 msgstr ""
 
-#: blocks/breadcrumb-icon-link/editor.js:155
+#: blocks/breadcrumb-icon-link/editor.js:170
 #, fuzzy
 msgid "Events Icon"
 msgstr "Eventi"
 
-#: blocks/breadcrumb-icon-link/editor.js:156
+#: blocks/breadcrumb-icon-link/editor.js:171
 msgid "Icon-only link to the artist’s events archive."
+msgstr ""
+
+#: blocks/breadcrumb-icon-link/editor.js:180
+#, fuzzy
+msgid "Contact Icon"
+msgstr "Eventi"
+
+#: blocks/breadcrumb-icon-link/editor.js:181
+msgid ""
+"Opens a popover with a form to message the artist directly. Hidden "
+"automatically if the artist has turned contact messages off."
+msgstr ""
+
+#: blocks/contact-form/editor.js:28
+#, fuzzy
+msgid "Artist Contact Form"
+msgstr "Newsletter per artisti"
+
+#: blocks/contact-form/editor.js:29
+msgid ""
+"Lets a visitor message the current artist subdomain’s artist. Content is "
+"rendered live on the frontend, for the artist currently being viewed."
 msgstr ""
 
 #: blocks/gallery-overview/editor.js:63
@@ -5727,10 +5925,6 @@ msgstr ""
 #: blocks/newsletter-popover/editor.js:27
 msgid "Bell"
 msgstr "Campanella"
-
-#: blocks/newsletter-popover/editor.js:28
-msgid "Envelope"
-msgstr "Busta"
 
 #: blocks/newsletter-popover/editor.js:29
 msgid "Star"
@@ -5789,8 +5983,8 @@ msgstr ""
 "visualizzazione. Non mostra nulla nel sito principale di Agnosis."
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
-#: blocks/breadcrumb-icon-link/block.json blocks/join/block.json
-#: blocks/submissions/block.json
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+#: blocks/join/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "artist"
 msgstr "artista"
@@ -5806,9 +6000,9 @@ msgid "subdomain"
 msgstr "sottodominio"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
-#: blocks/breadcrumb-icon-link/block.json blocks/join/block.json
-#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
-#: blocks/submissions/block.json
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+#: blocks/join/block.json blocks/newsletter-popover/block.json
+#: blocks/newsletter-signup/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
 msgstr "agnosis"
@@ -5834,8 +6028,9 @@ msgstr ""
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block description"
 msgid ""
-"A single icon-only link (Biography or Events) to the current artist's own "
-"content. Renders nothing if the artist has none yet, or off an artist "
+"A single icon-only link (Biography, Events, or a Contact popover) to/about "
+"the current artist. Renders nothing if there's nothing to show (no biography/"
+"events yet, or the artist has turned contact off), or off an artist "
 "subdomain."
 msgstr ""
 
@@ -5851,10 +6046,40 @@ msgctxt "block keyword"
 msgid "events"
 msgstr "evento"
 
+#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
+msgctxt "block keyword"
+msgid "contact"
+msgstr ""
+
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
 msgid "icon"
 msgstr ""
+
+#: blocks/contact-form/block.json
+#, fuzzy
+msgctxt "block title"
+msgid "Artist Contact Form"
+msgstr "Newsletter per artisti"
+
+#: blocks/contact-form/block.json
+msgctxt "block description"
+msgid ""
+"Contact form letting a visitor message the current artist subdomain's "
+"artist. Submits to a per-artist REST endpoint; the message is moderated, "
+"translated into the artist's own language, and emailed to them."
+msgstr ""
+
+#: blocks/contact-form/block.json
+#, fuzzy
+msgctxt "block keyword"
+msgid "message"
+msgstr "Messaggio"
+
+#: blocks/contact-form/block.json blocks/newsletter-signup/block.json
+msgctxt "block keyword"
+msgid "email"
+msgstr "email"
 
 #: blocks/gallery-overview/block.json
 msgctxt "block title"
@@ -5978,11 +6203,6 @@ msgid ""
 msgstr ""
 "Modulo di iscrizione via email per la newsletter pubblica (double opt-in). "
 "Invia all'endpoint REST di iscrizione alla newsletter."
-
-#: blocks/newsletter-signup/block.json
-msgctxt "block keyword"
-msgid "email"
-msgstr "email"
 
 #: blocks/newsletter-signup/block.json
 msgctxt "block keyword"

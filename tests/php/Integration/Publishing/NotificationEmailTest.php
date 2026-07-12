@@ -42,7 +42,6 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Publishing;
 
 use Agnosis\Publishing\Notification;
-use Agnosis\Publishing\ReviewConfirm;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
 
 require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
@@ -717,10 +716,18 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
-	// on_post_drafted() — fifth audit §4b: batched translate_fields() call +
-	// ReviewConfirm::BACKTRANSLATION_META cache warm. No existing test ever
-	// sets an artist locale different from the site locale, so this whole
-	// block (lines ~458-518 of Notification.php) was completely unexercised.
+	// on_post_drafted() — native-language pipeline (agnosis-audit/
+	// NATIVE-LANGUAGE-PIPELINE.md, Phase 5, 2026-07-13): on_post_drafted() no
+	// longer calls the AI translator at all, for any artist locale — content
+	// is already in the artist's own language at rest by the time this runs
+	// (Phase 1), so there is nothing left to back-translate for the review
+	// email preview. This replaces the four tests that used to cover the
+	// fifth-audit-§4b translate-and-cache block (batching, cache warm, cache
+	// skip-on-empty-response, same-locale skip) — that block, and the
+	// `ReviewConfirm::BACKTRANSLATION_META` cache it wrote into, are both
+	// deleted, so those tests no longer have anything to exercise. Replaced
+	// with two tests asserting the new invariant directly: never translates,
+	// never writes the (now-deleted) cache meta key, regardless of locale.
 	// =========================================================================
 
 	private function create_post_for_translation( int $artist_id, string $site_title, string $excerpt, string $body ): int {
@@ -737,7 +744,7 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		return $post_id;
 	}
 
-	public function test_on_post_drafted_batches_title_excerpt_and_body_into_one_translate_fields_call(): void {
+	public function test_on_post_drafted_never_translates_regardless_of_artist_locale(): void {
 		$artist = $this->create_artist( 'translated@example.com' );
 		update_user_meta( $artist->ID, 'locale', 'es_ES' );
 		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
@@ -756,46 +763,16 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$this->notification->on_post_drafted( $post_id, $artist->ID );
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
-		$this->assertCount( 1, WpAiClientTestRegistry::$prompts, 'title + excerpt + body must be translated in a single chat() call, not three.' );
-		$this->assertStringContainsString( 'TITLE:', WpAiClientTestRegistry::$prompts[0] );
-		$this->assertStringContainsString( 'EXCERPT:', WpAiClientTestRegistry::$prompts[0] );
-		$this->assertStringContainsString( 'BODY:', WpAiClientTestRegistry::$prompts[0] );
+		$this->assertSame(
+			[],
+			WpAiClientTestRegistry::$prompts,
+			'on_post_drafted() must never call the AI translator any more — content is already native at rest (Phase 1), even for an artist whose locale differs from the site\'s.'
+		);
 
 		delete_option( 'agnosis_ai_provider' );
 	}
 
-	public function test_on_post_drafted_warms_the_backtranslation_cache_with_the_matching_hash(): void {
-		$artist = $this->create_artist( 'cachewarm@example.com' );
-		update_user_meta( $artist->ID, 'locale', 'es_ES' );
-		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
-
-		$excerpt = 'A vivid excerpt.';
-		$body    = '<p>Full body content.</p>';
-		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', $excerpt, $body );
-
-		update_option( 'agnosis_ai_provider', 'wp_ai' );
-		WpAiClientTestRegistry::$response = (string) wp_json_encode( [
-			'title'   => 'Amanecer',
-			'excerpt' => 'Un extracto vívido.',
-			'body'    => 'Contenido completo.',
-		] );
-
-		$captured = null;
-		$filter   = $this->capture_mail( $captured );
-		$this->notification->on_post_drafted( $post_id, $artist->ID );
-		remove_filter( 'pre_wp_mail', $filter, 10 );
-
-		$cached = get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true );
-		$this->assertIsArray( $cached );
-		$this->assertSame( md5( $excerpt . '|' . wp_strip_all_tags( $body ) ), $cached['hash'] );
-		$this->assertSame( 'es', $cached['lang'] );
-		$this->assertSame( 'Un extracto vívido.', $cached['excerpt'] );
-		$this->assertSame( 'Contenido completo.', $cached['body'] );
-
-		delete_option( 'agnosis_ai_provider' );
-	}
-
-	public function test_on_post_drafted_does_not_warm_cache_when_translation_response_has_no_body(): void {
+	public function test_on_post_drafted_writes_no_backtranslation_cache(): void {
 		$artist = $this->create_artist( 'nocachewarm@example.com' );
 		update_user_meta( $artist->ID, 'locale', 'es_ES' );
 		add_filter( 'agnosis_translation_languages', fn( array $langs ) => array_replace( $langs, [ 'es' => 'Spanish' ] ) );
@@ -803,7 +780,6 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', 'An excerpt.', '<p>Body.</p>' );
 
 		update_option( 'agnosis_ai_provider', 'wp_ai' );
-		// Response only contains "title" — no "excerpt"/"body" keys at all.
 		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'title' => 'Amanecer' ] );
 
 		$captured = null;
@@ -811,25 +787,10 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$this->notification->on_post_drafted( $post_id, $artist->ID );
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 
-		$this->assertSame( '', (string) get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true ) );
-
-		delete_option( 'agnosis_ai_provider' );
-	}
-
-	public function test_on_post_drafted_skips_translation_entirely_when_artist_locale_matches_site_locale(): void {
-		$artist = $this->create_artist( 'samelocale@example.com' );
-		// No distinct locale set — artist_locale resolves to '' or equals get_locale().
-		update_option( 'agnosis_ai_provider', 'wp_ai' );
-
-		$post_id = $this->create_post_for_translation( $artist->ID, 'Sunrise', 'An excerpt.', '<p>Body.</p>' );
-
-		$captured = null;
-		$filter   = $this->capture_mail( $captured );
-		$this->notification->on_post_drafted( $post_id, $artist->ID );
-		remove_filter( 'pre_wp_mail', $filter, 10 );
-
-		$this->assertSame( [], WpAiClientTestRegistry::$prompts, 'No translation call should ever be made when the artist has no distinct locale.' );
-		$this->assertSame( '', (string) get_post_meta( $post_id, ReviewConfirm::BACKTRANSLATION_META, true ) );
+		// '_agnosis_review_backtranslation' — the literal meta key
+		// ReviewConfirm::BACKTRANSLATION_META used to name before it was
+		// deleted (Phase 5) — must never be written by on_post_drafted() any more.
+		$this->assertSame( '', (string) get_post_meta( $post_id, '_agnosis_review_backtranslation', true ) );
 
 		delete_option( 'agnosis_ai_provider' );
 	}

@@ -1,0 +1,12 @@
+Plus Jakarta Sans
+Designed by Tokotype.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: https://openfontlicense.org
+
+The bundled file (plus-jakarta-sans_normal_600.ttf, weight 600/SemiBold) is a
+plugin-owned copy used solely for server-side image generation
+(TextPosterGenerator) — kept independent of any specific theme so this
+plugin's core functionality never depends on a particular theme being
+active. Sourced from the same Plus Jakarta Sans family used by the
+agnosis-theme repo.

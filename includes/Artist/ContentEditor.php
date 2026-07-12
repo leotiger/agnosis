@@ -79,8 +79,21 @@ class ContentEditor {
 			'title'   => 'post_title',
 		],
 		'agnosis_biography' => [
-			'content' => 'post_content',
-			'title'   => 'post_title',
+			'content'      => 'post_content',
+			'title'        => 'post_title',
+			// 2026-07-13: added alongside the biography approve-form social-link
+			// fields (Publishing\ReviewConfirm, Publishing\SocialLinks) — same
+			// "REST-reachable now, no on-page click affordance yet" state
+			// event_timezone below has had since 2026-07-10. An artist can
+			// already set these three at approval time; this lets a later
+			// correction reach the same meta once a front-end affordance for it
+			// exists. portfolio_url is deliberately NOT added here — it has
+			// never been ContentEditor-editable (only approval-form-editable,
+			// via sync_portfolio_embed()'s EmbedPolicy re-check), and this
+			// change doesn't alter that.
+			'social_url_1' => '_agnosis_biography_social_url_1',
+			'social_url_2' => '_agnosis_biography_social_url_2',
+			'social_url_3' => '_agnosis_biography_social_url_3',
 		],
 		'agnosis_event'     => [
 			'content'         => 'post_content',
@@ -243,6 +256,16 @@ class ContentEditor {
 			return new WP_Error(
 				'agnosis_invalid_timezone',
 				__( 'That does not look like a valid timezone (e.g. "Europe/Madrid").', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		if ( in_array( $field, [ 'social_url_1', 'social_url_2', 'social_url_3' ], true )
+			&& '' !== $value && ! preg_match( '#^https?://#i', $value )
+		) {
+			return new WP_Error(
+				'agnosis_invalid_url',
+				__( 'That does not look like a valid link (must start with http:// or https://).', 'agnosis' ),
 				[ 'status' => 400 ]
 			);
 		}
@@ -708,6 +731,7 @@ class ContentEditor {
 			'event_date'     => sanitize_text_field( $value ),
 			'event_address'  => sanitize_text_field( $value ),
 			'event_timezone' => sanitize_text_field( $value ),
+			'social_url_1', 'social_url_2', 'social_url_3' => esc_url_raw( $value ),
 			'title'          => sanitize_text_field( $value ),
 			default          => sanitize_textarea_field( $value ),
 		};

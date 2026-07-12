@@ -363,8 +363,20 @@ class Parser {
 			Debug::write( 'parser-attachments', implode( "\n", $debug_lines ) );
 		}
 
-		if ( empty( $attachments ) ) {
-			return null; // No usable attachments — skip.
+		$cleaned_description = $this->clean_text( $text_body );
+
+		// Poetry is art too, and a biography can be text-only — an email with
+		// no attachment isn't automatically empty. Only reject when there's
+		// truly nothing to publish: no attachment AND no real text. This lets
+		// bio@/pure@ (and, as a side effect, event@/remove@/promote@, none of
+		// which ever depended on an attachment downstream) through; PostCreator
+		// already has its own attachment-optional handling for those post
+		// types (see PostCreator::handle()'s "Biography/event emails may have
+		// no attachments" branch) — a genuinely new agnosis_artwork submission
+		// still needs either an attachment or text, which this same check
+		// still enforces.
+		if ( empty( $attachments ) && '' === $cleaned_description ) {
+			return null; // Nothing usable — skip.
 		}
 
 		$artist_id = $this->resolve_artist( $from );
@@ -374,7 +386,7 @@ class Parser {
 			'to_address'   => $to_address,
 			'to_addresses' => $all_recipients,
 			'subject'      => $subject,
-			'description'  => $this->clean_text( $text_body ),
+			'description'  => $cleaned_description,
 			'attachments'  => $attachments,
 			'artist_id'    => $artist_id,
 			'source'       => 'imap',
@@ -484,7 +496,13 @@ class Parser {
 			}
 		}
 
-		if ( empty( $attachments ) ) {
+		$cleaned_description = $this->clean_text( $description );
+
+		// See parse_imap_message()'s identical guard for the full rationale —
+		// text-only bio@/pure@ submissions (and event@/remove@/promote@, which
+		// never needed an attachment at all) must not be dropped here just
+		// because no file was attached.
+		if ( empty( $attachments ) && '' === $cleaned_description ) {
 			return null;
 		}
 
@@ -493,7 +511,7 @@ class Parser {
 			'to_address'   => $to_address,
 			'to_addresses' => $to_addresses,
 			'subject'      => $subject,
-			'description'  => $this->clean_text( $description ),
+			'description'  => $cleaned_description,
 			'attachments'  => $attachments,
 			'artist_id'    => $this->resolve_artist( $from ),
 			'source'       => 'webhook',

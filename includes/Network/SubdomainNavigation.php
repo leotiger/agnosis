@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Network;
 
+use Agnosis\Artist\ContactForm;
 use Agnosis\Compat\LinguaForge;
 
 class SubdomainNavigation {
@@ -192,6 +193,17 @@ class SubdomainNavigation {
 			'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
 			'pin'      => '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>',
 		],
+		// 2026-07-12: added alongside the new contact-form feature — this
+		// entry's 'type' is handled entirely differently to the two above
+		// (a popover trigger + panel, not a plain <a href>; see
+		// render_contact_icon_link()) but shares this same const array so its
+		// icon glyphs stay next to biography/events' own, and so editor.js's
+		// icon picker (kept in sync by hand — see that file's own comment)
+		// has one single JS-side mirror of this whole array, not two.
+		'contact' => [
+			'mail'    => '<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m2 6 10 7 10-7"></path>',
+			'message' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>',
+		],
 	];
 
 	/**
@@ -316,7 +328,11 @@ class SubdomainNavigation {
 	 * only real custom attributes, since there's no core supports equivalent
 	 * for "which link" or "which glyph."
 	 *
-	 * @param array<string, mixed> $attributes Block attributes ('type': 'biography'|'events',
+	 * `type=contact` is handled entirely separately (render_contact_icon_link())
+	 * — a popover trigger + panel rather than a plain link — see that method's
+	 * own docblock.
+	 *
+	 * @param array<string, mixed> $attributes Block attributes ('type': 'biography'|'events'|'contact',
 	 *                                          'icon': one of self::LINK_ICON_SETS[type]'s keys).
 	 * @return string
 	 */
@@ -327,7 +343,14 @@ class SubdomainNavigation {
 			return '';
 		}
 
-		$type = 'events' === ( $attributes['type'] ?? 'biography' ) ? 'events' : 'biography';
+		$type = (string) ( $attributes['type'] ?? 'biography' );
+		if ( ! in_array( $type, [ 'biography', 'events', 'contact' ], true ) ) {
+			$type = 'biography';
+		}
+
+		if ( 'contact' === $type ) {
+			return $this->render_contact_icon_link( (int) $artist_id, $attributes );
+		}
 
 		if ( 'biography' === $type ) {
 			$url          = $this->biography_permalink( $artist_id );
@@ -367,6 +390,109 @@ class SubdomainNavigation {
 			esc_attr( $label ),
 			$path
 		);
+	}
+
+	/**
+	 * Build the contact breadcrumb icon: a popover trigger button plus the
+	 * popover panel itself (containing the agnosis/contact-form block) —
+	 * unlike the biography/events branches above, this never renders a plain
+	 * `<a href>`. Mirrors Newsletter\PopoverBlock's exact trigger-button +
+	 * `popover="auto"` panel shape (native Popover API, no custom JS needed
+	 * for the show/hide toggle itself — only the form submission inside the
+	 * panel needs one, see blocks/contact-form/frontend.js).
+	 *
+	 * Renders nothing at all when the current artist has turned the form off
+	 * (Artist\ContactForm::artist_accepts_contact()) — checked twice,
+	 * deliberately: once here (so the trigger icon doesn't appear pointing at
+	 * a popover with nothing useful inside it) and again inside
+	 * ContactFormBlock::render_block() itself (so the form still renders
+	 * correctly if that block is ever placed directly, outside this popover).
+	 *
+	 * @param array<string, mixed> $attributes Block attributes ('icon': one of
+	 *                                          self::LINK_ICON_SETS['contact']'s keys).
+	 */
+	private function render_contact_icon_link( int $artist_id, array $attributes ): string {
+		if ( ! ContactForm::artist_accepts_contact( $artist_id ) ) {
+			return '';
+		}
+
+		// Standard WP block rendering rather than instantiating
+		// ContactFormBlock directly — same reasoning as
+		// Newsletter\PopoverBlock::render_block()'s identical call for
+		// agnosis/newsletter-signup.
+		$contact_form = render_block( [
+			'blockName'    => 'agnosis/contact-form',
+			'attrs'        => [],
+			'innerBlocks'  => [],
+			'innerHTML'    => '',
+			'innerContent' => [],
+		] );
+
+		if ( '' === $contact_form ) {
+			return '';
+		}
+
+		$this->enqueue_breadcrumb_icon_link_assets();
+
+		$set         = self::LINK_ICON_SETS['contact'];
+		$icon_key    = (string) ( $attributes['icon'] ?? '' );
+		$path        = $set[ $icon_key ] ?? $set['mail'];
+		$artist_name = $this->artist_name( $artist_id );
+
+		// Personalize both the trigger button's label and the popover title
+		// with the artist's name when it resolves — falls back to the
+		// generic wording ('artist_name()' already handles a user lookup
+		// failure elsewhere, but this method's own caller only ever reaches
+		// here after artist_accepts_contact() confirmed a real artist, so
+		// the fallback is a defensive belt-and-suspenders, not an expected
+		// path).
+		$label = '' !== $artist_name
+			/* translators: %s: artist display name */
+			? sprintf( __( 'Contact %s', 'agnosis' ), $artist_name )
+			: __( 'Contact this artist', 'agnosis' );
+
+		$popover_title = '' !== $artist_name
+			/* translators: %s: artist display name */
+			? sprintf( __( 'Get in touch with %s', 'agnosis' ), $artist_name )
+			: __( 'Get in touch', 'agnosis' );
+
+		$wrapper_attributes = get_block_wrapper_attributes();
+
+		ob_start();
+		?>
+		<button
+			type="button"
+			<?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() escapes its own output. ?>
+			popovertarget="agnosis-contact-popover"
+			popovertargetaction="show"
+			aria-label="<?php echo esc_attr( $label ); ?>"
+			title="<?php echo esc_attr( $label ); ?>"
+		>
+			<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+				<?php echo $path; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed, hand-authored markup from self::LINK_ICON_SETS, never user input. ?>
+			</svg>
+		</button>
+
+		<div id="agnosis-contact-popover" class="agnosis-contact-popover" popover="auto">
+			<button
+				type="button"
+				class="agnosis-contact-popover__close"
+				popovertarget="agnosis-contact-popover"
+				popovertargetaction="hide"
+				aria-label="<?php esc_attr_e( 'Close', 'agnosis' ); ?>"
+			>
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+					<path d="M4 4l16 16M20 4 4 20"></path>
+				</svg>
+			</button>
+
+			<div class="agnosis-contact-popover__inner">
+				<h2 class="agnosis-contact-popover__title"><?php echo esc_html( $popover_title ); ?></h2>
+				<?php echo $contact_form; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- render_block() output is already escaped by the contact-form block itself. ?>
+			</div>
+		</div>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**

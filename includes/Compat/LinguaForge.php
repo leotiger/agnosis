@@ -79,6 +79,7 @@ declare(strict_types=1);
 namespace Agnosis\Compat;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Core\Logger;
 
 class LinguaForge {
 
@@ -184,7 +185,20 @@ class LinguaForge {
 		// artwork titles and queueing the body translations — runs later in
 		// dispatch_translations(), so a slow webhook/IMAP intake never blocks on N
 		// (or 2N) AI calls. See schedule_translations() / dispatch_translations().
-		add_action( 'agnosis_post_published',        [ $this, 'schedule_translations' ], 20, 1 );
+		//
+		// accepted_args bumped 1 -> 2 (native-language pipeline, Phase 4, 2026-07-12
+		// — agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md §4d): a first-time publish of
+		// a native-first draft (ReviewEndpoints::finalize_publish()'s direct branch)
+		// now fires 'agnosis_post_published' with an optional second arg — the
+		// artist's own native language, to exclude it from LF's AI-driven fan-out
+		// now that a native-language sibling is created directly instead (see
+		// sync_native_sibling()). The action's only other call site (the same
+		// finalize_publish() method) is the one being updated to pass it; every
+		// OTHER existing `add_action( 'agnosis_post_published', ..., 1 )` registration
+		// on this same hook (ActivityPub::broadcast, this class's own
+		// set_language_meta() just above) is unaffected — accepted_args is set
+		// per-callback, not per-hook, so they simply continue to ignore the extra arg.
+		add_action( 'agnosis_post_published',        [ $this, 'schedule_translations' ], 20, 2 );
 		// accepted_args bumped 1 -> 2: dispatch_translations() now also accepts an
 		// optional $exclude_langs list (see schedule_fanout(), used by
 		// Artist\ContentEditor for front-end corrections — audit §7c, reassessed
@@ -428,6 +442,371 @@ class LinguaForge {
 	}
 
 	// -------------------------------------------------------------------------
+	// Native-language sibling (native-language pipeline, Phase 4)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Suppression flag for sync_translated_terms() while sync_native_sibling()
+	 * below fires 'linguaforge_translation_complete' for a sibling it just
+	 * created/updated directly — see sync_native_sibling()'s own docblock for
+	 * why. Static (not instance state) so it works regardless of which
+	 * LinguaForge instance's hooks happen to be registered: sync_native_sibling()
+	 * is deliberately callable without an instance (same reasoning as
+	 * schedule_fanout()), so it has no `$this` to unhook a specific `[$this,
+	 * 'sync_translated_terms']` registration the way an instance method could.
+	 *
+	 * @var boolean
+	 */
+	private static bool $suppress_native_sibling_term_sync = false;
+
+	/**
+	 * Create or update the artist's own native-language sibling post directly
+	 * — no AI call — from the native-language content
+	 * ReviewEndpoints::finalize_publish() preserves at approval (Phase 2, §4b:
+	 * `_agnosis_native_lang`/`_agnosis_native_excerpt`/`_agnosis_native_body`/
+	 * `_agnosis_native_medium`/`_agnosis_native_tags`). This is Phase 4 (§4d)
+	 * of the native-language pipeline redesign — agnosis-audit/
+	 * NATIVE-LANGUAGE-PIPELINE.md.
+	 *
+	 * Replicates the exact recipe confirmed against Lingua Forge's own source
+	 * during Phase 0 (§4d) — `TranslationTrigger::create_translated_post()` /
+	 * `update_translated_post()` — using only LF's public API, since those two
+	 * methods are themselves private to LF and always spend an AI call
+	 * regardless (`linguaforge_trigger_translation()`/`linguaforge_queue_translation()`
+	 * have no way to bypass that): get-or-create the TRID
+	 * (`linguaforge_get_trid()`/`linguaforge_set_trid()`), create the post via
+	 * a plain `wp_insert_post()` — or update an existing one via
+	 * `wp_update_post()` if this artist already has a sibling for this
+	 * language, e.g. a resubmission or a second staged update — link it into
+	 * the TRID group (`_lf_trid`/`_lf_lang`), clear LF's translation-lookup
+	 * cache (`linguaforge_clear_translation_cache()`), assign the
+	 * language-specific FSE template the same way LF's own creation path does
+	 * (`Router::get_instance()->sync->assign_template_if_needed()` — confirmed
+	 * public during Phase 0), and fire `linguaforge_translation_complete` so
+	 * every OTHER integration hooked on it (this class's own
+	 * `copy_translated_meta()`/`sync_translated_template()`, and any
+	 * third-party listener) treats this sibling exactly like an
+	 * LF-AI-translated one in every respect except its own tags/medium — see
+	 * the suppression flag above for why those are excluded from that action's
+	 * normal handling and set directly instead, from data that's already
+	 * correct in the native language rather than needing translation at all.
+	 *
+	 * No-ops (nothing created, updated, or changed) when: Lingua Forge isn't
+	 * active, $primary_post_id isn't an Agnosis CPT, no native language was
+	 * ever recorded for it (`_agnosis_native_lang`, only set by the
+	 * native-first pipeline), that language isn't one Lingua Forge is actually
+	 * configured to route to, the artist's native language already matches
+	 * the site's primary language (nothing to create — the primary post
+	 * already serves that role), or Phase 3 never actually preserved any
+	 * native content for this post (both `_agnosis_native_excerpt` and
+	 * `_agnosis_native_body` empty — e.g. called on a post that was never
+	 * translated to begin with).
+	 *
+	 * Public and static — self-contained, deliberately callable without
+	 * instantiating a `LinguaForge` object, same reasoning as
+	 * `schedule_fanout()`: a second `new LinguaForge()` would re-register
+	 * every constructor hook a second time.
+	 */
+	public static function sync_native_sibling( int $primary_post_id ): void {
+		if ( ! self::is_active() || ! in_array( get_post_type( $primary_post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
+			return;
+		}
+
+		$native_lang = (string) get_post_meta( $primary_post_id, '_agnosis_native_lang', true );
+		if ( '' === $native_lang || ! function_exists( 'linguaforge_languages' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		if ( ! in_array( $native_lang, linguaforge_languages(), true ) ) {
+			return; // Site isn't configured to route to this language at all.
+		}
+
+		$primary_lang = (string) get_post_meta( $primary_post_id, '_lf_lang', true );
+		if ( $native_lang === $primary_lang ) {
+			return; // Artist already writes in the site's primary language — the primary post IS the native one.
+		}
+
+		$native_excerpt = (string) get_post_meta( $primary_post_id, '_agnosis_native_excerpt', true );
+		$native_body    = (string) get_post_meta( $primary_post_id, '_agnosis_native_body', true );
+		if ( '' === $native_excerpt && '' === $native_body ) {
+			return; // Nothing preserved to build a sibling from.
+		}
+
+		$source = get_post( $primary_post_id );
+		if ( ! $source instanceof \WP_Post ) {
+			return;
+		}
+
+		if ( ! function_exists( 'linguaforge_get_trid' ) || ! function_exists( 'linguaforge_set_trid' )
+			|| ! function_exists( 'linguaforge_get_translations' ) || ! function_exists( 'linguaforge_clear_translation_cache' )
+		) {
+			return; // Defensive — these are all core language-router functions; absence means an LF version this integration can't drive.
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$trid = linguaforge_get_trid( $primary_post_id );
+		if ( '' === $trid ) {
+			$trid = wp_generate_uuid4();
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+			linguaforge_set_trid( $primary_post_id, $trid );
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$translations = linguaforge_get_translations( $primary_post_id );
+		$sibling_id   = (int) ( $translations[ $native_lang ] ?? 0 );
+
+		// Native excerpt/body were already stripped of markup when preserved
+		// (ReviewEndpoints::translate_native_content_to_primary()) — rebuild
+		// the sibling's content the same way the primary post's own content is
+		// shaped: leading image/gallery block(s), then one paragraph block.
+		// Image blocks are language-neutral (the same photos), so they're
+		// copied verbatim from whatever the primary post's CURRENT content
+		// already has at its top, rather than re-derived from
+		// `_agnosis_gallery_ids` — simpler, and guaranteed to match exactly
+		// what the primary post is actually showing.
+		$image_blocks = '';
+		if ( preg_match( '/^((?:<!-- wp:(?:image|gallery)[^>]*-->.*?<!-- \/wp:(?:image|gallery) -->[\s]*)+)/s', $source->post_content, $matches ) ) {
+			$image_blocks = trim( $matches[1] );
+		}
+		$body_block = '' !== $native_body
+			? '<!-- wp:paragraph --><p>' . wp_kses_post( $native_body ) . '</p><!-- /wp:paragraph -->'
+			: '';
+		$content = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
+
+		if ( $sibling_id > 0 ) {
+			$sibling_id = self::update_native_sibling_post( $sibling_id, $source, $native_excerpt, $content );
+		} else {
+			$sibling_id = self::create_native_sibling_post( $source, $native_lang, $trid, $native_excerpt, $content );
+		}
+
+		if ( 0 === $sibling_id ) {
+			return; // Insert/update failed — already logged by the helper.
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		linguaforge_clear_translation_cache( $sibling_id );
+
+		if ( function_exists( 'linguaforge_mark_translation_synced' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+			linguaforge_mark_translation_synced( $sibling_id );
+		}
+
+		if ( class_exists( '\LinguaForge\Router\Router' ) ) {
+			$router       = \LinguaForge\Router\Router::get_instance();
+			$sibling_post = get_post( $sibling_id );
+			if ( $sibling_post instanceof \WP_Post ) {
+				$router->sync->assign_template_if_needed( $sibling_id, $sibling_post, $native_lang );
+			}
+		}
+
+		// Suppressed for the exact duration of this action: our own
+		// sync_translated_terms() (hooked on this same action for every OTHER
+		// LF-AI-translated sibling) would otherwise spend an AI call
+		// re-translating tags/medium this sibling already has correctly, in
+		// its own native language (see Phase 0, §4d). Every OTHER listener on
+		// this action — copy_translated_meta(), sync_translated_template(),
+		// and any third-party integration — fires completely normally.
+		self::$suppress_native_sibling_term_sync = true;
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- linguaforge_ is the registered plugin prefix.
+		do_action( 'linguaforge_translation_complete', $sibling_id, $primary_post_id, $native_lang );
+		self::$suppress_native_sibling_term_sync = false;
+
+		// Assign the already-native tags/medium directly — no AI call, and no
+		// re-derivation from the (primary-language) $translated['tags']/
+		// ['medium'] this whole redesign exists precisely to avoid spending a
+		// second translation pass on.
+		$native_tags_json = (string) get_post_meta( $primary_post_id, '_agnosis_native_tags', true );
+		$native_tags      = $native_tags_json ? (array) json_decode( $native_tags_json, true ) : [];
+		if ( ! empty( $native_tags ) ) {
+			wp_set_post_tags( $sibling_id, $native_tags );
+		}
+
+		if ( 'agnosis_artwork' === $source->post_type ) {
+			$native_medium = (string) get_post_meta( $primary_post_id, '_agnosis_native_medium', true );
+			if ( '' !== $native_medium ) {
+				wp_set_object_terms( $sibling_id, $native_medium, 'agnosis_medium' );
+			}
+		}
+	}
+
+	/**
+	 * Insert the native-language sibling post — the create half of
+	 * sync_native_sibling(). Mirrors `TranslationTrigger::create_translated_post()`'s
+	 * own recipe: bypass `wp_after_insert_post` handlers during the insert
+	 * (same reasoning LF's own code documents — those handlers assume a
+	 * translation event that hasn't happened yet at this point,
+	 * `_lf_trid`/`_lf_lang` aren't written until after this insert returns),
+	 * apply the `linguaforge_translated_post_meta` filter for born-with meta
+	 * (this class's own supply_translated_meta() is already registered on it
+	 * — see the constructor — so the sibling gets its gallery/thumbnail/
+	 * original title the moment it exists, same as any LF-AI-translated
+	 * sibling), then write `_lf_trid`/`_lf_lang` once the post has an ID.
+	 *
+	 * post_title is the primary post's own post_title, verbatim — never a
+	 * synthetic "Title [XX]" fallback the way LF's own `build_create_args()`
+	 * falls back to for an AI translation with no result: this class's
+	 * dual-title design means post_title is ALREADY the artist's own native
+	 * words, identical for every language sibling by design (see
+	 * hold_artist_title()) — there's nothing to translate or fall back on here.
+	 *
+	 * @return int New post ID, or 0 on failure (logged).
+	 */
+	private static function create_native_sibling_post( \WP_Post $source, string $target_lang, string $trid, string $excerpt, string $content ): int {
+		$insert = [
+			'post_title'   => $source->post_title,
+			'post_excerpt' => $excerpt,
+			'post_content' => $content,
+			'post_status'  => $source->post_status,
+			'post_type'    => $source->post_type,
+			'post_author'  => (int) $source->post_author,
+		];
+
+		// See TranslationTrigger::create_translated_post()'s own docblock for
+		// this filter's contract — same filter, same shape.
+		$meta = (array) apply_filters(
+			'linguaforge_translated_post_meta', // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- linguaforge_ is the registered plugin prefix.
+			[],
+			$source->ID,
+			$target_lang,
+			$source->post_type
+		);
+		unset( $meta['_lf_trid'], $meta['_lf_lang'] ); // LF-authoritative — written explicitly below, never via the filter.
+
+		if ( ! isset( $meta['_thumbnail_id'] ) && post_type_supports( $source->post_type, 'thumbnail' ) ) {
+			$source_thumbnail_id = (int) get_post_thumbnail_id( $source->ID );
+			if ( $source_thumbnail_id ) {
+				$meta['_thumbnail_id'] = $source_thumbnail_id;
+			}
+		}
+		if ( [] !== $meta ) {
+			$insert['meta_input'] = $meta;
+		}
+
+		$hooks  = self::unhook_lf_save_handlers();
+		$new_id = wp_insert_post( $insert, true );
+		self::rehook_lf_save_handlers( $hooks );
+
+		if ( is_wp_error( $new_id ) ) {
+			Logger::error(
+				sprintf( 'LinguaForge::create_native_sibling_post(#%d → %s): wp_insert_post() failed — %s', $source->ID, $target_lang, $new_id->get_error_message() ),
+				'lingua-forge'
+			);
+			return 0;
+		}
+
+		update_post_meta( $new_id, '_lf_trid', $trid );
+		update_post_meta( $new_id, '_lf_lang', $target_lang );
+
+		return (int) $new_id;
+	}
+
+	/**
+	 * Update an existing native-language sibling with fresh content — the
+	 * update half of sync_native_sibling(), reached on a resubmission or a
+	 * second staged update once the sibling already exists. Mirrors
+	 * `TranslationTrigger::update_translated_post()`'s own recipe, including
+	 * its `page_template` reset (that method's own docblock explains why: WP
+	 * 6.7+ can otherwise throw an `invalid_page_template` error updating a
+	 * post whose `_wp_page_template` already holds an FSE slug like
+	 * `single-agnosis_artwork-es` that isn't in `get_page_templates()`;
+	 * `assign_template_if_needed()`, called by sync_native_sibling() right
+	 * after this returns, re-assigns the correct template once the update has
+	 * completed).
+	 *
+	 * post_title IS re-synced on every update (see the inline comment on that
+	 * field below) — unlike a normal LF-AI translation, there's no separate
+	 * translated-title concept here to preserve: it's always meant to be an
+	 * exact mirror of the primary post's own post_title (see
+	 * create_native_sibling_post()'s docblock).
+	 *
+	 * @return int $existing_id on success, 0 on failure (logged).
+	 */
+	private static function update_native_sibling_post( int $existing_id, \WP_Post $source, string $excerpt, string $content ): int {
+		$updated = wp_update_post(
+			[
+				'ID'            => $existing_id,
+				// Re-synced on every update, not just written once at creation
+				// — a resubmission (replace@, or any subsequent staged update)
+				// can carry a different subject/title from the artist, and the
+				// sibling's post_title must keep mirroring the primary post's
+				// own post_title exactly, forever, per the dual-title invariant
+				// (see create_native_sibling_post()'s docblock).
+				'post_title'    => $source->post_title,
+				'post_excerpt'  => $excerpt,
+				'post_content'  => $content,
+				'page_template' => 'default',
+			],
+			true
+		);
+
+		if ( is_wp_error( $updated ) ) {
+			Logger::error(
+				sprintf( 'LinguaForge::update_native_sibling_post(#%d, source #%d): wp_update_post() failed — %s', $existing_id, $source->ID, $updated->get_error_message() ),
+				'lingua-forge'
+			);
+			return 0;
+		}
+
+		return $existing_id;
+	}
+
+	/**
+	 * Unhook Lingua Forge's own `wp_after_insert_post` save handlers for the
+	 * duration of a programmatic `wp_insert_post()` call — same pattern
+	 * `TranslationTrigger::create_translated_post()` itself uses, and for the
+	 * identical reason: those handlers (`TranslationSync::handle_save_post()`,
+	 * `TridGroup::handle_cache_clear()`) assume a normal editor save or a
+	 * completed translation event, neither of which this is yet.
+	 *
+	 * Safe to call regardless of who else has hooked `wp_after_insert_post`:
+	 * `remove_action()`/`add_action()` here target only these two specific
+	 * callables, obtained from LF's own `Router::get_instance()` singleton —
+	 * the exact same object reference LF's own bootstrap registered them
+	 * with, so this correctly finds and restores LF's hooks specifically,
+	 * without touching anyone else's.
+	 *
+	 * @return array<int, array{0: object, 1: string}> The exact hook
+	 *         registrations removed, for rehook_lf_save_handlers() to
+	 *         restore. Empty when the Router class isn't available
+	 *         (defensive — should never happen given is_active() already
+	 *         gated the caller).
+	 */
+	private static function unhook_lf_save_handlers(): array {
+		if ( ! class_exists( '\LinguaForge\Router\Router' ) ) {
+			return [];
+		}
+
+		$router = \LinguaForge\Router\Router::get_instance();
+		$hooks  = [
+			[ $router->sync, 'handle_save_post' ],
+			[ $router->trid_group, 'handle_cache_clear' ],
+		];
+
+		remove_action( 'wp_after_insert_post', $hooks[0], 10 );
+		remove_action( 'wp_after_insert_post', $hooks[1], 20 );
+
+		return $hooks;
+	}
+
+	/**
+	 * Restore whatever unhook_lf_save_handlers() removed. Called immediately
+	 * after the wp_insert_post() call it wraps — see create_native_sibling_post().
+	 *
+	 * @param array<int, array{0: object, 1: string}> $hooks Return value of unhook_lf_save_handlers().
+	 */
+	private static function rehook_lf_save_handlers( array $hooks ): void {
+		if ( empty( $hooks ) ) {
+			return;
+		}
+
+		// @phpstan-ignore-next-line — dynamic [object, method] callbacks are valid callables at runtime; $router->sync/$router->trid_group are typed `object` because LF isn't autoloaded for static analysis.
+		add_action( 'wp_after_insert_post', $hooks[0], 10, 2 );
+		// @phpstan-ignore-next-line — same reasoning as above.
+		add_action( 'wp_after_insert_post', $hooks[1], 20 );
+	}
+
+	// -------------------------------------------------------------------------
 	// Translated-post meta propagation
 	// -------------------------------------------------------------------------
 
@@ -546,6 +925,17 @@ class LinguaForge {
 	 * @param string $target_lang   Target language code.
 	 */
 	public function sync_translated_terms( int $translated_id, int $source_id, string $target_lang ): void {
+		// Native-language pipeline (Phase 4, §4d) — sync_native_sibling() sets
+		// this flag around its own 'linguaforge_translation_complete' firing:
+		// the sibling it just created/updated already carries the correct
+		// native-language tags/medium (set directly from already-native data,
+		// no AI needed), so re-translating them from the PRIMARY post here
+		// would be redundant AI spend working against the exact cost saving
+		// this whole redesign exists for.
+		if ( self::$suppress_native_sibling_term_sync ) {
+			return;
+		}
+
 		$post_type = get_post_type( $source_id );
 		if ( ! in_array( $post_type, self::AGNOSIS_POST_TYPES, true ) ) {
 			return;
@@ -1064,6 +1454,35 @@ class LinguaForge {
 	/** Returns true when Lingua Forge is loaded and functional. */
 	public static function is_active(): bool {
 		return defined( 'LINGUAFORGE_FILE' ) && defined( 'LINGUAFORGE_VERSION' );
+	}
+
+	/**
+	 * Resolve the current request's two-letter language code — the
+	 * authoritative "what language is this page actually being viewed in"
+	 * signal, as opposed to get_locale() (the site's/admin's own configured
+	 * language, which doesn't change when LF serves a translated post/page).
+	 *
+	 * Prefers Lingua Forge's own `LF_LANG` constant, set by its language
+	 * router for the current request (see current_lang_path_prefix()'s own
+	 * docblock for how LF derives it — URL path prefix / cookie /
+	 * Accept-Language header, independent of any specific post). Falls back
+	 * to locale_to_lang( get_locale() ) when LF isn't active/bootstrapped for
+	 * this request, so callers get a sensible answer either way.
+	 *
+	 * Public + static (promoted from a private copy that used to live only in
+	 * Core\DateFormatter — see that class's own current_lang(), which now
+	 * just delegates here) so any caller needing "what language is the
+	 * visitor actually reading/writing in right now" — e.g. an explicit
+	 * `lang` attribute on a visitor-facing textarea, so the browser's spell
+	 * checker matches what's being typed — has one shared, correct answer
+	 * rather than each re-deriving it.
+	 */
+	public static function current_lang(): string {
+		if ( defined( 'LF_LANG' ) && '' !== LF_LANG ) {
+			return (string) LF_LANG;
+		}
+
+		return self::locale_to_lang( get_locale() );
 	}
 
 	/**

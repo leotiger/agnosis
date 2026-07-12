@@ -373,6 +373,32 @@ class SubmissionTranslator {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Resolve an artist's own language code (ISO 639-1) from their WP user locale.
+	 *
+	 * Single source of truth for "what language does this artist write in" —
+	 * used by the native-first AI pipeline (Pipeline::process(), instructing
+	 * the description AI to reply in the artist's own language),
+	 * PostCreator::create_post() (persisting `_agnosis_native_lang` once at
+	 * intake), and ReviewConfirm (display/back-translation decisions) — three
+	 * call sites that previously risked drifting apart with their own copies
+	 * of this same `substr( $locale, 0, 2 )` conversion.
+	 *
+	 * Returns '' when the artist has no declared locale (nothing to resolve) —
+	 * callers should treat that the same as "language unknown," same
+	 * graceful-degradation convention every other resolution method here uses.
+	 */
+	public static function resolve_artist_lang( int $artist_id ): string {
+		if ( ! $artist_id ) {
+			return '';
+		}
+		$locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' === $locale ) {
+			return '';
+		}
+		return strtolower( substr( $locale, 0, 2 ) );
+	}
+
+	/**
 	 * Resolve the target language ISO code.
 	 *
 	 * Priority:
