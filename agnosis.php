@@ -6,7 +6,7 @@
  * Version:           0.9.21
  * Requires at least: 6.6
  * Requires PHP:      8.1
- * Author:            Agnosis Network
+ * Author:            Uli Hake
  * Author URI:        https://agnosis.art
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
