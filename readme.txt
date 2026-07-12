@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.20
+Stable tag: 0.9.21
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,26 +69,20 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.21 =
+* Added: A visitor can no longer message the same artist more than a configurable number of times per hour — previously the contact form only limited by IP address and, separately, by sender email address across every artist, so nothing stopped repeated messages to one specific artist. Configurable at Settings → Email ("Per-artist contact limit" and its time window). Applies the same regardless of which language version of the artist's page is used.
+* Added: A new Settings → General "Preset biography title" field lets you force every artist's biography page to use the same fixed title instead of their own, with an optional checkbox to append the artist's name to it (e.g. "Meet the Artist — Jane Doe"). Leave it blank to keep using each artist's own title, exactly as before. Applies to every Lingua Forge translated version of a biography page too.
+* Fixed: The contact form no longer just hides itself in the browser after a message is sent, since that could be undone to send more. Submitting now reloads the page; the form is then replaced with a "message sent" notice until the per-artist limit above allows another message.
+* Fixed: Resending a biography, artwork, or event with a new photo now actually updates the published post's featured image (previously it silently kept the old one), and the new photo now also reaches every Lingua Forge translated version of that page instead of just the primary language.
+* Fixed: A biography's three optional social links, and corrections to its portfolio link, now reach every Lingua Forge translated version of the page — previously they only ever showed up on the primary language.
+* Fixed: A biography's portfolio link no longer appears twice — once as a social icon below the photo, once again as a duplicate embedded preview inside the text. It now shows only as the icon.
+* Fixed: An artist could sometimes receive a second "please approve this" email for a submission they'd already approved and published, or already discarded — triggered by an admin's "heal the queue" action, or automatically after a mailbox migration, with no action needed from the artist. This is now fixed at the source.
+
 = 0.9.18 =
 * Added: The Inbox admin table now shows which email address a submission was sent to (artwork, photo, pure, biography, event, replace, remove, promote, goodbye, or community) — previously you could only guess from the subject line or the resulting post type.
 * Fixed: The 8 default artwork medium categories (Oil Painting, Watercolour, Photography, etc.) are now created automatically whenever the plugin updates to a new version, not just on first activation — a site that was already running before this feature existed never got them.
 * Fixed: A biography submitted with a photo could fail to process entirely if that artist's biography page was originally auto-created from their admission application rather than from an email — a missing internal field crashed the pipeline. Biography posts also now correctly hold at most one photo: a new one replaces the old rather than accumulating alongside it.
 * Fixed: Sending an update to an already-published biography (or replacing/re-sending an already-published artwork or event) generated an "approve this" email whose link could never actually be clicked through — it always showed "Link expired or already used," even seconds after arriving. Updating already-published content now stages your changes separately with their own working approve link, while the currently-published page keeps showing exactly as it is, unaffected, the whole time you're deciding whether to approve — no downtime either way.
-
-= 0.9.17 =
-* Added: Artists can now mute community broadcast messages, or switch application-vote emails to a once-daily digest instead of one email per application — a link to manage these is included in vote, broadcast, and welcome emails. Previously the only way to reduce mail volume was to leave the network entirely.
-* Added: A `replace@` or event-update email whose subject doesn't exactly match one of your existing titles still publishes as a new post (as before), but now flags in the review email if it looks like you meant to update something else — so a typo in the subject line no longer creates a duplicate that goes unnoticed.
-* Added: Applying again shortly after withdrawing, being declined, or leaving now has a one-per-week limit per email address, and the join form's bio/statement/name fields have sensible length limits — previously uncapped.
-* Added: A new "Deliverability" card on Settings → Email Inbox checks whether your sending addresses are likely to actually reach inboxes (domain match, SPF/DMARC records, SMTP plugin detection) and lets you send a real test email — diagnostic only, nothing is changed automatically.
-* Fixed: If your mailbox is ever rebuilt or migrated to a new provider, incoming mail is no longer silently missed. The plugin now detects this and automatically catches up instead of requiring a manual fix.
-* Added: The Inbox admin table now has status/reason filters and pagination, and messages from unregistered senders are collapsed into a single summary line instead of flooding the list — a busy weekend of spam no longer buries the real events.
-* Fixed: Nine files used a PHP 8.2-only type declaration, which would fatal-error on a genuine PHP 8.1 site — the exact minimum version this plugin has always claimed to support. Rate limiting, webhook checks, front-end editing, review/removal endpoints, ActivityPub signatures, newsletters, and invitations are all affected files; no behavior changed, only the type declarations.
-* Added: Settings → General now shows a warning if Cloudflare Turnstile is not configured, since the Join application form is always public and otherwise relies only on a per-IP rate limit that a distributed bot can work around. Nothing is configured automatically — this only makes the current state visible.
-* Fixed: On hosts where a misconfigured reverse proxy or CDN setup makes every visitor look like the same IP address, an unauthenticated flood of garbage webhook requests could previously slow down real, correctly-signed mail from your email provider. Verified and unverified webhook requests are now rate-limited separately, so this can no longer happen. Also, webhook email attachments now have their real file type checked the same way inbox (IMAP) attachments already are, instead of trusting the sender's own label.
-* Added: The event review form's Timezone field is now a proper dropdown of real timezones instead of free text — previously an unrecognized entry was silently discarded with no indication anything went wrong. A community broadcast email with no readable subject or body now gets bounced back to the sender with an explanation, instead of just vanishing. The newsletter dashboard also gained a "Retry Failed" button so recipients that permanently failed to send (e.g. during a mail outage) can be resent without a database edit.
-* Fixed: The internal AI prompt used to pull structured event details (venue, date, timezone) out of an artist's email now clearly marks that email's content as data, not instructions — a consistency fix bringing it in line with how the plugin already treats fetched web page content elsewhere. No visible behavior change.
-* Fixed: Internal code-quality cleanup — recipient-address parsing and shared reason text for the goodbye@/community@ email addresses were previously duplicated between the two mail intake methods (IMAP and webhook), risking drift between them over time. This logic now lives in one place. No visible behavior change.
-* Fixed: A documentation/code mismatch meant a fresh install with no saved Inbox settings could clean up old messages on a 30-day schedule instead of the documented 7-day one — now aligned. Also some minor internal documentation and code cleanup in the rate-limiting logic, with no visible behavior change.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

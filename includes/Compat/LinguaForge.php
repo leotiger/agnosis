@@ -122,12 +122,16 @@ class LinguaForge {
 	 * @var string[]
 	 */
 	private const NEUTRAL_META_KEYS = [
-		'_thumbnail_id',             // featured image (first gallery image)
-		'_agnosis_gallery_ids',      // gallery attachment IDs
-		'_agnosis_original_title',   // artist's own-words title (language-neutral)
-		'_agnosis_event_location',   // events only
-		'_agnosis_event_date',       // events only
-		'_agnosis_intake_endpoint',  // which address created the artwork (artwork/photo/pure)
+		'_thumbnail_id',                     // featured image (first gallery image)
+		'_agnosis_gallery_ids',              // gallery attachment IDs
+		'_agnosis_original_title',           // artist's own-words title (language-neutral)
+		'_agnosis_event_location',           // events only
+		'_agnosis_event_date',               // events only
+		'_agnosis_intake_endpoint',          // which address created the artwork (artwork/photo/pure)
+		'_agnosis_biography_portfolio_url',  // biography only — a URL is a URL regardless of page language
+		'_agnosis_biography_social_url_1',   // biography only — same
+		'_agnosis_biography_social_url_2',   // biography only — same
+		'_agnosis_biography_social_url_3',   // biography only — same
 	];
 
 	/**

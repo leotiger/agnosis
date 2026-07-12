@@ -25,6 +25,16 @@
  * ContactForm::submit() enforces server-side) — same "nothing, not an empty
  * element" convention every other subdomain-gated block in this plugin uses.
  *
+ * When the visitor has already messaged this artist within the configured
+ * per-artist rate-limit window (Artist\ContactForm::already_contacted(), a
+ * cookie ContactForm::mark_contacted() sets on a successful POST), this
+ * renders a static "already contacted" notice instead of the form — no
+ * fields, no JS. A page reload is what gets the visitor here: frontend.js
+ * reloads the page after a successful submission rather than just hiding the
+ * form in place client-side, so this server-rendered state is what they
+ * actually land on, not a hide a visitor could trivially undo (dev tools,
+ * bfcache, reopening the popover) to just submit again.
+ *
  * @package Agnosis\Artist
  */
 
@@ -62,6 +72,10 @@ class ContactFormBlock {
 
 		if ( ! $artist_id || ! ContactForm::artist_accepts_contact( $artist_id ) ) {
 			return '';
+		}
+
+		if ( ContactForm::already_contacted( $artist_id ) ) {
+			return $this->render_already_contacted_notice();
 		}
 
 		$this->enqueue_assets( $artist_id );
@@ -131,6 +145,21 @@ class ContactFormBlock {
 		</div><!-- .agnosis-contact-form -->
 		<?php
 		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Static markup shown in place of the form once
+	 * ContactForm::already_contacted() is true — no fields, no assets
+	 * enqueued, nothing for a visitor to resubmit. Uses the same success
+	 * copy/class as the JS-driven notice (frontend.js) so there is no visible
+	 * difference between "just submitted" and "landed here already having
+	 * contacted this artist recently".
+	 */
+	private function render_already_contacted_notice(): string {
+		return '<div class="agnosis-contact-form">'
+			. '<div class="agnosis-contact-form__notice agnosis-contact-form__notice--success">'
+			. esc_html__( 'Thanks — your message has been sent. You can reach out to this artist again a little later.', 'agnosis' )
+			. '</div></div>';
 	}
 
 	// -------------------------------------------------------------------------

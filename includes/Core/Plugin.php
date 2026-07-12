@@ -19,6 +19,7 @@ use Agnosis\Admin\Settings;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\ApplicationBiography;
+use Agnosis\Artist\BiographyTitle;
 use Agnosis\Artist\CommunityCap;
 use Agnosis\Artist\CommunityCapVote;
 use Agnosis\Artist\CommunityCapNotification;
@@ -221,6 +222,13 @@ class Plugin {
 		// ApplicationBiography's class docblock.
 		$application_biography = new ApplicationBiography();
 		$application_biography->register_hooks();
+
+		// Settings → General → "Preset biography title" — overrides every
+		// agnosis_biography post's title when configured; see that class's
+		// docblock for why this is one wp_insert_post_data hook rather than
+		// patching each title-setting path (including this one) separately.
+		$biography_title = new BiographyTitle();
+		$biography_title->register_hooks();
 
 		$departure = new Departure();
 		$this->loader->add_action( 'rest_api_init',              $departure, 'register_routes' );

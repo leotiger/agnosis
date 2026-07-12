@@ -46,14 +46,23 @@ use Agnosis\Publishing\EmbedPolicy;
  * the artist always gets to see and approve (or edit, or discard) this
  * biography before it goes live, same as an AI-drafted artwork.
  *
- * The portfolio URL becomes a wp:embed block at the end of the post, gated by
- * the same Publishing\EmbedPolicy used for artist-submitted links in artwork/
- * biography/event emails: embedded immediately if the host is on the site's
- * trusted-platform list, otherwise only if the admin has enabled AI review
- * and the AI approves it against the site's configured disallowed
- * categories. A portfolio link is no more automatically trustworthy than any
- * other artist-submitted link — the same policy, the same settings, applies
- * uniformly.
+ * The portfolio URL is vetted by the same Publishing\EmbedPolicy used for
+ * artist-submitted links in artwork/biography/event emails: approved
+ * immediately if the host is on the site's trusted-platform list, otherwise
+ * only if the admin has enabled AI review and the AI approves it against the
+ * site's configured disallowed categories. A portfolio link is no more
+ * automatically trustworthy than any other artist-submitted link — the same
+ * policy, the same settings, applies uniformly. Unlike a link mentioned
+ * inside the bio text itself (which PostCreator::build_external_link_embeds()
+ * still turns into an in-content preview embed), an approved portfolio URL is
+ * NOT written into post_content — it's rendered separately, alongside the
+ * three social links, by the dedicated agnosis/biography-social-links block
+ * (Artist\Profile::render_biography_social_links(), gated on
+ * `_agnosis_biography_portfolio_embedded`). It used to become a trailing
+ * wp:embed block in the post body before that display block existed —
+ * Publishing\ReviewConfirm::sync_portfolio_embed() now only ever STRIPS a
+ * pre-existing one of those (one-time cleanup for a biography saved before
+ * this fix), never rebuilds it.
  */
 class ApplicationBiography {
 
@@ -158,7 +167,7 @@ class ApplicationBiography {
 			return; // Nothing left to show once the portfolio link didn't clear policy either.
 		}
 
-		$post_content = $this->build_content( $bio, $portfolio_approved ? $portfolio : '' );
+		$post_content = $this->build_content( $bio );
 
 		// Raw, unmarked-up text — this is exactly what PostCreator's own biography
 		// posts store in _agnosis_artist_prompt, and what its AI merge pass reads
@@ -234,10 +243,10 @@ class ApplicationBiography {
 	}
 
 	/**
-	 * Assemble the draft's content: the bio text (plain, unmarked-up text —
-	 * mirroring exactly how PostCreator builds a biography post's content from
-	 * an email submission, see PostCreator::build_post_content()), then the
-	 * portfolio link as a wp:embed block at the end.
+	 * Assemble the draft's content: just the bio text (plain, unmarked-up
+	 * text — mirroring exactly how PostCreator builds a biography post's
+	 * content from an email submission, see PostCreator::build_post_content()).
+	 * The portfolio URL is deliberately NOT part of this — see class docblock.
 	 *
 	 * The application's "Why do you want to join?" statement is deliberately
 	 * NOT included here (2026-07-08 correction) — it's the applicant's pitch
@@ -247,40 +256,8 @@ class ApplicationBiography {
 	 * (agnosis_applications.statement) for admission-review purposes; this
 	 * class simply never surfaces it to the artist's profile or its AI
 	 * merge-context prompt (see on_artist_admitted()'s $raw_prompt).
-	 *
-	 * @param string $portfolio Already EmbedPolicy-approved, or '' — the caller
-	 *                          (on_artist_admitted()) is responsible for that check.
 	 */
-	private function build_content( string $bio, string $portfolio ): string {
-		$body = '';
-
-		if ( '' !== $bio ) {
-			$body .= wp_kses_post( $bio ) . "\n\n";
-		}
-
-		if ( '' !== $portfolio ) {
-			$body .= self::build_embed_block( $portfolio ) . "\n\n";
-		}
-
-		return $body;
-	}
-
-	/**
-	 * Build a minimal Gutenberg core/embed block for the (already
-	 * EmbedPolicy-approved) portfolio URL. Only the URL itself needs to be
-	 * correct — core/embed is a dynamic block; WordPress performs its own
-	 * oEmbed lookup at render time regardless of what "type" this markup
-	 * declares (mirrors PostCreator::build_embed_block()'s same comment).
-	 *
-	 * Public static so `Publishing\ReviewConfirm::sync_portfolio_embed()` can
-	 * rebuild this same block when an artist corrects the portfolio URL on
-	 * the approve confirm form, without a second implementation to drift out
-	 * of sync with this one.
-	 */
-	public static function build_embed_block( string $url ): string {
-		$attr    = wp_json_encode( [ 'url' => $url, 'type' => 'rich' ] ) ?: '{}';
-		$esc_url = esc_url( $url );
-
-		return '<!-- wp:embed ' . $attr . ' --><figure class="wp-block-embed is-type-rich"><div class="wp-block-embed__wrapper">' . "\n" . $esc_url . "\n" . '</div></figure><!-- /wp:embed -->';
+	private function build_content( string $bio ): string {
+		return '' !== $bio ? wp_kses_post( $bio ) . "\n\n" : '';
 	}
 }

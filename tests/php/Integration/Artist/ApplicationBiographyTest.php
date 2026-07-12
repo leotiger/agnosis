@@ -9,7 +9,10 @@
  *     (2026-07-08 correction) — it's addressed to the community/admin
  *     reviewing admission, not biographical/artistic information about the
  *     artist, and doesn't belong on a public profile by nature
- *   - Trusted-platform portfolio URL becomes a wp:embed block
+ *   - Trusted-platform / AI-approved portfolio URL is approved and stored as
+ *     meta (`_agnosis_biography_portfolio_url`/`_embedded`) — no longer
+ *     embedded into post_content (2026-07-12), the dedicated
+ *     agnosis/biography-social-links block renders it instead
  *   - Non-trusted portfolio URL is rejected by default (AI review is off)
  *   - Non-trusted portfolio URL embeds/rejects per the AI's verdict once AI review is enabled
  *   - Works with only a portfolio_url and no bio text
@@ -259,7 +262,13 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 	// Portfolio URL — gated by Publishing\EmbedPolicy, same as any other link
 	// -------------------------------------------------------------------------
 
-	public function test_trusted_platform_portfolio_url_becomes_wp_embed_block(): void {
+	/**
+	 * 2026-07-12: an approved portfolio URL is no longer embedded into
+	 * post_content — it's stored as meta and rendered separately by the
+	 * agnosis/biography-social-links block (Artist\Profile). See
+	 * ApplicationBiography's class docblock.
+	 */
+	public function test_trusted_platform_portfolio_url_is_approved_and_stored_as_meta(): void {
 		$user_id        = $this->create_user( 'embed@example.com' );
 		$application_id = $this->insert_application(
 			'embed@example.com',
@@ -273,8 +282,10 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 
 		$post = $this->get_biography_post( $user_id );
 		$this->assertNotNull( $post );
-		$this->assertStringContainsString( '<!-- wp:embed', $post->post_content );
-		$this->assertStringContainsString( 'https://vimeo.com/123456789', $post->post_content );
+		$this->assertStringNotContainsString( '<!-- wp:embed', $post->post_content );
+		$this->assertStringNotContainsString( 'https://vimeo.com/123456789', $post->post_content );
+		$this->assertSame( 'https://vimeo.com/123456789', get_post_meta( $post->ID, '_agnosis_biography_portfolio_url', true ) );
+		$this->assertSame( '1', get_post_meta( $post->ID, '_agnosis_biography_portfolio_embedded', true ) );
 	}
 
 	public function test_non_trusted_portfolio_url_is_not_embedded_by_default(): void {
@@ -298,7 +309,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<!-- wp:embed', $post->post_content );
 	}
 
-	public function test_non_trusted_portfolio_url_is_embedded_when_ai_approves(): void {
+	public function test_non_trusted_portfolio_url_is_approved_when_ai_approves(): void {
 		update_option( 'agnosis_embed_ai_vetting_enabled', 1 );
 		update_option( 'agnosis_embed_block_adult', 1 );
 
@@ -316,8 +327,9 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 
 		$post = $this->get_biography_post( $user_id );
 		$this->assertNotNull( $post );
-		$this->assertStringContainsString( '<!-- wp:embed', $post->post_content );
-		$this->assertStringContainsString( 'a-completely-random-personal-site.example', $post->post_content );
+		$this->assertStringNotContainsString( 'a-completely-random-personal-site.example', $post->post_content );
+		$this->assertSame( 'https://a-completely-random-personal-site.example/gallery', get_post_meta( $post->ID, '_agnosis_biography_portfolio_url', true ) );
+		$this->assertSame( '1', get_post_meta( $post->ID, '_agnosis_biography_portfolio_embedded', true ) );
 	}
 
 	public function test_non_trusted_portfolio_url_is_rejected_when_ai_blocks(): void {
@@ -355,7 +367,8 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 
 		$post = $this->get_biography_post( $user_id );
 		$this->assertNotNull( $post, 'A biography must still be created from a portfolio URL alone.' );
-		$this->assertStringContainsString( 'https://youtu.be/onlyurl123', $post->post_content );
+		$this->assertSame( 'https://youtu.be/onlyurl123', get_post_meta( $post->ID, '_agnosis_biography_portfolio_url', true ) );
+		$this->assertSame( '1', get_post_meta( $post->ID, '_agnosis_biography_portfolio_embedded', true ) );
 	}
 
 	public function test_no_biography_created_from_only_a_rejected_portfolio_url(): void {
@@ -664,6 +677,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 			'Plugin.php must wire ApplicationBiography to the real agnosis_artist_admitted action.'
 		);
 		$this->assertStringContainsString( 'End to end bio.', $posts[0]->post_content );
-		$this->assertStringContainsString( 'https://vimeo.com/e2e123', $posts[0]->post_content );
+		$this->assertSame( 'https://vimeo.com/e2e123', get_post_meta( $posts[0]->ID, '_agnosis_biography_portfolio_url', true ) );
+		$this->assertSame( '1', get_post_meta( $posts[0]->ID, '_agnosis_biography_portfolio_embedded', true ) );
 	}
 }

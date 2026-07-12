@@ -426,6 +426,23 @@ class Settings {
 				'desc'     => __( 'Shown in the header of outgoing HTML emails (submission review, removal confirmation, rejection notice, and both newsletters) in place of the plain "✦ Site Name" text. Leave empty to keep the text wordmark. Displayed at up to 40px tall — any width or aspect ratio works.', 'agnosis' ),
 			],
 
+			// --- GENERAL: Biography ---
+			'agnosis_biography_preset_title' => [
+				'tab'     => 'general',
+				'label'   => __( 'Preset biography title', 'agnosis' ),
+				'default' => '',
+				'desc'    => __( 'When set, every artist\'s biography page uses this exact title instead of their own, regardless of what the artist submitted, edited on their approve form, or later changed on their published page. Leave blank to keep using each artist\'s own title (the default). Shown exactly as typed here on every language version of a biography page — not machine-translated per language. See "Include artist\'s name in preset title" below.', 'agnosis' ),
+			],
+			'agnosis_biography_preset_title_include_name' => [
+				'tab'      => 'general',
+				'label'    => __( 'Include artist\'s name in preset title', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => '0',
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'When the preset title above is set, append the artist\'s own WordPress display name to it (e.g. "Meet the Artist — Jane Doe"). Has no effect while the preset title is blank.', 'agnosis' ),
+			],
+
 			// --- GENERAL: Cloudflare Turnstile (bot/spam protection) ---
 			'agnosis_turnstile_site_key' => [
 				'tab'   => 'general',
@@ -580,6 +597,29 @@ class Settings {
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Maximum submissions accepted from a single artist per hour, across both IMAP and webhook intake. Exceeding this limit silently drops the message (no retry from ESPs). Default: 5.', 'agnosis' ),
+			],
+
+			'agnosis_contact_artist_limit' => [
+				'tab'      => 'email',
+				'label'    => __( 'Per-artist contact limit', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 2,
+				'min'      => 1,
+				'max'      => 20,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum messages the same visitor (by email address) can send to a single artist within the window below — applies across every language version of that artist\'s page. Default: 2.', 'agnosis' ),
+			],
+			'agnosis_contact_artist_limit_window_hours' => [
+				'tab'      => 'email',
+				'label'    => __( 'Per-artist contact limit window (hours)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 1,
+				'min'      => 1,
+				'max'      => 168,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Time window, in hours, the per-artist contact limit above applies over. Also controls how long a visitor sees the "already contacted" notice instead of the form after messaging an artist. Default: 1 (one hour).', 'agnosis' ),
 			],
 
 			'agnosis_require_email_auth' => [

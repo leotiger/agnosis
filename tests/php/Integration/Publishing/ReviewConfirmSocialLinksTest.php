@@ -150,9 +150,10 @@ class ReviewConfirmSocialLinksTest extends WP_UnitTestCase {
 		] );
 
 		$this->assertSame( 'https://instagram.com/artist', get_post_meta( $this->bio_id, '_agnosis_biography_social_url_1', true ) );
-		// Portfolio sync is exercised in full elsewhere (EmbedPolicy-gated
-		// content rebuild) — here we only need proof both syncs ran, via the
-		// meta value they each independently write.
+		// Portfolio sync is exercised in full elsewhere (EmbedPolicy-gated meta
+		// write, no longer a post_content rebuild — see sync_portfolio_embed()'s
+		// docblock) — here we only need proof both syncs ran, via the meta
+		// value they each independently write.
 		$this->assertSame( 'https://youtube.com/trusted-host-no-fetch-needed', get_post_meta( $this->bio_id, '_agnosis_biography_portfolio_url', true ) );
 	}
 }

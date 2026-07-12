@@ -91,8 +91,6 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
-use Agnosis\Artist\ApplicationBiography;
-
 class ReviewConfirm {
 
 	/**
@@ -526,23 +524,22 @@ class ReviewConfirm {
 	 * Re-apply the biography approve form's portfolio-link field.
 	 *
 	 * `_agnosis_biography_portfolio_url`/`_agnosis_biography_portfolio_embedded`
-	 * (ApplicationBiography::on_artist_admitted()) are the source of truth. Two
-	 * independent things happen here, deliberately kept separate:
+	 * (ApplicationBiography::on_artist_admitted()) are the source of truth. The
+	 * URL itself is NEVER written into post_content here (2026-07-12 fix) — it
+	 * renders separately, alongside the three social links, via the dedicated
+	 * agnosis/biography-social-links block (Artist\Profile::
+	 * render_biography_social_links(), gated on `_agnosis_biography_portfolio_embedded`
+	 * so a policy-rejected link still doesn't reach the page). A biography
+	 * saved before this fix may still have a stale trailing wp:embed block
+	 * left over from when this method used to rebuild one on every approval —
+	 * strip_trailing_embed_block() below cleans that up unconditionally, as a
+	 * one-time migration, the next time the artist approves any edit.
 	 *
-	 *   1. The embed is always re-synced into post_content, whether or not the
-	 *      URL changed. ReviewEndpoints::save() (the PUT path a body edit goes
-	 *      through) rebuilds post_content from the submitted body text plus any
-	 *      LEADING image/gallery blocks only — a trailing wp:embed block is not
-	 *      part of that reconstruction, so a plain body-only edit used to
-	 *      silently drop an already-approved portfolio embed. Stripping
-	 *      whatever trailing embed is currently there and re-adding it if it's
-	 *      still supposed to be there fixes that regardless of what else the
-	 *      artist edited.
-	 *   2. EmbedPolicy::is_allowed() — a network fetch and, if AI review is
-	 *      enabled, an AI call — is only re-run when the URL actually changed
-	 *      from the baseline. Running it unconditionally on every single
-	 *      biography approval (whether or not this field was touched) would
-	 *      spend that cost needlessly on the common case.
+	 * EmbedPolicy::is_allowed() — a network fetch and, if AI review is
+	 * enabled, an AI call — is only re-run when the URL actually changed from
+	 * the baseline. Running it unconditionally on every single biography
+	 * approval (whether or not this field was touched) would spend that cost
+	 * needlessly on the common case.
 	 *
 	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
 	 */
@@ -580,12 +577,8 @@ class ReviewConfirm {
 		}
 
 		$content_without_embed = $this->strip_trailing_embed_block( $post->post_content );
-		$new_content           = $approved
-			? rtrim( $content_without_embed ) . "\n\n" . ApplicationBiography::build_embed_block( $url )
-			: $content_without_embed;
-
-		if ( $new_content !== $post->post_content ) {
-			wp_update_post( [ 'ID' => $id, 'post_content' => $new_content ] );
+		if ( $content_without_embed !== $post->post_content ) {
+			wp_update_post( [ 'ID' => $id, 'post_content' => $content_without_embed ] );
 		}
 
 		if ( $url_changed || $approved !== $baseline_embedded ) {
@@ -602,9 +595,10 @@ class ReviewConfirm {
 
 	/**
 	 * Strip a trailing `wp:embed` block (with any surrounding whitespace) from
-	 * the end of post content — biography posts have at most one (the
-	 * portfolio link), always appended last by
-	 * ApplicationBiography::build_content()/build_embed_block().
+	 * the end of post content — a biography post has at most one, a leftover
+	 * from before the portfolio URL moved to the dedicated social-links block
+	 * (see sync_portfolio_embed()'s docblock); this is now a one-time
+	 * migration cleanup rather than an undo-then-redo step.
 	 */
 	private function strip_trailing_embed_block( string $content ): string {
 		$stripped = preg_replace( '/\s*<!-- wp:embed\b.*?<!-- \/wp:embed -->\s*$/s', '', $content );

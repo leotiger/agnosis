@@ -12,9 +12,17 @@
  *
  *   1. Verifies with Cloudflare Turnstile (Core\Turnstile — opt-in, see that
  *      class), exactly like Admission::apply() and Newsletter\Subscription.
- *   2. Rate-limits by IP (RateLimiter::check()) and, once an email address is
- *      known, by that address too (RateLimiter::check_sender()) — mirrors
- *      Admission::apply()'s two-tier throttle.
+ *   2. Rate-limits by IP (RateLimiter::check()), once an email address is
+ *      known by that address globally (RateLimiter::check_sender()) — mirrors
+ *      Admission::apply()'s two-tier throttle — and by a THIRD tier scoped to
+ *      (artist, visitor email): RateLimiter::check_sender() again, keyed by
+ *      an action string containing $artist_id, so a visitor can't message the
+ *      same artist more than `agnosis_contact_artist_limit` times (default 2)
+ *      per `agnosis_contact_artist_limit_window_hours` (default 1 hour) —
+ *      configurable in Settings → Email. $artist_id is always the artist's WP
+ *      user ID, the same one regardless of which LinguaForge-translated
+ *      language version of that artist's page the visitor is on, so this
+ *      can't be bypassed by switching languages.
  *   3. Runs the message through Pipeline::classify_text() against the same
  *      admin-configured disallowed-content categories EmbedPolicy uses for
  *      link vetting, plus one contact-form-specific spam/solicitation
@@ -35,6 +43,14 @@
  *      array" convention) so the artist can just hit reply in their own mail
  *      client — this plugin never learns or stores the artist's real address
  *      beyond what WordPress core already has in wp_users.
+ *   7. Marks the visitor as having contacted this artist with a short-lived
+ *      `Set-Cookie` (mark_contacted(), same window as the per-artist rate
+ *      limit above) so ContactFormBlock::render_block() can render an inert
+ *      "already contacted" notice instead of the form on the visitor's next
+ *      page load — a simple spam deterrent on top of, not instead of, the
+ *      rate limit itself. Set unconditionally, sent vs. rejected alike, for
+ *      the same "identical response" reason as the REST response itself (see
+ *      below) — the form disappearing is not meant to leak moderation status.
  *
  * A rejected message and an accepted one get an IDENTICAL REST response —
  * see submit()'s final return — deliberately, so the response itself can
@@ -82,6 +98,19 @@ class ContactForm {
 	 */
 	private const SENDER_LIMIT          = 5;
 	private const SENDER_WINDOW_SECONDS = HOUR_IN_SECONDS;
+
+	/**
+	 * Third tier: how many times the SAME visitor (by email) may message the
+	 * SAME artist within the window — both configurable in Settings → Email,
+	 * unlike every other window in this class. See class docblock point 2.
+	 */
+	private const ARTIST_LIMIT_OPTION               = 'agnosis_contact_artist_limit';
+	private const ARTIST_LIMIT_DEFAULT              = 2;
+	private const ARTIST_LIMIT_WINDOW_OPTION        = 'agnosis_contact_artist_limit_window_hours';
+	private const ARTIST_LIMIT_WINDOW_DEFAULT_HOURS = 1;
+
+	/** Name prefix for the "already contacted this artist" cookie — see mark_contacted(). */
+	private const CONTACTED_COOKIE_PREFIX = 'agnosis_contacted_';
 
 	/**
 	 * Fixed, non-configurable window after which a stored row's raw `ip`
@@ -191,6 +220,11 @@ class ContactForm {
 			return $sender_limit;
 		}
 
+		$artist_limit_result = $this->check_artist_limit( $artist_id, $visitor_email );
+		if ( is_wp_error( $artist_limit_result ) ) {
+			return $artist_limit_result;
+		}
+
 		$visitor_name = (string) ( $request->get_param( 'name' ) ?? '' );
 		$message      = (string) $request->get_param( 'message' );
 
@@ -223,14 +257,83 @@ class ContactForm {
 
 		// Deliberately identical response for a sent vs. a silently-rejected
 		// message (see class docblock) — the visitor always sees success.
-		return new WP_REST_Response( [
+		$response = new WP_REST_Response( [
 			'message' => __( 'Thanks — your message has been sent.', 'agnosis' ),
 		], 200 );
+
+		$this->mark_contacted( $response, $artist_id );
+
+		return $response;
 	}
 
 	// -------------------------------------------------------------------------
 	// Steps
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Third rate-limit tier: how many times $visitor_email may message
+	 * $artist_id within the configured window (Settings → Email,
+	 * `agnosis_contact_artist_limit` / `agnosis_contact_artist_limit_window_hours`).
+	 *
+	 * Reuses RateLimiter::check_sender() as-is — the action string itself
+	 * embeds $artist_id, so the transient key it builds is already scoped to
+	 * this (artist, visitor) pair without any change to RateLimiter. Because
+	 * $artist_id is the artist's WP user ID (constant across every
+	 * LinguaForge-translated language version of their page — see
+	 * SubdomainRouter::current_artist_id(), which this class's caller
+	 * ultimately resolves it from), this can't be sidestepped by messaging
+	 * the same artist from a different `/fr/`, `/de/`, etc. page.
+	 *
+	 * @return true|WP_Error
+	 */
+	private function check_artist_limit( int $artist_id, string $visitor_email ): bool|WP_Error {
+		$limit = max( 1, (int) get_option( self::ARTIST_LIMIT_OPTION, self::ARTIST_LIMIT_DEFAULT ) );
+
+		return RateLimiter::check_sender(
+			'contact_form_artist_' . $artist_id,
+			$visitor_email,
+			$limit,
+			self::artist_limit_window_seconds()
+		);
+	}
+
+	/** Configured per-artist rate-limit window, in seconds — see check_artist_limit(). */
+	private static function artist_limit_window_seconds(): int {
+		$hours = max( 1, (int) get_option( self::ARTIST_LIMIT_WINDOW_OPTION, self::ARTIST_LIMIT_WINDOW_DEFAULT_HOURS ) );
+		return $hours * HOUR_IN_SECONDS;
+	}
+
+	/**
+	 * Set a short-lived, host-only "already contacted this artist" cookie on
+	 * the outgoing REST response — read back by
+	 * ContactFormBlock::render_block() to render an inert notice instead of
+	 * the form on the visitor's next page load. Purely a client-facing spam
+	 * deterrent (a visitor can always clear cookies); the actual limit is
+	 * enforced server-side by check_artist_limit() regardless of this cookie's
+	 * presence. Mirrors that method's window so the form reappears exactly
+	 * when the visitor would be allowed to submit again.
+	 */
+	private function mark_contacted( WP_REST_Response $response, int $artist_id ): void {
+		$response->header(
+			'Set-Cookie',
+			sprintf(
+				'%s%d=1; Max-Age=%d; Path=/; SameSite=Lax%s',
+				self::CONTACTED_COOKIE_PREFIX,
+				$artist_id,
+				self::artist_limit_window_seconds(),
+				is_ssl() ? '; Secure' : ''
+			)
+		);
+	}
+
+	/**
+	 * Whether the current visitor has already contacted $artist_id per
+	 * mark_contacted()'s cookie — used by ContactFormBlock::render_block().
+	 */
+	public static function already_contacted( int $artist_id ): bool {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- presence check only, the cookie's value is never read or trusted as data.
+		return isset( $_COOKIE[ self::CONTACTED_COOKIE_PREFIX . $artist_id ] );
+	}
 
 	/**
 	 * Resolve $artist_id to a contactable artist — a real user with the

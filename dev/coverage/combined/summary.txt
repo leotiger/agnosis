@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-12 14:29
+COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -16,17 +16,18 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 14:29
   ✅ includes/Admin/Deliverability.php                           87%
   ❌ includes/Admin/InboxPage.php                                14%
   ❌ includes/Admin/QueueController.php                           0%
-  ❌ includes/Admin/Settings.php                                 45%
+  ❌ includes/Admin/Settings.php                                 46%
   ✅ includes/Artist/Admission.php                               82%
   ❌ includes/Artist/AdmissionConfirm.php                         0%
   ✅ includes/Artist/AdmissionNotification.php                   96%
-  ✅ includes/Artist/ApplicationBiography.php                    90%
+  ✅ includes/Artist/ApplicationBiography.php                    89%
+  ❌ includes/Artist/BiographyTitle.php                          36%
   ✅ includes/Artist/CommunityBroadcast.php                      98%
   ✅ includes/Artist/CommunityCap.php                            95%
   ✅ includes/Artist/CommunityCapNotification.php                88%
   ✅ includes/Artist/CommunityCapVote.php                        91%
-  ✅ includes/Artist/ContactForm.php                             90%
-  ✅ includes/Artist/ContactFormBlock.php                        93%
+  ✅ includes/Artist/ContactForm.php                             91%
+  ✅ includes/Artist/ContactFormBlock.php                        87%
   🔶 includes/Artist/ContentEditor.php                           72%
   🔶 includes/Artist/Departure.php                               68%
   🔶 includes/Artist/DepartureNotification.php                   65%
@@ -88,4 +89,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 14:29
   ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 66.61%  (10615 / 15935 statements)
+  TOTAL: 66.67%  (10682 / 16022 statements)

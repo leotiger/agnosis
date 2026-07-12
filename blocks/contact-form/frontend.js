@@ -1,9 +1,17 @@
 /**
  * Agnosis Contact Form block — frontend form handler.
  *
- * Intercepts the contact form submit, POSTs to the per-artist contact REST
- * endpoint, and shows a success or error message without a page reload.
- * Mirrors blocks/newsletter-signup/frontend.js.
+ * Intercepts the contact form submit and POSTs to the per-artist contact
+ * REST endpoint. An error is shown in place, without a reload (mirrors
+ * blocks/newsletter-signup/frontend.js). A SUCCESS is different: the server
+ * has just set a short-lived "already contacted this artist" cookie
+ * (Artist\ContactForm::mark_contacted()), so after showing the confirmation
+ * briefly this reloads the page rather than just hiding the form in place —
+ * on reload, ContactFormBlock::render_block() sees that cookie and renders a
+ * static notice instead of the form. A pure client-side hide (form.hidden)
+ * is trivially undone (dev tools, bfcache, reopening the popover) and would
+ * let a visitor just submit again; the reload makes the removed form the
+ * actual server-rendered state, not a UI suggestion.
  *
  * Expects window.agnosisContactForm to be localised by
  * ContactFormBlock::enqueue_assets():
@@ -56,6 +64,14 @@
 						notice.textContent  = i18n.success || 'Thanks — your message has been sent.';
 						notice.className    = 'agnosis-contact-form__notice agnosis-contact-form__notice--success';
 						notice.hidden       = false;
+
+						// Let the visitor see the confirmation for a beat, then
+						// reload so the server-rendered "already contacted" state
+						// (driven by the cookie the response just set) takes over —
+						// see file docblock for why this can't just stay client-side.
+						window.setTimeout( function () {
+							window.location.reload();
+						}, 900 );
 					} else {
 						var msg = ( result.data && result.data.message ) ? result.data.message : ( i18n.error || 'Something went wrong.' );
 						notice.textContent  = msg;

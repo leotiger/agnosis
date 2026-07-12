@@ -225,6 +225,24 @@ class ReviewEndpoints {
 		// cascade removes all of this draft's own postmeta (including the
 		// review token) with it — nothing left to clean up separately.
 		if ( get_post_meta( $post_id, '_agnosis_pending_update_for', true ) ) {
+			// Same repoint as this method's approve counterpart
+			// (finalize_publish(), 2026-07-13 fix — see its own comment for the
+			// full failure mode). Discarding a staged update deletes this
+			// draft too, so without this its originating agnosis_queue row
+			// would be left pointing at a post that's about to stop existing
+			// and get resurrected/replayed later by
+			// Inbox::is_already_queued() — re-drafting and re-emailing a
+			// submission the artist explicitly discarded. There's no "new"
+			// live post here (the update was discarded, not applied); the
+			// pre-existing post it was an update FOR is enough on its own —
+			// it still exists, so is_already_queued() has no reason to touch
+			// this row again.
+			$pending_for_on_reject = (int) get_post_meta( $post_id, '_agnosis_pending_update_for', true );
+			$queue_id_on_reject    = (int) get_post_meta( $post_id, '_agnosis_queue_id', true );
+			if ( $queue_id_on_reject > 0 && $pending_for_on_reject > 0 ) {
+				PostCreator::mark( $queue_id_on_reject, 'published', '', $pending_for_on_reject );
+			}
+
 			wp_delete_post( $post_id, true );
 		} else {
 			wp_trash_post( $post_id );
@@ -424,6 +442,9 @@ class ReviewEndpoints {
 			'_agnosis_event_timezone',
 			'_agnosis_biography_portfolio_url',
 			'_agnosis_biography_portfolio_embedded',
+			'_agnosis_biography_social_url_1',
+			'_agnosis_biography_social_url_2',
+			'_agnosis_biography_social_url_3',
 			'_agnosis_dropped_links',
 			// '_agnosis_native_lang'/'_agnosis_native_medium' are deliberately
 			// NOT in this list — see the explicit block right below the loop.
@@ -440,6 +461,30 @@ class ReviewEndpoints {
 			if ( '' !== $value ) {
 				update_post_meta( $pending_for, $meta_key, $value );
 			}
+		}
+
+		// The live/target post's featured image — unlike the plain meta keys
+		// above, this needs set_post_thumbnail() rather than a raw
+		// update_post_meta( '_thumbnail_id' ), matching how
+		// Artist\ContentEditor's own direct-edit-to-published-post path
+		// already replaces a thumbnail. Previously missing entirely from this
+		// method: PostCreator::write_post_meta() always set the new photo as
+		// the STAGING draft's own thumbnail, but nothing ever transferred it
+		// onto $pending_for before the staging draft was deleted a few lines
+		// below — so an artist re-sending a biography/artwork/event with a
+		// new photo saw the gallery block in the body update (via
+		// '_agnosis_gallery_ids' above) while the featured image silently
+		// stayed on the old photo forever, on the live post AND on every
+		// Lingua Forge translated sibling (LinguaForge::sync_native_sibling()/
+		// schedule_fanout() below just faithfully re-copy whatever
+		// '_thumbnail_id' is on $pending_for at the time they run). Skipped
+		// when the staging draft has no thumbnail of its own — an update that
+		// didn't include a new photo leaves the live post's existing featured
+		// image untouched, matching every meta key above's own "skip when
+		// empty" behavior.
+		$staged_thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+		if ( $staged_thumbnail_id ) {
+			set_post_thumbnail( $pending_for, $staged_thumbnail_id );
 		}
 
 		// Native-language pipeline follow-up fix (seventh audit §2b,
@@ -507,6 +552,29 @@ class ReviewEndpoints {
 			) {
 				wp_set_object_terms( $pending_for, $translated['medium'], 'agnosis_medium' );
 			}
+		}
+
+		// Repoint the originating agnosis_queue row off the staging draft
+		// BEFORE it's deleted below (2026-07-13 fix). PostCreator::handle()
+		// writes the STAGING draft's own post ID onto its queue row
+		// (`mark( $queue_id, 'published', '', $post_id )`) at drafting time —
+		// '_agnosis_queue_id' (copied onto $pending_for by the meta loop
+		// above) is how we find that row again. Left unrepointed, the row
+		// permanently points at a post that's about to stop existing;
+		// Inbox::is_already_queued()'s 'published' branch treats a
+		// non-resolving post_id as "post deleted — re-run" and resets the row
+		// to 'pending' the next time that IMAP UID is re-examined (the admin
+		// "heal the queue" action does this unconditionally for every such
+		// row; a UIDVALIDITY-triggered mailbox rescan can do it automatically
+		// too) — replaying the ORIGINAL submission through the pipeline,
+		// minting a second staging draft, and firing a second
+		// 'agnosis_post_drafted' review email for content the artist already
+		// approved and that's already live, with no artist action at all.
+		// Repointing at $pending_for (the post that actually survives) means
+		// is_already_queued() finds a real post and leaves the row alone.
+		$queue_id_for_target = (int) get_post_meta( $pending_for, '_agnosis_queue_id', true );
+		if ( $queue_id_for_target > 0 ) {
+			PostCreator::mark( $queue_id_for_target, 'published', '', $pending_for );
 		}
 
 		// Staging post was never meant to be kept — delete outright (skip

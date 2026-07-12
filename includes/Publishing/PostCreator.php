@@ -2665,7 +2665,22 @@ class PostCreator {
 		return $wp_filesystem;
 	}
 
-	private function mark( int $id, string $status, string $error = '', int $post_id = 0 ): void {
+	/**
+	 * Write status/error/post_id onto an agnosis_queue row.
+	 *
+	 * Public and static (2026-07-13) so `ReviewEndpoints::finalize_publish()`
+	 * can reuse this exact write when repointing a staged update's queue row
+	 * off the staging draft it was minted against — see that method's own
+	 * docblock note on why a stale post_id there caused a real bug
+	 * (Inbox::is_already_queued()'s 'published' branch re-running the whole
+	 * submission and drafting a second review email for already-live
+	 * content). Kept as the one place this table's row shape is written,
+	 * rather than a second ad hoc $wpdb->update() call in ReviewEndpoints.php.
+	 * Was already called exclusively as `$this->mark(...)` from within this
+	 * class — those calls keep working unchanged (PHP allows invoking a
+	 * static method through `->`).
+	 */
+	public static function mark( int $id, string $status, string $error = '', int $post_id = 0 ): void {
 		global $wpdb;
 		$data   = [ 'status' => $status, 'error' => $error ?: null ];
 		$format = [ '%s', '%s' ];

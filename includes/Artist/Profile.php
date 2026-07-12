@@ -516,6 +516,17 @@ class Profile {
 	 * the same row deliberately: it's just as much an outbound "find me
 	 * elsewhere" link as the three social ones, only pre-existing.
 	 *
+	 * The portfolio link alone is gated on `_agnosis_biography_portfolio_embedded`
+	 * ('1' only once Publishing\EmbedPolicy has approved it — see
+	 * ReviewConfirm::sync_portfolio_embed()) — this is the one link an artist
+	 * doesn't type directly into a trusted field of their own choosing, it's
+	 * carried over from their admission application/email, so it stays
+	 * subject to the same moderation gate that used to control whether it
+	 * became an in-content embed before this row existed. The three
+	 * `_social_url_*` fields are plain artist-entered outbound links with no
+	 * such gate (see ReviewConfirm::sync_social_links()'s own docblock) and
+	 * always render when set.
+	 *
 	 * No ContentEditor editable-region wrapper here (unlike
 	 * render_event_location()/render_event_date() above) — the three social
 	 * fields are reachable post-publish via ContentEditor's generic REST
@@ -531,8 +542,10 @@ class Profile {
 	public function render_biography_social_links( array $attrs, string $content, \WP_Block $block ): string {
 		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
 
+		$portfolio_approved = '1' === (string) get_post_meta( $post_id, '_agnosis_biography_portfolio_embedded', true );
+
 		$urls = [
-			get_post_meta( $post_id, '_agnosis_biography_portfolio_url', true ),
+			$portfolio_approved ? get_post_meta( $post_id, '_agnosis_biography_portfolio_url', true ) : '',
 			get_post_meta( $post_id, '_agnosis_biography_social_url_1', true ),
 			get_post_meta( $post_id, '_agnosis_biography_social_url_2', true ),
 			get_post_meta( $post_id, '_agnosis_biography_social_url_3', true ),
