@@ -1,21 +1,23 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-12 10:10
+COMBINED COVERAGE  (unit + integration)  —  2026-07-12 14:29
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
+  ✅ includes/AI/CallCounter.php                                100%
   ✅ includes/AI/DescriptionResult.php                          100%
   ✅ includes/AI/EnhancementResult.php                          100%
   ✅ includes/AI/MediaAdapter.php                                80%
-  🔶 includes/AI/Pipeline.php                                    71%
+  🔶 includes/AI/Pipeline.php                                    72%
   ✅ includes/AI/PromptConfig.php                               100%
   ✅ includes/AI/Providers/Anthropic.php                         82%
-  ❌ includes/AI/Providers/OpenAI.php                            49%
+  🔶 includes/AI/Providers/OpenAI.php                            50%
   ✅ includes/AI/Providers/WordPressAI.php                       95%
   ✅ includes/AI/SubmissionTranslator.php                        99%
+  ❌ includes/Admin/ContactMessagesPage.php                       0%
   ✅ includes/Admin/Deliverability.php                           87%
   ❌ includes/Admin/InboxPage.php                                14%
   ❌ includes/Admin/QueueController.php                           0%
   ❌ includes/Admin/Settings.php                                 45%
-  ✅ includes/Artist/Admission.php                               85%
+  ✅ includes/Artist/Admission.php                               82%
   ❌ includes/Artist/AdmissionConfirm.php                         0%
   ✅ includes/Artist/AdmissionNotification.php                   96%
   ✅ includes/Artist/ApplicationBiography.php                    90%
@@ -23,13 +25,15 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 10:10
   ✅ includes/Artist/CommunityCap.php                            95%
   ✅ includes/Artist/CommunityCapNotification.php                88%
   ✅ includes/Artist/CommunityCapVote.php                        91%
+  ✅ includes/Artist/ContactForm.php                             90%
+  ✅ includes/Artist/ContactFormBlock.php                        93%
   🔶 includes/Artist/ContentEditor.php                           72%
   🔶 includes/Artist/Departure.php                               68%
   🔶 includes/Artist/DepartureNotification.php                   65%
   🔶 includes/Artist/FrontendAccess.php                          69%
   ✅ includes/Artist/Invitation.php                              87%
   ✅ includes/Artist/JoinPage.php                                89%
-  ✅ includes/Artist/NotificationPreferences.php                 94%
+  ✅ includes/Artist/NotificationPreferences.php                 95%
   ❌ includes/Artist/Profile.php                                 19%
   ✅ includes/Artist/RemovalVoteConfirm.php                      89%
   ✅ includes/Artist/VoteDigest.php                              93%
@@ -46,6 +50,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 10:10
   ✅ includes/Core/Logger.php                                   100%
   ✅ includes/Core/LoginBranding.php                             95%
   ❌ includes/Core/Plugin.php                                     0%
+  ❌ includes/Core/Privacy.php                                    1%
   ✅ includes/Core/RateLimiter.php                              100%
   ✅ includes/Core/Roles.php                                    100%
   ❌ includes/Core/Turnstile.php                                 17%
@@ -56,10 +61,10 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 10:10
   ✅ includes/Email/IntakeGates.php                             100%
   🔶 includes/Email/Parser.php                                   60%
   ✅ includes/Email/Webhook.php                                  97%
-  ❌ includes/Network/ActivityPub.php                            24%
+  ❌ includes/Network/ActivityPub.php                            48%
   ✅ includes/Network/HttpSignature.php                          86%
   ❌ includes/Network/Node.php                                   21%
-  ❌ includes/Network/SubdomainNavigation.php                     0%
+  ❌ includes/Network/SubdomainNavigation.php                    41%
   🔶 includes/Network/SubdomainRouter.php                        66%
   ✅ includes/Newsletter/Archive.php                             88%
   ✅ includes/Newsletter/Digest.php                              84%
@@ -80,7 +85,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 10:10
   ✅ includes/Publishing/ReviewConfirm.php                       93%
   ✅ includes/Publishing/ReviewEndpoints.php                     91%
   ✅ includes/Publishing/SocialLinks.php                         96%
-  ❌ includes/Publishing/SubmissionsPage.php                     19%
+  ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 68.52%  (10137 / 14795 statements)
+  TOTAL: 66.61%  (10615 / 15935 statements)

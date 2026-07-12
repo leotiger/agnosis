@@ -342,6 +342,70 @@ class PostCreatorMergeRedraftsPublishedTargetTest extends \WP_UnitTestCase {
 		WpAiClientTestRegistry::reset();
 	}
 
+	/**
+	 * Seventh audit §2b — NATIVE-LANGUAGE-PIPELINE.md Phase 2's own documented
+	 * "known follow-up, not a blocker": the staged-update copy loop in
+	 * ReviewEndpoints::finalize_publish() used to only copy '_agnosis_native_lang'
+	 * when the CURRENT submission's own value was non-empty, so an artist who
+	 * previously wrote in a non-primary language and later resubmits in the
+	 * site's primary language never had the stale prior value actively
+	 * cleared off the live post. This is the language-switch case the audit's
+	 * own fix text asked to be covered here specifically.
+	 */
+	public function test_approving_a_staged_biography_update_in_the_primary_language_clears_a_stale_native_lang_on_the_live_post(): void {
+		$live_id = $this->create_published_biography_without_token();
+
+		// Simulates the live post carrying native-language meta from an
+		// earlier, non-primary-language submission — no locale is set on the
+		// artist for THIS test, so the new submission below resolves to the
+		// primary language (_agnosis_native_lang = ''), same as the plain
+		// "same-language case" tests elsewhere in this file.
+		update_post_meta( $live_id, '_agnosis_native_lang', 'ca' );
+		update_post_meta( $live_id, '_agnosis_native_medium', 'Oli' );
+
+		$queue_id = $this->insert_bio_queue_row( 'test-redraft-7' );
+		$creator  = new PostCreator( $this->make_pipeline() );
+		$creator->handle( $queue_id );
+
+		$staging = get_posts( [
+			'post_type'      => 'agnosis_biography',
+			'author'         => $this->artist_id,
+			'post_status'    => 'draft',
+			'meta_key'       => '_agnosis_pending_update_for',
+			'meta_value'     => (string) $live_id,
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+		] );
+		$this->assertNotEmpty( $staging );
+		$staging_id = (int) $staging[0];
+		$this->assertSame(
+			'',
+			get_post_meta( $staging_id, '_agnosis_native_lang', true ),
+			'Fixture sanity check: with no locale set on the artist, the new staging draft must resolve to the primary language.'
+		);
+		$token = (string) get_post_meta( $staging_id, '_agnosis_review_token', true );
+
+		$endpoints = new ReviewEndpoints();
+		$request   = new WP_REST_Request( 'POST', '/agnosis/v1/review/' . $staging_id . '/approve' );
+		$request->set_param( 'id', $staging_id );
+		$request->set_param( 'token', $token );
+		$response = $endpoints->approve( $request );
+
+		$this->assertFalse(
+			is_wp_error( $response ),
+			is_wp_error( $response ) ? 'approve() returned an error: ' . $response->get_error_message() : ''
+		);
+
+		$this->assertFalse(
+			metadata_exists( 'post', $live_id, '_agnosis_native_lang' ),
+			'A stale native language from a PRIOR submission must be actively cleared once the artist resubmits in the primary language — not silently left in place.'
+		);
+		$this->assertFalse(
+			metadata_exists( 'post', $live_id, '_agnosis_native_medium' ),
+			'The stale native medium must be cleared alongside the language.'
+		);
+	}
+
 	public function test_approving_a_staged_biography_update_with_no_new_photo_keeps_the_existing_one(): void {
 		$live_id          = $this->create_published_biography_without_token( true );
 		$existing_gallery = get_post_meta( $live_id, '_agnosis_gallery_ids', true );

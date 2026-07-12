@@ -435,6 +435,44 @@ class HttpSignatureTest extends \WP_UnitTestCase {
 		$this->assertSame( 1, $fetch_count, 'Actor document should be fetched only once.' );
 	}
 
+	// ── Audit §3b: SSRF guard on the actor-document fetch ─────────────────────
+
+	public function test_fetch_public_key_uses_wp_safe_remote_get(): void {
+		// keyId is attacker-controlled (it comes straight from the inbound
+		// Signature header), so fetch_public_key() must use wp_safe_remote_get()
+		// rather than wp_remote_get(). That's what sets 'reject_unsafe_urls',
+		// which is what makes WP core reject private/loopback/link-local/ULA
+		// targets (re-checked on every redirect). Assert the flag is present
+		// on the outgoing request rather than re-testing WP core's own IP
+		// range logic.
+		$seen_reject_flag = null;
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) use ( &$seen_reject_flag ) {
+				if ( strpos( $url, self::ACTOR_URL ) !== false ) {
+					$seen_reject_flag = $args['reject_unsafe_urls'] ?? null;
+					return [
+						'response' => [ 'code' => 200, 'message' => 'OK' ],
+						'headers'  => [],
+						'body'     => (string) wp_json_encode( [
+							'publicKey' => [ 'publicKeyPem' => self::$public_key_pem ],
+						] ),
+						'cookies'  => [],
+						'filename' => '',
+					];
+				}
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		$request = $this->build_signed_request();
+		HttpSignature::verify( $request );
+
+		$this->assertTrue( $seen_reject_flag, 'fetch_public_key() must request with reject_unsafe_urls => true.' );
+	}
+
 	// ── Private method: parse_signature_header ────────────────────────────────
 
 	public function test_parse_signature_header_extracts_all_fields(): void {

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.8.0\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-12T12:34+00:00\n"
+"POT-Creation-Date: 2026-07-12T14:26+00:00\n"
 "PO-Revision-Date: 2026-07-08 14:22+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Turkish\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:192
-#: includes/Publishing/SubmissionsPage.php:63
+#: includes/Core/Privacy.php:774 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -110,8 +110,8 @@ msgstr ""
 msgid "#"
 msgstr "#"
 
-#: includes/Admin/ContactMessagesPage.php:97 includes/Admin/Settings.php:1911
-#: includes/Admin/Settings.php:2205
+#: includes/Admin/ContactMessagesPage.php:97 includes/Admin/Settings.php:1990
+#: includes/Admin/Settings.php:2284
 msgid "Artist"
 msgstr "Sanatçı"
 
@@ -119,13 +119,18 @@ msgstr "Sanatçı"
 msgid "From"
 msgstr "Kimden"
 
-#: includes/Admin/ContactMessagesPage.php:99 includes/Admin/Settings.php:1420
-#: includes/Artist/ContactForm.php:115 includes/Artist/ContactFormBlock.php:111
+#: includes/Admin/ContactMessagesPage.php:99 includes/Admin/Settings.php:1498
+#: includes/Artist/ContactForm.php:128 includes/Artist/ContactFormBlock.php:112
+#: includes/Core/Privacy.php:209 includes/Core/Privacy.php:227
+#: includes/Core/Privacy.php:367
 msgid "Message"
 msgstr "İleti"
 
 #: includes/Admin/ContactMessagesPage.php:100 includes/Admin/InboxPage.php:167
-#: includes/Admin/Settings.php:1912 includes/Admin/Settings.php:2198
+#: includes/Admin/Settings.php:1991 includes/Admin/Settings.php:2277
+#: includes/Core/Privacy.php:164 includes/Core/Privacy.php:297
+#: includes/Core/Privacy.php:333 includes/Core/Privacy.php:369
+#: includes/Core/Privacy.php:411
 msgid "Status"
 msgstr "Durum"
 
@@ -134,7 +139,7 @@ msgid "Received"
 msgstr "Alındı"
 
 #: includes/Admin/ContactMessagesPage.php:102 includes/Admin/InboxPage.php:170
-#: includes/Admin/Settings.php:1760 includes/Admin/Settings.php:1914
+#: includes/Admin/Settings.php:1839 includes/Admin/Settings.php:1993
 msgid "Actions"
 msgstr "İşlemler"
 
@@ -147,14 +152,14 @@ msgstr ""
 #: includes/Admin/ContactMessagesPage.php:159 includes/Admin/InboxPage.php:878
 #: includes/Admin/QueueController.php:31 includes/Admin/QueueController.php:60
 #: includes/Admin/QueueController.php:95 includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1654
-#: includes/Admin/Settings.php:1833 includes/Admin/Settings.php:1862
-#: includes/Admin/Settings.php:2040 includes/Admin/Settings.php:2072
-#: includes/Admin/Settings.php:2099 includes/Admin/Settings.php:2395
-#: includes/Admin/Settings.php:2424 includes/Admin/Settings.php:2452
-#: includes/Admin/Settings.php:2526 includes/Admin/Settings.php:2553
-#: includes/Admin/Settings.php:2790 includes/Admin/Settings.php:2809
-#: includes/Admin/Settings.php:2828
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1733
+#: includes/Admin/Settings.php:1912 includes/Admin/Settings.php:1941
+#: includes/Admin/Settings.php:2119 includes/Admin/Settings.php:2151
+#: includes/Admin/Settings.php:2178 includes/Admin/Settings.php:2474
+#: includes/Admin/Settings.php:2503 includes/Admin/Settings.php:2531
+#: includes/Admin/Settings.php:2605 includes/Admin/Settings.php:2632
+#: includes/Admin/Settings.php:2869 includes/Admin/Settings.php:2888
+#: includes/Admin/Settings.php:2907
 msgid "You do not have permission to perform this action."
 msgstr "Bu işlemi gerçekleştirme izniniz yok."
 
@@ -203,7 +208,7 @@ msgid "Delete this message?"
 msgstr "Bu kuyruk satırı silinsin mi?"
 
 #: includes/Admin/ContactMessagesPage.php:322 includes/Admin/InboxPage.php:784
-#: includes/Admin/Settings.php:2008
+#: includes/Admin/Settings.php:2087
 msgid "Delete"
 msgstr "Sil"
 
@@ -229,7 +234,7 @@ msgid "Community (transactional)"
 msgstr "Topluluk büyüklüğü sınırı"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
-#: includes/Admin/Settings.php:2195 includes/Newsletter/Mailer.php:66
+#: includes/Admin/Settings.php:2274 includes/Newsletter/Mailer.php:66
 msgid "Newsletter"
 msgstr "Bülten"
 
@@ -262,7 +267,7 @@ msgstr "Konu"
 msgid "Endpoint"
 msgstr ""
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:1295
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:1373
 msgid "Files"
 msgstr "Dosyalar"
 
@@ -599,7 +604,7 @@ msgstr "Unutuşun içinden filizlenen sanat"
 msgid "Save Changes"
 msgstr "Değişiklikleri Kaydet"
 
-#: includes/Admin/Settings.php:238 includes/Admin/Settings.php:1903
+#: includes/Admin/Settings.php:238 includes/Admin/Settings.php:1982
 msgid "Members"
 msgstr "Üyeler"
 
@@ -982,11 +987,24 @@ msgstr ""
 "Görülen IMAP iletileri ve işlenmiş/başarısız kuyruk satırları bundan daha "
 "eskiyse günlük temizlik tarafından kalıcı olarak silinir. Varsayılan: 7 gün."
 
-#: includes/Admin/Settings.php:565
+#: includes/Admin/Settings.php:563
+#, fuzzy
+msgid "Contact message retention (days)"
+msgstr "Gelen kutusu saklama süresi (gün)"
+
+#: includes/Admin/Settings.php:569
+msgid ""
+"Visitor-to-artist contact messages (sent or rejected) older than this are "
+"permanently deleted by the daily cleanup. The visitor's IP address is "
+"cleared independently after 30 days regardless of this setting, once it's no "
+"longer useful for abuse investigation. Default: 90 days."
+msgstr ""
+
+#: includes/Admin/Settings.php:575
 msgid "Per-sender hourly submission limit"
 msgstr "Gönderici başına saatlik gönderim sınırı"
 
-#: includes/Admin/Settings.php:572
+#: includes/Admin/Settings.php:582
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -996,11 +1014,11 @@ msgstr ""
 "edilecek en fazla gönderim sayısı. Bu sınır aşılırsa ileti sessizce "
 "reddedilir (ESP’lerden yeniden deneme yapılmaz). Varsayılan: 5."
 
-#: includes/Admin/Settings.php:577
+#: includes/Admin/Settings.php:587
 msgid "Require SPF/DKIM authentication"
 msgstr "SPF/DKIM kimlik doğrulaması iste"
 
-#: includes/Admin/Settings.php:580
+#: includes/Admin/Settings.php:590
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -1015,11 +1033,11 @@ msgstr ""
 "değilseniz kapalı bırakın — reddedilen meşru postalar sessiz olur. "
 "Varsayılan: kapalı."
 
-#: includes/Admin/Settings.php:586
+#: includes/Admin/Settings.php:596
 msgid "Description provider"
 msgstr "Açıklama sağlayıcısı"
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:604
 msgid ""
 "Analyses the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -1029,11 +1047,11 @@ msgstr ""
 "alternatif metni yazar. WordPress AI Services, sitenin AI Services eklentisi "
 "üzerinden yapılandırdığı sağlayıcıya yönlendirir."
 
-#: includes/Admin/Settings.php:598
+#: includes/Admin/Settings.php:608
 msgid "OpenAI vision model"
 msgstr "OpenAI görme modeli"
 
-#: includes/Admin/Settings.php:600
+#: includes/Admin/Settings.php:610
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -1041,11 +1059,11 @@ msgstr ""
 "OpenAI açıklama sağlayıcısı olduğunda sanat eseri açıklaması için kullanılan "
 "model. Görsel girişi desteklemelidir."
 
-#: includes/Admin/Settings.php:604
+#: includes/Admin/Settings.php:614
 msgid "Anthropic model"
 msgstr "Anthropic modeli"
 
-#: includes/Admin/Settings.php:606
+#: includes/Admin/Settings.php:616
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -1053,11 +1071,11 @@ msgstr ""
 "Anthropic açıklama sağlayıcısı olduğunda sanat eseri açıklaması için "
 "kullanılan model. Görsel girişi desteklemelidir."
 
-#: includes/Admin/Settings.php:610
+#: includes/Admin/Settings.php:620
 msgid "Vision image max width (px)"
 msgstr "Görsel en büyük genişliği (px)"
 
-#: includes/Admin/Settings.php:616
+#: includes/Admin/Settings.php:626
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -1078,19 +1096,19 @@ msgstr ""
 "gerekir; bu özellik yoksa görseller ayardan bağımsız olarak orijinal "
 "boyutlarında gönderilir. Varsayılan: 800."
 
-#: includes/Admin/Settings.php:622
+#: includes/Admin/Settings.php:632
 msgid "Enhancement provider"
 msgstr "İyileştirme sağlayıcısı"
 
-#: includes/Admin/Settings.php:625
+#: includes/Admin/Settings.php:635
 msgid "Auto (OpenAI if key is set)"
 msgstr "Otomatik (anahtar ayarlıysa OpenAI)"
 
-#: includes/Admin/Settings.php:627
+#: includes/Admin/Settings.php:637
 msgid "Disabled — use original image"
 msgstr "Devre dışı — özgün görseli kullan"
 
-#: includes/Admin/Settings.php:630
+#: includes/Admin/Settings.php:640
 msgid ""
 "Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
 "to Disabled to skip enhancement and publish the original."
@@ -1099,22 +1117,22 @@ msgstr ""
 "kullanır. İyileştirmeyi atlamak ve özgün görseli yayımlamak için Devre dışı "
 "olarak ayarlayın."
 
-#: includes/Admin/Settings.php:634
+#: includes/Admin/Settings.php:644
 msgid "OpenAI image model"
 msgstr "OpenAI görsel modeli"
 
-#: includes/Admin/Settings.php:636
+#: includes/Admin/Settings.php:646
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "OpenAI iyileştirme sağlayıcısı olduğunda görüntü iyileştirme için kullanılan "
 "model."
 
-#: includes/Admin/Settings.php:642
+#: includes/Admin/Settings.php:652
 msgid "Polish biography with AI"
 msgstr "Biyografiyi yapay zekâ ile düzelt"
 
-#: includes/Admin/Settings.php:645
+#: includes/Admin/Settings.php:655
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -1123,11 +1141,11 @@ msgstr ""
 "hatalarını düzeltmek ve küçük metin iyileştirmeleri yapmak için yapay "
 "zekâdan geçirilir."
 
-#: includes/Admin/Settings.php:649
+#: includes/Admin/Settings.php:659
 msgid "Polish events with AI"
 msgstr "AI ile etkinlikleri iyileştir"
 
-#: includes/Admin/Settings.php:652
+#: includes/Admin/Settings.php:662
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -1135,11 +1153,11 @@ msgstr ""
 "Etkinlik gönderileri etkinleştirildiğinde, kaydetmeden önce yazım hatalarını "
 "düzeltmek ve küçük metin iyileştirmeleri yapmak için yapay zekâdan geçirilir."
 
-#: includes/Admin/Settings.php:658
+#: includes/Admin/Settings.php:668
 msgid "Merge biography updates with AI"
 msgstr "Biyografi güncellemelerini AI ile birleştir"
 
-#: includes/Admin/Settings.php:661
+#: includes/Admin/Settings.php:671
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -1154,11 +1172,11 @@ msgstr ""
 "Biyografinin her zaman en son gönderimle değiştirilmesi için devre dışı "
 "bırakın."
 
-#: includes/Admin/Settings.php:667
+#: includes/Admin/Settings.php:677
 msgid "Rejection threshold (quality score)"
 msgstr "Reddetme eşiği (kalite puanı)"
 
-#: includes/Admin/Settings.php:675
+#: includes/Admin/Settings.php:685
 msgid ""
 "Photos scoring at or below this value (1–10) are automatically rejected — "
 "the artist receives a friendly email explaining the issue and is invited to "
@@ -1170,11 +1188,11 @@ msgstr ""
 "ve yeniden göndermesi istenir. 0 puanı otomatik reddetmeyi devre dışı "
 "bırakır. İyileştirme eşiğinden düşük olmalıdır. Varsayılan: 3."
 
-#: includes/Admin/Settings.php:680
+#: includes/Admin/Settings.php:690
 msgid "Enhancement threshold (quality score)"
 msgstr "İyileştirme eşiği (kalite puanı)"
 
-#: includes/Admin/Settings.php:688
+#: includes/Admin/Settings.php:698
 msgid ""
 "Photos scoring below this value (1–10) are automatically enhanced. Score 10 "
 "= perfect photograph, 1 = technically unusable. Default: 7 — only visibly "
@@ -1186,27 +1204,27 @@ msgstr ""
 "Varsayılan: 7 — yalnızca belirgin biçimde sorunlu fotoğraflar işlenir. "
 "Otomatik iyileştirmeyi tamamen devre dışı bırakmak için 1'e ayarlayın."
 
-#: includes/Admin/Settings.php:694
+#: includes/Admin/Settings.php:704
 msgid "OpenAI API key"
 msgstr "OpenAI API anahtarı"
 
-#: includes/Admin/Settings.php:697
+#: includes/Admin/Settings.php:707
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "OpenAI açıklama veya iyileştirme sağlayıcısı olduğunda gereklidir."
 
-#: includes/Admin/Settings.php:701
+#: includes/Admin/Settings.php:711
 msgid "Anthropic API key"
 msgstr "Anthropic API anahtarı"
 
-#: includes/Admin/Settings.php:704
+#: includes/Admin/Settings.php:714
 msgid "Required when Anthropic is the description provider."
 msgstr "Anthropic açıklama sağlayıcısı olduğunda gereklidir."
 
-#: includes/Admin/Settings.php:710
+#: includes/Admin/Settings.php:720
 msgid "Artwork display width (px)"
 msgstr "Sanat eseri görüntü genişliği (px)"
 
-#: includes/Admin/Settings.php:716
+#: includes/Admin/Settings.php:726
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -1217,11 +1235,11 @@ msgstr ""
 "Bu değeri değiştirdikten sonra mevcut görsellerin yeniden oluşturulması "
 "gerekir."
 
-#: includes/Admin/Settings.php:720
+#: includes/Admin/Settings.php:730
 msgid "Thumbnail size (px)"
 msgstr "Küçük resim boyutu (px)"
 
-#: includes/Admin/Settings.php:726
+#: includes/Admin/Settings.php:736
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -1231,11 +1249,11 @@ msgstr ""
 "uzunluğu. Varsayılan: 512. Bu değeri değiştirdikten sonra mevcut görsellerin "
 "yeniden oluşturulması gerekir."
 
-#: includes/Admin/Settings.php:730
+#: includes/Admin/Settings.php:740
 msgid "Email image width (px)"
 msgstr "E-posta görsel genişliği (px)"
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:746
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -1246,11 +1264,11 @@ msgstr ""
 "420. Bu değeri değiştirdikten sonra mevcut görsellerin yeniden oluşturulması "
 "gerekir."
 
-#: includes/Admin/Settings.php:742
+#: includes/Admin/Settings.php:752
 msgid "Gallery overview — items per page"
 msgstr "Galeri genel görünümü — sayfa başına öğe sayısı"
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:758
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -1260,22 +1278,22 @@ msgstr ""
 "Havuz tüm sanatçılar arasında orantılı olarak oluşturulur; öne çıkan eserler "
 "önceliklidir. Varsayılan: 12."
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:764
 msgid "Review link expiry (days)"
 msgstr ""
 
-#: includes/Admin/Settings.php:760
+#: includes/Admin/Settings.php:770
 msgid ""
 "How long the Approve & Publish / Discard links in a submission review email "
 "stay valid before an artist has to log in to manage the item instead. "
 "Applies uniformly to artwork, biography, and event drafts. Default: 7."
 msgstr ""
 
-#: includes/Admin/Settings.php:766
+#: includes/Admin/Settings.php:776
 msgid "System prompt"
 msgstr "Sistem istemi"
 
-#: includes/Admin/Settings.php:772
+#: includes/Admin/Settings.php:782
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -1284,11 +1302,11 @@ msgstr ""
 "{excerpt_words} değerlerini belirteç olarak kullanın — bunlar aşağıdaki "
 "değerlerle değiştirilir."
 
-#: includes/Admin/Settings.php:776
+#: includes/Admin/Settings.php:786
 msgid "Artist prompt template"
 msgstr "Sanatçı istemi şablonu"
 
-#: includes/Admin/Settings.php:782
+#: includes/Admin/Settings.php:792
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -1296,11 +1314,11 @@ msgstr ""
 "Sanat eserinin görüntüsüyle birlikte gönderilen kullanıcı mesajı. Sanatçının "
 "kendi açıklamasının görünmesi gereken yerde {artist_prompt} kullanın."
 
-#: includes/Admin/Settings.php:786
+#: includes/Admin/Settings.php:796
 msgid "Enhancement instructions"
 msgstr "İyileştirme talimatları"
 
-#: includes/Admin/Settings.php:792
+#: includes/Admin/Settings.php:802
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -1308,11 +1326,11 @@ msgstr ""
 "Görsel iyileştirme sağlayıcısına iletilen talimatlar. Yapay zekâ tarafından "
 "oluşturulan sanat eseri açıklaması bağlam olarak otomatik olarak eklenir."
 
-#: includes/Admin/Settings.php:796
+#: includes/Admin/Settings.php:806
 msgid "Number of tags"
 msgstr "Etiket sayısı"
 
-#: includes/Admin/Settings.php:802
+#: includes/Admin/Settings.php:812
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -1320,11 +1338,11 @@ msgstr ""
 "Yapay zekânın her sanat eseri için kaç etiket oluşturması gerektiği. Sistem "
 "isteminde {tag_count} olarak kullanılır."
 
-#: includes/Admin/Settings.php:806
+#: includes/Admin/Settings.php:816
 msgid "Excerpt word limit"
 msgstr "Alıntı kelime sınırı"
 
-#: includes/Admin/Settings.php:812
+#: includes/Admin/Settings.php:822
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -1332,12 +1350,12 @@ msgstr ""
 "Tek cümlelik alıntı için maksimum kelime sayısı. Sistem isteminde "
 "{excerpt_words} olarak kullanılır."
 
-#: includes/Admin/Settings.php:825
+#: includes/Admin/Settings.php:835
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr ""
 "Kabul edilen tüm sanatçılara güven (bağlantı incelemesini tamamen atla)"
 
-#: includes/Admin/Settings.php:830
+#: includes/Admin/Settings.php:840
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -1353,11 +1371,11 @@ msgstr ""
 "Varsayılan olarak kapalıdır. Yalnızca, kabul sürecinden geçmiş kötü niyetli "
 "bir kişinin her şeye bağlantı gömmesini sorun etmeyecekseniz etkinleştirin."
 
-#: includes/Admin/Settings.php:834
+#: includes/Admin/Settings.php:844
 msgid "Trusted embed platforms"
 msgstr "Güvenilen gömme platformları"
 
-#: includes/Admin/Settings.php:840
+#: includes/Admin/Settings.php:850
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -1368,13 +1386,13 @@ msgstr ""
 "gömme olur — AI incelemesi gerekmez, bağlantının kendisine ağ isteği "
 "yapılmaz."
 
-#: includes/Admin/Settings.php:844
+#: includes/Admin/Settings.php:854
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr ""
 "Sanatçıların başka bağlantılar da göndermesine izin ver (AI tarafından "
 "incelenmiş)"
 
-#: includes/Admin/Settings.php:849
+#: includes/Admin/Settings.php:859
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -1393,19 +1411,19 @@ msgstr ""
 "bırakıldığında (varsayılan), yalnızca yukarıdaki güvenilen platformlar "
 "gömülür."
 
-#: includes/Admin/Settings.php:853
+#: includes/Admin/Settings.php:863
 msgid "Block pornographic / sexually explicit content"
 msgstr "Pornografik / cinsel içerikli içeriği engelle"
 
-#: includes/Admin/Settings.php:858 includes/Admin/Settings.php:876
+#: includes/Admin/Settings.php:868 includes/Admin/Settings.php:886
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "Yalnızca AI incelemesi (yukarıda) etkinleştirildiğinde geçerlidir."
 
-#: includes/Admin/Settings.php:862
+#: includes/Admin/Settings.php:872
 msgid "Block primarily commercial / promotional sites"
 msgstr "Öncelikle ticari / tanıtım amaçlı siteleri engelle"
 
-#: includes/Admin/Settings.php:867
+#: includes/Admin/Settings.php:877
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -1416,15 +1434,15 @@ msgstr ""
 "yaygındır ve doğası gereği istenmeyen değildir. Yalnızca AI incelemesi "
 "(yukarıda) etkinleştirildiğinde geçerlidir."
 
-#: includes/Admin/Settings.php:871
+#: includes/Admin/Settings.php:881
 msgid "Block gambling / betting sites"
 msgstr "Kumar / bahis sitelerini engelle"
 
-#: includes/Admin/Settings.php:880
+#: includes/Admin/Settings.php:890
 msgid "Additional disallowed categories"
 msgstr "Ek yasaklı kategoriler"
 
-#: includes/Admin/Settings.php:885
+#: includes/Admin/Settings.php:895
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -1435,38 +1453,38 @@ msgstr ""
 "\"oltalama veya dolandırıcılık sayfaları\"). Yalnızca AI incelemesi "
 "(yukarıda) etkinleştirildiğinde geçerlidir."
 
-#: includes/Admin/Settings.php:891
+#: includes/Admin/Settings.php:901
 msgid "Node label"
 msgstr "Düğüm etiketi"
 
-#: includes/Admin/Settings.php:892
+#: includes/Admin/Settings.php:902
 msgid "How this node introduces itself to the network."
 msgstr "Bu düğümün ağa kendini nasıl tanıttığı."
 
-#: includes/Admin/Settings.php:897
+#: includes/Admin/Settings.php:907
 msgid "Enable ActivityPub federation"
 msgstr "ActivityPub federasyonunu etkinleştir"
 
-#: includes/Admin/Settings.php:901
+#: includes/Admin/Settings.php:911
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Yeni sanat eserlerini Mastodon, Pixelfed ve Fediverse'e yayınla."
 
-#: includes/Admin/Settings.php:906
+#: includes/Admin/Settings.php:916
 msgid "Node public key"
 msgstr "Düğüm genel anahtarı"
 
-#: includes/Admin/Settings.php:908
+#: includes/Admin/Settings.php:918
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Bu düğüm için otomatik oluşturulmuş RSA genel anahtarı. Bunu eş düğümlerle "
 "paylaşın."
 
-#: includes/Admin/Settings.php:913 includes/Admin/Settings.php:1060
+#: includes/Admin/Settings.php:923 includes/Admin/Settings.php:1080
 msgid "Sender name"
 msgstr "Gönderen adı"
 
-#: includes/Admin/Settings.php:914
+#: includes/Admin/Settings.php:924
 #, fuzzy
 msgid ""
 "Name shown as the sender of admission, vote, welcome, departure, and other "
@@ -1475,11 +1493,11 @@ msgstr ""
 "Özet e-postalarının göndericisi olarak görünen ad. Site adını kullanmak için "
 "boş bırakın."
 
-#: includes/Admin/Settings.php:918 includes/Admin/Settings.php:1065
+#: includes/Admin/Settings.php:928 includes/Admin/Settings.php:1085
 msgid "Sender email address"
 msgstr "Gönderen e-posta adresi"
 
-#: includes/Admin/Settings.php:920
+#: includes/Admin/Settings.php:930
 #, fuzzy
 msgid ""
 "Dedicated From: address for admission, vote, welcome, departure, invitation, "
@@ -1496,11 +1514,11 @@ msgstr ""
 "edilebilir bir adres olmalıdır (SPF/DKIM yapılandırılmış) yoksa iletiler "
 "spam olarak işaretlenebilir."
 
-#: includes/Admin/Settings.php:924
+#: includes/Admin/Settings.php:934
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr ""
 
-#: includes/Admin/Settings.php:930
+#: includes/Admin/Settings.php:940
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -1508,22 +1526,22 @@ msgid ""
 "repeated From can be used to spam a real artist with. Default: 3."
 msgstr ""
 
-#: includes/Admin/Settings.php:934
+#: includes/Admin/Settings.php:944
 msgid "Community broadcasts per artist per day"
 msgstr ""
 
-#: includes/Admin/Settings.php:940
+#: includes/Admin/Settings.php:950
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
 "flooding every other member's inbox. Default: 3."
 msgstr ""
 
-#: includes/Admin/Settings.php:944
+#: includes/Admin/Settings.php:954
 msgid "Community broadcast max length (characters)"
 msgstr ""
 
-#: includes/Admin/Settings.php:951
+#: includes/Admin/Settings.php:961
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -1534,11 +1552,11 @@ msgid ""
 "Hard maximum: 20000, regardless of this setting."
 msgstr ""
 
-#: includes/Admin/Settings.php:955
+#: includes/Admin/Settings.php:965
 msgid "Admission vote threshold (%)"
 msgstr "Kabul oyu eşiği (%)"
 
-#: includes/Admin/Settings.php:960
+#: includes/Admin/Settings.php:970
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -1546,21 +1564,21 @@ msgstr ""
 "Kabul için aktif sanatçıların kaç yüzdesinin evet oyu vermesi gerektiği. "
 "Aşağıdaki asgari tabanla birlikte değerlendirilir."
 
-#: includes/Admin/Settings.php:964
+#: includes/Admin/Settings.php:974
 msgid "Admission minimum votes"
 msgstr "Kabul için asgari oy sayısı"
 
-#: includes/Admin/Settings.php:968
+#: includes/Admin/Settings.php:978
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Yukarıdaki yüzdeye bakılmaksızın gereken mutlak asgari olumlu oy sayısı."
 
-#: includes/Admin/Settings.php:972
+#: includes/Admin/Settings.php:982
 msgid "Voting window (days)"
 msgstr "Oylama süresi (gün)"
 
-#: includes/Admin/Settings.php:976
+#: includes/Admin/Settings.php:986
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -1568,11 +1586,26 @@ msgstr ""
 "Bir başvurunun açık kalacağı gün sayısı. Eşik bu süre içinde karşılanmazsa "
 "başvuru reddedilir."
 
-#: includes/Admin/Settings.php:980
+#: includes/Admin/Settings.php:990
+#, fuzzy
+msgid "Resolved application retention (days)"
+msgstr "Gelen kutusu saklama süresi (gün)"
+
+#: includes/Admin/Settings.php:996
+msgid ""
+"A rejected, withdrawn, or left application's email, name, biography, "
+"statement, and portfolio link are anonymized by the daily cleanup after this "
+"many days — the application record itself (status and dates) is kept for "
+"admission history. A banned artist's biography/statement/portfolio are "
+"anonymized on the same schedule, but their email is deliberately kept so the "
+"ban stays enforceable. Default: 180 days."
+msgstr ""
+
+#: includes/Admin/Settings.php:1000
 msgid "After applying, send artists to"
 msgstr "Başvurduktan sonra sanatçıları şuraya gönderin"
 
-#: includes/Admin/Settings.php:984
+#: includes/Admin/Settings.php:1004
 #, fuzzy
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
@@ -1585,11 +1618,11 @@ msgstr ""
 "satır içi bir onay mesajı görmek yerine buraya yönlendirilir. Yalnızca satır "
 "içi mesajın kalmasını istiyorsanız boş bırakın."
 
-#: includes/Admin/Settings.php:988
+#: includes/Admin/Settings.php:1008
 msgid "Community size cap"
 msgstr "Topluluk büyüklüğü sınırı"
 
-#: includes/Admin/Settings.php:992
+#: includes/Admin/Settings.php:1012
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -1600,11 +1633,11 @@ msgstr ""
 "sıradaki kişiyi kabul eder. Sınır olmaması için 0 olarak ayarlayın. Topluluk "
 "bunu oylayarak da değiştirebilir."
 
-#: includes/Admin/Settings.php:996
+#: includes/Admin/Settings.php:1016
 msgid "Cap-change co-signers required"
 msgstr "Sınır değişikliği için gerekli eş imza sayısı"
 
-#: includes/Admin/Settings.php:1000
+#: includes/Admin/Settings.php:1020
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -1612,11 +1645,11 @@ msgstr ""
 "Topluluk büyüklüğü sınırını değiştirme önerisinin tam bir topluluk "
 "oylamasına açılması için kaç sanatçının eş imza vermesi gerektiği."
 
-#: includes/Admin/Settings.php:1004
+#: includes/Admin/Settings.php:1024
 msgid "Cap-change vote window (days)"
 msgstr "Sınır değişikliği oylama süresi (gün)"
 
-#: includes/Admin/Settings.php:1008
+#: includes/Admin/Settings.php:1028
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -1624,11 +1657,11 @@ msgstr ""
 "Topluluk sınırı değişikliği oylamasının açık kalacağı gün sayısı. Aktif "
 "sanatçıların salt çoğunluğunun evet oyu vermesi yeni sınırı kabul eder."
 
-#: includes/Admin/Settings.php:1012
+#: includes/Admin/Settings.php:1032
 msgid "Removal nominations required"
 msgstr "Gerekli çıkarma adaylığı sayısı"
 
-#: includes/Admin/Settings.php:1018
+#: includes/Admin/Settings.php:1038
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -1636,11 +1669,11 @@ msgstr ""
 "Bir topluluk çıkarma oylamasının açılması için gereken sanatçı adaylığı "
 "sayısı. Yöneticiler bu eşiği aşabilir."
 
-#: includes/Admin/Settings.php:1022
+#: includes/Admin/Settings.php:1042
 msgid "Removal vote window (days)"
 msgstr "Çıkarma oylama süresi (gün)"
 
-#: includes/Admin/Settings.php:1028
+#: includes/Admin/Settings.php:1048
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -1649,11 +1682,11 @@ msgstr ""
 "ilerlemesi için aktif sanatçıların çoğunluğunun (%50'den fazla) evet oyu "
 "vermesi gerekir."
 
-#: includes/Admin/Settings.php:1032
+#: includes/Admin/Settings.php:1052
 msgid "Invitation intro"
 msgstr "Davet girişi"
 
-#: includes/Admin/Settings.php:1036
+#: includes/Admin/Settings.php:1056
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -1683,7 +1716,7 @@ msgstr ""
 "işlemlerini de e-posta göndererek yapabilirsiniz. agnosis.art web sitesini "
 "ziyaret ederek daha fazla bilgi bulabilirsiniz."
 
-#: includes/Admin/Settings.php:1041
+#: includes/Admin/Settings.php:1061
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -1698,11 +1731,11 @@ msgstr ""
 "değil, kalıcı metindir — site dilinden farklı bir dilde davet "
 "gönderildiğinde otomatik olarak çevrilir."
 
-#: includes/Admin/Settings.php:1047
+#: includes/Admin/Settings.php:1067
 msgid "Transaction fee (%)"
 msgstr "İşlem ücreti (%)"
 
-#: includes/Admin/Settings.php:1052
+#: includes/Admin/Settings.php:1072
 msgid ""
 "Percentage retained by this node on donations and art sales. Artists pay "
 "nothing up front."
@@ -1710,14 +1743,14 @@ msgstr ""
 "Bağışlar ve sanat satışları üzerinden bu düğüm tarafından tutulan yüzde. "
 "Sanatçılar peşin olarak hiçbir şey ödemez."
 
-#: includes/Admin/Settings.php:1061
+#: includes/Admin/Settings.php:1081
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "Özet e-postalarının göndericisi olarak görünen ad. Site adını kullanmak için "
 "boş bırakın."
 
-#: includes/Admin/Settings.php:1067
+#: includes/Admin/Settings.php:1087
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -1732,11 +1765,11 @@ msgstr ""
 "edilebilir bir adres olmalıdır (SPF/DKIM yapılandırılmış) yoksa iletiler "
 "spam olarak işaretlenebilir."
 
-#: includes/Admin/Settings.php:1071
+#: includes/Admin/Settings.php:1091
 msgid "Auto-draft newsletter intros"
 msgstr "Otomatik taslak bülten girişleri"
 
-#: includes/Admin/Settings.php:1076
+#: includes/Admin/Settings.php:1096
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -1749,11 +1782,11 @@ msgstr ""
 "zaten bir tane yazmadıysanız. Devre dışı bırakın; böylece her iki giriş "
 "alanı da onları bıraktığınız gibi, her zaman aynen kalır."
 
-#: includes/Admin/Settings.php:1080
+#: includes/Admin/Settings.php:1100
 msgid "Draft intro this many hours ahead"
 msgstr "Özeti şu kadar saat önceden taslakla"
 
-#: includes/Admin/Settings.php:1086
+#: includes/Admin/Settings.php:1106
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -1762,11 +1795,11 @@ msgstr ""
 "taslaklanmış giriş önerir. Yalnızca otomatik taslak oluşturma (yukarıda) "
 "etkinleştirildiğinde geçerlidir. Varsayılan: 24."
 
-#: includes/Admin/Settings.php:1090 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/Settings.php:1110 includes/Newsletter/Scheduler.php:386
 msgid "Artist newsletter"
 msgstr "Sanatçı bülteni"
 
-#: includes/Admin/Settings.php:1093
+#: includes/Admin/Settings.php:1113
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -1775,11 +1808,11 @@ msgstr ""
 "abonelikten çıkabilirler). Topluluk özeti: son etkinlikler, yeni üyeler, "
 "açık oylamalar."
 
-#: includes/Admin/Settings.php:1097
+#: includes/Admin/Settings.php:1117
 msgid "Artist newsletter frequency (days)"
 msgstr "Sanatçı bülteni sıklığı (gün)"
 
-#: includes/Admin/Settings.php:1103
+#: includes/Admin/Settings.php:1123
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -1787,11 +1820,11 @@ msgstr ""
 "Varsayılan 30 ≈ aylık. Son sayı gönderildiğinden beri bu kadar gün "
 "geçtiğinde yeni bir sayı hazırlanır."
 
-#: includes/Admin/Settings.php:1107
+#: includes/Admin/Settings.php:1127
 msgid "Artist newsletter intro"
 msgstr "Sanatçı bülteni girişi"
 
-#: includes/Admin/Settings.php:1111
+#: includes/Admin/Settings.php:1131
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -1806,11 +1839,11 @@ msgstr ""
 "ve önce gözden geçirmeniz için size e-posta gönderir — bunu atlamak için "
 "istediğiniz zaman buraya kendi yazınızı yazın."
 
-#: includes/Admin/Settings.php:1115 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/Settings.php:1135 includes/Newsletter/Scheduler.php:386
 msgid "Public newsletter"
 msgstr "Halka açık bülten"
 
-#: includes/Admin/Settings.php:1118
+#: includes/Admin/Settings.php:1138
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -1819,19 +1852,19 @@ msgstr ""
 "onay). Özet: son sayıdan bu yana yayımlanan yeni sanat eserleri ve "
 "etkinlikler."
 
-#: includes/Admin/Settings.php:1122
+#: includes/Admin/Settings.php:1142
 msgid "Public newsletter frequency (days)"
 msgstr "Halka açık bülten sıklığı (gün)"
 
-#: includes/Admin/Settings.php:1128
+#: includes/Admin/Settings.php:1148
 msgid "Default 30 ≈ monthly."
 msgstr "Varsayılan 30 ≈ aylık."
 
-#: includes/Admin/Settings.php:1132
+#: includes/Admin/Settings.php:1152
 msgid "Public newsletter intro"
 msgstr "Halka açık bülten girişi"
 
-#: includes/Admin/Settings.php:1136
+#: includes/Admin/Settings.php:1156
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -1844,11 +1877,11 @@ msgstr ""
 "oluşturur ve gözden geçirmeniz için size e-posta gönderir — istediğiniz "
 "zaman bunu atlayacak şekilde kendi notunuzu yazın."
 
-#: includes/Admin/Settings.php:1140
+#: includes/Admin/Settings.php:1160
 msgid "Send batch size"
 msgstr "Toplu gönderim boyutu"
 
-#: includes/Admin/Settings.php:1146
+#: includes/Admin/Settings.php:1166
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -1857,11 +1890,11 @@ msgstr ""
 "Sunucunuz giden postayı sınırlıyorsa bunu düşürün; cömert sınırlara sahip "
 "sunucularda daha hızlı teslimat için yükseltin."
 
-#: includes/Admin/Settings.php:1150
+#: includes/Admin/Settings.php:1170
 msgid "Self-hosting comfort threshold"
 msgstr "Kendi sunucuda barındırma rahatlık eşiği"
 
-#: includes/Admin/Settings.php:1156
+#: includes/Admin/Settings.php:1176
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -1872,7 +1905,7 @@ msgstr ""
 "geçtiğinde, bu sayfa bunun yerine bir e-posta hizmet sağlayıcısını (örn. "
 "Brevo'nun ücretsiz planı) değerlendirmeyi hatırlatan bir uyarı gösterir."
 
-#: includes/Admin/Settings.php:1165
+#: includes/Admin/Settings.php:1185
 msgid ""
 "Sends a minimal ping (\"Reply with the word: ping\") using the configured "
 "API key."
@@ -1880,15 +1913,15 @@ msgstr ""
 "Yapılandırılmış API anahtarını kullanarak minimal bir ping gönderir (\"ping"
 "\" kelimesiyle yanıtlayın)."
 
-#: includes/Admin/Settings.php:1169
+#: includes/Admin/Settings.php:1189
 msgid "Sends a minimal ping using the configured API key."
 msgstr "Yapılandırılmış API anahtarını kullanarak minimal bir ping gönderir."
 
-#: includes/Admin/Settings.php:1172
+#: includes/Admin/Settings.php:1192
 msgid "WordPress AI Client"
 msgstr "WordPress Yapay Zekâ İstemcisi"
 
-#: includes/Admin/Settings.php:1173
+#: includes/Admin/Settings.php:1193
 msgid ""
 "Checks that wp_ai_client_prompt() is available (WordPress 7.0+) and a text-"
 "generation model is configured."
@@ -1896,38 +1929,38 @@ msgstr ""
 "wp_ai_client_prompt() işlevinin kullanılabilir olduğunu (WordPress 7.0+) ve "
 "bir metin üretim modelinin yapılandırıldığını denetler."
 
-#: includes/Admin/Settings.php:1178
+#: includes/Admin/Settings.php:1198
 msgid "Test AI Providers"
 msgstr "Yapay Zekâ Sağlayıcılarını Test Et"
 
 #. translators: %s: provider label
-#: includes/Admin/Settings.php:1191
+#: includes/Admin/Settings.php:1211
 #, php-format
 msgid "Test %s"
 msgstr "%s için test et"
 
-#: includes/Admin/Settings.php:1229
+#: includes/Admin/Settings.php:1249
 #, fuzzy
 msgid "Bot Protection"
 msgstr "Bağlantıyı test et"
 
-#: includes/Admin/Settings.php:1232
+#: includes/Admin/Settings.php:1252
 #, fuzzy
 msgid "Turnstile is configured."
 msgstr "IMAP kimlik bilgileri yapılandırılmamış."
 
-#: includes/Admin/Settings.php:1233
+#: includes/Admin/Settings.php:1253
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
 msgstr ""
 
-#: includes/Admin/Settings.php:1238
+#: includes/Admin/Settings.php:1258
 #, fuzzy
 msgid "Turnstile is not configured."
 msgstr "IMAP kimlik bilgileri yapılandırılmamış."
 
-#: includes/Admin/Settings.php:1239
+#: includes/Admin/Settings.php:1259
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -1938,23 +1971,70 @@ msgid ""
 "and the Newsletter Subscribe form."
 msgstr ""
 
-#: includes/Admin/Settings.php:1263
+#: includes/Admin/Settings.php:1286
+#, fuzzy
+msgid "OpenAI"
+msgstr "OpenAI API anahtarı"
+
+#: includes/Admin/Settings.php:1287
+#, fuzzy
+msgid "Anthropic"
+msgstr "Anthropic modeli"
+
+#: includes/Admin/Settings.php:1294
+msgid "AI Processing & Privacy Policy"
+msgstr ""
+
+#: includes/Admin/Settings.php:1297
+msgid "A Privacy Policy page is set."
+msgstr ""
+
+#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#: includes/Admin/Settings.php:1301
+#, php-format
+msgid ""
+"Suggested wording covering %s and public federation was added to it "
+"automatically — review it under Settings → Privacy → \"Guide\" before "
+"publishing, and check with your provider(s) about their own data processing "
+"agreement (DPA) for your compliance obligations."
+msgstr ""
+
+#: includes/Admin/Settings.php:1309
+msgid "No Privacy Policy page is set."
+msgstr ""
+
+#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#: includes/Admin/Settings.php:1313
+#, php-format
+msgid ""
+"Submitted artwork, text, and visitor contact messages are sent to %s for "
+"processing. Create or choose a page under Settings → Privacy — this plugin "
+"has already prepared suggested wording you'll find there under \"Guide\". "
+"You may also want to review that provider's data processing agreement (DPA) "
+"for your own compliance obligations."
+msgstr ""
+
+#: includes/Admin/Settings.php:1317
+msgid "Go to Settings → Privacy"
+msgstr ""
+
+#: includes/Admin/Settings.php:1341
 msgid "Debug Files"
 msgstr "Hata Ayıklama Dosyaları"
 
-#: includes/Admin/Settings.php:1267
+#: includes/Admin/Settings.php:1345
 msgid "Currently"
 msgstr "Şu anda"
 
-#: includes/Admin/Settings.php:1270
+#: includes/Admin/Settings.php:1348
 msgid "Enabled"
 msgstr "Etkin"
 
-#: includes/Admin/Settings.php:1272
+#: includes/Admin/Settings.php:1350
 msgid "Disabled"
 msgstr "Devre dışı"
 
-#: includes/Admin/Settings.php:1278
+#: includes/Admin/Settings.php:1356
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1962,7 +2042,7 @@ msgstr ""
 "wp-config.php içindeki AGNOSIS_DEBUG sabiti nedeniyle ZORLA AÇIK — bu satır "
 "kaldırılana kadar yukarıdaki onay kutusu etkisizdir."
 
-#: includes/Admin/Settings.php:1280
+#: includes/Admin/Settings.php:1358
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1970,21 +2050,21 @@ msgstr ""
 "wp-config.php içindeki AGNOSIS_DEBUG sabiti nedeniyle ZORLA KAPALI — bu "
 "satır kaldırılana kadar yukarıdaki onay kutusu etkisizdir."
 
-#: includes/Admin/Settings.php:1288
+#: includes/Admin/Settings.php:1366
 msgid "Directory"
 msgstr "Dizin"
 
-#: includes/Admin/Settings.php:1291
+#: includes/Admin/Settings.php:1369
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Hata ayıklama çıktısını başka bir yere yönlendirmek için agnosis_debug_dir "
 "ile filtreleyin."
 
-#: includes/Admin/Settings.php:1298
+#: includes/Admin/Settings.php:1376
 msgid ".txt file(s) in the directory"
 msgstr "dizindeki .txt dosyası/dosyaları"
 
-#: includes/Admin/Settings.php:1304
+#: includes/Admin/Settings.php:1382
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1993,19 +2073,19 @@ msgstr ""
 "ayıklama yazımları da sorunsuzca buraya kaydedilmeye devam etsin diye "
 "dizinin kendisi yerinde kalır."
 
-#: includes/Admin/Settings.php:1309
+#: includes/Admin/Settings.php:1387
 msgid "Clear Debug Files"
 msgstr "Hata Ayıklama Dosyalarını Temizle"
 
-#: includes/Admin/Settings.php:1340
+#: includes/Admin/Settings.php:1418
 msgid "Term Translation Cache"
 msgstr ""
 
-#: includes/Admin/Settings.php:1344
+#: includes/Admin/Settings.php:1422
 msgid "Cached translations"
 msgstr ""
 
-#: includes/Admin/Settings.php:1347
+#: includes/Admin/Settings.php:1425
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -2013,30 +2093,30 @@ msgid ""
 "only if a cached translation itself is wrong."
 msgstr ""
 
-#: includes/Admin/Settings.php:1353
+#: includes/Admin/Settings.php:1431
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
 msgstr ""
 
-#: includes/Admin/Settings.php:1358
+#: includes/Admin/Settings.php:1436
 msgid "Clear Term Translation Cache"
 msgstr ""
 
-#: includes/Admin/Settings.php:1390
+#: includes/Admin/Settings.php:1468
 msgid "Pipeline Logs"
 msgstr "İşlem Hattı Günlükleri"
 
-#: includes/Admin/Settings.php:1395
+#: includes/Admin/Settings.php:1473
 msgid "Clear all log entries?"
 msgstr "Tüm günlük kayıtları temizlensin mi?"
 
-#: includes/Admin/Settings.php:1396
+#: includes/Admin/Settings.php:1474
 msgid "Clear All"
 msgstr "Tümünü Temizle"
 
 #. translators: %d: total log entry count
-#: includes/Admin/Settings.php:1405
+#: includes/Admin/Settings.php:1483
 #, php-format
 msgid ""
 "%d entries total. Logs are pruned automatically according to the Inbox "
@@ -2045,35 +2125,35 @@ msgstr ""
 "Toplam %d kayıt. Günlükler, Gelen Kutusu saklama ayarına göre otomatik "
 "olarak budanır."
 
-#: includes/Admin/Settings.php:1412
+#: includes/Admin/Settings.php:1490
 msgid "No log entries yet."
 msgstr "Henüz günlük kaydı yok."
 
-#: includes/Admin/Settings.php:1417
+#: includes/Admin/Settings.php:1495
 msgid "Time"
 msgstr "Zaman"
 
-#: includes/Admin/Settings.php:1418
+#: includes/Admin/Settings.php:1496
 msgid "Level"
 msgstr "Seviye"
 
-#: includes/Admin/Settings.php:1419
+#: includes/Admin/Settings.php:1497
 msgid "Context"
 msgstr "Bağlam"
 
-#: includes/Admin/Settings.php:1491
+#: includes/Admin/Settings.php:1570
 msgid "Inbox Tools"
 msgstr "Gelen Kutusu Araçları"
 
-#: includes/Admin/Settings.php:1495
+#: includes/Admin/Settings.php:1574
 msgid "Test connection"
 msgstr "Bağlantıyı test et"
 
-#: includes/Admin/Settings.php:1500
+#: includes/Admin/Settings.php:1579
 msgid "Test IMAP Connection"
 msgstr "IMAP Bağlantısını Test Et"
 
-#: includes/Admin/Settings.php:1502
+#: includes/Admin/Settings.php:1581
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -2081,15 +2161,15 @@ msgstr ""
 "Yapılandırılmış posta kutusuna bağlanır ve toplam ile okunmamış ileti "
 "sayısını bildirir."
 
-#: includes/Admin/Settings.php:1506
+#: includes/Admin/Settings.php:1585
 msgid "Poll inbox now"
 msgstr "Gelen kutusunu şimdi yokla"
 
-#: includes/Admin/Settings.php:1511
+#: includes/Admin/Settings.php:1590
 msgid "Poll Inbox Now"
 msgstr "Gelen Kutusunu Şimdi Yokla"
 
-#: includes/Admin/Settings.php:1513
+#: includes/Admin/Settings.php:1592
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -2097,15 +2177,15 @@ msgstr ""
 "WP-Cron'u beklemeden okunmamış iletileri hemen getirir. Ardından yapay zekâ "
 "işlem hattını çalıştırmak için \"Bekleyen Kuyruğu İşle\" düğmesine tıklayın."
 
-#: includes/Admin/Settings.php:1517
+#: includes/Admin/Settings.php:1596
 msgid "Process queue"
 msgstr "Kuyruğu işle"
 
-#: includes/Admin/Settings.php:1522
+#: includes/Admin/Settings.php:1601
 msgid "Process Pending Queue"
 msgstr "Bekleyen Kuyruğu İşle"
 
-#: includes/Admin/Settings.php:1524
+#: includes/Admin/Settings.php:1603
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -2113,15 +2193,15 @@ msgstr ""
 "Yoklamadan sonra uçtan uca akışı test etmek için, WP-Cron'u beklemeden tüm "
 "bekleyen kuyruk öğeleri üzerinde yapay zekâ işlem hattını hemen çalıştırır."
 
-#: includes/Admin/Settings.php:1528
+#: includes/Admin/Settings.php:1607
 msgid "Force reprocess"
 msgstr "Yeniden işlemeyi zorla"
 
-#: includes/Admin/Settings.php:1533
+#: includes/Admin/Settings.php:1612
 msgid "Force Reprocess Inbox"
 msgstr "Gelen Kutusunu Yeniden İşlemeyi Zorla"
 
-#: includes/Admin/Settings.php:1535
+#: includes/Admin/Settings.php:1614
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -2134,11 +2214,11 @@ msgstr ""
 "düğmesine tıklayın. Geçerli gönderileri olan ve zaten yayımlanmış eserler "
 "asla yeniden işlenmez."
 
-#: includes/Admin/Settings.php:1565
+#: includes/Admin/Settings.php:1644
 msgid "Deliverability"
 msgstr ""
 
-#: includes/Admin/Settings.php:1567
+#: includes/Admin/Settings.php:1646
 msgid ""
 "A diagnostic check only — nothing here changes how mail is sent. On ordinary "
 "hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn't "
@@ -2150,49 +2230,49 @@ msgid ""
 "adding SPF/DMARC records for the domain you send from at your DNS host."
 msgstr ""
 
-#: includes/Admin/Settings.php:1573
+#: includes/Admin/Settings.php:1652
 msgid "From identity"
 msgstr ""
 
-#: includes/Admin/Settings.php:1574
+#: includes/Admin/Settings.php:1653
 msgid "Domain matches site?"
 msgstr ""
 
-#: includes/Admin/Settings.php:1575
+#: includes/Admin/Settings.php:1654
 #, fuzzy
 msgid "SPF record"
 msgstr "Oy kaydedildi"
 
-#: includes/Admin/Settings.php:1576
+#: includes/Admin/Settings.php:1655
 msgid "DMARC record"
 msgstr ""
 
-#: includes/Admin/Settings.php:1592
+#: includes/Admin/Settings.php:1671
 msgid "SMTP plugin"
 msgstr ""
 
 #. translators: %s: detected plugin name, e.g. "WP Mail SMTP"
-#: includes/Admin/Settings.php:1599
+#: includes/Admin/Settings.php:1678
 #, fuzzy, php-format
 msgid "Detected: %s"
 msgstr "Konu"
 
-#: includes/Admin/Settings.php:1604
+#: includes/Admin/Settings.php:1683
 msgid ""
 "None of the common SMTP-sending plugins were detected — this site is likely "
 "relying on PHP's built-in mail(), which most hosts deliver poorly through."
 msgstr ""
 
-#: includes/Admin/Settings.php:1614
+#: includes/Admin/Settings.php:1693
 msgid "Send a real test email to:"
 msgstr ""
 
-#: includes/Admin/Settings.php:1616 includes/Admin/Settings.php:2381
-#: includes/Admin/Settings.php:2513
+#: includes/Admin/Settings.php:1695 includes/Admin/Settings.php:2460
+#: includes/Admin/Settings.php:2592
 msgid "Send Test"
 msgstr "Test Gönder"
 
-#: includes/Admin/Settings.php:1619
+#: includes/Admin/Settings.php:1698
 msgid ""
 "Sends one plain-text email from the same community identity used for review/"
 "vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
@@ -2200,46 +2280,46 @@ msgid ""
 "the checks above say."
 msgstr ""
 
-#: includes/Admin/Settings.php:1628
+#: includes/Admin/Settings.php:1707
 msgid "Found"
 msgstr ""
 
-#: includes/Admin/Settings.php:1629
+#: includes/Admin/Settings.php:1708
 #, fuzzy
 msgid "Not found"
 msgstr "Etkinlik bulunamadı."
 
-#: includes/Admin/Settings.php:1630
+#: includes/Admin/Settings.php:1709
 msgid "DNS lookup failed"
 msgstr ""
 
-#: includes/Admin/Settings.php:1631
+#: includes/Admin/Settings.php:1710
 msgid "Unavailable on this host"
 msgstr ""
 
-#: includes/Admin/Settings.php:1638
+#: includes/Admin/Settings.php:1717
 msgid "No address configured"
 msgstr ""
 
 #. translators: %s: site name
-#: includes/Admin/Settings.php:1665
+#: includes/Admin/Settings.php:1744
 #, php-format
 msgid "[TEST] Deliverability check from %s"
 msgstr ""
 
-#: includes/Admin/Settings.php:1668
+#: includes/Admin/Settings.php:1747
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
 "Inbox page. If you're reading this in your inbox (not spam), the community/"
 "transactional From identity is deliverable to this address."
 msgstr ""
 
-#: includes/Admin/Settings.php:1720
+#: includes/Admin/Settings.php:1799
 msgid "Pending Applications"
 msgstr "Bekleyen Başvurular"
 
 #. translators: %d: number of applications awaiting email confirmation
-#: includes/Admin/Settings.php:1728
+#: includes/Admin/Settings.php:1807
 #, php-format
 msgid ""
 "%d application is awaiting email confirmation from the applicant and isn't "
@@ -2250,141 +2330,141 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Admin/Settings.php:1742
+#: includes/Admin/Settings.php:1821
 msgid "No pending applications."
 msgstr "Bekleyen başvuru yok."
 
 #. translators: %d: number of positive votes currently required for admission
-#: includes/Admin/Settings.php:1748
+#: includes/Admin/Settings.php:1827
 #, php-format
 msgid "%d positive vote(s) currently required for admission."
 msgstr "Şu anda kabul için %d olumlu oy gerekiyor."
 
-#: includes/Admin/Settings.php:1756
+#: includes/Admin/Settings.php:1835
 msgid "Applicant"
 msgstr "Başvuran"
 
-#: includes/Admin/Settings.php:1757
+#: includes/Admin/Settings.php:1836
 msgid "Applied"
 msgstr "Başvurdu"
 
-#: includes/Admin/Settings.php:1758
+#: includes/Admin/Settings.php:1837
 msgid "Votes"
 msgstr "Oylar"
 
-#: includes/Admin/Settings.php:1759
+#: includes/Admin/Settings.php:1838
 msgid "Bio / Portfolio"
 msgstr "Biyografi / Portfolyo"
 
 #. translators: 1: yes votes received, 2: total votes required
-#: includes/Admin/Settings.php:1785
+#: includes/Admin/Settings.php:1864
 #, php-format
 msgid "%1$d / %2$d"
 msgstr "%1$d / %2$d"
 
-#: includes/Admin/Settings.php:1796
+#: includes/Admin/Settings.php:1875
 msgid "Portfolio ↗"
 msgstr "Portfolyo ↗"
 
-#: includes/Admin/Settings.php:1805
+#: includes/Admin/Settings.php:1884
 msgid "Admit"
 msgstr "Kabul Et"
 
-#: includes/Admin/Settings.php:1812
+#: includes/Admin/Settings.php:1891
 msgid "Reject"
 msgstr "Reddet"
 
-#: includes/Admin/Settings.php:1906
+#: includes/Admin/Settings.php:1985
 msgid "No admitted members yet."
 msgstr "Henüz kabul edilmiş üye yok."
 
-#: includes/Admin/Settings.php:1913
+#: includes/Admin/Settings.php:1992
 msgid "Joined"
 msgstr "Katıldı"
 
 #. translators: %s: date until which the artist is banned
-#: includes/Admin/Settings.php:1928
+#: includes/Admin/Settings.php:2007
 #, php-format
 msgid "Banned until %s"
 msgstr "%s tarihine kadar yasaklı"
 
-#: includes/Admin/Settings.php:1931
+#: includes/Admin/Settings.php:2010
 msgid "Banned"
 msgstr "Yasaklı"
 
-#: includes/Admin/Settings.php:1932
+#: includes/Admin/Settings.php:2011
 msgid "Active"
 msgstr "Aktif"
 
-#: includes/Admin/Settings.php:1953
+#: includes/Admin/Settings.php:2032
 msgid ""
 "This address has bounced or been reported as spam — mail may no longer be "
 "reaching this artist."
 msgstr ""
 
 #. translators: %d: number of recorded bounces/complaints for this artist's address
-#: includes/Admin/Settings.php:1958
+#: includes/Admin/Settings.php:2037
 #, php-format
 msgid "⚠ %d bounce"
 msgid_plural "⚠ %d bounces"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Admin/Settings.php:1967
+#: includes/Admin/Settings.php:2046
 msgid "This artist has muted community broadcast messages."
 msgstr ""
 
-#: includes/Admin/Settings.php:1968
+#: includes/Admin/Settings.php:2047
 #, fuzzy
 msgid "🔇 Broadcasts muted"
 msgstr "Son gönderim"
 
-#: includes/Admin/Settings.php:1973
+#: includes/Admin/Settings.php:2052
 msgid ""
 "This artist receives one daily digest of open applications instead of an "
 "email per application."
 msgstr ""
 
-#: includes/Admin/Settings.php:1974
+#: includes/Admin/Settings.php:2053
 msgid "📬 Vote digest mode"
 msgstr ""
 
-#: includes/Admin/Settings.php:1991
+#: includes/Admin/Settings.php:2070
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "Süresiz yasaklamak için tarihi boş bırakın. Devam edilsin mi?"
 
-#: includes/Admin/Settings.php:1996
+#: includes/Admin/Settings.php:2075
 msgid "Leave blank to ban indefinitely"
 msgstr "Süresiz yasaklamak için boş bırakın"
 
-#: includes/Admin/Settings.php:1998
+#: includes/Admin/Settings.php:2077
 msgid "Suspend"
 msgstr "Askıya Al"
 
-#: includes/Admin/Settings.php:2004
+#: includes/Admin/Settings.php:2083
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr ""
 "Bu sanatçıyı ve tüm içeriğini kalıcı olarak silinsin mi? Bu işlem geri "
 "alınamaz."
 
-#: includes/Admin/Settings.php:2014
+#: includes/Admin/Settings.php:2093
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr ""
 "Bu sanatçı için bir topluluk kaldırma oylaması açılsın mı? Tüm üyelere e-"
 "posta gönderilecek."
 
-#: includes/Admin/Settings.php:2018
+#: includes/Admin/Settings.php:2097
 msgid "Open Vote"
 msgstr "Oylama Aç"
 
-#: includes/Admin/Settings.php:2174
+#: includes/Admin/Settings.php:2253
 msgid "Newsletter Status"
 msgstr "Bülten Durumu"
 
 #. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
-#: includes/Admin/Settings.php:2183
+#: includes/Admin/Settings.php:2262
 #, php-format
 msgid ""
 "You have %1$d confirmed public subscribers, above the configured comfort "
@@ -2397,62 +2477,62 @@ msgstr ""
 "hâlâ çalışır, ancak daha iyi teslim edilebilirlik için bir e-posta hizmet "
 "sağlayıcısına (örn. Brevo'nun ücretsiz katmanı) bağlanmak isteyebilirsiniz."
 
-#: includes/Admin/Settings.php:2196
+#: includes/Admin/Settings.php:2275
 msgid "Audience"
 msgstr "Kitle"
 
-#: includes/Admin/Settings.php:2197
+#: includes/Admin/Settings.php:2276
 msgid "Last sent"
 msgstr "Son gönderim"
 
-#: includes/Admin/Settings.php:2199
+#: includes/Admin/Settings.php:2278
 msgid "Action"
 msgstr "İşlem"
 
-#: includes/Admin/Settings.php:2200
+#: includes/Admin/Settings.php:2279
 msgid "Failed recipients"
 msgstr ""
 
-#: includes/Admin/Settings.php:2201
+#: includes/Admin/Settings.php:2280
 msgid "Send a test"
 msgstr "Bir test gönder"
 
 #. translators: 1: admitted artist count, 2: how many of them opted out
-#: includes/Admin/Settings.php:2211
+#: includes/Admin/Settings.php:2290
 #, php-format
 msgid "%1$d admitted (%2$d opted out)"
 msgstr "%1$d kabul edildi (%2$d çıkış yaptı)"
 
-#: includes/Admin/Settings.php:2219 includes/Admin/Settings.php:2260
+#: includes/Admin/Settings.php:2298 includes/Admin/Settings.php:2339
 msgid "Sending…"
 msgstr "Gönderiliyor…"
 
-#: includes/Admin/Settings.php:2219 includes/Admin/Settings.php:2260
+#: includes/Admin/Settings.php:2298 includes/Admin/Settings.php:2339
 msgid "Idle"
 msgstr "Boşta"
 
-#: includes/Admin/Settings.php:2225 includes/Admin/Settings.php:2266
+#: includes/Admin/Settings.php:2304 includes/Admin/Settings.php:2345
 msgid "Send Now"
 msgstr "Şimdi Gönder"
 
-#: includes/Admin/Settings.php:2232
+#: includes/Admin/Settings.php:2311
 msgid "Public"
 msgstr "Herkese Açık"
 
 #. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count, 4: bounced/suppressed count
-#: includes/Admin/Settings.php:2238
+#: includes/Admin/Settings.php:2317
 #, fuzzy, php-format
 msgid ""
 "%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed, %4$d bounced"
 msgstr "%1$d onaylandı, %2$d onay bekliyor, %3$d abonelikten çıktı"
 
 #. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
-#: includes/Admin/Settings.php:2252
+#: includes/Admin/Settings.php:2331
 #, php-format
 msgid "By language: %s"
 msgstr "Dile göre: %s"
 
-#: includes/Admin/Settings.php:2276
+#: includes/Admin/Settings.php:2355
 msgid ""
 "Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
 "the public newsletter. Artists are enrolled automatically and can "
@@ -2462,36 +2542,36 @@ msgstr ""
 "bir sayfaya \"Bülten Kaydı\" bloğunu ekleyin. Sanatçılar otomatik olarak "
 "eklenir ve her sayıdan tek tıklamayla aboneliklerini iptal edebilirler."
 
-#: includes/Admin/Settings.php:2284
+#: includes/Admin/Settings.php:2363
 msgid "Never"
 msgstr "Asla"
 
-#: includes/Admin/Settings.php:2319
+#: includes/Admin/Settings.php:2398
 msgid "Unknown"
 msgstr "Bilinmiyor"
 
-#: includes/Admin/Settings.php:2343
+#: includes/Admin/Settings.php:2422
 msgid "None"
 msgstr ""
 
 #. translators: %d: number of recipients whose send permanently failed for the most recent issue
-#: includes/Admin/Settings.php:2356
+#: includes/Admin/Settings.php:2435
 #, fuzzy, php-format
 msgid "%d failed"
 msgid_plural "%d failed"
 msgstr[0] "Başarısız"
 msgstr[1] "Başarısız"
 
-#: includes/Admin/Settings.php:2362
+#: includes/Admin/Settings.php:2441
 #, fuzzy
 msgid "Retry Failed"
 msgstr "Başarısız"
 
-#: includes/Admin/Settings.php:2487
+#: includes/Admin/Settings.php:2566
 msgid "Invite an Artist"
 msgstr "Bir Sanatçı Davet Et"
 
-#: includes/Admin/Settings.php:2489
+#: includes/Admin/Settings.php:2568
 msgid ""
 "Send a one-off email inviting someone to apply. Nothing is tracked or "
 "scheduled — this sends immediately to the address below."
@@ -2499,58 +2579,58 @@ msgstr ""
 "Birini başvurmaya davet etmek için tek seferlik bir e-posta gönderin. Hiçbir "
 "şey izlenmez veya zamanlanmaz — bu, aşağıdaki adrese hemen gönderilir."
 
-#: includes/Admin/Settings.php:2495
+#: includes/Admin/Settings.php:2574
 msgid "artist@example.com"
 msgstr "artist@example.com"
 
-#: includes/Admin/Settings.php:2501
+#: includes/Admin/Settings.php:2580
 msgid "Send Invitation"
 msgstr "Davet Gönder"
 
-#: includes/Admin/Settings.php:2697
+#: includes/Admin/Settings.php:2776
 msgid "Permission denied."
 msgstr "İzin reddedildi."
 
-#: includes/Admin/Settings.php:2707
+#: includes/Admin/Settings.php:2786
 msgid "OpenAI API key not configured."
 msgstr "OpenAI API anahtarı yapılandırılmamış."
 
-#: includes/Admin/Settings.php:2713
+#: includes/Admin/Settings.php:2792
 msgid "OpenAI connection successful."
 msgstr "OpenAI bağlantısı başarılı."
 
-#: includes/Admin/Settings.php:2720
+#: includes/Admin/Settings.php:2799
 msgid "Anthropic API key not configured."
 msgstr "Anthropic API anahtarı yapılandırılmamış."
 
-#: includes/Admin/Settings.php:2726
+#: includes/Admin/Settings.php:2805
 msgid "Anthropic connection successful."
 msgstr "Anthropic bağlantısı başarılı."
 
-#: includes/Admin/Settings.php:2732
+#: includes/Admin/Settings.php:2811
 msgid "WordPress AI Client requires WordPress 7.0 or later."
 msgstr "WordPress AI İstemcisi için WordPress 7.0 veya üzeri gerekir."
 
-#: includes/Admin/Settings.php:2738
+#: includes/Admin/Settings.php:2817
 msgid ""
 "No text-generation model configured. Set one up under Settings → Connectors."
 msgstr ""
 "Yapılandırılmış bir metin üretme modeli yok. Ayarlar → Bağlayıcılar altında "
 "bir tane oluşturun."
 
-#: includes/Admin/Settings.php:2740
+#: includes/Admin/Settings.php:2819
 msgid ""
 "WordPress AI Client is available and a text-generation model is configured."
 msgstr ""
 "WordPress AI İstemcisi kullanılabilir ve bir metin üretme modeli "
 "yapılandırılmış."
 
-#: includes/Admin/Settings.php:2744
+#: includes/Admin/Settings.php:2823
 msgid "Unknown provider."
 msgstr "Bilinmeyen sağlayıcı."
 
 #. translators: %d: HTTP response status code
-#: includes/Admin/Settings.php:2778
+#: includes/Admin/Settings.php:2857
 #, php-format
 msgid "HTTP %d"
 msgstr "HTTP %d"
@@ -2563,57 +2643,57 @@ msgstr ""
 "Sanatçı bu başvuruya bir konu satırı ya da mesaj eklemedi — görüntünün kendi "
 "adına tamamen konuşmasına izin verin."
 
-#: includes/Artist/Admission.php:107 includes/Artist/ContactForm.php:103
+#: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:116
 msgid "Name"
 msgstr ""
 
-#: includes/Artist/Admission.php:112
+#: includes/Artist/Admission.php:113
 #: includes/Artist/AdmissionNotification.php:631
 #, fuzzy
 msgid "Bio"
 msgstr "Biyografi:"
 
-#: includes/Artist/Admission.php:121
+#: includes/Artist/Admission.php:122
 #: includes/Artist/AdmissionNotification.php:643
 #, fuzzy
 msgid "Statement"
 msgstr "Açıklama:"
 
 #. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
-#: includes/Artist/Admission.php:177 includes/Artist/ContactForm.php:142
+#: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:155
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr ""
 
-#: includes/Artist/Admission.php:227 includes/Artist/JoinPage.php:212
+#: includes/Artist/Admission.php:228 includes/Artist/JoinPage.php:217
 msgid "Please select your language."
 msgstr "Lütfen dilinizi seçin."
 
-#: includes/Artist/Admission.php:236
+#: includes/Artist/Admission.php:237
 msgid "An account with this email address already exists."
 msgstr "Bu e-posta adresiyle zaten bir hesap mevcut."
 
-#: includes/Artist/Admission.php:260
+#: includes/Artist/Admission.php:261
 msgid "This email address belongs to an admitted artist."
 msgstr "Bu e-posta adresi kabul edilmiş bir sanatçıya ait."
 
-#: includes/Artist/Admission.php:261
+#: includes/Artist/Admission.php:262
 msgid "An application for this email address is already pending."
 msgstr "Bu e-posta adresi için zaten beklemede olan bir başvuru var."
 
-#: includes/Artist/Admission.php:499 includes/Artist/Admission.php:591
+#: includes/Artist/Admission.php:562 includes/Artist/Admission.php:654
 msgid "Application not found."
 msgstr "Başvuru bulunamadı."
 
-#: includes/Artist/Admission.php:539
+#: includes/Artist/Admission.php:602
 msgid "Only admitted artists can vouch."
 msgstr "Yalnızca kabul edilmiş sanatçılar kefil olabilir."
 
-#: includes/Artist/Admission.php:549
+#: includes/Artist/Admission.php:612
 msgid "Admin access required."
 msgstr "Yönetici erişimi gerekiyor."
 
-#: includes/Artist/Admission.php:605
+#: includes/Artist/Admission.php:668
 msgid "You cannot vote on your own application."
 msgstr "Kendi başvurunuz için oy kullanamazsınız."
 
@@ -3131,80 +3211,80 @@ msgstr "Öneri bulunamadı."
 msgid "This vote is not currently open."
 msgstr "Bu oylama şu anda açık değil."
 
-#: includes/Artist/ContactForm.php:169
+#: includes/Artist/ContactForm.php:182
 msgid "This artist can't be reached through this form right now."
 msgstr ""
 
-#: includes/Artist/ContactForm.php:214 includes/Artist/ContactFormBlock.php:153
+#: includes/Artist/ContactForm.php:227 includes/Artist/ContactFormBlock.php:157
 msgid "Thanks — your message has been sent."
 msgstr ""
 
-#: includes/Artist/ContactForm.php:278
+#: includes/Artist/ContactForm.php:291
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "contacting the artist about their work"
 msgstr ""
 
-#: includes/Artist/ContactForm.php:302
+#: includes/Artist/ContactForm.php:315
 msgid "Flagged by automatic content review."
 msgstr ""
 
 #. translators: %s: visitor's name, or their email address if no name was given
-#: includes/Artist/ContactForm.php:402
+#: includes/Artist/ContactForm.php:453
 #, php-format
 msgid "New message from %s via your Agnosis contact form"
 msgstr ""
 
 #. translators: %s: visitor's name, or a placeholder if none was given
-#: includes/Artist/ContactForm.php:409
+#: includes/Artist/ContactForm.php:460
 #, fuzzy, php-format
 msgid "From: %s"
 msgstr "Kimden"
 
-#: includes/Artist/ContactForm.php:410
+#: includes/Artist/ContactForm.php:461
 #, fuzzy
 msgid "(no name provided)"
 msgstr "İyileştirme sağlayıcısı"
 
 #. translators: %s: visitor's own email address, for the artist to reply to directly.
-#: includes/Artist/ContactForm.php:414
+#: includes/Artist/ContactForm.php:465
 #, fuzzy, php-format
 msgid "Email: %s"
 msgstr "E-posta adresi"
 
-#: includes/Artist/ContactForm.php:423
+#: includes/Artist/ContactForm.php:474
 msgid "Original message, as submitted:"
 msgstr ""
 
-#: includes/Artist/ContactFormBlock.php:87
+#: includes/Artist/ContactFormBlock.php:88
 #, fuzzy
 msgid "Your name (optional)"
 msgstr "Adınız"
 
-#: includes/Artist/ContactFormBlock.php:98
+#: includes/Artist/ContactFormBlock.php:99
 #, fuzzy
 msgid "Your email address"
 msgstr "Gönderen e-posta adresi"
 
-#: includes/Artist/ContactFormBlock.php:105
+#: includes/Artist/ContactFormBlock.php:106
 #: includes/Newsletter/SignupBlock.php:65
 msgid "you@example.com"
 msgstr "you@example.com"
 
-#: includes/Artist/ContactFormBlock.php:123
+#: includes/Artist/ContactFormBlock.php:127
 #, fuzzy
 msgid "Send message"
 msgstr "Test Gönder"
 
-#: includes/Artist/ContactFormBlock.php:154
-#: includes/Artist/ContentEditor.php:1010 includes/Artist/JoinPage.php:210
+#: includes/Artist/ContactFormBlock.php:158
+#: includes/Artist/ContentEditor.php:1010 includes/Artist/JoinPage.php:215
 #: includes/Newsletter/SignupBlock.php:140
 msgid "Something went wrong. Please try again."
 msgstr "Bir şeyler ters gitti. Lütfen tekrar deneyin."
 
 #: includes/Artist/ContentEditor.php:214 includes/Artist/ContentEditor.php:595
-#: includes/Publishing/ReviewEndpoints.php:698
-#: includes/Publishing/ReviewEndpoints.php:715
+#: includes/Publishing/ReviewEndpoints.php:733
+#: includes/Publishing/ReviewEndpoints.php:750
 msgid "Authentication required."
 msgstr "Kimlik doğrulama gerekli."
 
@@ -3659,64 +3739,64 @@ msgstr ""
 "Başvurmak için hesap gerekmez — topluluk her başvuruyu inceler ve oylamaya "
 "sunar."
 
-#: includes/Artist/JoinPage.php:54
+#: includes/Artist/JoinPage.php:55
 msgid "You are already an admitted Agnosis artist."
 msgstr "Zaten kabul edilmiş bir Agnosis sanatçısısınız."
 
-#: includes/Artist/JoinPage.php:70
+#: includes/Artist/JoinPage.php:71 includes/Core/Privacy.php:366
 msgid "Your name"
 msgstr "Adınız"
 
-#: includes/Artist/JoinPage.php:71 includes/Artist/JoinPage.php:86
+#: includes/Artist/JoinPage.php:72 includes/Artist/JoinPage.php:87
 msgid "required"
 msgstr "gerekli"
 
-#: includes/Artist/JoinPage.php:85 includes/Newsletter/SignupBlock.php:58
+#: includes/Artist/JoinPage.php:86 includes/Newsletter/SignupBlock.php:58
 msgid "Email address"
 msgstr "E-posta adresi"
 
-#: includes/Artist/JoinPage.php:98
+#: includes/Artist/JoinPage.php:99
 msgid "Short bio"
 msgstr "Kısa biyografi"
 
-#: includes/Artist/JoinPage.php:106
+#: includes/Artist/JoinPage.php:107
 msgid "A few sentences about your practice, medium, and background."
 msgstr "Pratiğiniz, kullandığınız ortam ve geçmişiniz hakkında birkaç cümle."
 
-#: includes/Artist/JoinPage.php:111
+#: includes/Artist/JoinPage.php:112 includes/Core/Privacy.php:161
 msgid "Portfolio URL"
 msgstr "Portfolyo URL'si"
 
-#: includes/Artist/JoinPage.php:122
+#: includes/Artist/JoinPage.php:123
 msgid "Why do you want to join?"
 msgstr "Neden katılmak istiyorsunuz?"
 
-#: includes/Artist/JoinPage.php:132
+#: includes/Artist/JoinPage.php:133
 msgid "Language you work in"
 msgstr "Çalıştığınız dil"
 
-#: includes/Artist/JoinPage.php:146
+#: includes/Artist/JoinPage.php:147
 msgid "Select your language"
 msgstr "Dil seçin"
 
-#: includes/Artist/JoinPage.php:168
+#: includes/Artist/JoinPage.php:169
 msgid "Helps us communicate and translate content in your language."
 msgstr ""
 "Kendi dilinizde sizinle iletişim kurmamıza ve içeriği çevirmemize yardımcı "
 "olur."
 
-#: includes/Artist/JoinPage.php:175
+#: includes/Artist/JoinPage.php:180
 msgid "Apply"
 msgstr "Başvur"
 
-#: includes/Artist/JoinPage.php:209
+#: includes/Artist/JoinPage.php:214
 #, fuzzy
 msgid ""
 "Almost there — check your inbox for a confirmation email and click the link "
 "to open your application for community review."
 msgstr "Neredeyse tamam — onay bağlantısı için gelen kutunuzu kontrol edin."
 
-#: includes/Artist/JoinPage.php:211
+#: includes/Artist/JoinPage.php:216
 msgid "Please fill in all required fields."
 msgstr "Lütfen tüm zorunlu alanları doldurun."
 
@@ -3804,7 +3884,7 @@ msgid "Biographies"
 msgstr "Biyografiler"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
-#: includes/Core/EmailFooter.php:73
+#: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:160
 #: includes/Network/SubdomainNavigation.php:134
 #: includes/Network/SubdomainNavigation.php:357
 #: includes/Publishing/PostCreator.php:928
@@ -4081,19 +4161,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "Şu ana kadar %d olumlu oy kaydedildi."
 msgstr[1] "Şu ana kadar %d olumlu oy kaydedildi."
 
-#: includes/Compat/LinguaForge.php:1609
+#: includes/Compat/LinguaForge.php:1720
 msgid "is active and configured for"
 msgstr "için etkin ve yapılandırılmış durumda"
 
-#: includes/Compat/LinguaForge.php:1610
+#: includes/Compat/LinguaForge.php:1721
 msgid "Subdomain"
 msgstr "Alt alan adı"
 
-#: includes/Compat/LinguaForge.php:1611
+#: includes/Compat/LinguaForge.php:1722
 msgid "routing mode"
 msgstr "yönlendirme modu"
 
-#: includes/Compat/LinguaForge.php:1613
+#: includes/Compat/LinguaForge.php:1724
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -4101,39 +4181,39 @@ msgstr ""
 "Bu, Agnosis sanatçı alt alan adlarıyla çakışır — her iki eklenti de aynı alt "
 "alan adı ad alanını sahiplenir."
 
-#: includes/Compat/LinguaForge.php:1614
+#: includes/Compat/LinguaForge.php:1725
 msgid "Artist subdomain routing is"
 msgstr "Sanatçı alt alan adı yönlendirmesi"
 
-#: includes/Compat/LinguaForge.php:1615
+#: includes/Compat/LinguaForge.php:1726
 msgid "completely inactive"
 msgstr "tamamen devre dışı"
 
-#: includes/Compat/LinguaForge.php:1616
+#: includes/Compat/LinguaForge.php:1727
 msgid "until this is resolved."
 msgstr "bu çözülene kadar."
 
-#: includes/Compat/LinguaForge.php:1618
+#: includes/Compat/LinguaForge.php:1729
 msgid "Fix: open"
 msgstr "Düzeltme: şunu açın"
 
-#: includes/Compat/LinguaForge.php:1619
+#: includes/Compat/LinguaForge.php:1730
 msgid "Settings"
 msgstr "Ayarlar"
 
-#: includes/Compat/LinguaForge.php:1619
+#: includes/Compat/LinguaForge.php:1730
 msgid "Language Router"
 msgstr "Dil Yönlendirici"
 
-#: includes/Compat/LinguaForge.php:1620
+#: includes/Compat/LinguaForge.php:1731
 msgid "and switch the URL strategy to"
 msgstr "ve URL stratejisini şuna değiştirin"
 
-#: includes/Compat/LinguaForge.php:1621
+#: includes/Compat/LinguaForge.php:1732
 msgid "Path prefix (subfolder)"
 msgstr "Yol ön eki (alt klasör)"
 
-#: includes/Compat/LinguaForge.php:1622
+#: includes/Compat/LinguaForge.php:1733
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -4141,11 +4221,11 @@ msgstr ""
 "Bu, LinguaForge varsayılanıdır ve sanatçı alt alan adlarının dil alt "
 "klasörleriyle birlikte var olmasına izin verir"
 
-#: includes/Compat/LinguaForge.php:1627
+#: includes/Compat/LinguaForge.php:1738
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Sanatçı Alt Alan Adı Yönlendirmesi devre dışı"
 
-#: includes/Compat/LinguaForge.php:1637
+#: includes/Compat/LinguaForge.php:1748
 msgid "Open LinguaForge Settings"
 msgstr "LinguaForge Ayarlarını Aç"
 
@@ -4250,6 +4330,284 @@ msgstr ""
 msgid "Manage notification preferences"
 msgstr ""
 
+#: includes/Core/Privacy.php:107 includes/Core/Privacy.php:173
+#: includes/Core/Privacy.php:467
+msgid "Agnosis Membership Application"
+msgstr ""
+
+#: includes/Core/Privacy.php:111 includes/Core/Privacy.php:205
+#: includes/Core/Privacy.php:223 includes/Core/Privacy.php:241
+#: includes/Core/Privacy.php:259 includes/Core/Privacy.php:471
+msgid "Agnosis Governance Participation"
+msgstr ""
+
+#: includes/Core/Privacy.php:115 includes/Core/Privacy.php:294
+#: includes/Core/Privacy.php:475
+#, fuzzy
+msgid "Agnosis Newsletter Subscription"
+msgstr "[%s] Bülten aboneliğinizi onaylayın"
+
+#: includes/Core/Privacy.php:119 includes/Core/Privacy.php:327
+#: includes/Core/Privacy.php:479
+msgid "Agnosis Newsletter Delivery History"
+msgstr ""
+
+#: includes/Core/Privacy.php:123 includes/Core/Privacy.php:362
+#: includes/Core/Privacy.php:483
+#, fuzzy
+msgid "Agnosis Contact Messages Sent"
+msgstr "Henüz kabul edilmiş üye yok."
+
+#: includes/Core/Privacy.php:127 includes/Core/Privacy.php:403
+#: includes/Core/Privacy.php:487
+#, fuzzy
+msgid "Agnosis Transactions"
+msgstr "Agnosis Sanatçı"
+
+#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:448
+#: includes/Core/Privacy.php:491
+msgid "Agnosis Notification Preferences"
+msgstr ""
+
+#: includes/Core/Privacy.php:159
+msgid "Display name"
+msgstr ""
+
+#: includes/Core/Privacy.php:162
+#, fuzzy
+msgid "Application statement"
+msgstr "Başvuru reddedildi."
+
+#: includes/Core/Privacy.php:163 includes/Newsletter/SignupBlock.php:71
+msgid "Language"
+msgstr "Dil"
+
+#: includes/Core/Privacy.php:165
+#, fuzzy
+msgid "Applied at"
+msgstr "Başvurdu"
+
+#: includes/Core/Privacy.php:166 includes/Core/Privacy.php:335
+msgid "Resolved at"
+msgstr ""
+
+#: includes/Core/Privacy.php:208 includes/Core/Privacy.php:226
+#: includes/Core/Privacy.php:244 includes/Core/Privacy.php:262
+#: includes/Core/Privacy.php:406
+msgid "Type"
+msgstr ""
+
+#: includes/Core/Privacy.php:208
+#, fuzzy
+msgid "Community vouch given"
+msgstr "Topluluk büyüklüğü sınırı"
+
+#: includes/Core/Privacy.php:210 includes/Core/Privacy.php:228
+#: includes/Core/Privacy.php:246 includes/Core/Privacy.php:264
+#: includes/Core/Privacy.php:412 includes/Publishing/ReviewConfirm.php:808
+msgid "Date"
+msgstr ""
+
+#: includes/Core/Privacy.php:226
+#, fuzzy
+msgid "Admission vouch given"
+msgstr "Kabul için asgari oy sayısı"
+
+#: includes/Core/Privacy.php:244
+#, fuzzy
+msgid "Community removal vote"
+msgstr "%s topluluğunda üyeyi çıkarma oylaması açıldı"
+
+#: includes/Core/Privacy.php:245 includes/Core/Privacy.php:263
+#, fuzzy
+msgid "Vote"
+msgstr "Oylar"
+
+#: includes/Core/Privacy.php:262
+#, fuzzy
+msgid "Community size-cap vote"
+msgstr "Topluluk büyüklüğü sınırı"
+
+#: includes/Core/Privacy.php:298 includes/Core/Privacy.php:332
+msgid "Locale"
+msgstr ""
+
+#: includes/Core/Privacy.php:299
+#, fuzzy
+msgid "Subscribed at"
+msgstr "Abone ol"
+
+#: includes/Core/Privacy.php:300
+#, fuzzy
+msgid "Confirmed at"
+msgstr "Oyumu onayla"
+
+#: includes/Core/Privacy.php:301
+#, fuzzy
+msgid "Unsubscribed at"
+msgstr "Abonelikten çıkıldı"
+
+#: includes/Core/Privacy.php:330
+msgid "Issue"
+msgstr ""
+
+#: includes/Core/Privacy.php:331
+#, fuzzy
+msgid "Recipient type"
+msgstr "Bağlantı hatası"
+
+#: includes/Core/Privacy.php:334
+msgid "Queued at"
+msgstr ""
+
+#: includes/Core/Privacy.php:365
+#, fuzzy
+msgid "Sent to artist"
+msgstr "Bir Sanatçı Davet Et"
+
+#: includes/Core/Privacy.php:368
+#, fuzzy
+msgid "Translated message"
+msgstr "Test Gönder"
+
+#: includes/Core/Privacy.php:370
+msgid "Rejection reason"
+msgstr ""
+
+#: includes/Core/Privacy.php:371
+#, fuzzy
+msgid "IP address"
+msgstr "E-posta adresi"
+
+#: includes/Core/Privacy.php:372
+msgid "Sent at"
+msgstr ""
+
+#: includes/Core/Privacy.php:407
+msgid "Amount"
+msgstr ""
+
+#: includes/Core/Privacy.php:408
+#, fuzzy
+msgid "Currency"
+msgstr "Şu anda"
+
+#: includes/Core/Privacy.php:409
+msgid "Fee"
+msgstr ""
+
+#: includes/Core/Privacy.php:410
+msgid "Gateway"
+msgstr ""
+
+#: includes/Core/Privacy.php:519
+msgid ""
+"Your membership application/account is still active. To remove this data, "
+"use the \"leave the network\" link from any Agnosis email, or ask an "
+"administrator."
+msgstr ""
+
+#: includes/Core/Privacy.php:539
+msgid ""
+"Your biography, statement, and portfolio link were erased. Your email "
+"address was kept on file — your account is currently banned, and it's the "
+"only way this site can continue to enforce that."
+msgstr ""
+
+#: includes/Core/Privacy.php:613 includes/Core/Privacy.php:685
+#, fuzzy
+msgid "[message removed]"
+msgstr "%s zaten kaldırılmış."
+
+#: includes/Core/Privacy.php:624
+msgid ""
+"Vouch messages you wrote were redacted. Governance votes you cast were kept "
+"as-is — a vote is a community record, not personal data, and removing it "
+"would silently change a settled decision."
+msgstr ""
+
+#: includes/Core/Privacy.php:667
+msgid ""
+"Past newsletter delivery records were anonymized; per-issue delivery counts "
+"were kept for statistics."
+msgstr ""
+
+#: includes/Core/Privacy.php:728
+msgid ""
+"Transaction (donation/sale) records were kept in full — financial records "
+"are subject to a legal retention obligation and are exempt from erasure "
+"under GDPR Art. 17(3)(b)."
+msgstr ""
+
+#: includes/Core/Privacy.php:766
+msgid ""
+"Agnosis is a federated art-publishing plugin. The following is a starting "
+"point for describing what it collects — review and adapt it to your site's "
+"actual configuration before publishing."
+msgstr ""
+
+#: includes/Core/Privacy.php:767
+msgid "What personal data we collect and why"
+msgstr ""
+
+#: includes/Core/Privacy.php:768
+msgid ""
+"When you apply to join, we store your email address, display name, "
+"biography, statement, and portfolio link to run the community vouching "
+"process. When you email us artwork, a biography, or an event, the content of "
+"that email (including your address) is stored while it is processed and "
+"reviewed. When you subscribe to our newsletter or message an artist through "
+"their contact form, we store your email address (and, for contact messages, "
+"your IP address) to deliver that message or send you future issues."
+msgstr ""
+
+#: includes/Core/Privacy.php:769
+msgid "Who we share it with"
+msgstr ""
+
+#: includes/Core/Privacy.php:770
+msgid ""
+"Submitted artwork descriptions and images may be sent to a third-party AI "
+"provider (OpenAI, Anthropic, or Stability AI, depending on this site's "
+"configuration) to help write publication text and enhance images. Approved "
+"posts are also broadcast publicly over ActivityPub (the Fediverse) as part "
+"of this plugin's core federation feature."
+msgstr ""
+
+#: includes/Core/Privacy.php:771
+msgid "How long we retain your data"
+msgstr ""
+
+#: includes/Core/Privacy.php:772
+msgid ""
+"Retention varies by data type; see this site's administrator for specifics. "
+"You can request a copy of, or the erasure of, the personal data described "
+"above at any time using this site's standard WordPress data request tools."
+msgstr ""
+
+#: includes/Core/Privacy.php:800
+msgid ""
+"Submitted text and images may be processed by a third-party AI provider. "
+"Approved posts are published publicly and shared across the Fediverse — this "
+"cannot be fully undone later."
+msgstr ""
+
+#: includes/Core/Privacy.php:801
+msgid ""
+"Your message may be reviewed by an automated content filter before being "
+"sent to the artist."
+msgstr ""
+
+#. translators: %s: link to the site's Privacy Policy page
+#: includes/Core/Privacy.php:809
+#, php-format
+msgid "See our %s for details."
+msgstr ""
+
+#: includes/Core/Privacy.php:810
+msgid "Privacy Policy"
+msgstr ""
+
 #. translators: %d: number of seconds until the rate-limit window resets.
 #: includes/Core/RateLimiter.php:63
 #, php-format
@@ -4337,15 +4695,15 @@ msgstr "Özet başlığı istek gövdesiyle eşleşmiyor."
 msgid "keyId in Signature header is not a valid URL."
 msgstr "Signature başlığındaki keyId geçerli bir URL değil."
 
-#: includes/Network/HttpSignature.php:208
+#: includes/Network/HttpSignature.php:212
 msgid "Failed to fetch actor document."
 msgstr "Aktör belgesi alınamadı."
 
-#: includes/Network/HttpSignature.php:216
+#: includes/Network/HttpSignature.php:220
 msgid "Actor document returned a non-200 response."
 msgstr "Aktör belgesi 200 olmayan bir yanıt döndürdü."
 
-#: includes/Network/HttpSignature.php:227
+#: includes/Network/HttpSignature.php:231
 msgid "Actor document does not contain a publicKey.publicKeyPem field."
 msgstr "Aktör belgesi publicKey.publicKeyPem alanını içermiyor."
 
@@ -4578,10 +4936,6 @@ msgstr ""
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "%1$s özeti %2$s için taslaklandı — gönderilmeden önce gözden geçirin"
-
-#: includes/Newsletter/SignupBlock.php:71
-msgid "Language"
-msgstr "Dil"
 
 #: includes/Newsletter/SignupBlock.php:104
 msgid "Subscribe"
@@ -5467,10 +5821,6 @@ msgstr "Portfolyo ↗"
 msgid "Social link %d (optional)"
 msgstr ""
 
-#: includes/Publishing/ReviewConfirm.php:808
-msgid "Date"
-msgstr ""
-
 #: includes/Publishing/ReviewConfirm.php:810
 msgid "Hour"
 msgstr ""
@@ -5559,36 +5909,36 @@ msgstr "Yayınla"
 msgid "biography"
 msgstr "Biyografi"
 
-#: includes/Publishing/ReviewEndpoints.php:102
-#: includes/Publishing/ReviewEndpoints.php:174
-#: includes/Publishing/ReviewEndpoints.php:206
+#: includes/Publishing/ReviewEndpoints.php:103
+#: includes/Publishing/ReviewEndpoints.php:175
+#: includes/Publishing/ReviewEndpoints.php:207
 msgid "Submission not found."
 msgstr "Gönderim bulunamadı."
 
-#: includes/Publishing/ReviewEndpoints.php:111
-#: includes/Publishing/ReviewEndpoints.php:183
-#: includes/Publishing/ReviewEndpoints.php:215
+#: includes/Publishing/ReviewEndpoints.php:112
+#: includes/Publishing/ReviewEndpoints.php:184
+#: includes/Publishing/ReviewEndpoints.php:216
 msgid "This submission is not awaiting review."
 msgstr "Bu gönderim inceleme beklemiyor."
 
-#: includes/Publishing/ReviewEndpoints.php:365
+#: includes/Publishing/ReviewEndpoints.php:366
 #, fuzzy
 msgid "The original published item could not be found."
 msgstr "Bu bülten sayısı bulunamadı."
 
-#: includes/Publishing/ReviewEndpoints.php:731
+#: includes/Publishing/ReviewEndpoints.php:766
 msgid "You do not have permission to review this submission."
 msgstr "Bu gönderimi inceleme izniniz yok."
 
-#: includes/Publishing/ReviewEndpoints.php:756
+#: includes/Publishing/ReviewEndpoints.php:791
 msgid "Review link not found or already used."
 msgstr "İnceleme bağlantısı bulunamadı ya da zaten kullanılmış."
 
-#: includes/Publishing/ReviewEndpoints.php:764
+#: includes/Publishing/ReviewEndpoints.php:799
 msgid "Invalid review token."
 msgstr "Geçersiz inceleme belirteci."
 
-#: includes/Publishing/ReviewEndpoints.php:772
+#: includes/Publishing/ReviewEndpoints.php:807
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Bu inceleme bağlantısının süresi dolmuş. Gönderimlerinizi yönetmek için "

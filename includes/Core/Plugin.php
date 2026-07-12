@@ -98,6 +98,15 @@ class Plugin {
 
 	private function register_services(): void {
 
+		// WordPress core privacy (GDPR DSAR) integration — Tools → Export/Erase
+		// Personal Data exporters/erasers plus Privacy Policy Guide content
+		// (seventh audit §4a). Registers its own hooks directly (admin_init +
+		// two filters that only ever fire from wp-admin's own privacy tools),
+		// so it's safe to wire up unconditionally like the other self-registering
+		// classes below.
+		$privacy = new Privacy();
+		$privacy->register_hooks();
+
 		// Custom image sizes.
 		$image_sizes = new ImageSizes();
 		$this->loader->add_action( 'after_setup_theme', $image_sizes, 'register' );
@@ -190,6 +199,9 @@ class Plugin {
 		// Double opt-in housekeeping (security audit §3a): prune abandoned
 		// never-confirmed applications, piggybacked on the same daily cron.
 		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'expire_stale_unverified' );
+		// Retention/anonymization for resolved applications (legal audit
+		// §4c), piggybacked on the same daily cron.
+		$this->loader->add_action( 'agnosis_check_admissions', $admission, 'anonymize_resolved_applications' );
 		// Community size cap: re-evaluate the advanced application when a slot opens.
 		$this->loader->add_action( 'agnosis_waitlist_advanced', $admission, 'reconsider' );
 
@@ -258,6 +270,10 @@ class Plugin {
 		// breadcrumb's contact popover (SubdomainNavigation, blocks/contact-form).
 		$contact_form = new ContactForm();
 		$this->loader->add_action( 'rest_api_init', $contact_form, 'register_routes' );
+		// Retention sweep (security audit §4b) — piggybacked on the existing
+		// daily inbox-cleanup cron rather than a new scheduled event; see
+		// ContactForm::prune_old_messages()'s own docblock.
+		$this->loader->add_action( 'agnosis_cleanup_inbox', $contact_form, 'prune_old_messages' );
 
 		$contact_form_block = new ContactFormBlock();
 		$this->loader->add_action( 'init', $contact_form_block, 'register_block' );

@@ -197,7 +197,11 @@ class HttpSignature {
 			return $cached;
 		}
 
-		$response = wp_remote_get( $actor_url, [
+		// $actor_url is attacker-controlled (derived from the inbound Signature
+		// header's keyId), so use the "safe" variant: it rejects private/
+		// loopback/link-local/ULA targets, re-checked on every redirect hop
+		// (audit §3b).
+		$response = wp_safe_remote_get( $actor_url, [
 			'headers' => [ 'Accept' => 'application/activity+json, application/ld+json' ],
 			'timeout' => 10,
 		] );

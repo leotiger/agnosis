@@ -32,6 +32,7 @@ namespace Agnosis\Artist;
 
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
+use Agnosis\Core\Privacy;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Core\Turnstile;
 use WP_REST_Request;
@@ -468,6 +469,68 @@ class Admission {
 
 		if ( $deleted > 0 ) {
 			Logger::info( sprintf( 'Admission: expired %d abandoned unverified application(s) older than %d days.', $deleted, self::UNVERIFIED_EXPIRY_DAYS ), 'admission' );
+		}
+	}
+
+	/**
+	 * Anonymize resolved applications older than
+	 * `agnosis_application_retention_days` (default 180 — legal audit §4c).
+	 * Before this, `rejected`/`withdrawn`/`left`/`banned` rows retained
+	 * email, bio, statement, and portfolio URL forever — a rejected
+	 * applicant who never became a member had their personal statement
+	 * stored indefinitely with no automatic retention limit (only the
+	 * on-demand DSAR eraser, `Core\Privacy::erase_application()`, could
+	 * remove it, and only if the data subject knew to ask).
+	 *
+	 * Piggybacks on the existing daily 'agnosis_check_admissions' cron,
+	 * alongside expire_stale_unverified(), rather than a new scheduled
+	 * event. Shares its actual redaction with `Core\Privacy`'s own eraser
+	 * via `Privacy::anonymize_application_row()` (the audit's own fix text:
+	 * "tie into §4a eraser") so an application anonymized by this automatic
+	 * sweep and one anonymized by a data subject's own erasure request end
+	 * up in an identical state:
+	 *
+	 *  - `rejected`/`withdrawn`/`left`: fully anonymized, email included —
+	 *    there's no ongoing reason to retain a resolved-and-gone
+	 *    applicant's identity. The row itself (status, dates) is kept for
+	 *    admission history and community-cap accounting.
+	 *  - `banned`: bio/statement/portfolio/display_name anonymized, but the
+	 *    email is deliberately left untouched — same reasoning as
+	 *    `Privacy::erase_application()`'s own banned-row branch: it's the
+	 *    only way this site can keep enforcing the ban.
+	 *
+	 * Gated on `resolved_at IS NOT NULL` (always set when a row leaves
+	 * 'pending' — see Core\Activator's own schema comment) and on
+	 * `display_name != Privacy::REDACTED_MARKER`, so an already-redacted
+	 * row — from a prior sweep, or from a data subject's own request via
+	 * `Core\Privacy` — is never reprocessed.
+	 */
+	public function anonymize_resolved_applications(): void {
+		global $wpdb;
+
+		$days = max( 1, (int) get_option( 'agnosis_application_retention_days', 180 ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$resolved = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, status FROM {$wpdb->prefix}agnosis_applications
+				 WHERE status IN ('rejected','withdrawn','left','banned')
+				   AND resolved_at IS NOT NULL
+				   AND resolved_at < ( NOW() - INTERVAL %d DAY )
+				   AND display_name != %s",
+				$days,
+				Privacy::REDACTED_MARKER
+			)
+		);
+
+		$anonymized = 0;
+		foreach ( $resolved as $row ) {
+			Privacy::anonymize_application_row( (int) $row->id, 'banned' !== $row->status );
+			++$anonymized;
+		}
+
+		if ( $anonymized > 0 ) {
+			Logger::info( sprintf( 'Admission: anonymized %d resolved application(s) older than %d days (legal audit §4c).', $anonymized, $days ), 'admission' );
 		}
 	}
 

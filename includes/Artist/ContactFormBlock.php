@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\Compat\LinguaForge;
+use Agnosis\Core\Privacy;
 use Agnosis\Core\Turnstile;
 use Agnosis\Network\SubdomainRouter;
 
@@ -119,6 +120,9 @@ class ContactFormBlock {
 					></textarea>
 				</div>
 				<?php echo Turnstile::render_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- render_widget() escapes the site key internally. ?>
+				<p class="agnosis-contact-form__privacy-notice">
+					<?php echo Privacy::consent_notice_html( 'contact' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- consent_notice_html() escapes internally. ?>
+				</p>
 				<button type="submit" class="agnosis-contact-form__submit">
 					<span><?php esc_html_e( 'Send message', 'agnosis' ); ?></span>
 				</button>

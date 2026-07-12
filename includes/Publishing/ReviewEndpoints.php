@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\AI\CallCounter;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
@@ -424,26 +425,53 @@ class ReviewEndpoints {
 			'_agnosis_biography_portfolio_url',
 			'_agnosis_biography_portfolio_embedded',
 			'_agnosis_dropped_links',
-			// Phase 2 (§4b) — copied here so the target reflects the CURRENT
-			// submission's language/medium, same as every other meta key in
-			// this loop. Known limitation shared with the rest of this loop:
-			// since the copy is skipped when the staging draft's own value is
-			// '' (see the empty-value guard below), an artist who previously
-			// wrote in, say, Catalan and later switches to writing in the
-			// site's primary language won't have a stale '_agnosis_native_lang'
-			// actively cleared here — harmless today (Phase 4, the first
-			// consumer of this meta, doesn't exist yet), worth revisiting once
-			// it does. '_agnosis_native_excerpt'/'_agnosis_native_body' are NOT
-			// copied here — they only mean anything once a real translation
+			// '_agnosis_native_lang'/'_agnosis_native_medium' are deliberately
+			// NOT in this list — see the explicit block right below the loop.
+			// They need the OPPOSITE of this loop's "skip when the staging
+			// draft's own value is empty" semantics: an artist switching FROM
+			// a non-primary language back TO the site's primary one needs the
+			// stale prior value actively cleared, not silently left in place.
+			// '_agnosis_native_excerpt'/'_agnosis_native_body' are NOT copied
+			// here either — they only mean anything once a real translation
 			// actually happens (see the unconditional block below), never a
 			// static copy of the staging draft's own fields.
-			'_agnosis_native_lang',
-			'_agnosis_native_medium',
 		] as $meta_key ) {
 			$value = get_post_meta( $post_id, $meta_key, true );
 			if ( '' !== $value ) {
 				update_post_meta( $pending_for, $meta_key, $value );
 			}
+		}
+
+		// Native-language pipeline follow-up fix (seventh audit §2b,
+		// NATIVE-LANGUAGE-PIPELINE.md Phase 2's own documented "known
+		// follow-up, not a blocker"). $previous_native_lang is read BEFORE
+		// either write below touches $pending_for, so it's genuinely the
+		// target's pre-update value — needed afterward to detect an actual
+		// language change, not just its final state.
+		$previous_native_lang  = (string) get_post_meta( $pending_for, '_agnosis_native_lang', true );
+		$current_native_lang   = (string) get_post_meta( $post_id, '_agnosis_native_lang', true );
+		$current_native_medium = (string) get_post_meta( $post_id, '_agnosis_native_medium', true );
+
+		if ( '' !== $current_native_lang ) {
+			update_post_meta( $pending_for, '_agnosis_native_lang', $current_native_lang );
+		} else {
+			delete_post_meta( $pending_for, '_agnosis_native_lang' );
+		}
+
+		if ( '' !== $current_native_medium ) {
+			update_post_meta( $pending_for, '_agnosis_native_medium', $current_native_medium );
+		} else {
+			delete_post_meta( $pending_for, '_agnosis_native_medium' );
+		}
+
+		// The artist's declared language actually changed (not just cleared
+		// back to primary) — the OLD native-language sibling
+		// Compat\LinguaForge::sync_native_sibling() built for
+		// $previous_native_lang would otherwise be permanently orphaned:
+		// Phase 4 only ever syncs whatever language currently sits on
+		// $pending_for, so nothing would ever touch that sibling again.
+		if ( '' !== $previous_native_lang && $previous_native_lang !== $current_native_lang ) {
+			LinguaForge::trash_orphaned_native_sibling( $pending_for, $previous_native_lang );
 		}
 
 		// Translated tags (when translation happened) take priority over the
@@ -635,6 +663,13 @@ class ReviewEndpoints {
 			);
 			return null;
 		}
+
+		// Seventh audit G-2: the single AI translation call §7 of the design
+		// doc accounts for per cross-language approval. Recorded here, once
+		// translate_fields() has actually returned data, rather than
+		// unconditionally at the top of this method — a call that failed or a
+		// submission that never needed translating shouldn't inflate the count.
+		CallCounter::record( $source->ID, 'native_to_primary' );
 
 		$body_block = isset( $translated['body'] ) && '' !== trim( $translated['body'] )
 			? '<!-- wp:paragraph --><p>' . wp_kses_post( $translated['body'] ) . '</p><!-- /wp:paragraph -->'

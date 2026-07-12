@@ -558,6 +558,16 @@ class Settings {
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Seen IMAP messages and processed/failed queue rows older than this are permanently deleted by the daily cleanup. Default: 7 days.', 'agnosis' ),
 			],
+			'agnosis_contact_message_retention_days' => [
+				'tab'      => 'email',
+				'label'    => __( 'Contact message retention (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 90,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Visitor-to-artist contact messages (sent or rejected) older than this are permanently deleted by the daily cleanup. The visitor\'s IP address is cleared independently after 30 days regardless of this setting, once it\'s no longer useful for abuse investigation. Default: 90 days.', 'agnosis' ),
+			],
 
 			// --- Email: Security ---
 			'agnosis_intake_per_sender_limit' => [
@@ -975,6 +985,16 @@ class Settings {
 				'min'     => 1,
 				'desc'    => __( 'Days an application stays open. If the threshold is not reached within this window the application is rejected.', 'agnosis' ),
 			],
+			'agnosis_application_retention_days' => [
+				'tab'      => 'community',
+				'label'    => __( 'Resolved application retention (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 180,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'A rejected, withdrawn, or left application\'s email, name, biography, statement, and portfolio link are anonymized by the daily cleanup after this many days — the application record itself (status and dates) is kept for admission history. A banned artist\'s biography/statement/portfolio are anonymized on the same schedule, but their email is deliberately kept so the ban stays enforceable. Default: 180 days.', 'agnosis' ),
+			],
 			'agnosis_join_success_url' => [
 				'tab'      => 'community',
 				'label'    => __( 'After applying, send artists to', 'agnosis' ),
@@ -1245,6 +1265,64 @@ class Settings {
 	}
 
 	/**
+	 * AI-processor privacy-policy reminder (seventh audit §4d — "optionally,
+	 * an admin notice when an AI provider is configured but no
+	 * privacy-policy page is set... consider a note pointing operators to
+	 * obtain a DPA"). Only rendered at all when at least one AI provider's
+	 * API key is actually configured — with none configured, no artist or
+	 * visitor content is being sent anywhere yet, so there's nothing to
+	 * warn about. Mirrors render_turnstile_warning()'s own
+	 * green-confirmation/amber-warning shape.
+	 */
+	private function render_privacy_policy_notice(): void {
+		$openai_configured    = '' !== (string) get_option( 'agnosis_openai_api_key', '' );
+		$anthropic_configured = '' !== (string) get_option( 'agnosis_anthropic_api_key', '' );
+
+		if ( ! $openai_configured && ! $anthropic_configured ) {
+			return;
+		}
+
+		$providers = array_filter( [
+			$openai_configured ? __( 'OpenAI', 'agnosis' ) : '',
+			$anthropic_configured ? __( 'Anthropic', 'agnosis' ) : '',
+		] );
+		$provider_list = implode( ', ', $providers );
+
+		$has_policy = function_exists( 'get_privacy_policy_url' ) && '' !== get_privacy_policy_url();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'AI Processing & Privacy Policy', 'agnosis' ); ?></h2>
+			<?php if ( $has_policy ) : ?>
+				<p>
+					<strong style="color:#0a7c48">✓ <?php esc_html_e( 'A Privacy Policy page is set.', 'agnosis' ); ?></strong>
+					<?php
+					printf(
+						/* translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic" */
+						esc_html__( 'Suggested wording covering %s and public federation was added to it automatically — review it under Settings → Privacy → "Guide" before publishing, and check with your provider(s) about their own data processing agreement (DPA) for your compliance obligations.', 'agnosis' ),
+						esc_html( $provider_list )
+					);
+					?>
+				</p>
+			<?php else : ?>
+				<div class="notice notice-warning inline" style="margin:0">
+					<p>
+						<strong><?php esc_html_e( 'No Privacy Policy page is set.', 'agnosis' ); ?></strong>
+						<?php
+						printf(
+							/* translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic" */
+							esc_html__( 'Submitted artwork, text, and visitor contact messages are sent to %s for processing. Create or choose a page under Settings → Privacy — this plugin has already prepared suggested wording you\'ll find there under "Guide". You may also want to review that provider\'s data processing agreement (DPA) for your own compliance obligations.', 'agnosis' ),
+							esc_html( $provider_list )
+						);
+						?>
+						<a href="<?php echo esc_url( admin_url( 'options-privacy.php' ) ); ?>"><?php esc_html_e( 'Go to Settings → Privacy', 'agnosis' ); ?></a>
+					</p>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Debug Files panel — shown under Settings → General, below the Save
 	 * Changes button. The debug on/off toggle itself is a normal Settings
 	 * API field (agnosis_debug_enabled, saved via options.php); this panel
@@ -1471,6 +1549,7 @@ class Settings {
 		}
 		if ( 'ai' === $tab ) {
 			$this->render_ai_test_tools();
+			$this->render_privacy_policy_notice();
 			return;
 		}
 		if ( 'community' === $tab ) {

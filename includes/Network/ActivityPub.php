@@ -298,7 +298,11 @@ class ActivityPub {
 			$signature = 'keyId="' . $key_id . '",algorithm="rsa-sha256",headers="(request-target) host date",signature="' . base64_encode( $raw_sig ) . '"';
 		}
 
-		wp_remote_post( $inbox_url, [
+		// $inbox_url is peer-supplied (the follower's own actor document, or a
+		// stored follower inbox), so use the "safe" variant: it rejects
+		// private/loopback/link-local/ULA targets, re-checked on every
+		// redirect hop (audit §3b).
+		wp_safe_remote_post( $inbox_url, [
 			'timeout'    => 15,
 			'blocking'   => false, // Fire and forget.
 			'headers'    => array_filter( [
@@ -315,7 +319,9 @@ class ActivityPub {
 		if ( empty( $actor_url ) ) {
 			return null;
 		}
-		$response = wp_remote_get( $actor_url, [
+		// $actor_url is peer-supplied (from an inbound Follow activity's
+		// "actor" field), so use the "safe" variant (audit §3b).
+		$response = wp_safe_remote_get( $actor_url, [
 			'headers' => [ 'Accept' => 'application/activity+json' ],
 			'timeout' => 10,
 		] );

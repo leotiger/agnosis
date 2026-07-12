@@ -47,6 +47,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Compat;
 
+use Agnosis\AI\CallCounter;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
@@ -919,6 +920,54 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		}
 	}
 
+	// ── G-2: AI-call instrumentation ──────────────────────────────────────────
+
+	public function test_count_fanout_translation_call_records_a_genuine_translation(): void {
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->count_fanout_translation_call( $translated_id, $this->artwork_id, 'es' );
+
+		$this->assertSame( 1, CallCounter::get_total( $this->artwork_id ), 'A genuine LF-driven fan-out completion (suppression flag not set) must increment the source post\'s AI-call counter.' );
+	}
+
+	public function test_count_fanout_translation_call_accumulates_across_languages(): void {
+		$translated_id_es = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$translated_id_fr = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$lf = new LinguaForge();
+		$lf->count_fanout_translation_call( $translated_id_es, $this->artwork_id, 'es' );
+		$lf->count_fanout_translation_call( $translated_id_fr, $this->artwork_id, 'fr' );
+
+		$this->assertSame( 2, CallCounter::get_total( $this->artwork_id ), 'Each language the fan-out actually translates is a separate AI call and must accumulate onto the same source post.' );
+	}
+
+	public function test_count_fanout_translation_call_skips_non_agnosis_post_types(): void {
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'page', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->count_fanout_translation_call( $translated_id, $this->page_id, 'es' );
+
+		$this->assertSame( 0, CallCounter::get_total( $this->page_id ) );
+	}
+
+	/**
+	 * sync_native_sibling() fires 'linguaforge_translation_complete' synthetically
+	 * for the sibling it just built directly — no AI call at all, the entire
+	 * point of Phase 4. count_fanout_translation_call() must not count that
+	 * firing, using the same $suppress_native_sibling_term_sync guard
+	 * sync_translated_terms() already relies on for the same reason.
+	 */
+	public function test_sync_native_sibling_does_not_count_its_own_synthetic_translation_complete_firing(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Resumen nativo.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo nativo.' );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$this->assertSame( 0, CallCounter::get_total( $this->artwork_id ), 'Building a native sibling is explicitly zero-AI-cost — it must not inflate the calls-per-submission counter the same way a real translation would.' );
+	}
+
 	// ── §4d: term-translation cache maintenance ───────────────────────────────
 
 	public function test_clear_term_translations_cache_empties_the_option(): void {
@@ -1359,5 +1408,139 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		LinguaForge::sync_native_sibling( $this->artwork_id );
 
 		$this->assertSame( '', FakeLinguaForge::$trids[ $this->artwork_id ] ?? '', 'Nothing to build a sibling from — must no-op cleanly rather than create an empty post.' );
+	}
+
+	/**
+	 * Seventh audit §2c — a throwing listener on 'linguaforge_translation_complete'
+	 * used to leave $suppress_native_sibling_term_sync stuck true for the rest
+	 * of the request/cron tick (no try/finally around the do_action() call),
+	 * silently disabling tag/medium translation for every OTHER
+	 * genuinely-AI-translated sibling synced afterward in that same tick.
+	 */
+	public function test_sync_native_sibling_resets_suppression_flag_even_when_a_listener_throws(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Resumen.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo.' );
+
+		$listener = function (): void {
+			throw new \RuntimeException( 'boom — a third-party listener misbehaving' );
+		};
+		add_action( 'linguaforge_translation_complete', $listener );
+
+		try {
+			LinguaForge::sync_native_sibling( $this->artwork_id );
+			$this->fail( 'Expected the listener\'s exception to propagate out of sync_native_sibling() — do_action() never swallows exceptions, and neither should this method.' );
+		} catch ( \RuntimeException $e ) {
+			$this->assertSame( 'boom — a third-party listener misbehaving', $e->getMessage() );
+		} finally {
+			remove_action( 'linguaforge_translation_complete', $listener );
+		}
+
+		$this->assertFalse(
+			$this->suppress_native_sibling_term_sync_flag(),
+			'The suppression flag must be reset by the finally block even though the listener threw — without it, the flag would stay stuck true for the rest of the request, silently suppressing tag/medium sync for every OTHER sibling.'
+		);
+	}
+
+	/** Reads the private static Compat\LinguaForge::$suppress_native_sibling_term_sync flag directly — the most precise way to prove §2c's try/finally actually resets it, rather than inferring it from a second sync_native_sibling() call's side effects. */
+	private function suppress_native_sibling_term_sync_flag(): bool {
+		$ref = new \ReflectionProperty( LinguaForge::class, 'suppress_native_sibling_term_sync' );
+		$ref->setAccessible( true );
+		return (bool) $ref->getValue();
+	}
+
+	// ── trash_orphaned_native_sibling(): seventh audit §2b ────────────────────
+	// (NATIVE-LANGUAGE-PIPELINE.md Phase 2's own documented "known follow-up") ─
+
+	public function test_trash_orphaned_native_sibling_trashes_the_sibling_for_the_old_language(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+
+		$old_sibling_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Título anterior.',
+		] );
+		FakeLinguaForge::link( $this->artwork_id, 'es', $old_sibling_id );
+
+		LinguaForge::trash_orphaned_native_sibling( $this->artwork_id, 'es' );
+
+		$sibling = get_post( $old_sibling_id );
+		$this->assertSame(
+			'trash',
+			$sibling->post_status,
+			'The sibling built for the language the artist has since switched away from must be trashed — nothing would ever sync it again.'
+		);
+	}
+
+	public function test_trash_orphaned_native_sibling_does_not_force_delete(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+
+		$old_sibling_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+		] );
+		FakeLinguaForge::link( $this->artwork_id, 'es', $old_sibling_id );
+
+		LinguaForge::trash_orphaned_native_sibling( $this->artwork_id, 'es' );
+
+		$this->assertNotNull(
+			get_post( $old_sibling_id ),
+			'Trashing must be recoverable — this is a real, deliberate language change the artist made, not spam/abuse cleanup, so the post must still exist (in the trash), not be gone outright.'
+		);
+	}
+
+	public function test_trash_orphaned_native_sibling_no_ops_when_no_sibling_exists_for_that_language(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		// FakeLinguaForge::link() deliberately never called — no translation
+		// group entry exists for 'es' at all (e.g. sync_native_sibling() never
+		// ran for the old language, or it wasn't LF-configured).
+
+		LinguaForge::trash_orphaned_native_sibling( $this->artwork_id, 'es' );
+
+		$this->assertSame(
+			[],
+			get_posts( [
+				'post_type'      => 'agnosis_artwork',
+				'post_status'    => 'trash',
+				'fields'         => 'ids',
+				'posts_per_page' => -1,
+			] ),
+			'With nothing to trash, no post anywhere should end up in the trash.'
+		);
+	}
+
+	public function test_trash_orphaned_native_sibling_no_ops_with_an_empty_old_language(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+
+		$old_sibling_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+		] );
+		FakeLinguaForge::link( $this->artwork_id, 'es', $old_sibling_id );
+
+		// '' means the target never actually had a prior native language (the
+		// guard ReviewEndpoints::finalize_publish() itself applies before ever
+		// calling this method) — exercised directly here too, defensively.
+		LinguaForge::trash_orphaned_native_sibling( $this->artwork_id, '' );
+
+		$this->assertSame( 'publish', get_post( $old_sibling_id )->post_status, 'An empty old language means nothing to trash — the unrelated "es" sibling above must be left untouched.' );
+	}
+
+	public function test_trash_orphaned_native_sibling_does_not_retrash_an_already_trashed_sibling(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+
+		$old_sibling_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'trash',
+		] );
+		FakeLinguaForge::link( $this->artwork_id, 'es', $old_sibling_id );
+
+		// Must not throw/warn on a target that's already trashed — just a
+		// defensive no-op, exercised directly rather than only inferred.
+		LinguaForge::trash_orphaned_native_sibling( $this->artwork_id, 'es' );
+
+		$this->assertSame( 'trash', get_post( $old_sibling_id )->post_status );
 	}
 }

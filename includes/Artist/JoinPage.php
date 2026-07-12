@@ -18,6 +18,7 @@ namespace Agnosis\Artist;
 
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
+use Agnosis\Core\Privacy;
 use Agnosis\Core\Turnstile;
 
 class JoinPage {
@@ -170,6 +171,10 @@ class JoinPage {
 				</div>
 
 				<?php echo Turnstile::render_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- render_widget() escapes the site key internally. ?>
+
+				<p class="agnosis-join__privacy-notice">
+					<?php echo Privacy::consent_notice_html( 'join' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- consent_notice_html() escapes internally. ?>
+				</p>
 
 				<button type="submit" class="agnosis-join__submit">
 					<?php esc_html_e( 'Apply', 'agnosis' ); ?>

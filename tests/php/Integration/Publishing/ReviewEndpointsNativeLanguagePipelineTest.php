@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Publishing;
 
+use Agnosis\AI\CallCounter;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Publishing\ReviewEndpoints;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
@@ -148,6 +149,25 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		$this->approve();
 
 		$this->assertSame( [], WpAiClientTestRegistry::$prompts );
+	}
+
+	/**
+	 * Seventh audit G-2 — turns §7's estimate into a measured number.
+	 * translate_native_content_to_primary()'s one batched call must record
+	 * against Agnosis\AI\CallCounter, not just spend an AI prompt.
+	 */
+	public function test_approve_of_native_language_draft_records_one_ai_translation_call(): void {
+		$this->approve();
+
+		$this->assertSame( 1, CallCounter::get_total( $this->post_id ) );
+	}
+
+	public function test_approve_of_same_language_draft_records_zero_ai_translation_calls(): void {
+		update_post_meta( $this->post_id, '_agnosis_native_lang', 'en' );
+
+		$this->approve();
+
+		$this->assertSame( 0, CallCounter::get_total( $this->post_id ) );
 	}
 
 	public function test_approve_writes_the_translated_content_onto_the_published_post(): void {

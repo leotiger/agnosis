@@ -26,7 +26,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 - **Artist-driven removal** — `remove@` email triggers a signed confirmation link; artist trashes their own artwork; no admin needed
 - **Artist departure** — three independent paths: self-removal (`goodbye@` alias or REST), admin suspend/delete, community vote; confirmation required before any deletion
 - **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard; an optional configurable page can greet applicants right after they apply, explaining what happens next
-- **Multilingual** — language is a required field at application (enforced client- and server-side); per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language
+- **Multilingual** — language is a required field at application (enforced client- and server-side); per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language. Native-language fidelity (an artist's own words kept verbatim rather than translated back and forth) applies to submissions from 0.9.19 onward only — posts published before that keep whatever native-language sibling Lingua Forge had already machine-translated, which is not retroactively rebuilt
 - **Dual-title artwork** — `post_title` is always the artist's original title; AI-generated site-language title stored separately in `_agnosis_translated_title` meta
 - **ActivityPub federation** — each installation is a Fediverse actor; peers discover each other via `/.well-known/agnosis-node`
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication

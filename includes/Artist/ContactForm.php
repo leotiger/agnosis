@@ -83,6 +83,19 @@ class ContactForm {
 	private const SENDER_LIMIT          = 5;
 	private const SENDER_WINDOW_SECONDS = HOUR_IN_SECONDS;
 
+	/**
+	 * Fixed, non-configurable window after which a stored row's raw `ip`
+	 * column is cleared — independent of, and always shorter than,
+	 * `agnosis_contact_message_retention_days` (security audit §4b). The
+	 * address is only ever useful for investigating abuse in the days right
+	 * after a submission; it's never read back for rate-limiting (that's
+	 * RateLimiter's own short-lived transient bucket, unrelated to this
+	 * column) or shown anywhere in wp-admin today. There's no legitimate
+	 * reason to keep it around for the full lifetime an operator might
+	 * configure for the message content itself.
+	 */
+	private const IP_RETENTION_DAYS = 30;
+
 	// -------------------------------------------------------------------------
 	// Routes
 	// -------------------------------------------------------------------------
@@ -378,6 +391,44 @@ class ContactForm {
 			],
 			[ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 		);
+	}
+
+	/**
+	 * Daily cleanup — piggybacked on the existing `agnosis_cleanup_inbox`
+	 * cron (security audit §4b) rather than a new scheduled event, matching
+	 * the "one daily housekeeping tick, each subsystem prunes its own table"
+	 * shape `Email\Inbox::cleanup()` already established for IMAP/queue/log/
+	 * debug-dump retention.
+	 *
+	 * Two independent sweeps:
+	 *  1. Whole rows (sent or rejected alike) older than
+	 *     `agnosis_contact_message_retention_days` (default 90) are deleted
+	 *     outright — there's no reason to keep a visitor's message and
+	 *     identity past the retention window an operator has configured.
+	 *  2. The `ip` column specifically is cleared on any row still older
+	 *     than the fixed, shorter `IP_RETENTION_DAYS` (30) — see that
+	 *     constant's own docblock for why this runs independently of, and
+	 *     always ahead of, the row-retention sweep above.
+	 */
+	public function prune_old_messages(): void {
+		global $wpdb;
+
+		$retention_days = max( 1, (int) get_option( 'agnosis_contact_message_retention_days', 90 ) );
+		$row_cutoff      = gmdate( 'Y-m-d H:i:s', time() - $retention_days * DAY_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- daily cron housekeeping, not a per-request query.
+		$wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$wpdb->prefix}agnosis_contact_messages WHERE created_at < %s",
+			$row_cutoff
+		) );
+
+		$ip_cutoff = gmdate( 'Y-m-d H:i:s', time() - self::IP_RETENTION_DAYS * DAY_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- daily cron housekeeping, not a per-request query.
+		$wpdb->query( $wpdb->prepare(
+			"UPDATE {$wpdb->prefix}agnosis_contact_messages SET ip = NULL WHERE ip IS NOT NULL AND created_at < %s",
+			$ip_cutoff
+		) );
 	}
 
 	/**

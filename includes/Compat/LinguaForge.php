@@ -78,6 +78,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Compat;
 
+use Agnosis\AI\CallCounter;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
 
@@ -248,6 +249,12 @@ class LinguaForge {
 		// linguaforge_translation_complete, which — per copy_translated_meta()'s
 		// own docblock above — fires on both creation and re-translation either way.
 		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_terms' ], 10, 3 );
+
+		// AI-call instrumentation (seventh audit G-2) — counts one real
+		// translation call per genuine LF fan-out completion; skips the
+		// synthetic firing sync_native_sibling() does for its own AI-free
+		// sibling, same guard sync_translated_terms() above already uses.
+		add_action( 'linguaforge_translation_complete', [ $this, 'count_fanout_translation_call' ], 10, 3 );
 
 		// Template safeguard (2026-07-09) — LF >= 2.6.1 only. See concern #8
 		// above for why this is additive defense-in-depth, not a workaround.
@@ -607,10 +614,20 @@ class LinguaForge {
 		// its own native language (see Phase 0, §4d). Every OTHER listener on
 		// this action — copy_translated_meta(), sync_translated_template(),
 		// and any third-party integration — fires completely normally.
+		//
+		// try/finally (seventh audit §2c): without it, a throwing listener on
+		// 'linguaforge_translation_complete' (this class's own two, or any
+		// third-party integration) would leave the flag stuck true for the
+		// rest of the request/cron tick — silently suppressing tag/medium
+		// translation for every OTHER genuinely-AI-translated sibling synced
+		// afterward in that same tick, with no indication anything was wrong.
 		self::$suppress_native_sibling_term_sync = true;
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- linguaforge_ is the registered plugin prefix.
-		do_action( 'linguaforge_translation_complete', $sibling_id, $primary_post_id, $native_lang );
-		self::$suppress_native_sibling_term_sync = false;
+		try {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- linguaforge_ is the registered plugin prefix.
+			do_action( 'linguaforge_translation_complete', $sibling_id, $primary_post_id, $native_lang );
+		} finally {
+			self::$suppress_native_sibling_term_sync = false;
+		}
 
 		// Assign the already-native tags/medium directly — no AI call, and no
 		// re-derivation from the (primary-language) $translated['tags']/
@@ -628,6 +645,62 @@ class LinguaForge {
 				wp_set_object_terms( $sibling_id, $native_medium, 'agnosis_medium' );
 			}
 		}
+	}
+
+	/**
+	 * Trash the native-language sibling built for $old_native_lang, when a
+	 * staged update changes (or clears) the artist's declared native
+	 * language — seventh audit §2b, `NATIVE-LANGUAGE-PIPELINE.md` Phase 2's
+	 * own documented follow-up. sync_native_sibling() above only ever syncs
+	 * whichever language currently sits on the post it's given — once the
+	 * artist's declared language changes, the sibling built for the
+	 * PREVIOUS language has no future writer at all: nothing would ever
+	 * touch it again, and it would stay published, silently diverging from
+	 * the primary post forever. Trashed (recoverable via wp-admin, not
+	 * force-deleted) rather than left as stale content with no indication
+	 * anything changed — this is a real, deliberate change the artist made,
+	 * not spam/abuse cleanup.
+	 *
+	 * Called from `ReviewEndpoints::finalize_publish()`'s staged-update
+	 * branch — $old_native_lang must be $primary_post_id's own PRE-update
+	 * `_agnosis_native_lang` value, read before that method's copy loop
+	 * overwrites it with the current submission's value.
+	 */
+	public static function trash_orphaned_native_sibling( int $primary_post_id, string $old_native_lang ): void {
+		if ( ! self::is_active() || '' === $old_native_lang || ! function_exists( 'linguaforge_get_translations' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$translations = linguaforge_get_translations( $primary_post_id );
+		$sibling_id   = (int) ( $translations[ $old_native_lang ] ?? 0 );
+
+		// No sibling ever existed for that language (e.g. the artist's prior
+		// language wasn't LF-configured, or sync_native_sibling() had
+		// already no-op'd for some other reason) — nothing to trash. The
+		// $sibling_id === $primary_post_id guard covers the degenerate case
+		// where the "sibling" the translation group returns is the primary
+		// post itself (its own source-language entry).
+		if ( $sibling_id <= 0 || $sibling_id === $primary_post_id ) {
+			return;
+		}
+
+		$sibling = get_post( $sibling_id );
+		if ( ! $sibling instanceof \WP_Post || in_array( $sibling->post_status, [ 'trash', 'auto-draft' ], true ) ) {
+			return;
+		}
+
+		wp_trash_post( $sibling_id );
+
+		Logger::info(
+			sprintf(
+				'LinguaForge::trash_orphaned_native_sibling(): trashed sibling #%d (language "%s") for primary post #%d — the artist\'s declared native language changed and this sibling would otherwise never be updated again.',
+				$sibling_id,
+				$old_native_lang,
+				$primary_post_id
+			),
+			'lingua-forge'
+		);
 	}
 
 	/**
@@ -946,6 +1019,44 @@ class LinguaForge {
 		if ( 'agnosis_artwork' === $post_type ) {
 			$this->sync_taxonomy( $source_id, $translated_id, 'agnosis_medium', $target_lang );
 		}
+	}
+
+	/**
+	 * Record one AI translation call for each language Lingua Forge's own
+	 * fan-out genuinely translates (seventh audit G-2 —
+	 * `AI\CallCounter`/`agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md` §7).
+	 *
+	 * Hooked on the same `linguaforge_translation_complete` action as
+	 * `sync_translated_terms()` above, and skipped under the exact same
+	 * condition: `sync_native_sibling()` fires this action synthetically for
+	 * the native sibling it just built directly (no AI call at all — that's
+	 * the entire point of Phase 4), guarded by
+	 * `self::$suppress_native_sibling_term_sync` for the duration of that one
+	 * call. Every OTHER firing of this action is a real LF-driven
+	 * translation, so it's counted.
+	 *
+	 * $source_id is used as the counter key (not $translated_id) so every
+	 * language's fan-out call accumulates onto the one Agnosis post the
+	 * submission actually belongs to — matching
+	 * `ReviewEndpoints::translate_native_content_to_primary()`'s own choice
+	 * of key for the native→primary call.
+	 *
+	 * @param int    $translated_id Newly created/updated translated post ID (unused).
+	 * @param int    $source_id     Source (primary-language) post ID.
+	 * @param string $target_lang   Target language code (unused).
+	 */
+	public function count_fanout_translation_call( int $translated_id, int $source_id, string $target_lang ): void {
+		unset( $translated_id, $target_lang );
+
+		if ( self::$suppress_native_sibling_term_sync ) {
+			return; // Our own AI-free native-sibling sync — not a real AI call.
+		}
+
+		if ( ! in_array( get_post_type( $source_id ), self::AGNOSIS_POST_TYPES, true ) ) {
+			return;
+		}
+
+		CallCounter::record( $source_id, 'lf_fanout' );
 	}
 
 	// -------------------------------------------------------------------------
