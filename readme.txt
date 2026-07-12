@@ -37,6 +37,8 @@ Once published, an artist can also correct their own title, text, or photos dire
 * AI image enhancement (OpenAI gpt-image-1, Stability AI)
 * AI artwork description (Claude, GPT-4o Vision)
 * Front-end correction: artists can edit their own published title, text, or photos afterward, no re-submission needed
+* Visitor contact form: message an artist directly from their page, spam-limited per IP/sender and per artist
+* Biography social links: a portfolio link plus three optional social links, shown as an icon row on the artist's biography page; an optional site-wide preset biography title is also available
 * Community vouching / admission system
 * ActivityPub federation (Mastodon-compatible)
 * Node identity & peer discovery

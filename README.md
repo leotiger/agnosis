@@ -23,6 +23,8 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 - **Submission-failure notifications** — an artist is emailed if their message couldn't be turned into a post at all (no usable attachment found, or every attachment failed to convert), instead of it silently vanishing
 - **Medium taxonomy** — 8 canonical terms (Oil, Acrylic, Watercolour, Drawing, Digital, Photography, Sculpture, Mixed Media); AI assigns one per artwork; seeded on activation
 - **Artist review workflow** — draft posted, artist reviews via email link (approve / edit / discard)
+- **Visitor contact form** — a visitor can message an artist directly from their page; content-moderated, and rate-limited both per IP/sender and per (artist, visitor) pair (configurable), so one visitor can't flood one artist's inbox. The form is replaced with a static "already contacted" notice after sending, not just hidden client-side
+- **Biography social links** — a portfolio link plus three optional social links, rendered as an icon row below the featured photo (WordPress core Social Icons block under the hood); an admin can also force a fixed, site-wide biography title (with an option to append the artist's own name) instead of each artist's own
 - **Artist-driven removal** — `remove@` email triggers a signed confirmation link; artist trashes their own artwork; no admin needed
 - **Artist departure** — three independent paths: self-removal (`goodbye@` alias or REST), admin suspend/delete, community vote; confirmation required before any deletion
 - **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard; an optional configurable page can greet applicants right after they apply, explaining what happens next
@@ -63,11 +65,11 @@ Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → Gene
 ## Installation
 
 ```bash
-# From a release zip
-wp plugin install agnosis-0.4.2.zip --activate
+# From a release zip (see the Releases page for the current version)
+wp plugin install agnosis-<version>.zip --activate
 
 # Or from source
-git clone https://github.com/agnosis/agnosis wp-content/plugins/agnosis
+git clone https://github.com/leotiger/agnosis wp-content/plugins/agnosis
 wp plugin activate agnosis
 ```
 
@@ -98,7 +100,12 @@ composer lint
 
 # Static analysis
 composer analyse
+
+# Everything above except integration tests, in one shot (pre-PR gate)
+composer qa
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor workflow — coding standards, commit/PR conventions, and how a version bump and changelog entry are expected to look.
 
 The integration suite (and the integration half of `composer coverage`) runs inside wp-env's **`tests-wordpress`** container, not `tests-cli`. `tests-cli`'s Imagick build registers zero coders at all (`Imagick::queryFormats()` returns an empty array — a documented Alpine issue), so any test touching image handling would fail there regardless of format; `tests-wordpress` (Debian, `wordpress:php8.3-apache`) has a fully working Imagick. Plugin activation still runs on `tests-cli`, since it's the only container with the `wp` CLI binary — both containers share the same WP database, so this split is safe.
 
@@ -138,10 +145,16 @@ includes/
   Network/               Node identity, ActivityPub federation
   Admin/                 Tabbed settings page (WP Settings API)
   Compat/                LinguaForge integration
+blocks/                  Gutenberg blocks (dynamic PHP render + frontend JS/CSS)
+languages/               Translations (.pot/.po/.mo + compiled .l10n.php caches)
 agnosis-theme/           Companion FSE block theme (separate zip)
 dev/                     Dev tooling (never ships in release zip)
 tests/                   PHPUnit unit + integration suites
 ```
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the dev environment setup, coding standards, and PR process.
 
 ## Changelog
 
