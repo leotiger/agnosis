@@ -20,7 +20,10 @@
  *  3. DUAL-TITLE HANDLING — keeps the artist's own `post_title` untranslated
  *     on every language version (via `linguaforge_translation_content`,
  *     hold_artist_title()); the per-language display title AI-translates
- *     separately into `_agnosis_translated_title`. Artwork only.
+ *     separately into `_agnosis_translated_title`. Artwork and event
+ *     (DUAL_TITLE_POST_TYPES) — biography's own title still uses LF's
+ *     normal per-sibling translation instead (see hold_artist_title()'s
+ *     docblock for why).
  *
  *  4. TRANSLATED-POST META PROPAGATION — a translated post is otherwise
  *     created (and, critically, re-translated) with none of the source's
@@ -159,10 +162,36 @@ class LinguaForge {
 
 	/**
 	 * Per-language display-title map stored on a source post: BCP-47 code => title.
-	 * Built (artwork only) from the primary-language title and consumed at
-	 * translation time to set each translated post's `_agnosis_translated_title`.
+	 * Built (DUAL_TITLE_POST_TYPES only) from the primary-language title and
+	 * consumed at translation time to set each translated post's
+	 * `_agnosis_translated_title`.
 	 */
 	private const TITLE_I18N_META = '_agnosis_title_i18n';
+
+	/**
+	 * Post types whose own post_title is kept verbatim (never machine-
+	 * translated) on every language version, with a separate AI-translated
+	 * display title carried in `_agnosis_translated_title`/`_agnosis_title_i18n`
+	 * instead — see hold_artist_title() and build_title_translations().
+	 *
+	 * Artwork always has; event joined in 0.9.24 (an event's own name, like an
+	 * artwork's, is the artist's own words — a machine-translated version of
+	 * it on every sibling was surfacing as an inconsistent/awkward literal
+	 * translation of what's often effectively a proper noun, e.g. an
+	 * exhibition's own title). Biography deliberately stays off this list:
+	 * its title is ordinary translatable content with no equivalent
+	 * "official own-language name" concept, so it keeps LF's normal
+	 * per-sibling title translation (Settings → General → "Preset biography
+	 * title" is a separate, unrelated mechanism — see Artist\BiographyTitle).
+	 *
+	 * Mirrors Artist\ContentEditor::DUAL_TITLE_POST_TYPES — kept as a
+	 * separate constant (not shared across classes) since the two classes
+	 * have no other coupling; if the list here ever changes, update that one
+	 * too.
+	 *
+	 * @var string[]
+	 */
+	private const DUAL_TITLE_POST_TYPES = [ 'agnosis_artwork', 'agnosis_event' ];
 
 	/** WP-Cron hook that runs the deferred translation kickoff (off the intake request). */
 	private const DISPATCH_HOOK = 'agnosis_dispatch_lf_translations';
@@ -235,11 +264,12 @@ class LinguaForge {
 		// $exclude_langs simply falls back to its default there — no migration needed.
 		add_action( self::DISPATCH_HOOK,             [ $this, 'dispatch_translations' ], 10, 2 );
 
-		// Dual-title (artwork only): keep the artist's original title on translated
-		// posts. LF would otherwise translate post_title — deliberately kept in the
-		// artist's own language, not the primary — from the wrong source. The correct
-		// per-language title is carried in _agnosis_translated_title instead. Events
-		// and biographies use LF's normal title translation.
+		// Dual-title (DUAL_TITLE_POST_TYPES — artwork and event): keep the artist's
+		// original title on translated posts. LF would otherwise translate
+		// post_title — deliberately kept in the artist's own language, not the
+		// primary — from the wrong source. The correct per-language title is
+		// carried in _agnosis_translated_title instead. Biography still uses
+		// LF's normal title translation.
 		add_filter( 'linguaforge_translation_content', [ $this, 'hold_artist_title' ], 10, 3 );
 
 		// Translated-post meta propagation. Without this, a translated artwork /
@@ -1465,14 +1495,17 @@ class LinguaForge {
 	 * Hooked on `linguaforge_translation_content` (fires after LF's AI call, before
 	 * the translated post is written). Agnosis keeps `post_title` in the artist's
 	 * own language on every language version — the primary/translated title lives in
-	 * `_agnosis_translated_title` and is surfaced by the `agnosis/artwork-title`
-	 * block. Without this, LF would translate the artist's (non-primary) title from
-	 * the wrong source language. We overwrite the AI's `translated_title` with the
-	 * source post's original title so LF writes that verbatim.
+	 * `_agnosis_translated_title` and is surfaced by the `agnosis/artwork-title`/
+	 * `agnosis/event-title` block. Without this, LF would translate the artist's
+	 * (non-primary) title from the wrong source language. We overwrite the AI's
+	 * `translated_title` with the source post's original title so LF writes that
+	 * verbatim.
 	 *
-	 * Artwork only — the dual-title design is artwork-specific. Events and
-	 * biographies use LF's normal title translation (an event title is translatable
-	 * content; an artist's name is set at application, not derived from the bio title).
+	 * DUAL_TITLE_POST_TYPES only (artwork, event) — the dual-title design doesn't
+	 * apply to biography (an artist's name is set at application, not derived
+	 * from the bio title, and a biography's title is ordinary translatable
+	 * content with no "official own-language name" to preserve — see that
+	 * constant's own docblock).
 	 *
 	 * @param array<string,mixed> $payload     AI translation payload.
 	 * @param int                 $post_id     Source post ID being translated.
@@ -1482,7 +1515,7 @@ class LinguaForge {
 	public function hold_artist_title( array $payload, int $post_id, string $target_lang ): array {
 		unset( $target_lang ); // Same original title regardless of target language.
 
-		if ( 'agnosis_artwork' !== get_post_type( $post_id ) ) {
+		if ( ! in_array( get_post_type( $post_id ), self::DUAL_TITLE_POST_TYPES, true ) ) {
 			return $payload;
 		}
 
@@ -1502,15 +1535,16 @@ class LinguaForge {
 	 * which collect_translated_title() reads when each translation is created.
 	 *
 	 * Runs in the deferred dispatch (off the intake request), before translations
-	 * are queued. Artwork only — events/biographies use LF's normal title
-	 * translation. No-ops gracefully when the post is not an artwork, has no primary
-	 * title, has no target languages, or no AI provider is configured.
+	 * are queued. DUAL_TITLE_POST_TYPES only (artwork, event) — biography uses
+	 * LF's normal title translation. No-ops gracefully when the post's type isn't
+	 * in that list, has no primary title, has no target languages, or no AI
+	 * provider is configured.
 	 *
 	 * @param int $post_id Source post ID.
 	 * @return void
 	 */
 	public function build_title_translations( int $post_id ): void {
-		if ( 'agnosis_artwork' !== get_post_type( $post_id ) ) {
+		if ( ! in_array( get_post_type( $post_id ), self::DUAL_TITLE_POST_TYPES, true ) ) {
 			return;
 		}
 

@@ -155,6 +155,21 @@ class Profile {
 	 * an artist's Events page wants to see what's coming up next, not what was
 	 * emailed in most recently. Events with no recorded date sort last rather
 	 * than being dropped from the list.
+	 *
+	 * Merges into whatever meta_query already exists rather than replacing it
+	 * (0.9.24 fix) — this used to `$q->set('meta_query', …)` outright, which
+	 * silently discarded Lingua Forge's own `_lf_lang` clause
+	 * (QueryFilter::handle_pre_get_posts(), also hooked on `pre_get_posts` for
+	 * the exact same is_archive() case) whenever that filter happened to run
+	 * first. Agnosis's own `pre_get_posts` registration (Core\Plugin.php) is
+	 * wired up after Lingua Forge's — LF is a hard dependency and loads first
+	 * — so on every request this handler ran second and clobbered the
+	 * language scoping outright, and every language's events piled up
+	 * together on one archive page instead of just the current one's. Nesting
+	 * the pre-existing meta_query as its own AND-ed group alongside the
+	 * OR-relation date clause below preserves it (and anything else a future
+	 * filter adds) regardless of hook registration order, rather than
+	 * depending on this callback always running first.
 	 */
 	public function order_events_archive( \WP_Query $q ): void {
 		if ( ! $q->is_main_query() || is_admin() || ! $q->is_post_type_archive( 'agnosis_event' ) ) {
@@ -166,11 +181,14 @@ class Profile {
 		// meta_key + orderby=>meta_value alone would silently exclude any event
 		// with no _agnosis_event_date at all — the OR below keeps them in the
 		// results (they just sort after every dated event, per 'orderby' above).
-		$q->set( 'meta_query', [
+		$date_clause = [
 			'relation' => 'OR',
 			[ 'key' => '_agnosis_event_date', 'compare' => 'EXISTS' ],
 			[ 'key' => '_agnosis_event_date', 'compare' => 'NOT EXISTS' ],
-		] );
+		];
+
+		$existing = (array) $q->get( 'meta_query' );
+		$q->set( 'meta_query', empty( $existing ) ? $date_clause : [ 'relation' => 'AND', $existing, $date_clause ] );
 	}
 
 	/**
@@ -272,6 +290,23 @@ class Profile {
 			'agnosis/artwork-title',
 			[
 				'render_callback' => [ $this, 'render_artwork_title' ],
+				'uses_context'    => [ 'postId' ],
+			]
+		);
+
+		// agnosis/event-title (0.9.24) — same bilingual title treatment as
+		// agnosis/artwork-title above, ported to events: an event's own name
+		// (e.g. an exhibition or show title an artist gave in their own
+		// language) is kept verbatim on every language version of the page —
+		// never machine-translated — with the AI-generated site-language
+		// translation shown as a styled subtitle underneath. See
+		// Compat\LinguaForge::hold_artist_title()'s docblock for why events
+		// moved off LF's normal per-sibling title translation onto this same
+		// dual-title path artwork has always used.
+		register_block_type(
+			'agnosis/event-title',
+			[
+				'render_callback' => [ $this, 'render_event_title' ],
 				'uses_context'    => [ 'postId' ],
 			]
 		);
@@ -497,6 +532,79 @@ class Profile {
 		return sprintf(
 			'<hgroup class="agnosis-artwork-title" style="margin:0;">%s'
 			. '<p class="agnosis-artwork-title__translation" style="margin:0.15em 0 0;font-size:var(--wp--preset--font-size--medium);color:var(--wp--preset--color--foreground);opacity:0.75;font-style:normal;">%s</p>'
+			. '</hgroup>',
+			$h1,
+			esc_html( $translation )
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/event-title block (0.9.24).
+	 *
+	 * Mirrors render_artwork_title() exactly, for the same dual-title reason:
+	 * an event's own name is the artist's own words (post_title, never
+	 * machine-translated on any language version — see
+	 * Compat\LinguaForge::hold_artist_title()) shown as an <h1>, with the
+	 * AI-generated site-language translation (_agnosis_translated_title meta)
+	 * rendered below as a smaller subtitle when it differs from the
+	 * original. Before 0.9.24, an event's post_title was instead translated
+	 * outright per language sibling (Lingua Forge's normal behaviour) — this
+	 * block is the front-end half of moving events onto the same dual-title
+	 * path artwork has always used.
+	 *
+	 * Example output for a Portuguese event on an English site:
+	 *
+	 *   <hgroup class="agnosis-event-title">
+	 *     <h1 class="agnosis-event-title__original">Cruzando o Limiar</h1>
+	 *     <p  class="agnosis-event-title__translation">Crossing the Threshold</p>
+	 *   </hgroup>
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output.
+	 */
+	public function render_event_title( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post ) {
+			return '';
+		}
+
+		$original    = trim( $post->post_title );
+		$translation = trim( (string) get_post_meta( $post_id, '_agnosis_translated_title', true ) );
+
+		// Dual-title editing: post_title is the artist's own words — the only
+		// part of this block that's ever directly editable. _agnosis_translated_title
+		// is a separate AI-generated value the artist doesn't type into here;
+		// it's regenerated automatically (see ContentEditor::propagate_title())
+		// whenever the original title changes.
+		$h1 = ContentEditor::is_editable_by_current_user( $post_id )
+			? sprintf(
+				'<h1 class="agnosis-event-title__original agnosis-editable" data-agnosis-edit-field="title" data-agnosis-post-id="%d" style="font-style:italic;font-weight:300;%s">%s</h1>',
+				$post_id,
+				'' === $translation || $translation === $original ? '' : 'margin:0 0 0.25em;',
+				esc_html( $original )
+			)
+			: sprintf(
+				'<h1 class="agnosis-event-title__original" style="font-style:italic;font-weight:300;%s">%s</h1>',
+				'' === $translation || $translation === $original ? '' : 'margin:0 0 0.25em;',
+				esc_html( $original )
+			);
+
+		// When both strings are identical (same language, no translation stored, or
+		// translation not yet run), render a plain heading — no extra markup.
+		if ( '' === $translation || $translation === $original ) {
+			return $h1;
+		}
+
+		// Same colour/opacity/font-size choice as render_artwork_title() — see
+		// that method's own comment for why (legible-but-muted foreground at
+		// 0.75 opacity, not the low-alpha --secondary background wash token).
+		return sprintf(
+			'<hgroup class="agnosis-event-title" style="margin:0;">%s'
+			. '<p class="agnosis-event-title__translation" style="margin:0.15em 0 0;font-size:var(--wp--preset--font-size--medium);color:var(--wp--preset--color--foreground);opacity:0.75;font-style:normal;">%s</p>'
 			. '</hgroup>',
 			$h1,
 			esc_html( $translation )

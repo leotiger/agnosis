@@ -592,7 +592,7 @@ class Settings {
 				'min'      => 1,
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
-				'desc'     => __( 'Seen IMAP messages and processed/failed queue rows older than this are permanently deleted by the daily cleanup. Default: 7 days.', 'agnosis' ),
+				'desc'     => __( 'IMAP messages and processed/failed queue rows older than this are permanently deleted by the daily cleanup, whether read or unread. Default: 7 days.', 'agnosis' ),
 			],
 			'agnosis_contact_message_retention_days' => [
 				'tab'      => 'email',

@@ -201,6 +201,68 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// on_submission_looks_like_reply() (2026-07-15)
+	// =========================================================================
+
+	public function test_on_submission_looks_like_reply_sends_email_to_artist(): void {
+		$artist   = $this->create_artist( 'replier@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_looks_like_reply( $artist->ID, 'uid-1' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured, 'wp_mail() should have been called.' );
+		$this->assertSame( 'replier@example.com', $captured['to'] );
+	}
+
+	public function test_on_submission_looks_like_reply_subject_contains_site_name(): void {
+		$artist   = $this->create_artist();
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_looks_like_reply( $artist->ID, 'uid-2' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$site_name = get_bloginfo( 'name' );
+		if ( $site_name ) {
+			$this->assertStringContainsString( $site_name, $captured['subject'] );
+		} else {
+			$this->assertNotEmpty( $captured['subject'] );
+		}
+	}
+
+	public function test_on_submission_looks_like_reply_body_advises_sending_a_fresh_original_message(): void {
+		$artist   = $this->create_artist( 'replier2@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_looks_like_reply( $artist->ID, 'uid-3' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertStringContainsString( 'reply or a forwarded message', $captured['message'] );
+		$this->assertStringContainsString( 'Start a brand new message', $captured['message'] );
+	}
+
+	public function test_on_submission_looks_like_reply_skips_for_invalid_artist_id(): void {
+		$called = false;
+		$filter = function () use ( &$called ) {
+			$called = true;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 1 );
+
+		$this->notification->on_submission_looks_like_reply( 999999, 'uid-4' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertFalse( $called, 'wp_mail() must not fire for a non-existent artist.' );
+	}
+
+	// =========================================================================
 	// issues_to_advice() — keyword mapping
 	// =========================================================================
 
@@ -522,6 +584,69 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		add_filter( 'pre_wp_mail', $filter, 10, 1 );
 
 		$this->notification->on_removal_requested( $post_id, $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertFalse( $called );
+	}
+
+	// =========================================================================
+	// on_removal_requested_multiple() — 2026-07-14, an exact remove@ subject
+	// matching more than one post (e.g. an artwork and an event sharing a
+	// title) gets one email listing every match with its own confirm link,
+	// instead of the single-post email above.
+	// =========================================================================
+
+	public function test_on_removal_requested_multiple_sends_email_listing_every_match(): void {
+		$artist      = $this->create_artist( 'choose@example.com' );
+		$artwork     = $this->create_post_with_removal_token( $artist->ID );
+		$event       = $this->create_event_with_removal_token( $artist->ID );
+		$captured    = null;
+		$filter      = $this->capture_mail( $captured );
+
+		$this->notification->on_removal_requested_multiple(
+			[
+				[ 'id' => $artwork['id'], 'type' => 'agnosis_artwork', 'token' => $artwork['token'] ],
+				[ 'id' => $event['id'],   'type' => 'agnosis_event',   'token' => $event['token'] ],
+			],
+			$artist->ID,
+			'Golden Hour'
+		);
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertSame( 'choose@example.com', $captured['to'] );
+		$this->assertStringContainsString( 'Golden Hour', $captured['subject'] );
+
+		// Both matches' own titles and their own confirm link appear.
+		$this->assertStringContainsString( 'Artwork To Remove', $captured['message'] );
+		$this->assertStringContainsString( 'Event To Remove', $captured['message'] );
+		$this->assertStringContainsString( $artwork['token'], $captured['message'] );
+		$this->assertStringContainsString( $event['token'], $captured['message'] );
+		$this->assertStringContainsString( (string) $artwork['id'], $captured['message'] );
+		$this->assertStringContainsString( (string) $event['id'], $captured['message'] );
+	}
+
+	public function test_on_removal_requested_multiple_skips_when_no_matches_resolve(): void {
+		$artist = $this->create_artist();
+
+		$called = false;
+		$filter = function () use ( &$called ) {
+			$called = true;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 1 );
+
+		// Neither ID exists — every entry fails to resolve to a live WP_Post.
+		$this->notification->on_removal_requested_multiple(
+			[
+				[ 'id' => 999999, 'type' => 'agnosis_artwork', 'token' => 'x' ],
+				[ 'id' => 999998, 'type' => 'agnosis_event',   'token' => 'y' ],
+			],
+			$artist->ID,
+			'Ghost Title'
+		);
 
 		remove_filter( 'pre_wp_mail', $filter, 10 );
 

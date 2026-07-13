@@ -4,18 +4,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
+"POT-Creation-Date: 2026-07-12T16:27+00:00\n"
+"PO-Revision-Date: 2026-07-12 18:28+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Chinese (China)\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-12T16:27+00:00\n"
-"PO-Revision-Date: 2026-07-12 18:28+0000\n"
-"X-Generator: Loco https://localise.biz/\n"
-"X-Domain: agnosis\n"
-"Language: zh_CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Loco-Version: 2.8.6; wp-7.0.1; php-8.5.8"
+"X-Domain: agnosis\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.6; wp-7.0.1; php-8.5.8\n"
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:192
@@ -32,8 +32,8 @@ msgstr "https://agnosis.art"
 #. Description of the plugin
 #: agnosis.php
 msgid ""
-"Art blooming out of oblivion. Email your art, AI polishes it, the world sees "
-"it. A free, federated publishing network for independent artists."
+"Art blooming out of oblivion. Email your art, AI polishes it, the world sees"
+" it. A free, federated publishing network for independent artists."
 msgstr "从遗忘中绽放的艺术。把你的作品发到邮箱，AI 为它润色，世界便能看见。一个面向独立艺术家的免费、去中心化发布网络。"
 
 #. Author of the plugin
@@ -115,9 +115,9 @@ msgid "From"
 msgstr "来自"
 
 #: includes/Admin/ContactMessagesPage.php:99 includes/Admin/Settings.php:1538
-#: includes/Artist/ContactForm.php:157 includes/Artist/ContactFormBlock.php:126
-#: includes/Core/Privacy.php:209 includes/Core/Privacy.php:227
-#: includes/Core/Privacy.php:367
+#: includes/Artist/ContactForm.php:157
+#: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:209
+#: includes/Core/Privacy.php:227 includes/Core/Privacy.php:367
 msgid "Message"
 msgstr "消息"
 
@@ -146,7 +146,8 @@ msgstr "（已删除的艺术家 #%d）"
 
 #: includes/Admin/ContactMessagesPage.php:159 includes/Admin/InboxPage.php:878
 #: includes/Admin/QueueController.php:31 includes/Admin/QueueController.php:60
-#: includes/Admin/QueueController.php:95 includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:95
+#: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:1773
 #: includes/Admin/Settings.php:1952 includes/Admin/Settings.php:1981
 #: includes/Admin/Settings.php:2159 includes/Admin/Settings.php:2191
@@ -631,8 +632,8 @@ msgstr "基础域名"
 #: includes/Admin/Settings.php:392
 msgid ""
 "Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
-"reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
-"{base_domain}) pointing to this server. Leave blank to disable subdomain "
+"reachable at nicename.{base_domain}. Requires a wildcard DNS record "
+"(*.{base_domain}) pointing to this server. Leave blank to disable subdomain "
 "routing."
 msgstr ""
 "艺术家子域名的根域名，例如 agnosis.art。每位艺术家都可通过 nicename.{base_domain} 访问。需要一条指向此服务器的通配 "
@@ -644,14 +645,14 @@ msgstr "调试日志"
 
 #: includes/Admin/Settings.php:404
 msgid ""
-"Writes raw diagnostic dumps of the email intake pipeline (message structure, "
-"attachment MIME detection, media conversion, post creation) to a dedicated "
+"Writes raw diagnostic dumps of the email intake pipeline (message structure,"
+" attachment MIME detection, media conversion, post creation) to a dedicated "
 "debug directory — far more detail than the Logs tab keeps, for tracing "
-"exactly where a submission was rejected or lost. Turn off once you have what "
-"you need; files can accumulate quickly. Can also be forced from wp-config."
-"php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this toggle. "
-"See the Debug Files panel below for the directory location and a clear-files "
-"button."
+"exactly where a submission was rejected or lost. Turn off once you have what"
+" you need; files can accumulate quickly. Can also be forced from wp-"
+"config.php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this "
+"toggle. See the Debug Files panel below for the directory location and a "
+"clear-files button."
 msgstr ""
 "将邮件接入流程的原始诊断转储（消息结构、附件 MIME "
 "检测、媒体转换、文章创建）写入专用调试目录——比日志选项卡保留的细节更多得多，用于精确追踪提交是在何处被拒绝或丢失的。在获得所需信息后请关闭；文件可能会很快累积。也可以在"
@@ -665,8 +666,8 @@ msgstr "调试文件保留时间（天）"
 #: includes/Admin/Settings.php:415
 msgid ""
 "Debug dumps older than this are permanently deleted by the daily cleanup — "
-"automatically, whether or not debug logging is currently turned on, so files "
-"left over from a past debug session don't linger indefinitely. A dump is a "
+"automatically, whether or not debug logging is currently turned on, so files"
+" left over from a past debug session don't linger indefinitely. A dump is a "
 "full raw copy of an artist's email, so this defaults shorter than the "
 "inbox/queue retention above. Default: 14 days."
 msgstr ""
@@ -681,8 +682,8 @@ msgstr "邮件徽标"
 msgid ""
 "Shown in the header of outgoing HTML emails (submission review, removal "
 "confirmation, rejection notice, and both newsletters) in place of the plain "
-"\"✦ Site Name\" text. Leave empty to keep the text wordmark. Displayed at up "
-"to 40px tall — any width or aspect ratio works."
+"\"✦ Site Name\" text. Leave empty to keep the text wordmark. Displayed at up"
+" to 40px tall — any width or aspect ratio works."
 msgstr ""
 "显示在外发 HTML 邮件的页眉中（提交审核、移除确认、拒绝通知，以及两种通讯邮件）以替代纯文本“✦ 站点名称”。留空则保留文本标识。显示高度最高 "
 "40px——宽度或宽高比不限。"
@@ -785,7 +786,8 @@ msgstr "移除请求地址"
 #: includes/Admin/Settings.php:492
 msgid ""
 "Artist requests takedown of an existing artwork. Subject must match the "
-"title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
+"title. Moves the post to draft pending admin review — e.g. "
+"remove@agnosis.art"
 msgstr "艺术家请求下架现有作品。主题必须与标题一致。将帖子移至草稿，等待管理员审核——例如：remove@agnosis.art"
 
 #: includes/Admin/Settings.php:496
@@ -801,8 +803,7 @@ msgid ""
 "promote@agnosis.art"
 msgstr ""
 "艺术家向这里发送电子邮件（主题 = "
-"作品的准确标题），以选择哪件作品代表他们出现在主站点的共享社区画廊中——不是他们自己的子域名，后者已经展示了他们发布的全部内容。任何先前入选展示的作品都会自动降级——例如：promote@agnosis"
-".art"
+"作品的准确标题），以选择哪件作品代表他们出现在主站点的共享社区画廊中——不是他们自己的子域名，后者已经展示了他们发布的全部内容。任何先前入选展示的作品都会自动降级——例如：promote@agnosis.art"
 
 #: includes/Admin/Settings.php:501
 msgid "Photo-only address"
@@ -827,8 +828,8 @@ msgstr "纯净地址（完全不使用 AI）"
 
 #: includes/Admin/Settings.php:507
 msgid ""
-"Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, "
-"no vision description, no rewriting. The published post title, body, and "
+"Strictest opt-out lane: nothing sent here is touched by AI — no enhancement,"
+" no vision description, no rewriting. The published post title, body, and "
 "translated-title subtitle are taken verbatim from the artist's own subject "
 "and message text; the attached file(s) are published exactly as sent. The "
 "quality-rejection gate is bypassed, same as Photo-only. Use the [Pure] "
@@ -846,8 +847,8 @@ msgstr "告别 / 自我移除地址"
 #: includes/Admin/Settings.php:512
 msgid ""
 "Artist emails here (any subject, no attachment needed) to request account "
-"deletion. A confirmation link is emailed back before anything is deleted — e."
-"g. goodbye@agnosis.art"
+"deletion. A confirmation link is emailed back before anything is deleted — "
+"e.g. goodbye@agnosis.art"
 msgstr ""
 "艺术家向这里发送电子邮件（任意主题，无需附件）以请求删除账户。删除前会先通过电子邮件发送确认链接——例如：goodbye@agnosis.art"
 
@@ -865,8 +866,7 @@ msgid ""
 "configured under Settings → Community → Rules, which can be different from "
 "this one. Only works for a message sent by an active, admitted artist."
 msgstr ""
-"任何活跃艺术家都可以向这里发送电子邮件（任意主题，无需附件），向社区中的其他所有成员发送消息——例如：community@agnosis."
-"art。此邮件绝不会被当作提交内容处理，也永远不会变成帖子：每位收件人都会收到已翻译成其自身语言的主题和消息，并包含发送者姓名和电子邮件，以便他们可以直接回复。邮件从"
+"任何活跃艺术家都可以向这里发送电子邮件（任意主题，无需附件），向社区中的其他所有成员发送消息——例如：community@agnosis.art。此邮件绝不会被当作提交内容处理，也永远不会变成帖子：每位收件人都会收到已翻译成其自身语言的主题和消息，并包含发送者姓名和电子邮件，以便他们可以直接回复。邮件从"
 " Settings → Community → Rules "
 "中配置的地址发出，该地址可以与此地址不同。仅适用于由已通过审核并处于活跃状态的艺术家发送的消息。"
 
@@ -893,8 +893,8 @@ msgstr "跳过 SSL 证书验证"
 #: includes/Admin/Settings.php:548
 msgid ""
 "⚠ Use only as a temporary workaround when your mail server's certificate is "
-"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
-"to the mail daemon). Disable this once the mail server presents a valid "
+"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied"
+" to the mail daemon). Disable this once the mail server presents a valid "
 "certificate."
 msgstr ""
 "⚠ 仅在邮件服务器的证书尚未被信任时作为临时变通方案使用（例如：在 Let’s Encrypt 应用于邮件守护进程之前，Plesk "
@@ -920,8 +920,8 @@ msgstr "Webhook 密钥"
 
 #: includes/Admin/Settings.php:564
 msgid ""
-"HMAC secret shared with your webhook provider (Mailgun, SendGrid…). Used for "
-"both the inbound-mail endpoint (/wp-json/agnosis/v1/email/inbound) and the "
+"HMAC secret shared with your webhook provider (Mailgun, SendGrid…). Used for"
+" both the inbound-mail endpoint (/wp-json/agnosis/v1/email/inbound) and the "
 "bounce/complaint events endpoint (/wp-json/agnosis/v1/email/events) — point "
 "your provider's bounce/spam-complaint webhook at the latter to keep your "
 "subscriber and artist addresses clean."
@@ -936,9 +936,13 @@ msgstr "收件箱保留期（天）"
 
 #: includes/Admin/Settings.php:576
 msgid ""
-"Seen IMAP messages and processed/failed queue rows older than this are "
-"permanently deleted by the daily cleanup. Default: 7 days."
-msgstr "已读 IMAP 消息以及已处理/失败队列中早于此时间的行将由每日清理任务永久删除。默认值：7 天。"
+"IMAP messages and processed/failed queue rows older than this are "
+"permanently deleted by the daily cleanup, whether read or unread. Default: 7"
+" days."
+msgstr ""
+"IMAP messages and processed/failed queue rows older than this are "
+"permanently deleted by the daily cleanup, whether read or unread. Default: 7"
+" days."
 
 #: includes/Admin/Settings.php:580
 msgid "Contact message retention (days)"
@@ -948,8 +952,8 @@ msgstr "联系消息保留期（天）"
 msgid ""
 "Visitor-to-artist contact messages (sent or rejected) older than this are "
 "permanently deleted by the daily cleanup. The visitor's IP address is "
-"cleared independently after 30 days regardless of this setting, once it's no "
-"longer useful for abuse investigation. Default: 90 days."
+"cleared independently after 30 days regardless of this setting, once it's no"
+" longer useful for abuse investigation. Default: 90 days."
 msgstr ""
 "访客到艺术家的联系消息（已发送或已拒绝）早于此时间的将由每日清理任务永久删除。无论此设置如何，访客的 IP 地址会在 30 "
 "天后单独清除，届时它已不再有助于滥用调查。默认值：90 天。"
@@ -960,8 +964,8 @@ msgstr "每个发送者每小时提交上限"
 
 #: includes/Admin/Settings.php:599
 msgid ""
-"Maximum submissions accepted from a single artist per hour, across both IMAP "
-"and webhook intake. Exceeding this limit silently drops the message (no "
+"Maximum submissions accepted from a single artist per hour, across both IMAP"
+" and webhook intake. Exceeding this limit silently drops the message (no "
 "retry from ESPs). Default: 5."
 msgstr ""
 "单个艺术家每小时可接受的最大提交数，适用于 IMAP 和 webhook 两种接入方式。超过此限制的消息会被静默丢弃（ESP 不会重试）。默认值：5。"
@@ -983,9 +987,9 @@ msgstr "每位艺术家的联系上限窗口（小时）"
 
 #: includes/Admin/Settings.php:622
 msgid ""
-"Time window, in hours, the per-artist contact limit above applies over. Also "
-"controls how long a visitor sees the \"already contacted\" notice instead of "
-"the form after messaging an artist. Default: 1 (one hour)."
+"Time window, in hours, the per-artist contact limit above applies over. Also"
+" controls how long a visitor sees the \"already contacted\" notice instead "
+"of the form after messaging an artist. Default: 1 (one hour)."
 msgstr ""
 "上述每位艺术家的联系上限所适用的时间窗口（按小时计）。同时也控制访客在联系艺术家后，看到“已联系过”提示而不是表单的时长。默认值：1（1 小时）。"
 
@@ -1048,10 +1052,10 @@ msgid ""
 "AI for description — vision token cost scales with resolution, and a "
 "description task needs far fewer pixels than the original photo. Applies to "
 "artwork photo uploads, rasterised PDF pages, and video poster frames alike. "
-"Set to 0 to always send full-resolution images (uses more tokens, no quality "
-"difference for typical description tasks). Requires the Imagick PHP "
-"extension; images are sent at their original size regardless of this setting "
-"when it is unavailable. Default: 800."
+"Set to 0 to always send full-resolution images (uses more tokens, no quality"
+" difference for typical description tasks). Requires the Imagick PHP "
+"extension; images are sent at their original size regardless of this setting"
+" when it is unavailable. Default: 800."
 msgstr ""
 "在发送给 AI 进行描述之前，图像会按比例缩小到此宽度——视觉 token "
 "成本会随分辨率增长，而描述任务所需的像素远少于原始照片。适用于作品照片上传、栅格化的 PDF 页面以及视频封面帧。设为 0 "
@@ -1111,11 +1115,11 @@ msgstr "使用 AI 合并简介更新"
 
 #: includes/Admin/Settings.php:711
 msgid ""
-"When enabled, biography updates are merged with the existing biography using "
-"AI — new information is integrated rather than replacing everything. "
+"When enabled, biography updates are merged with the existing biography using"
+" AI — new information is integrated rather than replacing everything. "
 "Recommended: artists can send incremental updates (\"I just won an award\") "
-"without resubmitting their full bio. Disable to always replace the biography "
-"with the latest submission."
+"without resubmitting their full bio. Disable to always replace the biography"
+" with the latest submission."
 msgstr ""
 "启用后，简介更新会通过 AI "
 "与现有简介合并——新信息会被整合进去，而不是全部替换。推荐：艺术家可以发送增量更新（“我刚获得了一个奖项”），而无需重新提交完整简介。关闭后则始终用最新提交替换简介。"
@@ -1195,7 +1199,8 @@ msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
 "be regenerated after changing this value."
-msgstr "用于艺术家通知邮件中的 agnosis-email 尺寸宽度。高度按比例缩放——不会裁切。默认值：420。更改此值后，现有图片需要重新生成。"
+msgstr ""
+"用于艺术家通知邮件中的 agnosis-email 尺寸宽度。高度按比例缩放——不会裁切。默认值：420。更改此值后，现有图片需要重新生成。"
 
 #: includes/Admin/Settings.php:792
 msgid "Gallery overview — items per page"
@@ -1204,8 +1209,8 @@ msgstr "画廊概览——每页项目数"
 #: includes/Admin/Settings.php:798
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
-"proportionally across all artists; featured artworks are preferred. Default: "
-"12."
+"proportionally across all artists; featured artworks are preferred. Default:"
+" 12."
 msgstr "画廊概览每页显示多少个作品卡片。资源池会按所有艺术家的比例构建；优先显示精选作品。默认值：12。"
 
 #: includes/Admin/Settings.php:804
@@ -1225,8 +1230,8 @@ msgstr "系统提示词"
 
 #: includes/Admin/Settings.php:822
 msgid ""
-"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
-" as tokens — they are replaced with the values below."
+"Sent to the AI as the system instruction. Use {tag_count} and "
+"{excerpt_words} as tokens — they are replaced with the values below."
 msgstr "作为系统指令发送给 AI。将 {tag_count} 和 {excerpt_words} 作为占位符使用——它们会被下面的值替换。"
 
 #: includes/Admin/Settings.php:826
@@ -1235,8 +1240,8 @@ msgstr "艺术家提示模板"
 
 #: includes/Admin/Settings.php:832
 msgid ""
-"User message sent alongside the artwork image. Use {artist_prompt} where the "
-"artist's own description should appear."
+"User message sent alongside the artwork image. Use {artist_prompt} where the"
+" artist's own description should appear."
 msgstr "与作品图片一同发送的用户消息。请在艺术家自己的描述应出现的位置使用 {artist_prompt}。"
 
 #: includes/Admin/Settings.php:836
@@ -1265,8 +1270,8 @@ msgstr "摘录字数上限"
 
 #: includes/Admin/Settings.php:862
 msgid ""
-"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
-"the system prompt."
+"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in"
+" the system prompt."
 msgstr "单句摘录的最大字数。在系统提示词中以 {excerpt_words} 引用。"
 
 #: includes/Admin/Settings.php:875
@@ -1275,8 +1280,8 @@ msgstr "信任所有已接纳艺术家（完全跳过链接审查）"
 
 #: includes/Admin/Settings.php:880
 msgid ""
-"Every artist here was already vouched in by the community — if that trust is "
-"enough for you, turn this on to embed any link an artist submits, "
+"Every artist here was already vouched in by the community — if that trust is"
+" enough for you, turn this on to embed any link an artist submits, "
 "immediately, with no allowlist check and no AI review at all (the settings "
 "below are skipped entirely while this is on). Off by default. Only enable "
 "this if you are comfortable that a bad actor who made it through admission "
@@ -1294,7 +1299,8 @@ msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
 "network request made to the link itself."
-msgstr "每行一个主机名。提交的链接如果匹配其中之一（或其子域名之一），就会立即作为富媒体嵌入显示——无需 AI 审查，也不会对链接本身发起网络请求。"
+msgstr ""
+"每行一个主机名。提交的链接如果匹配其中之一（或其子域名之一），就会立即作为富媒体嵌入显示——无需 AI 审查，也不会对链接本身发起网络请求。"
 
 #: includes/Admin/Settings.php:894
 msgid "Let artists submit other links too (AI-reviewed)"
@@ -1305,8 +1311,8 @@ msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
 "AI provider (Settings → AI Providers) against the categories below before "
-"deciding whether to embed it. If the AI cannot be reached, the request times "
-"out, or the page cannot be safely fetched, the link is not embedded — it "
+"deciding whether to embed it. If the AI cannot be reached, the request times"
+" out, or the page cannot be safely fetched, the link is not embedded — it "
 "fails safe. When disabled (the default), only the trusted platforms above "
 "are ever embedded."
 msgstr ""
@@ -1343,8 +1349,8 @@ msgstr "其他不允许的类别"
 
 #: includes/Admin/Settings.php:935
 msgid ""
-"Optional — describe any other kind of content the AI should reject, in plain "
-"language (e.g. \"hate speech or violent extremist content\", \"phishing or "
+"Optional — describe any other kind of content the AI should reject, in plain"
+" language (e.g. \"hate speech or violent extremist content\", \"phishing or "
 "scam pages\"). Only takes effect when AI review (above) is enabled."
 msgstr ""
 "可选——用通俗语言描述你希望 AI 拒绝的其他内容类型（例如“仇恨言论或暴力极端主义内容”、“钓鱼或诈骗页面”）。仅在启用 AI 审查（上方）时生效。"
@@ -1390,12 +1396,12 @@ msgstr "发件人电子邮件地址"
 
 #: includes/Admin/Settings.php:970
 msgid ""
-"Dedicated From: address for admission, vote, welcome, departure, invitation, "
-"and submission-review emails — e.g. hello@agnosis.art. Deliberately separate "
-"from the Settings → Newsletter sender: these are one-off actions (a vote "
-"link, a review link), not digest mail. Leave blank to use the admin email. "
-"Must be a valid, deliverable address on your domain (SPF/DKIM configured) or "
-"messages may be marked as spam."
+"Dedicated From: address for admission, vote, welcome, departure, invitation,"
+" and submission-review emails — e.g. hello@agnosis.art. Deliberately "
+"separate from the Settings → Newsletter sender: these are one-off actions (a"
+" vote link, a review link), not digest mail. Leave blank to use the admin "
+"email. Must be a valid, deliverable address on your domain (SPF/DKIM "
+"configured) or messages may be marked as spam."
 msgstr ""
 "用于录取、投票、欢迎、离开、邀请和投稿审核邮件的专用 From: 地址——例如 hello@agnosis.art。刻意与“设置 → "
 "新闻通讯发件人”分开：这些是一次性操作（投票链接、审核链接），不是摘要邮件。留空则使用管理员邮箱。必须是你域名下一个有效、可送达的地址（已配置 "
@@ -1433,12 +1439,12 @@ msgstr "社区广播最大长度（字符）"
 #: includes/Admin/Settings.php:1001
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
-"the sender instead of being broadcast — the sender is told to shorten it and "
-"resend. Measured in characters, not words, so it applies fairly across "
-"languages that don't use spaces between words (Chinese, Japanese, Thai, etc.)"
-". Every recipient's copy is translated individually, so this also caps how "
-"much a single message can cost in AI translation calls. Default: 2000. Hard "
-"maximum: 20000, regardless of this setting."
+"the sender instead of being broadcast — the sender is told to shorten it and"
+" resend. Measured in characters, not words, so it applies fairly across "
+"languages that don't use spaces between words (Chinese, Japanese, Thai, "
+"etc.). Every recipient's copy is translated individually, so this also caps "
+"how much a single message can cost in AI translation calls. Default: 2000. "
+"Hard maximum: 20000, regardless of this setting."
 msgstr ""
 "发送到社区公告地址的较长消息不会被广播，而是退回给发件人——系统会提示其缩短后重新发送。以字符而非单词计量，因此对不使用空格分隔单词的语言（如中文、日文、泰语等）也同样公平。每位收件人的副本都会单独翻译，因此这也限制了一条消息在"
 " AI 翻译调用上的最高成本。默认值：2000。硬性上限：20000，不受此设置影响。"
@@ -1449,8 +1455,8 @@ msgstr "录取投票门槛（%）"
 
 #: includes/Admin/Settings.php:1010
 msgid ""
-"Percentage of active artists that must vote yes for admission. Combined with "
-"the minimum floor below."
+"Percentage of active artists that must vote yes for admission. Combined with"
+" the minimum floor below."
 msgstr "必须获得“赞成”票的活跃艺术家百分比。与下方的最低票数下限结合使用。"
 
 #: includes/Admin/Settings.php:1014
@@ -1479,11 +1485,11 @@ msgstr "已处理申请保留期（天）"
 #: includes/Admin/Settings.php:1036
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
-"statement, and portfolio link are anonymized by the daily cleanup after this "
-"many days — the application record itself (status and dates) is kept for "
+"statement, and portfolio link are anonymized by the daily cleanup after this"
+" many days — the application record itself (status and dates) is kept for "
 "admission history. A banned artist's biography/statement/portfolio are "
-"anonymized on the same schedule, but their email is deliberately kept so the "
-"ban stays enforceable. Default: 180 days."
+"anonymized on the same schedule, but their email is deliberately kept so the"
+" ban stays enforceable. Default: 180 days."
 msgstr ""
 "在每日清理任务执行多少天后，被拒绝、撤回或离开的申请的电子邮件、姓名、简介、声明和作品集链接将被匿名化——申请记录本身（状态和日期）会保留，用于录取历史。被封禁艺术家的简介/声明/作品集也会按相同时间表匿名化，但其电子邮件会被刻意保留，以便封禁仍可执行。默认值：180"
 " 天。"
@@ -1494,10 +1500,10 @@ msgstr "申请后将艺术家发送到"
 
 #: includes/Admin/Settings.php:1044
 msgid ""
-"Optional — pick a page explaining the vouching process and what happens next."
-" When the application is submitted successfully, the artist is redirected "
-"there instead of just seeing an inline confirmation message. Leave as "
-"\"None\" to keep the inline message only."
+"Optional — pick a page explaining the vouching process and what happens "
+"next. When the application is submitted successfully, the artist is "
+"redirected there instead of just seeing an inline confirmation message. "
+"Leave as \"None\" to keep the inline message only."
 msgstr ""
 "可选——选择一个页面来说明推荐流程以及接下来会发生什么。申请成功提交后，艺术家会被重定向到那里，而不是只看到一条内联确认消息。留空为“无”即可仅保留内联消息。"
 
@@ -1508,8 +1514,8 @@ msgstr "社区规模上限"
 #: includes/Admin/Settings.php:1052
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
-"waitlist instead of being rejected, and a freed slot admits the next in line."
-" Set to 0 for no cap. The community can also vote to change this."
+"waitlist instead of being rejected, and a freed slot admits the next in "
+"line. Set to 0 for no cap. The community can also vote to change this."
 msgstr ""
 "可接纳艺术家的最大数量。满员后，新申请将进入等待名单而不是被拒绝；一旦有空位，会按顺序接纳下一位。设为 0 表示不设上限。社区也可以投票更改此项。"
 
@@ -1559,34 +1565,25 @@ msgstr "邀请介绍"
 
 #: includes/Admin/Settings.php:1096
 msgid ""
-"Agnosis is a small, self-hosted home for artists who'd rather make work than "
-"manage a platform. There's no algorithm deciding who sees your art, no "
-"portfolio site to maintain, and no account to configure — just your work, "
-"published and translated automatically for a global audience.\n"
+"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n"
 "\n"
-"Being part of the community is simple: Fellow artists vouch for new "
-"applicants, and everyone keeps full ownership of what they publish; you can "
-"leave at any time and take your work with you.\n"
+"Being part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n"
 "\n"
-"Once admitted, you submit new work by sending it as an email — no dashboard, "
-"no forms and you can update, promote or remove your artwork as well sending "
-"an email. You can find more information visiting the agnosis.art website."
+"Once admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website."
 msgstr ""
-"Agnosis "
-"是一个小型、自托管的艺术家家园，适合那些更愿意创作而不是管理平台的人。这里没有算法决定谁能看到你的艺术作品，没有需要维护的作品集网站，也没有需要配置的账户——只有你的作品，会被自动发布并翻译给全球受众。\n"
+"Agnosis 是一个小型、自托管的艺术家家园，适合那些更愿意创作而不是管理平台的人。这里没有算法决定谁能看到你的艺术作品，没有需要维护的作品集网站，也没有需要配置的账户——只有你的作品，会被自动发布并翻译给全球受众。\n"
 "\n"
 "加入社区很简单：其他艺术家为新申请者担保，每个人都保留其发布内容的完整所有权；你可以随时离开，并带走你的作品。\n"
 "\n"
-"一旦被接纳，你只需通过发送电子邮件来提交新作品——无需仪表盘、无需表单；你也可以通过发送电子邮件来更新、推广或移除你的作品。更多信息可访问 "
-"agnosis.art 网站。"
+"一旦被接纳，你只需通过发送电子邮件来提交新作品——无需仪表盘、无需表单；你也可以通过发送电子邮件来更新、推广或移除你的作品。更多信息可访问 agnosis.art 网站。"
 
 #: includes/Admin/Settings.php:1101
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
-"join\" link and site name follow automatically — no need to add either here)."
-" Two or three short paragraphs is plenty. Standing copy, not cleared after "
-"use like the newsletter intros above — translated automatically when an "
-"invitation is sent in a language other than the site's own."
+"join\" link and site name follow automatically — no need to add either "
+"here). Two or three short paragraphs is plenty. Standing copy, not cleared "
+"after use like the newsletter intros above — translated automatically when "
+"an invitation is sent in a language other than the site's own."
 msgstr ""
 "显示在下方“发送邀请”邮件的顶部附近（“申请加入”链接和站点名称会自动跟随——无需在此添加）。两到三个简短段落即可。这里是固定文案，不会像上面的通讯简介那样在使用后被清除——当邀请以非站点默认语言发送时会自动翻译。"
 
@@ -1613,9 +1610,9 @@ msgid ""
 "valid, deliverable address on your domain (SPF/DKIM configured) or messages "
 "may be marked as spam."
 msgstr ""
-"用于两种通讯邮件的专用 From: 地址，例如 newsletter@agnosis."
-"art——将摘要邮件与站点管理员邮箱分开，以提高送达率并便于艺术家过滤。留空则使用管理员邮箱。必须是你域名下一个有效、可送达的地址（已配置 "
-"SPF/DKIM），否则邮件可能会被标记为垃圾邮件。"
+"用于两种通讯邮件的专用 From: 地址，例如 "
+"newsletter@agnosis.art——将摘要邮件与站点管理员邮箱分开，以提高送达率并便于艺术家过滤。留空则使用管理员邮箱。必须是你域名下一个有效、可送达的地址（已配置"
+" SPF/DKIM），否则邮件可能会被标记为垃圾邮件。"
 
 #: includes/Admin/Settings.php:1131
 msgid "Auto-draft newsletter intros"
@@ -1647,8 +1644,8 @@ msgstr "艺术家新闻简报"
 
 #: includes/Admin/Settings.php:1153
 msgid ""
-"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
-"one click). Community digest: recent activity, new members, open votes."
+"Admitted artists are auto-enrolled (they can unsubscribe from any issue with"
+" one click). Community digest: recent activity, new members, open votes."
 msgstr "已获准的艺术家会自动订阅（他们可在任一期内容中一键取消订阅）。社区摘要：近期活动、新成员、开放投票。"
 
 #: includes/Admin/Settings.php:1157
@@ -1668,8 +1665,8 @@ msgstr "艺术家新闻简报开头"
 #: includes/Admin/Settings.php:1171
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
-"automatically once that issue is queued. Leave blank to send the auto-digest "
-"with no intro. If left blank, Agnosis drafts one automatically from what's "
+"automatically once that issue is queued. Leave blank to send the auto-digest"
+" with no intro. If left blank, Agnosis drafts one automatically from what's "
 "new about a day before the issue sends, and emails you to review it first — "
 "write your own here any time to skip that."
 msgstr ""
@@ -1702,8 +1699,8 @@ msgstr "公开通讯导语"
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
-"automatically from what's new about a day before the issue sends, and emails "
-"you to review it first — write your own here any time to skip that."
+"automatically from what's new about a day before the issue sends, and emails"
+" you to review it first — write your own here any time to skip that."
 msgstr ""
 "仅会附加到下一期公开内容前的可选说明——一旦该期进入排队，会自动清除。如果留空，Agnosis "
 "会在该期发送前大约一天自动根据最新内容草拟一段，并先发邮件请您审核——如需跳过，随时可在这里自行撰写。"
@@ -1714,8 +1711,8 @@ msgstr "发送批次大小"
 
 #: includes/Admin/Settings.php:1206
 msgid ""
-"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
-"outbound mail; raise it for faster delivery on hosts with generous limits."
+"Recipients emailed per 5-minute cron tick. Lower this if your host throttles"
+" outbound mail; raise it for faster delivery on hosts with generous limits."
 msgstr "每 5 分钟 cron 触发时向多少收件人发送邮件。如果您的主机限制外发邮件，请调低；如果主机限制宽松，可调高以加快投递。"
 
 #: includes/Admin/Settings.php:1210
@@ -1725,10 +1722,11 @@ msgstr "自托管舒适阈值"
 #: includes/Admin/Settings.php:1216
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
-"confirmed public subscribers pass it, this page shows a reminder to consider "
-"an email service provider (e.g. Brevo's free tier) instead."
+"confirmed public subscribers pass it, this page shows a reminder to consider"
+" an email service provider (e.g. Brevo's free tier) instead."
 msgstr ""
-"仅供参考——即使超过此数量，自托管发送仍可继续工作。一旦确认的公开订阅者超过此数，本页面会显示提醒，建议改用邮件服务提供商（例如 Brevo 的免费层）。"
+"仅供参考——即使超过此数量，自托管发送仍可继续工作。一旦确认的公开订阅者超过此数，本页面会显示提醒，建议改用邮件服务提供商（例如 Brevo "
+"的免费层）。"
 
 #: includes/Admin/Settings.php:1225
 msgid ""
@@ -1780,13 +1778,13 @@ msgstr "Turnstile 未配置。"
 
 #: includes/Admin/Settings.php:1299
 msgid ""
-"Your Join application form is public — anyone can submit an application, and "
-"a submitted (and confirmed) application still emails every admitted artist "
+"Your Join application form is public — anyone can submit an application, and"
+" a submitted (and confirmed) application still emails every admitted artist "
 "and admin. Right now the only thing standing between that form and an "
 "automated bot is a fixed 5-submissions-per-minute-per-IP limit, which a "
 "distributed bot can work around entirely. Add a Cloudflare Turnstile site "
-"key and secret key above to require human verification on both the Join form "
-"and the Newsletter Subscribe form."
+"key and secret key above to require human verification on both the Join form"
+" and the Newsletter Subscribe form."
 msgstr ""
 "您的加入申请表是公开的——任何人都可以提交申请，而且一份已提交（并确认）的申请仍会向所有已接纳艺术家和管理员发送邮件。目前，阻挡该表单和自动机器人之间的唯一措施是固定的“每个"
 " IP 每分钟 5 次提交”限制，而分布式机器人可以完全绕过它。在上方添加 Cloudflare Turnstile "
@@ -1808,7 +1806,8 @@ msgstr "AI 处理与隐私政策"
 msgid "A Privacy Policy page is set."
 msgstr "已设置隐私政策页面。"
 
-#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#. translators: %s: comma-separated list of configured AI providers, e.g.
+#. "OpenAI, Anthropic"
 #: includes/Admin/Settings.php:1341
 #, php-format
 msgid ""
@@ -1824,7 +1823,8 @@ msgstr ""
 msgid "No Privacy Policy page is set."
 msgstr "未设置隐私政策页面。"
 
-#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#. translators: %s: comma-separated list of configured AI providers, e.g.
+#. "OpenAI, Anthropic"
 #: includes/Admin/Settings.php:1353
 #, php-format
 msgid ""
@@ -1901,10 +1901,10 @@ msgstr "已缓存的翻译"
 
 #: includes/Admin/Settings.php:1465
 msgid ""
-"AI-translated tag/medium term names, cached so the same term always gets the "
-"same translated label instead of a fresh AI phrasing per post. Renaming a "
-"term already clears its own cached entry automatically; use the button below "
-"only if a cached translation itself is wrong."
+"AI-translated tag/medium term names, cached so the same term always gets the"
+" same translated label instead of a fresh AI phrasing per post. Renaming a "
+"term already clears its own cached entry automatically; use the button below"
+" only if a cached translation itself is wrong."
 msgstr ""
 "由 AI 翻译的标签/媒介术语名称，会被缓存起来，这样同一术语始终使用相同的译名，而不是每篇文章都生成不同的 AI "
 "表述。重命名术语会自动清除其自身的缓存条目；只有当缓存的译文本身有误时，才使用下方按钮。"
@@ -2025,14 +2025,15 @@ msgstr "送达率"
 
 #: includes/Admin/Settings.php:1686
 msgid ""
-"A diagnostic check only — nothing here changes how mail is sent. On ordinary "
-"hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn't "
-"match your site's own domain, or from a domain with no SPF/DMARC record at "
-"all, is increasingly likely to land in spam or be rejected outright by large "
-"mailbox providers. If any row below looks wrong, the most reliable fix is "
-"installing an SMTP-sending plugin (WP Mail SMTP, Post SMTP, FluentSMTP, and "
-"others all work) configured against a real transactional mail provider, and "
-"adding SPF/DMARC records for the domain you send from at your DNS host."
+"A diagnostic check only — nothing here changes how mail is sent. On ordinary"
+" hosting (PHP mail(), no SMTP plugin), mail sent from an address that "
+"doesn't match your site's own domain, or from a domain with no SPF/DMARC "
+"record at all, is increasingly likely to land in spam or be rejected "
+"outright by large mailbox providers. If any row below looks wrong, the most "
+"reliable fix is installing an SMTP-sending plugin (WP Mail SMTP, Post SMTP, "
+"FluentSMTP, and others all work) configured against a real transactional "
+"mail provider, and adding SPF/DMARC records for the domain you send from at "
+"your DNS host."
 msgstr ""
 "这只是一个诊断检查——这里不会改变邮件发送方式。对于普通主机环境（PHP mail()，没有 SMTP "
 "插件），从与网站自身域名不匹配的地址发送的邮件，或者来自完全没有 SPF/DMARC "
@@ -2211,7 +2212,8 @@ msgid ""
 "reaching this artist."
 msgstr "此地址已退信或被举报为垃圾邮件 — 邮件可能已无法送达这位艺术家。"
 
-#. translators: %d: number of recorded bounces/complaints for this artist's address
+#. translators: %d: number of recorded bounces/complaints for this artist's
+#. address
 #: includes/Admin/Settings.php:2077
 #, php-format
 msgid "⚠ %d bounce"
@@ -2266,7 +2268,8 @@ msgstr "发起投票"
 msgid "Newsletter Status"
 msgstr "简报状态"
 
-#. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
+#. translators: 1: confirmed public subscriber count, 2: configured comfort
+#. threshold
 #: includes/Admin/Settings.php:2302
 #, php-format
 msgid ""
@@ -2320,14 +2323,16 @@ msgstr "立即发送"
 msgid "Public"
 msgstr "公开"
 
-#. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count, 4: bounced/suppressed count
+#. translators: 1: confirmed subscriber count, 2: pending confirmation count,
+#. 3: unsubscribed count, 4: bounced/suppressed count
 #: includes/Admin/Settings.php:2357
 #, php-format
 msgid ""
 "%1$d confirmed, %2$d pending confirmation, %3$d unsubscribed, %4$d bounced"
 msgstr "%1$d 位已确认，%2$d 位待确认，%3$d 位已退订，%4$d 位已退信"
 
-#. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
+#. translators: %s: comma-separated "Language (count)" breakdown of confirmed
+#. subscribers
 #: includes/Admin/Settings.php:2371
 #, php-format
 msgid "By language: %s"
@@ -2335,8 +2340,8 @@ msgstr "按语言：%s"
 
 #: includes/Admin/Settings.php:2395
 msgid ""
-"Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
-"the public newsletter. Artists are enrolled automatically and can "
+"Add the \"Newsletter Signup\" block to any page to let visitors subscribe to"
+" the public newsletter. Artists are enrolled automatically and can "
 "unsubscribe from any issue with one click."
 msgstr "在任意页面添加“简报注册”区块，让访客订阅公开简报。艺术家会自动加入，并可通过每期邮件中的一键链接退订。"
 
@@ -2352,7 +2357,8 @@ msgstr "未知"
 msgid "None"
 msgstr "无"
 
-#. translators: %d: number of recipients whose send permanently failed for the most recent issue
+#. translators: %d: number of recipients whose send permanently failed for the
+#. most recent issue
 #: includes/Admin/Settings.php:2475
 #, php-format
 msgid "%d failed"
@@ -2445,7 +2451,8 @@ msgstr "简介"
 msgid "Statement"
 msgstr "声明"
 
-#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
+#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character
+#. count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
@@ -2499,7 +2506,8 @@ msgid "Confirm your application?"
 msgstr "确认您的申请？"
 
 #: includes/Artist/AdmissionConfirm.php:105
-msgid "Your application will open for community review once you confirm below."
+msgid ""
+"Your application will open for community review once you confirm below."
 msgstr "在您确认下方内容后，您的申请将开放给社区审核。"
 
 #: includes/Artist/AdmissionConfirm.php:106
@@ -2623,7 +2631,8 @@ msgstr "感谢您申请加入 %s。您的申请已收到，并现已开放给社
 #: includes/Artist/AdmissionNotification.php:505
 #, php-format
 msgid ""
-"The community has %d days to vote. We will let you know the outcome by email."
+"The community has %d days to vote. We will let you know the outcome by "
+"email."
 msgstr "社区有 %d 天的投票时间。我们会通过电子邮件告知您结果。"
 
 #. translators: 1: applicant name, 2: community name
@@ -2632,7 +2641,8 @@ msgstr "社区有 %d 天的投票时间。我们会通过电子邮件告知您�
 msgid "New application: %1$s wants to join %2$s"
 msgstr "新申请：%1$s 想加入 %2$s"
 
-#. translators: 1: applicant display name, 2: community name, 3: number of days
+#. translators: 1: applicant display name, 2: community name, 3: number of
+#. days
 #: includes/Artist/AdmissionNotification.php:622
 #, php-format
 msgid "%1$s has applied to join %2$s. You have %3$d days to vote."
@@ -2735,8 +2745,8 @@ msgstr "发送任意邮件（无需附件）。你会收到一封确认链接的
 
 #: includes/Artist/AdmissionNotification.php:879
 msgid ""
-"No login is needed to work with Agnosis — everything above happens by email. "
-"If you'd also like to use the site's optional online features (like "
+"No login is needed to work with Agnosis — everything above happens by email."
+" If you'd also like to use the site's optional online features (like "
 "previewing a submission before it publishes), you can set up a password "
 "whenever you like using"
 msgstr ""
@@ -2784,7 +2794,8 @@ msgstr "Pure——按原样发布，不使用任何 AI"
 msgid "About %s"
 msgstr "关于 %s"
 
-#. translators: 1: preset biography title (Settings → General); 2: artist's WordPress display name
+#. translators: 1: preset biography title (Settings → General); 2: artist's
+#. WordPress display name
 #: includes/Artist/BiographyTitle.php:81
 #, php-format
 msgid "%1$s — %2$s"
@@ -2796,18 +2807,16 @@ msgstr "%1$s — %2$s"
 msgid "[%s] Your community message was not sent — too long"
 msgstr "[%s] 你的社区消息未发送——内容过长"
 
-#. translators: 1: sender's display name, 2: character count of their message, 3: configured character limit, 4: site name
+#. translators: 1: sender's display name, 2: character count of their message,
+#. 3: configured character limit, 4: site name
 #: includes/Artist/CommunityBroadcast.php:158
 #, php-format
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"Your message to the community was %2$d characters long — the current limit "
-"is %3$d. It was not sent to anyone.\n"
+"Your message to the community was %2$d characters long — the current limit is %3$d. It was not sent to anyone.\n"
 "\n"
-"Every recipient's copy is translated individually into their own language, "
-"so a very long message is costly to translate for the whole community. "
-"Please shorten it and send it again.\n"
+"Every recipient's copy is translated individually into their own language, so a very long message is costly to translate for the whole community. Please shorten it and send it again.\n"
 "\n"
 "— %4$s"
 msgstr ""
@@ -2831,9 +2840,7 @@ msgstr "[%s] 你的社区消息未发送——未找到内容"
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"Your message to the community had no subject or message text that could be "
-"found — this often happens when an email client sends an HTML-only message "
-"with no plain-text version included. It was not sent to anyone.\n"
+"Your message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.\n"
 "\n"
 "Please try sending it again with plain text included.\n"
 "\n"
@@ -2894,11 +2901,9 @@ msgstr "无限制"
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"The %2$s community has opened a vote to change the membership size cap to "
-"%3$s. The vote closes on %4$s.\n"
+"The %2$s community has opened a vote to change the membership size cap to %3$s. The vote closes on %4$s.\n"
 "\n"
-"A strict majority of active members (more than 50%%) must vote yes for the "
-"new cap to be adopted. Sign in to your account to cast your vote.\n"
+"A strict majority of active members (more than 50%%) must vote yes for the new cap to be adopted. Sign in to your account to cast your vote.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -2978,7 +2983,8 @@ msgstr "此投票目前未开放。"
 msgid "This artist can't be reached through this form right now."
 msgstr "此艺术家目前无法通过此表单联系。"
 
-#: includes/Artist/ContactForm.php:261 includes/Artist/ContactFormBlock.php:186
+#: includes/Artist/ContactForm.php:261
+#: includes/Artist/ContactFormBlock.php:186
 msgid "Thanks — your message has been sent."
 msgstr "谢谢——你的消息已发送。"
 
@@ -2992,7 +2998,8 @@ msgstr "垃圾信息、诈骗，或与真正联系艺术家讨论其作品无关
 msgid "Flagged by automatic content review."
 msgstr "已被自动内容审核标记。"
 
-#. translators: %s: visitor's name, or their email address if no name was given
+#. translators: %s: visitor's name, or their email address if no name was
+#. given
 #: includes/Artist/ContactForm.php:556
 #, php-format
 msgid "New message from %s via your Agnosis contact form"
@@ -3008,7 +3015,8 @@ msgstr "发件人：%s"
 msgid "(no name provided)"
 msgstr "（未提供姓名）"
 
-#. translators: %s: visitor's own email address, for the artist to reply to directly.
+#. translators: %s: visitor's own email address, for the artist to reply to
+#. directly.
 #: includes/Artist/ContactForm.php:568
 #, php-format
 msgid "Email: %s"
@@ -3074,7 +3082,8 @@ msgstr "这看起来不像有效的链接（必须以 http:// 或 https:// 开�
 msgid "The title cannot be empty."
 msgstr "标题不能为空。"
 
-#: includes/Artist/ContentEditor.php:315 includes/Artist/ContentEditor.php:1009
+#: includes/Artist/ContentEditor.php:315
+#: includes/Artist/ContentEditor.php:1009
 msgid "Saved — translations will update within a few minutes."
 msgstr "已保存——翻译将在几分钟内更新。"
 
@@ -3095,7 +3104,8 @@ msgstr "无法读取上传的文件。"
 msgid "Untitled"
 msgstr "未命名"
 
-#: includes/Artist/ContentEditor.php:418 includes/Artist/ContentEditor.php:1013
+#: includes/Artist/ContentEditor.php:418
+#: includes/Artist/ContentEditor.php:1013
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr "照片已替换——原图会保留，并可在稍后恢复。"
 
@@ -3107,7 +3117,8 @@ msgstr "没有可恢复的照片。"
 msgid "No earlier version of this photo was found."
 msgstr "未找到这张照片的更早版本。"
 
-#: includes/Artist/ContentEditor.php:490 includes/Artist/ContentEditor.php:1016
+#: includes/Artist/ContentEditor.php:490
+#: includes/Artist/ContentEditor.php:1016
 msgid "Restored the earlier photo."
 msgstr "已恢复较早的照片。"
 
@@ -3229,16 +3240,13 @@ msgstr "确认您离开 %s"
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"We received a request to remove your account and all your published work "
-"from %2$s.\n"
+"We received a request to remove your account and all your published work from %2$s.\n"
 "\n"
-"If you made this request, click the link below to confirm. This action is "
-"permanent and cannot be undone.\n"
+"If you made this request, click the link below to confirm. This action is permanent and cannot be undone.\n"
 "\n"
 "%3$s\n"
 "\n"
-"If you did not make this request, you can ignore this email — your account "
-"remains unchanged.\n"
+"If you did not make this request, you can ignore this email — your account remains unchanged.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -3288,11 +3296,9 @@ msgstr "您已离开 %s"
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"This confirms that your account and everything you published on %2$s have "
-"been permanently deleted, as you requested.\n"
+"This confirms that your account and everything you published on %2$s have been permanently deleted, as you requested.\n"
 "\n"
-"Nothing tied to you — your artwork, biography, events, or account details — "
-"is stored on %2$s anymore.\n"
+"Nothing tied to you — your artwork, biography, events, or account details — is stored on %2$s anymore.\n"
 "\n"
 "If you didn't request this, please contact the site admin right away.\n"
 "\n"
@@ -3316,8 +3322,7 @@ msgid ""
 "\n"
 "Your membership at %2$s has been temporarily suspended until %3$s.\n"
 "\n"
-"You will be automatically reinstated on that date. If you have questions, "
-"please contact the site admin.\n"
+"You will be automatically reinstated on that date. If you have questions, please contact the site admin.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -3361,8 +3366,7 @@ msgstr "你在 %s 的会员资格已被暂停"
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"Your temporary suspension at %2$s has ended and your membership has been "
-"reinstated. You can now log in and submit work as before.\n"
+"Your temporary suspension at %2$s has ended and your membership has been reinstated. You can now log in and submit work as before.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -3378,14 +3382,14 @@ msgstr ""
 msgid "Your membership at %s has been reinstated"
 msgstr "你在 %s 的会员资格已恢复"
 
-#. translators: 1: voter display name, 2: site name, 3: closing date, 4: yes URL, 5: no URL
+#. translators: 1: voter display name, 2: site name, 3: closing date, 4: yes
+#. URL, 5: no URL
 #: includes/Artist/DepartureNotification.php:360
 #, php-format
 msgid ""
 "Hi %1$s,\n"
 "\n"
-"The %2$s community has opened a vote to remove a member. The vote closes on "
-"%3$s.\n"
+"The %2$s community has opened a vote to remove a member. The vote closes on %3$s.\n"
 "\n"
 "Cast your vote:\n"
 "\n"
@@ -3393,9 +3397,7 @@ msgid ""
 "\n"
 "Vote NO (keep):    %5$s\n"
 "\n"
-"A majority of active members (more than 50%%) must vote yes for the removal "
-"to proceed. You can change your vote by clicking the other link before the "
-"deadline.\n"
+"A majority of active members (more than 50%%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -3431,8 +3433,7 @@ msgstr "%s 的社区移除投票已通过"
 msgid ""
 "The community removal vote has closed with a majority in favor.\n"
 "\n"
-"The artist's account and all published work have been permanently deleted "
-"from %1$s.\n"
+"The artist's account and all published work have been permanently deleted from %1$s.\n"
 "\n"
 "— %2$s"
 msgstr ""
@@ -3452,8 +3453,7 @@ msgstr "%s 的社区移除投票未通过"
 #: includes/Artist/DepartureNotification.php:443
 #, php-format
 msgid ""
-"The community removal vote has closed. The required majority was not reached "
-"and the artist's membership remains active.\n"
+"The community removal vote has closed. The required majority was not reached and the artist's membership remains active.\n"
 "\n"
 "— %s"
 msgstr ""
@@ -3467,7 +3467,8 @@ msgstr "请输入有效的电子邮件地址。"
 
 #: includes/Artist/Invitation.php:88 includes/Newsletter/Scheduler.php:147
 msgid ""
-"wp_mail() reported a failure — check your site's outgoing mail configuration."
+"wp_mail() reported a failure — check your site's outgoing mail "
+"configuration."
 msgstr "wp_mail() 报告发送失败 — 请检查你网站的发信配置。"
 
 #. translators: %s: community name
@@ -3924,8 +3925,8 @@ msgstr "路由模式"
 
 #: includes/Compat/LinguaForge.php:1728
 msgid ""
-"This conflicts with Agnosis artist subdomains — both plugins would claim the "
-"same subdomain namespace."
+"This conflicts with Agnosis artist subdomains — both plugins would claim the"
+" same subdomain namespace."
 msgstr "这与 Agnosis 艺术家子域名冲突——两个插件都会声明同一个子域名命名空间。"
 
 #: includes/Compat/LinguaForge.php:1729
@@ -3962,8 +3963,8 @@ msgstr "路径前缀（子文件夹）"
 
 #: includes/Compat/LinguaForge.php:1737
 msgid ""
-"This is the LinguaForge default and allows artist subdomains to coexist with "
-"language subfolders"
+"This is the LinguaForge default and allows artist subdomains to coexist with"
+" language subfolders"
 msgstr "这是 LinguaForge 的默认设置，并允许艺术家子域名与语言子文件夹共存"
 
 #: includes/Compat/LinguaForge.php:1742
@@ -4266,13 +4267,13 @@ msgstr "我们收集哪些个人数据，以及为什么收集"
 
 #: includes/Core/Privacy.php:768
 msgid ""
-"When you apply to join, we store your email address, display name, biography,"
-" statement, and portfolio link to run the community vouching process. When "
-"you email us artwork, a biography, or an event, the content of that email "
-"(including your address) is stored while it is processed and reviewed. When "
-"you subscribe to our newsletter or message an artist through their contact "
-"form, we store your email address (and, for contact messages, your IP "
-"address) to deliver that message or send you future issues."
+"When you apply to join, we store your email address, display name, "
+"biography, statement, and portfolio link to run the community vouching "
+"process. When you email us artwork, a biography, or an event, the content of"
+" that email (including your address) is stored while it is processed and "
+"reviewed. When you subscribe to our newsletter or message an artist through "
+"their contact form, we store your email address (and, for contact messages, "
+"your IP address) to deliver that message or send you future issues."
 msgstr ""
 "当您申请加入时，我们会存储您的电子邮件地址、显示名称、个人简介、陈述和作品集链接，以运行社区担保流程。当您通过电子邮件向我们发送作品、个人简介或活动时，该电子邮件的内容（包括您的地址）会在处理和审核期间被存储。当您订阅我们的新闻邮件或通过艺术家的联系表单向其发送消息时，我们会存储您的电子邮件地址（对于联系消息，还包括您的"
 " IP 地址），以便投递该消息或向您发送未来期刊。"
@@ -4307,8 +4308,8 @@ msgstr ""
 #: includes/Core/Privacy.php:800
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
-"Approved posts are published publicly and shared across the Fediverse — this "
-"cannot be fully undone later."
+"Approved posts are published publicly and shared across the Fediverse — this"
+" cannot be fully undone later."
 msgstr "提交的文本和图片可能会由第三方 AI 提供商处理。获批准的帖子会公开发布并在 Fediverse 中共享——这之后无法完全撤销。"
 
 #: includes/Core/Privacy.php:801
@@ -4741,8 +4742,8 @@ msgstr "此站点不在此 Agnosis 节点的受信任平台列表中，并且此
 
 #: includes/Publishing/EmbedPolicy.php:154
 msgid ""
-"This node couldn't safely load that page to review it (it may be unreachable,"
-" or blocked for security reasons)."
+"This node couldn't safely load that page to review it (it may be "
+"unreachable, or blocked for security reasons)."
 msgstr "此节点无法安全加载该页面以供审核（它可能无法访问，或因安全原因被阻止）。"
 
 #: includes/Publishing/EmbedPolicy.php:165
@@ -4765,8 +4766,8 @@ msgstr "将此作品设为画廊概览重点展示"
 
 #: includes/Publishing/GalleryOverview.php:153
 msgid ""
-"Featured artworks are always chosen first when selecting one work per artist "
-"for the homepage overview."
+"Featured artworks are always chosen first when selecting one work per artist"
+" for the homepage overview."
 msgstr "在为主页概览选择每位艺术家的一件作品时，重点展示的作品总会优先被选中。"
 
 #. translators: %s: artwork or event title
@@ -4846,8 +4847,8 @@ msgstr "“%s”现已成为画廊概览中的重点展示作品。"
 
 #: includes/Publishing/Notification.php:381
 msgid ""
-"Any previously featured artwork has been unfeatured automatically — only one "
-"piece is featured at a time."
+"Any previously featured artwork has been unfeatured automatically — only one"
+" piece is featured at a time."
 msgstr "之前被推荐展示的任何作品都会自动取消推荐——同一时间只会展示一件作品。"
 
 #. translators: %s: artwork title (in the artist's own language)
@@ -4892,8 +4893,8 @@ msgstr "是的，移除这个%s"
 #: includes/Publishing/Notification.php:609
 #, php-format
 msgid ""
-"If you did not request this removal, simply ignore this email — your %s will "
-"remain published."
+"If you did not request this removal, simply ignore this email — your %s will"
+" remain published."
 msgstr "如果这不是你提出的移除请求，请直接忽略这封邮件——你的%s仍会保持发布。"
 
 #: includes/Publishing/Notification.php:616
@@ -4949,8 +4950,8 @@ msgstr "以下内容无法自动嵌入，因此已被省略："
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
-"meant to update an existing event, \"%s\", resend your email with that exact "
-"title instead."
+"meant to update an existing event, \"%s\", resend your email with that exact"
+" title instead."
 msgstr "其邮件主题与现有标题中的某一个并未完全匹配。如果你想更新已有活动“%s”，请改用该完全相同的标题重新发送邮件。"
 
 #. translators: %s: fuzzy-matched artwork title suggestion
@@ -5001,15 +5002,16 @@ msgstr "想在发布前微调标题、正文或标签吗？"
 msgid "Open your submissions page →"
 msgstr "打开你的投稿页面 →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
+#. translators: %d is the number of days the review link stays valid —
+#. configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
 "as a draft until you decide."
 msgid_plural ""
-"The Publish and Discard links above expire in %d days. Your submission stays "
-"as a draft until you decide."
+"The Publish and Discard links above expire in %d days. Your submission stays"
+" as a draft until you decide."
 msgstr[0] "上面的“发布”和“舍弃”链接将在 %d 天后失效。在你决定之前，你的投稿会一直作为草稿保留。"
 
 #. translators: %s: site name
@@ -5026,11 +5028,11 @@ msgstr "[%s] 我们在你的邮件中找不到照片"
 
 #: includes/Publishing/Notification.php:1178
 msgid ""
-"We received your email, but couldn't process a usable photo, audio, or video "
-"file from it — so nothing was published. This can happen when an image is "
+"We received your email, but couldn't process a usable photo, audio, or video"
+" file from it — so nothing was published. This can happen when an image is "
 "pasted or inserted inline rather than added as a proper attachment, or when "
-"a file arrives in a format this server can't convert (for example, an iPhone "
-"photo saved in HEIC/HEIF format)."
+"a file arrives in a format this server can't convert (for example, an iPhone"
+" photo saved in HEIC/HEIF format)."
 msgstr ""
 "我们已收到你的邮件，但无法从中处理出可用的照片、音频或视频文件，因此没有发布任何内容。出现这种情况，可能是因为图片是粘贴或内嵌到邮件正文中的，而不是作为正常附件添加；也可能是文件采用了此服务器无法转换的格式（例如，iPhone"
 " 照片保存为 HEIC/HEIF 格式）。"
@@ -5056,8 +5058,8 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1186
 msgid ""
-"Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
-"WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
+"Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3,"
+" WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
 "video."
 msgstr ""
 "支持的格式：图片支持 JPEG、PNG、WebP、GIF、TIFF 或 HEIC/HEIF；音频支持 MP3、WAV、M4A、OGG 或 "
@@ -5071,8 +5073,9 @@ msgstr "一旦正确附加，只需再次发送到同一地址——我们会自
 
 #: includes/Publishing/Notification.php:1242
 msgid ""
-"The photo is too dark to show your artwork clearly. Try photographing near a "
-"large window in daylight, or use a soft lamp aimed at the work from the side."
+"The photo is too dark to show your artwork clearly. Try photographing near a"
+" large window in daylight, or use a soft lamp aimed at the work from the "
+"side."
 msgstr "照片太暗，无法清楚显示你的作品。试着在白天靠近大窗户拍摄，或者用柔和的灯光从侧面照向作品。"
 
 #: includes/Publishing/Notification.php:1243
@@ -5083,8 +5086,9 @@ msgstr "照片曝光不足（太暗）。试着在白天靠近大窗户拍摄，
 
 #: includes/Publishing/Notification.php:1244
 msgid ""
-"The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
-"flash pointed straight at the artwork — diffuse or indirect light works best."
+"The photo is overexposed (too bright / washed out). Avoid direct sunlight or"
+" flash pointed straight at the artwork — diffuse or indirect light works "
+"best."
 msgstr "照片曝光过度（太亮/发白）。避免直射阳光或直接照向作品的闪光灯——漫射光或间接光效果最好。"
 
 #: includes/Publishing/Notification.php:1245
@@ -5096,7 +5100,8 @@ msgstr "照片太亮或发白。避免直射阳光或闪光灯——漫射光或
 #: includes/Publishing/Notification.php:1246
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
-"slightly or photograph at an angle to eliminate reflections from the surface."
+"slightly or photograph at an angle to eliminate reflections from the "
+"surface."
 msgstr "作品上有眩光或明亮反射。稍微倾斜画布，或改变拍摄角度，以消除表面反光。"
 
 #: includes/Publishing/Notification.php:1247
@@ -5144,8 +5149,8 @@ msgstr "图像分辨率太低。请使用手机的最高画质设置，并让作
 
 #: includes/Publishing/Notification.php:1256
 msgid ""
-"The image is pixelated. Shoot from closer or use a higher resolution setting "
-"on your camera."
+"The image is pixelated. Shoot from closer or use a higher resolution setting"
+" on your camera."
 msgstr "图像出现了像素化。请靠近一些拍摄，或在相机上使用更高分辨率设置。"
 
 #: includes/Publishing/Notification.php:1258
@@ -5194,8 +5199,8 @@ msgstr "作品的一部分被阴影遮住了。请重新调整光源位置，或
 #: includes/Publishing/Notification.php:1333
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
-"for us to show your artwork clearly. We didn't publish it — but please don't "
-"be discouraged! A simple retake is usually all it takes."
+"for us to show your artwork clearly. We didn't publish it — but please don't"
+" be discouraged! A simple retake is usually all it takes."
 msgstr "我们收到了你的投稿，但很遗憾，照片质量太低，无法清晰展示你的作品。我们没有发布它——不过请不要气馁！通常只需重新拍摄一次就可以了。"
 
 #. translators: %d: quality score out of 10
@@ -5238,14 +5243,14 @@ msgstr "填满画面——让作品占据画面的大部分；裁掉分散注意
 
 #: includes/Publishing/Notification.php:1366
 msgid ""
-"Hold still — tap the artwork on your screen to focus, then press the shutter "
-"gently or use a self-timer."
+"Hold still — tap the artwork on your screen to focus, then press the shutter"
+" gently or use a self-timer."
 msgstr "保持稳定——在屏幕上点按作品进行对焦，然后轻轻按下快门，或使用自拍定时器。"
 
 #: includes/Publishing/Notification.php:1371
 msgid ""
-"Once you have a clearer photo, just email it to the same address as before — "
-"we'll pick it up automatically."
+"Once you have a clearer photo, just email it to the same address as before —"
+" we'll pick it up automatically."
 msgstr "等你拍到更清晰的照片后，只要把它邮件发送到之前相同的地址——我们会自动收到。"
 
 #: includes/Publishing/Notification.php:1376
@@ -5399,7 +5404,8 @@ msgstr "全文不能为空。请重新填写，或者改用原始邮件中的“
 msgid "Portfolio link"
 msgstr "作品集链接"
 
-#. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
+#. translators: %d is the field number (1-3) — each field is otherwise
+#. identical, no platform is required.
 #: includes/Publishing/ReviewConfirm.php:770
 #, php-format
 msgid "Social link %d (optional)"
@@ -5517,7 +5523,8 @@ msgid "Invalid review token."
 msgstr "无效的审核令牌。"
 
 #: includes/Publishing/ReviewEndpoints.php:875
-msgid "This review link has expired. Please log in to manage your submissions."
+msgid ""
+"This review link has expired. Please log in to manage your submissions."
 msgstr "此审核链接已过期。请登录以管理您的提交。"
 
 #: includes/Publishing/SubmissionsPage.php:124
@@ -5764,8 +5771,8 @@ msgstr "加入 Agnosis"
 
 #: blocks/join/editor.js:40
 msgid ""
-"Public application form for new artists. Submits name, email, bio, portfolio "
-"URL and a personal statement to the community for review. Content is "
+"Public application form for new artists. Submits name, email, bio, portfolio"
+" URL and a personal statement to the community for review. Content is "
 "rendered live on the frontend."
 msgstr "面向新艺术家的公开申请表单。提交姓名、电子邮件、简介、作品集网址和个人陈述供社区审核。内容会在前端实时渲染。"
 
@@ -5801,8 +5808,8 @@ msgstr "触发图标"
 
 #: blocks/newsletter-popover/editor.js:82
 msgid ""
-"Pick something that won’t blend in with icons already sitting next to it (e."
-"g. Social Share)."
+"Pick something that won’t blend in with icons already sitting next to it "
+"(e.g. Social Share)."
 msgstr "选择一个不会与旁边已有图标混淆的图标（例如：社交分享）。"
 
 #: blocks/newsletter-signup/editor.js:28
@@ -5812,8 +5819,8 @@ msgstr "通讯订阅"
 #: blocks/newsletter-signup/editor.js:36
 msgid ""
 "Email signup form for the public newsletter. A confirmation email is sent "
-"before anyone is added to the send list (double opt-in). Content is rendered "
-"live on the frontend."
+"before anyone is added to the send list (double opt-in). Content is rendered"
+" live on the frontend."
 msgstr "面向公开通讯的电子邮件注册表单。在任何人被加入发送列表之前，都会先发送一封确认邮件（双重确认）。内容会在前端实时渲染。"
 
 #: blocks/artist-breadcrumb/block.json
@@ -5824,8 +5831,8 @@ msgstr "艺术家面包屑"
 #: blocks/artist-breadcrumb/block.json
 msgctxt "block description"
 msgid ""
-"Small line identifying the artist whose subdomain is currently being viewed. "
-"Renders nothing on the main Agnosis site."
+"Small line identifying the artist whose subdomain is currently being viewed."
+" Renders nothing on the main Agnosis site."
 msgstr "标识当前正在查看其子域名的艺术家的一小行文字。在 Agnosis 主站上不显示任何内容。"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
@@ -5908,9 +5915,9 @@ msgstr "艺术家联系表单"
 #: blocks/contact-form/block.json
 msgctxt "block description"
 msgid ""
-"Contact form letting a visitor message the current artist subdomain's artist."
-" Submits to a per-artist REST endpoint; the message is moderated, translated "
-"into the artist's own language, and emailed to them."
+"Contact form letting a visitor message the current artist subdomain's "
+"artist. Submits to a per-artist REST endpoint; the message is moderated, "
+"translated into the artist's own language, and emailed to them."
 msgstr ""
 "允许访客向当前艺术家子域名下的艺术家发送消息的联系表单。提交至每位艺术家对应的 REST "
 "端点；消息会经过审核、翻译成艺术家自己的语言，并通过电子邮件发送给他们。"

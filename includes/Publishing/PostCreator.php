@@ -906,12 +906,26 @@ class PostCreator {
 	 * be labelled directly — no Pipeline/Admission instantiation needed, and
 	 * it works identically for 'failed' rows that never reached create_post().
 	 *
+	 * 2026-07-14: also recognises the goodbye@/community@ aliases (previously
+	 * unrecognised here even though Inbox.php has always routed them
+	 * specially, silently falling through to the generic "Artwork" default
+	 * below), and — crucially — no longer returns "Artwork" as a guess when
+	 * the row carries no recipient/subject context to go on at all. Every
+	 * `Inbox::mark_no_artwork()` call site now stashes subject/to_addresses
+	 * whenever it has them (see that method's own docblock), so an empty
+	 * `$submission` here should only ever happen for a row from before that
+	 * fix landed — "Artwork" previously asserted a specific, often wrong,
+	 * classification for a message this code never actually looked at.
+	 *
 	 * @param array<string, mixed> $submission Raw email submission (as stored
 	 *                                          in agnosis_queue.raw_email).
 	 * @return string One of: Biography, Event, Pure, Photo, Replace, Remove,
-	 *                 Promote, Artwork (the same default resolve_post_type()
-	 *                 falls back to when neither a recipient address nor a
-	 *                 recognised subject indicator matches).
+	 *                 Promote, Goodbye, Community, Artwork (the same default
+	 *                 resolve_post_type() falls back to when neither a
+	 *                 recipient address nor a recognised subject indicator
+	 *                 matches — only returned here when the row actually
+	 *                 carries that context), or Unknown when the row has no
+	 *                 recipient address and no subject to classify at all.
 	 */
 	public static function resolve_endpoint_label( array $submission ): string {
 		$addresses = array_map(
@@ -919,19 +933,32 @@ class PostCreator {
 			(array) ( $submission['to_addresses'] ?? [ $submission['to_address'] ?? '' ] )
 		);
 		$addresses = array_values( array_filter( $addresses ) );
+		$subject   = (string) ( $submission['subject'] ?? '' );
+
+		// No recipient address AND no subject were ever captured for this row
+		// — there is nothing here to classify by, so say so plainly rather
+		// than asserting the "Artwork" default as if it were a real finding.
+		if ( empty( $addresses ) && '' === $subject ) {
+			return __( 'Unknown', 'agnosis' );
+		}
 
 		if ( ! empty( $addresses ) ) {
 			// Same option keys, same order, as resolve_post_type() above —
 			// pure@ before photo@ since both match the same post shape and
-			// pure@ is the more specific of the two.
+			// pure@ is the more specific of the two. Goodbye/Community are
+			// routed entirely outside resolve_post_type() (Inbox.php intercepts
+			// both before the normal pipeline ever runs), but belong here too —
+			// this label just describes which address a message was sent to.
 			$routes = [
-				'agnosis_email_bio'     => __( 'Biography', 'agnosis' ),
-				'agnosis_email_event'   => __( 'Event', 'agnosis' ),
-				'agnosis_email_pure'    => __( 'Pure', 'agnosis' ),
-				'agnosis_email_photo'   => __( 'Photo', 'agnosis' ),
-				'agnosis_email_replace' => __( 'Replace', 'agnosis' ),
-				'agnosis_email_remove'  => __( 'Remove', 'agnosis' ),
-				'agnosis_email_promote' => __( 'Promote', 'agnosis' ),
+				'agnosis_email_bio'       => __( 'Biography', 'agnosis' ),
+				'agnosis_email_event'     => __( 'Event', 'agnosis' ),
+				'agnosis_email_pure'      => __( 'Pure', 'agnosis' ),
+				'agnosis_email_photo'     => __( 'Photo', 'agnosis' ),
+				'agnosis_email_replace'   => __( 'Replace', 'agnosis' ),
+				'agnosis_email_remove'    => __( 'Remove', 'agnosis' ),
+				'agnosis_email_promote'   => __( 'Promote', 'agnosis' ),
+				'agnosis_email_goodbye'   => __( 'Goodbye', 'agnosis' ),
+				'agnosis_email_community' => __( 'Community', 'agnosis' ),
 			];
 			foreach ( $routes as $option => $label ) {
 				$addr = strtolower( trim( (string) get_option( $option, '' ) ) );
@@ -943,7 +970,6 @@ class PostCreator {
 
 		// Fallback: subject-line [Indicator] prefix — same INDICATORS table
 		// resolve_indicator() uses.
-		$subject = (string) ( $submission['subject'] ?? '' );
 		if ( preg_match( '/^\[([^\]]+)\]\s*/u', $subject, $m ) ) {
 			$keyword   = mb_strtolower( trim( $m[1] ), 'UTF-8' );
 			$indicator = self::INDICATORS[ $keyword ] ?? null;
@@ -963,6 +989,10 @@ class PostCreator {
 			}
 		}
 
+		// A recipient address and/or subject WAS captured, it just didn't
+		// match a special route or subject indicator above — this is the
+		// same default resolve_post_type() itself would land on given the
+		// same input, so "Artwork" here is a real classification, not a guess.
 		return __( 'Artwork', 'agnosis' );
 	}
 
@@ -1307,6 +1337,52 @@ class PostCreator {
 	}
 
 	/**
+	 * Find EVERY post — across every eligible type, not just the first hit —
+	 * matching an exact title for a given artist.
+	 *
+	 * Used by remove@ (handle_removal_request()): an artist's artwork and
+	 * event titles aren't required to be unique from each other (nothing
+	 * enforces that — they're two separate post types, each free to reuse
+	 * whatever title the artist likes), so a subject that happens to match
+	 * both an artwork and an event by the same name is a real, if uncommon,
+	 * case — not a bug to collapse silently onto whichever one
+	 * find_post_by_subject() happens to return first. Every other caller of
+	 * the singular find_post_by_subject() (replace@, event@ resend-in-place)
+	 * intentionally wants exactly one best match and is unaffected by this
+	 * method's existence.
+	 *
+	 * Same primary-language-only scoping as find_post_by_subject() — a
+	 * translated sibling is never an independent match target; removing the
+	 * primary post cascades to its siblings via
+	 * RemovalEndpoints::trash_post_and_translations().
+	 *
+	 * @param string          $subject   Post title to match.
+	 * @param int             $artist_id WordPress user ID.
+	 * @param string|string[] $post_type CPT slug, or an array of slugs to search across.
+	 * @return int[] Matching post IDs (empty array if none).
+	 */
+	private function find_posts_by_subject( string $subject, int $artist_id, string|array $post_type = 'agnosis_artwork' ): array {
+		if ( ! $subject || ! $artist_id ) {
+			return [];
+		}
+		// 'fields' => 'ids' guarantees an int[] at runtime; phpstan can't see
+		// through the array_merge() to confirm it statically, hence the assert.
+		/** @var array<int, int> $matches */
+		$matches = get_posts( array_merge( [
+			'post_type'      => $post_type,
+			'author'         => $artist_id,
+			'title'          => $subject,
+			'post_status'    => [ 'draft', 'pending', 'publish' ],
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'orderby'        => 'type title', // stable, deterministic ordering for the confirmation email
+			'order'          => 'ASC',
+		], $this->primary_language_meta_query() ) );
+		return array_map( 'intval', $matches );
+	}
+
+	/**
 	 * Handle a takedown request sent to remove@.
 	 *
 	 * Finds the artwork or event by exact subject/title match (2026-07-06:
@@ -1330,10 +1406,25 @@ class PostCreator {
 	 * pre-generated for the suggested post — a wrong guess simply dies
 	 * unclicked, exactly like any other removal request.
 	 *
+	 * 2026-07-14: an exact title can match MORE than one post — an artwork
+	 * and an event are two independent post types, nothing stops an artist
+	 * naming both the same thing. find_post_by_subject() (singular, still
+	 * used by replace@/event@ resend-in-place, which each want exactly one
+	 * best match) would have silently picked whichever one happened to sort
+	 * first, removing a post the artist never named. This method now uses
+	 * find_posts_by_subject() (plural) and branches on how many titles
+	 * actually matched: one match keeps the exact single-post behaviour
+	 * above (same 'agnosis_removal_requested' action, same email); two or
+	 * more instead pre-generates a token for EACH match and fires a new
+	 * 'agnosis_removal_requested_multiple' action, so Notification can send
+	 * one email listing every match with its own individual confirm
+	 * link — the artist picks which one(s) they actually meant, rather than
+	 * either of them being removed (or guessed at) automatically.
+	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 * @param int                  $artist_id  WordPress user ID of the requesting artist.
 	 * @param int                  $queue_id   Current queue row (for logging).
-	 * @return bool True if a matching post was found and a removal confirmation queued.
+	 * @return bool True if at least one matching post was found and a removal confirmation queued.
 	 */
 	private function handle_removal_request( array $submission, int $artist_id, int $queue_id ): bool {
 		$subject = trim( $submission['subject'] ?? '' );
@@ -1343,9 +1434,9 @@ class PostCreator {
 			return false;
 		}
 
-		$post_id = $this->find_post_by_subject( $subject, $artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
+		$post_ids = $this->find_posts_by_subject( $subject, $artist_id, [ 'agnosis_artwork', 'agnosis_event' ] );
 
-		if ( ! $post_id ) {
+		if ( empty( $post_ids ) ) {
 			Logger::warning(
 				sprintf( 'Queue #%d: remove@ — no artwork or event titled "%s" found for this artist.', $queue_id, $subject ),
 				'publisher'
@@ -1390,28 +1481,79 @@ class PostCreator {
 			return false;
 		}
 
-		// Generate a cryptographically random removal token.
-		// The post is NOT moved or modified yet; the artist must confirm via email link.
-		$token  = $this->generate_token();
+		$reason = sanitize_textarea_field( $submission['description'] ?? '' );
 		$expiry = time() + ( 7 * DAY_IN_SECONDS );
 
-		update_post_meta( $post_id, '_agnosis_removal_token',  $token );
-		update_post_meta( $post_id, '_agnosis_removal_expiry', $expiry );
-		update_post_meta( $post_id, '_agnosis_removal_reason', sanitize_textarea_field( $submission['description'] ?? '' ) );
+		if ( 1 === count( $post_ids ) ) {
+			$post_id = $post_ids[0];
+
+			// Generate a cryptographically random removal token.
+			// The post is NOT moved or modified yet; the artist must confirm via email link.
+			$token = $this->generate_token();
+
+			update_post_meta( $post_id, '_agnosis_removal_token',  $token );
+			update_post_meta( $post_id, '_agnosis_removal_expiry', $expiry );
+			update_post_meta( $post_id, '_agnosis_removal_reason', $reason );
+
+			Logger::info(
+				sprintf( 'Queue #%d: remove@ — removal confirmation email queued for post #%d.', $queue_id, $post_id ),
+				'publisher'
+			);
+
+			/**
+			 * Fires when an artist requests takedown of one of their artworks or events.
+			 * A signed token has been stored — Notification sends the confirmation email.
+			 *
+			 * @param int $post_id   The artwork or event post ID (unchanged until confirmed).
+			 * @param int $artist_id The requesting artist's user ID.
+			 */
+			do_action( 'agnosis_removal_requested', $post_id, $artist_id );
+
+			return true;
+		}
+
+		// Two or more posts share this exact title — generate a token for
+		// EACH one rather than guessing which the artist meant. Every token
+		// is independently valid and single-use (RemovalEndpoints::confirm()
+		// already operates per-post-id, unaware of how it got here), so
+		// confirming one has no effect on the others.
+		$matches = [];
+		foreach ( $post_ids as $post_id ) {
+			$token = $this->generate_token();
+
+			update_post_meta( $post_id, '_agnosis_removal_token',  $token );
+			update_post_meta( $post_id, '_agnosis_removal_expiry', $expiry );
+			update_post_meta( $post_id, '_agnosis_removal_reason', $reason );
+
+			$matches[] = [
+				'id'    => $post_id,
+				'type'  => (string) get_post_type( $post_id ),
+				'token' => $token,
+			];
+		}
 
 		Logger::info(
-			sprintf( 'Queue #%d: remove@ — removal confirmation email queued for post #%d.', $queue_id, $post_id ),
+			sprintf(
+				'Queue #%d: remove@ — %d posts titled "%s" for this artist; removal choice email queued.',
+				$queue_id,
+				count( $matches ),
+				$subject
+			),
 			'publisher'
 		);
 
 		/**
-		 * Fires when an artist requests takedown of one of their artworks or events.
-		 * A signed token has been stored — Notification sends the confirmation email.
+		 * Fires when a remove@ request's subject exactly matches more than one
+		 * of the artist's own posts (e.g. an artwork and an event sharing a
+		 * title). A signed token has been stored on each — Notification sends
+		 * one email listing every match with its own individual confirm link.
 		 *
-		 * @param int $post_id   The artwork or event post ID (unchanged until confirmed).
-		 * @param int $artist_id The requesting artist's user ID.
+		 * @param array<int, array{id: int, type: string, token: string}> $matches
+		 *                          Every matched post, each with its own removal token.
+		 * @param int               $artist_id Requesting artist's user ID.
+		 * @param string            $subject   The shared title all matches were found under.
 		 */
-		do_action( 'agnosis_removal_requested', $post_id, $artist_id );
+		do_action( 'agnosis_removal_requested_multiple', $matches, $artist_id, $subject );
 
 		return true;
 	}

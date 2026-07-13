@@ -10,14 +10,17 @@
  *   - Phase 2: replace the featured image (biography/event) or a specific
  *     gallery image (artwork) with a direct upload — no AI enhancement, no
  *     quality gate; the artist's own photo is used exactly as uploaded.
- *   - Phase 3: artwork/biography TITLE editing (dual-title regeneration —
- *     see propagate_title()'s docblock) and a one-click "restore original
- *     photo" that reverses a Phase 2 replacement (see restore_photo()'s
- *     docblock) — both now implemented, not just evaluated.
+ *   - Phase 3: artwork/biography/event TITLE editing (dual-title
+ *     regeneration for artwork/event — see propagate_title()'s docblock;
+ *     biography's own title has no dual-title system, see
+ *     Compat\LinguaForge::hold_artist_title()) and a one-click "restore
+ *     original photo" that reverses a Phase 2 replacement (see
+ *     restore_photo()'s docblock) — both now implemented, not just evaluated.
  *
  * REST:  POST /agnosis/v1/content/{id}/text          { field, value } — field
- *          can be 'title' on artwork/biography, routed through the dual-title
- *          path (see EDITABLE_FIELDS, DUAL_TITLE_POST_TYPES).
+ *          can be 'title' on artwork/biography/event; on artwork/event it's
+ *          routed through the dual-title path (see EDITABLE_FIELDS,
+ *          DUAL_TITLE_POST_TYPES).
  *        POST /agnosis/v1/content/{id}/photo          multipart { file, attachment_id? }
  *        POST /agnosis/v1/content/{id}/photo/restore  { } — Phase 3, see restore_photo()
  *
@@ -97,6 +100,12 @@ class ContentEditor {
 		],
 		'agnosis_event'     => [
 			'content'         => 'post_content',
+			// 2026-07-14: added alongside events moving onto the same dual-title
+			// system artwork has always used (Compat\LinguaForge::hold_artist_title(),
+			// DUAL_TITLE_POST_TYPES below) — an event's own name is the artist's
+			// own words and is routed through propagate_title(), not the normal
+			// translate-then-fan-out path every other field here uses.
+			'title'           => 'post_title',
 			'event_location'  => '_agnosis_event_location',
 			'event_date'      => '_agnosis_event_date',
 			// 2026-07-10: added alongside the approve-form structured-data fields
@@ -114,11 +123,12 @@ class ContentEditor {
 	/**
 	 * Post types whose 'title' field goes through the dual-title propagation
 	 * (propagate_title()) instead of the normal translate-then-fan-out content
-	 * propagation. Artwork only — biography's post_title has no dual-title
-	 * system (LF translates it normally, same as any other content field); see
-	 * Compat\LinguaForge::hold_artist_title()'s docblock.
+	 * propagation. Artwork and event (0.9.24) — biography's post_title still
+	 * has no dual-title system (LF translates it normally, same as any other
+	 * content field); see Compat\LinguaForge::hold_artist_title()'s docblock
+	 * for why events moved onto this same path artwork has always used.
 	 */
-	private const DUAL_TITLE_POST_TYPES = [ 'agnosis_artwork' ];
+	private const DUAL_TITLE_POST_TYPES = [ 'agnosis_artwork', 'agnosis_event' ];
 
 	/** Saves allowed per artist per hour — generous for a human, a wall for a script (§7c). */
 	private const RATE_LIMIT = 30;
@@ -297,7 +307,7 @@ class ContentEditor {
 		);
 
 		if ( LinguaForge::is_active() ) {
-			// Dual-title (artwork only, Phase 3): post_title is the artist's own
+			// Dual-title (artwork + event, Phase 3): post_title is the artist's own
 			// words and must stay byte-identical on every language version — never
 			// translated — unlike every other field, which is translated into the
 			// primary language then fanned out. See propagate_title()'s docblock.
@@ -873,7 +883,7 @@ class ContentEditor {
 	}
 
 	/**
-	 * Propagate an artwork title edit — Phase 3's dual-title handling.
+	 * Propagate an artwork or event title edit — Phase 3's dual-title handling.
 	 *
 	 * `post_title` is deliberately NOT translated anywhere in this plugin's
 	 * dual-title design (Compat\LinguaForge::hold_artist_title()): it is the
@@ -885,8 +895,9 @@ class ContentEditor {
 	 *      AI call, synchronous, exactly like swap_photo_everywhere().
 	 *   2. Separately, regenerate the AI-translated *display* title (a distinct
 	 *      value — `_agnosis_translated_title`/`_agnosis_title_i18n`, the
-	 *      subtitle the agnosis/artwork-title block renders below the artist's
-	 *      own title). Translate the new title into the primary language and
+	 *      subtitle the agnosis/artwork-title or agnosis/event-title block
+	 *      renders below the artist's own title). Translate the new title into
+	 *      the primary language and
 	 *      store it as the primary post's own `_agnosis_translated_title`, then
 	 *      reuse the *existing* deferred dispatch — `dispatch_translations()`
 	 *      already runs `build_title_translations()` before
@@ -1135,12 +1146,14 @@ class ContentEditor {
 	/**
 	 * Wrap a biography's title in an editable-region container.
 	 *
-	 * Artwork's title uses a custom render callback (Profile::render_artwork_title())
+	 * Artwork's and event's titles (DUAL_TITLE_POST_TYPES) each use their own
+	 * custom render callback (Profile::render_artwork_title(), render_event_title())
 	 * that reads post_title directly rather than calling get_the_title()/the_title(),
-	 * so it's decorated there instead — see that method. Biography (the only other
-	 * post type with 'title' in EDITABLE_FIELDS) renders its title through the
-	 * theme's normal core post-title block, which does go through this filter.
-	 * Event has no 'title' field in EDITABLE_FIELDS, so it's never reached here.
+	 * so both are decorated there instead — see those methods, and this
+	 * method's own DUAL_TITLE_POST_TYPES guard below. Biography (the only
+	 * other post type with 'title' in EDITABLE_FIELDS) renders its title
+	 * through the theme's normal core post-title block, which does go
+	 * through this filter.
 	 *
 	 * Scoped tightly to the current singular main-query post: the_title filter
 	 * fires for every title on a page (menus, related-post lists, admin screens),

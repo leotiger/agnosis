@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.23
+Stable tag: 0.9.25
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,20 +71,19 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
-= 0.9.23 =
-* Fixed: A biography title could still show up as the literal word "Array" even after the 0.9.22 fix for it — that fix only stopped the bug from happening again, it didn't undo damage from before it landed. Any biography page still titled "Array" is now automatically corrected on upgrade.
+= 0.9.25 =
+* Added: A remove@/promote@ management email whose subject matches more than one post (e.g. an artwork and an event with the same title) now gets a confirmation email listing every match, each with its own individual removal link — instead of only acting on one of them.
+* Added: The IMAP inbox now deletes mail that was never actually addressed to one of this site's own configured endpoints (e.g. BCC'd mail) instead of letting it reach the queue — Agnosis does not accept BCC submissions.
+* Added: Cc: is no longer accepted for routing at all, and only the first/primary To: address counts — a message reaching an endpoint only via Cc: or a secondary To: address no longer matches.
+* Added: A message that looks like a reply or forwarded/quoted email (e.g. subject starting with "Re:", or a quoted "wrote:" attribution in the body) is now detected and rejected on both transports, with the sender told to resend as a fresh, original message.
+* Fixed: The "Inbox retention (days)" cleanup only deleted mail already marked read on the mail server — a lot of mail this plugin fully handles (spam/unregistered senders, throttled resends, goodbye@ requests) never gets marked read at all, so it was piling up in the mailbox regardless of the configured retention. Cleanup now deletes by age alone, read or unread.
+* Fixed: A remove@ or promote@ request with no attachment and no body text — just a subject line — was being rejected as unusable, even though neither command has ever needed an attachment or body to work.
+* Fixed: Any skipped inbox message, on either the IMAP or webhook transport, showed a misleading "Artwork" label in the Inbox admin table's Endpoint column instead of what it actually was — a remove@/promote@ request, a goodbye@/community@ alias, or, when nothing could be identified at all, an honest "Unknown" rather than a guess.
 
-= 0.9.22 =
-* Added: Two new default medium categories, Poetry and Essay, so the built-in list now covers written submissions, not just visual ones.
-* Added: Agnosis now checks for updates itself and shows the standard WordPress "Update available" badge with one-click updating, the same way the companion Lingua Forge plugin already does — no more manually re-uploading a ZIP for each new release. Package downloads are host-pinned and SHA-256 verified for safety.
-* Added: The "your submission is ready to review" email now sets Reply-To to the exact address an artist would use to submit more of the same kind of content (artwork/biography/event/photo/pure), so hitting reply is enough to send another submission.
-* Changed: The "From:" sender identity for workflow emails (admission, vote, welcome, departure, invitation, submission-review) moved from Settings → Community to a new "Mail from:" field on Settings → Email, so it can no longer be confused with the separate, inbound "Community announcement address." Any value you already had configured carries over automatically — nothing to reconfigure.
-* Changed: Lingua Forge is now a required plugin, not an optional one — WordPress won't let you activate Agnosis until Lingua Forge is installed and active (and won't let you deactivate Lingua Forge while Agnosis is active). Reflects how much of the plugin already depends on it.
-* Fixed: A handful of British-spelled strings ("favour," "Behaviour," "colour," etc.) in admin labels, AI prompts, and notification emails are now consistently American English ("favor," "Behavior," "color"), matching the rest of the plugin's copy.
-* Fixed: A biography's portfolio link, social links, and (for events) location/date still weren't reaching the artist's own native-language version of the page when submitted directly in their own language — even though the same fields already reached every Lingua Forge machine-translated version correctly. The native version now picks up the value actually submitted, not the one from before it.
-* Fixed: The portfolio link still wouldn't show up on any translated or native-language version of a biography page, even once its URL correctly reached that page — a second, separate "this link was approved" flag never reached it at all, so the link stayed silently hidden regardless.
-* Fixed: Settings → General → "Preset biography title" showed the exact same untranslated text on every language version of a biography page. Each language version now shows a translated version of the preset title, the same as an artist's own (non-preset) title always has.
-* Fixed: A translated biography title could occasionally show up as the literal word "Array" instead of an actual translation — a bug in the underlying translation helper that mishandled a rare AI response shape, only ever exposed by the very short preset-title text above.
+= 0.9.24 =
+* Changed: An event's own title (e.g. an exhibition name) is now kept exactly as the artist wrote it on every language version of the page, with an AI-translated subtitle shown underneath — the same "original + translated subtitle" treatment artwork titles have always had. Previously an event's title was machine-translated outright per language, which could read as an inconsistent or awkward literal translation of what's often effectively a proper noun. Artists can also now correct an event's title after publishing, the same way they already could for artwork.
+* Fixed: An artist's Events page could show every language's events mixed together on a single archive view instead of just the current language's — a second, unrelated query filter (sorting events by date) was overwriting Lingua Forge's own language scoping instead of combining with it.
+* Fixed: A featured image on an artwork, biography, or event page appeared uncropped (showing the whole photo at its natural shape) instead of the intended fixed crop, but only for the artist who could edit that page — everyone else always saw it correctly. The front-end correction overlay's wrapper around the photo was breaking the sizing the crop depends on.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

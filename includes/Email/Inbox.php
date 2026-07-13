@@ -83,9 +83,11 @@ class Inbox {
 	 * install; audit §5e flagged this docblock and two other call sites for
 	 * previously reading 30 here instead, a documentation/behavior drift
 	 * that only ever bit a fresh install whose option row was somehow
-	 * missing). Any SEEN IMAP message older than that threshold is
-	 * permanently deleted. Queue rows that are
-	 * 'failed' or 'done' and older than the same threshold are also pruned.
+	 * missing). Any IMAP message older than that threshold is permanently
+	 * deleted, regardless of its \Seen flag (2026-07-15 — see
+	 * `cleanup_imap()`'s own docblock for why \Seen was the wrong signal).
+	 * Queue rows that are 'failed' or 'done' and older than the same
+	 * threshold are also pruned.
 	 *
 	 * Debug dumps (fourth audit §5c) use their own, shorter-lived
 	 * `agnosis_debug_retention_days` (default 14) rather than reusing the
@@ -546,6 +548,34 @@ class Inbox {
 					continue;
 				}
 
+				// --- Recognised-recipient gate (2026-07-14, tightened 2026-07-15)
+				// — we don't accept BCC, and we don't accept Cc: either: a message
+				// only counts as addressed to us when one of our own configured
+				// addresses (IntakeGates::known_addresses()) is its first, primary
+				// To: recipient (see message_recipient_addresses()'s own docblock).
+				// Anything else — BCC, Cc:-only, or our address present but not
+				// first in To: — never arrived via a genuine direct send to a
+				// known endpoint. Deleted outright and never queued: it never
+				// touches the rest of the pipeline, no queue row, no "Unknown"
+				// endpoint label to explain. IMAP-only — the webhook transport has
+				// no equivalent ambiguity, since the provider's own routing rule
+				// already matched a configured address before our endpoint is
+				// ever invoked at all.
+				if ( ! IntakeGates::is_recognized_recipient( $this->message_recipient_addresses( $message ) ) ) {
+					Logger::warning( 'Skipped UID ' . $uid . ': recipient did not match any configured address — likely BCC, deleting.', 'inbox' );
+					try {
+						// No PHPStan suppression needed here, unlike the object-typed
+						// helpers below — $message in this loop is still the concrete
+						// Webklex\PHPIMAP\Message from $messages (a MessageCollection),
+						// which genuinely declares delete(). The try/catch itself stays,
+						// purely for the lightweight test doubles used in this file's own
+						// test suite that don't implement it.
+						$message->delete( true );
+					} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement delete(); nothing more to do in that case.
+					}
+					continue;
+				}
+
 				// --- Auth gate (opt-in, fourth audit §3b) — evaluated BEFORE any
 				// alias routing. Previously this ran as "cheap gate 3", ~40 lines
 				// below, reached only by messages that fell through to the normal
@@ -555,19 +585,27 @@ class Inbox {
 				// to every other artist under the spoofed sender's own name) and a
 				// forged goodbye@ removal request. Moving the check here closes both.
 				if ( ! $this->passes_email_auth( $message, $from_email, $uid ) ) {
-					$this->mark_no_artwork( $uid, $artist_id, 'auth_failed', $from_email );
+					$this->mark_no_artwork(
+						$uid,
+						$artist_id,
+						'auth_failed',
+						$from_email,
+						$this->message_subject( $message ),
+						$this->message_recipient_addresses( $message )
+					);
 					continue;
 				}
 
 				// --- Goodbye alias: self-removal request (no attachment required) ---
-				// fifth audit §5a: matched against every To:/Cc: recipient, not
-				// just To[0] — an artist writing to goodbye@ while CCing someone
-				// else, or whose mail client serialised To: in an unexpected
-				// order, used to fall through to the normal pipeline instead.
+				// Matched against the message's single primary (first To:)
+				// recipient only (2026-07-15) — see message_recipient_addresses()'s
+				// own docblock for why Cc:/secondary-To: no longer count at all,
+				// reversing the "fifth audit §5a" broadening this comment used to
+				// describe.
 				if ( $goodbye_addr ) {
 					$recipients = $this->message_recipient_addresses( $message );
 					if ( in_array( $goodbye_addr, $recipients, true ) ) {
-						$this->handle_goodbye_email( $from_email, $uid );
+						$this->handle_goodbye_email( $message, $from_email, $uid );
 						continue;
 					}
 				}
@@ -585,13 +623,27 @@ class Inbox {
 				// $artist_user / $artist_id already resolved above.
 				if ( null === $artist_id ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': unregistered sender <' . $from_email . '>.', 'inbox' );
-					$this->mark_no_artwork( $uid, null, 'unregistered_sender', $from_email );
+					$this->mark_no_artwork(
+						$uid,
+						null,
+						'unregistered_sender',
+						$from_email,
+						$this->message_subject( $message ),
+						$this->message_recipient_addresses( $message )
+					);
 					continue;
 				}
 
 				if ( ! $this->is_admitted_artist( $artist_id ) ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> (user #' . $artist_id . ') is not admitted.', 'inbox' );
-					$this->mark_no_artwork( $uid, $artist_id, 'not_admitted', $from_email );
+					$this->mark_no_artwork(
+						$uid,
+						$artist_id,
+						'not_admitted',
+						$from_email,
+						$this->message_subject( $message ),
+						$this->message_recipient_addresses( $message )
+					);
 					continue;
 				}
 
@@ -600,7 +652,14 @@ class Inbox {
 				$throttle      = RateLimiter::check_sender( 'email_intake', $from_email, $sender_limit, HOUR_IN_SECONDS );
 				if ( is_wp_error( $throttle ) ) {
 					Logger::warning( 'Skipped UID ' . $uid . ': sender <' . $from_email . '> throttled (' . $sender_limit . '/hour limit).', 'inbox' );
-					$this->mark_no_artwork( $uid, $artist_id, 'throttled', $from_email );
+					$this->mark_no_artwork(
+						$uid,
+						$artist_id,
+						'throttled',
+						$from_email,
+						$this->message_subject( $message ),
+						$this->message_recipient_addresses( $message )
+					);
 					continue;
 				}
 
@@ -614,6 +673,34 @@ class Inbox {
 				$submission = $this->parser->parse_imap_message( $message );
 
 				if ( null === $submission ) {
+					// Reply/quote rejection (2026-07-15) — distinguished from the
+					// generic "no attachments" case below via Parser's own
+					// last_rejection_reason() signal, set right before it returned
+					// null. See IntakeGates::is_reply_or_quote()'s docblock for what
+					// this actually matches.
+					if ( 'looks_like_reply' === $this->parser->last_rejection_reason() ) {
+						Logger::info( 'Skipped UID ' . $uid . ': message looks like a reply or quoted email, not an original submission.', 'inbox' );
+						$this->mark_no_artwork(
+							$uid,
+							$artist_id,
+							'looks_like_reply',
+							$from_email,
+							$this->message_subject( $message ),
+							$this->message_recipient_addresses( $message )
+						);
+
+						/**
+						 * Fires when a message looks like a reply/forward carrying
+						 * quoted content rather than an original submission — see
+						 * IntakeGates::is_reply_or_quote().
+						 *
+						 * @param int    $artist_id WordPress user ID of the sender.
+						 * @param string $uid       IMAP message UID (for logging/reference only).
+						 */
+						do_action( 'agnosis_submission_looks_like_reply', $artist_id, $uid );
+						continue;
+					}
+
 					// No valid image attachments — mark it so we don't re-check it. The
 					// sender IS a known, admitted artist here (both gates above already
 					// passed) — persist $artist_id so the Inbox admin table shows who
@@ -637,13 +724,20 @@ class Inbox {
 								"UID: %s\nFrom: %s\nSubject: %s\nArtist user ID: %d\n\nSee the parser-attachments-* dump written immediately before this one (same poll cycle) for the full MIME/attachment trace.",
 								$uid,
 								$from_email,
-								(string) $message->getSubject(),
+								$this->message_subject( $message ),
 								$artist_id
 							)
 						);
 					}
 
-					$this->mark_no_artwork( $uid, $artist_id, 'no_attachments', $from_email );
+					$this->mark_no_artwork(
+						$uid,
+						$artist_id,
+						'no_attachments',
+						$from_email,
+						$this->message_subject( $message ),
+						$this->message_recipient_addresses( $message )
+					);
 
 					/**
 					 * Fires when an admitted artist's email was received but contained no
@@ -714,41 +808,78 @@ class Inbox {
 	}
 
 	/**
-	 * Collect every To:/Cc: address on a message, lowercased (fifth audit
-	 * §5a). Previously alias detection only ever read To[0], so intent lost
-	 * to header order for any message where the alias wasn't the first To:
-	 * recipient (e.g. CCing a friend on a goodbye@/community@ message).
-	 * getCc() is wrapped in a try/catch since not every Message double used
-	 * in tests implements it (FakeAliasImapMessage deliberately doesn't —
-	 * see its own docblock); To: addresses alone are still collected either way.
+	 * The message's single PRIMARY recipient — the first To: address, and
+	 * nothing else (2026-07-15). Cc: is never read at all, and any To:
+	 * address after the first is ignored, whether or not it's one of our own.
+	 *
+	 * This intentionally REVERSES the "fifth audit §5a" broadening (which
+	 * matched every To:/Cc: address so a message wouldn't fall through to the
+	 * plain artwork pipeline just because an alias wasn't listed first) — per
+	 * explicit product policy, a submission is only accepted when one of our
+	 * own addresses is addressed to directly and first: no CC, no secondary
+	 * recipients. A message that reaches an alias only via Cc:, or where our
+	 * address is second or later in To:, is no longer recognised — see the
+	 * recognised-recipient/BCC gate in process_messages(), which now rejects
+	 * exactly that case the same way it rejects true BCC.
+	 *
+	 * Still returns an array (not a bare string) purely so every existing
+	 * caller (goodbye/community `in_array()` checks, IntakeGates::
+	 * is_recognized_recipient()) keeps working unchanged — the array just
+	 * never holds more than one address now.
 	 *
 	 * @param object $message webklex Message (or a test double exposing getTo()).
-	 * @return string[] Lowercased, sanitized email addresses (To + Cc combined).
+	 * @return string[] Zero or one lowercased, sanitized email address.
 	 */
 	private function message_recipient_addresses( object $message ): array {
 		$addrs = [];
-		// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see docblock above) so test doubles that only duck-type getTo() still pass; real webklex Message always has it.
-		foreach ( $message->getTo()->toArray() as $a ) {
-			$addrs[] = strtolower( sanitize_email( (string) ( $a->mail ?? '' ) ) );
-		}
 		try {
-			// @phpstan-ignore-next-line -- same reasoning as getTo() above; getCc() is additionally guarded by the try/catch below for doubles that omit it entirely.
-			foreach ( $message->getCc()->toArray() as $a ) {
-				$addrs[] = strtolower( sanitize_email( (string) ( $a->mail ?? '' ) ) );
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see class docblocks throughout this file); some lightweight test doubles don't implement getTo().
+			$to = $message->getTo()->toArray();
+			if ( ! empty( $to ) ) {
+				$addrs[] = strtolower( sanitize_email( (string) ( $to[0]->mail ?? '' ) ) );
 			}
-		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getCc(); To: alone is fine.
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getTo(); no primary recipient to report.
 		}
 		return array_values( array_unique( array_filter( $addrs ) ) );
+	}
+
+	/**
+	 * Message subject, defensively (2026-07-14). Several lightweight test
+	 * doubles used for the header-only gates in this file (FakeImapMessage,
+	 * FakeAliasImapMessage, FakeDsnImapMessage) duck-type only the specific
+	 * methods the gate they drive actually touches, and none of them
+	 * implement getSubject() — every mark_no_artwork() call site in this
+	 * class now wants the subject for the Inbox admin table's Endpoint
+	 * column, so this is called far more broadly than any single gate did
+	 * before, including on messages a real IMAP body fetch was never
+	 * required for.
+	 *
+	 * @param object $message webklex Message (or a test double).
+	 * @return string Empty string when the double doesn't implement getSubject().
+	 */
+	private function message_subject( object $message ): string {
+		try {
+			// @phpstan-ignore-next-line -- $message is deliberately typed `object` (see message_recipient_addresses()'s docblock for the same reasoning); real webklex Message always has getSubject().
+			return (string) $message->getSubject();
+		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getSubject().
+			return '';
+		}
 	}
 
 	/**
 	 * Handle a goodbye email: trigger the self-removal confirmation flow for
 	 * the sending artist, then mark the message so it won't be re-processed.
 	 *
+	 * @param object $message    Full IMAP message — read only for subject/recipients
+	 *                           to persist alongside the skip reason (2026-07-14);
+	 *                           the goodbye flow itself needs neither.
 	 * @param string $from_email Sender email address.
 	 * @param string $uid        IMAP message UID (used for deduplication).
 	 */
-	private function handle_goodbye_email( string $from_email, string $uid ): void {
+	private function handle_goodbye_email( object $message, string $from_email, string $uid ): void {
+		$subject      = $this->message_subject( $message );
+		$to_addresses = $this->message_recipient_addresses( $message );
+
 		$user = get_user_by( 'email', $from_email );
 
 		if ( ! $user || ! $this->is_admitted_artist( $user->ID ) ) {
@@ -756,7 +887,7 @@ class Inbox {
 				'Goodbye email from non-artist <' . $from_email . '> — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'goodbye_non_artist', $from_email );
+			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'goodbye_non_artist', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -773,7 +904,7 @@ class Inbox {
 				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): daily limit (' . $limit . ') reached — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_throttled', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_throttled', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -793,13 +924,13 @@ class Inbox {
 				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): confirmation sent.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_handled', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_handled', $from_email, $subject, $to_addresses );
 		} else {
 			Logger::warning(
 				'Goodbye email from <' . $from_email . '> (user #' . $user->ID . '): no active membership — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_no_membership', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'goodbye_no_membership', $from_email, $subject, $to_addresses );
 		}
 	}
 
@@ -900,6 +1031,13 @@ class Inbox {
 	 * @param string  $uid        IMAP message UID (used for deduplication).
 	 */
 	private function handle_community_email( Message $message, string $from_email, string $uid ): void {
+		// Stashed once here (2026-07-14) so every mark_no_artwork() call below
+		// persists the actual subject/recipients — the raw email's own, not
+		// the broadcast body parsed further down — for the Inbox admin
+		// table's Endpoint column to read back accurately.
+		$subject      = $this->message_subject( $message );
+		$to_addresses = $this->message_recipient_addresses( $message );
+
 		// Mail-loop guard (fourth audit §3c): broadcast copies deliberately set
 		// Reply-To to this same alias (see CommunityBroadcast::send_one()'s
 		// docblock) so a human reply gets translated for everyone — but that
@@ -911,7 +1049,7 @@ class Inbox {
 		// auto-response never even counts against anyone's throttle.
 		if ( $this->is_auto_submitted( $message ) ) {
 			Logger::info( 'Community broadcast from <' . $from_email . '> looks like an auto-response (Auto-Submitted header) — ignored, not broadcast.', 'inbox' );
-			$this->mark_no_artwork( $uid, null, 'community_auto_submitted', $from_email );
+			$this->mark_no_artwork( $uid, null, 'community_auto_submitted', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -922,7 +1060,7 @@ class Inbox {
 				'Community broadcast from non-artist <' . $from_email . '> — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'community_non_artist', $from_email );
+			$this->mark_no_artwork( $uid, $user ? (int) $user->ID : null, 'community_non_artist', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -933,7 +1071,7 @@ class Inbox {
 				'Community broadcast from <' . $from_email . '> (user #' . $user->ID . '): daily limit (' . $limit . ') reached — ignored.',
 				'inbox'
 			);
-			$this->mark_no_artwork( $uid, $user->ID, 'community_throttled', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'community_throttled', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -942,7 +1080,7 @@ class Inbox {
 		if ( '' === trim( $parsed['subject'] ) && '' === trim( $parsed['body'] ) ) {
 			Logger::warning( 'Community broadcast from <' . $from_email . '> was empty — bounced.', 'inbox' );
 			( new CommunityBroadcast() )->send_empty_bounce( $user->ID );
-			$this->mark_no_artwork( $uid, $user->ID, 'community_empty', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'community_empty', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -957,7 +1095,7 @@ class Inbox {
 				'inbox'
 			);
 			$broadcast->send_too_long_bounce( $user->ID, $length );
-			$this->mark_no_artwork( $uid, $user->ID, 'community_too_long', $from_email );
+			$this->mark_no_artwork( $uid, $user->ID, 'community_too_long', $from_email, $subject, $to_addresses );
 			return;
 		}
 
@@ -967,7 +1105,7 @@ class Inbox {
 			'Community broadcast from <' . $from_email . '> (user #' . $user->ID . '): sent to ' . $sent . ' recipient(s).',
 			'inbox'
 		);
-		$this->mark_no_artwork( $uid, $user->ID, 'community_handled', $from_email );
+		$this->mark_no_artwork( $uid, $user->ID, 'community_handled', $from_email, $subject, $to_addresses );
 	}
 
 	/**
@@ -1040,6 +1178,14 @@ class Inbox {
 	 * @param string $uid        IMAP message UID (used for deduplication/logging).
 	 */
 	private function handle_bounce_dsn( object $message, string $from_email, string $uid ): void {
+		// Own subject/recipient (2026-07-14) — distinct from $recipients
+		// below, which holds the DSN's extracted *failed* addresses, not this
+		// message's own primary (first To:) recipient. message_subject()/
+		// message_recipient_addresses() are already defensive about a double
+		// (e.g. FakeDsnImapMessage) that duck-types only getHeader()/getTextBody().
+		$dsn_subject      = $this->message_subject( $message );
+		$dsn_to_addresses = $this->message_recipient_addresses( $message );
+
 		$recipients = [];
 
 		$failed_recipients_header = '';
@@ -1075,7 +1221,7 @@ class Inbox {
 
 		if ( empty( $recipients ) ) {
 			Logger::info( 'IMAP UID ' . $uid . ': recognized as a bounce/complaint DSN but no failed-recipient address could be extracted — skipped.', 'inbox' );
-			$this->mark_no_artwork( $uid, null, 'bounce_unresolved', $from_email );
+			$this->mark_no_artwork( $uid, null, 'bounce_unresolved', $from_email, $dsn_subject, $dsn_to_addresses );
 			return;
 		}
 
@@ -1084,7 +1230,7 @@ class Inbox {
 		}
 
 		Logger::info( 'IMAP UID ' . $uid . ': bounce/complaint DSN processed for ' . implode( ', ', $recipients ) . '.', 'inbox' );
-		$this->mark_no_artwork( $uid, null, 'bounce_handled', $from_email );
+		$this->mark_no_artwork( $uid, null, 'bounce_handled', $from_email, $dsn_subject, $dsn_to_addresses );
 	}
 
 	/**
@@ -1119,6 +1265,7 @@ class Inbox {
 		'throttled'           => 'Skipped: sender exceeded the per-hour intake limit.',
 		'auth_failed'         => 'Skipped: message failed SPF/DKIM authentication.',
 		'no_attachments'      => 'Skipped: no valid image, audio, or video attachment found in the message.',
+		'looks_like_reply'    => 'Skipped: message looks like a reply or forwarded/quoted email, not an original submission.',
 	] + IntakeGates::SHARED_ALIAS_REASONS + [
 		'bounce_handled'    => 'Bounce/complaint DSN processed — the failed recipient address was suppressed and/or an artist bounce counter was incremented.',
 		'bounce_unresolved' => 'Recognized as a bounce/complaint DSN, but no failed-recipient address could be extracted from it.',
@@ -1171,30 +1318,76 @@ class Inbox {
 	 * they simply need to resend their email — see is_already_queued()'s 'failed'
 	 * case.
 	 *
-	 * @param string   $uid        IMAP message UID.
-	 * @param int|null $artist_id  WP user ID of the sender, if resolved. Null when
-	 *                             the sender never matched a WP account at all.
-	 * @param string   $reason     Key into self::SKIP_REASONS (and, optionally, self::SKIP_STATUSES).
-	 * @param string   $from_email Sender email address, if known. Empty string when unavailable.
+	 * @param string   $uid          IMAP message UID.
+	 * @param int|null $artist_id    WP user ID of the sender, if resolved. Null when
+	 *                               the sender never matched a WP account at all.
+	 * @param string   $reason       Key into self::SKIP_REASONS (and, optionally, self::SKIP_STATUSES).
+	 * @param string   $from_email   Sender email address, if known. Empty string when unavailable.
+	 * @param string   $subject      Message subject, if cheaply available at the call site. Empty
+	 *                                string when unavailable — never worth a body fetch just for this.
+	 * @param string[] $to_addresses The message's primary (first To:) recipient, if cheaply available
+	 *                                at the call site (see message_recipient_addresses()). Empty array
+	 *                                when unavailable. Still typed as an array (holds at most one
+	 *                                address) purely so every caller's existing shape stays unchanged.
 	 */
-	private function mark_no_artwork( string $uid, ?int $artist_id = null, string $reason = 'unregistered_sender', string $from_email = '' ): void {
+	private function mark_no_artwork( string $uid, ?int $artist_id = null, string $reason = 'unregistered_sender', string $from_email = '', string $subject = '', array $to_addresses = [] ): void {
 		global $wpdb;
 
 		$error  = self::SKIP_REASONS[ $reason ] ?? self::SKIP_REASONS['unregistered_sender'];
 		$status = self::SKIP_STATUSES[ $reason ] ?? 'failed';
 
 		// Stash the raw reason key (not just its prose $error text) alongside
-		// the sender address already persisted here, but only for the
-		// genuine-success skips — lets InboxPage::render_status_badge() show
-		// something more specific than a flat gray "Skipped" for e.g. a
-		// completed self-removal (2026-07-08: a "Skipped" badge on a request
-		// that permanently deleted an artist's account and content read as if
+		// the sender address already persisted here — originally (2026-07-08)
+		// only for the genuine-success skips, so InboxPage::render_status_badge()
+		// could show something more specific than a flat gray "Skipped" for
+		// e.g. a completed self-removal (a "Skipped" badge on a request that
+		// permanently deleted an artist's account and content read as if
 		// nothing had happened).
+		//
+		// Broadened 2026-07-14 alongside InboxPage::resolve_endpoint_label(),
+		// which reads this same skip_reason to label the Endpoint column
+		// "Goodbye"/"Community"/"Bounce" by prefix match — REGARDLESS of
+		// whether that particular outcome was a success or a rejection (a
+		// throttled or non-artist goodbye@/community@ hit is still, correctly,
+		// a "Goodbye"/"Community" row, not "Unknown"/"Artwork"). The original
+		// `'skipped' === $status` gate silently never stored it for the
+		// 'failed'-status members of that same alias family (goodbye_throttled,
+		// goodbye_non_artist, goodbye_no_membership, community_non_artist,
+		// community_throttled, community_empty, community_auto_submitted,
+		// bounce_unresolved) — resolve_endpoint_label()'s own docblock already
+		// (incorrectly) claimed this worked for "every skip reason", a gap a
+		// regression test caught. Now stored whenever the reason is one
+		// resolve_endpoint_label() actually keys off — its own three
+		// prefixes — in addition to the original genuine-success case
+		// (already covered by the prefix check for every current reason, but
+		// kept explicit so a future 'skipped'-status reason with a
+		// non-goodbye_/community_/bounce_ name — if one is ever added — still
+		// gets it too).
+		//
+		// subject/to_addresses (2026-07-14): also stashed when the call site
+		// has them on hand, purely so PostCreator::resolve_endpoint_label()
+		// — which reads this same raw_email JSON for the Inbox admin table's
+		// Endpoint column — can identify e.g. a remove@/promote@ request
+		// correctly instead of silently falling back to its "Artwork" default
+		// for every skipped row. Root cause this fixes: a remove@ message that
+		// (for whatever reason) still hits the no_attachments gate below used
+		// to show "Endpoint: Artwork" and the attachment-required error text —
+		// both actively misleading for a message that was never headed for
+		// the artwork pipeline at all.
 		$meta = [];
 		if ( '' !== $from_email ) {
 			$meta['from'] = $from_email;
 		}
-		if ( 'skipped' === $status ) {
+		if ( '' !== $subject ) {
+			$meta['subject'] = $subject;
+		}
+		if ( ! empty( $to_addresses ) ) {
+			$meta['to_addresses'] = array_values( $to_addresses );
+		}
+		$is_alias_or_bounce_reason = str_starts_with( $reason, 'goodbye_' )
+			|| str_starts_with( $reason, 'community_' )
+			|| str_starts_with( $reason, 'bounce_' );
+		if ( 'skipped' === $status || $is_alias_or_bounce_reason ) {
 			$meta['skip_reason'] = $reason;
 		}
 		$raw = ! empty( $meta ) ? wp_json_encode( $meta ) : '{}';
@@ -1438,10 +1631,34 @@ class Inbox {
 	}
 
 	/**
-	 * Delete SEEN IMAP messages older than the configured retention period.
+	 * Delete IMAP messages older than the configured retention period,
+	 * regardless of their \Seen flag (2026-07-15 — previously filtered to
+	 * `->seen()` only).
 	 *
-	 * All SEEN messages (processed or rejected) are eligible once the retention
-	 * window has passed — the mailbox is a delivery mechanism, not an archive.
+	 * The \Seen flag turned out to be the wrong signal for "already handled":
+	 * it's set incidentally by the underlying IMAP fetch whenever a message's
+	 * body is actually downloaded, which this pipeline deliberately avoids for
+	 * a whole class of messages it nonetheless fully processes and records —
+	 * the "cheap gate" rejections that decide from headers alone
+	 * (`auth_failed`, `unregistered_sender`, `not_admitted`, `throttled`) and
+	 * the entire goodbye@ alias flow (`handle_goodbye_email()` never reads a
+	 * message body in any of its four outcomes). Those messages were
+	 * genuinely, permanently done with — each already has its own terminal
+	 * `agnosis_queue` row via `mark_no_artwork()` — but they never turned
+	 * \Seen, so they never became eligible for this sweep and would
+	 * accumulate in the physical mailbox indefinitely, exactly the "overflow"
+	 * this setting exists to prevent, regardless of how many days it was
+	 * configured for.
+	 *
+	 * Age alone is a safe substitute for that check, not just a looser one:
+	 * `query_messages()` scans every message in range (read or unread, no
+	 * `->seen()`/`->unseen()` filter — see its own docblock) on every 5-minute
+	 * poll, so by the time a message is old enough to reach this cutoff it has
+	 * already been looked at, and either deleted outright (the BCC/
+	 * unrecognized-recipient gate) or given its own `agnosis_queue` row
+	 * capturing everything the pipeline needs (`raw_email` JSON) — the
+	 * physical IMAP copy serves no further purpose either way. The mailbox is
+	 * a delivery mechanism, not an archive.
 	 */
 	private function cleanup_imap(): void {
 		if ( ! $this->is_configured() ) {
@@ -1455,7 +1672,7 @@ class Inbox {
 		try {
 			$client   = $this->make_client();
 			$folder   = $this->get_inbox_folder( $client );
-			$messages = $folder->query()->seen()->before( $cutoff )->get();
+			$messages = $folder->query()->before( $cutoff )->get();
 
 			foreach ( $messages as $message ) {
 				// Pass true to expunge immediately — Folder::expunge() does not exist in this version.

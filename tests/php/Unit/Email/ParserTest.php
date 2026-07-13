@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Unit\Email;
 
 use Agnosis\Email\Parser;
+use Agnosis\Tests\Unit\Email\WebhookSignatureTest;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/FakeImapAttachment.php';
@@ -21,6 +22,18 @@ class ParserTest extends TestCase {
 
 	protected function setUp(): void {
 		$this->parser = new Parser();
+	}
+
+	/**
+	 * Resets the shared fake options store (Agnosis\Email's namespace-scoped
+	 * get_option() stub reads WebhookSignatureTest::$options — see that
+	 * class's own docblock) so a test below that configures
+	 * agnosis_email_remove/agnosis_email_promote never leaks into another
+	 * test file's assertions.
+	 */
+	protected function tearDown(): void {
+		WebhookSignatureTest::$options = [];
+		parent::tearDown();
 	}
 
 	// -------------------------------------------------------------------------
@@ -375,7 +388,13 @@ class ParserTest extends TestCase {
 		$this->assertSame( [ 'remove@example.com' ], $result['to_addresses'] );
 	}
 
-	public function test_parse_webhook_collects_recipient_and_cc_together(): void {
+	/**
+	 * 2026-07-15: reverses the "fifth audit §5a" broadening this test used to
+	 * cover — Cc: is no longer read at all (no CC accepted as a routing
+	 * signal, full stop), so a management alias reachable only via Cc: is now
+	 * correctly absent from to_addresses, not "not lost."
+	 */
+	public function test_parse_webhook_ignores_cc_entirely(): void {
 		$tmp = $this->stage_webhook_attachment();
 
 		$result = $this->parser->parse_webhook_payload( [
@@ -388,19 +407,21 @@ class ParserTest extends TestCase {
 		$this->clear_webhook_attachment( $tmp );
 
 		$this->assertIsArray( $result );
-		// to_address (primary routing signal) is still just 'recipient'.
 		$this->assertSame( 'friend@example.com', $result['to_address'] );
-		// to_addresses carries both — the CC'd management alias is not lost.
-		$this->assertContains( 'remove@example.com', $result['to_addresses'] );
-		$this->assertContains( 'friend@example.com', $result['to_addresses'] );
+		$this->assertSame( [ 'friend@example.com' ], $result['to_addresses'] );
+		$this->assertNotContains( 'remove@example.com', $result['to_addresses'] );
 	}
 
-	public function test_parse_webhook_extracts_addresses_from_a_multi_recipient_to_header(): void {
+	/**
+	 * 2026-07-15: only the FIRST address in a multi-recipient 'To' header
+	 * counts now — a secondary recipient is no longer collected, even without
+	 * a Mailgun 'recipient' field to defer to.
+	 */
+	public function test_parse_webhook_to_header_takes_only_the_first_address(): void {
 		$tmp = $this->stage_webhook_attachment();
 
 		$result = $this->parser->parse_webhook_payload( [
 			'sender'           => 'artist@example.com',
-			'recipient'        => 'friend@example.com',
 			'To'               => 'Friend Name <friend@example.com>, Gallery <remove@example.com>',
 			'attachment-count' => 1,
 		] );
@@ -408,8 +429,7 @@ class ParserTest extends TestCase {
 		$this->clear_webhook_attachment( $tmp );
 
 		$this->assertIsArray( $result );
-		$this->assertContains( 'friend@example.com', $result['to_addresses'] );
-		$this->assertContains( 'remove@example.com', $result['to_addresses'], 'Extract every bare address out of a "Name <addr>, Name2 <addr2>" To: header, not just the Mailgun "recipient" field.' );
+		$this->assertSame( [ 'friend@example.com' ], $result['to_addresses'] );
 	}
 
 	public function test_parse_webhook_to_addresses_is_empty_when_no_recipient_fields_present(): void {
@@ -484,7 +504,13 @@ class ParserTest extends TestCase {
 		$this->assertSame( [ 'remove@example.com' ], $result['to_addresses'] );
 	}
 
-	public function test_parse_imap_collects_to_and_cc_addresses_together(): void {
+	/**
+	 * 2026-07-15: reverses the "fifth audit §5a" broadening this test used to
+	 * cover — Cc: is no longer read at all (no CC accepted as a routing
+	 * signal, full stop), so a management alias reachable only via Cc: is now
+	 * correctly absent from to_addresses, not "not lost."
+	 */
+	public function test_parse_imap_ignores_cc_entirely(): void {
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'friend@example.com' ],
 			cc_emails: [ 'remove@example.com' ],
@@ -494,18 +520,14 @@ class ParserTest extends TestCase {
 		$result = $this->parser->parse_imap_message( $message );
 
 		$this->assertIsArray( $result );
-		// to_address (primary routing signal) is still just the first To:.
 		$this->assertSame( 'friend@example.com', $result['to_address'] );
-		// to_addresses carries BOTH — the CC'd management alias is not lost.
-		$this->assertContains( 'remove@example.com', $result['to_addresses'] );
-		$this->assertContains( 'friend@example.com', $result['to_addresses'] );
-		$this->assertCount( 2, $result['to_addresses'] );
+		$this->assertSame( [ 'friend@example.com' ], $result['to_addresses'] );
+		$this->assertNotContains( 'remove@example.com', $result['to_addresses'] );
 	}
 
-	public function test_parse_imap_lowercases_and_dedupes_to_addresses(): void {
+	public function test_parse_imap_lowercases_to_address(): void {
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'Remove@Example.com' ],
-			cc_emails: [ 'remove@example.com' ], // Same address, different case, also CC'd.
 			fake_attachments: [ $this->make_attachment() ]
 		);
 
@@ -514,11 +536,13 @@ class ParserTest extends TestCase {
 		$this->assertSame( [ 'remove@example.com' ], $result['to_addresses'] );
 	}
 
-	public function test_parse_imap_to_addresses_survives_a_message_double_without_getCc(): void {
-		// Some test fakes (and, per the source docblock, possibly some real
-		// message states) don't support getCc() at all — the try/catch around
-		// it must still leave the To: addresses collected, not blow up the
-		// whole parse.
+	/**
+	 * getCc() is no longer called at all by parse_imap_message() (2026-07-15
+	 * — Cc: is never read), so a message double that doesn't support it must
+	 * not affect the parse in any way; this is now really just confirming
+	 * to_addresses is unaffected by Cc: support one way or the other.
+	 */
+	public function test_parse_imap_unaffected_by_a_message_double_without_getCc(): void {
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			fake_attachments: [ $this->make_attachment() ],
@@ -564,7 +588,14 @@ class ParserTest extends TestCase {
 		$this->assertSame( [], $result['attachments'] );
 	}
 
-	public function test_parse_imap_returns_null_without_attachments_or_text_regardless_of_recipients(): void {
+	public function test_parse_imap_returns_null_without_attachments_or_text_when_recipient_is_not_a_configured_management_address(): void {
+		// 2026-07-14: recipient DOES matter now (see the exemption tests
+		// below) — but only once agnosis_email_remove/agnosis_email_promote
+		// is actually configured to that address. An unconfigured site (the
+		// default — WebhookSignatureTest::$options is empty here, so
+		// get_option('agnosis_email_remove', '') resolves to '') has no
+		// management address for 'remove@example.com' to match, so an
+		// attachment-and-text-less message to it is still nothing usable.
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			text_body: '',
@@ -574,5 +605,189 @@ class ParserTest extends TestCase {
 		$result = $this->parser->parse_imap_message( $message );
 
 		$this->assertNull( $result );
+	}
+
+	/**
+	 * 2026-07-14 fix: a remove@/promote@ request identifies its target purely
+	 * by subject line — no attachment, and often no body text either (a
+	 * quick "delete this" email is commonly sent with an empty body). Before
+	 * this fix, such a message was rejected right here as "nothing usable",
+	 * before PostCreator ever got a chance to route it to
+	 * handle_removal_request() — surfacing as a false "no valid image,
+	 * audio, or video attachment" skip in the Inbox admin table for a
+	 * request that was never supposed to need one.
+	 */
+	public function test_parse_imap_accepts_an_empty_body_message_to_a_configured_remove_address(): void {
+		WebhookSignatureTest::$options['agnosis_email_remove'] = 'remove@example.com';
+
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'UID 51',
+			text_body: '',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'UID 51', $result['subject'] );
+		$this->assertSame( '', $result['description'] );
+		$this->assertSame( [], $result['attachments'] );
+	}
+
+	/** Same exemption, for promote@ — mirrors the remove@ test above exactly. */
+	public function test_parse_imap_accepts_an_empty_body_message_to_a_configured_promote_address(): void {
+		WebhookSignatureTest::$options['agnosis_email_promote'] = 'promote@example.com';
+
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'promote@example.com' ],
+			subject_text: 'Golden Hour',
+			text_body: '',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Golden Hour', $result['subject'] );
+	}
+
+	/**
+	 * The exemption is subject-gated too — an empty subject gives
+	 * PostCreator::handle_removal_request() nothing to identify a post by
+	 * regardless, so this must still return null rather than enqueue a
+	 * request nobody could ever act on.
+	 */
+	public function test_parse_imap_still_rejects_empty_subject_even_to_a_configured_remove_address(): void {
+		WebhookSignatureTest::$options['agnosis_email_remove'] = 'remove@example.com';
+
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: '',
+			text_body: '',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertNull( $result );
+	}
+
+	// -------------------------------------------------------------------------
+	// parse_imap_message() / parse_webhook_payload() — reply/quote rejection
+	// (2026-07-15) and last_rejection_reason()
+	// -------------------------------------------------------------------------
+
+	public function test_parse_imap_rejects_a_re_prefixed_subject_and_sets_rejection_reason(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'Re: My new painting',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertNull( $result );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_imap_rejects_a_quoted_reply_body_even_with_a_genuine_attachment(): void {
+		// Deliberate: a reply carrying a real attachment is still rejected —
+		// the policy is about original, curated content, not about whether a
+		// file happens to be attached. See IntakeGates::is_reply_or_quote().
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'My new painting',
+			text_body: "Here you go again.\n\nOn 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Previous content.",
+			fake_attachments: [ $this->make_attachment() ]
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertNull( $result );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_imap_last_rejection_reason_is_empty_for_a_genuine_accepted_submission(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'My new painting',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_imap_last_rejection_reason_resets_between_calls(): void {
+		$reply_message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'Re: My new painting',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+		$this->parser->parse_imap_message( $reply_message );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+
+		$genuine_message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'My new painting',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+		$this->parser->parse_imap_message( $genuine_message );
+		$this->assertSame( '', $this->parser->last_rejection_reason(), 'Stale reason from a previous call must not leak into a later, genuine submission.' );
+	}
+
+	public function test_parse_webhook_rejects_a_re_prefixed_subject_and_sets_rejection_reason(): void {
+		$payload = [
+			'sender'        => 'artist@example.com',
+			'subject'       => 'Re: My new painting',
+			'stripped-text' => 'Here is my artwork.',
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertNull( $result );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_webhook_rejects_an_agnosis_bracketed_subject(): void {
+		$payload = [
+			'sender'        => 'artist@example.com',
+			'subject'       => 'Fwd: [Agnosis] Your submission was received',
+			'stripped-text' => 'Here is my artwork.',
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertNull( $result );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_webhook_rejects_an_outlook_original_message_body(): void {
+		$payload = [
+			'sender'        => 'artist@example.com',
+			'subject'       => 'My new painting',
+			'stripped-text' => "See attached.\n\n-----Original Message-----\nFrom: someone@example.com",
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertNull( $result );
+		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_webhook_last_rejection_reason_is_empty_for_a_genuine_accepted_submission(): void {
+		$payload = [
+			'sender'        => 'artist@example.com',
+			'subject'       => 'My new painting',
+			'stripped-text' => 'Here is my artwork.',
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
 	}
 }

@@ -93,4 +93,61 @@ class InboxMarkNoArtworkTest extends \WP_UnitTestCase {
 		$data = $this->latest_raw_email();
 		$this->assertSame( [], $data );
 	}
+
+	/**
+	 * 2026-07-14: a no_attachments skip for a remove@/promote@ message that
+	 * still reaches this gate (e.g. an edge case Email\Parser's own
+	 * management-address exemption doesn't catch) now also stashes the
+	 * subject and recipient list, so PostCreator::resolve_endpoint_label()
+	 * can show "Remove"/"Promote" on the Inbox admin table instead of its
+	 * "Artwork" default — and so the attachment-required error text isn't
+	 * left looking like a non-sequitur with no context to explain it.
+	 */
+	public function test_no_attachments_with_subject_and_recipients_stores_both(): void {
+		$this->mark_no_artwork(
+			[ 'uid-5', 7, 'no_attachments', 'artist@example.com', 'Golden Hour', [ 'remove@example.com' ] ]
+		);
+
+		$this->assertSame( 'failed', $this->latest_status() );
+		$data = $this->latest_raw_email();
+		$this->assertSame( 'artist@example.com', $data['from'] ?? null );
+		$this->assertSame( 'Golden Hour', $data['subject'] ?? null );
+		$this->assertSame( [ 'remove@example.com' ], $data['to_addresses'] ?? null );
+	}
+
+	public function test_no_attachments_without_subject_or_recipients_omits_both_keys(): void {
+		$this->mark_no_artwork( [ 'uid-6', 8, 'no_attachments', 'artist@example.com' ] );
+
+		$data = $this->latest_raw_email();
+		$this->assertArrayNotHasKey( 'subject', $data );
+		$this->assertArrayNotHasKey( 'to_addresses', $data );
+	}
+
+	/**
+	 * 2026-07-15: the reply/quote rejection reason stores subject/recipients
+	 * the same way the no_attachments reason does — Inbox::process_messages()
+	 * threads both through identically for this reason (see its own
+	 * 'looks_like_reply' branch).
+	 */
+	public function test_looks_like_reply_with_subject_and_recipients_stores_both_and_fails(): void {
+		$this->mark_no_artwork(
+			[ 'uid-7', 9, 'looks_like_reply', 'artist@example.com', 'Re: Golden Hour', [ 'submit@example.com' ] ]
+		);
+
+		$this->assertSame( 'failed', $this->latest_status() );
+		$data = $this->latest_raw_email();
+		$this->assertSame( 'artist@example.com', $data['from'] ?? null );
+		$this->assertSame( 'Re: Golden Hour', $data['subject'] ?? null );
+		$this->assertSame( [ 'submit@example.com' ], $data['to_addresses'] ?? null );
+	}
+
+	public function test_looks_like_reply_is_a_recognised_skip_reason_with_the_expected_text(): void {
+		$reasons = Inbox::SKIP_REASONS;
+
+		$this->assertArrayHasKey( 'looks_like_reply', $reasons );
+		$this->assertSame(
+			'Skipped: message looks like a reply or forwarded/quoted email, not an original submission.',
+			$reasons['looks_like_reply']
+		);
+	}
 }

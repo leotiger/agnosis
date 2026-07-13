@@ -316,8 +316,14 @@ class Plugin {
 		$notification = new Notification();
 		$this->loader->add_action( 'agnosis_post_drafted',         $notification, 'on_post_drafted',         10, 2 );
 		$this->loader->add_action( 'agnosis_removal_requested',    $notification, 'on_removal_requested',    10, 2 );
+		// 2026-07-14: a remove@ subject matching more than one post (e.g. an
+		// artwork and an event sharing a title) gets its own email listing
+		// every match with an individual confirm link — see
+		// PostCreator::handle_removal_request()'s own docblock.
+		$this->loader->add_action( 'agnosis_removal_requested_multiple', $notification, 'on_removal_requested_multiple', 10, 3 );
 		$this->loader->add_action( 'agnosis_submission_rejected',  $notification, 'on_submission_rejected',  10, 4 );
 		$this->loader->add_action( 'agnosis_submission_no_attachment', $notification, 'on_submission_no_attachment', 10, 2 );
+		$this->loader->add_action( 'agnosis_submission_looks_like_reply', $notification, 'on_submission_looks_like_reply', 10, 2 );
 		// fifth audit §2b/§2c — remove@/promote@ artist feedback.
 		$this->loader->add_action( 'agnosis_removal_target_not_found', $notification, 'on_removal_target_not_found', 10, 6 );
 		$this->loader->add_action( 'agnosis_promotion_result',          $notification, 'on_promotion_result',        10, 5 );

@@ -122,10 +122,13 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 		return $user_id;
 	}
 
-	private function goodbye_request( string $sender ): WP_REST_Request {
+	private function goodbye_request( string $sender, string $subject = '' ): WP_REST_Request {
 		$request = new WP_REST_Request();
 		$request->set_param( 'sender', $sender );
 		$request->set_param( 'recipient', self::GOODBYE_ADDR );
+		if ( '' !== $subject ) {
+			$request->set_param( 'subject', $subject );
+		}
 		return $request;
 	}
 
@@ -197,6 +200,86 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 		$this->assertNotNull( $row );
 		$this->assertSame( 'failed', $row->status, 'goodbye_no_membership has no ALIAS_STATUSES override, so it must default to failed.' );
 		$this->assertStringContainsString( 'no active membership', $row->error );
+	}
+
+	// -------------------------------------------------------------------------
+	// mark_alias_event() now persists subject/to_addresses (2026-07-14) — this
+	// data was already computed in handle() but never threaded through, so
+	// every webhook-originated alias row was labelled "Unknown"/"Artwork" on
+	// the Inbox admin table's Endpoint column despite the data being right
+	// there. Mirrors Inbox::mark_no_artwork()'s identical fix on the IMAP side.
+	// -------------------------------------------------------------------------
+
+	public function test_goodbye_event_persists_subject_and_recipient(): void {
+		$sender     = 'non-artist-goodbye-2@example.com';
+		$this->create_non_artist_user( $sender );
+		$message_id = '<goodbye-subject-capture@example.com>';
+
+		$request = $this->goodbye_request( $sender, 'Please delete my account' );
+		$request->set_param( 'Message-Id', $message_id );
+		$this->webhook->handle( $request );
+
+		$row  = $this->queue_row_for_message_id( $message_id );
+		$data = json_decode( (string) $row->raw_email, true );
+		$this->assertSame( 'Please delete my account', $data['subject'] ?? null );
+		$this->assertContains( self::GOODBYE_ADDR, $data['to_addresses'] ?? [] );
+	}
+
+	public function test_community_event_persists_subject_and_recipient(): void {
+		$sender     = 'non-artist-community-2@example.com';
+		$this->create_non_artist_user( $sender );
+		$message_id = '<community-subject-capture@example.com>';
+
+		$request = $this->community_request( $sender, 'A note for everyone' );
+		$request->set_param( 'Message-Id', $message_id );
+		$this->webhook->handle( $request );
+
+		$row  = $this->queue_row_for_message_id( $message_id );
+		$data = json_decode( (string) $row->raw_email, true );
+		$this->assertSame( 'A note for everyone', $data['subject'] ?? null );
+		$this->assertContains( self::COMMUNITY_ADDR, $data['to_addresses'] ?? [] );
+	}
+
+	/**
+	 * 2026-07-14 fix, regression-caught 2026-07-14: `mark_alias_event()`
+	 * (and its IMAP-side twin `Inbox::mark_no_artwork()`) only ever stashed
+	 * `skip_reason` for the three genuine-success `ALIAS_STATUSES` overrides
+	 * — but `InboxPage::resolve_endpoint_label()` reads `skip_reason` by
+	 * `goodbye_`/`community_` prefix to label the Endpoint column REGARDLESS
+	 * of whether the outcome was a success or a 'failed'-status rejection.
+	 * A rejected (non-artist/no-membership/auto-submitted) goodbye@/
+	 * community@ hit silently never got `skip_reason` at all, so it fell
+	 * through to the generic "Unknown"/"Artwork" resolver despite genuinely
+	 * being a goodbye@/community@ row — exactly the mislabeling this whole
+	 * family of fixes exists to close, just for the 'failed' subset of these
+	 * reasons specifically.
+	 */
+	public function test_skip_reason_is_recorded_for_rejected_alias_outcomes_not_just_successes(): void {
+		$non_artist_sender = 'non-artist-skipreason@example.com';
+		$this->create_non_artist_user( $non_artist_sender );
+		$message_id = '<goodbye-non-artist-skipreason@example.com>';
+
+		$request = $this->goodbye_request( $non_artist_sender );
+		$request->set_param( 'Message-Id', $message_id );
+		$this->webhook->handle( $request );
+
+		$row  = $this->queue_row_for_message_id( $message_id );
+		$data = json_decode( (string) $row->raw_email, true );
+		$this->assertSame( 'failed', $row->status, 'goodbye_non_artist is a rejection, not a success — status must stay failed.' );
+		$this->assertSame( 'goodbye_non_artist', $data['skip_reason'] ?? null, 'A rejected goodbye@ hit must still be identifiable as one via skip_reason, not just the successful goodbye_handled case.' );
+
+		$community_sender = 'non-artist-community-skipreason@example.com';
+		$this->create_non_artist_user( $community_sender );
+		$community_message_id = '<community-non-artist-skipreason@example.com>';
+
+		$community_request = $this->community_request( $community_sender );
+		$community_request->set_param( 'Message-Id', $community_message_id );
+		$this->webhook->handle( $community_request );
+
+		$community_row  = $this->queue_row_for_message_id( $community_message_id );
+		$community_data = json_decode( (string) $community_row->raw_email, true );
+		$this->assertSame( 'failed', $community_row->status );
+		$this->assertSame( 'community_non_artist', $community_data['skip_reason'] ?? null, 'A rejected community@ hit must still be identifiable as one via skip_reason, not just the successful community_handled case.' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -347,18 +430,14 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// End-to-end CC scenario (fifth audit §5a) — every test above puts the
-	// alias address in Mailgun's own single-routed 'recipient' field. None of
-	// them prove IntakeGates::recipient_addresses()'s actual reason for
-	// existing (sixth audit §6 — this parser moved here from a private
-	// method on this class): that goodbye@/community@ still gets found
-	// when it only appears in a
-	// 'To'/'Cc' header alongside some other primary recipient. These two
-	// tests close that gap by deliberately leaving 'recipient' pointing
-	// somewhere else and only CC'ing the alias.
+	// No CC, primary-recipient-only policy (2026-07-15) — reverses the
+	// "fifth audit §5a" broadening these two tests used to cover. Cc: is no
+	// longer read at all, and a secondary To: address (behind some other
+	// primary recipient) no longer counts either — only Mailgun's 'recipient'
+	// field, or failing that the FIRST 'To' address, is ever consulted.
 	// -------------------------------------------------------------------------
 
-	public function test_goodbye_alias_is_matched_when_only_present_in_cc_not_recipient(): void {
+	public function test_goodbye_alias_is_not_matched_when_only_present_in_cc(): void {
 		$sender = 'cc-goodbye-artist@example.com';
 		$this->create_admitted_artist( $sender );
 		$message_id = '<goodbye-via-cc@example.com>';
@@ -371,15 +450,10 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 
 		$response = $this->webhook->handle( $request );
 
-		$this->assertSame( 'goodbye_received', $response->get_data()['status'], 'The goodbye alias must be matched from the Cc: header, not just Mailgun\'s recipient field.' );
-
-		$row = $this->queue_row_for_message_id( $message_id );
-		$this->assertNotNull( $row );
-		$this->assertSame( 'skipped', $row->status, 'goodbye_handled IS an ALIAS_STATUSES override — a genuine success, not a failure.' );
-		$this->assertSame( 'goodbye_handled', json_decode( $row->raw_email, true )['skip_reason'] ?? null );
+		$this->assertNotSame( 'goodbye_received', $response->get_data()['status'], 'Cc: must never be read as a routing signal — the goodbye alias only counts when it is the primary (recipient/first-To:) address.' );
 	}
 
-	public function test_community_alias_is_matched_when_only_present_in_to_header_not_recipient(): void {
+	public function test_community_alias_is_not_matched_from_a_secondary_to_address(): void {
 		$sender = 'cc-community-artist@example.com';
 		$this->create_admitted_artist( $sender );
 		$message_id = '<community-via-to-header@example.com>';
@@ -394,9 +468,6 @@ class WebhookAliasEventCoverageTest extends \WP_UnitTestCase {
 
 		$response = $this->webhook->handle( $request );
 
-		$this->assertSame( 'community_broadcast', $response->get_data()['status'], 'The community alias must be matched out of a multi-address To: header, not just Mailgun\'s recipient field.' );
-
-		$row = $this->queue_row_for_message_id( $message_id );
-		$this->assertNotNull( $row, 'mark_alias_event() must still record this as a community event even though it was matched via the To: header rather than recipient.' );
+		$this->assertNotSame( 'community_broadcast', $response->get_data()['status'], 'A secondary To: address must never count — only the primary (recipient, or first To:) address routes to the community alias.' );
 	}
 }

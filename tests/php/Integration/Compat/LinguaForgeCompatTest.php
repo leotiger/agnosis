@@ -628,21 +628,36 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertSame( 'Translated', $result['translated_title'] );
 	}
 
-	public function test_hold_artist_title_passes_through_for_event_and_biography(): void {
-		// Dual-title is artwork-only — events and biographies use LF's normal title
+	public function test_hold_artist_title_keeps_artist_original_for_event(): void {
+		// 0.9.24: event joined DUAL_TITLE_POST_TYPES alongside artwork — an
+		// event's own name is the artist's own words and must survive
+		// translation untouched, exactly like test_hold_artist_title_keeps_
+		// artist_original_for_artwork() above.
+		$event_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_title'  => 'Cruzant el Llindar',
+		] );
+
+		$payload = [ 'output' => '<p>…</p>', 'translated_title' => 'Crossing the Threshold (bad source)' ];
+		$result  = ( new LinguaForge() )->hold_artist_title( $payload, $event_id, 'es' );
+
+		$this->assertSame( 'Cruzant el Llindar', $result['translated_title'] );
+	}
+
+	public function test_hold_artist_title_passes_through_for_biography(): void {
+		// Dual-title doesn't apply to biography — it uses LF's normal title
 		// translation, so the AI's translated_title is left untouched.
-		foreach ( [ 'agnosis_event', 'agnosis_biography' ] as $type ) {
-			$id = self::factory()->post->create( [
-				'post_type'   => $type,
-				'post_status' => 'publish',
-				'post_title'  => 'Original',
-			] );
+		$id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'publish',
+			'post_title'  => 'Original',
+		] );
 
-			$payload = [ 'output' => '<p>…</p>', 'translated_title' => 'Translated Title' ];
-			$result  = ( new LinguaForge() )->hold_artist_title( $payload, $id, 'es' );
+		$payload = [ 'output' => '<p>…</p>', 'translated_title' => 'Translated Title' ];
+		$result  = ( new LinguaForge() )->hold_artist_title( $payload, $id, 'es' );
 
-			$this->assertSame( 'Translated Title', $result['translated_title'], $type );
-		}
+		$this->assertSame( 'Translated Title', $result['translated_title'] );
 	}
 
 	// ── Per-language display title from the title map ─────────────────────────
@@ -698,22 +713,23 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertSame( '', (string) get_post_meta( $this->page_id, '_agnosis_title_i18n', true ) );
 	}
 
-	public function test_build_title_translations_skips_event_and_biography(): void {
-		// Artwork-only: events and biographies never get a per-language title map.
+	public function test_build_title_translations_skips_biography(): void {
+		// Biography never gets a per-language title map — it's outside
+		// DUAL_TITLE_POST_TYPES (event joined artwork there in 0.9.24; see
+		// test_build_title_translations_invokes_translate_to_languages_and_stores_the_map_for_event()
+		// below for proof event now DOES get one with a provider configured).
 		self::$lf_languages = [ 'en', 'es' ];
 
-		foreach ( [ 'agnosis_event', 'agnosis_biography' ] as $type ) {
-			$id = self::factory()->post->create( [
-				'post_type'   => $type,
-				'post_status' => 'publish',
-			] );
-			update_post_meta( $id, '_lf_lang', 'en' );
-			update_post_meta( $id, '_agnosis_translated_title', 'A Title' );
+		$id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'publish',
+		] );
+		update_post_meta( $id, '_lf_lang', 'en' );
+		update_post_meta( $id, '_agnosis_translated_title', 'A Title' );
 
-			( new LinguaForge() )->build_title_translations( $id );
+		( new LinguaForge() )->build_title_translations( $id );
 
-			$this->assertSame( '', (string) get_post_meta( $id, '_agnosis_title_i18n', true ), $type );
-		}
+		$this->assertSame( '', (string) get_post_meta( $id, '_agnosis_title_i18n', true ) );
 	}
 
 	// ── Tag / medium term translation: sync_translated_terms() (§5) ───────────
@@ -1241,6 +1257,33 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		// translate_text() call per language.
 		$this->assertCount( 1, WpAiClientTestRegistry::$prompts );
 		$this->assertStringContainsString( 'Sunrise', WpAiClientTestRegistry::$prompts[0] );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
+	}
+
+	public function test_build_title_translations_invokes_translate_to_languages_and_stores_the_map_for_event(): void {
+		// 0.9.24: event joined DUAL_TITLE_POST_TYPES — proves it now actually
+		// builds a real per-language title map (not just that it isn't
+		// skipped — test_build_title_translations_skips_biography() above
+		// covers the type that still IS skipped).
+		$event_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+		] );
+		self::$lf_languages = [ 'en', 'es', 'fr' ];
+		update_post_meta( $event_id, '_lf_lang', 'en' );
+		update_post_meta( $event_id, '_agnosis_translated_title', 'Crossing the Threshold' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'es' => 'Cruzando el Umbral', 'fr' => 'Traverser le Seuil' ] );
+
+		( new LinguaForge() )->build_title_translations( $event_id );
+
+		$this->assertSame(
+			[ 'es' => 'Cruzando el Umbral', 'fr' => 'Traverser le Seuil' ],
+			get_post_meta( $event_id, '_agnosis_title_i18n', true )
+		);
 
 		delete_option( 'agnosis_ai_provider' );
 		WpAiClientTestRegistry::reset();

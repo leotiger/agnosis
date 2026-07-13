@@ -76,6 +76,76 @@ class Notification {
 		}
 	}
 
+	/**
+	 * Hook callback for 'agnosis_removal_requested_multiple'.
+	 *
+	 * A remove@ subject exactly matched more than one of the artist's own
+	 * posts (2026-07-14 — see PostCreator::handle_removal_request()'s own
+	 * docblock for why this can legitimately happen: an artwork and an event
+	 * are free to share a title, nothing enforces uniqueness across the two
+	 * types). Rather than guessing which one the artist meant — or removing
+	 * both — this sends ONE email listing every match, each with its own
+	 * independently valid, single-use confirm link
+	 * (RemovalEndpoints::confirm() already operates per-post-id and has no
+	 * notion of "part of a multi-match request"), so the artist picks
+	 * exactly which one(s) to remove.
+	 *
+	 * @param array<int, array{id: int, type: string, token: string}> $matches
+	 *                          Every matched post, each with its own removal token.
+	 * @param int    $artist_id Requesting artist's user ID.
+	 * @param string $subject   The shared title all matches were found under.
+	 */
+	public function on_removal_requested_multiple( array $matches, int $artist_id, string $subject ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		// Re-resolve each match to a live WP_Post right before sending —
+		// tokens were just written by the caller in the same request, but
+		// this stays defensive (and future-proof against a queued/deferred
+		// caller) rather than trusting the passed-in array's shape blindly.
+		$items = [];
+		foreach ( $matches as $match ) {
+			$post  = get_post( $match['id'] );
+			$token = $match['token'];
+			if ( $post instanceof \WP_Post && '' !== $token ) {
+				$items[] = [ 'post' => $post, 'token' => $token ];
+			}
+		}
+
+		if ( empty( $items ) ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$subject_line = sprintf(
+			/* translators: %s: the shared title every match was found under */
+			__( '[Agnosis] Multiple items titled "%s" — choose which to remove', 'agnosis' ),
+			$subject
+		);
+
+		$headers = [
+			'Content-Type: text/html; charset=UTF-8',
+			'From: ' . $this->sender_header(),
+		];
+
+		wp_mail(
+			$artist->user_email,
+			$subject_line,
+			$this->build_removal_choice_email( $items, $artist->display_name, $artist_id ),
+			$headers
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
 	// -------------------------------------------------------------------------
 	// remove@ / promote@ feedback (fifth audit §2b/§2c)
 	// -------------------------------------------------------------------------
@@ -661,6 +731,136 @@ class Notification {
 	}
 
 	/**
+	 * Build the "multiple items share this title — pick which to remove"
+	 * email body (2026-07-14).
+	 *
+	 * Same visual shell as build_removal_email() (header/footer/accent
+	 * colour), but the single title-card-plus-button in that method is
+	 * replaced with one card per match, each carrying its own confirm
+	 * button/link — every token is independent and single-use, so clicking
+	 * one has no effect on the others.
+	 *
+	 * @param array<int, array{post: \WP_Post, token: string}> $items Every matched post + its own removal token.
+	 * @param string $artist_name Artist's display name.
+	 * @param int    $artist_id   Artist's WordPress user ID (for the edit-reminder footer).
+	 * @return string HTML email body.
+	 */
+	private function build_removal_choice_email( array $items, string $artist_name, int $artist_id = 0 ): string {
+		$site_name = esc_html( get_bloginfo( 'name' ) );
+		$accent    = '#c0392b';
+		$btn_base  = 'display:inline-block;padding:10px 20px;border-radius:6px;font-size:16px;font-weight:600;text-decoration:none;margin:4px 0 0;';
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<!-- Header -->
+	<tr><td style="background:#0d0d12;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<!-- Body -->
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+
+		<p style="margin:0 0 28px;font-size:20px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'We received a removal request, but more than one of your posts shares that exact title. Choose which one you meant below — each is independent, so removing one leaves the others untouched.', 'agnosis' ); ?>
+		</p>
+
+		<?php foreach ( $items as $item ) : ?>
+			<?php
+			$post  = $item['post'];
+			$label = 'agnosis_event' === $post->post_type ? __( 'event', 'agnosis' ) : __( 'artwork', 'agnosis' );
+
+			$confirm_url = add_query_arg(
+				[
+					'agnosis_review' => '1',
+					'id'             => $post->ID,
+					'action'         => 'remove',
+					'token'          => $item['token'],
+				],
+				home_url( '/' )
+			);
+			?>
+			<table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:20px;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;">
+			<tr><td>
+				<p style="margin:0 0 4px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#888;">
+					<?php echo esc_html( ucfirst( $label ) ); ?>
+				</p>
+				<p style="margin:0 0 10px;font-size:19px;font-weight:600;color:#111;">
+					<?php echo esc_html( $post->post_title ); ?>
+				</p>
+				<a href="<?php echo esc_url( $confirm_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
+					<?php
+					printf(
+						/* translators: %s: "artwork" or "event" */
+						esc_html__( 'Yes, remove this %s', 'agnosis' ),
+						esc_html( $label )
+					);
+					?>
+				</a>
+			</td></tr>
+			</table>
+		<?php endforeach; ?>
+
+		<p style="font-size:16px;color:#999;margin:0 0 12px;padding:14px 16px;background:#fef9f9;border-radius:6px;border:1px solid #fad7d7;">
+			<?php esc_html_e( 'If you did not request this removal, simply ignore this email — nothing will be removed unless you click one of the buttons above.', 'agnosis' ); ?>
+		</p>
+
+		<p style="font-size:16px;color:#999;margin:0;">
+			<?php esc_html_e( 'These confirmation links expire in 7 days.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<!-- Footer -->
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
 	 * Build the full HTML email body.
 	 *
 	 * @param \WP_Post $post         The draft artwork post.
@@ -1198,6 +1398,141 @@ class Notification {
 
 		<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Once it\'s properly attached, just send it to the same address again — we\'ll pick it up automatically.', 'agnosis' ); ?>
+		</p>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
+		<p style="margin:0;font-size:15px;color:#999;text-align:center;">
+			<?php
+			printf(
+				/* translators: %s: site name */
+				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
+				esc_html( $site_name )
+			);
+			?>
+		</p>
+		<?php $work_emails_html = EmailFooter::html(); ?>
+		<?php if ( '' !== $work_emails_html ) : ?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+		<?php endif; ?>
+		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id ); ?>
+		<?php if ( '' !== $edit_reminder_html ) : ?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+		<?php endif; ?>
+	</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	// -------------------------------------------------------------------------
+	// Submission looks like a reply/forward carrying quoted content
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hook callback for 'agnosis_submission_looks_like_reply' (2026-07-15).
+	 *
+	 * Fired from both transports — Inbox::process_messages() and
+	 * Webhook::handle() — when IntakeGates::is_reply_or_quote() matches a
+	 * message's subject or body. Mirrors on_submission_no_attachment() above:
+	 * a short, friendly explanation so the artist knows why nothing was
+	 * published and what to do instead, rather than the message silently
+	 * vanishing.
+	 *
+	 * @param int    $artist_id WordPress user ID of the sender.
+	 * @param string $uid       IMAP message UID or a logging-only identifier (logging only).
+	 */
+	public function on_submission_looks_like_reply( int $artist_id, string $uid ): void {
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$subject = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] We couldn\'t process that email', 'agnosis' ),
+			get_bloginfo( 'name' )
+		);
+
+		wp_mail(
+			$artist->user_email,
+			$subject,
+			$this->build_reply_rejected_email( $artist->display_name, $artist_id ),
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			]
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Build the HTML "looks like a reply" rejection email body.
+	 *
+	 * @param string $artist_name Artist's display name.
+	 * @param int    $artist_id   WP user ID — gates EmailFooter::edit_reminder_html().
+	 * @return string HTML email body.
+	 */
+	private function build_reply_rejected_email( string $artist_name, int $artist_id ): string {
+		$site_name = get_bloginfo( 'name' );
+		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+
+		ob_start();
+		?>
+<!DOCTYPE html>
+<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
+<tr><td align="center" style="background:#f5f5f5;">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
+
+	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
+		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
+	</td></tr>
+
+	<tr><td style="background:#ffffff;padding:36px 24px;">
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:20px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'We received your email, but it looked like a reply or a forwarded message — carrying quoted text from an earlier email — rather than a fresh, original submission, so nothing was published.', 'agnosis' ); ?>
+		</p>
+
+		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
+			<p style="margin:0 0 10px;font-size:17px;font-weight:700;color:#333;"><?php esc_html_e( 'To resend correctly:', 'agnosis' ); ?></p>
+			<ul style="margin:0;padding-left:20px;">
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Start a brand new message rather than replying to or forwarding a previous one.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Give it a plain subject line — not one starting with "Re:" or containing "[Agnosis]".', 'agnosis' ); ?></li>
+				<li style="margin:0 0 0;font-size:17px;color:#555;"><?php esc_html_e( 'Make sure the body only contains your own, original text and attachment — no quoted or forwarded content from an earlier message.', 'agnosis' ); ?></li>
+			</ul>
+		</div>
+
+		<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'Once it\'s a fresh, original message, just send it to the same address again — we\'ll pick it up automatically.', 'agnosis' ); ?>
 		</p>
 	</td></tr>
 

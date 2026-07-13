@@ -197,4 +197,55 @@ class InboxAliasAuthGateTest extends \WP_UnitTestCase {
 			'A second goodbye@ request from the same sender beyond the configured daily limit must be throttled, not trigger another confirmation email.'
 		);
 	}
+
+	// -------------------------------------------------------------------------
+	// mark_no_artwork() now captures subject/to_addresses at every skip site
+	// (2026-07-14), not just no_attachments — this end-to-end pass confirms
+	// the wiring actually reaches the stored row, via two representative
+	// paths: a main-loop gate (auth_failed) and a handle_goodbye_email() one
+	// (goodbye_throttled).
+	// -------------------------------------------------------------------------
+
+	private function latest_raw_email(): array {
+		global $wpdb;
+		$raw = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			"SELECT raw_email FROM {$wpdb->prefix}agnosis_queue ORDER BY id DESC LIMIT 1"
+		);
+		return json_decode( (string) $raw, true ) ?: [];
+	}
+
+	public function test_auth_failed_skip_captures_subject_and_recipient(): void {
+		$this->create_admitted_artist();
+		update_option( 'agnosis_require_email_auth', 1 );
+
+		$this->inbox->set_pending_messages( [
+			new FakeAliasImapMessage( 20, self::ARTIST_EMAIL, self::GOODBYE_ADDR, '', 'Please remove my account' ),
+		] );
+		$this->inbox->run_process_messages( $this->folder );
+
+		$data = $this->latest_raw_email();
+		$this->assertSame( 'Please remove my account', $data['subject'] ?? null );
+		$this->assertContains( self::GOODBYE_ADDR, $data['to_addresses'] ?? [] );
+	}
+
+	public function test_goodbye_throttled_skip_captures_subject_and_recipient(): void {
+		$this->create_admitted_artist();
+		update_option( 'agnosis_goodbye_request_limit', 1 );
+
+		$this->inbox->set_pending_messages( [
+			new FakeAliasImapMessage( 30, self::ARTIST_EMAIL, self::GOODBYE_ADDR, '', 'Goodbye' ),
+		] );
+		$this->inbox->run_process_messages( $this->folder );
+
+		// Second request, same sender, distinct UID — throttled.
+		$this->inbox->set_pending_messages( [
+			new FakeAliasImapMessage( 31, self::ARTIST_EMAIL, self::GOODBYE_ADDR, '', 'Goodbye again' ),
+		] );
+		$this->inbox->run_process_messages( $this->folder );
+
+		$data = $this->latest_raw_email();
+		$this->assertSame( 'goodbye_throttled', $data['skip_reason'] ?? null );
+		$this->assertSame( 'Goodbye again', $data['subject'] ?? null );
+		$this->assertContains( self::GOODBYE_ADDR, $data['to_addresses'] ?? [] );
+	}
 }

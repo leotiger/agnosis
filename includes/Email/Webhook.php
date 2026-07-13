@@ -122,6 +122,16 @@ class Webhook {
 		// had its own byte-identical copy.
 		$recipients = IntakeGates::recipient_addresses( $payload );
 
+		// Raw subject (2026-07-14), computed once here alongside $recipients so
+		// every mark_alias_event() call below in both the goodbye@ and
+		// community@ branches can persist it — mirrors Email\Inbox's own
+		// message_subject()/message_recipient_addresses() capture, closing the
+		// gap where this transport's alias-event rows never carried the
+		// subject/recipient context PostCreator::resolve_endpoint_label() needs
+		// (they were previously always labelled "Unknown"/"Artwork" on the
+		// Inbox admin table, even though this data was sitting right here).
+		$subject = (string) ( $payload['subject'] ?? '' );
+
 		// --- Goodbye alias: self-removal request (no attachment required) ---
 		$goodbye_addr = strtolower( trim( (string) get_option( 'agnosis_email_goodbye', '' ) ) );
 		if ( $goodbye_addr ) {
@@ -140,7 +150,7 @@ class Webhook {
 				// audit's §3b fix paid to eliminate elsewhere.
 				if ( ! $user || ! Admission::is_admitted_artist( $user->ID ) ) {
 					Logger::warning( 'Webhook: goodbye request from non-artist <' . $from_email . '> — ignored.', 'webhook' );
-					$this->mark_alias_event( $payload, $user ? (int) $user->ID : null, 'goodbye_non_artist', $from_email );
+					$this->mark_alias_event( $payload, $user ? (int) $user->ID : null, 'goodbye_non_artist', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'goodbye_non_artist' ], 200 );
 				}
 
@@ -153,7 +163,7 @@ class Webhook {
 				$throttle = RateLimiter::check_sender( 'goodbye_request', $from_email, $limit, DAY_IN_SECONDS );
 				if ( is_wp_error( $throttle ) ) {
 					Logger::warning( 'Webhook: goodbye request from <' . $from_email . '> throttled (' . $limit . '/day limit).', 'webhook' );
-					$this->mark_alias_event( $payload, $user->ID, 'goodbye_throttled', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'goodbye_throttled', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'goodbye_throttled' ], 200 );
 				}
 
@@ -167,10 +177,10 @@ class Webhook {
 				// reason/status).
 				if ( $ok ) {
 					Logger::info( 'Webhook: goodbye request from <' . $from_email . '> (user #' . $user->ID . '): confirmation sent.', 'webhook' );
-					$this->mark_alias_event( $payload, $user->ID, 'goodbye_handled', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'goodbye_handled', $from_email, $subject, $recipients );
 				} else {
 					Logger::warning( 'Webhook: goodbye request from <' . $from_email . '> (user #' . $user->ID . '): no active membership — ignored.', 'webhook' );
-					$this->mark_alias_event( $payload, $user->ID, 'goodbye_no_membership', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'goodbye_no_membership', $from_email, $subject, $recipients );
 				}
 
 				return new WP_REST_Response( [ 'status' => 'goodbye_received' ], 200 );
@@ -193,7 +203,7 @@ class Webhook {
 				// counts against anyone's throttle.
 				if ( $this->is_auto_submitted( $payload ) ) {
 					Logger::info( 'Webhook: community broadcast from <' . $from_email . '> looks like an auto-response (Auto-Submitted header) — ignored, not broadcast.', 'webhook' );
-					$this->mark_alias_event( $payload, null, 'community_auto_submitted', $from_email );
+					$this->mark_alias_event( $payload, null, 'community_auto_submitted', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_auto_submitted' ], 200 );
 				}
 
@@ -205,7 +215,7 @@ class Webhook {
 				// no test or integration depended on the old string.
 				if ( ! $user || ! Admission::is_admitted_artist( $user->ID ) ) {
 					Logger::warning( 'Webhook: community broadcast from non-artist <' . $from_email . '> — ignored.', 'webhook' );
-					$this->mark_alias_event( $payload, $user ? (int) $user->ID : null, 'community_non_artist', $from_email );
+					$this->mark_alias_event( $payload, $user ? (int) $user->ID : null, 'community_non_artist', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_non_artist' ], 200 );
 				}
 
@@ -213,16 +223,21 @@ class Webhook {
 				$throttle = RateLimiter::check_sender( 'community_broadcast', $from_email, $limit, DAY_IN_SECONDS );
 				if ( is_wp_error( $throttle ) ) {
 					Logger::warning( 'Webhook: community broadcast from <' . $from_email . '> throttled (' . $limit . '/day limit).', 'webhook' );
-					$this->mark_alias_event( $payload, $user->ID, 'community_throttled', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'community_throttled', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_throttled' ], 200 );
 				}
 
+				// Reassigns $subject to the sanitized broadcast-body subject from
+				// here on — used for the length/empty checks below, and (deliberately)
+				// still what gets persisted to mark_alias_event() for the remaining
+				// calls in this branch; cosmetically different from the raw value
+				// above (sanitize_text_field trims/strips tags) but the same string.
 				$subject = sanitize_text_field( $payload['subject'] ?? '' );
 				$body    = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
 
 				if ( '' === trim( $subject ) && '' === trim( $body ) ) {
 					( new CommunityBroadcast() )->send_empty_bounce( $user->ID );
-					$this->mark_alias_event( $payload, $user->ID, 'community_empty', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'community_empty', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_empty' ], 200 );
 				}
 
@@ -234,12 +249,12 @@ class Webhook {
 					$length = mb_strlen( $subject ) + mb_strlen( $body );
 					Logger::warning( 'Webhook: community broadcast from <' . $from_email . '> was ' . $length . ' characters — exceeds the configured limit, bounced.', 'webhook' );
 					$broadcast->send_too_long_bounce( $user->ID, $length );
-					$this->mark_alias_event( $payload, $user->ID, 'community_too_long', $from_email );
+					$this->mark_alias_event( $payload, $user->ID, 'community_too_long', $from_email, $subject, $recipients );
 					return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'community_too_long' ], 200 );
 				}
 
 				$sent = $broadcast->broadcast( $user->ID, $subject, $body );
-				$this->mark_alias_event( $payload, $user->ID, 'community_handled', $from_email );
+				$this->mark_alias_event( $payload, $user->ID, 'community_handled', $from_email, $subject, $recipients );
 				return new WP_REST_Response( [ 'status' => 'community_broadcast', 'sent' => $sent ], 200 );
 			}
 		}
@@ -248,6 +263,31 @@ class Webhook {
 		$submission = $parser->parse_webhook_payload( $payload );
 
 		if ( null === $submission ) {
+			// Reply/quote rejection (2026-07-15) — distinguished from the
+			// generic "no images" case via Parser's own last_rejection_reason()
+			// signal. See IntakeGates::is_reply_or_quote()'s docblock for what
+			// this actually matches.
+			if ( 'looks_like_reply' === $parser->last_rejection_reason() ) {
+				Logger::info( 'Webhook: skipped — message from <' . $from_email . '> looks like a reply or quoted message, not an original submission.', 'webhook' );
+
+				$user = get_user_by( 'email', $from_email );
+				if ( $user ) {
+					/**
+					 * Fires when a message looks like a reply/forward carrying
+					 * quoted content rather than an original submission — see
+					 * IntakeGates::is_reply_or_quote(). Same action Inbox.php
+					 * fires on the IMAP transport; Notification.php's registered
+					 * handler covers both.
+					 *
+					 * @param int    $artist_id WordPress user ID of the sender.
+					 * @param string $uid       Logging-only identifier (no queue row exists for this rejection).
+					 */
+					do_action( 'agnosis_submission_looks_like_reply', $user->ID, 'webhook-' . md5( (string) wp_json_encode( $payload ) ) );
+				}
+
+				return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'looks_like_reply' ], 200 );
+			}
+
 			return new WP_REST_Response( [ 'status' => 'skipped', 'reason' => 'no_images' ], 200 );
 		}
 
@@ -590,12 +630,19 @@ class Webhook {
 	 * webhook request already dedupes on message_uid, so this never produces
 	 * a duplicate row for the same physical email.
 	 *
-	 * @param array<string, mixed> $payload    Raw webhook POST payload.
-	 * @param int|null             $artist_id  WP user ID of the sender, if resolved.
-	 * @param string               $reason     Key into self::ALIAS_REASONS (and, optionally, self::ALIAS_STATUSES).
-	 * @param string               $from_email Sender email address, if known.
+	 * @param array<string, mixed> $payload      Raw webhook POST payload.
+	 * @param int|null             $artist_id    WP user ID of the sender, if resolved.
+	 * @param string               $reason       Key into self::ALIAS_REASONS (and, optionally, self::ALIAS_STATUSES).
+	 * @param string               $from_email   Sender email address, if known.
+	 * @param string               $subject      Message subject, if available (2026-07-14) — persisted so
+	 *                                            PostCreator::resolve_endpoint_label() can classify this row on the
+	 *                                            Inbox admin table instead of showing "Unknown"/"Artwork". The data
+	 *                                            was already computed by every call site in handle() (this method
+	 *                                            just wasn't receiving it) — see Email\Inbox::mark_no_artwork()'s
+	 *                                            identical treatment on the IMAP transport.
+	 * @param string[]             $to_addresses Every To:/Cc: recipient on the payload, if available.
 	 */
-	private function mark_alias_event( array $payload, ?int $artist_id, string $reason, string $from_email ): void {
+	private function mark_alias_event( array $payload, ?int $artist_id, string $reason, string $from_email, string $subject = '', array $to_addresses = [] ): void {
 		global $wpdb;
 
 		$error  = self::ALIAS_REASONS[ $reason ] ?? $reason;
@@ -606,7 +653,24 @@ class Webhook {
 		if ( '' !== $from_email ) {
 			$meta['from'] = $from_email;
 		}
-		if ( 'skipped' === $status ) {
+		if ( '' !== $subject ) {
+			$meta['subject'] = $subject;
+		}
+		if ( ! empty( $to_addresses ) ) {
+			$meta['to_addresses'] = array_values( $to_addresses );
+		}
+		// Stored whenever the reason is one InboxPage::resolve_endpoint_label()
+		// actually keys off (its own goodbye_/community_/bounce_ prefix check,
+		// applied REGARDLESS of whether $status is 'skipped' or 'failed' — a
+		// throttled or non-artist goodbye@/community@ hit is still, correctly,
+		// a "Goodbye"/"Community" row, not "Unknown"/"Artwork"), in addition
+		// to the original genuine-success case. Mirrors the identical fix in
+		// Inbox::mark_no_artwork() (2026-07-14) — every reason this method is
+		// ever called with is a goodbye_/community_ one (see this method's own
+		// docblock), so in practice this is now unconditional here, but kept
+		// as an explicit check for parity/readability with the IMAP side.
+		$is_alias_reason = str_starts_with( $reason, 'goodbye_' ) || str_starts_with( $reason, 'community_' );
+		if ( 'skipped' === $status || $is_alias_reason ) {
 			$meta['skip_reason'] = $reason;
 		}
 		$raw = ! empty( $meta ) ? wp_json_encode( $meta ) : '{}';

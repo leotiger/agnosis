@@ -44,15 +44,34 @@ class IntakeGatesTest extends TestCase {
 		$this->assertSame( [ 'goodbye@example.com' ], $addrs );
 	}
 
-	public function test_collects_every_address_across_recipient_to_and_cc_fields(): void {
+	/**
+	 * 2026-07-15: reverses the "fifth audit §5a" broadening this test used to
+	 * cover — Cc: is no longer read at all, and only the FIRST address in
+	 * 'To'/'To' counts, even when 'recipient' is also present (which always
+	 * wins outright, since it's inherently Mailgun's already-disambiguated
+	 * single routed address). No CC, no secondary To: recipient — see
+	 * IntakeGates::recipient_addresses()'s own docblock.
+	 */
+	public function test_ignores_cc_and_any_secondary_to_address(): void {
 		$addrs = IntakeGates::recipient_addresses( [
 			'recipient' => 'primary@example.com',
 			'To'        => 'primary@example.com, other@example.com',
 			'Cc'        => 'cc-one@example.com',
 		] );
 
-		sort( $addrs );
-		$this->assertSame( [ 'cc-one@example.com', 'other@example.com', 'primary@example.com' ], $addrs );
+		$this->assertSame( [ 'primary@example.com' ], $addrs );
+	}
+
+	public function test_takes_only_the_first_to_address_when_recipient_field_is_absent(): void {
+		$addrs = IntakeGates::recipient_addresses( [ 'To' => 'first@example.com, second@example.com' ] );
+
+		$this->assertSame( [ 'first@example.com' ], $addrs );
+	}
+
+	public function test_ignores_cc_entirely_when_recipient_and_to_are_both_absent(): void {
+		$addrs = IntakeGates::recipient_addresses( [ 'Cc' => 'cc-only@example.com' ] );
+
+		$this->assertSame( [], $addrs );
 	}
 
 	public function test_extracts_bare_address_out_of_display_name_format(): void {
@@ -157,11 +176,12 @@ class IntakeGatesTest extends TestCase {
 
 	/**
 	 * Inbox::SKIP_REASONS must contain every shared entry verbatim, plus its
-	 * own five IMAP-only gate reasons and two bounce/DSN reasons — and, since
-	 * the Inbox admin table's reason-filter dropdown iterates this constant
-	 * in order, the key order must be unchanged from before this refactor:
-	 * the five IMAP-only gate reasons first, then the ten shared ones, then
-	 * the two bounce/DSN reasons.
+	 * own six IMAP-only gate reasons (2026-07-15: 'looks_like_reply' joined
+	 * the original five) and two bounce/DSN reasons — and, since the Inbox
+	 * admin table's reason-filter dropdown iterates this constant in order,
+	 * the key order must be unchanged from before this refactor: the six
+	 * IMAP-only gate reasons first, then the ten shared ones, then the two
+	 * bounce/DSN reasons.
 	 */
 	public function test_inbox_skip_reasons_contains_every_shared_reason_in_the_original_order(): void {
 		$skip_reasons = $this->class_const( Inbox::class, 'SKIP_REASONS' );
@@ -172,6 +192,7 @@ class IntakeGatesTest extends TestCase {
 			'throttled',
 			'auth_failed',
 			'no_attachments',
+			'looks_like_reply',
 			'goodbye_non_artist',
 			'goodbye_handled',
 			'goodbye_no_membership',
@@ -190,6 +211,36 @@ class IntakeGatesTest extends TestCase {
 		foreach ( IntakeGates::SHARED_ALIAS_REASONS as $key => $text ) {
 			$this->assertSame( $text, $skip_reasons[ $key ], "Inbox::SKIP_REASONS['$key'] drifted from IntakeGates::SHARED_ALIAS_REASONS." );
 		}
+	}
+
+	// =========================================================================
+	// is_reply_or_quote()
+	// =========================================================================
+
+	public function test_reply_or_quote_matches_re_prefixed_subject(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'Re: My new painting', 'Just finished this one.' ) );
+	}
+
+	public function test_reply_or_quote_matches_re_prefix_case_insensitively_and_with_extra_space(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 're :  status update', 'Body text.' ) );
+	}
+
+	public function test_reply_or_quote_matches_agnosis_bracket_anywhere_in_subject(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'Fwd: [Agnosis] Your submission was received', 'Body text.' ) );
+	}
+
+	public function test_reply_or_quote_matches_on_date_name_wrote_attribution_line(): void {
+		$body = "Sounds good!\n\nOn 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Original quoted content here.";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My new piece', $body ) );
+	}
+
+	public function test_reply_or_quote_matches_outlook_original_message_separator(): void {
+		$body = "See attached.\n\n-----Original Message-----\nFrom: someone@example.com\nSubject: Old thread";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My new piece', $body ) );
+	}
+
+	public function test_reply_or_quote_returns_false_for_a_genuine_original_submission(): void {
+		$this->assertFalse( IntakeGates::is_reply_or_quote( 'My new painting', 'Just finished this one, hope you like it.' ) );
 	}
 
 	public function test_inbox_skip_statuses_contains_every_shared_status_plus_its_own_bounce_statuses(): void {

@@ -655,13 +655,18 @@ class InboxPage {
 	 * Label for the Endpoint column (patch 18) — which email address a
 	 * submission was sent to, or which alias it hit.
 	 *
-	 * goodbye@/community@/bounce events (security audit §5a) never carry a
-	 * normal submission shape — their raw_email is just `{"from":...,
-	 * "skip_reason":...}` (see Webhook::mark_alias_event()), so they're
-	 * labelled straight from $skip_reason rather than being handed to
-	 * PostCreator::resolve_endpoint_label(), which would otherwise fall
-	 * through to its "Artwork" default for lack of any recipient/subject
-	 * signal to read.
+	 * goodbye@/community@/bounce events (security audit §5a) are labelled
+	 * straight from $skip_reason rather than being handed to
+	 * PostCreator::resolve_endpoint_label() — a plain skip_reason string
+	 * match is simpler and unambiguous, and keeps working even if the
+	 * goodbye@/community@ addresses are reconfigured later. This is not
+	 * (or no longer, as of 2026-07-14) a workaround for missing data:
+	 * Inbox::mark_no_artwork() stashes subject/to_addresses for every skip
+	 * reason it has them for, including these three, so
+	 * PostCreator::resolve_endpoint_label() would now actually classify
+	 * them correctly too (it recognises the goodbye@/community@ addresses
+	 * itself) — it's just redundant to route through address-matching when
+	 * the reason string alone already says which alias fired.
 	 *
 	 * @param array<string, mixed> $data        Decoded raw_email JSON for this row.
 	 * @param string               $skip_reason This row's skip_reason, if any (already

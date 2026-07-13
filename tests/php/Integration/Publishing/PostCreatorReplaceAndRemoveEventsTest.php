@@ -278,4 +278,230 @@ class PostCreatorReplaceAndRemoveEventsTest extends \WP_UnitTestCase {
 		$this->assertSame( $post_id, $suggestion_id );
 		$this->assertSame( 'Solo show at Gallery X', $suggestion_title );
 	}
+
+	// -------------------------------------------------------------------------
+	// handle_removal_request() — an exact title matching MORE than one post
+	// (2026-07-14): an artwork and an event are free to share a title, so a
+	// remove@ subject can legitimately match both. This must offer a choice
+	// rather than silently acting on (or arbitrarily picking) just one.
+	// -------------------------------------------------------------------------
+
+	public function test_removal_request_with_shared_title_across_artwork_and_event_stores_a_token_on_both(): void {
+		$artwork_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+		$event_id = wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+
+		$this->call_handle_removal_request( [ 'subject' => 'Golden Hour' ], $this->artist_id );
+
+		$this->assertNotEmpty( get_post_meta( $artwork_id, '_agnosis_removal_token', true ) );
+		$this->assertNotEmpty( get_post_meta( $event_id, '_agnosis_removal_token', true ) );
+		// The two tokens must be independent, not the same value copied twice.
+		$this->assertNotSame(
+			get_post_meta( $artwork_id, '_agnosis_removal_token', true ),
+			get_post_meta( $event_id, '_agnosis_removal_token', true )
+		);
+	}
+
+	public function test_removal_request_with_shared_title_returns_true(): void {
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+
+		$result = $this->call_handle_removal_request( [ 'subject' => 'Golden Hour' ], $this->artist_id );
+
+		$this->assertTrue( $result );
+	}
+
+	public function test_removal_request_with_shared_title_fires_multiple_action_not_the_single_one(): void {
+		$artwork_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+		$event_id = wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+
+		$single_calls   = [];
+		$multiple_calls = [];
+		add_action( 'agnosis_removal_requested', function ( ...$args ) use ( &$single_calls ): void {
+			$single_calls[] = $args;
+		}, 10, 10 );
+		add_action( 'agnosis_removal_requested_multiple', function ( ...$args ) use ( &$multiple_calls ): void {
+			$multiple_calls[] = $args;
+		}, 10, 10 );
+
+		$this->call_handle_removal_request( [ 'subject' => 'Golden Hour' ], $this->artist_id );
+
+		$this->assertCount( 0, $single_calls, 'The single-post action must not fire when more than one post matched.' );
+		$this->assertCount( 1, $multiple_calls );
+
+		[ $matches, $artist_id, $subject ] = $multiple_calls[0];
+		$this->assertSame( $this->artist_id, $artist_id );
+		$this->assertSame( 'Golden Hour', $subject );
+		$this->assertCount( 2, $matches );
+
+		$matched_ids = array_column( $matches, 'id' );
+		$this->assertContains( $artwork_id, $matched_ids );
+		$this->assertContains( $event_id, $matched_ids );
+
+		foreach ( $matches as $match ) {
+			$this->assertNotEmpty( $match['token'] );
+			$this->assertSame(
+				get_post_meta( $match['id'], '_agnosis_removal_token', true ),
+				$match['token'],
+				'The token passed to the action must be the exact one persisted to post meta.'
+			);
+			$this->assertContains( $match['type'], [ 'agnosis_artwork', 'agnosis_event' ] );
+		}
+	}
+
+	public function test_removal_request_with_shared_title_does_not_match_a_third_artist_own_post(): void {
+		// Sanity check: the multi-match branch is still scoped per-artist —
+		// a same-titled post belonging to someone else must never appear
+		// alongside this artist's own matches.
+		$other_artist_id = self::factory()->user->create( [ 'role' => 'subscriber' ] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $other_artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+
+		$artwork_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+		$event_id = wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Golden Hour',
+		] );
+
+		$calls = $this->capture_action( 'agnosis_removal_requested_multiple', function () {
+			$this->call_handle_removal_request( [ 'subject' => 'Golden Hour' ], $this->artist_id );
+		} );
+
+		$this->assertCount( 1, $calls );
+		$matched_ids = array_column( $calls[0][0], 'id' );
+		$this->assertCount( 2, $matched_ids );
+		$this->assertContains( $artwork_id, $matched_ids );
+		$this->assertContains( $event_id, $matched_ids );
+	}
+
+	// -------------------------------------------------------------------------
+	// resolve_endpoint_label() — Inbox admin table's Endpoint column (2026-07-14).
+	// A remove@/promote@ message that still ends up in a mark_no_artwork()
+	// skip row (e.g. Email\Parser's management-address exemption missing an
+	// edge case) must be labelled by its real recipient, not fall back to the
+	// "Artwork" default — Inbox::mark_no_artwork() was just fixed to stash
+	// 'subject'/'to_addresses' in that scenario; this confirms the label
+	// resolution on the reading end actually uses them correctly.
+	// -------------------------------------------------------------------------
+
+	public function test_resolve_endpoint_label_recognises_remove_address(): void {
+		update_option( 'agnosis_email_remove', 'remove@example.com' );
+
+		$label = PostCreator::resolve_endpoint_label( [
+			'subject'      => 'Golden Hour',
+			'to_addresses' => [ 'remove@example.com' ],
+		] );
+
+		$this->assertSame( 'Remove', $label );
+
+		delete_option( 'agnosis_email_remove' );
+	}
+
+	public function test_resolve_endpoint_label_recognises_promote_address(): void {
+		update_option( 'agnosis_email_promote', 'promote@example.com' );
+
+		$label = PostCreator::resolve_endpoint_label( [
+			'subject'      => 'Golden Hour',
+			'to_addresses' => [ 'promote@example.com' ],
+		] );
+
+		$this->assertSame( 'Promote', $label );
+
+		delete_option( 'agnosis_email_promote' );
+	}
+
+	public function test_resolve_endpoint_label_reports_unknown_without_any_recipient_or_subject_context(): void {
+		update_option( 'agnosis_email_remove', 'remove@example.com' );
+
+		// The exact stale-row shape the original bug produced: only 'from'
+		// was ever stashed, so the label resolver has nothing to classify by
+		// at all. This must say so plainly — "Artwork" would be asserting a
+		// specific, likely wrong, classification for a message this code
+		// never actually looked at.
+		$label = PostCreator::resolve_endpoint_label( [ 'from' => 'artist@example.com' ] );
+
+		$this->assertSame( 'Unknown', $label );
+
+		delete_option( 'agnosis_email_remove' );
+	}
+
+	public function test_resolve_endpoint_label_returns_artwork_only_when_context_was_captured_and_matched_nothing_special(): void {
+		// Unlike the "no context at all" case above, a row that DID capture a
+		// subject/recipient — and that context simply didn't match any
+		// special route or subject indicator — really is the same "Artwork"
+		// default resolve_post_type() itself would land on, so this remains
+		// a genuine classification rather than a guess.
+		$label = PostCreator::resolve_endpoint_label( [
+			'subject'      => 'Golden Hour',
+			'to_addresses' => [ 'submit@example.com' ],
+		] );
+
+		$this->assertSame( 'Artwork', $label );
+	}
+
+	public function test_resolve_endpoint_label_recognises_goodbye_address(): void {
+		update_option( 'agnosis_email_goodbye', 'goodbye@example.com' );
+
+		$label = PostCreator::resolve_endpoint_label( [
+			'subject'      => 'Goodbye',
+			'to_addresses' => [ 'goodbye@example.com' ],
+		] );
+
+		$this->assertSame( 'Goodbye', $label );
+
+		delete_option( 'agnosis_email_goodbye' );
+	}
+
+	public function test_resolve_endpoint_label_recognises_community_address(): void {
+		update_option( 'agnosis_email_community', 'community@example.com' );
+
+		$label = PostCreator::resolve_endpoint_label( [
+			'subject'      => 'Announcement',
+			'to_addresses' => [ 'community@example.com' ],
+		] );
+
+		$this->assertSame( 'Community', $label );
+
+		delete_option( 'agnosis_email_community' );
+	}
 }

@@ -20,6 +20,27 @@ use Webklex\PHPIMAP\Message;
 class Parser {
 
 	/**
+	 * Set right before parse_imap_message()/parse_webhook_payload() returns
+	 * null, so the caller (Inbox::process_messages()) can tell WHY without
+	 * changing the long-established `?array` return contract itself.
+	 * '' means the most recent parse either succeeded or fell through to the
+	 * generic no-attachments/no-text rejection (Inbox's existing default).
+	 * Reset at the top of each call — a single Parser instance is reused
+	 * across every message in one poll cycle, so a stale value from a
+	 * previous message must never leak into the next one's decision.
+	 *
+	 * @var string
+	 */
+	private string $last_rejection_reason = '';
+
+	/**
+	 * @see $last_rejection_reason
+	 */
+	public function last_rejection_reason(): string {
+		return $this->last_rejection_reason;
+	}
+
+	/**
 	 * Allowed attachment MIME types.
 	 *
 	 * Images are described and (optionally) enhanced as-is. Audio is
@@ -124,6 +145,8 @@ class Parser {
 	 * @return array<string, mixed>|null Submission data, or null if the message should be skipped.
 	 */
 	public function parse_imap_message( Message $message ): ?array {
+		$this->last_rejection_reason = '';
+
 		// Inbox::query_messages() deliberately builds its IMAP query with
 		// fetchBody(false) — the initial listing pulls headers only, for
 		// speed, so the cheap gates in Inbox::process_messages() (admitted
@@ -187,25 +210,20 @@ class Parser {
 			$to_address = strtolower( sanitize_email( (string) $to_addresses[0]->mail ) );
 		}
 
-		// --- All To:/Cc: recipients (fifth audit §5a) ---
-		// PostCreator::resolve_post_type() used to match aliases against
-		// $to_address alone (the first To: address) — an artist writing to
-		// remove@/promote@/etc. while CCing a friend, or whose mail client
-		// serialised To: in an unexpected order, silently fell through to the
-		// plain artwork pipeline. Collected here (headers already fetched for
-		// From:/To: above — Cc: is the same cheap header read, no extra IMAP
-		// round trip) so routing can check every recipient, not just the first.
-		$all_recipients = [];
-		foreach ( $to_addresses as $addr ) {
-			$all_recipients[] = strtolower( sanitize_email( (string) $addr->mail ) );
-		}
-		try {
-			foreach ( $message->getCc()->toArray() as $addr ) {
-				$all_recipients[] = strtolower( sanitize_email( (string) $addr->mail ) );
-			}
-		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- message double doesn't implement getCc() (e.g. some test fakes); To: addresses alone are still collected above.
-		}
-		$all_recipients = array_values( array_unique( array_filter( $all_recipients ) ) );
+		// --- Primary recipient only (2026-07-15) ---
+		// PostCreator::resolve_post_type() matches aliases against this list —
+		// previously (fifth audit §5a) it held every To:/Cc: recipient, so a
+		// message reached remove@/promote@/etc. even via Cc: or a non-first To:
+		// address. That broadening is now intentionally reversed per explicit
+		// product policy: we don't accept Cc:, and only the FIRST To: address
+		// counts — a message addressed to us any other way is rejected outright
+		// by Inbox's recognised-recipient/BCC gate before parse_imap_message()
+		// is even reached (see Inbox::message_recipient_addresses()'s own
+		// docblock for the IMAP-side half of this same policy). $all_recipients
+		// is therefore just $to_address itself now, wrapped as a single-element
+		// array purely so resolve_post_type()'s existing array-shaped
+		// 'to_addresses' contract needs no changes.
+		$all_recipients = '' !== $to_address ? [ $to_address ] : [];
 
 		// --- Subject ---
 		$subject = sanitize_text_field( (string) $message->getSubject() );
@@ -213,6 +231,23 @@ class Parser {
 		// --- Plain-text body ---
 		// getTextBody() returns string — cast directly, no ?? needed.
 		$text_body = (string) $message->getTextBody();
+
+		// --- Reply/quote rejection (2026-07-15) — checked before attachment
+		// processing, deliberately: a reply carrying a genuine attachment is
+		// still rejected, since the policy is about original, curated content,
+		// not about whether a file happens to be attached. See
+		// IntakeGates::is_reply_or_quote()'s own docblock for exactly what's
+		// matched and why (including the Reply-To-driven "just hit reply to
+		// submit again" feature this is meant to catch when the artist doesn't
+		// clear the quoted thread first).
+		if ( IntakeGates::is_reply_or_quote( $subject, $text_body ) ) {
+			Logger::info(
+				'Parser: UID ' . (string) $message->getUid() . ' looks like a reply or quoted message, not an original submission — skipped.',
+				'inbox'
+			);
+			$this->last_rejection_reason = 'looks_like_reply';
+			return null;
+		}
 
 		// --- Attachments (image, audio, or video) ---
 		$attachments = [];
@@ -365,17 +400,36 @@ class Parser {
 
 		$cleaned_description = $this->clean_text( $text_body );
 
+		// remove@/promote@ identify their target purely by SUBJECT line — no
+		// attachment, and typically no body text either (a quick "delete this"
+		// email is often sent with an empty body). Those two are the one case
+		// this parser must let through on subject alone: PostCreator's
+		// handle_removal_request()/handle_promote_request() only ever read
+		// $submission['subject'], never description or attachments. Without
+		// this exemption, a genuinely empty-body remove@/promote@ email was
+		// silently rejected right here as "nothing usable" before PostCreator
+		// ever got a chance to route it — surfacing as a false "no valid
+		// image, audio, or video attachment" skip in the Inbox admin table for
+		// a request that was never supposed to need one (2026-07-14).
+		$remove_addr    = strtolower( trim( (string) get_option( 'agnosis_email_remove', '' ) ) );
+		$promote_addr   = strtolower( trim( (string) get_option( 'agnosis_email_promote', '' ) ) );
+		$is_management  = '' !== $subject && (
+			( '' !== $remove_addr && in_array( $remove_addr, $all_recipients, true ) )
+			|| ( '' !== $promote_addr && in_array( $promote_addr, $all_recipients, true ) )
+		);
+
 		// Poetry is art too, and a biography can be text-only — an email with
 		// no attachment isn't automatically empty. Only reject when there's
-		// truly nothing to publish: no attachment AND no real text. This lets
-		// bio@/pure@ (and, as a side effect, event@/remove@/promote@, none of
-		// which ever depended on an attachment downstream) through; PostCreator
+		// truly nothing to publish: no attachment, no real text, and it isn't
+		// a remove@/promote@ request (which needs neither — see above). This
+		// lets bio@/pure@/event@ (none of which ever depended on an
+		// attachment downstream) through on body text alone; PostCreator
 		// already has its own attachment-optional handling for those post
 		// types (see PostCreator::handle()'s "Biography/event emails may have
 		// no attachments" branch) — a genuinely new agnosis_artwork submission
 		// still needs either an attachment or text, which this same check
 		// still enforces.
-		if ( empty( $attachments ) && '' === $cleaned_description ) {
+		if ( empty( $attachments ) && '' === $cleaned_description && ! $is_management ) {
 			return null; // Nothing usable — skip.
 		}
 
@@ -435,6 +489,8 @@ class Parser {
 	 * @return array<string, mixed>|null
 	 */
 	public function parse_webhook_payload( array $payload ): ?array {
+		$this->last_rejection_reason = '';
+
 		$from         = sanitize_email( $payload['sender'] ?? $payload['from'] ?? '' );
 		$to_address   = strtolower( sanitize_email( $payload['recipient'] ?? $payload['to'] ?? '' ) );
 		// IntakeGates::recipient_addresses() (sixth audit §6) is the same
@@ -443,7 +499,16 @@ class Parser {
 		$to_addresses = IntakeGates::recipient_addresses( $payload );
 		$subject      = sanitize_text_field( $payload['subject'] ?? '' );
 		$description  = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
-		$attachments  = [];
+
+		// Reply/quote rejection (2026-07-15) — mirrors parse_imap_message()'s
+		// identical check; see IntakeGates::is_reply_or_quote()'s own docblock.
+		if ( IntakeGates::is_reply_or_quote( $subject, $description ) ) {
+			Logger::info( 'Parser: webhook payload looks like a reply or quoted message, not an original submission — skipped.', 'inbox' );
+			$this->last_rejection_reason = 'looks_like_reply';
+			return null;
+		}
+
+		$attachments = [];
 
 		// Mailgun / SendGrid attach files differently — handle both.
 		$attachment_count = (int) ( $payload['attachment-count'] ?? 0 );
