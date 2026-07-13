@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:         
-  2026-07-13 22:26:32         
+  2026-07-13 22:59:44         
                               
  Summary:                     
   Classes:  3.45% (3/87)      
   Methods:  7.18% (64/891)    
-  Lines:    6.66% (1112/16693)
+  Lines:    6.66% (1112/16698)
 
 Agnosis\AI\CallCounter
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/  9)
@@ -169,7 +169,7 @@ Agnosis\Publishing\GalleryOverview
 Agnosis\Publishing\Notification
   Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/1007)
 Agnosis\Publishing\PostCreator
-  Methods:   8.82% ( 3/34)   Lines:   5.51% ( 56/1017)
+  Methods:   8.82% ( 3/34)   Lines:   5.48% ( 56/1022)
 Agnosis\Publishing\RemovalEndpoints
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 91)
 Agnosis\Publishing\ReviewConfirm

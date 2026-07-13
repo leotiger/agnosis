@@ -5,6 +5,12 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.26]
+
+### Fixed
+- **The remove@ "we couldn't find that title" feedback email listed the artist's current titles once PER LANGUAGE SIBLING, not once per real work — on a multi-language site "Popcorn" could appear a dozen times in a row while genuinely distinct titles got crowded out of the list entirely (`gather_title_context()`'s `posts_per_page => 20` cap).** Artwork/event titles are never translated (the dual-title system keeps `post_title` byte-identical across the primary post, its native-language sibling, and every Lingua Forge machine-translated sibling — only the separately-stored display title differs), so every one of those siblings surfaced as its own "current title" row despite being the exact same work. `gather_title_context()` now applies the same `primary_language_meta_query()` scoping `find_post_by_subject()`/`find_posts_by_subject()` already used elsewhere in this file, collapsing back to one row per real work. (`includes/Publishing/PostCreator.php`)
+- **The remove@ "which one did you mean?" choice email could offer two options that were really the same underlying confusion — two rows of the SAME post type (e.g. two `agnosis_artwork` drafts) sharing an exact title, one of them not genuinely "real" content the artist would recognise — rather than only the legitimate case this email exists for: a title genuinely shared across an artwork AND an event.** `find_posts_by_subject()` now collapses to at most one match per post type (the first, per its own existing stable `orderby => 'type title'` ordering) before deciding whether to offer a choice at all — two same-type duplicates now silently resolve to the single-match path exactly as if the duplicate never existed, while a genuine artwork/event title collision still offers the choice as before. (`includes/Publishing/PostCreator.php`)
+
 ## [0.9.25]
 
 ### Added

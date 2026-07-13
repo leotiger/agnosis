@@ -280,6 +280,83 @@ class PostCreatorReplaceAndRemoveEventsTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// gather_title_context() — the "no exact match" feedback email's current-
+	// titles list must not repeat the same title once per Lingua Forge
+	// language sibling (2026-07-16). post_title is never translated for
+	// artwork/event (the dual-title system keeps it byte-identical across
+	// every sibling), so without primary-language scoping the same work
+	// appeared once per configured site language — on a multi-language site
+	// this could crowd out the artist's genuinely distinct titles entirely
+	// within gather_title_context()'s posts_per_page => 20 cap.
+	// -------------------------------------------------------------------------
+
+	public function test_removal_target_not_found_titles_exclude_translated_siblings(): void {
+		if ( ! defined( 'LINGUAFORGE_VERSION' ) ) {
+			define( 'LINGUAFORGE_VERSION', '1.0.0-test' );
+		}
+		if ( ! defined( 'LINGUAFORGE_FILE' ) ) {
+			define( 'LINGUAFORGE_FILE', '/tmp/linguaforge.php' );
+		}
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		// The primary post — no _lf_lang yet is also a valid "primary" shape
+		// (see primary_language_meta_query()'s own docblock), but set it
+		// explicitly here to also prove the "_lf_lang equals primary" branch.
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Popcorn',
+			'meta_input'  => [ '_lf_lang' => 'en' ],
+		] );
+
+		// A machine-translated German sibling of the SAME work — identical
+		// title (never translated), but must not count as a second candidate.
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Popcorn',
+			'meta_input'  => [ '_lf_lang' => 'de' ],
+		] );
+
+		// A genuinely different work, also with a translated sibling.
+		wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'El tres percent',
+			'meta_input'  => [ '_lf_lang' => 'en' ],
+		] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'El tres percent',
+			'meta_input'  => [ '_lf_lang' => 'de' ],
+		] );
+
+		$calls = $this->capture_action( 'agnosis_removal_target_not_found', function () {
+			$this->call_handle_removal_request( [ 'subject' => 'Crossing the Threshold' ], $this->artist_id );
+		} );
+
+		[ , , $titles ] = $calls[0];
+		$this->assertSame(
+			1,
+			count( array_filter( $titles, static fn( string $t ) => 'Popcorn' === $t ) ),
+			'Popcorn must appear exactly once, not once per language sibling.'
+		);
+		$this->assertSame(
+			1,
+			count( array_filter( $titles, static fn( string $t ) => 'El tres percent' === $t ) ),
+			'El tres percent must appear exactly once, not once per language sibling.'
+		);
+		$this->assertCount( 2, $titles, 'Two distinct works, four posts total — only the two primary-language rows should be listed.' );
+
+		delete_option( 'linguaforge_primary_language' );
+	}
+
+	// -------------------------------------------------------------------------
 	// handle_removal_request() — an exact title matching MORE than one post
 	// (2026-07-14): an artwork and an event are free to share a title, so a
 	// remove@ subject can legitimately match both. This must offer a choice
@@ -412,6 +489,80 @@ class PostCreatorReplaceAndRemoveEventsTest extends \WP_UnitTestCase {
 		$this->assertCount( 2, $matched_ids );
 		$this->assertContains( $artwork_id, $matched_ids );
 		$this->assertContains( $event_id, $matched_ids );
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_removal_request() — two matches of the SAME post type must
+	// collapse to one, not offer a choice (2026-07-16). Unlike an artwork and
+	// an event genuinely sharing a title (a real, if uncommon, case — see the
+	// tests above), two rows of the SAME type matching an exact title is
+	// virtually never "the artist has two different artworks with the exact
+	// same name" — the multi-choice email exists specifically for the
+	// cross-type case, not to surface same-type duplicates as if they were
+	// equally legitimate options.
+	// -------------------------------------------------------------------------
+
+	public function test_removal_request_with_two_same_type_matches_collapses_to_a_single_match(): void {
+		$first_id = wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Crossing the Threshold',
+		] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'draft',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Crossing the Threshold',
+		] );
+
+		$single_calls   = [];
+		$multiple_calls = [];
+		add_action( 'agnosis_removal_requested', function ( ...$args ) use ( &$single_calls ): void {
+			$single_calls[] = $args;
+		}, 10, 10 );
+		add_action( 'agnosis_removal_requested_multiple', function ( ...$args ) use ( &$multiple_calls ): void {
+			$multiple_calls[] = $args;
+		}, 10, 10 );
+
+		$this->call_handle_removal_request( [ 'subject' => 'Crossing the Threshold' ], $this->artist_id );
+
+		$this->assertCount( 1, $single_calls, 'Two same-type matches must collapse to the single-post action, not the multi-choice one.' );
+		$this->assertCount( 0, $multiple_calls );
+		$this->assertSame( $first_id, $single_calls[0][0], 'The first match per the query\'s stable ordering must be the one kept.' );
+	}
+
+	public function test_removal_request_with_same_type_duplicates_plus_a_different_type_still_offers_a_choice(): void {
+		// Three rows: two agnosis_artwork duplicates (collapse to one) and one
+		// agnosis_event — the artist should still be offered a genuine
+		// artwork-vs-event choice, exactly as if the duplicate never existed.
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Crossing the Threshold',
+		] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'draft',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Crossing the Threshold',
+		] );
+		wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Crossing the Threshold',
+		] );
+
+		$calls = $this->capture_action( 'agnosis_removal_requested_multiple', function () {
+			$this->call_handle_removal_request( [ 'subject' => 'Crossing the Threshold' ], $this->artist_id );
+		} );
+
+		$this->assertCount( 1, $calls );
+		$matches = $calls[0][0];
+		$this->assertCount( 2, $matches, 'Exactly one artwork and one event — the artwork duplicate must not add a third option.' );
+		$this->assertSame( [ 'agnosis_artwork', 'agnosis_event' ], array_column( $matches, 'type' ) );
 	}
 
 	// -------------------------------------------------------------------------

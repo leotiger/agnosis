@@ -1338,18 +1338,32 @@ class PostCreator {
 
 	/**
 	 * Find EVERY post — across every eligible type, not just the first hit —
-	 * matching an exact title for a given artist.
+	 * matching an exact title for a given artist, collapsed to at most ONE
+	 * match per post type (2026-07-16).
 	 *
 	 * Used by remove@ (handle_removal_request()): an artist's artwork and
 	 * event titles aren't required to be unique from each other (nothing
 	 * enforces that — they're two separate post types, each free to reuse
 	 * whatever title the artist likes), so a subject that happens to match
 	 * both an artwork and an event by the same name is a real, if uncommon,
-	 * case — not a bug to collapse silently onto whichever one
-	 * find_post_by_subject() happens to return first. Every other caller of
-	 * the singular find_post_by_subject() (replace@, event@ resend-in-place)
-	 * intentionally wants exactly one best match and is unaffected by this
-	 * method's existence.
+	 * case, worth offering the artist a choice between — not a bug to
+	 * collapse silently onto whichever one find_post_by_subject() happens to
+	 * return first. Every other caller of the singular find_post_by_subject()
+	 * (replace@, event@ resend-in-place) intentionally wants exactly one best
+	 * match and is unaffected by this method's existence.
+	 *
+	 * Collapsing to one match per TYPE (2026-07-16) closes a real confusion:
+	 * two rows of the SAME post type matching an exact title is virtually
+	 * never "the artist genuinely has two different artworks with the exact
+	 * same title" — far more often it's an artefact (a stale/abandoned draft
+	 * from an earlier attempt, or a data quirk this scoping doesn't fully
+	 * catch) that has no business being offered as a distinct, equally-valid
+	 * "which one did you mean?" choice next to the artist's real work. The
+	 * "different CPTs sharing a title" case above is the only scenario this
+	 * method's multi-match design is actually for; two same-type rows are
+	 * reduced to the single one this query's own stable `orderby` ranks
+	 * first, exactly like find_post_by_subject() (singular) already would if
+	 * it were only ever asked about that one type.
 	 *
 	 * Same primary-language-only scoping as find_post_by_subject() — a
 	 * translated sibling is never an independent match target; removing the
@@ -1359,7 +1373,7 @@ class PostCreator {
 	 * @param string          $subject   Post title to match.
 	 * @param int             $artist_id WordPress user ID.
 	 * @param string|string[] $post_type CPT slug, or an array of slugs to search across.
-	 * @return int[] Matching post IDs (empty array if none).
+	 * @return int[] Matching post IDs, at most one per distinct post type (empty array if none).
 	 */
 	private function find_posts_by_subject( string $subject, int $artist_id, string|array $post_type = 'agnosis_artwork' ): array {
 		if ( ! $subject || ! $artist_id ) {
@@ -1376,10 +1390,23 @@ class PostCreator {
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
-			'orderby'        => 'type title', // stable, deterministic ordering for the confirmation email
+			'orderby'        => 'type title', // stable, deterministic ordering — also what "first per type wins" below relies on.
 			'order'          => 'ASC',
 		], $this->primary_language_meta_query() ) );
-		return array_map( 'intval', $matches );
+
+		// One match per post type — see this method's own docblock. The
+		// 'type title' ASC ordering above already groups same-type rows
+		// together, so the first ID encountered for a given type is kept and
+		// every subsequent same-type row is dropped.
+		$first_per_type = [];
+		foreach ( $matches as $post_id ) {
+			$type = (string) get_post_type( (int) $post_id );
+			if ( ! isset( $first_per_type[ $type ] ) ) {
+				$first_per_type[ $type ] = (int) $post_id;
+			}
+		}
+
+		return array_values( $first_per_type );
 	}
 
 	/**
@@ -1644,6 +1671,23 @@ class PostCreator {
 	 * most one get_posts() call and, when the subject is non-empty and at
 	 * least one candidate exists, one cheap chat() call.
 	 *
+	 * Primary-language-only scoping (2026-07-16 — via the same
+	 * primary_language_meta_query() find_post_by_subject()/
+	 * find_posts_by_subject() already use, never applied here before): titles
+	 * are never translated for artwork/event (the dual-title system keeps
+	 * post_title byte-identical across every Lingua Forge language sibling —
+	 * only the separately-stored display title differs), so without this
+	 * scoping every OTHER language version of the exact same work — the
+	 * primary post, its native-language sibling, and every LF machine-
+	 * translated sibling — surfaced as its own row here, each with the
+	 * identical title. On a site with several configured languages this
+	 * "current titles" list was less a list of the artist's distinct works
+	 * and more the same handful of titles repeated once per language, at
+	 * `posts_per_page => 20` frequently crowding out genuinely different
+	 * titles entirely. This scoping collapses that back to one row per real
+	 * work, matching find_posts_by_subject()'s identical fix for the exact-
+	 * match path.
+	 *
 	 * @param string          $subject      Subject line that didn't match exactly.
 	 * @param int             $artist_id    WordPress user ID.
 	 * @param string|string[] $post_type    CPT slug, or an array of slugs to search across.
@@ -1657,7 +1701,11 @@ class PostCreator {
 			return $empty;
 		}
 
-		$candidates = get_posts( [
+		// 'fields' => 'ids' guarantees an int[] at runtime; phpstan can't see
+		// through the array_merge() to confirm it statically, hence the assert
+		// (same as find_post_by_subject()/find_posts_by_subject() above).
+		/** @var array<int, int> $candidates */
+		$candidates = get_posts( array_merge( [
 			'post_type'      => $post_type,
 			'author'         => $artist_id,
 			'post_status'    => $post_status,
@@ -1666,7 +1714,7 @@ class PostCreator {
 			'order'          => 'DESC',
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
-		] );
+		], $this->primary_language_meta_query() ) );
 
 		$titles_map = [];
 		foreach ( $candidates as $pid ) {

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.25
+Stable tag: 0.9.26
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.26 =
+* Fixed: The remove@ "we couldn't find that title" email listed the artist's current titles once per language version of each work instead of once per work — on a multi-language site the same title could repeat many times while other titles got crowded out of the list.
+* Fixed: The remove@ "which one did you mean?" choice email could offer two options that were really just duplicate rows of the same post type, instead of only the genuine case this exists for — a title shared across an artwork and an event.
+
 = 0.9.25 =
 * Added: A remove@/promote@ management email whose subject matches more than one post (e.g. an artwork and an event with the same title) now gets a confirmation email listing every match, each with its own individual removal link — instead of only acting on one of them.
 * Added: The IMAP inbox now deletes mail that was never actually addressed to one of this site's own configured endpoints (e.g. BCC'd mail) instead of letting it reach the queue — Agnosis does not accept BCC submissions.
@@ -79,11 +83,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: The "Inbox retention (days)" cleanup only deleted mail already marked read on the mail server — a lot of mail this plugin fully handles (spam/unregistered senders, throttled resends, goodbye@ requests) never gets marked read at all, so it was piling up in the mailbox regardless of the configured retention. Cleanup now deletes by age alone, read or unread.
 * Fixed: A remove@ or promote@ request with no attachment and no body text — just a subject line — was being rejected as unusable, even though neither command has ever needed an attachment or body to work.
 * Fixed: Any skipped inbox message, on either the IMAP or webhook transport, showed a misleading "Artwork" label in the Inbox admin table's Endpoint column instead of what it actually was — a remove@/promote@ request, a goodbye@/community@ alias, or, when nothing could be identified at all, an honest "Unknown" rather than a guess.
-
-= 0.9.24 =
-* Changed: An event's own title (e.g. an exhibition name) is now kept exactly as the artist wrote it on every language version of the page, with an AI-translated subtitle shown underneath — the same "original + translated subtitle" treatment artwork titles have always had. Previously an event's title was machine-translated outright per language, which could read as an inconsistent or awkward literal translation of what's often effectively a proper noun. Artists can also now correct an event's title after publishing, the same way they already could for artwork.
-* Fixed: An artist's Events page could show every language's events mixed together on a single archive view instead of just the current language's — a second, unrelated query filter (sorting events by date) was overwriting Lingua Forge's own language scoping instead of combining with it.
-* Fixed: A featured image on an artwork, biography, or event page appeared uncropped (showing the whole photo at its natural shape) instead of the intended fixed crop, but only for the artist who could edit that page — everyone else always saw it correctly. The front-end correction overlay's wrapper around the photo was breaking the sizing the crop depends on.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

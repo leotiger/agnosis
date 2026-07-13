@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-13 22:29
+COMBINED COVERAGE  (unit + integration)  —  2026-07-13 23:02
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -90,4 +90,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-13 22:29
   ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 67.07%  (11186 / 16678 statements)
+  TOTAL: 67.08%  (11191 / 16683 statements)
