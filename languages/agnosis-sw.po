@@ -224,8 +224,8 @@ msgid "%dh ago"
 msgstr "saa %d zilizopita"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "Jamii (ya miamala)"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -633,7 +633,7 @@ msgid "AI Providers"
 msgstr "Watoa Huduma wa AI"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "Tabia"
 
 #: includes/Admin/Settings.php:299
@@ -1138,7 +1138,7 @@ msgstr "Mtoa huduma wa maelezo"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3870,7 +3870,7 @@ msgstr "Kura ya kuondoa mwanachama imepitishwa katika %s"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -4351,7 +4351,7 @@ msgstr ""
 "kupitia kiungo cha mapendeleo yako ya arifa hapa chini."
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "Kupiga kura kuunga mkono ombi hili?"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -4359,7 +4359,7 @@ msgid "Vote against this application?"
 msgstr "Kupiga kura dhidi ya ombi hili?"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "Ulipiga kura kuunga mkono ombi hili."
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5593,7 +5593,7 @@ msgstr "Unataka kurekebisha kichwa, maandishi au lebo kabla ya kuchapisha?"
 msgid "Open your submissions page →"
 msgstr "Fungua ukurasa wako wa mawasilisho →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5793,8 +5793,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr ""
 "Picha ina mabadiliko makubwa ya rangi. Piga chini ya mwanga wa asili usio na "
 "rangi au tumia mpangilio wa Auto White Balance wa simu yako kwa rangi zilizo "

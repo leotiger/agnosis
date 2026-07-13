@@ -969,7 +969,7 @@ class AdmissionNotification {
 	 * Headers for the two HTML emails above (acknowledgment + welcome).
 	 *
 	 * Delegates to Core\CommunityMailer — the shared workflow/transactional
-	 * sender identity (Settings → Community → Rules). Previously borrowed
+	 * sender identity (Settings → Email → "Mail from:"). Previously borrowed
 	 * Newsletter\Mailer::sender_header(), the wrong identity: an admission
 	 * acknowledgment or welcome email isn't digest mail (2026-07-08).
 	 *

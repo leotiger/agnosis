@@ -184,6 +184,16 @@ class Activator {
 			}
 		}
 
+		// Migrate the outbound workflow-mail sender identity off the
+		// confusingly-named agnosis_community_from_name/email options (0.9.22)
+		// onto agnosis_mail_from_name/email — see Settings.php's "--- COMMUNITY
+		// ---" comment and Core\CommunityMailer::sender_header(). Only copies a
+		// value across when the new option isn't already set, so it never
+		// clobbers a value an admin has since configured under the new field;
+		// the old options are then removed so they can't linger as dead,
+		// confusing rows in wp_options.
+		self::migrate_mail_from_option();
+
 		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
 		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char
 		// UNIQUE index under utf8mb4 exceeds the 767-byte limit on older
@@ -601,6 +611,33 @@ class Activator {
 		dbDelta( $sql_contact_messages );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
+	}
+
+	/**
+	 * One-time migration (0.9.22): agnosis_community_from_name/email →
+	 * agnosis_mail_from_name/email. Idempotent — once the new options exist
+	 * (even as ''), this is a no-op on every subsequent call, and the old
+	 * options are gone after the first run so there is nothing left to copy.
+	 */
+	private static function migrate_mail_from_option(): void {
+		$old_new_pairs = [
+			'agnosis_community_from_name'  => 'agnosis_mail_from_name',
+			'agnosis_community_from_email' => 'agnosis_mail_from_email',
+		];
+
+		foreach ( $old_new_pairs as $old_key => $new_key ) {
+			if ( false === get_option( $old_key, false ) ) {
+				continue; // Old option doesn't exist — nothing to migrate.
+			}
+
+			if ( false === get_option( $new_key, false ) ) {
+				// New option not yet set at all — carry the old value across
+				// verbatim, including an intentionally-blank old value.
+				update_option( $new_key, get_option( $old_key, '' ) );
+			}
+
+			delete_option( $old_key );
+		}
 	}
 
 	private static function register_roles(): void {

@@ -221,8 +221,8 @@ msgid "%dh ago"
 msgstr "%d 小时前"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "社区（事务型）"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -586,7 +586,7 @@ msgid "AI Providers"
 msgstr "AI 提供方"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "行为"
 
 #: includes/Admin/Settings.php:299
@@ -1011,7 +1011,7 @@ msgstr "描述提供方"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3429,7 +3429,7 @@ msgstr "%s 的社区移除投票已通过"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -3888,7 +3888,7 @@ msgid ""
 msgstr "更愿意一次只看一个吗？您可以随时通过下面的通知偏好链接切换回来。"
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "要赞成此申请吗？"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -3896,7 +3896,7 @@ msgid "Vote against this application?"
 msgstr "要反对此申请吗？"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "您已投赞成票。"
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5001,7 +5001,7 @@ msgstr "想在发布前微调标题、正文或标签吗？"
 msgid "Open your submissions page →"
 msgstr "打开你的投稿页面 →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5151,8 +5151,8 @@ msgstr "图像出现了像素化。请靠近一些拍摄，或在相机上使用
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr "照片有明显的偏色。请在中性日光下拍摄，或使用手机的自动白平衡设置以获得更准确的颜色。"
 
 #: includes/Publishing/Notification.php:1260

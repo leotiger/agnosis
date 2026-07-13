@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.21
+Stable tag: 0.9.22
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,7 +22,7 @@ Artists who are great at creating — but not at promoting — can simply **send
 4. **Publishes** a gallery post automatically
 5. **Broadcasts** to the Fediverse (Mastodon, Pixelfed) via ActivityPub
 
-Once published, an artist can also correct their own title, text, or photos directly on the site — no need to compose another email. Pair Agnosis with the companion Lingua Forge plugin for automatic multi-language translation of every post and taxonomy term. Followers can get a digest newsletter of what's new instead of checking back manually, and an in-site Artist Guide walks new members through the whole email-driven workflow in plain language.
+Once published, an artist can also correct their own title, text, or photos directly on the site — no need to compose another email. Agnosis requires the companion Lingua Forge plugin (installed and active before Agnosis can be activated) for automatic multi-language translation of every post and taxonomy term. Followers can get a digest newsletter of what's new instead of checking back manually, and an in-site Artist Guide walks new members through the whole email-driven workflow in plain language.
 
 **Community-first admission.** New artists are vouched in by existing artists — no gatekeepers, no committees. The community grows itself.
 
@@ -71,6 +71,18 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.22 =
+* Added: Two new default medium categories, Poetry and Essay, so the built-in list now covers written submissions, not just visual ones.
+* Added: Agnosis now checks for updates itself and shows the standard WordPress "Update available" badge with one-click updating, the same way the companion Lingua Forge plugin already does — no more manually re-uploading a ZIP for each new release. Package downloads are host-pinned and SHA-256 verified for safety.
+* Added: The "your submission is ready to review" email now sets Reply-To to the exact address an artist would use to submit more of the same kind of content (artwork/biography/event/photo/pure), so hitting reply is enough to send another submission.
+* Changed: The "From:" sender identity for workflow emails (admission, vote, welcome, departure, invitation, submission-review) moved from Settings → Community to a new "Mail from:" field on Settings → Email, so it can no longer be confused with the separate, inbound "Community announcement address." Any value you already had configured carries over automatically — nothing to reconfigure.
+* Changed: Lingua Forge is now a required plugin, not an optional one — WordPress won't let you activate Agnosis until Lingua Forge is installed and active (and won't let you deactivate Lingua Forge while Agnosis is active). Reflects how much of the plugin already depends on it.
+* Fixed: A handful of British-spelled strings ("favour," "Behaviour," "colour," etc.) in admin labels, AI prompts, and notification emails are now consistently American English ("favor," "Behavior," "color"), matching the rest of the plugin's copy.
+* Fixed: A biography's portfolio link, social links, and (for events) location/date still weren't reaching the artist's own native-language version of the page when submitted directly in their own language — even though the same fields already reached every Lingua Forge machine-translated version correctly. The native version now picks up the value actually submitted, not the one from before it.
+* Fixed: The portfolio link still wouldn't show up on any translated or native-language version of a biography page, even once its URL correctly reached that page — a second, separate "this link was approved" flag never reached it at all, so the link stayed silently hidden regardless.
+* Fixed: Settings → General → "Preset biography title" showed the exact same untranslated text on every language version of a biography page. Each language version now shows a translated version of the preset title, the same as an artist's own (non-preset) title always has.
+* Fixed: A translated biography title could occasionally show up as the literal word "Array" instead of an actual translation — a bug in the underlying translation helper that mishandled a rare AI response shape, only ever exposed by the very short preset-title text above.
+
 = 0.9.21 =
 * Added: A visitor can no longer message the same artist more than a configurable number of times per hour — previously the contact form only limited by IP address and, separately, by sender email address across every artist, so nothing stopped repeated messages to one specific artist. Configurable at Settings → Email ("Per-artist contact limit" and its time window). Applies the same regardless of which language version of the artist's page is used.
 * Added: A new Settings → General "Preset biography title" field lets you force every artist's biography page to use the same fixed title instead of their own, with an optional checkbox to append the artist's name to it (e.g. "Meet the Artist — Jane Doe"). Leave it blank to keep using each artist's own title, exactly as before. Applies to every Lingua Forge translated version of a biography page too.
@@ -79,12 +91,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: A biography's three optional social links, and corrections to its portfolio link, now reach every Lingua Forge translated version of the page — previously they only ever showed up on the primary language.
 * Fixed: A biography's portfolio link no longer appears twice — once as a social icon below the photo, once again as a duplicate embedded preview inside the text. It now shows only as the icon.
 * Fixed: An artist could sometimes receive a second "please approve this" email for a submission they'd already approved and published, or already discarded — triggered by an admin's "heal the queue" action, or automatically after a mailbox migration, with no action needed from the artist. This is now fixed at the source.
-
-= 0.9.18 =
-* Added: The Inbox admin table now shows which email address a submission was sent to (artwork, photo, pure, biography, event, replace, remove, promote, goodbye, or community) — previously you could only guess from the subject line or the resulting post type.
-* Fixed: The 8 default artwork medium categories (Oil Painting, Watercolour, Photography, etc.) are now created automatically whenever the plugin updates to a new version, not just on first activation — a site that was already running before this feature existed never got them.
-* Fixed: A biography submitted with a photo could fail to process entirely if that artist's biography page was originally auto-created from their admission application rather than from an email — a missing internal field crashed the pipeline. Biography posts also now correctly hold at most one photo: a new one replaces the old rather than accumulating alongside it.
-* Fixed: Sending an update to an already-published biography (or replacing/re-sending an already-published artwork or event) generated an "approve this" email whose link could never actually be clicked through — it always showed "Link expired or already used," even seconds after arriving. Updating already-published content now stages your changes separately with their own working approve link, while the currently-published page keeps showing exactly as it is, unaffected, the whole time you're deciding whether to approve — no downtime either way.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

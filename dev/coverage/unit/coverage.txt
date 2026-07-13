@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:         
-  2026-07-12 16:28:34         
+  2026-07-13 10:17:37         
                               
  Summary:                     
-  Classes:  4.65% (4/86)      
-  Methods:  7.20% (62/861)    
-  Lines:    6.80% (1091/16037)
+  Classes:  4.60% (4/87)      
+  Methods:  7.05% (62/879)    
+  Lines:    6.71% (1091/16260)
 
 Agnosis\AI\CallCounter
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/  9)
@@ -47,7 +47,7 @@ Agnosis\Artist\AdmissionNotification
 Agnosis\Artist\ApplicationBiography
   Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/ 81)
 Agnosis\Artist\BiographyTitle
-  Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/ 12)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 40)
 Agnosis\Artist\CommunityBroadcast
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/160)
 Agnosis\Artist\CommunityCap
@@ -85,9 +85,9 @@ Agnosis\Artist\VouchConfirm
 Agnosis\Compat\LinguaForge
   Methods:   0.00% ( 0/36)   Lines:   0.00% (  0/407)
 Agnosis\Core\Activator
-  Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/315)
+  Methods:   0.00% ( 0/18)   Lines:   0.00% (  0/326)
 Agnosis\Core\CommunityMailer
-  Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 15)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 28)
 Agnosis\Core\DateFormatter
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/ 32)
 Agnosis\Core\Debug
@@ -105,7 +105,7 @@ Agnosis\Core\Logger
 Agnosis\Core\LoginBranding
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 20)
 Agnosis\Core\Plugin
-  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/185)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/187)
 Agnosis\Core\Privacy
   Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/469)
 Agnosis\Core\RateLimiter
@@ -114,6 +114,8 @@ Agnosis\Core\Roles
   Methods:   0.00% ( 0/ 1)   Lines:   0.00% (  0/  9)
 Agnosis\Core\Turnstile
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 54)
+Agnosis\Core\Updater
+  Methods:   0.00% ( 0/12)   Lines:   0.00% (  0/165)
 Agnosis\Email\AttachmentStore
   Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 77)
 Agnosis\Email\BounceHandler
@@ -165,13 +167,13 @@ Agnosis\Publishing\EmbedPolicy
 Agnosis\Publishing\GalleryOverview
   Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 67)
 Agnosis\Publishing\Notification
-  Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/812)
+  Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/815)
 Agnosis\Publishing\PostCreator
   Methods:   9.09% ( 3/33)   Lines:   5.75% ( 56/974)
 Agnosis\Publishing\RemovalEndpoints
   Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 91)
 Agnosis\Publishing\ReviewConfirm
-  Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/411)
+  Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/412)
 Agnosis\Publishing\ReviewEndpoints
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/361)
 Agnosis\Publishing\SocialLinks

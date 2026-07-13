@@ -154,7 +154,7 @@ class VouchConfirm {
 	 */
 	private function render_confirm( int $voter_id, int $application_id, string $vote, string $token ): void {
 		$title = 'yes' === $vote
-			? __( 'Vote in favour of this application?', 'agnosis' )
+			? __( 'Vote in favor of this application?', 'agnosis' )
 			: __( 'Vote against this application?', 'agnosis' );
 
 		$description = __( 'Your vote will be recorded once you confirm below.', 'agnosis' );
@@ -196,7 +196,7 @@ class VouchConfirm {
 
 	private function render_success( string $vote, int $vouches_received ): void {
 		$label   = 'yes' === $vote
-			? __( 'You voted in favour of this application.', 'agnosis' )
+			? __( 'You voted in favor of this application.', 'agnosis' )
 			: __( 'You voted against this application.', 'agnosis' );
 
 		$message = sprintf(

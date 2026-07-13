@@ -5,7 +5,7 @@
 	"version": "0.1.0",
 	"title": "Agnosis Gallery Overview",
 	"category": "agnosis",
-	"description": "Proportional, randomised artwork grid across all artists. Shows featured artworks first, respects per-artist budget, supports medium filtering and pagination.",
+	"description": "Proportional, randomized artwork grid across all artists. Shows featured artworks first, respects per-artist budget, supports medium filtering and pagination.",
 	"keywords": [ "gallery", "artwork", "artists", "overview" ],
 	"textdomain": "agnosis",
 	"supports": {

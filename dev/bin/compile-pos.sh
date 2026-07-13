@@ -42,8 +42,16 @@ for PO in "${PO_FILES[@]}"; do
     msgfmt -o "${MO}" "${PO}"
     echo "  ✓ ${MO}"
 
-    # .l10n.php (WP 6.5+ performant format)
-    php "${WP_CLI}" i18n make-php "${PO}" --locale="${LOCALE}" && \
+    # .l10n.php (WP 6.5+ performant format). `wp i18n make-php` takes
+    # <source> [<destination>] — no --locale flag; it derives the locale (and
+    # therefore the output filename, agnosis-<locale>.l10n.php) from the .po
+    # filename itself. An earlier version of this script passed --locale,
+    # which this command has never accepted — every run failed this step for
+    # every single locale with "unknown --locale parameter" (caught, not
+    # silent, via the `|| echo` below), so no .l10n.php was ever regenerated
+    # by this script until now; every existing agnosis-*.l10n.php in
+    # languages/ was produced some other way (hand-run wp-cli, or an editor).
+    php "${WP_CLI}" i18n make-php "${PO}" "${LANG_DIR}" && \
         echo "  ✓ ${L10N}" || \
         echo "  ⚠ make-php failed for ${LOCALE} (WP-CLI may need updating)"
 done

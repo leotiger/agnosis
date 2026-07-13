@@ -295,7 +295,7 @@ class Settings {
 			'general'    => __( 'General',      'agnosis' ),
 			'email'      => __( 'Email Inbox',  'agnosis' ),
 			'ai'         => __( 'AI Providers', 'agnosis' ),
-			'behavior'   => __( 'Behaviour',    'agnosis' ),
+			'behavior'   => __( 'Behavior',     'agnosis' ),
 			'network'    => __( 'Network',      'agnosis' ),
 			'community'  => __( 'Community',    'agnosis' ),
 			'commerce'   => __( 'Commerce',     'agnosis' ),
@@ -464,6 +464,25 @@ class Settings {
 				'input'   => 'select',
 				'options' => [ 'imap' => 'IMAP (poll)', 'webhook' => 'Webhook (push)' ],
 				'default' => 'imap',
+			],
+			// --- Sender identity (outbound "From:") ---
+			// Not to be confused with any address below: those are INBOUND —
+			// where an artist sends mail in. These two configure who workflow/
+			// transactional mail (admission, vote, welcome, departure,
+			// invitation, submission-review) appears to come FROM. See
+			// Core\CommunityMailer::sender_header(). Separate from
+			// Settings → Newsletter's own Sender name/email, which only
+			// governs digest mail.
+			'agnosis_mail_from_name' => [
+				'tab'   => 'email',
+				'label' => __( 'Mail from: name', 'agnosis' ),
+				'desc'  => __( 'Name shown as the sender of admission, vote, welcome, departure, invitation, and submission-review emails. Leave blank to use the site name.', 'agnosis' ),
+			],
+			'agnosis_mail_from_email' => [
+				'tab'      => 'email',
+				'label'    => __( 'Mail from: email address', 'agnosis' ),
+				'sanitize' => 'sanitize_email',
+				'desc'     => __( 'Dedicated From: address for admission, vote, welcome, departure, invitation, and submission-review emails — e.g. hello@agnosis.art. This is not one of the endpoint addresses below (submit@, bio@, community@, etc.) — those are where artists send mail in; this is who workflow mail appears to come from. Separate from the Settings → Newsletter sender, which only covers digest mail. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
 			],
 			// --- Routing addresses ---
 			'agnosis_email_submit' => [
@@ -641,7 +660,7 @@ class Settings {
 					'wp_ai'     => 'WordPress AI Services',
 				],
 				'default' => 'openai',
-				'desc'    => __( 'Analyses the artwork image and writes the title, body, tags and alt text. WordPress AI Services delegates to whichever provider the site has configured via the AI Services plugin.', 'agnosis' ),
+				'desc'    => __( 'Analyzes the artwork image and writes the title, body, tags and alt text. WordPress AI Services delegates to whichever provider the site has configured via the AI Services plugin.', 'agnosis' ),
 			],
 			'agnosis_openai_description_model' => [
 				'tab'     => 'ai',
@@ -958,17 +977,11 @@ class Settings {
 				'desc'  => __( 'Auto-generated RSA public key for this node. Share this with peer nodes.', 'agnosis' ),
 			],
 			// --- COMMUNITY ---
-			'agnosis_community_from_name' => [
-				'tab'   => 'community',
-				'label' => __( 'Sender name', 'agnosis' ),
-				'desc'  => __( 'Name shown as the sender of admission, vote, welcome, departure, and other workflow emails. Leave blank to use the site name.', 'agnosis' ),
-			],
-			'agnosis_community_from_email' => [
-				'tab'      => 'community',
-				'label'    => __( 'Sender email address', 'agnosis' ),
-				'sanitize' => 'sanitize_email',
-				'desc'     => __( 'Dedicated From: address for admission, vote, welcome, departure, invitation, and submission-review emails — e.g. hello@agnosis.art. Deliberately separate from the Settings → Newsletter sender: these are one-off actions (a vote link, a review link), not digest mail. Leave blank to use the admin email. Must be a valid, deliverable address on your domain (SPF/DKIM configured) or messages may be marked as spam.', 'agnosis' ),
-			],
+			// Note: the outbound "From:" identity for workflow mail used to live
+			// here as agnosis_community_from_name/email. Moved to Settings → Email
+			// ("Mail from:") in 0.9.22 — the word "community" was easily confused
+			// with the unrelated agnosis_email_community INBOUND endpoint below.
+			// Existing values are migrated automatically (Core\Activator::maybe_upgrade()).
 			'agnosis_goodbye_request_limit' => [
 				'tab'      => 'community',
 				'label'    => __( 'Self-removal (goodbye) requests per sender per day', 'agnosis' ),

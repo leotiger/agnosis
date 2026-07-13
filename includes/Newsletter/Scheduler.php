@@ -370,7 +370,7 @@ class Scheduler {
 		update_option( $marker_key, (string) $due_at );
 
 		if ( '' === $draft ) {
-			Logger::info( sprintf( 'Newsletter (%s): no intro proposal generated (nothing new to summarise, or the AI provider failed).', $type ), 'newsletter' );
+			Logger::info( sprintf( 'Newsletter (%s): no intro proposal generated (nothing new to summarize, or the AI provider failed).', $type ), 'newsletter' );
 			return;
 		}
 

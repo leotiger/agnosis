@@ -7,7 +7,7 @@
  *   agnosis-thumb   — square hard-cropped for submission cards and email previews.
  *   agnosis-email   — proportional width for artist notification emails.
  *
- * All widths/heights are configurable via the Behaviour settings tab so admins
+ * All widths/heights are configurable via the Behavior settings tab so admins
  * can tune them for their server's disk budget without touching code.
  *
  * @package Agnosis\Core

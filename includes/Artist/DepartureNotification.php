@@ -414,7 +414,7 @@ class DepartureNotification {
 			),
 			sprintf(
 				/* translators: %s: site name */
-				__( "The community removal vote has closed with a majority in favour.\n\nThe artist's account and all published work have been permanently deleted from %1\$s.\n\n— %2\$s", 'agnosis' ),
+				__( "The community removal vote has closed with a majority in favor.\n\nThe artist's account and all published work have been permanently deleted from %1\$s.\n\n— %2\$s", 'agnosis' ),
 				$site_name,
 				$site_name
 			),

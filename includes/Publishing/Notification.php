@@ -9,7 +9,7 @@
  *   • Edit before publishing — link to WP admin post editor.
  *   • Discard — token-signed REST call, trashes the draft.
  *
- * Tokens expire after Settings → Behaviour → "Review link expiry (days)"
+ * Tokens expire after Settings → Behavior → "Review link expiry (days)"
  * (agnosis_review_token_expiry_days, default 7 — same window as the
  * review_expiry meta PostCreator/ApplicationBiography write).
  *
@@ -488,10 +488,19 @@ class Notification {
 			$post->post_title
 		);
 
-		$headers = [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . $this->sender_header(),
-		];
+		// Reply-To: the artist's own intake address for this exact content type
+		// (submit@/bio@/event@/photo@/pure@, per Settings → Email) — an artist
+		// reading this email is, by definition, in the middle of sending
+		// submissions, and is a natural moment to want to send another one.
+		// Hitting reply on this email should land back on that same address,
+		// not the generic community/one-off-action From identity above.
+		$headers = array_merge(
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . $this->sender_header(),
+			],
+			CommunityMailer::reply_to_header_for_post( $post_id )
+		);
 
 		$body = $this->build_email( $post, $artist->display_name, (string) $token, $site_title, $translated_site_title, $artist_id, $translated_body_preview );
 
@@ -943,7 +952,7 @@ class Notification {
 			<?php
 			$review_expiry_days = max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) );
 			$review_expiry_text = sprintf(
-				/* translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab */
+				/* translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab */
 				_n(
 					'The Publish and Discard links above expire in %d day. Your submission stays as a draft until you decide.',
 					'The Publish and Discard links above expire in %d days. Your submission stays as a draft until you decide.',
@@ -1255,8 +1264,8 @@ class Notification {
 			'low res'      => __( 'The image resolution is too low. Use your phone\'s highest quality setting and fill the frame with the artwork.', 'agnosis' ),
 			'pixelat'      => __( 'The image is pixelated. Shoot from closer or use a higher resolution setting on your camera.', 'agnosis' ),
 			// Colour / white balance
-			'colour cast'  => __( 'The photo has a strong colour cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colours.', 'agnosis' ),
-			'color cast'   => __( 'The photo has a strong colour cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colours.', 'agnosis' ),
+			'colour cast'  => __( 'The photo has a strong color cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colors.', 'agnosis' ),
+			'color cast'   => __( 'The photo has a strong color cast. Shoot under neutral daylight or use your phone\'s Auto White Balance setting for more accurate colors.', 'agnosis' ),
 			'yellow'       => __( 'The photo looks too yellow or warm. Shoot under natural daylight or switch your phone\'s white balance to Daylight / Cloudy.', 'agnosis' ),
 			'blue'         => __( 'The photo has a cold blue tint. Move the artwork to a warmer, more natural light source or adjust your camera\'s white balance.', 'agnosis' ),
 			// Composition
@@ -1419,7 +1428,7 @@ class Notification {
 	 * Build the From header for a submission-review email.
 	 *
 	 * Delegates to Core\CommunityMailer — the shared workflow/transactional
-	 * sender identity (Settings → Community → Rules), configured independently
+	 * sender identity (Settings → Email → "Mail from:"), configured independently
 	 * from the Newsletter sender since this is one-off action mail (a review
 	 * link), not digest mail. Previously hardcoded to the site name and
 	 * admin_email with no way to configure it (2026-07-08).

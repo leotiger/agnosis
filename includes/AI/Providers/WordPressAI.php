@@ -43,7 +43,7 @@ class WordPressAI implements ProviderInterface {
 
 		if ( empty( trim( $artist_prompt ) ) ) {
 			return DescriptionResult::failure(
-				'WordPress AI Client is text-only and cannot analyse images. The artist must include a description in their email.'
+				'WordPress AI Client is text-only and cannot analyze images. The artist must include a description in their email.'
 			);
 		}
 
@@ -125,7 +125,7 @@ class WordPressAI implements ProviderInterface {
 	 */
 	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
 		return DescriptionResult::failure(
-			'WordPress AI Client is text-only and cannot analyse images — secondary gallery images get no AI-generated alt text, tags, or quality score with this provider.'
+			'WordPress AI Client is text-only and cannot analyze images — secondary gallery images get no AI-generated alt text, tags, or quality score with this provider.'
 		);
 	}
 

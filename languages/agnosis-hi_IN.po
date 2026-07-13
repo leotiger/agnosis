@@ -223,8 +223,8 @@ msgid "%dh ago"
 msgstr "%d घंटे पहले"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "समुदाय (लेन-देन संबंधी)"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -627,7 +627,7 @@ msgid "AI Providers"
 msgstr "एआई प्रदाता"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "व्यवहार"
 
 #: includes/Admin/Settings.php:299
@@ -1116,7 +1116,7 @@ msgstr "विवरण प्रदाता"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3833,7 +3833,7 @@ msgstr "%s पर समुदाय हटाने का मतदान प�
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -4309,7 +4309,7 @@ msgstr ""
 "के लिंक से कभी भी वापस बदल सकते हैं।"
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "क्या आप इस आवेदन के पक्ष में वोट करना चाहते हैं?"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -4317,7 +4317,7 @@ msgid "Vote against this application?"
 msgstr "क्या आप इस आवेदन के खिलाफ वोट करना चाहते हैं?"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "आपने इस आवेदन के पक्ष में वोट किया।"
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5547,7 +5547,7 @@ msgstr ""
 msgid "Open your submissions page →"
 msgstr "अपना सबमिशन पेज खोलें →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5742,8 +5742,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr ""
 "फ़ोटो में रंगों का तेज़ रंग-झुकाव है। तटस्थ दिन के उजाले में शूट करें या "
 "अधिक सटीक रंगों के लिए अपने फ़ोन की Auto White Balance सेटिंग का उपयोग करें।"

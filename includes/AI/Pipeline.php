@@ -1039,7 +1039,7 @@ class Pipeline {
 			. "Here is everything that happened since the last issue:\n" . implode( "\n", $facts ) . "\n\n"
 			. "Rules:\n"
 			. "- Two to four sentences, one short paragraph. No greeting (\"Hi everyone\") and no sign-off.\n"
-			. "- This is prepended above an auto-generated list that already names every item individually — capture the overall flavour of what's new, do not just restate the list.\n"
+			. "- This is prepended above an auto-generated list that already names every item individually — capture the overall flavor of what's new, do not just restate the list.\n"
 			. "- Base this only on the facts given above. Never invent artworks, events, names, or numbers not present in them.\n"
 			. "- Warm, plain language. No marketing clichés or hype.\n"
 			. 'Return only the introduction text itself — no preamble, no quotation marks.';

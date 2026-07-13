@@ -64,7 +64,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 	}
 
 	protected function tearDown(): void {
-		delete_option( 'agnosis_community_from_email' );
+		delete_option( 'agnosis_mail_from_email' );
 		delete_option( 'agnosis_newsletter_from_email' );
 		unset( $_REQUEST['_wpnonce'], $_POST['test_email'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		remove_all_filters( 'agnosis_deliverability_dns_txt' );
@@ -104,7 +104,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		// — that's a quirk of this environment, not something this test's
 		// domain-matching logic should depend on.
 		add_filter( 'agnosis_deliverability_site_domain', static fn(): string => 'my-agnosis-site.example' );
-		update_option( 'agnosis_community_from_email', 'hello@my-agnosis-site.example' );
+		update_option( 'agnosis_mail_from_email', 'hello@my-agnosis-site.example' );
 		update_option( 'agnosis_newsletter_from_email', 'digest@totally-different-domain.example' );
 		add_filter( 'agnosis_deliverability_dns_txt', static fn(): array => [ 'status' => 'not_found', 'records' => [] ] );
 
@@ -121,7 +121,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		// Both left unconfigured — CommunityMailer::sender_header() and
 		// Newsletter\Mailer::sender_header() both fall back to admin_email,
 		// so this is the common single-address setup, not an edge case.
-		delete_option( 'agnosis_community_from_email' );
+		delete_option( 'agnosis_mail_from_email' );
 		delete_option( 'agnosis_newsletter_from_email' );
 		update_option( 'admin_email', 'shared@example.com' );
 		add_filter( 'agnosis_deliverability_dns_txt', static fn(): array => [ 'status' => 'not_found', 'records' => [] ] );
@@ -130,7 +130,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 
 		$this->assertCount( 1, $rows, 'Two identities resolving to the same address must be reported once, not twice.' );
 		$this->assertSame( 'shared@example.com', $rows[0]['email'] );
-		$this->assertStringContainsString( 'Community', $rows[0]['label'] );
+		$this->assertStringContainsString( 'Mail from', $rows[0]['label'] );
 		$this->assertStringContainsString( 'Newsletter', $rows[0]['label'] );
 	}
 

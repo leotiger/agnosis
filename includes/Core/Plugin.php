@@ -114,6 +114,13 @@ class Plugin {
 
 		// Admin.
 		if ( is_admin() ) {
+			// Self-hosted update checker — Agnosis isn't on WordPress.org, so
+			// this is what surfaces the "Update available" badge and drives
+			// the one-click updater. See Updater's own docblock and
+			// docs/agnosis-update-manifest.php for the manifest it polls.
+			$updater = new Updater();
+			$updater->register_hooks();
+
 			// Inbox page — top-level Agnosis menu.
 			$inbox_page = new InboxPage();
 			$this->loader->add_action( 'admin_menu',            $inbox_page, 'register_menu' );

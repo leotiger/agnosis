@@ -224,8 +224,8 @@ msgid "%dh ago"
 msgstr "%d ساعت پیش"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "جامعه (تراکنشی)"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -621,7 +621,7 @@ msgid "AI Providers"
 msgstr "ارائه‌دهندگان هوش مصنوعی"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "رفتار"
 
 #: includes/Admin/Settings.php:299
@@ -1117,7 +1117,7 @@ msgstr "ارائه‌دهندهٔ توضیح"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3827,7 +3827,7 @@ msgstr "رأی‌گیری حذف از جامعه در %s تصویب شد"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -4305,7 +4305,7 @@ msgstr ""
 "از طریق لینک تنظیمات اعلان در پایین، دوباره برگردید."
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "به این درخواست رأی موافق می‌دهید؟"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -4313,7 +4313,7 @@ msgid "Vote against this application?"
 msgstr "به این درخواست رأی مخالف می‌دهید؟"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "شما به این درخواست رأی موافق دادید."
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5533,7 +5533,7 @@ msgstr "می‌خواهید پیش از انتشار، عنوان، متن یا 
 msgid "Open your submissions page →"
 msgstr "صفحهٔ ارسال‌های خود را باز کنید →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5729,8 +5729,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr ""
 "عکس دارای ته‌رنگِ شدیدِ رنگی است. زیر نور طبیعیِ روز عکس بگیرید یا برای "
 "رنگ‌های دقیق‌تر از تنظیم Auto White Balance گوشی خود استفاده کنید."

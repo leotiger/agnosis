@@ -224,8 +224,8 @@ msgid "%dh ago"
 msgstr "fa %d h"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "Comunitat (transaccional)"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -639,7 +639,7 @@ msgid "AI Providers"
 msgstr "Proveïdors d’IA"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "Comportament"
 
 #: includes/Admin/Settings.php:299
@@ -1147,7 +1147,7 @@ msgstr "Proveïdor de descripció"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3902,7 +3902,7 @@ msgstr "La votació d'eliminació de la comunitat ha estat aprovada a %s"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -4385,7 +4385,7 @@ msgstr ""
 "avall."
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "Votar a favor d'aquesta sol·licitud?"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -4393,7 +4393,7 @@ msgid "Vote against this application?"
 msgstr "Votar en contra d'aquesta sol·licitud?"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "Has votat a favor d'aquesta sol·licitud."
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5640,7 +5640,7 @@ msgstr "Vols ajustar el títol, el text o les etiquetes abans de publicar?"
 msgid "Open your submissions page →"
 msgstr "Obre la teva pàgina de trameses →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5839,8 +5839,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr ""
 "La foto té una forta dominància de color. Fes la foto amb llum natural "
 "neutra o usa la configuració d'Auto White Balance del teu mòbil per obtenir "

@@ -68,8 +68,8 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 
 	protected function tearDown(): void {
 		$this->remove_mail_capture();
-		delete_option( 'agnosis_community_from_name' );
-		delete_option( 'agnosis_community_from_email' );
+		delete_option( 'agnosis_mail_from_name' );
+		delete_option( 'agnosis_mail_from_email' );
 		delete_option( 'agnosis_email_community' );
 		delete_option( 'agnosis_community_broadcast_max_chars' );
 		parent::tearDown();
@@ -280,8 +280,8 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 	}
 
 	public function test_from_header_uses_community_sender_identity(): void {
-		update_option( 'agnosis_community_from_name', 'Test Community' );
-		update_option( 'agnosis_community_from_email', 'hello@agnosis.test' );
+		update_option( 'agnosis_mail_from_name', 'Test Community' );
+		update_option( 'agnosis_mail_from_email', 'hello@agnosis.test' );
 
 		$sender_id = $this->create_artist( 'sender6@example.com', 'Sender Six' );
 		$this->create_artist( 'recipient9@example.com', 'Recipient Nine' );

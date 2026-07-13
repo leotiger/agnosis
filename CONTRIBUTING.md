@@ -27,7 +27,7 @@ Thanks for taking the time to contribute. This document covers how to report bug
 
 Agnosis has two companion repositories that its dev environment expects as **sibling directories** (same parent folder as `agnosis/`):
 
-- [`lingua-forge`](https://github.com/leotiger/lingua-forge) — the multi-language plugin Agnosis integrates with (`includes/Compat/LinguaForge.php`). Referenced by `dev/.wp-env.json` and required for the integration test suite to activate cleanly.
+- [`lingua-forge`](https://github.com/leotiger/lingua-forge) — the multi-language plugin Agnosis integrates with (`includes/Compat/LinguaForge.php`). Referenced by `dev/.wp-env.json` and required for the integration test suite to activate cleanly. As of 0.9.22 this is also a hard runtime dependency, not just a dev/test convenience: `agnosis.php` declares `Requires Plugins: lingua-forge`, so WordPress itself refuses to activate Agnosis on any site (including a wp-env test instance) until Lingua Forge is installed and active.
 - `agnosis-theme` — the companion FSE block theme. Also referenced by `dev/.wp-env.json`.
 
 If you don't have access to one or both, say so in your pull request — a maintainer can run the full integration suite before merging. Unit tests, PHPCS, and PHPStan (`composer qa`, see below) don't need either sibling and cover most contributions on their own.

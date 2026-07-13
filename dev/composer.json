@@ -51,7 +51,7 @@
         ],
         "test:integration": [
             "Composer\\Config::disableProcessTimeout",
-            "./node_modules/.bin/wp-env run tests-cli bash -c 'wp plugin activate agnosis lingua-forge --quiet'",
+            "./node_modules/.bin/wp-env run tests-cli bash -c 'wp plugin activate lingua-forge agnosis --quiet'",
             "./node_modules/.bin/wp-env run tests-wordpress bash -c 'cd /var/www/html/wp-content/plugins/agnosis/dev && WP_PHPUNIT__DIR=/wordpress-phpunit php -d memory_limit=512M vendor/bin/phpunit --configuration phpunit.integration.xml.dist --no-coverage --colors=always'"
         ],
         "coverage:setup": "bash scripts/setup-coverage.sh",
@@ -60,7 +60,7 @@
             "@coverage:setup",
             "mkdir -p coverage/unit/html coverage/integration/html coverage/combined",
             "WP_TESTS_DIR='' WP_PHPUNIT__DIR='' php -d pcov.enabled=1 -d pcov.directory=.. vendor/bin/phpunit --testsuite=unit --coverage-clover coverage/unit/clover.xml --coverage-html coverage/unit/html --coverage-text=coverage/unit/coverage.txt",
-            "./node_modules/.bin/wp-env run tests-cli bash -c 'wp plugin activate agnosis lingua-forge --quiet'",
+            "./node_modules/.bin/wp-env run tests-cli bash -c 'wp plugin activate lingua-forge agnosis --quiet'",
             "./node_modules/.bin/wp-env run tests-wordpress bash -c 'mkdir -p /var/www/html/wp-content/plugins/agnosis/dev/coverage/integration/html && cd /var/www/html/wp-content/plugins/agnosis/dev && WP_PHPUNIT__DIR=/wordpress-phpunit php -d memory_limit=512M -d pcov.enabled=1 -d pcov.directory=/var/www/html/wp-content/plugins/agnosis vendor/bin/phpunit --configuration phpunit.integration.xml.dist --coverage-clover coverage/integration/clover.xml --coverage-html coverage/integration/html --coverage-text=coverage/integration/coverage.txt'",
             "bash scripts/copy-integration-coverage.sh"
         ],

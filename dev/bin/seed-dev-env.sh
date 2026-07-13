@@ -22,9 +22,16 @@ $WP option update permalink_structure '/%postname%/' --quiet
 $WP rewrite flush --quiet
 
 # ── Plugin activation ─────────────────────────────────────────────────────────
+# Lingua Forge must activate BEFORE Agnosis: agnosis.php declares
+# `Requires Plugins: lingua-forge` (0.9.22+), and WordPress's Plugin
+# Dependencies mechanism (6.5+) refuses to activate a dependent plugin
+# before its dependency is already active — `wp plugin activate` processes
+# its arguments in the given order, so getting this backwards here fails
+# agnosis's activation with "Only activated 1 of 2 plugins," not the
+# "not found" the old error-swallowing below assumed.
 echo "  Activating plugins …"
-$WP plugin activate agnosis     --quiet 2>/dev/null || echo "    ↳ agnosis not found, skipping."
 $WP plugin activate lingua-forge --quiet 2>/dev/null || true
+$WP plugin activate agnosis      --quiet 2>/dev/null || echo "    ↳ agnosis failed to activate — not found, or its lingua-forge dependency isn't active."
 
 # ── Artist accounts ───────────────────────────────────────────────────────────
 echo "  Creating artist accounts …"

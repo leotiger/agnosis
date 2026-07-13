@@ -1704,7 +1704,7 @@ class PostCreator {
 		$review_token  = $existing_id
 			? ( get_post_meta( $existing_id, '_agnosis_review_token', true ) ?: $this->generate_token() )
 			: $this->generate_token();
-		// Settings → Behaviour → "Review link expiry (days)" (agnosis_review_token_expiry_days,
+		// Settings → Behavior → "Review link expiry (days)" (agnosis_review_token_expiry_days,
 		// default 7). max( 1, ... ) guards a raw get_option() read against a
 		// corrupted/pre-upgrade option value slipping past the settings page's
 		// own sanitize_callback clamp.

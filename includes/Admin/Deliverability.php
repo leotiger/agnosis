@@ -217,7 +217,7 @@ class Deliverability {
 		$site_domain = self::site_domain();
 
 		$identities = [
-			__( 'Community (transactional)', 'agnosis' ) => CommunityMailer::sender_header(),
+			__( 'Mail from (workflow)', 'agnosis' )       => CommunityMailer::sender_header(),
 			__( 'Newsletter', 'agnosis' )                 => NewsletterMailer::sender_header(),
 		];
 

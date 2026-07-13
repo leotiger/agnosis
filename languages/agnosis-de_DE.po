@@ -224,8 +224,8 @@ msgid "%dh ago"
 msgstr "vor %d Std."
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "Community (transaktional)"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -639,7 +639,7 @@ msgid "AI Providers"
 msgstr "KI-Anbieter"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "Verhalten"
 
 #: includes/Admin/Settings.php:299
@@ -1150,7 +1150,7 @@ msgstr "Anbieter für Beschreibungen"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3929,7 +3929,7 @@ msgstr "Abstimmung zur Entfernung aus der Community bei %s erfolgreich"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -4419,7 +4419,7 @@ msgstr ""
 "Benachrichtigungseinstellungen zurückwechseln."
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "Für diese Bewerbung stimmen?"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -4427,7 +4427,7 @@ msgid "Vote against this application?"
 msgstr "Gegen diese Bewerbung stimmen?"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "Du hast für diese Bewerbung gestimmt."
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5682,7 +5682,7 @@ msgstr ""
 msgid "Open your submissions page →"
 msgstr "Öffne deine Einreichungsseite →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5885,8 +5885,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr ""
 "Das Foto hat einen starken Farbstich. Fotografiere bei neutralem Tageslicht "
 "oder verwende die Einstellung für den automatischen Weißabgleich deines "

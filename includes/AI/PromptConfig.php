@@ -40,13 +40,15 @@ class PromptConfig {
 	 */
 	public const CANONICAL_MEDIUMS = [
 		'Oil Painting',
-		'Watercolour',
+		'Watercolor',
 		'Drawing & Illustration',
 		'Photography',
 		'Digital Art',
 		'Sculpture',
 		'Printmaking',
 		'Mixed Media',
+		'Poetry',
+		'Essay',
 	];
 
 	public function __construct(
@@ -179,7 +181,7 @@ class PromptConfig {
 		return 'The following photographic/technical issues were detected in this image:' . "\n"
 			. $issue_list . "\n\n"
 			. 'Correct ONLY these specific issues to improve the visibility of the artwork. '
-			. 'Do not alter the artwork itself — preserve all colours, textures, composition and artistic choices exactly. '
+			. 'Do not alter the artwork itself — preserve all colors, textures, composition and artistic choices exactly. '
 			. 'This is a correction of camera and photography problems only, not an artistic edit.' . "\n\n"
 			. $this->enhancement_instructions;
 	}
@@ -191,7 +193,7 @@ class PromptConfig {
 			. 'They submit their work by email; you turn it into a web publication.' . "\n\n"
 
 			. 'The artist\'s email is their voice — treat it with respect.' . "\n"
-			. '- Where they describe their intent, process or story: honour those words and let them anchor your writing.' . "\n"
+			. '- Where they describe their intent, process or story: honor those words and let them anchor your writing.' . "\n"
 			. '- Where they say nothing, or very little: let the image speak, and write from what you see.' . "\n"
 			. '- Never invent biographical details not present in the email.' . "\n"
 			. '- Ignore mail-client footers (e.g. "Sent from my iPhone"), email signatures, and any other text unrelated to the submission itself.' . "\n\n"
@@ -225,7 +227,7 @@ class PromptConfig {
 	public static function default_user_template(): string {
 		return 'The artist submitted this image via email.' . "\n\n"
 			. '{artist_prompt}' . "\n\n"
-			. 'Analyse the attached image and the artist\'s words together. '
+			. 'Analyze the attached image and the artist\'s words together. '
 			. 'Let their email be the lens through which you interpret what you see. '
 			. 'If they provided a subject line, it may hint at a title — feel free to build on it or depart from it entirely.';
 	}
@@ -266,10 +268,10 @@ class PromptConfig {
 
 	public static function default_enhancement_instructions(): string {
 		return 'Enhance this artwork for web and Fediverse publication.' . "\n"
-			. 'Goals: improve overall clarity, colour accuracy and tonal balance; reduce noise; sharpen edges where the artist clearly intended detail.' . "\n"
+			. 'Goals: improve overall clarity, color accuracy and tonal balance; reduce noise; sharpen edges where the artist clearly intended detail.' . "\n"
 			. 'Hard constraints: preserve the artist\'s visual intent exactly. '
 			. 'Do not add, remove or recompose any element. '
-			. 'Do not "beautify" in ways that erase idiosyncrasies — the grain, the rough edge, the flat colour may be the point.' . "\n"
-			. 'Output at the original aspect ratio. Target sRGB colour space.';
+			. 'Do not "beautify" in ways that erase idiosyncrasies — the grain, the rough edge, the flat color may be the point.' . "\n"
+			. 'Output at the original aspect ratio. Target sRGB color space.';
 	}
 }

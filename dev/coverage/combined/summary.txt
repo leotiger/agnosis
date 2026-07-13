@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
+COMBINED COVERAGE  (unit + integration)  —  2026-07-13 10:20
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
   ❌ includes/Artist/AdmissionConfirm.php                         0%
   ✅ includes/Artist/AdmissionNotification.php                   96%
   ✅ includes/Artist/ApplicationBiography.php                    89%
-  ❌ includes/Artist/BiographyTitle.php                          36%
+  ❌ includes/Artist/BiographyTitle.php                          19%
   ✅ includes/Artist/CommunityBroadcast.php                      98%
   ✅ includes/Artist/CommunityCap.php                            95%
   ✅ includes/Artist/CommunityCapNotification.php                88%
@@ -41,7 +41,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
   ✅ includes/Artist/VouchConfirm.php                            87%
   ✅ includes/Compat/LinguaForge.php                             85%
   🔶 includes/Core/Activator.php                                 79%
-  ✅ includes/Core/CommunityMailer.php                          100%
+  ✅ includes/Core/CommunityMailer.php                           93%
   ❌ includes/Core/DateFormatter.php                              0%
   ❌ includes/Core/Debug.php                                     45%
   ❌ includes/Core/EmailBranding.php                             37%
@@ -55,6 +55,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
   ✅ includes/Core/RateLimiter.php                              100%
   ✅ includes/Core/Roles.php                                    100%
   ❌ includes/Core/Turnstile.php                                 17%
+  ✅ includes/Core/Updater.php                                   84%
   ✅ includes/Email/AttachmentStore.php                          80%
   ✅ includes/Email/BounceHandler.php                           100%
   ✅ includes/Email/EmailAuth.php                                96%
@@ -89,4 +90,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-12 16:30
   ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 66.67%  (10682 / 16022 statements)
+  TOTAL: 66.77%  (10847 / 16245 statements)

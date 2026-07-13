@@ -7,7 +7,7 @@
     "license": "GPL-2.0-or-later",
     "author": "Uli Hake",
     "scripts": {
-        "env:start":   "wp-env start || (echo 'MySQL not ready, retrying in 10s...' && sleep 10 && wp-env start) && wp-env run cli bash -c 'wp plugin activate agnosis lingua-forge --quiet' && bash bin/seed-dev-env.sh",
+        "env:start":   "wp-env start || (echo 'MySQL not ready, retrying in 10s...' && sleep 10 && wp-env start) && wp-env run cli bash -c 'wp plugin activate lingua-forge agnosis --quiet' && bash bin/seed-dev-env.sh",
         "env:stop":    "wp-env stop",
         "env:destroy": "wp-env destroy",
         "env:seed":    "bash bin/seed-dev-env.sh",

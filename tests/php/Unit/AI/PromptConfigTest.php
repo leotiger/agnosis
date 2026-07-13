@@ -245,7 +245,7 @@ class PromptConfigTest extends TestCase {
 		$result = $cfg->resolved_system_prompt();
 
 		$this->assertStringContainsString( 'Oil Painting', $result );
-		$this->assertStringContainsString( 'Watercolour', $result );
+		$this->assertStringContainsString( 'Watercolor', $result );
 		$this->assertStringNotContainsString( '{medium_list}', $result );
 	}
 

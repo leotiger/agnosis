@@ -21,14 +21,14 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 - **HEIC/HEIF support** — the default photo format on modern iPhones is accepted at intake and converted to JPEG before AI processing, instead of being silently dropped; degrades gracefully when the server's ImageMagick build can't decode it
 - **Photo quality gate** — vision AI scores each photograph independently, even across a multi-photo gallery submission; enhancement only runs below a configurable threshold; targeted correction from detected issues
 - **Submission-failure notifications** — an artist is emailed if their message couldn't be turned into a post at all (no usable attachment found, or every attachment failed to convert), instead of it silently vanishing
-- **Medium taxonomy** — 8 canonical terms (Oil, Acrylic, Watercolour, Drawing, Digital, Photography, Sculpture, Mixed Media); AI assigns one per artwork; seeded on activation
+- **Medium taxonomy** — 10 canonical terms (Oil Painting, Watercolour, Drawing & Illustration, Photography, Digital Art, Sculpture, Printmaking, Mixed Media, Poetry, Essay), covering written as well as visual submissions; AI assigns one per artwork; seeded on activation
 - **Artist review workflow** — draft posted, artist reviews via email link (approve / edit / discard)
 - **Visitor contact form** — a visitor can message an artist directly from their page; content-moderated, and rate-limited both per IP/sender and per (artist, visitor) pair (configurable), so one visitor can't flood one artist's inbox. The form is replaced with a static "already contacted" notice after sending, not just hidden client-side
 - **Biography social links** — a portfolio link plus three optional social links, rendered as an icon row below the featured photo (WordPress core Social Icons block under the hood); an admin can also force a fixed, site-wide biography title (with an option to append the artist's own name) instead of each artist's own
 - **Artist-driven removal** — `remove@` email triggers a signed confirmation link; artist trashes their own artwork; no admin needed
 - **Artist departure** — three independent paths: self-removal (`goodbye@` alias or REST), admin suspend/delete, community vote; confirmation required before any deletion
 - **Community admission** — artists vouch for new artists with yes/no email votes; dynamic threshold (% of active artists); admin can admit or reject directly from the dashboard; an optional configurable page can greet applicants right after they apply, explaining what happens next
-- **Multilingual** — language is a required field at application (enforced client- and server-side); per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language. Native-language fidelity (an artist's own words kept verbatim rather than translated back and forth) applies to submissions from 0.9.19 onward only — posts published before that keep whatever native-language sibling Lingua Forge had already machine-translated, which is not retroactively rebuilt
+- **Multilingual** — powered by the required companion plugin Lingua Forge (see Requirements below); language is a required field at application (enforced client- and server-side); per-recipient locale switching on all emails; artwork slugs and titles preserved in the artist's own language. Native-language fidelity (an artist's own words kept verbatim rather than translated back and forth) applies to submissions from 0.9.19 onward only — posts published before that keep whatever native-language sibling Lingua Forge had already machine-translated, which is not retroactively rebuilt
 - **Dual-title artwork** — `post_title` is always the artist's original title; AI-generated site-language title stored separately in `_agnosis_translated_title` meta
 - **ActivityPub federation** — each installation is a Fediverse actor; peers discover each other via `/.well-known/agnosis-node`
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication
@@ -43,6 +43,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 | WordPress | 6.6 |
 | PHP | 8.1 |
 | MySQL | 5.7 / MariaDB 10.3 |
+| [Lingua Forge](https://github.com/leotiger/lingua-forge) | Required companion plugin — must be installed and active before Agnosis can be activated (declared via the `Requires Plugins` header, WP 6.5+) |
 
 ## Server configuration
 
@@ -64,13 +65,19 @@ Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → Gene
 
 ## Installation
 
+Agnosis requires [Lingua Forge](https://github.com/leotiger/lingua-forge) to be installed and active first (`agnosis.php` declares it via the `Requires Plugins` header) — WordPress will refuse to activate Agnosis otherwise.
+
 ```bash
-# From a release zip (see the Releases page for the current version)
+# Lingua Forge first (required dependency)
+wp plugin install lingua-forge-<version>.zip --activate
+
+# Then Agnosis, from a release zip (see the Releases page for the current version)
 wp plugin install agnosis-<version>.zip --activate
 
-# Or from source
+# Or both from source — note the order
+git clone https://github.com/leotiger/lingua-forge wp-content/plugins/lingua-forge
 git clone https://github.com/leotiger/agnosis wp-content/plugins/agnosis
-wp plugin activate agnosis
+wp plugin activate lingua-forge agnosis
 ```
 
 Then open **Agnosis** in the admin sidebar and configure your email inbox and AI API keys.

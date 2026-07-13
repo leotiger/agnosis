@@ -253,7 +253,11 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 			$this->fail( 'Expected the confirm interstitial (wp_die).' );
 		} catch ( DieCapture $e ) {
 			$this->assertSame( 200, $e->http_status );
-			$this->assertStringContainsString( 'favour', $e->body );
+			// Source string is British "favour" (VouchConfirm.php); the default
+			// WP_UnitTestCase test locale is en_US, and agnosis-en_US.po
+			// deliberately Americanizes it to "favor" for that locale — same
+			// as "Behaviour" -> "Behavior" elsewhere in that translation file.
+			$this->assertStringContainsString( 'favor', $e->body );
 		}
 
 		$this->assertSame(

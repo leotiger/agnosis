@@ -66,8 +66,8 @@
  * useless if, say, a Chinese recipient replies to a Spanish sender. Routing
  * the reply back through the same alias means it re-enters this exact
  * pipeline and gets translated for everyone, including the original sender,
- * same as the original message. The configured Community sender address
- * (Settings → Community → Rules) is unrelated to this — it is only ever the
+ * same as the original message. The configured "Mail from:" sender address
+ * (Settings → Email) is unrelated to this — it is only ever the
  * outgoing From: header here, exactly as it is for every other workflow
  * email (see Core\CommunityMailer).
  *

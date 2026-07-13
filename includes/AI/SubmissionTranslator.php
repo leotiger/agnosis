@@ -486,12 +486,29 @@ class SubmissionTranslator {
 
 		$result = [];
 
-		if ( '' !== $subject && isset( $decoded['subject'] ) ) {
-			$result['subject'] = sanitize_text_field( (string) $decoded['subject'] );
+		// is_string() guard (not a blind (string) cast): if the model's JSON
+		// response ever has 'subject'/'description' as a non-scalar (an array
+		// or nested object — seen in practice translating a single short word
+		// like a biography's preset title, "About", with no surrounding
+		// sentence context to anchor the model's response shape), casting
+		// an array to string doesn't fail loudly — it silently produces the
+		// literal string "Array" (with a PHP notice, easy to miss in
+		// production), which then gets published as real, user-visible
+		// content (e.g. "Array — Cal Talaia" surfaced 2026-07-13 via
+		// Artist\BiographyTitle::translate_for_sibling(), the first caller of
+		// translate_text() to feed it a single bare word). Treating a
+		// non-string response as a failed field — same as the missing-key
+		// case just below each check — means every caller's existing
+		// "fall back to the original text" convention (translate_text(),
+		// translate_fields(), the callers in Compat\LinguaForge) applies
+		// here too, instead of ever publishing "Array" as if it were a
+		// genuine translation.
+		if ( '' !== $subject && isset( $decoded['subject'] ) && is_string( $decoded['subject'] ) ) {
+			$result['subject'] = sanitize_text_field( $decoded['subject'] );
 		}
 
-		if ( '' !== $body && isset( $decoded['description'] ) ) {
-			$result['description'] = sanitize_textarea_field( (string) $decoded['description'] );
+		if ( '' !== $body && isset( $decoded['description'] ) && is_string( $decoded['description'] ) ) {
+			$result['description'] = sanitize_textarea_field( $decoded['description'] );
 		}
 
 		return ! empty( $result ) ? $result : null;

@@ -491,12 +491,27 @@ class ReviewConfirm {
 		if ( 'agnosis_biography' === $post_type ) {
 			$this->sync_portfolio_embed( $id, $source );
 			$this->sync_social_links( $id, $source );
+		} elseif ( 'agnosis_event' === $post_type ) {
+			$this->sync_event_fields( $id, $source );
+		} else {
 			return;
 		}
 
-		if ( 'agnosis_event' === $post_type ) {
-			$this->sync_event_fields( $id, $source );
-		}
+		// Re-sync the native-language sibling now that these fields hold their
+		// FINAL values. Every field this method writes is in
+		// Compat\LinguaForge::NEUTRAL_META_KEYS (portfolio/social-link URLs,
+		// event location/date) — meaning ReviewEndpoints::finalize_publish()'s
+		// own LinguaForge::sync_native_sibling() call (fired earlier in this
+		// same request, inside the rest_do_request() call above) is supposed
+		// to carry them onto the sibling automatically. But that call runs
+		// BEFORE this method executes, so it only ever copies whatever these
+		// fields held on the primary post at the START of this request — one
+		// submission behind, or empty on the very first submission that sets
+		// them at all. This second call re-propagates the values this method
+		// just wrote. Safe to call twice: sync_native_sibling() is AI-free and
+		// idempotent (see its own docblock) — it's a plain meta/content
+		// refresh, not a fresh translation.
+		\Agnosis\Compat\LinguaForge::sync_native_sibling( $id );
 	}
 
 	/**

@@ -222,8 +222,8 @@ msgid "%dh ago"
 msgstr "%d時間前"
 
 #: includes/Admin/Deliverability.php:220
-msgid "Community (transactional)"
-msgstr "コミュニティ（トランザクション）"
+msgid "Mail from (workflow)"
+msgstr "Mail from (workflow)"
 
 #: includes/Admin/Deliverability.php:221 includes/Admin/Settings.php:302
 #: includes/Admin/Settings.php:2314 includes/Newsletter/Mailer.php:66
@@ -591,7 +591,7 @@ msgid "AI Providers"
 msgstr "AIプロバイダー"
 
 #: includes/Admin/Settings.php:298
-msgid "Behaviour"
+msgid "Behavior"
 msgstr "動作"
 
 #: includes/Admin/Settings.php:299
@@ -1036,7 +1036,7 @@ msgstr "説明プロバイダー"
 
 #: includes/Admin/Settings.php:644
 msgid ""
-"Analyses the artwork image and writes the title, body, tags and alt text. "
+"Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
 "configured via the AI Services plugin."
 msgstr ""
@@ -3490,7 +3490,7 @@ msgstr "%s でコミュニティ削除投票が可決されました"
 #: includes/Artist/DepartureNotification.php:417
 #, php-format
 msgid ""
-"The community removal vote has closed with a majority in favour.\n"
+"The community removal vote has closed with a majority in favor.\n"
 "\n"
 "The artist's account and all published work have been permanently deleted "
 "from %1$s.\n"
@@ -3950,7 +3950,7 @@ msgid ""
 msgstr "また1件ずつに戻したいですか？下の通知設定リンクからいつでも元に戻せます。"
 
 #: includes/Artist/VouchConfirm.php:157
-msgid "Vote in favour of this application?"
+msgid "Vote in favor of this application?"
 msgstr "この申請に賛成票を投じますか？"
 
 #: includes/Artist/VouchConfirm.php:158
@@ -3958,7 +3958,7 @@ msgid "Vote against this application?"
 msgstr "この申請に反対票を投じますか？"
 
 #: includes/Artist/VouchConfirm.php:199
-msgid "You voted in favour of this application."
+msgid "You voted in favor of this application."
 msgstr "この申請に賛成票を投じました。"
 
 #: includes/Artist/VouchConfirm.php:200
@@ -5078,7 +5078,7 @@ msgstr "公開前にタイトル、本文、タグを調整しますか?"
 msgid "Open your submissions page →"
 msgstr "投稿ページを開く →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behaviour tab
+#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:947
 #, php-format
 msgid ""
@@ -5228,8 +5228,8 @@ msgstr "画像がピクセル化しています。もっと近くから撮影す
 #: includes/Publishing/Notification.php:1258
 #: includes/Publishing/Notification.php:1259
 msgid ""
-"The photo has a strong colour cast. Shoot under neutral daylight or use your "
-"phone's Auto White Balance setting for more accurate colours."
+"The photo has a strong color cast. Shoot under neutral daylight or use your "
+"phone's Auto White Balance setting for more accurate colors."
 msgstr "写真に強い色かぶりがあります。自然光の下で撮影するか、より正確な色にするためにスマートフォンの自動ホワイトバランス設定を使用してください。"
 
 #: includes/Publishing/Notification.php:1260

@@ -68,8 +68,19 @@
  *     version before 2.6.1 (function_exists() guard) — the fix above still
  *     applies on 2.6.1+ either way, this is additive only.
  *
- * When Lingua Forge is NOT active, this class does nothing — all hooks are
- * registered conditionally. No hard dependency.
+ * Since 0.9.22, agnosis.php declares `Requires Plugins: lingua-forge` —
+ * WordPress itself now refuses to install or activate Agnosis at all until
+ * Lingua Forge is installed and active (and, symmetrically, refuses to let an
+ * operator deactivate or delete Lingua Forge while Agnosis is active). This
+ * class's own function_exists()/class_exists() gating on every hook
+ * registration stays regardless, as defense-in-depth: WordPress core's own
+ * guidance on Plugin Dependencies is explicit that this mechanism only
+ * enforces presence at install/activation time, has no minimum-version
+ * support, and doesn't account for plugin load order — it does not replace
+ * runtime feature-detection. Concretely, that means this class still no-ops
+ * safely rather than fatal-erroring if Lingua Forge is ever removed via FTP,
+ * or during the brief window before it's loaded relative to Agnosis on a
+ * given request.
  *
  * @package Agnosis\Compat
  */
@@ -129,6 +140,18 @@ class LinguaForge {
 		'_agnosis_event_date',               // events only
 		'_agnosis_intake_endpoint',          // which address created the artwork (artwork/photo/pure)
 		'_agnosis_biography_portfolio_url',  // biography only — a URL is a URL regardless of page language
+		'_agnosis_biography_portfolio_embedded', // biography only — the EmbedPolicy
+												  // approval flag ('1'/'0') gating whether
+												  // Artist\Profile::render_biography_social_links()
+												  // shows the portfolio link at all. Without this,
+												  // _agnosis_biography_portfolio_url above still
+												  // copies correctly onto every sibling, but the
+												  // render-side gate check defaults to '' (not '1')
+												  // on a post that's never had this flag written to
+												  // it directly — silently suppressing an
+												  // already-approved portfolio link on every single
+												  // sibling (native or Lingua Forge-translated),
+												  // regardless of how correct the URL itself is.
 		'_agnosis_biography_social_url_1',   // biography only — same
 		'_agnosis_biography_social_url_2',   // biography only — same
 		'_agnosis_biography_social_url_3',   // biography only — same

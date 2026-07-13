@@ -516,7 +516,7 @@ class ApplicationBiographyTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Settings → Behaviour → "Review link expiry (days)"
+	 * Settings → Behavior → "Review link expiry (days)"
 	 * (agnosis_review_token_expiry_days) must actually change how long a
 	 * biography's review link lasts, not just artwork/event — this listener
 	 * writes its own _agnosis_review_expiry directly rather than going through

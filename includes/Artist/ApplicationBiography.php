@@ -194,7 +194,7 @@ class ApplicationBiography {
 				'_agnosis_source'        => 'application',
 				'_agnosis_artist_prompt' => $raw_prompt,
 				'_agnosis_review_token'  => bin2hex( random_bytes( 32 ) ),
-				// Settings → Behaviour → "Review link expiry (days)"
+				// Settings → Behavior → "Review link expiry (days)"
 				// (agnosis_review_token_expiry_days, default 7) — same option
 				// PostCreator::create_post() reads for artwork/event, so every
 				// review email link expires on the same configurable schedule
