@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.9.22
+Stable tag: 0.9.23
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,6 +71,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.23 =
+* Fixed: A biography title could still show up as the literal word "Array" even after the 0.9.22 fix for it — that fix only stopped the bug from happening again, it didn't undo damage from before it landed. Any biography page still titled "Array" is now automatically corrected on upgrade.
+
 = 0.9.22 =
 * Added: Two new default medium categories, Poetry and Essay, so the built-in list now covers written submissions, not just visual ones.
 * Added: Agnosis now checks for updates itself and shows the standard WordPress "Update available" badge with one-click updating, the same way the companion Lingua Forge plugin already does — no more manually re-uploading a ZIP for each new release. Package downloads are host-pinned and SHA-256 verified for safety.
@@ -82,15 +85,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: The portfolio link still wouldn't show up on any translated or native-language version of a biography page, even once its URL correctly reached that page — a second, separate "this link was approved" flag never reached it at all, so the link stayed silently hidden regardless.
 * Fixed: Settings → General → "Preset biography title" showed the exact same untranslated text on every language version of a biography page. Each language version now shows a translated version of the preset title, the same as an artist's own (non-preset) title always has.
 * Fixed: A translated biography title could occasionally show up as the literal word "Array" instead of an actual translation — a bug in the underlying translation helper that mishandled a rare AI response shape, only ever exposed by the very short preset-title text above.
-
-= 0.9.21 =
-* Added: A visitor can no longer message the same artist more than a configurable number of times per hour — previously the contact form only limited by IP address and, separately, by sender email address across every artist, so nothing stopped repeated messages to one specific artist. Configurable at Settings → Email ("Per-artist contact limit" and its time window). Applies the same regardless of which language version of the artist's page is used.
-* Added: A new Settings → General "Preset biography title" field lets you force every artist's biography page to use the same fixed title instead of their own, with an optional checkbox to append the artist's name to it (e.g. "Meet the Artist — Jane Doe"). Leave it blank to keep using each artist's own title, exactly as before. Applies to every Lingua Forge translated version of a biography page too.
-* Fixed: The contact form no longer just hides itself in the browser after a message is sent, since that could be undone to send more. Submitting now reloads the page; the form is then replaced with a "message sent" notice until the per-artist limit above allows another message.
-* Fixed: Resending a biography, artwork, or event with a new photo now actually updates the published post's featured image (previously it silently kept the old one), and the new photo now also reaches every Lingua Forge translated version of that page instead of just the primary language.
-* Fixed: A biography's three optional social links, and corrections to its portfolio link, now reach every Lingua Forge translated version of the page — previously they only ever showed up on the primary language.
-* Fixed: A biography's portfolio link no longer appears twice — once as a social icon below the photo, once again as a duplicate embedded preview inside the text. It now shows only as the icon.
-* Fixed: An artist could sometimes receive a second "please approve this" email for a submission they'd already approved and published, or already discarded — triggered by an admin's "heal the queue" action, or automatically after a mailbox migration, with no action needed from the artist. This is now fixed at the source.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Core;
 
+use Agnosis\Artist\BiographyTitle;
 use Agnosis\Email\AttachmentStore;
 
 class Activator {
@@ -193,6 +194,15 @@ class Activator {
 		// the old options are then removed so they can't linger as dead,
 		// confusing rows in wp_options.
 		self::migrate_mail_from_option();
+
+		// Repair any agnosis_biography title left as the literal word "Array"
+		// by the pre-0.9.22 SubmissionTranslator::call_translate() bug, and
+		// purge any "Array" value already sitting in that class's own
+		// per-(text, language) translation cache — a cache hit would
+		// otherwise keep serving the same bad value back out forever, even
+		// though the bug that produced it is already fixed. See
+		// Artist\BiographyTitle::repair_array_titles()'s own docblock (0.9.23).
+		BiographyTitle::repair_array_titles();
 
 		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
 		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char

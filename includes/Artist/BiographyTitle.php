@@ -230,4 +230,100 @@ class BiographyTitle {
 
 		return $translated;
 	}
+
+	/**
+	 * One-time repair (0.9.23) for damage done before the 0.9.22 fix to
+	 * SubmissionTranslator::call_translate() landed.
+	 *
+	 * That fix stopped the literal string "Array" from ever being produced
+	 * by a NEW call to the AI translator, but couldn't undo two things
+	 * already sitting on a live site from before it landed:
+	 *
+	 *   1. Any sibling post whose post_title had already been overwritten
+	 *      with "Array" (or "Array — Artist Name", when the include-name
+	 *      option is on) by translate_for_sibling() — the buggy cast is
+	 *      long gone, but its output was already saved to the database.
+	 *   2. A "Array" value already sitting in
+	 *      PRESET_TITLE_TRANSLATIONS_OPTION's cache for the current preset
+	 *      text/language pair — translated_preset_title() returns a cache
+	 *      hit without ever calling the (now-fixed) translator again, so
+	 *      that one bad cached value would otherwise keep being served back
+	 *      out, unchanged, forever.
+	 *
+	 * Called once from Activator::maybe_upgrade() on the 0.9.23 upgrade.
+	 * No-ops entirely if no preset title is currently configured (nothing to
+	 * compute a correct replacement from) or Lingua Forge's language lookup
+	 * isn't available. Safe to re-run: once the cache holds no "Array"
+	 * entries and no post has a literal "Array" title, both passes below
+	 * simply find nothing to do.
+	 *
+	 * @return int Number of post titles corrected.
+	 */
+	public static function repair_array_titles(): int {
+		// Purge any cached "Array" translation first, so a post this pass
+		// can't yet reach (e.g. no AI provider configured right now) at
+		// least won't keep re-serving the stale bad value once one is.
+		$cache   = get_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, [] );
+		$dirty   = false;
+		foreach ( $cache as $text => $by_lang ) {
+			foreach ( $by_lang as $lang => $value ) {
+				if ( 'Array' === $value ) {
+					unset( $cache[ $text ][ $lang ] );
+					$dirty = true;
+				}
+			}
+			if ( empty( $cache[ $text ] ) ) {
+				unset( $cache[ $text ] );
+			}
+		}
+		if ( $dirty ) {
+			update_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, $cache, false );
+		}
+
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		if ( '' === $preset_title || ! function_exists( 'linguaforge_get_lang' ) ) {
+			return 0;
+		}
+
+		global $wpdb;
+		// Raw title match rather than WP_Query: this is a one-time repair for
+		// an exact, known-bad literal string, not a general content query.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$post_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND ( post_title = %s OR post_title LIKE %s )",
+			'agnosis_biography',
+			'Array',
+			$wpdb->esc_like( 'Array — ' ) . '%'
+		) );
+
+		$fixed = 0;
+		foreach ( $post_ids as $post_id ) {
+			$post_id     = (int) $post_id;
+			$target_lang = sanitize_key( linguaforge_get_lang( $post_id ) );
+			if ( '' === $target_lang ) {
+				continue;
+			}
+
+			$translated = self::translated_preset_title( $preset_title, $target_lang );
+			$final      = self::maybe_append_artist_name( $translated, (int) get_post_field( 'post_author', $post_id ) );
+
+			if ( $final === get_post_field( 'post_title', $post_id ) ) {
+				continue; // Nothing actually changed (e.g. no AI provider configured) — leave it for a later run.
+			}
+
+			// Same suppression as translate_for_sibling() above — without it,
+			// this wp_update_post() call would re-fire wp_insert_post_data
+			// and apply_preset_title() would immediately stomp $final back
+			// to the raw, untranslated preset.
+			self::$suppress_preset_override = true;
+			try {
+				wp_update_post( [ 'ID' => $post_id, 'post_title' => $final ] );
+			} finally {
+				self::$suppress_preset_override = false;
+			}
+			++$fixed;
+		}
+
+		return $fixed;
+	}
 }

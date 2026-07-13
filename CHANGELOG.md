@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.23]
+
+### Fixed
+- **A biography's title could still show up as the literal word "Array" even after the 0.9.22 fix to `SubmissionTranslator::call_translate()`, because that fix only stopped a NEW bad translation from being produced — it did nothing for damage already done before it landed.** Two things survived the 0.9.22 release on any site that had already hit the bug: (1) a sibling post whose `post_title` had already been overwritten with the literal string "Array" (or "Array — Artist Name") by `BiographyTitle::translate_for_sibling()`, and (2) a corresponding "Array" entry already sitting in `BiographyTitle`'s own `PRESET_TITLE_TRANSLATIONS_OPTION` cache — which, being a cache *hit*, would keep serving that same bad value straight back out on every future sync without ever calling the now-fixed translator again. New `Artist\BiographyTitle::repair_array_titles()` purges any "Array" cache entries and re-translates + updates any `agnosis_biography` post still titled "Array" (via `linguaforge_get_lang()` to resolve each sibling's own language), run once from `Activator::maybe_upgrade()` on this upgrade. No-ops on a site with no preset title configured or nothing left to repair. (`includes/Artist/BiographyTitle.php`, `includes/Core/Activator.php`)
+
 ## [0.9.22]
 
 ### Added
