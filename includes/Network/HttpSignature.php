@@ -12,7 +12,16 @@
  *   • Replay protection: Date header must be within ±12 hours of server time.
  *   • Key caching: remote actor document is fetched once and cached for 24 h
  *     in a transient, so repeated requests from the same actor cost one HTTP
- *     round-trip per day rather than one per request.
+ *     round-trip per day rather than one per request. Fetch FAILURES are also
+ *     cached, separately and for 5 minutes, so a flood of requests bearing
+ *     random/nonexistent keyIds can't force one outbound fetch per request
+ *     (audit §3g note ii).
+ *   • keyId↔actor binding: verify_actor_binding() ties the signing key's
+ *     owner to the actor claimed inside the activity JSON (audit §3b).
+ *   • verify_with_key() generalizes the same signature check for callers
+ *     that already hold the caller-supplied public key inline (e.g. a peer
+ *     node registration, audit §2d), instead of fetching it from a remote
+ *     actor document.
  *
  * @package Agnosis\Network
  */
@@ -28,6 +37,16 @@ class HttpSignature {
 
 	/** Transient TTL for cached actor public keys. */
 	private const KEY_CACHE_TTL = DAY_IN_SECONDS;
+
+	/**
+	 * Transient TTL for cached key-fetch FAILURES (audit §3g note ii).
+	 * fetch_public_key() previously cached only success — a flood of requests
+	 * bearing random or nonexistent keyIds triggered one full outbound fetch
+	 * each, an amplification vector against this server's own outbound
+	 * request budget. Short relative to the success TTL: a remote actor
+	 * document that's briefly unreachable shouldn't stay "poisoned" for long.
+	 */
+	private const KEY_NEGATIVE_CACHE_TTL = 5 * MINUTE_IN_SECONDS;
 
 	/** Maximum signed-request age in seconds (±12 hours). */
 	private const MAX_REQUEST_AGE = 43200;
@@ -50,6 +69,116 @@ class HttpSignature {
 	 * @return true|WP_Error
 	 */
 	public static function verify( WP_REST_Request $request ): bool|WP_Error {
+		$params = self::verify_preamble( $request );
+		if ( is_wp_error( $params ) ) {
+			return $params;
+		}
+
+		// ── 4. Fetch (and cache) the actor's RSA public key ───────────────────
+		$public_key_pem = self::fetch_public_key( $params['keyId'] );
+		if ( is_wp_error( $public_key_pem ) ) {
+			return $public_key_pem;
+		}
+
+		return self::verify_signature( $request, $params, $public_key_pem );
+	}
+
+	/**
+	 * Verify an HTTP Signature against a caller-supplied public key, rather
+	 * than one fetched from a remote actor document.
+	 *
+	 * Runs the same parsing/freshness/digest checks as verify(), but skips
+	 * step 4 (fetching a key from `keyId`) entirely — the caller already
+	 * has the key because it arrived in the same request. Used by
+	 * `Node::register_peer()` (audit §2d): a peer registration submits its
+	 * own public key inline in the request body, so there is no remote
+	 * actor document to dereference; the caller proves ownership of that
+	 * exact key by signing the request with the matching private key. This
+	 * is proof of possession only — a self-consistency check, not a
+	 * domain-ownership proof — but it is exactly what closes the concrete
+	 * abuse the audit named: a registration whose claimed key the requester
+	 * does not actually hold.
+	 *
+	 * @param WP_REST_Request $request        Incoming request.
+	 * @param string          $public_key_pem PEM-encoded RSA public key to verify against.
+	 * @return true|WP_Error
+	 */
+	public static function verify_with_key( WP_REST_Request $request, string $public_key_pem ): bool|WP_Error {
+		$params = self::verify_preamble( $request );
+		if ( is_wp_error( $params ) ) {
+			return $params;
+		}
+
+		return self::verify_signature( $request, $params, $public_key_pem );
+	}
+
+	/**
+	 * Verify that the signing key belongs to the actor named in the activity.
+	 *
+	 * verify() proves the request was signed by the key at `keyId` — but
+	 * nothing else ties that identity to the `actor` field inside the
+	 * activity JSON the inbox then acts on. Without this binding, any
+	 * fediverse account holder with a valid key on ANY server can send a
+	 * correctly-signed request whose body claims someone else's actor id:
+	 * a forged Follow subscribes the victim's inbox to every broadcast, and
+	 * a forged Undo silently removes a real follower (audit §3b). Mastodon
+	 * and friends guard exactly this by requiring the signing key's owner to
+	 * match the activity's actor; this mirrors that rule.
+	 *
+	 * The keyId's base URL (fragment stripped) IS the actor document URL in
+	 * every major implementation — Mastodon, Pleroma/Akkoma, GoToSocial, and
+	 * Pixelfed all mint keyId as `<actor>#main-key` — so an exact match
+	 * against the activity's actor id is both the simplest and the strictest
+	 * correct comparison (the audit's "same-origin at minimum" floor would
+	 * still allow same-server forgery; exact match closes that too).
+	 *
+	 * @param WP_REST_Request $request Incoming, already signature-verified request.
+	 * @return true|WP_Error 401 WP_Error when the binding fails.
+	 */
+	public static function verify_actor_binding( WP_REST_Request $request ): bool|WP_Error {
+		$params    = self::parse_signature_header( (string) $request->get_header( 'signature' ) );
+		$key_owner = (string) strtok( (string) ( $params['keyId'] ?? '' ), '#' );
+
+		// get_json_params() only parses when the Content-Type is a JSON media
+		// type; fall back to the raw body so a peer sending a bare or unusual
+		// Content-Type is still held to the same binding rule.
+		$activity = $request->get_json_params();
+		if ( ! is_array( $activity ) || [] === $activity ) {
+			$activity = json_decode( $request->get_body(), true );
+		}
+
+		$actor = is_array( $activity ) ? ( $activity['actor'] ?? '' ) : '';
+		if ( is_array( $actor ) ) {
+			// The actor may legally be an embedded object; its id carries the claim.
+			$actor = $actor['id'] ?? '';
+		}
+
+		if ( ! is_string( $actor ) || '' === $actor || '' === $key_owner || $key_owner !== $actor ) {
+			return new WP_Error(
+				'ap_actor_mismatch',
+				__( 'Signature keyId does not belong to the activity actor.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+
+		return true;
+	}
+
+	// -------------------------------------------------------------------------
+	// Private helpers
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Shared steps 1–3 of signature verification: parse the Signature header,
+	 * check date freshness, and verify the body digest when signed. Common to
+	 * both verify() (fetches the key from keyId) and verify_with_key() (takes
+	 * the key from the caller) — everything before "where does the public key
+	 * come from" is identical between the two.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return array<string, string>|WP_Error Parsed Signature-header params on success.
+	 */
+	private static function verify_preamble( WP_REST_Request $request ): array|WP_Error {
 		if ( ! function_exists( 'openssl_verify' ) ) {
 			return new WP_Error(
 				'ap_sig_openssl_missing',
@@ -77,17 +206,46 @@ class HttpSignature {
 			);
 		}
 
+		// ── 1b. Signed-header strictness (audit §3g note i) ────────────────────
+		// A signature legitimately minted over only "(request-target) host"
+		// verifies cryptographically fine — but it silently defeats the
+		// freshness check below (which only runs when a Date header happens to
+		// be present) and the digest check in verify_preamble()'s step 3 (which
+		// only runs when "digest" happens to be in the signed list). Mirror
+		// Mastodon's own rule for symmetry with what we now send per §3a: every
+		// signature must cover date (or its HTTP Signatures "(created)"
+		// pseudo-header equivalent), and every POST's signature must also cover
+		// digest, since that's the request class carrying a body worth binding
+		// to the signature at all.
+		$signed_headers = strtolower( $params['headers'] );
+		if ( ! str_contains( $signed_headers, 'date' ) && ! str_contains( $signed_headers, '(created)' ) ) {
+			return new WP_Error(
+				'ap_sig_no_date',
+				__( 'Signature must cover the Date header.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+		if ( 'POST' === $request->get_method() && ! str_contains( $signed_headers, 'digest' ) ) {
+			return new WP_Error(
+				'ap_sig_no_digest',
+				__( 'Signature on a POST request must cover the Digest header.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+
 		// ── 2. Date freshness — prevents replay attacks ────────────────────────
-		$date_header = (string) $request->get_header( 'date' );
-		if ( '' !== $date_header ) {
-			$request_time = strtotime( $date_header );
-			if ( false === $request_time || abs( time() - $request_time ) > self::MAX_REQUEST_AGE ) {
-				return new WP_Error(
-					'ap_sig_stale',
-					__( 'Request date is too old or too far in the future.', 'agnosis' ),
-					[ 'status' => 401 ]
-				);
-			}
+		// Date is now required to be signed (above), so a missing Date header
+		// is itself a rejection rather than a silent skip — previously a
+		// signature naming "date" in its headers list but omitting the actual
+		// header would fall through this check untested.
+		$date_header  = (string) $request->get_header( 'date' );
+		$request_time = '' !== $date_header ? strtotime( $date_header ) : false;
+		if ( false === $request_time || abs( time() - $request_time ) > self::MAX_REQUEST_AGE ) {
+			return new WP_Error(
+				'ap_sig_stale',
+				__( 'Request date is too old or too far in the future.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
 		}
 
 		// ── 3. Body digest ────────────────────────────────────────────────────
@@ -98,12 +256,19 @@ class HttpSignature {
 			}
 		}
 
-		// ── 4. Fetch (and cache) the actor's RSA public key ───────────────────
-		$public_key_pem = self::fetch_public_key( $params['keyId'] );
-		if ( is_wp_error( $public_key_pem ) ) {
-			return $public_key_pem;
-		}
+		return $params;
+	}
 
+	/**
+	 * Shared steps 5–6: decode the signature value and verify it cryptographically
+	 * against the given public key.
+	 *
+	 * @param WP_REST_Request      $request        Incoming request.
+	 * @param array<string,string> $params         Parsed Signature-header params (from verify_preamble()).
+	 * @param string               $public_key_pem PEM-encoded RSA public key to verify against.
+	 * @return true|WP_Error
+	 */
+	private static function verify_signature( WP_REST_Request $request, array $params, string $public_key_pem ): bool|WP_Error {
 		// ── 5. Decode the signature value ─────────────────────────────────────
 		$raw_signature = base64_decode( $params['signature'], true );
 		if ( false === $raw_signature || '' === $raw_signature ) {
@@ -128,10 +293,6 @@ class HttpSignature {
 
 		return true;
 	}
-
-	// -------------------------------------------------------------------------
-	// Private helpers
-	// -------------------------------------------------------------------------
 
 	/**
 	 * Parse the key=value pairs from a Signature header value.
@@ -197,6 +358,18 @@ class HttpSignature {
 			return $cached;
 		}
 
+		// Negative cache (audit §3g note ii) — checked before the outbound
+		// fetch, distinct transient from the success cache above so a key that
+		// starts resolving again isn't held back by a stale failure entry.
+		$failure_cache_key = 'agnosis_ap_key_fail_' . md5( $key_id );
+		if ( false !== get_transient( $failure_cache_key ) ) {
+			return new WP_Error(
+				'ap_key_fetch_failed',
+				__( 'Actor document could not be fetched (cached failure).', 'agnosis' ),
+				[ 'status' => 502 ]
+			);
+		}
+
 		// $actor_url is attacker-controlled (derived from the inbound Signature
 		// header's keyId), so use the "safe" variant: it rejects private/
 		// loopback/link-local/ULA targets, re-checked on every redirect hop
@@ -207,6 +380,7 @@ class HttpSignature {
 		] );
 
 		if ( is_wp_error( $response ) ) {
+			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_fetch_failed',
 				__( 'Failed to fetch actor document.', 'agnosis' ),
@@ -215,6 +389,7 @@ class HttpSignature {
 		}
 
 		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
+			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_fetch_failed',
 				__( 'Actor document returned a non-200 response.', 'agnosis' ),
@@ -226,6 +401,7 @@ class HttpSignature {
 		$pem  = $data['publicKey']['publicKeyPem'] ?? null;
 
 		if ( ! is_string( $pem ) || '' === $pem ) {
+			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_not_found',
 				__( 'Actor document does not contain a publicKey.publicKeyPem field.', 'agnosis' ),

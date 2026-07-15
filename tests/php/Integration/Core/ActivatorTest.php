@@ -79,7 +79,6 @@ class ActivatorTest extends \WP_UnitTestCase {
 			'agnosis_ai_provider',
 			'agnosis_openai_api_key',
 			'agnosis_anthropic_api_key',
-			'agnosis_stability_api_key',
 			'agnosis_email_driver',
 			'agnosis_email_submit',
 			'agnosis_email_bio',
@@ -270,6 +269,9 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$this->assertSame( 'About', $page->post_title );
 		$this->assertStringNotContainsString( '<h1', $page->post_content );
 		$this->assertStringContainsString( 'How we use AI', $page->post_content );
+		// American English, not British — see [[feedback_american_english]].
+		$this->assertStringContainsString( 'Colors, textures, composition', $page->post_content );
+		$this->assertStringNotContainsString( 'Colours', $page->post_content );
 		// Tagged for uninstall cleanup.
 		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
 	}
@@ -289,6 +291,16 @@ class ActivatorTest extends \WP_UnitTestCase {
 		$this->assertSame( 'Artist Guide', $page->post_title );
 		$this->assertStringNotContainsString( '<h1', $page->post_content );
 		$this->assertStringContainsString( 'Sending a series or set of images', $page->post_content );
+		// §3d: the guide must state the 0.9.25/0.9.27 email-intake rules —
+		// Cc/Bcc are ignored, only the first To: address routes, and a
+		// reply/forward is rescued only when original text sits above the quote.
+		$this->assertStringContainsString( 'How to email us', $page->post_content );
+		$this->assertStringContainsString( 'not as a Cc or Bcc', $page->post_content );
+		$this->assertStringContainsString( 'Only the very first address you send', $page->post_content );
+		$this->assertStringContainsString( 'Start a fresh email rather than replying', $page->post_content );
+		// American English, not British — see [[feedback_american_english]].
+		$this->assertStringContainsString( 'Colors, textures, composition', $page->post_content );
+		$this->assertStringNotContainsString( 'Colours', $page->post_content );
 		$this->assertSame( '1', get_post_meta( $page_id, '_agnosis_managed_page', true ) );
 	}
 
@@ -537,5 +549,86 @@ class ActivatorTest extends \WP_UnitTestCase {
 
 		$this->assertFalse( $rescheduled, 'Must report nothing was missing when both events are already scheduled.' );
 		$this->assertSame( $first_run_at, wp_next_scheduled( 'agnosis_send_newsletter_queue' ), 'Must not reschedule (and so reset the timer on) an event that already exists.' );
+	}
+
+	// =========================================================================
+	// maybe_upgrade() — agnosis_followers uq_actor_id -> uq_owner_actor (§3h)
+	// =========================================================================
+
+	/**
+	 * Put agnosis_followers back into its pre-§3h shape: drop the owner_type/
+	 * owner_id columns and restore the old bare uq_actor_id unique key, so
+	 * maybe_upgrade()'s index-swap path can be exercised. Existence-checked
+	 * (not a blind DROP) for the same reason simulate_legacy_sent_at_column()
+	 * above is — ALTER TABLE implicit-commits, so it isn't undone by the
+	 * per-test transaction rollback, and a second blind DROP would error on a
+	 * column/index that a prior interrupted test already removed.
+	 */
+	private function simulate_legacy_followers_schema(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_owner_type = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_followers LIKE 'owner_type'" );
+		if ( empty( $has_owner_type ) ) {
+			return; // Already in the legacy shape — nothing to do.
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_followers DROP INDEX uq_owner_actor, DROP INDEX idx_owner, DROP COLUMN owner_type, DROP COLUMN owner_id, ADD UNIQUE KEY uq_actor_id (actor_id)" );
+	}
+
+	public function test_maybe_upgrade_adds_owner_columns_and_swaps_the_unique_key(): void {
+		global $wpdb;
+
+		$this->simulate_legacy_followers_schema();
+
+		Activator::maybe_upgrade();
+
+		$has_owner_type = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_followers LIKE 'owner_type'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$has_owner_id   = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_followers LIKE 'owner_id'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$old_key        = $wpdb->get_results( "SHOW KEYS FROM {$wpdb->prefix}agnosis_followers WHERE Key_name = 'uq_actor_id'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$new_key        = $wpdb->get_results( "SHOW KEYS FROM {$wpdb->prefix}agnosis_followers WHERE Key_name = 'uq_owner_actor'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$this->assertNotEmpty( $has_owner_type, 'owner_type column must exist after upgrade.' );
+		$this->assertNotEmpty( $has_owner_id, 'owner_id column must exist after upgrade.' );
+		$this->assertEmpty( $old_key, 'The old bare-actor_id unique key must be gone — otherwise the same remote actor could never follow both the node and an artist.' );
+		$this->assertNotEmpty( $new_key, 'The new (owner_type, owner_id, actor_id) unique key must exist.' );
+	}
+
+	public function test_maybe_upgrade_lets_the_same_actor_follow_node_and_an_artist_after_migrating(): void {
+		global $wpdb;
+
+		$this->simulate_legacy_followers_schema();
+		Activator::maybe_upgrade();
+
+		// The same remote actor_id, once for the node and once for an artist —
+		// this is exactly what the old bare-actor_id UNIQUE KEY would have
+		// rejected as a duplicate.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_followers',
+			[ 'owner_type' => 'node', 'owner_id' => 0, 'actor_id' => 'https://mastodon.example/users/same', 'inbox_url' => 'https://mastodon.example/users/same/inbox' ],
+			[ '%s', '%d', '%s', '%s' ]
+		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$inserted = $wpdb->insert(
+			$wpdb->prefix . 'agnosis_followers',
+			[ 'owner_type' => 'artist', 'owner_id' => 42, 'actor_id' => 'https://mastodon.example/users/same', 'inbox_url' => 'https://mastodon.example/users/same/inbox' ],
+			[ '%s', '%d', '%s', '%s' ]
+		);
+
+		$this->assertNotFalse( $inserted, 'The same actor_id must be insertable for a second, different (owner_type, owner_id) after the migration.' );
+	}
+
+	public function test_maybe_upgrade_followers_migration_is_idempotent(): void {
+		// Calling maybe_upgrade() twice in a row (already-migrated on the
+		// second call) must not error — matches this file's existing
+		// idempotent-upgrade-path convention (test_maybe_upgrade_runs_without_error).
+		$this->simulate_legacy_followers_schema();
+
+		Activator::maybe_upgrade();
+		Activator::maybe_upgrade();
+
+		$this->assertTrue( true, 'A second maybe_upgrade() call against an already-migrated table must not throw.' );
 	}
 }

@@ -232,21 +232,28 @@ class Parser {
 		// getTextBody() returns string — cast directly, no ?? needed.
 		$text_body = (string) $message->getTextBody();
 
-		// --- Reply/quote rejection (2026-07-15) — checked before attachment
-		// processing, deliberately: a reply carrying a genuine attachment is
-		// still rejected, since the policy is about original, curated content,
-		// not about whether a file happens to be attached. See
+		// --- Reply/forward extraction (2026-07-15; extraction added
+		// 2026-07-14 — eighth audit §3c) — detected BEFORE attachment
+		// processing (unchanged from before §3c), but no longer an
+		// immediate reject: IntakeGates::extract_original_content() pulls
+		// out whatever the sender actually wrote above the quoted/forwarded
+		// portion, and $subject/$text_body are overwritten with that
+		// extracted content for the rest of this method — including
+		// attachment processing below, since a reply/forward carrying a
+		// genuine attachment (e.g. "here's another one" above an old
+		// thread) is now something to process, not a reason to reject.
+		// $was_reply_or_forward is carried through to the final
+		// "nothing usable" gate further down, which is the one place this
+		// can still end in a reject — only when extraction leaves nothing
+		// original AND there's no attachment either. See
 		// IntakeGates::is_reply_or_quote()'s own docblock for exactly what's
 		// matched and why (including the Reply-To-driven "just hit reply to
-		// submit again" feature this is meant to catch when the artist doesn't
-		// clear the quoted thread first).
-		if ( IntakeGates::is_reply_or_quote( $subject, $text_body ) ) {
-			Logger::info(
-				'Parser: UID ' . (string) $message->getUid() . ' looks like a reply or quoted message, not an original submission — skipped.',
-				'inbox'
-			);
-			$this->last_rejection_reason = 'looks_like_reply';
-			return null;
+		// submit again" feature this whole policy is meant to accommodate).
+		$was_reply_or_forward = IntakeGates::is_reply_or_quote( $subject, $text_body );
+		if ( $was_reply_or_forward ) {
+			$extracted = IntakeGates::extract_original_content( $subject, $text_body );
+			$subject   = $extracted['subject'];
+			$text_body = $extracted['body'];
 		}
 
 		// --- Attachments (image, audio, or video) ---
@@ -430,20 +437,39 @@ class Parser {
 		// still needs either an attachment or text, which this same check
 		// still enforces.
 		if ( empty( $attachments ) && '' === $cleaned_description && ! $is_management ) {
+			// A reply/forward that extracted to nothing (no original text, no
+			// attachment) is still specifically "looks_like_reply", not the
+			// generic no-attachments case — same distinct rejection email as
+			// before §3c, just reached later, after extraction genuinely had
+			// nothing to work with rather than being skipped outright.
+			if ( $was_reply_or_forward ) {
+				Logger::info(
+					'Parser: UID ' . (string) $message->getUid() . ' looked like a reply or forward, and nothing original survived extraction — skipped.',
+					'inbox'
+				);
+				$this->last_rejection_reason = 'looks_like_reply';
+			}
 			return null; // Nothing usable — skip.
 		}
 
 		$artist_id = $this->resolve_artist( $from );
 
 		return [
-			'from'         => $from,
-			'to_address'   => $to_address,
-			'to_addresses' => $all_recipients,
-			'subject'      => $subject,
-			'description'  => $cleaned_description,
-			'attachments'  => $attachments,
-			'artist_id'    => $artist_id,
-			'source'       => 'imap',
+			'from'                  => $from,
+			'to_address'            => $to_address,
+			'to_addresses'          => $all_recipients,
+			'subject'               => $subject,
+			'description'           => $cleaned_description,
+			'attachments'           => $attachments,
+			'artist_id'             => $artist_id,
+			'source'                => 'imap',
+			// eighth audit §3c — true when this submission is what survived
+			// reply-above-quote/forward extraction, rather than an ordinary
+			// fresh email. PostCreator::create_post() persists this as
+			// `_agnosis_extracted_from_reply` post meta so Notification's
+			// review email can gently note that a fresh email works best,
+			// even though this one was accepted.
+			'extracted_from_reply'  => $was_reply_or_forward,
 		];
 	}
 
@@ -500,12 +526,19 @@ class Parser {
 		$subject      = sanitize_text_field( $payload['subject'] ?? '' );
 		$description  = sanitize_textarea_field( $payload['stripped-text'] ?? $payload['text'] ?? '' );
 
-		// Reply/quote rejection (2026-07-15) — mirrors parse_imap_message()'s
-		// identical check; see IntakeGates::is_reply_or_quote()'s own docblock.
-		if ( IntakeGates::is_reply_or_quote( $subject, $description ) ) {
-			Logger::info( 'Parser: webhook payload looks like a reply or quoted message, not an original submission — skipped.', 'inbox' );
-			$this->last_rejection_reason = 'looks_like_reply';
-			return null;
+		// Reply/forward extraction (2026-07-15; extraction added 2026-07-14 —
+		// eighth audit §3c) — mirrors parse_imap_message()'s identical
+		// widening; see IntakeGates::is_reply_or_quote()'s own docblock and
+		// extract_original_content()'s docblock for the full rationale. No
+		// longer an immediate reject: $subject/$description are overwritten
+		// with whatever extraction finds above the quoted/forwarded portion,
+		// and the final "nothing usable" gate further down is where a
+		// genuinely empty extraction still ends up rejected.
+		$was_reply_or_forward = IntakeGates::is_reply_or_quote( $subject, $description );
+		if ( $was_reply_or_forward ) {
+			$extracted   = IntakeGates::extract_original_content( $subject, $description );
+			$subject     = $extracted['subject'];
+			$description = $extracted['body'];
 		}
 
 		$attachments = [];
@@ -568,18 +601,27 @@ class Parser {
 		// never needed an attachment at all) must not be dropped here just
 		// because no file was attached.
 		if ( empty( $attachments ) && '' === $cleaned_description ) {
+			// See parse_imap_message()'s identical branch — a reply/forward
+			// that extracted to nothing keeps its distinct 'looks_like_reply'
+			// rejection reason rather than the generic empty-payload case.
+			if ( $was_reply_or_forward ) {
+				Logger::info( 'Parser: webhook payload looked like a reply or forward, and nothing original survived extraction — skipped.', 'inbox' );
+				$this->last_rejection_reason = 'looks_like_reply';
+			}
 			return null;
 		}
 
 		return [
-			'from'         => $from,
-			'to_address'   => $to_address,
-			'to_addresses' => $to_addresses,
-			'subject'      => $subject,
-			'description'  => $cleaned_description,
-			'attachments'  => $attachments,
-			'artist_id'    => $this->resolve_artist( $from ),
-			'source'       => 'webhook',
+			'from'                 => $from,
+			'to_address'           => $to_address,
+			'to_addresses'         => $to_addresses,
+			'subject'              => $subject,
+			'description'          => $cleaned_description,
+			'attachments'          => $attachments,
+			'artist_id'            => $this->resolve_artist( $from ),
+			'source'               => 'webhook',
+			// eighth audit §3c — see parse_imap_message()'s identical field.
+			'extracted_from_reply' => $was_reply_or_forward,
 		];
 	}
 

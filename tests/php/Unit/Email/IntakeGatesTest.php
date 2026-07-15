@@ -239,8 +239,149 @@ class IntakeGatesTest extends TestCase {
 		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My new piece', $body ) );
 	}
 
+	// -------------------------------------------------------------------------
+	// Forward detection (eighth audit §3b) — the policy was always named
+	// "reply or forward" and framed that way in the 0.9.25 changelog, but
+	// nothing actually matched a forward as such before this widening; only
+	// Outlook's shared reply/forward separator happened to be caught
+	// incidentally via the "original message" pattern above.
+	// -------------------------------------------------------------------------
+
+	public function test_reply_or_quote_matches_fwd_prefixed_subject(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'Fwd: My new painting', 'Look what my friend sent me.' ) );
+	}
+
+	public function test_reply_or_quote_matches_fw_prefixed_subject(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'FW: status update', 'Body text.' ) );
+	}
+
+	public function test_reply_or_quote_matches_fwd_prefix_case_insensitively_and_with_extra_space(): void {
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'fwd :  My piece', 'Body text.' ) );
+	}
+
+	public function test_reply_or_quote_matches_gmail_forwarded_message_separator(): void {
+		// A Gmail forward with no comment of the forwarder's own above the
+		// separator — the exact gap the audit flagged: no "Re:"/"Fwd:"
+		// subject, no "On … wrote:" line, nothing but the separator itself.
+		$body = "---------- Forwarded message ---------\nFrom: Someone <someone@example.com>\nDate: Mon, Jul 13, 2026\nSubject: My piece\n\nOriginal content here.";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My piece', $body ) );
+	}
+
+	public function test_reply_or_quote_matches_gmail_forwarded_message_separator_with_varying_hyphen_counts(): void {
+		$body = "--- Forwarded message ------\nFrom: someone@example.com";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My piece', $body ) );
+	}
+
+	public function test_reply_or_quote_matches_apple_mail_begin_forwarded_message(): void {
+		$body = "Begin forwarded message:\n\nFrom: Someone <someone@example.com>\nSubject: My piece\n\nOriginal content here.";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My piece', $body ) );
+	}
+
+	public function test_reply_or_quote_matches_apple_mail_begin_forwarded_message_case_insensitively(): void {
+		$body = "Some comment.\n\nBEGIN FORWARDED MESSAGE:\n\nFrom: someone@example.com";
+		$this->assertTrue( IntakeGates::is_reply_or_quote( 'My piece', $body ) );
+	}
+
 	public function test_reply_or_quote_returns_false_for_a_genuine_original_submission(): void {
 		$this->assertFalse( IntakeGates::is_reply_or_quote( 'My new painting', 'Just finished this one, hope you like it.' ) );
+	}
+
+	public function test_reply_or_quote_does_not_false_positive_on_the_word_forward_alone(): void {
+		// "forward" appearing in ordinary prose (no colon, no separator shape)
+		// must not trip the new patterns — only the specific marker phrases do.
+		$this->assertFalse( IntakeGates::is_reply_or_quote( 'Moving forward with new work', 'I look forward to sharing more soon.' ) );
+	}
+
+	// =========================================================================
+	// extract_original_content() (eighth audit §3c — reply-above-quote/
+	// forward extraction, option (c) chosen for the product tension between
+	// the 0.9.22 Reply-To "just hit reply" feature and the 0.9.25 blanket
+	// reply/forward rejection)
+	// =========================================================================
+
+	public function test_extract_strips_re_prefix_from_subject(): void {
+		$result = IntakeGates::extract_original_content( 'Re: My new painting', 'Just finished this one.' );
+
+		$this->assertSame( 'My new painting', $result['subject'] );
+	}
+
+	public function test_extract_strips_fwd_and_fw_prefixes_from_subject(): void {
+		$this->assertSame( 'My piece', IntakeGates::extract_original_content( 'Fwd: My piece', 'x' )['subject'] );
+		$this->assertSame( 'My piece', IntakeGates::extract_original_content( 'FW: My piece', 'x' )['subject'] );
+	}
+
+	public function test_extract_strips_doubly_stacked_prefixes_from_a_long_thread_subject(): void {
+		$result = IntakeGates::extract_original_content( 'Re: Fwd: Re: My piece', 'x' );
+
+		$this->assertSame( 'My piece', $result['subject'] );
+	}
+
+	public function test_extract_removes_agnosis_bracket_from_subject(): void {
+		$result = IntakeGates::extract_original_content( 'Fwd: [Agnosis] Your submission was received', 'x' );
+
+		$this->assertSame( 'Your submission was received', $result['subject'] );
+	}
+
+	public function test_extract_collapses_whitespace_left_behind_by_stripping(): void {
+		$result = IntakeGates::extract_original_content( 'Re:   [Agnosis]   My   piece', 'x' );
+
+		$this->assertSame( 'My piece', $result['subject'] );
+	}
+
+	public function test_extract_keeps_whole_body_when_no_quote_marker_is_present(): void {
+		// Only the SUBJECT carried a reply signal — an unusual but real case
+		// (some client/workflow combinations strip quoting on their own).
+		$result = IntakeGates::extract_original_content( 'Re: My new painting', 'Here it is again, freshly reworked.' );
+
+		$this->assertSame( 'Here it is again, freshly reworked.', $result['body'] );
+	}
+
+	public function test_extract_keeps_only_the_comment_above_an_on_wrote_attribution_line(): void {
+		$body   = "Here's another one for you.\n\nOn 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Previous content.";
+		$result = IntakeGates::extract_original_content( 'My new painting', $body );
+
+		$this->assertSame( "Here's another one for you.", $result['body'] );
+	}
+
+	public function test_extract_keeps_only_the_comment_above_an_outlook_original_message_separator(): void {
+		$body   = "See attached.\n\n-----Original Message-----\nFrom: someone@example.com";
+		$result = IntakeGates::extract_original_content( 'My new painting', $body );
+
+		$this->assertSame( 'See attached.', $result['body'] );
+	}
+
+	public function test_extract_keeps_only_the_comment_above_a_gmail_forward_separator(): void {
+		$body   = "Thought you'd like this.\n\n---------- Forwarded message ---------\nFrom: someone@example.com";
+		$result = IntakeGates::extract_original_content( 'Fwd: interesting piece', $body );
+
+		$this->assertSame( "Thought you'd like this.", $result['body'] );
+	}
+
+	public function test_extract_keeps_only_the_comment_above_an_apple_mail_forward_marker(): void {
+		$body   = "Check this out.\n\nBegin forwarded message:\n\nFrom: someone@example.com";
+		$result = IntakeGates::extract_original_content( 'Fwd: interesting piece', $body );
+
+		$this->assertSame( 'Check this out.', $result['body'] );
+	}
+
+	public function test_extract_returns_empty_body_when_the_quote_marker_is_at_the_very_start(): void {
+		// Nothing above the marker at all — the "nothing survived extraction"
+		// case Email\Parser is responsible for turning into a rejection.
+		$body   = "On 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Previous content.";
+		$result = IntakeGates::extract_original_content( 'Re: My new painting', $body );
+
+		$this->assertSame( '', $result['body'] );
+	}
+
+	public function test_extract_uses_the_earliest_marker_when_a_body_contains_more_than_one(): void {
+		// A quoted thread that itself contains an even-older quoted thread —
+		// only the comment above the FIRST (earliest/outermost) marker is the
+		// sender's own new content; anything after that first marker,
+		// including a second marker further down, is all quoted history.
+		$body   = "My new comment.\n\nOn 13 Jul 2026, at 18:57, A <a@example.com> wrote:\n\nAn older reply.\n\nOn 10 Jul 2026, at 09:00, B <b@example.com> wrote:\n\n> Original.";
+		$result = IntakeGates::extract_original_content( 'Re: My new painting', $body );
+
+		$this->assertSame( 'My new comment.', $result['body'] );
 	}
 
 	public function test_inbox_skip_statuses_contains_every_shared_status_plus_its_own_bounce_statuses(): void {

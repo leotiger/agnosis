@@ -11,6 +11,15 @@
  * GET /.well-known/agnosis-node         — lightweight node discovery
  * POST /wp-json/agnosis/v1/node/peers   — register a peer node
  *
+ * register_peer() is intentionally reachable without WordPress auth (any
+ * fediverse/rhizome node, not a logged-in user, calls it) — it is instead
+ * gated by three independent controls added for audit §2d: a per-IP rate
+ * limit, a cap on total pending rows, and a requirement that the request be
+ * signed by the private key matching the public key it presents (see
+ * `HttpSignature::verify_with_key()`). A row landing here is still only
+ * ever `status = 'pending'`; `list_peers()` exposes `trusted` rows only, and
+ * nothing in this codebase promotes a row to `trusted` automatically.
+ *
  * @package Agnosis\Network
  */
 
@@ -18,11 +27,28 @@ declare(strict_types=1);
 
 namespace Agnosis\Network;
 
+use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
 
 class Node {
+
+	/** Max peer-registration requests allowed per IP within the rate-limit window (audit §2d). */
+	private const REGISTER_RATE_LIMIT = 5;
+
+	/** Rate-limit window, in seconds, for peer registration (audit §2d). */
+	private const REGISTER_RATE_WINDOW = 300;
+
+	/**
+	 * Max `status = 'pending'` rows kept in agnosis_nodes. Beyond this, the
+	 * oldest pending rows are pruned to make room for a new registration —
+	 * same bounded, oldest-first shape as `agnosis_ap_tombstones` (audit
+	 * §3e) and the `agnosis_ap_followers` scale lesson (audit §3g note iii).
+	 * Registering an already-known URL never counts against this cap; only
+	 * a genuinely new row does.
+	 */
+	private const MAX_PENDING_PEERS = 500;
 
 	public function register_identity(): void {
 		$this->ensure_key_pair();
@@ -76,6 +102,12 @@ class Node {
 	public function register_peer( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		global $wpdb;
 
+		// Audit §2d: cheap check first, before any DB work — throttle by IP.
+		$rate = RateLimiter::check( 'agnosis_node_register_peer', self::REGISTER_RATE_LIMIT, self::REGISTER_RATE_WINDOW );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
 		$peer_url   = esc_url_raw( $request->get_param( 'url' ) ?? '' );
 		$peer_label = sanitize_text_field( $request->get_param( 'label' ) ?? '' );
 		$public_key = sanitize_textarea_field( $request->get_param( 'publicKey' ) ?? '' );
@@ -84,7 +116,32 @@ class Node {
 			return new WP_Error( 'agnosis_missing_url', __( 'Node URL is required.', 'agnosis' ), [ 'status' => 400 ] );
 		}
 
-		// TODO: verify the peer's signature before trusting.
+		if ( empty( $public_key ) ) {
+			return new WP_Error( 'agnosis_missing_public_key', __( 'A public key is required to register a peer.', 'agnosis' ), [ 'status' => 400 ] );
+		}
+
+		// Audit §2d ("TODO: verify the peer's signature before trusting"): the
+		// request itself must be signed by the private key matching the public
+		// key it presents. There's no remote actor document to fetch a key
+		// from here — the peer submits its key inline — so this is proof of
+		// possession of that exact key, not a domain-ownership proof; it's
+		// what stops a registration whose claimed key the requester doesn't
+		// actually control.
+		$signature_check = HttpSignature::verify_with_key( $request, $public_key );
+		if ( is_wp_error( $signature_check ) ) {
+			return $signature_check;
+		}
+
+		// Audit §2d: only a genuinely new URL grows the pending count — an
+		// already-known peer re-announcing itself doesn't need room made.
+		$is_new_peer = null === $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
+			$wpdb->prepare( "SELECT id FROM {$wpdb->prefix}agnosis_nodes WHERE url = %s", $peer_url )
+		);
+
+		if ( $is_new_peer ) {
+			$this->enforce_pending_peer_cap( $wpdb );
+		}
+
 		$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table write; caching not applicable to REPLACE.
 			$wpdb->prefix . 'agnosis_nodes',
 			[
@@ -112,6 +169,30 @@ class Node {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * Prune the oldest `status = 'pending'` rows once the table has reached
+	 * MAX_PENDING_PEERS, so a new registration always has room (audit §2d).
+	 * Signature verification (see register_peer()) stops an attacker from
+	 * forging someone ELSE's identity, but it does nothing to stop unlimited
+	 * freshly-minted keypairs registering unlimited distinct URLs — this cap
+	 * is the backstop for that.
+	 *
+	 * @param \wpdb $wpdb WordPress database access object.
+	 */
+	private function enforce_pending_peer_cap( \wpdb $wpdb ): void {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- custom table, no WP abstraction available.
+		$pending = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_nodes WHERE status = 'pending'" );
+
+		if ( $pending < self::MAX_PENDING_PEERS ) {
+			return;
+		}
+
+		$overflow = absint( $pending - self::MAX_PENDING_PEERS + 1 );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $overflow is a locally computed non-negative int (never request input); MySQL's DELETE...ORDER BY...LIMIT extension doesn't accept a placeholder for LIMIT anyway.
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}agnosis_nodes WHERE status = 'pending' ORDER BY created_at ASC LIMIT {$overflow}" );
+	}
 
 	private function ensure_key_pair(): void {
 		if ( get_option( 'agnosis_public_key' ) && get_option( 'agnosis_private_key' ) ) {

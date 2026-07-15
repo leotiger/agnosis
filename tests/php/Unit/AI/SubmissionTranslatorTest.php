@@ -285,6 +285,19 @@ class SubmissionTranslatorTest extends TestCase {
 		$this->assertSame( 'Hello world', $result );
 	}
 
+	// audit §5b: a response that starts like the requested JSON object but
+	// was cut off mid-object (no closing brace) — the max_tokens-truncation
+	// case. Must still fail gracefully, same as any other bad response;
+	// log_json_decode_failure()'s own truncation-vs-malformed distinction is
+	// purely for the Settings → Logs entry, not the return value.
+	public function test_translate_text_returns_original_on_truncated_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"description":"Hola mun' );
+
+		$result = $this->make_translator( $provider )->translate_text( 'Hello world', 'es' );
+		$this->assertSame( 'Hello world', $result );
+	}
+
 	// -------------------------------------------------------------------------
 	// from_settings()
 	// -------------------------------------------------------------------------
@@ -332,6 +345,65 @@ class SubmissionTranslatorTest extends TestCase {
 		];
 
 		$this->assertInstanceOf( SubmissionTranslator::class, SubmissionTranslator::from_settings() );
+	}
+
+	// -------------------------------------------------------------------------
+	// from_settings() — audit §5c: text_model actually threaded through to
+	// the constructed provider, not just the vision model. Reads the
+	// provider's own private readonly $text_model property via Reflection,
+	// since SubmissionTranslator wraps it and exposes no getter.
+	// -------------------------------------------------------------------------
+
+	private function wrapped_provider_text_model( SubmissionTranslator $translator ): string {
+		$provider_property = ( new \ReflectionClass( $translator ) )->getProperty( 'provider' );
+		$provider_property->setAccessible( true );
+		$provider = $provider_property->getValue( $translator );
+
+		$text_model_property = ( new \ReflectionClass( $provider ) )->getProperty( 'text_model' );
+		$text_model_property->setAccessible( true );
+		return $text_model_property->getValue( $provider );
+	}
+
+	public function test_from_settings_passes_the_configured_openai_text_model_to_the_provider(): void {
+		self::$options = [
+			'agnosis_ai_provider'        => 'openai',
+			'agnosis_openai_api_key'     => 'sk-test-key',
+			'agnosis_openai_text_model'  => 'gpt-5-nano',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'gpt-5-nano', $this->wrapped_provider_text_model( $translator ) );
+	}
+
+	public function test_from_settings_defaults_the_openai_text_model_when_unconfigured(): void {
+		self::$options = [
+			'agnosis_ai_provider'    => 'openai',
+			'agnosis_openai_api_key' => 'sk-test-key',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'gpt-4o-mini', $this->wrapped_provider_text_model( $translator ) );
+	}
+
+	public function test_from_settings_passes_the_configured_anthropic_text_model_to_the_provider(): void {
+		self::$options = [
+			'agnosis_ai_provider'          => 'anthropic',
+			'agnosis_anthropic_api_key'    => 'sk-ant-test-key',
+			'agnosis_anthropic_text_model' => 'claude-haiku-5',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'claude-haiku-5', $this->wrapped_provider_text_model( $translator ) );
+	}
+
+	public function test_from_settings_defaults_the_anthropic_text_model_when_unconfigured(): void {
+		self::$options = [
+			'agnosis_ai_provider'       => 'anthropic',
+			'agnosis_anthropic_api_key' => 'sk-ant-test-key',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'claude-haiku-4-5-20251001', $this->wrapped_provider_text_model( $translator ) );
 	}
 
 	// -------------------------------------------------------------------------
@@ -557,6 +629,18 @@ class SubmissionTranslatorTest extends TestCase {
 		$this->assertSame( [], $result );
 	}
 
+	// audit §5b: cut-off-mid-object response (opens with "{", no closing
+	// brace) — the truncation case log_json_decode_failure() distinguishes
+	// from a genuinely malformed response for the Settings → Logs entry.
+	public function test_translate_fields_returns_empty_array_on_truncated_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"title":"Titulo","excerpt":"Extrac' );
+
+		$result = $this->make_translator( $provider )->translate_fields( [ 'title' => 'Title', 'excerpt' => 'Excerpt' ], 'es' );
+
+		$this->assertSame( [], $result );
+	}
+
 	public function test_translate_fields_strips_markdown_fences_from_chat_response(): void {
 		$provider = $this->createMock( ProviderInterface::class );
 		$provider->method( 'chat' )->willReturn( "```json\n{\"title\":\"Titulo\"}\n```" );
@@ -681,6 +765,17 @@ class SubmissionTranslatorTest extends TestCase {
 		$provider->method( 'chat' )->willReturn( 'Sorry, I cannot help with that.' );
 
 		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es' ] );
+
+		$this->assertSame( [], $result );
+	}
+
+	// audit §5b: same cut-off-mid-object truncation case as translate_fields()'s
+	// own regression test above.
+	public function test_translate_to_languages_returns_empty_array_on_truncated_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"es":"Hola","fr":"Bonj' );
+
+		$result = $this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr' ] );
 
 		$this->assertSame( [], $result );
 	}

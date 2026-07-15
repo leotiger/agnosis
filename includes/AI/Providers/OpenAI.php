@@ -22,6 +22,12 @@ class OpenAI implements ProviderInterface {
 	private const AUDIO_URL            = 'https://api.openai.com/v1/audio/transcriptions';
 	private const DEFAULT_VISION_MODEL = 'gpt-4o';
 	private const DEFAULT_IMAGE_MODEL  = 'gpt-image-1';
+	// Audit §5c: was inlined directly in chat() as a literal, with no
+	// operator lever — unlike the vision/image models above, which have been
+	// configurable (Settings → AI Providers) since they were introduced. Now
+	// just the constructor default; Pipeline/SubmissionTranslator both pass
+	// the actual configured value (agnosis_openai_text_model option) explicitly.
+	private const DEFAULT_TEXT_MODEL   = 'gpt-4o-mini';
 	private const WHISPER_MODEL        = 'whisper-1';
 
 	public function __construct(
@@ -29,6 +35,7 @@ class OpenAI implements ProviderInterface {
 		private readonly PromptConfig $config,
 		private readonly string $vision_model = self::DEFAULT_VISION_MODEL,
 		private readonly string $image_model = self::DEFAULT_IMAGE_MODEL,
+		private readonly string $text_model = self::DEFAULT_TEXT_MODEL,
 	) {}
 
 	// -------------------------------------------------------------------------
@@ -248,8 +255,23 @@ class OpenAI implements ProviderInterface {
 		}
 
 		$body = wp_json_encode( [
-			'model'      => 'gpt-4o-mini', // cheap text-only model
-			'max_tokens' => 1024,
+			'model'      => $this->text_model, // audit §5c: operator-configurable, was a hardcoded literal
+			// Sized from the prompt itself rather than a flat cap (audit §5b) —
+			// a flat 1024 was enough for a short chat reply but not for
+			// SubmissionTranslator::translate_fields()'s JSON-envelope batch
+			// translation of a long biography body: once translated content
+			// approached ~700 words, the response hit the cap mid-JSON, the
+			// parse failed, and the caller silently fell back to publishing
+			// the untranslated original — a paid call that still produced no
+			// usable output. Output tokens are billed as used, not reserved,
+			// so sizing generously costs nothing when the ceiling isn't
+			// needed. ~4 chars/token is the standard rough estimate; the 1.5x
+			// multiplier leaves room for language expansion (some target
+			// languages render longer than the English source) plus the JSON
+			// envelope's own key/quote/brace overhead. Floored at the old
+			// 1024 (a short reply never needed more) and capped at 8192
+			// against a runaway prompt.
+			'max_tokens' => max( 1024, min( 8192, (int) ceil( strlen( $prompt ) / 4 * 1.5 ) ) ),
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],

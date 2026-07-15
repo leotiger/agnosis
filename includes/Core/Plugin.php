@@ -193,6 +193,12 @@ class Plugin {
 		$this->loader->add_action( 'pre_get_posts', $profile, 'order_events_archive' );
 		$this->loader->add_filter( 'query_loop_block_query_vars', $profile, 'scope_more_works_query', 10, 1 );
 
+		// agnosis_medium "sensitive by default" term meta (audit §3f).
+		$this->loader->add_action( 'agnosis_medium_add_form_fields', $profile, 'render_sensitive_add_field' );
+		$this->loader->add_action( 'agnosis_medium_edit_form_fields', $profile, 'render_sensitive_edit_field' );
+		$this->loader->add_action( 'created_agnosis_medium', $profile, 'save_sensitive_term_meta' );
+		$this->loader->add_action( 'edited_agnosis_medium', $profile, 'save_sensitive_term_meta' );
+
 		// Locale-natural dates: every core/post-date block (artwork, biography,
 		// event pages, the newsletter archive, etc.) renders through this filter
 		// site-wide instead of a fixed date() format string that never actually
@@ -375,6 +381,27 @@ class Plugin {
 		$activitypub = new ActivityPub();
 		$this->loader->add_action( 'rest_api_init',          $activitypub, 'register_routes' );
 		$this->loader->add_action( 'agnosis_post_published', $activitypub, 'broadcast', 10, 1 );
+		// Audit §3c: artwork object ids must dereference to ActivityStreams
+		// JSON — content-negotiate on the artwork permalink itself.
+		$this->loader->add_action( 'template_redirect',      $activitypub, 'serve_artwork_activity_json' );
+		// Audit §3e: federate the full artwork lifecycle, not just publish.
+		// Leaving publish (trash — the removal-vote flow — or unpublish)
+		// federates Delete+Tombstone; wp_delete_post() (Departure's force
+		// delete) never fires a status transition, hence before_delete_post;
+		// edits federate Update (post row via post_updated, replaced photo
+		// via the _thumbnail_id meta hooks, since set_post_thumbnail() fires
+		// neither).
+		$this->loader->add_action( 'transition_post_status', $activitypub, 'federate_status_transition', 10, 3 );
+		$this->loader->add_action( 'before_delete_post',     $activitypub, 'federate_force_delete', 10, 1 );
+		$this->loader->add_action( 'post_updated',           $activitypub, 'federate_update', 10, 3 );
+		$this->loader->add_action( 'updated_post_meta',      $activitypub, 'federate_thumbnail_update', 10, 3 );
+		$this->loader->add_action( 'added_post_meta',        $activitypub, 'federate_thumbnail_update', 10, 3 );
+		// Audit §3g note iv: a delivery that failed once is retried on a
+		// backoff schedule rather than lost after one fire-and-forget attempt.
+		// The cron event itself is scheduled in Activator::schedule_events()
+		// (every_five_minutes — the same interval Inbox::register_interval()
+		// already registers on every request).
+		$this->loader->add_action( 'agnosis_ap_retry_deliveries', $activitypub, 'process_delivery_retry_queue' );
 
 		// Subdomain navigation — artist-breadcrumb block, plus pointing the Site
 		// Logo/Site Title links back at the main site from an artist subdomain.

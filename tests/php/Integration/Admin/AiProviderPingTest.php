@@ -183,4 +183,78 @@ class AiProviderPingTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( '"success":false', $output );
 		$this->assertStringContainsString( 'Unknown provider', $output );
 	}
+
+	// -------------------------------------------------------------------------
+	// audit §5c: the ping request must use the actual configured text model,
+	// not a hardcoded literal — otherwise a successful ping doesn't actually
+	// prove the model translation/moderation will really use is reachable.
+	// -------------------------------------------------------------------------
+
+	/** Register a pre_http_request filter that captures the outgoing $args and returns a 200. */
+	private function capture_request( ?array &$captured ): void {
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $args ) use ( &$captured ) {
+				$captured = $args;
+				return $this->make_http_response( 200 );
+			},
+			10, 3
+		);
+	}
+
+	public function test_openai_ping_uses_the_configured_text_model(): void {
+		update_option( 'agnosis_openai_api_key', 'sk-test' );
+		update_option( 'agnosis_openai_text_model', 'gpt-5-nano' );
+
+		$captured = null;
+		$this->capture_request( $captured );
+
+		$this->call_handle( 'openai' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( 'gpt-5-nano', $payload['model'] ?? null );
+
+		delete_option( 'agnosis_openai_text_model' );
+	}
+
+	public function test_openai_ping_falls_back_to_the_default_text_model_when_unconfigured(): void {
+		update_option( 'agnosis_openai_api_key', 'sk-test' );
+		delete_option( 'agnosis_openai_text_model' );
+
+		$captured = null;
+		$this->capture_request( $captured );
+
+		$this->call_handle( 'openai' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( 'gpt-4o-mini', $payload['model'] ?? null );
+	}
+
+	public function test_anthropic_ping_uses_the_configured_text_model(): void {
+		update_option( 'agnosis_anthropic_api_key', 'sk-ant-test' );
+		update_option( 'agnosis_anthropic_text_model', 'claude-haiku-5' );
+
+		$captured = null;
+		$this->capture_request( $captured );
+
+		$this->call_handle( 'anthropic' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( 'claude-haiku-5', $payload['model'] ?? null );
+
+		delete_option( 'agnosis_anthropic_text_model' );
+	}
+
+	public function test_anthropic_ping_falls_back_to_the_default_text_model_when_unconfigured(): void {
+		update_option( 'agnosis_anthropic_api_key', 'sk-ant-test' );
+		delete_option( 'agnosis_anthropic_text_model' );
+
+		$captured = null;
+		$this->capture_request( $captured );
+
+		$this->call_handle( 'anthropic' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( 'claude-haiku-4-5-20251001', $payload['model'] ?? null );
+	}
 }

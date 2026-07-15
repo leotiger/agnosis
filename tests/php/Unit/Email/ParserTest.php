@@ -674,11 +674,24 @@ class ParserTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// parse_imap_message() / parse_webhook_payload() — reply/quote rejection
-	// (2026-07-15) and last_rejection_reason()
+	// parse_imap_message() / parse_webhook_payload() — reply/forward
+	// extraction (2026-07-15; extraction widening 2026-07-14 — eighth audit
+	// §3c) and last_rejection_reason()
+	//
+	// A "Re:"/"Fwd:" subject or a quoted body no longer rejects on its own —
+	// IntakeGates::extract_original_content() is tried first, and only a
+	// message that extracts to NOTHING (no original text, no attachment)
+	// still ends up rejected as 'looks_like_reply'. See
+	// IntakeGates::extract_original_content()'s own docblock and
+	// IntakeGatesTest for the extraction algorithm's own unit coverage —
+	// these tests cover Parser's end-to-end wiring of it.
 	// -------------------------------------------------------------------------
 
-	public function test_parse_imap_rejects_a_re_prefixed_subject_and_sets_rejection_reason(): void {
+	public function test_parse_imap_accepts_a_re_prefixed_subject_with_a_genuine_attachment(): void {
+		// The attachment alone is "something to process" — extraction
+		// doesn't even need real body text here, matching the audit's own
+		// framing ("original text ABOVE the attribution line, OR a genuine
+		// attachment").
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			subject_text: 'Re: My new painting',
@@ -687,14 +700,13 @@ class ParserTest extends TestCase {
 
 		$result = $this->parser->parse_imap_message( $message );
 
-		$this->assertNull( $result );
-		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'My new painting', $result['subject'], 'The "Re:" prefix must be stripped from the subject.' );
+		$this->assertTrue( $result['extracted_from_reply'] );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
 	}
 
-	public function test_parse_imap_rejects_a_quoted_reply_body_even_with_a_genuine_attachment(): void {
-		// Deliberate: a reply carrying a real attachment is still rejected —
-		// the policy is about original, curated content, not about whether a
-		// file happens to be attached. See IntakeGates::is_reply_or_quote().
+	public function test_parse_imap_extracts_the_senders_own_comment_above_a_quoted_reply(): void {
 		$message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			subject_text: 'My new painting',
@@ -704,8 +716,39 @@ class ParserTest extends TestCase {
 
 		$result = $this->parser->parse_imap_message( $message );
 
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Here you go again.', $result['description'] );
+		$this->assertTrue( $result['extracted_from_reply'] );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_imap_rejects_a_reply_with_nothing_above_the_quote_and_no_attachment(): void {
+		// The one case that still rejects: extraction genuinely finds
+		// nothing — no comment above the quote, no attachment either.
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'Re: My new painting',
+			text_body: "On 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Previous content.",
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
 		$this->assertNull( $result );
 		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_imap_does_not_flag_extracted_from_reply_for_a_genuine_submission(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			subject_text: 'My new painting',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertFalse( $result['extracted_from_reply'] );
 	}
 
 	public function test_parse_imap_last_rejection_reason_is_empty_for_a_genuine_accepted_submission(): void {
@@ -725,7 +768,8 @@ class ParserTest extends TestCase {
 		$reply_message = new FakeParserImapMessage(
 			to_emails: [ 'remove@example.com' ],
 			subject_text: 'Re: My new painting',
-			fake_attachments: [ $this->make_attachment() ]
+			text_body: "On 13 Jul 2026, at 18:57, Agnosis <submit@agnosis.art> wrote:\n\n> Previous content.",
+			fake_attachments: []
 		);
 		$this->parser->parse_imap_message( $reply_message );
 		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
@@ -739,7 +783,7 @@ class ParserTest extends TestCase {
 		$this->assertSame( '', $this->parser->last_rejection_reason(), 'Stale reason from a previous call must not leak into a later, genuine submission.' );
 	}
 
-	public function test_parse_webhook_rejects_a_re_prefixed_subject_and_sets_rejection_reason(): void {
+	public function test_parse_webhook_accepts_a_re_prefixed_subject_with_real_body_text(): void {
 		$payload = [
 			'sender'        => 'artist@example.com',
 			'subject'       => 'Re: My new painting',
@@ -748,11 +792,14 @@ class ParserTest extends TestCase {
 
 		$result = $this->parser->parse_webhook_payload( $payload );
 
-		$this->assertNull( $result );
-		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'My new painting', $result['subject'] );
+		$this->assertSame( 'Here is my artwork.', $result['description'] );
+		$this->assertTrue( $result['extracted_from_reply'] );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
 	}
 
-	public function test_parse_webhook_rejects_an_agnosis_bracketed_subject(): void {
+	public function test_parse_webhook_extracts_an_agnosis_bracketed_subject_with_real_body_text(): void {
 		$payload = [
 			'sender'        => 'artist@example.com',
 			'subject'       => 'Fwd: [Agnosis] Your submission was received',
@@ -761,15 +808,31 @@ class ParserTest extends TestCase {
 
 		$result = $this->parser->parse_webhook_payload( $payload );
 
-		$this->assertNull( $result );
-		$this->assertSame( 'looks_like_reply', $this->parser->last_rejection_reason() );
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Your submission was received', $result['subject'], '"Fwd:" and "[Agnosis]" must both be stripped, leaving just the remaining text.' );
+		$this->assertTrue( $result['extracted_from_reply'] );
 	}
 
-	public function test_parse_webhook_rejects_an_outlook_original_message_body(): void {
+	public function test_parse_webhook_extracts_the_senders_own_comment_above_an_outlook_original_message_body(): void {
 		$payload = [
 			'sender'        => 'artist@example.com',
 			'subject'       => 'My new painting',
 			'stripped-text' => "See attached.\n\n-----Original Message-----\nFrom: someone@example.com",
+		];
+
+		$result = $this->parser->parse_webhook_payload( $payload );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'See attached.', $result['description'] );
+		$this->assertTrue( $result['extracted_from_reply'] );
+		$this->assertSame( '', $this->parser->last_rejection_reason() );
+	}
+
+	public function test_parse_webhook_rejects_a_reply_with_nothing_above_the_quote_and_no_attachment(): void {
+		$payload = [
+			'sender'        => 'artist@example.com',
+			'subject'       => 'Re: My new painting',
+			'stripped-text' => "-----Original Message-----\nFrom: someone@example.com",
 		];
 
 		$result = $this->parser->parse_webhook_payload( $payload );
@@ -789,5 +852,6 @@ class ParserTest extends TestCase {
 
 		$this->assertIsArray( $result );
 		$this->assertSame( '', $this->parser->last_rejection_reason() );
+		$this->assertFalse( $result['extracted_from_reply'] );
 	}
 }

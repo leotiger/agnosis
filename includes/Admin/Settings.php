@@ -674,6 +674,25 @@ class Settings {
 				'default' => 'claude-opus-4-8',
 				'desc'    => __( 'Model used for artwork description when Anthropic is the description provider. Must support vision input.', 'agnosis' ),
 			],
+			// Audit §5c: cheap/fast text-only model used for translation and
+			// contact-message moderation (Pipeline::chat()/classify_text(),
+			// SubmissionTranslator) — previously a hardcoded literal with no
+			// operator lever at all, unlike the vision models just above.
+			// Deliberately a SEPARATE option from the vision model: this one
+			// is picked for speed/cost on plain-text tasks, not vision
+			// capability, and the two may reasonably diverge.
+			'agnosis_openai_text_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'OpenAI text model', 'agnosis' ),
+				'default' => 'gpt-4o-mini',
+				'desc'    => __( 'Cheap, fast model used for text-only tasks when OpenAI is the description provider — translating a submission into the site\'s primary language, and moderating contact-form messages. Does not need vision support.', 'agnosis' ),
+			],
+			'agnosis_anthropic_text_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Anthropic text model', 'agnosis' ),
+				'default' => 'claude-haiku-4-5-20251001',
+				'desc'    => __( 'Cheap, fast model used for text-only tasks when Anthropic is the description provider — translating a submission into the site\'s primary language, and moderating contact-form messages. Does not need vision support.', 'agnosis' ),
+			],
 			'agnosis_ai_vision_max_width_px' => [
 				'tab'      => 'ai',
 				'label'    => __( 'Vision image max width (px)', 'agnosis' ),
@@ -2236,7 +2255,7 @@ class Settings {
 		// Resolve subject user_id from application.
 		$user_id = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
-				"SELECT user_id FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
+				"SELECT wp_user_id FROM {$wpdb->prefix}agnosis_applications WHERE id = %d",
 				$app_id
 			)
 		);
@@ -2841,7 +2860,15 @@ class Settings {
 				$this->ping_provider(
 					'https://api.openai.com/v1/chat/completions',
 					[ 'Authorization' => 'Bearer ' . $key, 'Content-Type' => 'application/json' ],
-					[ 'model' => 'gpt-4o-mini', 'messages' => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ], 'max_tokens' => 5 ],
+					[
+						// audit §5c: pings the actual configured text model,
+						// not a hardcoded literal, so a successful ping means
+						// what's actually used for translation/moderation
+						// really works.
+						'model'      => (string) get_option( 'agnosis_openai_text_model', 'gpt-4o-mini' ),
+						'messages'   => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ],
+						'max_tokens' => 5,
+					],
 					__( 'OpenAI connection successful.', 'agnosis' )
 				);
 				// no break — ping_provider() always calls wp_send_json_* → wp_die().
@@ -2854,7 +2881,13 @@ class Settings {
 				$this->ping_provider(
 					'https://api.anthropic.com/v1/messages',
 					[ 'x-api-key' => $key, 'anthropic-version' => '2023-06-01', 'Content-Type' => 'application/json' ],
-					[ 'model' => 'claude-haiku-4-5-20251001', 'max_tokens' => 5, 'messages' => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ] ],
+					[
+						// audit §5c: same as the OpenAI branch above — pings
+						// the actual configured text model.
+						'model'      => (string) get_option( 'agnosis_anthropic_text_model', 'claude-haiku-4-5-20251001' ),
+						'max_tokens' => 5,
+						'messages'   => [ [ 'role' => 'user', 'content' => 'Reply with the single word: ping' ] ],
+					],
 					__( 'Anthropic connection successful.', 'agnosis' )
 				);
 				// no break — ping_provider() always calls wp_send_json_* → wp_die().

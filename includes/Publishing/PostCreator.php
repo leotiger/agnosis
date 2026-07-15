@@ -1957,6 +1957,17 @@ class PostCreator {
 				// Empty array encodes to '[]', which Notification::build_email()
 				// treats identically to the meta being entirely absent.
 				'_agnosis_merge_miss_suggestion' => wp_json_encode( $this->pending_merge_miss_suggestion ),
+				// eighth audit §3c — true when Email\Parser's reply-above-quote/
+				// forward extraction is what produced this content, rather than
+				// an ordinary fresh email (see IntakeGates::extract_original_content()).
+				// Always written, like the two meta keys just above, so a LATER
+				// resubmission that merges into the same post (replace@/event
+				// update) with genuinely fresh, non-extracted content correctly
+				// clears a stale 'true' from an earlier reply-extracted update —
+				// Notification::build_email() reads this fresh each time to
+				// decide whether to show the "a fresh email works best next
+				// time" note on the review email.
+				'_agnosis_extracted_from_reply' => (bool) ( $submission['extracted_from_reply'] ?? false ),
 			],
 		];
 

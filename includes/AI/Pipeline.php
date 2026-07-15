@@ -1071,18 +1071,20 @@ class Pipeline {
 
 		switch ( $provider ) {
 			case 'anthropic':
-				$key   = (string) get_option( 'agnosis_anthropic_api_key', '' );
-				$model = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
-				return new Anthropic( $key, $this->config, $model );
+				$key        = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				$model      = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
+				$text_model = (string) get_option( 'agnosis_anthropic_text_model', 'claude-haiku-4-5-20251001' );
+				return new Anthropic( $key, $this->config, $model, $text_model );
 
 			case 'wp_ai':
 				return new WordPressAI( $this->config );
 
 			case 'openai':
 			default:
-				$key   = (string) get_option( 'agnosis_openai_api_key', '' );
-				$model = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
-				return new OpenAI( $key, $this->config, $model );
+				$key        = (string) get_option( 'agnosis_openai_api_key', '' );
+				$model      = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
+				$text_model = (string) get_option( 'agnosis_openai_text_model', 'gpt-4o-mini' );
+				return new OpenAI( $key, $this->config, $model, text_model: $text_model );
 		}
 	}
 

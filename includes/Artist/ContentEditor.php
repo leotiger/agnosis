@@ -23,6 +23,9 @@
  *          DUAL_TITLE_POST_TYPES).
  *        POST /agnosis/v1/content/{id}/photo          multipart { file, attachment_id? }
  *        POST /agnosis/v1/content/{id}/photo/restore  { } — Phase 3, see restore_photo()
+ *        POST /agnosis/v1/content/{id}/sensitive      { value: bool } — artwork only,
+ *          audit §3f: flags the piece for ActivityPub::post_to_note()'s
+ *          AS2 sensitive/summary lever, see save_sensitive()
  *
  * This is the feasibility evaluation in the third audit (§7), phased per §7d.
  *
@@ -204,6 +207,25 @@ class ContentEditor {
 					'required'          => false,
 					'default'           => 0,
 					'sanitize_callback' => 'absint',
+				],
+			],
+		] );
+
+		// Audit §3f: lets an artist flag their own artwork as sensitive content —
+		// the AS2 sensitive/summary lever ActivityPub::post_to_note() reads.
+		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/sensitive', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'save_sensitive' ],
+			'permission_callback' => [ $this, 'check_permission' ],
+			'args'                => [
+				'id'    => [
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				],
+				'value' => [
+					'type'     => 'boolean',
+					'required' => true,
 				],
 			],
 		] );
@@ -429,6 +451,86 @@ class ContentEditor {
 			],
 			200
 		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Callback — sensitive-content flag (audit §3f)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Let an artist flag their own artwork as sensitive content (nudity, etc.).
+	 *
+	 * Artwork-only — biography/event posts never federate a Note, so the flag
+	 * would have nowhere to take effect. Boolean and language-neutral, like a
+	 * photo swap (§7c): no translation leg, copied synchronously to every
+	 * language sibling via set_sensitive_everywhere(). ActivityPub::post_to_note()
+	 * reads the result (either this or the operator's per-medium term-meta
+	 * lever — Artist\Profile — is enough to mark the Note sensitive).
+	 */
+	public function save_sensitive( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$post_id = (int) $request->get_param( 'id' );
+
+		$auth = $this->check_access( $request, $post_id );
+		if ( is_wp_error( $auth ) ) {
+			return $auth;
+		}
+
+		$post = get_post( $post_id );
+		if ( 'agnosis_artwork' !== $post->post_type ) {
+			return new WP_Error(
+				'agnosis_invalid_field',
+				__( 'This field cannot be edited here.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$value = (bool) $request->get_param( 'value' );
+		$this->set_sensitive_everywhere( $post, $value );
+
+		Logger::info(
+			sprintf(
+				'Content edit: post #%d (%s) sensitive flag set to %s by user #%d.',
+				$post_id,
+				$post->post_type,
+				$value ? 'true' : 'false',
+				get_current_user_id()
+			),
+			'content-editor'
+		);
+
+		return new WP_REST_Response(
+			[
+				'status'    => 'saved',
+				'post_id'   => $post_id,
+				'sensitive' => $value,
+			],
+			200
+		);
+	}
+
+	/**
+	 * Copy the sensitive flag to every language version of the post — same
+	 * language-neutral, synchronous shape as swap_photo_everywhere().
+	 */
+	private function set_sensitive_everywhere( WP_Post $post, bool $value ): void {
+		$targets = [ $post->ID ];
+
+		if ( LinguaForge::is_active() && function_exists( 'linguaforge_get_translations' ) ) {
+			foreach ( linguaforge_get_translations( $post->ID ) as $sibling_id ) {
+				$sibling_id = (int) $sibling_id;
+				if ( $sibling_id && ! in_array( $sibling_id, $targets, true ) ) {
+					$targets[] = $sibling_id;
+				}
+			}
+		}
+
+		foreach ( $targets as $target_id ) {
+			if ( $value ) {
+				update_post_meta( $target_id, '_agnosis_sensitive', '1' );
+			} else {
+				delete_post_meta( $target_id, '_agnosis_sensitive' );
+			}
+		}
 	}
 
 	/**

@@ -246,7 +246,7 @@ class Admission {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$existing = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, status,
+				"SELECT id, status, banned_until,
 				        ( applied_at > ( NOW() - INTERVAL %d SECOND ) ) AS is_recent
 				 FROM {$wpdb->prefix}agnosis_applications WHERE email = %s",
 				self::RESEND_COOLDOWN_SECONDS,
@@ -262,6 +262,47 @@ class Admission {
 					: __( 'An application for this email address is already pending.', 'agnosis' ),
 				[ 'status' => 409 ]
 			);
+		}
+
+		// A banned application must block reapplication too (security audit
+		// §2c) — before this branch existed, 'banned' fell all the way through
+		// to the generic "every other case" branch below, which silently
+		// re-parked the row as 'unverified' with a fresh confirm token,
+		// overwriting the ban record outright. In practice the get_user_by()
+		// check above already blocks the common case, since admin_ban() only
+		// removes the agnosis_artist role — it doesn't delete the WP account —
+		// but that account can still be deleted independently (e.g. a site
+		// admin using wp-admin's own Users screen rather than
+		// Departure::admin_delete()), which leaves a 'banned' application row
+		// with no WP account behind it and nothing else to stop this method's
+		// reapplication path.
+		//
+		// The response here is deliberately enumeration-neutral: identical to
+		// a brand-new application's "pending_confirmation" response, with
+		// nothing actually created or modified and no email sent — a caller
+		// probing this endpoint cannot distinguish "this address is banned"
+		// from "your application is being processed", the same
+		// information-leak concern the double-opt-in rework above already
+		// guards against for unverified rows.
+		//
+		// banned_until is honored (optional per the audit, implemented here):
+		// a lapsed temporary ban — check_expired_bans()' own daily-cron expiry
+		// test, mirrored here — is treated like any other resolved
+		// withdrawn/rejected/left row and allowed to fall through to the
+		// normal reapply path below, rather than making the artist wait for
+		// that cron's next tick just to resubmit the join form. A
+		// still-future or permanent (banned_until IS NULL) ban stays blocked.
+		$ban_lapsed = false;
+		if ( $existing && 'banned' === $existing->status ) {
+			$ban_lapsed = null !== $existing->banned_until && strtotime( (string) $existing->banned_until ) <= time();
+
+			if ( ! $ban_lapsed ) {
+				return new WP_REST_Response( [
+					'status'           => 'pending_confirmation',
+					'application_id'   => (int) $existing->id,
+					'vouches_required' => $this->calculate_required(),
+				], 201 );
+			}
 		}
 
 		// Double opt-in (security audit §3a/§4a): a still-unverified row for
@@ -283,8 +324,12 @@ class Admission {
 		// endpoint limit and the (much shorter) unverified-resend cooldown
 		// above. Scoped narrowly to a *resolved* prior application reapplying
 		// — a brand-new address ($existing === null) and a still-unconfirmed
-		// resend past its own cooldown are untouched by this guard.
-		if ( $existing && in_array( $existing->status, [ 'withdrawn', 'rejected', 'left' ], true ) ) {
+		// resend past its own cooldown are untouched by this guard. A lapsed
+		// ban ($ban_lapsed, set above) reapplying is included here too — it's
+		// the same "resolved application, address proven reachable, address
+		// cycling risk" shape as withdrawn/rejected/left, just reached via a
+		// different prior status.
+		if ( $existing && ( in_array( $existing->status, [ 'withdrawn', 'rejected', 'left' ], true ) || $ban_lapsed ) ) {
 			$sender_rate = RateLimiter::check_sender( 'admission_apply_email', $email, self::REAPPLY_LIMIT, self::REAPPLY_WINDOW_SECONDS );
 			if ( is_wp_error( $sender_rate ) ) {
 				return $sender_rate;
@@ -292,8 +337,9 @@ class Admission {
 		}
 
 		// Every other case — brand new address, an unverified row past its
-		// cooldown (resend), or a withdrawn/rejected/left row reapplying —
-		// parks (or re-parks) the row as 'unverified' with a fresh single-use
+		// cooldown (resend), a withdrawn/rejected/left row reapplying, or a
+		// lapsed-ban row reapplying ($ban_lapsed above) — parks (or re-parks)
+		// the row as 'unverified' with a fresh single-use
 		// token. Nothing becomes 'pending'/'waitlisted' here, and neither the
 		// acknowledgment email nor the community vote blast fire yet — only
 		// confirm_application() (reached by clicking the link in the
@@ -311,7 +357,8 @@ class Admission {
 					"UPDATE {$wpdb->prefix}agnosis_applications
 					 SET display_name = %s, bio = %s, portfolio_url = %s, statement = %s,
 					     language = %s, status = 'unverified', confirm_token = %s,
-					     wp_user_id = NULL, applied_at = %s, resolved_at = NULL
+					     wp_user_id = NULL, applied_at = %s, resolved_at = NULL,
+					     banned_until = NULL
 					 WHERE id = %d",
 					$display_name,
 					$bio,

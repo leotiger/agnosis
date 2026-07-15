@@ -481,6 +481,45 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$this->assertSame( 'drafter@example.com', $captured['to'] );
 	}
 
+	/**
+	 * Eighth audit §3c — reply-above-quote/forward extraction. When
+	 * PostCreator::create_post() has written `_agnosis_extracted_from_reply`
+	 * (sourced from Email\Parser's own flag), the review email gets a light,
+	 * non-alarming note that a fresh email works best next time — the
+	 * submission was still fully processed, this is purely informational.
+	 */
+	public function test_on_post_drafted_includes_extraction_note_when_extracted_from_reply_meta_is_set(): void {
+		$artist = $this->create_artist( 'extracted@example.com' );
+		$data   = $this->create_post_with_review_token( $artist->ID );
+		update_post_meta( $data['id'], '_agnosis_extracted_from_reply', true );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_post_drafted( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertStringContainsString( 'starting a brand new email', strtolower( $captured['message'] ) );
+	}
+
+	public function test_on_post_drafted_omits_extraction_note_for_an_ordinary_submission(): void {
+		$artist = $this->create_artist( 'ordinary@example.com' );
+		$data   = $this->create_post_with_review_token( $artist->ID );
+		// No _agnosis_extracted_from_reply meta at all — an ordinary, fresh submission.
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_post_drafted( $data['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		$this->assertStringNotContainsString( 'starting a brand new email', strtolower( $captured['message'] ) );
+	}
+
 	public function test_on_post_drafted_skips_when_no_review_token(): void {
 		$artist  = $this->create_artist();
 		$post_id = self::factory()->post->create( [
@@ -918,5 +957,79 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 		$this->assertSame( '', (string) get_post_meta( $post_id, '_agnosis_review_backtranslation', true ) );
 
 		delete_option( 'agnosis_ai_provider' );
+	}
+
+	// =========================================================================
+	// html_headers() — audit §2e: RFC 3834 anti-loop headers in the shared send path
+	// =========================================================================
+
+	private function html_headers(): array {
+		$rc     = new \ReflectionClass( Notification::class );
+		$method = $rc->getMethod( 'html_headers' );
+		$method->setAccessible( true );
+		return $method->invoke( $this->notification );
+	}
+
+	public function test_html_headers_includes_the_rfc_3834_anti_loop_headers(): void {
+		$headers = $this->html_headers();
+
+		$this->assertContains( 'Auto-Submitted: auto-generated', $headers );
+		$this->assertContains( 'X-Auto-Response-Suppress: All', $headers );
+	}
+
+	public function test_html_headers_does_not_include_precedence_bulk(): void {
+		// Deliberately different from CommunityBroadcast's own headers — these
+		// are one-to-one emails to a single artist, not a bulk community send.
+		foreach ( $this->html_headers() as $header ) {
+			$this->assertStringNotContainsStringIgnoringCase( 'precedence:', $header );
+		}
+	}
+
+	public function test_html_headers_still_includes_content_type_and_from(): void {
+		$headers = $this->html_headers();
+
+		$this->assertContains( 'Content-Type: text/html; charset=UTF-8', $headers );
+		$this->assertTrue(
+			(bool) array_filter( $headers, static fn( $h ) => str_starts_with( $h, 'From: ' ) ),
+			'A From: header must still be present alongside the new anti-loop headers.'
+		);
+	}
+
+	/**
+	 * End-to-end check that the shared helper is actually wired into a real
+	 * send path, not just correct in isolation — picks on_submission_rejected()
+	 * as the representative case (the plainest of the three rejection-style
+	 * sends), rather than re-asserting on all ~8 call sites individually.
+	 */
+	public function test_on_submission_rejected_email_carries_the_anti_loop_headers(): void {
+		$artist   = $this->create_artist();
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_rejected( 1, $artist->ID, 2, [] );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertContains( 'Auto-Submitted: auto-generated', $captured['headers'] );
+		$this->assertContains( 'X-Auto-Response-Suppress: All', $captured['headers'] );
+	}
+
+	/**
+	 * Same end-to-end check for on_post_drafted() specifically, since it's the
+	 * one call site that array_merge()s the shared headers with a per-post
+	 * Reply-To — confirms the merge didn't drop anything.
+	 */
+	public function test_on_post_drafted_email_carries_the_anti_loop_headers_alongside_reply_to(): void {
+		$artist    = $this->create_artist();
+		$post_info = $this->create_post_with_review_token( $artist->ID );
+		$captured  = null;
+		$filter    = $this->capture_mail( $captured );
+
+		$this->notification->on_post_drafted( $post_info['id'], $artist->ID );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertContains( 'Auto-Submitted: auto-generated', $captured['headers'] );
+		$this->assertContains( 'X-Auto-Response-Suppress: All', $captured['headers'] );
 	}
 }

@@ -149,6 +149,78 @@ class Profile {
 		] );
 	}
 
+	// -------------------------------------------------------------------------
+	// agnosis_medium term meta — "sensitive by default" (audit §3f)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Operator lever, one half of audit §3f's `sensitive` decision: flag a
+	 * whole medium (e.g. one an operator uses for explicit work) so every
+	 * artwork under it federates with AS2 `sensitive: true` + a content
+	 * warning, without the artist needing to flag each piece individually
+	 * (see ContentEditor::save_sensitive() for the artist-facing per-artwork
+	 * half; ActivityPub::is_post_sensitive() reads either). Classic Edit Tags
+	 * screen only — the block editor's own inline taxonomy REST calls don't
+	 * post classic form fields, so this checkbox is reachable from
+	 * wp-admin → Artworks → Mediums, not from a post's own sidebar.
+	 *
+	 * WordPress renders the Add and Edit term forms with different wrapper
+	 * markup ({$taxonomy}_add_form_fields is a bare div, {$taxonomy}_edit_form_fields
+	 * is a table row), so this is two thin wrappers around one shared field
+	 * renderer, keeping the actual field markup identical on both screens.
+	 */
+	public function render_sensitive_add_field(): void {
+		?>
+		<div class="form-field term-agnosis-sensitive-wrap">
+			<?php $this->render_sensitive_field_markup( false ); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * @param \WP_Term $term The term currently being edited.
+	 */
+	public function render_sensitive_edit_field( \WP_Term $term ): void {
+		$checked = (bool) get_term_meta( $term->term_id, '_agnosis_medium_sensitive', true );
+		?>
+		<tr class="form-field term-agnosis-sensitive-wrap">
+			<th scope="row"><?php esc_html_e( 'Sensitive by default', 'agnosis' ); ?></th>
+			<td><?php $this->render_sensitive_field_markup( $checked ); ?></td>
+		</tr>
+		<?php
+	}
+
+	private function render_sensitive_field_markup( bool $checked ): void {
+		?>
+		<label for="agnosis-medium-sensitive">
+			<input type="checkbox" name="agnosis_medium_sensitive" id="agnosis-medium-sensitive" value="1" <?php checked( $checked ); ?> />
+			<?php esc_html_e( 'Mark artworks under this medium as sensitive content by default', 'agnosis' ); ?>
+		</label>
+		<p class="description"><?php esc_html_e( 'Federated posts under this medium will carry a content warning on the Fediverse (e.g. Mastodon) unless the artist turns it off for a specific piece.', 'agnosis' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Save the sensitive-by-default flag from either the Add or Edit Medium
+	 * form. Hooked to both created_agnosis_medium and edited_agnosis_medium —
+	 * WordPress core's own edit-tags.php ("editedtag") and add-tag admin
+	 * actions already verify their own nonce (update-tag_$id /
+	 * add-tag) and the manage_categories-family capability before either
+	 * hook fires, so this handler only needs to read the checkbox value.
+	 *
+	 * @param int $term_id Term being saved.
+	 */
+	public function save_sensitive_term_meta( int $term_id ): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- verified upstream by WP core's own add-tag/editedtag admin actions before created_/edited_{taxonomy} fires; see docblock.
+		$sensitive = ! empty( $_POST['agnosis_medium_sensitive'] );
+
+		if ( $sensitive ) {
+			update_term_meta( $term_id, '_agnosis_medium_sensitive', '1' );
+		} else {
+			delete_term_meta( $term_id, '_agnosis_medium_sensitive' );
+		}
+	}
+
 	/**
 	 * Order the agnosis_event archive chronologically by the event's own date
 	 * meta (soonest first) rather than post publish date — a visitor browsing

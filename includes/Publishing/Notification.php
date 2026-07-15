@@ -64,12 +64,7 @@ class Notification {
 			$post->post_title
 		);
 
-		$headers = [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . $this->sender_header(),
-		];
-
-		wp_mail( $artist->user_email, $subject, $this->build_removal_email( $post, $artist->display_name, $token, $artist_id ), $headers );
+		wp_mail( $artist->user_email, $subject, $this->build_removal_email( $post, $artist->display_name, $token, $artist_id ), $this->html_headers() );
 
 		if ( '' !== $artist_locale ) {
 			restore_current_locale();
@@ -129,16 +124,11 @@ class Notification {
 			$subject
 		);
 
-		$headers = [
-			'Content-Type: text/html; charset=UTF-8',
-			'From: ' . $this->sender_header(),
-		];
-
 		wp_mail(
 			$artist->user_email,
 			$subject_line,
 			$this->build_removal_choice_email( $items, $artist->display_name, $artist_id ),
-			$headers
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -203,10 +193,7 @@ class Notification {
 			$artist->user_email,
 			$subject_line,
 			$this->build_not_found_email( $artist->display_name, $subject, $titles, $suggestion_title, $confirm_url, $artist_id, 'remove' ),
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			]
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -261,10 +248,7 @@ class Notification {
 			$artist->user_email,
 			$subject_line,
 			$body,
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			]
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -565,10 +549,7 @@ class Notification {
 		// Hitting reply on this email should land back on that same address,
 		// not the generic community/one-off-action From identity above.
 		$headers = array_merge(
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			],
+			$this->html_headers(),
 			CommunityMailer::reply_to_header_for_post( $post_id )
 		);
 
@@ -893,6 +874,23 @@ class Notification {
 			}
 		}
 
+		// Reply-extraction note (eighth audit §3c) — a light, non-alarming FYI,
+		// deliberately styled differently (neutral grey, not the amber
+		// warning boxes below) since nothing went wrong here: the submission
+		// WAS processed. `_agnosis_extracted_from_reply` is written by
+		// PostCreator::create_post() straight from Email\Parser's own
+		// `extracted_from_reply` flag whenever IntakeGates::is_reply_or_quote()
+		// matched and extraction found enough (original text and/or an
+		// attachment) to proceed — this simply lets the artist know a fresh
+		// email is the more reliable path next time, without making them
+		// resend anything this time.
+		$extracted_reply_html = '';
+		if ( '1' === (string) get_post_meta( $post->ID, '_agnosis_extracted_from_reply', true ) ) {
+			$extracted_reply_html = '<div style="background:#f4f4f6;border-left:3px solid #999;padding:12px 16px;border-radius:4px;margin:0 0 24px;font-size:16px;color:#666;">'
+				. esc_html__( '💡 This looked like a reply or forward — we found and used your own text (or attachment) above the quoted part. Next time, starting a brand new email to the same address works best.', 'agnosis' )
+				. '</div>';
+		}
+
 		// Build quality/enhancement notice.
 		$quality_score  = (int) get_post_meta( $post->ID, '_agnosis_photo_quality_score', true );
 		$was_enhanced   = '1' === (string) get_post_meta( $post->ID, '_agnosis_enhanced', true );
@@ -1071,6 +1069,10 @@ class Notification {
 		<p style="margin:0 0 28px;font-size:20px;line-height:1.6;color:#555;">
 			<?php esc_html_e( "Your submission has been processed. Here's what our AI curator came up with — take a look and let us know if it's ready to publish.", 'agnosis' ); ?>
 		</p>
+
+		<?php if ( $extracted_reply_html ) : ?>
+			<?php echo $extracted_reply_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped via esc_html__() above. ?>
+		<?php endif; ?>
 
 		<?php if ( $images_html ) : ?>
 			<?php echo $images_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url() and (int) applied per image above. ?>
@@ -1280,10 +1282,7 @@ class Notification {
 			$artist->user_email,
 			$subject,
 			$body,
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			]
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -1337,10 +1336,7 @@ class Notification {
 			$artist->user_email,
 			$subject,
 			$this->build_no_attachment_email( $artist->display_name, $artist_id ),
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			]
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -1472,10 +1468,7 @@ class Notification {
 			$artist->user_email,
 			$subject,
 			$this->build_reply_rejected_email( $artist->display_name, $artist_id ),
-			[
-				'Content-Type: text/html; charset=UTF-8',
-				'From: ' . $this->sender_header(),
-			]
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
@@ -1519,13 +1512,13 @@ class Notification {
 			?>
 		</p>
 		<p style="margin:0 0 24px;font-size:20px;line-height:1.6;color:#555;">
-			<?php esc_html_e( 'We received your email, but it looked like a reply or a forwarded message — carrying quoted text from an earlier email — rather than a fresh, original submission, so nothing was published.', 'agnosis' ); ?>
+			<?php esc_html_e( 'We received your email, but it looked like a reply or a forwarded message — carrying quoted text from an earlier email. We looked for your own original text or an attachment above the quoted part, but couldn\'t find anything to work with, so nothing was published.', 'agnosis' ); ?>
 		</p>
 
 		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 28px;">
 			<p style="margin:0 0 10px;font-size:17px;font-weight:700;color:#333;"><?php esc_html_e( 'To resend correctly:', 'agnosis' ); ?></p>
 			<ul style="margin:0;padding-left:20px;">
-				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Start a brand new message rather than replying to or forwarding a previous one.', 'agnosis' ); ?></li>
+				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Start a brand new message rather than replying to or forwarding a previous one — this is always the most reliable way to reach us.', 'agnosis' ); ?></li>
 				<li style="margin:0 0 6px;font-size:17px;color:#555;"><?php esc_html_e( 'Give it a plain subject line — not one starting with "Re:" or containing "[Agnosis]".', 'agnosis' ); ?></li>
 				<li style="margin:0 0 0;font-size:17px;color:#555;"><?php esc_html_e( 'Make sure the body only contains your own, original text and attachment — no quoted or forwarded content from an earlier message.', 'agnosis' ); ?></li>
 			</ul>
@@ -1772,6 +1765,50 @@ class Notification {
 	 */
 	private function sender_header(): string {
 		return CommunityMailer::sender_header();
+	}
+
+	/**
+	 * Shared wp_mail() headers for every email this class sends (audit §2e).
+	 *
+	 * Every one of this class's ~8 wp_mail() call sites previously hand-rolled
+	 * its own identical two-line `['Content-Type: ...', 'From: ...']` array —
+	 * this is the "shared send path" the finding's own fix column asks for,
+	 * replacing that duplication and adding the two RFC 3834 headers at the
+	 * same time, in one place, rather than one call site at a time.
+	 *
+	 * `Auto-Submitted: auto-generated` and `X-Auto-Response-Suppress: All`
+	 * tell the recipient's own mail server this message was generated by an
+	 * automated process, so it won't fire ITS OWN auto-responder back at us —
+	 * the exact convention `Artist\CommunityBroadcast::broadcast()` already
+	 * uses (see its own docblock) for the same reason. That prior fix
+	 * deliberately did NOT add these headers to `CommunityMailer::html_headers()`/
+	 * `text_headers()` — the helper shared across many OTHER classes
+	 * (AdmissionNotification, DepartureNotification, CommunityCapNotification,
+	 * Invitation, …) for one-off action mail (vote links, welcome, departure)
+	 * where a human genuinely typing a reply is the expected outcome, not an
+	 * autoresponder loop. Every email THIS class sends, by contrast, is a
+	 * template rendered in direct, automatic response to something the system
+	 * itself observed (a submission arriving, a review being ready, a
+	 * remove@/promote@ request resolving or failing) — worth the two header
+	 * lines everywhere in this file, not just on the literal "rejection"
+	 * templates the finding highlights as the worst case
+	 * (`on_submission_looks_like_reply()`, precisely the one most likely to
+	 * meet a vacation autoresponder and loop).
+	 *
+	 * `Precedence: bulk` (which `CommunityBroadcast` also sends) is
+	 * deliberately NOT included here — these are one-to-one emails to a
+	 * single named artist, not a bulk send to the whole community, so that
+	 * header wouldn't be accurate.
+	 *
+	 * @return string[]
+	 */
+	private function html_headers(): array {
+		return [
+			'Content-Type: text/html; charset=UTF-8',
+			'From: ' . $this->sender_header(),
+			'Auto-Submitted: auto-generated',
+			'X-Auto-Response-Suppress: All',
+		];
 	}
 
 	/**

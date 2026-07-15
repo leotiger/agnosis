@@ -23,11 +23,18 @@ class Anthropic implements ProviderInterface {
 
 	private const API_URL       = 'https://api.anthropic.com/v1/messages';
 	private const DEFAULT_MODEL = 'claude-opus-4-8'; // vision-capable
+	// Audit §5c: was inlined directly in chat() as a literal, with no
+	// operator lever — unlike $model above (agnosis_anthropic_model,
+	// configurable since it was introduced). Now just the constructor
+	// default; Pipeline/SubmissionTranslator both pass the actual configured
+	// value (agnosis_anthropic_text_model option) explicitly.
+	private const DEFAULT_TEXT_MODEL = 'claude-haiku-4-5-20251001';
 
 	public function __construct(
 		private readonly string $api_key,
 		private readonly PromptConfig $config,
 		private readonly string $model = self::DEFAULT_MODEL,
+		private readonly string $text_model = self::DEFAULT_TEXT_MODEL,
 	) {}
 
 	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult {
@@ -220,8 +227,14 @@ class Anthropic implements ProviderInterface {
 		}
 
 		$body = wp_json_encode( [
-			'model'      => 'claude-haiku-4-5-20251001', // cheapest/fastest model
-			'max_tokens' => 1024,
+			'model'      => $this->text_model, // audit §5c: operator-configurable, was a hardcoded literal
+			// Sized from the prompt itself rather than a flat cap — see
+			// OpenAI::chat()'s own comment for the full rationale (audit
+			// §5b): a flat 1024 truncated long translate_fields() JSON
+			// responses (a long biography body) mid-object, so the parse
+			// failed and the caller silently fell back to untranslated text
+			// on a call that was still billed in full.
+			'max_tokens' => max( 1024, min( 8192, (int) ceil( strlen( $prompt ) / 4 * 1.5 ) ) ),
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],

@@ -21,6 +21,13 @@
  * "restore original photo" one-click, which reverses (never deletes) the
  * provenance pointer Phase 2 records.
  *
+ * Audit §3f: the artist-facing half of the `sensitive` lever —
+ * POST .../sensitive sets/clears `_agnosis_sensitive`, artwork-only (400 on
+ * biography/event), ownership-checked the same as every other field here,
+ * and — being boolean and language-neutral — propagated synchronously to
+ * every language sibling with no translation leg, the same shape as a photo
+ * swap (Phase 2). ActivityPub::post_to_note() is what actually reads it.
+ *
  * @package Agnosis\Tests\Integration\Artist
  */
 
@@ -700,6 +707,61 @@ class ContentEditorTest extends WP_UnitTestCase {
 		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/photo/restore", [], $this->other_artist_id );
 
 		$this->assertSame( 403, $response->get_status() );
+	}
+
+	// -------------------------------------------------------------------------
+	// Sensitive-content flag (audit §3f)
+	// -------------------------------------------------------------------------
+
+	public function test_sensitive_flag_can_be_set_and_cleared(): void {
+		$post_id = $this->create_artwork( $this->artist_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/sensitive", [ 'value' => true ], $this->artist_id );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', get_post_meta( $post_id, '_agnosis_sensitive', true ) );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/sensitive", [ 'value' => false ], $this->artist_id );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_sensitive', true ), 'Clearing the flag must delete the meta row, not store a falsy string.' );
+	}
+
+	public function test_sensitive_flag_wrong_author_rejected(): void {
+		$post_id = $this->create_artwork( $this->artist_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/sensitive", [ 'value' => true ], $this->other_artist_id );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_sensitive', true ) );
+	}
+
+	public function test_sensitive_flag_rejected_on_non_artwork_post_types(): void {
+		$post_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/sensitive", [ 'value' => true ], $this->artist_id );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	public function test_sensitive_flag_propagates_to_translated_sibling(): void {
+		FakeLinguaForge::$source_language = 'en';
+		$this->set_artist_locale( $this->artist_id, 'es_ES' );
+
+		$spanish_id = $this->create_artwork( $this->artist_id, 'publish', [ '_lf_lang' => 'es' ] );
+		$primary_id = $this->create_artwork( $this->artist_id, 'publish', [ '_lf_lang' => 'en' ] );
+
+		FakeLinguaForge::link( $spanish_id, 'en', $primary_id );
+		FakeLinguaForge::link( $spanish_id, 'es', $spanish_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$spanish_id}/sensitive", [ 'value' => true ], $this->artist_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		// Boolean, language-neutral — no translation leg, same shape as a photo swap.
+		$this->assertSame( '1', get_post_meta( $spanish_id, '_agnosis_sensitive', true ) );
+		$this->assertSame( '1', get_post_meta( $primary_id, '_agnosis_sensitive', true ) );
 	}
 
 	// -------------------------------------------------------------------------

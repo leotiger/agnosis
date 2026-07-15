@@ -254,6 +254,40 @@ class Activator {
 		// (and the version-aware maybe_upgrade() gate itself) has been sitting
 		// right here the whole time.
 		self::create_tables();
+
+		// Audit §3h (per-artist actors): agnosis_followers' uniqueness moved
+		// from a bare actor_id key to the (owner_type, owner_id, actor_id)
+		// triple, now that a remote actor can follow both the node and one or
+		// more individual artists independently. dbDelta() (just above, via
+		// create_tables()) is additive across BOTH columns and indexes — it
+		// already added the new owner_type/owner_id columns AND the new
+		// uq_owner_actor key itself (present in agnosis_followers' current
+		// CREATE TABLE SQL), but it never drops or replaces an existing
+		// index, so the old bare-actor_id uniqueness has to be dropped
+		// explicitly. Two independent, idempotent statements — NOT one
+		// combined "DROP INDEX uq_actor_id, ADD UNIQUE KEY uq_owner_actor"
+		// ALTER TABLE: dbDelta() above already adds uq_owner_actor on a
+		// fresh upgrade, so a combined statement would fail outright with a
+		// duplicate-key-name error (and, being one ALTER TABLE statement,
+		// fail atomically — silently leaving the OLD key in place too).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$old_followers_key = $wpdb->get_results( "SHOW KEYS FROM {$wpdb->prefix}agnosis_followers WHERE Key_name = 'uq_actor_id'" );
+		if ( ! empty( $old_followers_key ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_followers DROP INDEX uq_actor_id" );
+		}
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$new_followers_key = $wpdb->get_results( "SHOW KEYS FROM {$wpdb->prefix}agnosis_followers WHERE Key_name = 'uq_owner_actor'" );
+		if ( empty( $new_followers_key ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_followers ADD UNIQUE KEY uq_owner_actor (owner_type, owner_id, actor_id)" );
+		}
+
+		// One-time migration off agnosis_ap_followers (audit §3g note iii) —
+		// must run after create_tables() so agnosis_followers already exists.
+		// Migrated rows land as owner_type='node' (the option only ever held
+		// node-level followers, from before per-artist actors existed).
+		self::migrate_followers_option();
 		self::seed_options();
 		self::register_roles();
 		self::schedule_events();
@@ -311,6 +345,7 @@ class Activator {
 		wp_clear_scheduled_hook( 'agnosis_vote_digest' );
 		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
 		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
+		wp_clear_scheduled_hook( 'agnosis_ap_retry_deliveries' );
 		flush_rewrite_rules();
 	}
 
@@ -603,6 +638,66 @@ class Activator {
 			KEY                idx_status (status)
 		) $charset_collate;";
 
+		// ActivityPub followers (audit §3g note iii) — replaces the
+		// agnosis_ap_followers autoloaded option, which was rewritten wholesale
+		// on every Follow/Undo (a last-write-wins race under concurrency) and
+		// grew without bound while staying in autoloaded memory on every page
+		// load regardless of whether the request touched federation at all.
+		// actor_id is the follower's AS2 actor URL (the option's old array
+		// key); inbox_url is where deliveries are POSTed.
+		// owner_type/owner_id (audit §3h — per-artist actors) scope a follower
+		// row to WHICH local actor they follow: the single node-level actor
+		// (owner_type='node', owner_id=0, same actor every follower predates
+		// this column used to imply) or one specific artist's own actor
+		// (owner_type='artist', owner_id=that artist's WP user id). The same
+		// remote actor can independently follow both the node's firehose and
+		// one or more individual artists, so the uniqueness constraint is the
+		// (owner_type, owner_id, actor_id) triple, not actor_id alone.
+		$sql_followers = "CREATE TABLE {$wpdb->prefix}agnosis_followers (
+			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			owner_type   ENUM('node','artist') NOT NULL DEFAULT 'node',
+			owner_id     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			actor_id     VARCHAR(512)    NOT NULL,
+			inbox_url    VARCHAR(512)    NOT NULL,
+			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			UNIQUE KEY   uq_owner_actor (owner_type, owner_id, actor_id),
+			KEY          idx_owner (owner_type, owner_id)
+		) $charset_collate;";
+
+		// ActivityPub delivery retry queue (audit §3g note iv) — deliver() was
+		// fire-and-forget with no retry at all; §3a made a failure visible (one
+		// Settings → Logs warning) but a delivery that failed once was still
+		// gone for good. A failed delivery now gets a row here and is retried
+		// on a backoff schedule (ActivityPub::RETRY_INTERVALS) by the
+		// agnosis_ap_retry_deliveries cron tick; a delivery that finally
+		// succeeds is deleted, one that exhausts every retry is left as
+		// status='failed' for an operator to eventually find in the database
+		// (no admin UI for this table yet — 1.0-grade polish, not this pass).
+		// activity_json is the exact payload deliver() already built, so a
+		// retry resends byte-for-byte what was originally signed, not a
+		// re-derived (and potentially different, if the source post changed
+		// meanwhile) activity.
+		// owner_type/owner_id (audit §3h) record which local actor's private
+		// key a retry must re-sign with — signing keys are never stored in
+		// the queue itself, only which actor owns the delivery.
+		$sql_ap_delivery_queue = "CREATE TABLE {$wpdb->prefix}agnosis_ap_delivery_queue (
+			id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			owner_type       ENUM('node','artist') NOT NULL DEFAULT 'node',
+			owner_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
+			inbox_url        VARCHAR(512)    NOT NULL,
+			activity_type    VARCHAR(64)     DEFAULT NULL,
+			activity_json    LONGTEXT        NOT NULL,
+			status           ENUM('pending','failed') NOT NULL DEFAULT 'pending',
+			attempts         SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+			last_error       TEXT            DEFAULT NULL,
+			next_attempt_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			resolved_at      DATETIME        DEFAULT NULL,
+			PRIMARY KEY      (id),
+			KEY              idx_status_next (status, next_attempt_at)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
@@ -619,6 +714,8 @@ class Activator {
 		dbDelta( $sql_newsletter_issues );
 		dbDelta( $sql_newsletter_queue );
 		dbDelta( $sql_contact_messages );
+		dbDelta( $sql_followers );
+		dbDelta( $sql_ap_delivery_queue );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}
@@ -650,6 +747,40 @@ class Activator {
 		}
 	}
 
+	/**
+	 * One-time migration (audit §3g note iii): copy any existing
+	 * agnosis_ap_followers option data into the new agnosis_followers table,
+	 * then delete the option. Idempotent — once the option is gone (either
+	 * because it never existed, or because a prior run already migrated and
+	 * removed it), this is a single get_option() call and nothing else.
+	 *
+	 * Must run after create_tables() so the destination table exists.
+	 */
+	private static function migrate_followers_option(): void {
+		global $wpdb;
+
+		$followers = get_option( 'agnosis_ap_followers', false );
+		if ( false === $followers ) {
+			return; // Nothing to migrate — fresh install, or already migrated.
+		}
+
+		if ( is_array( $followers ) ) {
+			foreach ( $followers as $actor_id => $inbox_url ) {
+				if ( ! is_string( $actor_id ) || '' === $actor_id || ! is_string( $inbox_url ) || '' === $inbox_url ) {
+					continue; // Skip a malformed entry rather than let it abort the whole migration.
+				}
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time migration; $wpdb->replace() already parameterizes both values.
+				$wpdb->replace(
+					$wpdb->prefix . 'agnosis_followers',
+					[ 'actor_id' => $actor_id, 'inbox_url' => $inbox_url ],
+					[ '%s', '%s' ]
+				);
+			}
+		}
+
+		delete_option( 'agnosis_ap_followers' );
+	}
+
 	private static function register_roles(): void {
 		// Only register if not already present (add_role is a no-op when it exists,
 		// but this guard makes intent explicit and avoids the PHP notice in older WP).
@@ -670,7 +801,6 @@ class Activator {
 			'agnosis_ai_provider'         => 'openai',
 			'agnosis_openai_api_key'      => '',
 			'agnosis_anthropic_api_key'   => '',
-			'agnosis_stability_api_key'   => '',
 			'agnosis_email_driver'        => 'imap',
 			'agnosis_email_submit'        => '',
 			'agnosis_email_bio'           => '',
@@ -845,7 +975,7 @@ class Activator {
 			'<!-- wp:list --><ul><li>You email your artwork, a biography, or an event &#8212; no account or upload form needed.</li><li>AI writes the parts you leave blank: a title suggestion, a description, tags, and alt text. Your own words, wherever you give them, always come first.</li><li>Existing members vouch for newcomers; the community decides who joins.</li><li>Your work is published here and delivered to your followers on the fediverse.</li></ul><!-- /wp:list -->',
 			'<!-- wp:heading --><h2>How we use AI &#8212; and what it won&#8217;t do</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Handing your work to an algorithm can feel uneasy, so here is exactly what happens, with nothing hidden.</p><!-- /wp:paragraph -->',
-			'<!-- wp:list --><ul><li><strong>Writing, not judging.</strong> AI reads your email and image and writes a title suggestion, a description, tags, and factual alt text &#8212; grounded only in what you actually sent, never invented.</li><li><strong>Photo correction, only when needed.</strong> If a photograph has a technical problem &#8212; blur, poor lighting, heavy noise &#8212; that gets in the way of seeing the work clearly, AI may correct that problem alone.</li><li><strong>Never the artwork itself.</strong> Colours, textures, composition, and every artistic choice you made are preserved exactly. This is treated as a camera-and-lighting fix, not an artistic edit &#8212; and a well-photographed piece is never touched at all.</li><li><strong>Your call, always.</strong> Send through the photo-only lane at any time and your image is published exactly as sent, with no automatic correction whatsoever. The Artist Guide explains how.</li></ul><!-- /wp:list -->',
+			'<!-- wp:list --><ul><li><strong>Writing, not judging.</strong> AI reads your email and image and writes a title suggestion, a description, tags, and factual alt text &#8212; grounded only in what you actually sent, never invented.</li><li><strong>Photo correction, only when needed.</strong> If a photograph has a technical problem &#8212; blur, poor lighting, heavy noise &#8212; that gets in the way of seeing the work clearly, AI may correct that problem alone.</li><li><strong>Never the artwork itself.</strong> Colors, textures, composition, and every artistic choice you made are preserved exactly. This is treated as a camera-and-lighting fix, not an artistic edit &#8212; and a well-photographed piece is never touched at all.</li><li><strong>Your call, always.</strong> Send through the photo-only lane at any time and your image is published exactly as sent, with no automatic correction whatsoever. The Artist Guide explains how.</li></ul><!-- /wp:list -->',
 			'<!-- wp:heading --><h2>Owned by its members</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>The community admits new members, can vote to part ways with one, and even votes on how large it grows. Agnosis is a commons, not a platform &#8212; small and human by design.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Your work stays yours</h2><!-- /wp:heading -->',
@@ -858,6 +988,8 @@ class Activator {
 	private static function help_page_content(): string {
 		return implode( "\n", [
 			'<!-- wp:paragraph --><p>Working with Agnosis is as simple as sending an email &#8212; you never have to log in to a dashboard. Here is everything you need to know.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>How to email us</h2><!-- /wp:heading -->',
+			'<!-- wp:list --><ul><li>Send directly to the address you need &#8212; not as a Cc or Bcc. Only the very first address you send <em>to</em> counts for routing; anything else on the message is ignored.</li><li>Start a fresh email rather than replying to or forwarding an old one when you can &#8212; it&#8217;s the most reliable way to reach us. If you do reply, just keep your own new text above whatever you&#8217;re replying to and we&#8217;ll still find and use it. A reply or forward that&#8217;s nothing but old quoted text, with nothing new above it, won&#8217;t go through.</li></ul><!-- /wp:list -->',
 			'<!-- wp:heading --><h2>Joining</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Apply from the join page. Once enough members have vouched for you, you are welcomed in and can start sending work by email.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Sending artwork</h2><!-- /wp:heading -->',
@@ -871,7 +1003,7 @@ class Activator {
 			'<!-- wp:paragraph --><p>The file itself is always published exactly as you sent it &#8212; audio and video are never edited, re-encoded, or otherwise altered by AI, only described. If a long or high-resolution file doesn&#8217;t arrive, your email provider or our email receiver may be capping attachment size before it ever reaches us; try a shorter clip or a more compressed export. For larger videos include a link to your preferred video platform.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>About AI &#8212; what it does, and what it never does</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>It is fair to wonder exactly what AI is allowed to touch. Here is the honest answer.</p><!-- /wp:paragraph -->',
-			'<!-- wp:list --><ul><li>It writes the presentation: a title suggestion (only used if you did not give one), a description, tags, and factual alt text &#8212; always grounded in what you actually sent, never invented.</li><li>It may correct a technical photo problem &#8212; blur, poor lighting, heavy noise &#8212; but only when the photo needs it, and only enough to make the artwork easier to see.</li><li>It does not alter the artwork itself. Colours, textures, composition, and every artistic choice you made are preserved exactly &#8212; this is a camera fix, not an artistic edit.</li><li>A well-photographed piece is never touched at all.</li><li>Want zero automatic correction, always? Use the photo-only lane below &#8212; your image is published pixel-for-pixel as you sent it.</li></ul><!-- /wp:list -->',
+			'<!-- wp:list --><ul><li>It writes the presentation: a title suggestion (only used if you did not give one), a description, tags, and factual alt text &#8212; always grounded in what you actually sent, never invented.</li><li>It may correct a technical photo problem &#8212; blur, poor lighting, heavy noise &#8212; but only when the photo needs it, and only enough to make the artwork easier to see.</li><li>It does not alter the artwork itself. Colors, textures, composition, and every artistic choice you made are preserved exactly &#8212; this is a camera fix, not an artistic edit.</li><li>A well-photographed piece is never touched at all.</li><li>Want zero automatic correction, always? Use the photo-only lane below &#8212; your image is published pixel-for-pixel as you sent it.</li></ul><!-- /wp:list -->',
 			'<!-- wp:heading --><h2>Your title, kept in your own words</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Whatever you put in the subject line becomes your artwork&#8217;s title &#8212; exactly as written, in whatever language you wrote it in. If your community publishes in a different main language, the translated title is shown alongside yours, never in place of it.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Photographs &#8212; published untouched</h2><!-- /wp:heading -->',
@@ -945,6 +1077,12 @@ class Activator {
 		// §5b/§4a) — see Artist\VoteDigest's own docblock.
 		if ( ! wp_next_scheduled( 'agnosis_vote_digest' ) ) {
 			wp_schedule_event( time(), 'daily', 'agnosis_vote_digest' );
+		}
+		// ActivityPub delivery retry queue (audit §3g note iv) — same 5-minute
+		// tick as the email poll; most ticks are a cheap no-op empty-queue
+		// SELECT, since a row's next_attempt_at is usually well in the future.
+		if ( ! wp_next_scheduled( 'agnosis_ap_retry_deliveries' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_ap_retry_deliveries' );
 		}
 		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be

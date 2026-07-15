@@ -7,7 +7,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 ## How it works
 
 1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `replace@`, `remove@`, and `goodbye@`
-2. **Enhance** — images with low photo quality scores are corrected via AI (OpenAI / Stability AI); good photographs are left untouched
+2. **Enhance** — images with low photo quality scores are corrected via AI (OpenAI); good photographs are left untouched
 3. **Describe** — title, description, tags, and medium category are written by AI (Claude / GPT-4o Vision)
 4. **Review** — artist receives an email with a preview; one click to publish, edit, or discard
 5. **Publish** — a gallery post is created automatically as an `agnosis_artwork`
@@ -17,11 +17,11 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 
 - **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, removal, and account departure (`goodbye@`)
 - **Zero-login workflow** — submitting, editing, and removing work all happen by email; no WordPress account is required. A login is optional, only needed for the online submissions-preview dashboard, and is set up via WordPress's own self-service password recovery whenever an artist wants it
-- **AI pipeline** — pluggable provider interface; OpenAI, Anthropic, and Stability AI out of the box
+- **AI pipeline** — pluggable provider interface; OpenAI, Anthropic, and WordPress's own built-in AI Client (WP 7.0+, Settings → Connectors, no API key stored by Agnosis) out of the box — the WordPress AI Client covers description/text generation only, not image enhancement
 - **HEIC/HEIF support** — the default photo format on modern iPhones is accepted at intake and converted to JPEG before AI processing, instead of being silently dropped; degrades gracefully when the server's ImageMagick build can't decode it
 - **Photo quality gate** — vision AI scores each photograph independently, even across a multi-photo gallery submission; enhancement only runs below a configurable threshold; targeted correction from detected issues
 - **Submission-failure notifications** — an artist is emailed if their message couldn't be turned into a post at all (no usable attachment found, or every attachment failed to convert), instead of it silently vanishing
-- **Medium taxonomy** — 10 canonical terms (Oil Painting, Watercolour, Drawing & Illustration, Photography, Digital Art, Sculpture, Printmaking, Mixed Media, Poetry, Essay), covering written as well as visual submissions; AI assigns one per artwork; seeded on activation
+- **Medium taxonomy** — 10 canonical terms (Oil Painting, Watercolor, Drawing & Illustration, Photography, Digital Art, Sculpture, Printmaking, Mixed Media, Poetry, Essay), covering written as well as visual submissions; AI assigns one per artwork; seeded on activation
 - **Artist review workflow** — draft posted, artist reviews via email link (approve / edit / discard)
 - **Visitor contact form** — a visitor can message an artist directly from their page; content-moderated, and rate-limited both per IP/sender and per (artist, visitor) pair (configurable), so one visitor can't flood one artist's inbox. The form is replaced with a static "already contacted" notice after sending, not just hidden client-side
 - **Biography social links** — a portfolio link plus three optional social links, rendered as an icon row below the featured photo (WordPress core Social Icons block under the hood); an admin can also force a fixed, site-wide biography title (with an option to append the artist's own name) instead of each artist's own
@@ -32,9 +32,9 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 - **Dual-title artwork** — `post_title` is always the artist's original title; AI-generated site-language title stored separately in `_agnosis_translated_title` meta
 - **ActivityPub federation** — each installation is a Fediverse actor; peers discover each other via `/.well-known/agnosis-node`
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication
-- **Commerce** — configurable transaction fee on donations and art sales; always free for artists
+- **Commerce (planned)** — a future revenue layer of optional visitor donations and art sales, with a configurable transaction fee, is planned and partly scaffolded in Settings → Commerce; the donation/store mechanism itself hasn't been built yet, so running a node has no revenue feature to enable today. Always free for artists to participate
 - **Agnosis Theme** — companion FSE block theme with black-and-white palette, CPT templates, and a gallery overview block
-- **Zero runtime dependencies** — no Composer packages ship in the plugin zip
+- **Composer dependencies** — the plugin ZIP ships `webklex/php-imap` (the IMAP intake transport) along with its own dependency tree (`illuminate/*`, `symfony/*`, `nesbot/carbon`, `doctrine/inflector`, `voku/portable-ascii`) — all MIT-licensed, GPL-compatible. These currently ship un-prefixed (a namespace-collision risk if another active plugin bundles a different version of the same packages); prefixing the tree (or replacing webklex with a slimmer IMAP layer) is a planned pre-1.0.0 item — see CHANGELOG.md
 
 ## Requirements
 
@@ -145,7 +145,7 @@ includes/
   Core/                  Plugin bootstrap, loader, activator
   Email/                 IMAP inbox, webhook handler, email parser
   AI/                    Pipeline, provider interface, value objects
-  AI/Providers/          OpenAI, Anthropic, Stability AI adapters
+  AI/Providers/          OpenAI, Anthropic, WordPressAI adapters
   Publishing/            PostCreator, ReviewEndpoints, RemovalEndpoints,
                          Notification, SubmissionsPage, GalleryOverview
   Artist/                Admission/vouching, artist profile & role

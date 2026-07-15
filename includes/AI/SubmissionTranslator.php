@@ -235,6 +235,7 @@ class SubmissionTranslator {
 		$decoded  = json_decode( $json_str, true );
 
 		if ( ! is_array( $decoded ) ) {
+			$this->log_json_decode_failure( 'translate_fields', $json_str, $target_code, count( $fields ) . ' field(s)' );
 			return [];
 		}
 
@@ -318,6 +319,7 @@ class SubmissionTranslator {
 		$decoded  = json_decode( $json_str, true );
 
 		if ( ! is_array( $decoded ) ) {
+			$this->log_json_decode_failure( 'translate_to_languages', $json_str, implode( ', ', array_keys( $names ) ), '1 text' );
 			return [];
 		}
 
@@ -351,8 +353,15 @@ class SubmissionTranslator {
 				if ( '' === $key ) {
 					return null;
 				}
-				$model = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
-				return new self( new Anthropic( $key, $config, $model ) );
+				// $model (the vision model) is passed for parity with the
+				// constructor's other callers but is inert here — this class
+				// only ever calls chat(), never describe(). $text_model is
+				// the one that actually matters (audit §5c): previously
+				// chat() ignored whatever model was configured entirely and
+				// used a hardcoded literal instead.
+				$model      = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
+				$text_model = (string) get_option( 'agnosis_anthropic_text_model', 'claude-haiku-4-5-20251001' );
+				return new self( new Anthropic( $key, $config, $model, $text_model ) );
 
 			case 'wp_ai':
 				return new self( new WordPressAI( $config ) );
@@ -363,8 +372,10 @@ class SubmissionTranslator {
 				if ( '' === $key ) {
 					return null;
 				}
-				$model = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
-				return new self( new OpenAI( $key, $config, $model ) );
+				// Same as the Anthropic branch above — $model is inert here.
+				$model      = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
+				$text_model = (string) get_option( 'agnosis_openai_text_model', 'gpt-4o-mini' );
+				return new self( new OpenAI( $key, $config, $model, text_model: $text_model ) );
 		}
 	}
 
@@ -481,6 +492,7 @@ class SubmissionTranslator {
 		$decoded  = json_decode( $json_str, true );
 
 		if ( ! is_array( $decoded ) ) {
+			$this->log_json_decode_failure( 'call_translate', $json_str, $target_language_name, implode( '+', array_keys( $keys_present ) ) );
 			return null;
 		}
 
@@ -512,5 +524,50 @@ class SubmissionTranslator {
 		}
 
 		return ! empty( $result ) ? $result : null;
+	}
+
+	/**
+	 * Log a JSON-decode failure with a distinct marker for the likely
+	 * truncation case (audit §5b), so it surfaces in Settings → Logs as
+	 * itself rather than as an unexplained, generic translation failure —
+	 * previously none of the three JSON-envelope call sites above logged
+	 * anything at all on decode failure, silently falling back to the
+	 * original untranslated text.
+	 *
+	 * Distinguishing "truncated mid-response" from "the model returned
+	 * something else entirely" doesn't require the provider's own
+	 * finish_reason/stop_reason (threading that through would mean widening
+	 * ProviderInterface::chat()'s string return type everywhere it's used,
+	 * including Pipeline.php's own six call sites and every test double —
+	 * far more invasive than this finding calls for). A cheap, reliable
+	 * proxy instead: a response only counts as "likely truncated" when it
+	 * actually looks like it STARTED as the requested JSON object (begins
+	 * with "{") but doesn't END with the matching closing brace — cut off
+	 * mid-object. Checking the closing brace alone isn't enough: a response
+	 * that never was JSON in the first place (the model refused, or replied
+	 * with plain prose) also won't end in "}", but that's a different
+	 * failure than truncation and would be mislabeled without the opening-
+	 * brace check too.
+	 *
+	 * @param string $method       Calling method name, for the log message.
+	 * @param string $json_str     The fence-stripped string that failed to decode.
+	 * @param string $target       Target language name/code(s), for context.
+	 * @param string $field_summary Short description of what was being translated.
+	 */
+	private function log_json_decode_failure( string $method, string $json_str, string $target, string $field_summary ): void {
+		$likely_truncated = '' !== $json_str && '{' === $json_str[0] && '}' !== substr( $json_str, -1 );
+
+		Logger::warning(
+			sprintf(
+				'SubmissionTranslator::%s: AI response was not valid JSON (%s) — target "%s", %s. Falling back to the original untranslated text.',
+				$method,
+				$likely_truncated
+					? 'looks truncated — response does not end with a closing brace; consider whether max_tokens needs raising further'
+					: 'malformed or unexpected response shape, not a truncation',
+				$target,
+				$field_summary
+			),
+			'pipeline'
+		);
 	}
 }
