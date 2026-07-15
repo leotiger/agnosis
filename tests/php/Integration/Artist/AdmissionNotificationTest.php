@@ -368,6 +368,12 @@ class AdmissionNotificationTest extends \WP_UnitTestCase {
 		$this->assertNotNull( $summary_mail, 'Admin summary email (identified by its "Application ID:" opening line) was not found among mails to admin_email.' );
 		$this->assertStringContainsString( 'Notified 1 artist(s) immediately.', $summary_mail['message'] );
 		$this->assertStringContainsString( '1 more will see it in their next daily digest.', $summary_mail['message'] );
+
+		// Audit-adjacent finding, not a numbered audit item (2026-07-15, see
+		// CHANGELOG.md 0.9.29): the admin summary was plain text and untranslated
+		// before this pass — now HTML via the shared Core\EmailTemplate shell.
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $summary_mail['headers'] ) );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $summary_mail['message'] );
 	}
 
 	// =========================================================================
@@ -415,6 +421,36 @@ class AdmissionNotificationTest extends \WP_UnitTestCase {
 		$this->remove_mail_capture();
 
 		$this->assertEmpty( $this->sent_mails );
+	}
+
+	/**
+	 * Audit-adjacent finding, not a numbered audit item (2026-07-15, see
+	 * CHANGELOG.md 0.9.29): the expiry emails were the last plain-text
+	 * bodies in this class, now converted to the shared Core\EmailTemplate
+	 * HTML shell alongside the admin summary below.
+	 */
+	public function test_expired_applicant_email_is_html(): void {
+		$application_id = $this->insert_application( 'expiredhtml@example.com', 'Old Applicant' );
+
+		$this->start_mail_capture();
+		$this->notification->on_application_expired( $application_id );
+		$this->remove_mail_capture();
+
+		$mail = $this->mails_to( 'expiredhtml@example.com' )[0];
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $mail['headers'] ) );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $mail['message'] );
+	}
+
+	public function test_expired_community_notice_is_html(): void {
+		$this->create_artist( 'member2@example.com' );
+		$application_id = $this->insert_application( 'expired4@example.com', 'Old Applicant' );
+
+		$this->start_mail_capture();
+		$this->notification->on_application_expired( $application_id );
+		$this->remove_mail_capture();
+
+		$admin_mail = $this->mails_to( get_option( 'admin_email' ) )[0];
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $admin_mail['headers'] ) );
 	}
 
 	// =========================================================================

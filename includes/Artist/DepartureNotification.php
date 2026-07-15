@@ -13,6 +13,17 @@
  *  agnosis_removal_vote_passed              → subject and community are notified
  *  agnosis_removal_vote_failed              → community is notified (no action taken)
  *
+ * Every email below is built through the shared Core\EmailTemplate shell
+ * (2026-07-15 — audit-adjacent finding, not a numbered audit item: this
+ * class was plain text end to end, the last one of the plugin's four
+ * notification classes still in that state, converted along with
+ * Artist\CommunityCapNotification and Artist\CommunityBroadcast in the
+ * same pass; see CHANGELOG.md 0.9.29). Each translatable string was split
+ * to roughly one sentence per `__()` call to match the granular pattern
+ * every other HTML template in the plugin already uses — the previous
+ * plain-text bodies each joined 3-5 sentences into one multi-paragraph
+ * `\n\n`-separated string, which doesn't map onto discrete `<p>` tags.
+ *
  * @package Agnosis\Artist
  */
 
@@ -22,6 +33,7 @@ namespace Agnosis\Artist;
 
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 
 class DepartureNotification {
 
@@ -69,19 +81,37 @@ class DepartureNotification {
 				__( 'Confirm your departure from %s', 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: 1: artist display name, 2: site name, 3: confirmation URL */
-				__( "Hi %1\$s,\n\nWe received a request to remove your account and all your published work from %2\$s.\n\nIf you made this request, click the link below to confirm. This action is permanent and cannot be undone.\n\n%3\$s\n\nIf you did not make this request, you can ignore this email — your account remains unchanged.\n\n— %2\$s", 'agnosis' ),
-				$user->display_name,
-				$site_name,
-				$confirm_url
-			),
-			$this->text_headers()
+			$this->build_confirmation_requested_body( $user->display_name, $site_name, $confirm_url ),
+			$this->html_headers()
 		);
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
 		}
+	}
+
+	private function build_confirmation_requested_body( string $display_name, string $site_name, string $confirm_url ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>'
+			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( 'We received a request to remove your account and all your published work from %s.', 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			. '<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'If you made this request, click the link below to confirm. This action is permanent and cannot be undone.', 'agnosis' )
+			. '</p>'
+			. '<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr><td>'
+			. EmailTemplate::button( $confirm_url, __( 'Confirm removal', 'agnosis' ), [ 'bg' => EmailTemplate::DANGER ] )
+			. '</td></tr></table>'
+			. '<p style="margin:0;font-size:15px;color:#999;">'
+			. esc_html__( 'If you did not make this request, you can ignore this email — your account remains unchanged.', 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	// -------------------------------------------------------------------------
@@ -129,7 +159,7 @@ class DepartureNotification {
 		$site_name    = get_bloginfo( 'name' );
 		$display_name = $row->display_name;
 
-		// Brief plain-text notice to admin only — artists don't need to know who left.
+		// Brief notice to admin only — artists don't need to know who left.
 		wp_mail(
 			get_option( 'admin_email' ),
 			sprintf(
@@ -137,13 +167,8 @@ class DepartureNotification {
 				__( 'An artist has left %s', 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: 1: artist display name, 2: site name */
-				__( "%1\$s has confirmed their departure from %2\$s.\n\nTheir account and all published work have been permanently deleted.\n\n— %2\$s", 'agnosis' ),
-				$display_name,
-				$site_name
-			),
-			$this->text_headers()
+			$this->build_artist_left_admin_body( $display_name, $site_name ),
+			$this->html_headers()
 		);
 
 		// Confirm to the artist themselves that the deletion actually happened.
@@ -166,18 +191,54 @@ class DepartureNotification {
 				__( "You've left %s", 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: 1: artist display name, 2: site name */
-				__( "Hi %1\$s,\n\nThis confirms that your account and everything you published on %2\$s have been permanently deleted, as you requested.\n\nNothing tied to you — your artwork, biography, events, or account details — is stored on %2\$s anymore.\n\nIf you didn't request this, please contact the site admin right away.\n\n— %2\$s", 'agnosis' ),
-				$display_name,
-				$site_name
-			),
-			$this->text_headers()
+			$this->build_artist_left_confirmation_body( $display_name, $site_name ),
+			$this->html_headers()
 		);
 
 		if ( '' !== $artist_locale ) {
 			restore_current_locale();
 		}
+	}
+
+	private function build_artist_left_admin_body( string $display_name, string $site_name ): string {
+		$body = '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: 1: artist display name, 2: site name */
+				esc_html__( '%1$s has confirmed their departure from %2$s.', 'agnosis' ),
+				esc_html( $display_name ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'Their account and all published work have been permanently deleted.', 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
+	}
+
+	private function build_artist_left_confirmation_body( string $display_name, string $site_name ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>'
+			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( 'This confirms that your account and everything you published on %s have been permanently deleted, as you requested.', 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( 'Nothing tied to you — your artwork, biography, events, or account details — is stored on %s anymore.', 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			. '<p style="margin:0;font-size:15px;color:#999;">'
+			. esc_html__( "If you didn't request this, please contact the site admin right away.", 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	// -------------------------------------------------------------------------
@@ -204,34 +265,8 @@ class DepartureNotification {
 			switch_to_locale( $locale );
 		}
 
-		if ( $banned_until ) {
-			$until_formatted = date_i18n( get_option( 'date_format' ), strtotime( $banned_until ) );
-			$body = sprintf(
-				/* translators: 1: artist display name, 2: site name, 3: date */
-				__( "Hi %1\$s,\n\nYour membership at %2\$s has been temporarily suspended until %3\$s.\n\nYou will be automatically reinstated on that date. If you have questions, please contact the site admin.\n\n— %2\$s", 'agnosis' ),
-				$user->display_name,
-				$site_name,
-				$until_formatted
-			);
-		} else {
-			$body = sprintf(
-				/* translators: 1: artist display name, 2: site name */
-				__( "Hi %1\$s,\n\nYour membership at %2\$s has been suspended.\n\nIf you have questions, please contact the site admin.\n\n— %2\$s", 'agnosis' ),
-				$user->display_name,
-				$site_name
-			);
-		}
-
-		$footer = EmailFooter::plain_text();
-		if ( '' !== $footer ) {
-			$body .= "\n\n" . $footer;
-		}
-
-		// Deliberately no EmailFooter::edit_reminder_plain_text() here — apply_ban()
-		// removes the agnosis_artist role for the duration of the ban, which is the
-		// same capability ContentEditor::check_access() requires, so "you can edit
-		// directly on your page" would be false for as long as this email applies.
-		// See on_artist_reinstated() below, where the reminder returns once access does.
+		$until_formatted = $banned_until ? date_i18n( get_option( 'date_format' ), strtotime( $banned_until ) ) : null;
+		$body            = $this->build_banned_body( $user->display_name, $site_name, $until_formatted );
 
 		wp_mail(
 			$user->user_email,
@@ -241,12 +276,57 @@ class DepartureNotification {
 				$site_name
 			),
 			$body,
-			$this->text_headers()
+			$this->html_headers()
 		);
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
 		}
+	}
+
+	private function build_banned_body( string $display_name, string $site_name, ?string $until_formatted ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>';
+
+		if ( null !== $until_formatted ) {
+			$body .= '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+				. sprintf(
+					/* translators: 1: site name, 2: date the suspension ends */
+					esc_html__( 'Your membership at %1$s has been temporarily suspended until %2$s.', 'agnosis' ),
+					esc_html( $site_name ),
+					esc_html( $until_formatted )
+				)
+				. '</p>'
+				. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+				. esc_html__( 'You will be automatically reinstated on that date.', 'agnosis' )
+				. '</p>';
+		} else {
+			$body .= '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+				. sprintf(
+					/* translators: %s: site name */
+					esc_html__( 'Your membership at %s has been suspended.', 'agnosis' ),
+					esc_html( $site_name )
+				)
+				. '</p>';
+		}
+
+		$body .= '<p style="margin:0;font-size:15px;color:#999;">'
+			. esc_html__( 'If you have questions, please contact the site admin.', 'agnosis' )
+			. '</p>';
+
+		// Deliberately no EmailFooter::edit_reminder_html() here — apply_ban()
+		// removes the agnosis_artist role for the duration of the ban, which is
+		// the same capability ContentEditor::check_access() requires, so "you
+		// can edit directly on your page" would be false for as long as this
+		// email applies. See build_reinstated_body() below, where the reminder
+		// returns once access does.
+		$work_emails_html = EmailFooter::html();
+		$footer_extra     = '' !== $work_emails_html
+			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>'
+			: '';
+
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	// -------------------------------------------------------------------------
@@ -271,26 +351,6 @@ class DepartureNotification {
 			switch_to_locale( $locale );
 		}
 
-		$body = sprintf(
-			/* translators: 1: artist display name, 2: site name */
-			__( "Hi %1\$s,\n\nYour temporary suspension at %2\$s has ended and your membership has been reinstated. You can now log in and submit work as before.\n\n— %2\$s", 'agnosis' ),
-			$user->display_name,
-			$site_name
-		);
-
-		$footer = EmailFooter::plain_text();
-		if ( '' !== $footer ) {
-			$body .= "\n\n" . $footer;
-		}
-
-		// Reinstatement is the moment ContentEditor access comes back (the ban
-		// removed it — see the suspension email above, which deliberately
-		// omits this same reminder for exactly that reason).
-		$edit_reminder = EmailFooter::edit_reminder_plain_text( $user_id );
-		if ( '' !== $edit_reminder ) {
-			$body .= "\n\n" . $edit_reminder;
-		}
-
 		wp_mail(
 			$user->user_email,
 			sprintf(
@@ -298,13 +358,43 @@ class DepartureNotification {
 				__( 'Your membership at %s has been reinstated', 'agnosis' ),
 				$site_name
 			),
-			$body,
-			$this->text_headers()
+			$this->build_reinstated_body( $user->display_name, $site_name, $user_id ),
+			$this->html_headers()
 		);
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
 		}
+	}
+
+	private function build_reinstated_body( string $display_name, string $site_name, int $user_id ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( 'Your temporary suspension at %s has ended and your membership has been reinstated. You can now log in and submit work as before.', 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>';
+
+		$footer_extra = '';
+
+		$work_emails_html = EmailFooter::html();
+		if ( '' !== $work_emails_html ) {
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+		}
+
+		// Reinstatement is the moment ContentEditor access comes back (the ban
+		// removed it — see build_banned_body() above, which deliberately omits
+		// this same reminder for exactly that reason).
+		$edit_reminder_html = EmailFooter::edit_reminder_html( $user_id );
+		if ( '' !== $edit_reminder_html ) {
+			$footer_extra .= '<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">' . $edit_reminder_html . '</p>';
+		}
+
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	// -------------------------------------------------------------------------
@@ -355,26 +445,6 @@ class DepartureNotification {
 			$yes_url = $this->removal_vote_url( $request_id, $voter_id, 'yes' );
 			$no_url  = $this->removal_vote_url( $request_id, $voter_id, 'no' );
 
-			$body = sprintf(
-				/* translators: 1: voter display name, 2: site name, 3: closing date, 4: yes URL, 5: no URL */
-				__( "Hi %1\$s,\n\nThe %2\$s community has opened a vote to remove a member. The vote closes on %3\$s.\n\nCast your vote:\n\nVote YES (remove): %4\$s\n\nVote NO (keep):    %5\$s\n\nA majority of active members (more than 50%%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.\n\n— %2\$s", 'agnosis' ),
-				$artist->display_name,
-				$site_name,
-				$close_formatted,
-				$yes_url,
-				$no_url
-			);
-
-			$footer = EmailFooter::plain_text();
-			if ( '' !== $footer ) {
-				$body .= "\n\n" . $footer;
-			}
-
-			$edit_reminder = EmailFooter::edit_reminder_plain_text( $voter_id );
-			if ( '' !== $edit_reminder ) {
-				$body .= "\n\n" . $edit_reminder;
-			}
-
 			wp_mail(
 				$artist->user_email,
 				sprintf(
@@ -382,14 +452,49 @@ class DepartureNotification {
 					__( 'Community removal vote open at %s', 'agnosis' ),
 					$site_name
 				),
-				$body,
-				$this->text_headers()
+				$this->build_vote_opened_body( $artist->display_name, $site_name, $close_formatted, $yes_url, $no_url, $voter_id ),
+				$this->html_headers()
 			);
 
 			if ( '' !== $locale ) {
 				restore_current_locale();
 			}
 		}
+	}
+
+	private function build_vote_opened_body( string $voter_name, string $site_name, string $close_formatted, string $yes_url, string $no_url, int $voter_id ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $voter_name ) )
+			. '</p>'
+			. '<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: 1: site name, 2: closing date */
+				esc_html__( 'The %1$s community has opened a vote to remove a member. The vote closes on %2$s.', 'agnosis' ),
+				esc_html( $site_name ),
+				esc_html( $close_formatted )
+			)
+			. '</p>'
+			. '<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td>'
+			. EmailTemplate::button( $yes_url, __( 'Vote YES (remove)', 'agnosis' ), [ 'bg' => EmailTemplate::DANGER, 'margin' => '6px 8px 6px 0' ] )
+			. EmailTemplate::button( $no_url, __( 'Vote NO (keep)', 'agnosis' ), [ 'margin' => '6px 8px 6px 0' ] )
+			. '</td></tr></table>'
+			. '<p style="margin:0;font-size:15px;color:#999;">'
+			. esc_html__( 'A majority of active members (more than 50%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.', 'agnosis' )
+			. '</p>';
+
+		$footer_extra = '';
+
+		$work_emails_html = EmailFooter::html();
+		if ( '' !== $work_emails_html ) {
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+		}
+
+		$edit_reminder_html = EmailFooter::edit_reminder_html( $voter_id );
+		if ( '' !== $edit_reminder_html ) {
+			$footer_extra .= '<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">' . $edit_reminder_html . '</p>';
+		}
+
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	/**
@@ -412,14 +517,24 @@ class DepartureNotification {
 				__( 'Community removal vote passed at %s', 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: %s: site name */
-				__( "The community removal vote has closed with a majority in favor.\n\nThe artist's account and all published work have been permanently deleted from %1\$s.\n\n— %2\$s", 'agnosis' ),
-				$site_name,
-				$site_name
-			),
-			$this->text_headers()
+			$this->build_vote_passed_body( $site_name ),
+			$this->html_headers()
 		);
+	}
+
+	private function build_vote_passed_body( string $site_name ): string {
+		$body = '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'The community removal vote has closed with a majority in favor.', 'agnosis' )
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: site name */
+				esc_html__( "The artist's account and all published work have been permanently deleted from %s.", 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -438,13 +553,17 @@ class DepartureNotification {
 				__( 'Community removal vote did not pass at %s', 'agnosis' ),
 				$site_name
 			),
-			sprintf(
-				/* translators: %s: site name */
-				__( "The community removal vote has closed. The required majority was not reached and the artist's membership remains active.\n\n— %s", 'agnosis' ),
-				$site_name
-			),
-			$this->text_headers()
+			$this->build_vote_failed_body(),
+			$this->html_headers()
 		);
+	}
+
+	private function build_vote_failed_body(): string {
+		$body = '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( "The community removal vote has closed. The required majority was not reached and the artist's membership remains active.", 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	// -------------------------------------------------------------------------
@@ -477,15 +596,31 @@ class DepartureNotification {
 	}
 
 	/**
-	 * Previously carried no From header, so wp_mail() fell through to
-	 * WordPress's own "WordPress <wordpress@$domain>" default rather than a
-	 * real, deliverable address (found 2026-07-08 — same issue as the vouch
-	 * vote email in AdmissionNotification). Now delegates to
-	 * Core\CommunityMailer, the shared workflow sender identity.
+	 * Headers for every email in this class.
+	 *
+	 * Every email this class sends is now HTML, built through the shared
+	 * Core\EmailTemplate shell (2026-07-15) — the plain-text `text_headers()`
+	 * variant this method replaced delegated to the same Core\CommunityMailer
+	 * sender identity (Settings → Email → "Mail from:"); this file previously
+	 * carried no From header at all, so wp_mail() fell through to WordPress's
+	 * own "WordPress <wordpress@$domain>" default rather than a real,
+	 * deliverable address (found 2026-07-08 — same issue as the vouch vote
+	 * email in AdmissionNotification).
 	 *
 	 * @return array<string>
 	 */
-	private function text_headers(): array {
-		return CommunityMailer::text_headers();
+	private function html_headers(): array {
+		return CommunityMailer::html_headers();
+	}
+
+	/**
+	 * Return the BCP 47 language tag for use in the HTML <html lang="…">
+	 * attribute. Must be called AFTER switch_to_locale() so get_locale()
+	 * returns the recipient's locale, not the site locale — mirrors
+	 * Publishing\Notification::html_lang().
+	 */
+	private function html_lang(): string {
+		$locale = get_locale();
+		return $locale ? str_replace( '_', '-', $locale ) : 'en';
 	}
 }

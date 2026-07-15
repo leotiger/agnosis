@@ -304,6 +304,21 @@ class Settings {
 		];
 	}
 
+	/**
+	 * Sanitize a color-field submission, falling back to $default when the
+	 * submitted value isn't a real `#rgb`/`#rrggbb` hex color — e.g. an
+	 * emptied field (browsers never actually submit an empty `<input
+	 * type="color">`, but a direct POST/REST write could) or a stray value
+	 * from an old install. Mirrors EmailTemplate::header_bg()/accent()'s own
+	 * sanitize-fallback shape, kept here too since register_setting()'s
+	 * `sanitize_callback` needs a pure function of the submitted value with
+	 * no access to which field it's sanitizing.
+	 */
+	private static function sanitize_color( string $value, string $fallback ): string {
+		$sanitized = sanitize_hex_color( $value );
+		return null !== $sanitized && '' !== $sanitized ? $sanitized : $fallback;
+	}
+
 	private function render_tab( string $tab ): void {
 		echo '<table class="form-table" role="presentation"><tbody>';
 		foreach ( $this->field_definitions() as $key => $field ) {
@@ -360,6 +375,14 @@ class Settings {
 				break;
 			case 'readonly':
 				echo '<input type="text" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
+				break;
+			case 'color':
+				echo '<input type="color" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" style="width:60px;height:36px;padding:2px;">';
+				if ( isset( $field['default'] ) ) {
+					echo '<button type="button" class="button agnosis-reset-default" data-target="' . esc_attr( $key ) . '" data-default="' . esc_attr( (string) $field['default'] ) . '">'
+						. esc_html__( 'Reset to default', 'agnosis' )
+						. '</button>';
+				}
 				break;
 			case 'media':
 				$attachment_id = (int) $value;
@@ -424,6 +447,24 @@ class Settings {
 				'sanitize' => 'absint',
 				'default'  => 0,
 				'desc'     => __( 'Shown in the header of outgoing HTML emails (submission review, removal confirmation, rejection notice, and both newsletters) in place of the plain "✦ Site Name" text. Leave empty to keep the text wordmark. Displayed at up to 40px tall — any width or aspect ratio works.', 'agnosis' ),
+			],
+			'agnosis_email_header_bg' => [
+				'tab'      => 'general',
+				'label'    => __( 'Email header background', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#0d0d12' ),
+				'default'  => '#0d0d12',
+				'desc'     => __( 'Background color of the colored header bar on every outgoing HTML email (submission review, admission/departure/vote notices, both newsletters).', 'agnosis' ),
+			],
+			'agnosis_email_accent' => [
+				'tab'      => 'general',
+				'label'    => __( 'Email accent color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#7c6af7' ),
+				'default'  => '#7c6af7',
+				'desc'     => __( 'Color of primary buttons and links across every outgoing HTML email. Destructive actions (reject, remove, vote to remove) always use a fixed red regardless of this setting, so they stay visually distinct.', 'agnosis' ),
 			],
 
 			// --- GENERAL: Biography ---
@@ -2760,16 +2801,21 @@ class Settings {
 
 	/**
 	 * Wires up every `.agnosis-reset-default` button (see render_field()'s
-	 * textarea case) — repopulates its associated textarea with the plugin's
-	 * built-in default text, entirely client-side. Nothing is saved until the
-	 * admin clicks the page's own Save Changes button, and a confirm dialog
-	 * guards against an accidental click overwriting text they meant to keep.
+	 * textarea AND color cases) — repopulates its associated field with the
+	 * plugin's built-in default value, entirely client-side. Nothing is
+	 * saved until the admin clicks the page's own Save Changes button, and a
+	 * confirm dialog guards against an accidental click overwriting text
+	 * they meant to keep.
 	 *
 	 * This exists because several textarea settings (system prompt, artist
 	 * prompt template, enhancement instructions, trusted embed platforms,
 	 * invitation intro) ship with substantial built-in copy that an admin can
 	 * freely overwrite — until now, doing so meant losing the original for
-	 * good, with no way to compare against or return to it.
+	 * good, with no way to compare against or return to it. The two email
+	 * branding color fields (header background, accent) reuse the same
+	 * button/handler for the same reason — setting `field.value` client-side
+	 * works identically for `<input type="color">` as it does for a
+	 * `<textarea>`.
 	 */
 	private function reset_default_js(): string {
 		return "document.addEventListener('click', function (e) {\n"

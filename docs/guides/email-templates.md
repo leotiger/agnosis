@@ -1,8 +1,8 @@
 # Transactional email templates
 
-> Mirrors the prose content of Agnosis's admission, departure, and community-vote emails. HTML markup/styling is omitted — only the actual copy, with `%s`/`%1$s`-style placeholders left as written in source. Sources: `includes/Artist/AdmissionNotification.php`, `includes/Artist/DepartureNotification.php`, `includes/Artist/CommunityCapNotification.php`. All strings are translatable (`__()`/`esc_html__()`). If any of this copy changes, update the relevant PHP file first and mirror the change here.
+> Mirrors the prose content of Agnosis's admission, departure, community-vote, and community-broadcast-bounce emails. HTML markup/styling is omitted — only the actual copy, with `%s`/`%1$s`-style placeholders left as written in source. Sources: `includes/Artist/AdmissionNotification.php`, `includes/Artist/DepartureNotification.php`, `includes/Artist/CommunityCapNotification.php`, `includes/Artist/CommunityBroadcast.php`. All strings are translatable (`__()`/`esc_html__()`). If any of this copy changes, update the relevant PHP file first and mirror the change here.
 
-Every HTML email in this set shares the same header (`EmailBranding::header_html()`) and footer line: **"{site name} — art blooming out of oblivion."**
+Every email in this set is HTML, built through the shared `Core\EmailTemplate` renderer (0.9.29) — a single header (`EmailBranding::header_html()`, on a background color an operator can customize under Settings → General → "Email header background") and the same footer line: **"{site name} — art blooming out of oblivion."** Buttons (confirm/vote links) use `EmailTemplate::button()`, colored with the operator's configured accent color — except destructive actions (reject, remove, vote-to-remove), which always render in a fixed red regardless of that setting.
 
 ## Admission (`AdmissionNotification.php`)
 
@@ -73,7 +73,7 @@ Sent once the community admits the applicant — the richest email in the set. D
 >
 > No login is needed to work with Agnosis — everything above happens by email. If you'd also like to use the site's optional online features (like previewing a submission before it publishes), you can set up a password whenever you like using [password recovery].
 
-### Application expired — applicant (`build_expiry_applicant_body()`, plain text)
+### Application expired — applicant (`build_expiry_applicant_body()`)
 
 > Hi {display name},
 >
@@ -83,13 +83,13 @@ Sent once the community admits the applicant — the richest email in the set. D
 >
 > {community name}
 
-### Application expired — community (`build_expiry_community_body()`, plain text)
+### Application expired — community (`build_expiry_community_body()`)
 
 > The application by {display name} has closed without reaching the admission threshold. No action required.
 >
 > {community name}
 
-## Departure (`DepartureNotification.php`, plain text)
+## Departure (`DepartureNotification.php`)
 
 ### Confirm your departure (subject: "Confirm your departure from {site}")
 
@@ -99,19 +99,15 @@ Sent once the community admits the applicant — the richest email in the set. D
 >
 > If you made this request, click the link below to confirm. This action is permanent and cannot be undone.
 >
-> {confirm link}
+> **[Confirm removal]**
 >
 > If you did not make this request, you can ignore this email — your account remains unchanged.
->
-> — {site}
 
 ### Artist departed — community notice (subject: "An artist has left {site}")
 
 > {artist name} has confirmed their departure from {site}.
 >
 > Their account and all published work have been permanently deleted.
->
-> — {site}
 
 ### You've left — departing artist (subject: "You've left {site}")
 
@@ -122,8 +118,6 @@ Sent once the community admits the applicant — the richest email in the set. D
 > Nothing tied to you — your artwork, biography, events, or account details — is stored on {site} anymore.
 >
 > If you didn't request this, please contact the site admin right away.
->
-> — {site}
 
 ### Suspended, with reinstatement date
 
@@ -132,8 +126,6 @@ Sent once the community admits the applicant — the richest email in the set. D
 > Your membership at {site} has been temporarily suspended until {date}.
 >
 > You will be automatically reinstated on that date. If you have questions, please contact the site admin.
->
-> — {site}
 
 ### Suspended, indefinite (subject: "Your membership at {site} has been suspended")
 
@@ -142,16 +134,12 @@ Sent once the community admits the applicant — the richest email in the set. D
 > Your membership at {site} has been suspended.
 >
 > If you have questions, please contact the site admin.
->
-> — {site}
 
 ### Reinstated (subject: "Your membership at {site} has been reinstated")
 
 > Hi {name},
 >
 > Your temporary suspension at {site} has ended and your membership has been reinstated. You can now log in and submit work as before.
->
-> — {site}
 
 ### Community removal vote open (subject: "Community removal vote open at {site}")
 
@@ -159,31 +147,21 @@ Sent once the community admits the applicant — the richest email in the set. D
 >
 > The {site} community has opened a vote to remove a member. The vote closes on {date}.
 >
-> Cast your vote:
->
-> Vote YES (remove): {yes link}
->
-> Vote NO (keep): {no link}
+> **[Vote YES (remove)]**  **[Vote NO (keep)]**
 >
 > A majority of active members (more than 50%) must vote yes for the removal to proceed. You can change your vote by clicking the other link before the deadline.
->
-> — {site}
 
 ### Community removal vote passed (subject: "Community removal vote passed at {site}")
 
 > The community removal vote has closed with a majority in favor.
 >
 > The artist's account and all published work have been permanently deleted from {site}.
->
-> — {site}
 
 ### Community removal vote did not pass (subject: "Community removal vote did not pass at {site}")
 
 > The community removal vote has closed. The required majority was not reached and the artist's membership remains active.
->
-> — {site}
 
-## Community size-cap votes (`CommunityCapNotification.php`, plain text)
+## Community size-cap votes (`CommunityCapNotification.php`)
 
 ### Vote open (subject: "Community size-cap vote open at {site}")
 
@@ -192,8 +170,6 @@ Sent once the community admits the applicant — the richest email in the set. D
 > The {site} community has opened a vote to change the membership size cap to {proposed cap, or "no limit"}. The vote closes on {date}.
 >
 > A strict majority of active members (more than 50%) must vote yes for the new cap to be adopted. Sign in to your account to cast your vote.
->
-> — {site}
 
 ### Cap changed (subject: "Community size cap changed at {site}")
 
@@ -202,3 +178,19 @@ Sent once the community admits the applicant — the richest email in the set. D
 ### Proposal did not pass (subject: "Community size-cap proposal did not pass at {site}")
 
 > A community vote to change the membership size cap (proposal #{id}) closed without a majority. The cap is unchanged.
+
+## Community broadcast bounces (`CommunityBroadcast.php`)
+
+Sent only to the sender, never to any other community member, when their broadcast couldn't go out.
+
+### Message too long (`build_too_long_bounce_body()`)
+
+> Your message to the community was {length} characters long — the current limit is {limit}. It was not sent to anyone.
+>
+> Every recipient's copy is translated individually into their own language, so a very long message is costly to translate for the whole community. Please shorten it and send it again.
+
+### No content found (`build_empty_bounce_body()`)
+
+> Your message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.
+>
+> Please try sending it again with plain text included.

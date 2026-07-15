@@ -279,6 +279,20 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'X-Auto-Response-Suppress: All', $headers );
 	}
 
+	public function test_broadcast_email_is_html(): void {
+		// 2026-07-15 (audit-adjacent finding, not a numbered audit item — see
+		// CHANGELOG.md 0.9.29): send_one() was plain text; now built through the
+		// shared Core\EmailTemplate shell like every other notification class.
+		$sender_id = $this->create_artist( 'htmlsender@example.com', 'HTML Sender' );
+		$this->create_artist( 'recipient-html@example.com', 'Recipient HTML' );
+
+		$this->broadcast->broadcast( $sender_id, 'Hello', 'A message.' );
+
+		$mail = $this->mails_to( 'recipient-html@example.com' )[0];
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $mail['headers'] ) );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $mail['message'] );
+	}
+
 	public function test_from_header_uses_community_sender_identity(): void {
 		update_option( 'agnosis_mail_from_name', 'Test Community' );
 		update_option( 'agnosis_mail_from_email', 'hello@agnosis.test' );
@@ -370,6 +384,16 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 		$this->assertEmpty( $this->sent_mails );
 	}
 
+	public function test_bounce_email_is_html(): void {
+		$sender_id = $this->create_artist( 'toolonghtml@example.com', 'Too Long HTML Sender' );
+
+		$this->broadcast->send_too_long_bounce( $sender_id, 12345 );
+
+		$mail = $this->mails_to( 'toolonghtml@example.com' )[0];
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $mail['headers'] ) );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $mail['message'] );
+	}
+
 	// =========================================================================
 	// send_empty_bounce() (audit §2c) — mirrors send_too_long_bounce() above.
 	// Previously a community broadcast whose subject/body couldn't be parsed
@@ -402,5 +426,15 @@ class CommunityBroadcastTest extends \WP_UnitTestCase {
 	public function test_empty_bounce_does_nothing_for_unknown_sender(): void {
 		$this->broadcast->send_empty_bounce( 999999 );
 		$this->assertEmpty( $this->sent_mails );
+	}
+
+	public function test_empty_bounce_email_is_html(): void {
+		$sender_id = $this->create_artist( 'emptybouncehtml@example.com', 'Empty Bounce HTML Sender' );
+
+		$this->broadcast->send_empty_bounce( $sender_id );
+
+		$mail = $this->mails_to( 'emptybouncehtml@example.com' )[0];
+		$this->assertStringContainsString( 'Content-Type: text/html', implode( "\n", (array) $mail['headers'] ) );
+		$this->assertStringContainsString( '<!DOCTYPE html>', $mail['message'] );
 	}
 }

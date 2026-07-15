@@ -82,6 +82,7 @@ use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
 
 class CommunityBroadcast {
@@ -128,7 +129,9 @@ class CommunityBroadcast {
 	 * Tell the sender their message was too long instead of broadcasting it.
 	 *
 	 * Sent in the sender's own account locale, same as every other
-	 * per-recipient email in this plugin. Plain text, using the Community
+	 * per-recipient email in this plugin. HTML, via the shared
+	 * Core\EmailTemplate shell (2026-07-15 — audit-adjacent finding, not a
+	 * numbered audit item; see CHANGELOG.md 0.9.29), using the Community
 	 * sender identity (Core\CommunityMailer) like every other workflow email.
 	 *
 	 * @param int $sender_id WP user ID of the artist who sent the message.
@@ -153,16 +156,12 @@ class CommunityBroadcast {
 			$site_name
 		);
 
-		$body = sprintf(
-			/* translators: 1: sender's display name, 2: character count of their message, 3: configured character limit, 4: site name */
-			__( "Hi %1\$s,\n\nYour message to the community was %2\$d characters long — the current limit is %3\$d. It was not sent to anyone.\n\nEvery recipient's copy is translated individually into their own language, so a very long message is costly to translate for the whole community. Please shorten it and send it again.\n\n— %4\$s", 'agnosis' ),
-			$sender->display_name,
-			$length,
-			$limit,
-			$site_name
+		wp_mail(
+			$sender->user_email,
+			$subject,
+			$this->build_too_long_bounce_body( $sender->display_name, $length, $limit ),
+			$this->html_headers()
 		);
-
-		wp_mail( $sender->user_email, $subject, $body, CommunityMailer::text_headers() );
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
@@ -177,6 +176,25 @@ class CommunityBroadcast {
 			),
 			'community-broadcast'
 		);
+	}
+
+	private function build_too_long_bounce_body( string $display_name, int $length, int $limit ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>'
+			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: 1: character count of the sent message, 2: configured character limit */
+				esc_html__( 'Your message to the community was %1$d characters long — the current limit is %2$d. It was not sent to anyone.', 'agnosis' ),
+				absint( $length ),
+				absint( $limit )
+			)
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'Every recipient\'s copy is translated individually into their own language, so a very long message is costly to translate for the whole community. Please shorten it and send it again.', 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -211,14 +229,12 @@ class CommunityBroadcast {
 			$site_name
 		);
 
-		$body = sprintf(
-			/* translators: 1: sender's display name, 2: site name */
-			__( "Hi %1\$s,\n\nYour message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.\n\nPlease try sending it again with plain text included.\n\n— %2\$s", 'agnosis' ),
-			$sender->display_name,
-			$site_name
+		wp_mail(
+			$sender->user_email,
+			$subject,
+			$this->build_empty_bounce_body( $sender->display_name ),
+			$this->html_headers()
 		);
-
-		wp_mail( $sender->user_email, $subject, $body, CommunityMailer::text_headers() );
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
@@ -228,6 +244,20 @@ class CommunityBroadcast {
 			sprintf( 'CommunityBroadcast: message from artist #%d had no usable subject or body — bounced, not broadcast.', $sender_id ),
 			'community-broadcast'
 		);
+	}
+
+	private function build_empty_bounce_body( string $display_name ): string {
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. '</p>'
+			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'Your message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.', 'agnosis' )
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'Please try sending it again with plain text included.', 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -370,9 +400,13 @@ class CommunityBroadcast {
 	/**
 	 * Send one already-localised copy of the broadcast to one recipient.
 	 *
-	 * Plain text, matching every other artist-to-artist notification in this
-	 * plugin (Departure/CommunityCap vote emails) — there is no HTML template
-	 * to reuse here and nothing visual to convey.
+	 * HTML, via the shared Core\EmailTemplate shell (2026-07-15 —
+	 * audit-adjacent finding, not a numbered audit item; see CHANGELOG.md
+	 * 0.9.29) — matching every other artist-to-artist notification in the
+	 * plugin now that all of them share one template. $subject and $body
+	 * are the SENDER'S OWN content (translated, but otherwise theirs), not
+	 * plugin copy — escaped with esc_html()/nl2br(), never esc_html__(),
+	 * since there is no msgid for arbitrary artist-written text.
 	 */
 	private function send_one( string $to, int $recipient_id, \WP_User $sender, string $subject, string $body ): void {
 		$site_name = get_bloginfo( 'name' );
@@ -384,53 +418,51 @@ class CommunityBroadcast {
 			$sender->display_name
 		);
 
-		$lines   = [];
-		$lines[] = sprintf(
-			/* translators: 1: sender's display name, 2: sender's email address */
-			__( '%1$s <%2$s> sent a message to the community:', 'agnosis' ),
-			$sender->display_name,
-			$sender->user_email
-		);
-		$lines[] = '';
+		$email_body = '<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: 1: sender's display name, 2: sender's email address */
+				esc_html__( '%1$s <%2$s> sent a message to the community:', 'agnosis' ),
+				esc_html( $sender->display_name ),
+				esc_html( $sender->user_email )
+			)
+			. '</p>';
 
 		if ( '' !== $subject ) {
-			/* translators: %s: message subject */
-			$lines[] = sprintf( __( 'Subject: %s', 'agnosis' ), $subject );
-			$lines[] = '';
+			$email_body .= '<p style="margin:0 0 16px;font-size:17px;color:#555;"><strong>'
+				. sprintf( /* translators: %s: message subject */ esc_html__( 'Subject: %s', 'agnosis' ), esc_html( $subject ) )
+				. '</strong></p>';
 		}
 
 		if ( '' !== $body ) {
-			$lines[] = $body;
-			$lines[] = '';
+			$email_body .= '<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( EmailTemplate::accent() ) . ';border-radius:4px;">'
+				. nl2br( esc_html( $body ) )
+				. '</p>';
 		}
 
 		$community_addr = trim( (string) get_option( 'agnosis_email_community', '' ) );
 
 		if ( '' !== $community_addr ) {
-			$lines[] = __( 'Hit reply to respond — your reply goes back to the whole community, translated automatically, just like this message.', 'agnosis' );
+			$email_body .= '<p style="margin:0;font-size:15px;color:#999;">'
+				. esc_html__( 'Hit reply to respond — your reply goes back to the whole community, translated automatically, just like this message.', 'agnosis' )
+				. '</p>';
 		} else {
 			// No intake alias configured (shouldn't normally happen — broadcast()
 			// is only ever reached via that alias — but handled gracefully rather
 			// than pointing a reply nowhere useful).
-			/* translators: %s: sender's display name */
-			$lines[] = sprintf( __( 'This message was sent by %s.', 'agnosis' ), $sender->display_name );
+			$email_body .= '<p style="margin:0;font-size:15px;color:#999;">'
+				. sprintf( /* translators: %s: sender's display name */ esc_html__( 'This message was sent by %s.', 'agnosis' ), esc_html( $sender->display_name ) )
+				. '</p>';
 		}
-		$lines[] = '';
 
 		// Security audit §5b/§4a: a recipient annoyed by broadcast volume
 		// otherwise has no dial short of the spam button. Empty when
 		// $recipient_id somehow isn't an artist (EmailFooter::is_artist() —
 		// shouldn't happen here since broadcast()'s own query is role-scoped,
 		// but handled gracefully rather than assumed).
-		$prefs_line = EmailFooter::preferences_plain_text( $recipient_id );
-		if ( '' !== $prefs_line ) {
-			$lines[] = $prefs_line;
-			$lines[] = '';
-		}
+		$prefs_html   = EmailFooter::preferences_html( $recipient_id );
+		$footer_extra = '' !== $prefs_html ? '<p style="margin:12px 0 0;text-align:center;">' . $prefs_html . '</p>' : '';
 
-		$lines[] = $site_name;
-
-		$headers = CommunityMailer::text_headers();
+		$headers = $this->html_headers();
 
 		// Anti-loop headers (fourth audit §3c) — this is a bulk copy sent to
 		// every other admitted artist, and Reply-To below deliberately points
@@ -465,6 +497,32 @@ class CommunityBroadcast {
 			);
 		}
 
-		wp_mail( $to, $mail_subject, implode( "\n", $lines ), $headers );
+		wp_mail( $to, $mail_subject, EmailTemplate::render( $this->html_lang(), $email_body, $footer_extra ), $headers );
+	}
+
+	/**
+	 * Headers for every email in this class.
+	 *
+	 * Every email this class sends is now HTML, built through the shared
+	 * Core\EmailTemplate shell (2026-07-15) — see the class docblock's
+	 * "Length cap" section's history for why this class ever needed its own
+	 * sender-identity delegation in the first place (Core\CommunityMailer,
+	 * not WordPress's own default).
+	 *
+	 * @return array<string>
+	 */
+	private function html_headers(): array {
+		return CommunityMailer::html_headers();
+	}
+
+	/**
+	 * Return the BCP 47 language tag for use in the HTML <html lang="…">
+	 * attribute. Must be called AFTER switch_to_locale() so get_locale()
+	 * returns the recipient's locale, not the site locale — mirrors
+	 * Publishing\Notification::html_lang().
+	 */
+	private function html_lang(): string {
+		$locale = get_locale();
+		return $locale ? str_replace( '_', '-', $locale ) : 'en';
 	}
 }

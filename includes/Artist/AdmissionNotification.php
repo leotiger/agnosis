@@ -20,8 +20,8 @@ namespace Agnosis\Artist;
 
 use Agnosis\Artist\Admission;
 use Agnosis\Core\CommunityMailer;
-use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Network\SubdomainRouter;
 
 class AdmissionNotification {
@@ -218,7 +218,7 @@ class AdmissionNotification {
 				get_bloginfo( 'name' )
 			),
 			$this->build_expiry_applicant_body( $application ),
-			$this->text_headers()
+			$this->html_headers()
 		);
 
 		if ( '' !== $applicant_locale ) {
@@ -244,7 +244,7 @@ class AdmissionNotification {
 				$application->display_name
 			),
 			$this->build_expiry_community_body( $application ),
-			array_merge( $this->text_headers(), $this->bcc_headers( $to ) )
+			array_merge( $this->html_headers(), $this->bcc_headers( $to ) )
 		);
 	}
 
@@ -370,79 +370,29 @@ class AdmissionNotification {
 	 */
 	private function build_confirm_body( string $display_name, string $confirm_url ): string {
 		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$accent    = '#7c6af7';
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
-		ob_start();
-		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<!-- Body -->
-	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
-			<?php
-			printf(
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf(
 				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $display_name )
-			);
-			?>
-		</p>
-		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
-			<?php
-			printf(
+			)
+			. '</p>'
+			. '<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: %s: community name */
 				esc_html__( 'One last step before %s can review your application: confirm this is really your email address.', 'agnosis' ),
 				esc_html( $site_name )
-			);
-			?>
-		</p>
+			)
+			. '</p>'
+			. '<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr><td>'
+			. EmailTemplate::button( $confirm_url, __( 'Confirm my application', 'agnosis' ) )
+			. '</td></tr></table>'
+			. '<p style="margin:0;font-size:15px;color:#999;">'
+			. esc_html__( "If you didn't apply, simply ignore this email — nothing happens until this link is clicked.", 'agnosis' )
+			. '</p>';
 
-		<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-		<tr><td>
-			<a href="<?php echo esc_url( $confirm_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
-				<?php esc_html_e( 'Confirm my application', 'agnosis' ); ?>
-			</a>
-		</td></tr>
-		</table>
-
-		<p style="margin:0;font-size:15px;color:#999;">
-			<?php esc_html_e( "If you didn't apply, simply ignore this email — nothing happens until this link is clicked.", 'agnosis' ); ?>
-		</p>
-	</td></tr>
-
-	<!-- Footer -->
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -460,75 +410,31 @@ class AdmissionNotification {
 	 */
 	private function build_acknowledgment_body( object $application, int $window ): string {
 		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$accent    = EmailTemplate::accent();
 
-		ob_start();
-		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<!-- Body -->
-	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
-			<?php
-			printf(
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf(
 				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $application->display_name )
-			);
-			?>
-		</p>
-		<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">
-			<?php
-			printf(
+			)
+			. '</p>'
+			. '<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: %s: community name */
 				esc_html__( 'Thank you for applying to %s. Your application has been received and is now open for community review.', 'agnosis' ),
 				esc_html( $site_name )
-			);
-			?>
-		</p>
-
-		<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid #7c6af7;border-radius:4px;">
-			<?php
-			printf(
+			)
+			. '</p>'
+			. '<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">'
+			. sprintf(
 				/* translators: %d: number of days */
 				esc_html__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
 				absint( $window )
-			);
-			?>
-		</p>
-	</td></tr>
+			)
+			. '</p>';
 
-	<!-- Footer -->
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -571,12 +477,13 @@ class AdmissionNotification {
 	 * Build the HTML "new application — please vote" email sent to every
 	 * current artist (and the admin fallback when there are no artists yet).
 	 *
-	 * 2026-07-10: this was the one remaining plain-text, unstyled email path
-	 * in the plugin — every other artist-facing email (acknowledgment,
-	 * welcome, and everything in Publishing\Notification) already used the
-	 * shared EmailBranding header + styled-button template. Same content as
-	 * the old plain-text version (bio/portfolio/statement, Yes/No links,
-	 * work-email footer, edit reminder), just in that same visual language.
+	 * Uses the shared Core\EmailTemplate shell (2026-07-15 — audit-adjacent
+	 * finding, not a numbered audit item: every remaining plain-text/
+	 * hand-rolled-HTML email in the plugin was converted to this one shared
+	 * template in the same pass, see CHANGELOG.md 0.9.29). Same content as
+	 * the original version (bio/portfolio/statement, Yes/No links,
+	 * work-email footer, edit reminder), just composed through the shared
+	 * shell instead of hand-rolling its own DOCTYPE/table/colour constants.
 	 *
 	 * @param object{id: int, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
 	 * @param int    $voter_id   WP user ID of the recipient — gates EmailFooter::edit_reminder_html()
@@ -584,122 +491,75 @@ class AdmissionNotification {
 	 */
 	private function build_vote_email_body( object $application, string $voter_name, int $voter_id, string $yes_url, string $no_url, int $window ): string {
 		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$accent    = '#7c6af7';
-		$reject    = '#c0392b';
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 8px 6px 0;';
+		$accent    = EmailTemplate::accent();
 
-		ob_start();
-		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<!-- Body -->
-	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
-			<?php
-			printf(
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf(
 				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $voter_name )
-			);
-			?>
-		</p>
-		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
-			<?php
-			printf(
+			)
+			. '</p>'
+			. '<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: 1: applicant display name, 2: community name, 3: number of days */
 				esc_html__( '%1$s has applied to join %2$s. You have %3$d days to vote.', 'agnosis' ),
 				esc_html( $application->display_name ),
 				esc_html( $site_name ),
 				absint( $window )
-			);
-			?>
-		</p>
+			)
+			. '</p>';
 
-		<?php if ( $application->bio ) : ?>
-		<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Bio', 'agnosis' ); ?></p>
-		<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid <?php echo esc_attr( $accent ); ?>;border-radius:4px;"><?php echo esc_html( $application->bio ); ?></p>
-		<?php endif; ?>
+		if ( $application->bio ) {
+			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Bio', 'agnosis' ) . '</p>'
+				. '<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->bio ) . '</p>';
+		}
 
-		<?php if ( $application->portfolio_url ) : ?>
-		<p style="margin:0 0 20px;font-size:17px;color:#555;">
-			<strong><?php esc_html_e( 'Portfolio:', 'agnosis' ); ?></strong>
-			<a href="<?php echo esc_url( $application->portfolio_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $application->portfolio_url ); ?></a>
-		</p>
-		<?php endif; ?>
+		if ( $application->portfolio_url ) {
+			$body .= '<p style="margin:0 0 20px;font-size:17px;color:#555;"><strong>' . esc_html__( 'Portfolio:', 'agnosis' ) . '</strong> '
+				. '<a href="' . esc_url( $application->portfolio_url ) . '" style="color:' . esc_attr( $accent ) . ';">' . esc_html( $application->portfolio_url ) . '</a></p>';
+		}
 
-		<?php if ( $application->statement ) : ?>
-		<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Statement', 'agnosis' ); ?></p>
-		<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid <?php echo esc_attr( $accent ); ?>;border-radius:4px;"><?php echo esc_html( $application->statement ); ?></p>
-		<?php endif; ?>
+		if ( $application->statement ) {
+			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Statement', 'agnosis' ) . '</p>'
+				. '<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->statement ) . '</p>';
+		}
 
-		<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
-		<tr><td>
-			<a href="<?php echo esc_url( $yes_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:<?php echo esc_attr( $accent ); ?>;color:#fff;">
-				✓ <?php esc_html_e( 'Vote YES', 'agnosis' ); ?>
-			</a>
-			<a href="<?php echo esc_url( $no_url ); ?>" style="<?php echo esc_attr( $btn_base ); ?>background:#fff;color:<?php echo esc_attr( $reject ); ?>;border:1px solid <?php echo esc_attr( $reject ); ?>;">
-				✕ <?php esc_html_e( 'Vote NO', 'agnosis' ); ?>
-			</a>
-		</td></tr>
-		</table>
+		$body .= '<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td>'
+			. EmailTemplate::button( $yes_url, '✓ ' . __( 'Vote YES', 'agnosis' ), [ 'margin' => '6px 8px 6px 0' ] )
+			. EmailTemplate::button( $no_url, '✕ ' . __( 'Vote NO', 'agnosis' ), [
+				'bg'     => '#fff',
+				'color'  => EmailTemplate::DANGER,
+				'border' => EmailTemplate::DANGER,
+				'margin' => '6px 8px 6px 0',
+			] )
+			. '</td></tr></table>'
+			. '<p style="margin:0;font-size:15px;color:#999;">' . esc_html__( 'You can change your vote at any time within the voting window.', 'agnosis' ) . '</p>';
 
-		<p style="margin:0;font-size:15px;color:#999;">
-			<?php esc_html_e( 'You can change your vote at any time within the voting window.', 'agnosis' ); ?>
-		</p>
-	</td></tr>
+		$footer_extra = '';
 
-	<!-- Footer -->
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-		<?php $work_emails_html = EmailFooter::html(); ?>
-		<?php if ( '' !== $work_emails_html ) : ?>
-		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">
-			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
-		</div>
-		<?php endif; ?>
-		<?php // $voter_id may be the fallback admin account (see on_application_received() above) rather than an artist — edit_reminder_html() simply returns '' for a non-artist with nothing published, so no extra guard is needed here. ?>
-		<?php $edit_reminder_html = EmailFooter::edit_reminder_html( $voter_id ); ?>
-		<?php if ( '' !== $edit_reminder_html ) : ?>
-		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
-			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
-		</p>
-		<?php endif; ?>
-		<?php // Security audit §5b/§4a: lets a chronic vote-blast recipient switch to a daily digest instead of the spam button. Same non-artist guard as edit_reminder_html() above. ?>
-		<?php $prefs_html = EmailFooter::preferences_html( $voter_id ); ?>
-		<?php if ( '' !== $prefs_html ) : ?>
-		<p style="margin:12px 0 0;text-align:center;">
-			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
-		</p>
-		<?php endif; ?>
-	</td></tr>
+		$work_emails_html = EmailFooter::html();
+		if ( '' !== $work_emails_html ) {
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+		}
 
-</table>
-</td></tr>
-</table>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+		// $voter_id may be the fallback admin account (see on_application_received()
+		// above) rather than an artist — edit_reminder_html() simply returns '' for
+		// a non-artist with nothing published, so no extra guard is needed here.
+		$edit_reminder_html = EmailFooter::edit_reminder_html( $voter_id );
+		if ( '' !== $edit_reminder_html ) {
+			$footer_extra .= '<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">' . $edit_reminder_html . '</p>';
+		}
+
+		// Security audit §5b/§4a: lets a chronic vote-blast recipient switch to a
+		// daily digest instead of the spam button. Same non-artist guard as
+		// edit_reminder_html() above.
+		$prefs_html = EmailFooter::preferences_html( $voter_id );
+		if ( '' !== $prefs_html ) {
+			$footer_extra .= '<p style="margin:12px 0 0;text-align:center;">' . $prefs_html . '</p>';
+		}
+
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	/**
@@ -709,28 +569,53 @@ class AdmissionNotification {
 	 *                            application in their next Artist\VoteDigest run.
 	 */
 	private function send_admin_summary( object $application, int $artist_count, int $deferred_count, int $window ): void {
-		$deferred_line = $deferred_count > 0
-			? sprintf( ' %d more will see it in their next daily digest.', $deferred_count )
-			: '';
-
 		wp_mail(
 			get_option( 'admin_email' ),
 			sprintf(
-				'[%s] New application received: %s',
+				/* translators: 1: site name, 2: applicant display name */
+				__( '[%1$s] New application received: %2$s', 'agnosis' ),
 				get_bloginfo( 'name' ),
 				$application->display_name
 			),
-			sprintf(
-				"Application ID: %d\nEmail: %s\nDisplay name: %s\n\nNotified %d artist(s) immediately.%s Voting window: %d day(s).",
-				$application->id,
-				$application->email,
-				$application->display_name,
-				$artist_count,
-				$deferred_line,
-				$window
-			),
-			$this->text_headers()
+			$this->build_admin_summary_body( $application, $artist_count, $deferred_count, $window ),
+			$this->html_headers()
 		);
+	}
+
+	/**
+	 * HTML body for send_admin_summary() above — archive/oversight only, no vote links.
+	 *
+	 * @param object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
+	 */
+	private function build_admin_summary_body( object $application, int $artist_count, int $deferred_count, int $window ): string {
+		$body = '<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#555;">'
+			. sprintf( /* translators: %d: application ID */ esc_html__( 'Application ID: %d', 'agnosis' ), (int) $application->id ) . '<br>'
+			. sprintf( /* translators: %s: applicant email address */ esc_html__( 'Email: %s', 'agnosis' ), esc_html( $application->email ) ) . '<br>'
+			. sprintf( /* translators: %s: applicant display name */ esc_html__( 'Display name: %s', 'agnosis' ), esc_html( $application->display_name ) )
+			. '</p>'
+			. '<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %d: number of artists notified immediately */
+				esc_html__( 'Notified %d artist(s) immediately.', 'agnosis' ),
+				absint( $artist_count )
+			);
+
+		if ( $deferred_count > 0 ) {
+			$body .= ' ' . sprintf(
+				/* translators: %d: number of artists deferred to their next daily digest */
+				esc_html__( '%d more will see it in their next daily digest.', 'agnosis' ),
+				absint( $deferred_count )
+			);
+		}
+
+		$body .= ' ' . sprintf(
+			/* translators: %d: voting window in days */
+			esc_html__( 'Voting window: %d day(s).', 'agnosis' ),
+			absint( $window )
+		)
+		. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
@@ -741,35 +626,47 @@ class AdmissionNotification {
 	 * @param object{display_name: string} $application
 	 */
 	private function build_expiry_applicant_body( object $application ): string {
-		return implode( "\n", [
-			/* translators: %s: recipient's display name */
-			sprintf( __( 'Hi %s,', 'agnosis' ), $application->display_name ),
-			'',
-			sprintf(
+		$site_name = get_bloginfo( 'name' );
+
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $application->display_name )
+			)
+			. '</p>'
+			. '<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: %s: community name */
-				__( 'Thank you for applying to %s. Unfortunately, your application did not receive enough votes within the voting window.', 'agnosis' ),
-				get_bloginfo( 'name' )
-			),
-			'',
-			__( 'You are welcome to apply again in the future.', 'agnosis' ),
-			'',
-			get_bloginfo( 'name' ),
-		] );
+				esc_html__( 'Thank you for applying to %s. Unfortunately, your application did not receive enough votes within the voting window.', 'agnosis' ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. esc_html__( 'You are welcome to apply again in the future.', 'agnosis' )
+			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
 	}
 
 	/**
 	 * @param object{display_name: string} $application
 	 */
 	private function build_expiry_community_body( object $application ): string {
-		return implode( "\n", array_merge( [
-			sprintf(
+		$body = '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: %s: applicant display name */
-				__( 'The application by %s has closed without reaching the admission threshold. No action required.', 'agnosis' ),
-				$application->display_name
-			),
-			'',
-			get_bloginfo( 'name' ),
-		], $this->footer_lines() ) );
+				esc_html__( 'The application by %s has closed without reaching the admission threshold. No action required.', 'agnosis' ),
+				esc_html( $application->display_name )
+			)
+			. '</p>';
+
+		$work_emails_html = EmailFooter::html();
+		$footer_extra     = '' !== $work_emails_html
+			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>'
+			: '';
+
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	/**
@@ -789,125 +686,69 @@ class AdmissionNotification {
 		$site_name   = get_bloginfo( 'name' );
 		$gallery_url = SubdomainRouter::url_for_artist( $user->ID );
 		$my_subs_url = home_url( '/my-submissions/' );
-		$accent      = '#7c6af7';
-		$header_bg   = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		$accent      = EmailTemplate::accent();
 
 		$aliases         = $this->configured_aliases();
 		$goodbye_address = (string) get_option( 'agnosis_email_goodbye', '' );
 
-		ob_start();
-		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<!-- Body -->
-	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<p style="margin:0 0 20px;font-size:18px;color:#555;">
-			<?php
-			printf(
+		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
+			. sprintf(
 				/* translators: %s: recipient's display name */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $user->display_name )
-			);
-			?>
-		</p>
-		<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">
-			<?php
-			printf(
+			)
+			. '</p>'
+			. '<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
 				/* translators: %s: community name */
 				esc_html__( 'The %s community has admitted you as an artist. Welcome!', 'agnosis' ),
 				esc_html( $site_name )
-			);
-			?>
-		</p>
+			)
+			. '</p>'
+			. '<p style="margin:0 0 6px;font-size:17px;color:#555;">' . esc_html__( 'Your gallery:', 'agnosis' ) . ' '
+			. '<a href="' . esc_url( $gallery_url ) . '" style="color:' . esc_attr( $accent ) . ';font-weight:600;">' . esc_html( $gallery_url ) . '</a></p>'
+			. '<p style="margin:0 0 28px;font-size:17px;color:#555;">' . esc_html__( 'Your submissions:', 'agnosis' ) . ' '
+			. '<a href="' . esc_url( $my_subs_url ) . '" style="color:' . esc_attr( $accent ) . ';font-weight:600;">' . esc_html( $my_subs_url ) . '</a></p>';
 
-		<p style="margin:0 0 6px;font-size:17px;color:#555;">
-			<?php esc_html_e( 'Your gallery:', 'agnosis' ); ?>
-			<a href="<?php echo esc_url( $gallery_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $gallery_url ); ?></a>
-		</p>
-		<p style="margin:0 0 28px;font-size:17px;color:#555;">
-			<?php esc_html_e( 'Your submissions:', 'agnosis' ); ?>
-			<a href="<?php echo esc_url( $my_subs_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;font-weight:600;"><?php echo esc_html( $my_subs_url ); ?></a>
-		</p>
+		if ( ! empty( $aliases ) ) {
+			$rows = '';
+			foreach ( $aliases as $label => $address ) {
+				$rows .= '<tr><td style="font-size:16px;color:#555;padding:0 0 6px;">' . esc_html( $label ) . ':</td>'
+					. '<td style="font-size:16px;padding:0 0 6px;"><a href="mailto:' . esc_attr( $address ) . '" style="color:' . esc_attr( $accent ) . ';">' . esc_html( $address ) . '</a></td></tr>';
+			}
+			$body .= '<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 20px;">'
+				. '<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#333;">' . esc_html__( 'How to share your work — send an email to:', 'agnosis' ) . '</p>'
+				. '<table cellpadding="0" cellspacing="0" width="100%">' . $rows . '</table>'
+				. '<p style="margin:12px 0 4px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Subject line conventions:', 'agnosis' ) . '</p>'
+				. '<p style="margin:0;font-size:15px;color:#666;line-height:1.6;">'
+				. esc_html__( 'Artwork (default) — any subject', 'agnosis' ) . '<br>'
+				. esc_html__( '[Biography] — biography update', 'agnosis' ) . '<br>'
+				. esc_html__( '[Event] — event announcement', 'agnosis' ) . '<br>'
+				. esc_html__( '[Photo] — publish as-is, no AI enhancement (fallback for mail apps without To: aliases)', 'agnosis' ) . '<br>'
+				. esc_html__( '[Pure] — publish exactly as sent, no AI at all (fallback for mail apps without To: aliases)', 'agnosis' )
+				. '</p></div>';
+		}
 
-		<?php if ( ! empty( $aliases ) ) : ?>
-		<!-- How to share work -->
-		<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 20px;">
-			<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#333;"><?php esc_html_e( 'How to share your work — send an email to:', 'agnosis' ); ?></p>
-			<table cellpadding="0" cellspacing="0" width="100%">
-				<?php foreach ( $aliases as $label => $address ) : ?>
-				<tr>
-					<td style="font-size:16px;color:#555;padding:0 0 6px;"><?php echo esc_html( $label ); ?>:</td>
-					<td style="font-size:16px;padding:0 0 6px;"><a href="mailto:<?php echo esc_attr( $address ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php echo esc_html( $address ); ?></a></td>
-				</tr>
-				<?php endforeach; ?>
-			</table>
-			<p style="margin:12px 0 4px;font-size:15px;font-weight:700;color:#333;"><?php esc_html_e( 'Subject line conventions:', 'agnosis' ); ?></p>
-			<p style="margin:0;font-size:15px;color:#666;line-height:1.6;">
-				<?php esc_html_e( 'Artwork (default) — any subject', 'agnosis' ); ?><br>
-				<?php esc_html_e( '[Biography] — biography update', 'agnosis' ); ?><br>
-				<?php esc_html_e( '[Event] — event announcement', 'agnosis' ); ?><br>
-				<?php esc_html_e( '[Photo] — publish as-is, no AI enhancement (fallback for mail apps without To: aliases)', 'agnosis' ); ?><br>
-				<?php esc_html_e( '[Pure] — publish exactly as sent, no AI at all (fallback for mail apps without To: aliases)', 'agnosis' ); ?>
-			</p>
-		</div>
-		<?php endif; ?>
+		if ( '' !== $goodbye_address ) {
+			$body .= '<div style="background:#fef9f9;padding:16px 20px;border-radius:4px;border:1px solid #fad7d7;">'
+				. '<p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#b34a4a;">' . esc_html__( 'To leave the network and delete your account:', 'agnosis' ) . '</p>'
+				. '<p style="margin:0 0 6px;font-size:15px;"><a href="mailto:' . esc_attr( $goodbye_address ) . '" style="color:#b34a4a;">' . esc_html( $goodbye_address ) . '</a></p>'
+				. '<p style="margin:0;font-size:15px;color:#999;line-height:1.5;">' . esc_html__( 'Send any email (no attachment needed). You will receive a confirmation link — nothing is deleted until you click it.', 'agnosis' ) . '</p>'
+				. '</div>';
+		}
 
-		<?php if ( '' !== $goodbye_address ) : ?>
-		<!-- Leave the network -->
-		<div style="background:#fef9f9;padding:16px 20px;border-radius:4px;border:1px solid #fad7d7;">
-			<p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#b34a4a;"><?php esc_html_e( 'To leave the network and delete your account:', 'agnosis' ); ?></p>
-			<p style="margin:0 0 6px;font-size:15px;"><a href="mailto:<?php echo esc_attr( $goodbye_address ); ?>" style="color:#b34a4a;"><?php echo esc_html( $goodbye_address ); ?></a></p>
-			<p style="margin:0;font-size:15px;color:#999;line-height:1.5;">
-				<?php esc_html_e( 'Send any email (no attachment needed). You will receive a confirmation link — nothing is deleted until you click it.', 'agnosis' ); ?>
-			</p>
-		</div>
-		<?php endif; ?>
+		// No login needed — password recovery is opt-in, mentioned last on purpose.
+		$body .= '<p style="margin:24px 0 0;font-size:15px;color:#999;line-height:1.6;">'
+			. esc_html__( "No login is needed to work with Agnosis — everything above happens by email. If you'd also like to use the site's optional online features (like previewing a submission before it publishes), you can set up a password whenever you like using", 'agnosis' ) . ' '
+			. '<a href="' . esc_url( $lostpassword_url ) . '" style="color:' . esc_attr( $accent ) . ';">' . esc_html__( 'password recovery', 'agnosis' ) . '</a>.'
+			. '</p>';
 
-		<!-- No login needed — password recovery is opt-in, mentioned last on purpose -->
-		<p style="margin:24px 0 0;font-size:15px;color:#999;line-height:1.6;">
-			<?php esc_html_e( "No login is needed to work with Agnosis — everything above happens by email. If you'd also like to use the site's optional online features (like previewing a submission before it publishes), you can set up a password whenever you like using", 'agnosis' ); ?>
-			<a href="<?php echo esc_url( $lostpassword_url ); ?>" style="color:<?php echo esc_attr( $accent ); ?>;"><?php esc_html_e( 'password recovery', 'agnosis' ); ?></a>.
-		</p>
-	</td></tr>
+		// Security audit §5b/§4a: a brand-new artist is about to start receiving
+		// broadcast/vote mail — the very first email they'd see this link in.
+		$prefs_html   = EmailFooter::preferences_html( $user->ID );
+		$footer_extra = '' !== $prefs_html ? '<p style="margin:12px 0 0;text-align:center;">' . $prefs_html . '</p>' : '';
 
-	<!-- Footer -->
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-		<?php // Security audit §5b/§4a: a brand-new artist is about to start receiving broadcast/vote mail — the very first email they'd see this link in. ?>
-		<?php $prefs_html = EmailFooter::preferences_html( $user->ID ); ?>
-		<?php if ( '' !== $prefs_html ) : ?>
-		<p style="margin:12px 0 0;text-align:center;">
-			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
-		</p>
-		<?php endif; ?>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
 	}
 
 	/**
@@ -948,25 +789,14 @@ class AdmissionNotification {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Plain-text headers for the vote email, admin summary, and expiry
-	 * notices below.
+	 * Headers for every email in this class.
 	 *
-	 * Previously carried no From header at all, so wp_mail() fell through to
-	 * WordPress's own PHPMailer default — "WordPress <wordpress@$domain>", an
-	 * address that doesn't exist and has no outbound mail configured, which is
-	 * exactly why a vouch-vote email could arrive looking like it came from
-	 * "WordPress" rather than the community (found 2026-07-08). Now delegates
-	 * to Core\CommunityMailer, the same workflow sender identity html_headers()
-	 * uses below.
-	 *
-	 * @return array<string>
-	 */
-	private function text_headers(): array {
-		return CommunityMailer::text_headers();
-	}
-
-	/**
-	 * Headers for the two HTML emails above (acknowledgment + welcome).
+	 * Every email this class sends is now HTML, built through the shared
+	 * Core\EmailTemplate shell (2026-07-15) — the plain-text `text_headers()`
+	 * variant this method used to sit alongside is gone along with the last
+	 * plain-text body (`build_expiry_applicant_body()`/
+	 * `build_expiry_community_body()`/`build_admin_summary_body()`, all
+	 * converted in the same pass).
 	 *
 	 * Delegates to Core\CommunityMailer — the shared workflow/transactional
 	 * sender identity (Settings → Email → "Mail from:"). Previously borrowed
@@ -988,26 +818,6 @@ class AdmissionNotification {
 	private function html_lang(): string {
 		$locale = get_locale();
 		return $locale ? str_replace( '_', '-', $locale ) : 'en';
-	}
-
-	/**
-	 * Blank-line-prefixed work-emails footer for the plain-text bodies above.
-	 *
-	 * Returns an empty array when nothing is configured in Settings → Email,
-	 * so those bodies render exactly as they did before this existed rather
-	 * than gaining a stray trailing blank line. Not used by build_acknowledgment_body()
-	 * or build_expiry_applicant_body() — the recipient there was never admitted,
-	 * so these addresses don't apply to them. Not used by build_welcome_body()
-	 * either — that email already lists every configured alias address in full,
-	 * labelled, right in the body (see configured_aliases()), so appending the
-	 * compact one-liner again immediately after would just repeat it. Not
-	 * used by send_admin_summary() either, since that email is admin-only.
-	 *
-	 * @return string[]
-	 */
-	private function footer_lines(): array {
-		$line = EmailFooter::plain_text();
-		return '' !== $line ? [ '', $line ] : [];
 	}
 
 	/**

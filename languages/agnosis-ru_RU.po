@@ -6995,5 +6995,234 @@ msgstr "Actor document could not be fetched (cached failure)."
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
+# translators: 1: artist display name, 2: site name
+#: includes/Artist/DepartureNotification.php:207
+#, php-format
+msgid "%1$s has confirmed their departure from %2$s."
+msgstr ""
+
+# translators: %d: number of artists deferred to their next daily digest
+#: includes/Artist/AdmissionNotification.php:602
+#, php-format
+msgid "%d more will see it in their next daily digest."
+msgstr ""
+
+# translators: %d: proposal id
+#: includes/Artist/CommunityCapNotification.php:163
+#, php-format
+msgid ""
+"A community vote to change the membership size cap (proposal #%d) closed "
+"without a majority. The cap is unchanged."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:482
+msgid ""
+"A majority of active members (more than 50%) must vote yes for the removal "
+"to proceed. You can change your vote by clicking the other link before the "
+"deadline."
+msgstr ""
+
+#: includes/Artist/CommunityCapNotification.php:98
+msgid ""
+"A strict majority of active members (more than 50%) must vote yes for the "
+"new cap to be adopted. Sign in to your account to cast your vote."
+msgstr ""
+
+# translators: %d: application ID
+#: includes/Artist/AdmissionNotification.php:588
+#, php-format
+msgid "Application ID: %d"
+msgstr ""
+
+#: includes/Admin/Settings.php:458
+msgid ""
+"Background color of the colored header bar on every outgoing HTML email "
+"(submission review, admission/departure/vote notices, both newsletters)."
+msgstr ""
+
+#: includes/Admin/Settings.php:467
+msgid ""
+"Color of primary buttons and links across every outgoing HTML email. "
+"Destructive actions (reject, remove, vote to remove) always use a fixed red "
+"regardless of this setting, so they stay visually distinct."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:108
+msgid "Confirm removal"
+msgstr ""
+
+# translators: %s: applicant display name
+#: includes/Artist/AdmissionNotification.php:590
+#, php-format
+msgid "Display name: %s"
+msgstr ""
+
+#: includes/Admin/Settings.php:462
+msgid "Email accent color"
+msgstr ""
+
+#: includes/Admin/Settings.php:453
+msgid "Email header background"
+msgstr ""
+
+#: includes/Artist/CommunityBroadcast.php:194
+msgid ""
+"Every recipient's copy is translated individually into their own language, "
+"so a very long message is costly to translate for the whole community. "
+"Please shorten it and send it again."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:111
+msgid ""
+"If you did not make this request, you can ignore this email — your account "
+"remains unchanged."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:238
+msgid "If you didn't request this, please contact the site admin right away."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:315
+msgid "If you have questions, please contact the site admin."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:105
+msgid ""
+"If you made this request, click the link below to confirm. This action is "
+"permanent and cannot be undone."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:233
+#, php-format
+msgid ""
+"Nothing tied to you — your artwork, biography, events, or account details — "
+"is stored on %s anymore."
+msgstr ""
+
+# translators: %d: number of artists notified immediately
+#: includes/Artist/AdmissionNotification.php:595
+#, php-format
+msgid "Notified %d artist(s) immediately."
+msgstr ""
+
+#: includes/Artist/CommunityBroadcast.php:257
+msgid "Please try sending it again with plain text included."
+msgstr ""
+
+# translators: 1: site name, 2: proposed cap, 3: closing date
+#: includes/Artist/CommunityCapNotification.php:91
+#, php-format
+msgid ""
+"The %1$s community has opened a vote to change the membership size cap to "
+"%2$s. The vote closes on %3$s."
+msgstr ""
+
+# translators: 1: site name, 2: closing date
+#: includes/Artist/DepartureNotification.php:472
+#, php-format
+msgid ""
+"The %1$s community has opened a vote to remove a member. The vote closes on "
+"%2$s."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:532
+#, php-format
+msgid ""
+"The artist's account and all published work have been permanently deleted "
+"from %s."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:527
+msgid "The community removal vote has closed with a majority in favor."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:563
+msgid ""
+"The community removal vote has closed. The required majority was not reached"
+" and the artist's membership remains active."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:213
+msgid "Their account and all published work have been permanently deleted."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:226
+#, php-format
+msgid ""
+"This confirms that your account and everything you published on %s have been"
+" permanently deleted, as you requested."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:479
+msgid "Vote NO (keep)"
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:478
+msgid "Vote YES (remove)"
+msgstr ""
+
+# translators: %d: voting window in days
+#: includes/Artist/AdmissionNotification.php:609
+#, php-format
+msgid "Voting window: %d day(s)."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:100
+#, php-format
+msgid ""
+"We received a request to remove your account and all your published work "
+"from %s."
+msgstr ""
+
+#: includes/Artist/DepartureNotification.php:302
+msgid "You will be automatically reinstated on that date."
+msgstr ""
+
+# translators: 1: site name, 2: date the suspension ends
+#: includes/Artist/DepartureNotification.php:296
+#, php-format
+msgid "Your membership at %1$s has been temporarily suspended until %2$s."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:308
+#, php-format
+msgid "Your membership at %s has been suspended."
+msgstr ""
+
+#: includes/Artist/CommunityBroadcast.php:254
+msgid ""
+"Your message to the community had no subject or message text that could be "
+"found — this often happens when an email client sends an HTML-only message "
+"with no plain-text version included. It was not sent to anyone."
+msgstr ""
+
+# translators: 1: character count of the sent message, 2: configured character
+# limit
+#: includes/Artist/CommunityBroadcast.php:188
+#, php-format
+msgid ""
+"Your message to the community was %1$d characters long — the current limit "
+"is %2$d. It was not sent to anyone."
+msgstr ""
+
+# translators: %s: site name
+#: includes/Artist/DepartureNotification.php:377
+#, php-format
+msgid ""
+"Your temporary suspension at %s has ended and your membership has been "
+"reinstated. You can now log in and submit work as before."
+msgstr ""
+
+# translators: 1: site name, 2: applicant display name
+#: includes/Artist/AdmissionNotification.php:576
+#, php-format
+msgid "[%1$s] New application received: %2$s"
+msgstr ""
+
 #~ msgid "Agnosis Network"
 #~ msgstr "Agnosis Network"
