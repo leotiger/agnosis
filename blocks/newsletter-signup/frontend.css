@@ -31,7 +31,7 @@
 .agnosis-newsletter-signup__field select {
 	width:   100%;
 	padding: 0.7rem 0.9rem;
-	border:  1px solid currentColor;
+	border:  1px solid currentcolor;
 	background: transparent;
 	color:   inherit;
 	font:    inherit;
@@ -39,7 +39,7 @@
 
 .agnosis-newsletter-signup__submit {
 	padding:         0.75rem 1.4rem;
-	border:          1px solid currentColor;
+	border:          1px solid currentcolor;
 	border-radius:   0;
 	background:      var(--wp--preset--color--foreground, #111);
 	color:           var(--wp--preset--color--background, #fff);
@@ -68,7 +68,7 @@
 .agnosis-newsletter-signup__notice {
 	margin-top:  0.8rem;
 	padding:     1rem 1.2rem;
-	border-left: 3px solid currentColor;
+	border-left: 3px solid currentcolor;
 	font-size:   0.95rem;
 	line-height: 1.5;
 }
@@ -95,5 +95,5 @@
 
 /* Editor placeholder */
 .agnosis-newsletter-signup-editor .components-placeholder {
-	border: 1px dashed currentColor;
+	border: 1px dashed currentcolor;
 }

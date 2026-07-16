@@ -323,7 +323,7 @@ class DepartureNotification {
 		// returns once access does.
 		$work_emails_html = EmailFooter::html();
 		$footer_extra     = '' !== $work_emails_html
-			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>'
+			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>'
 			: '';
 
 		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
@@ -383,7 +383,7 @@ class DepartureNotification {
 
 		$work_emails_html = EmailFooter::html();
 		if ( '' !== $work_emails_html ) {
-			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>';
 		}
 
 		// Reinstatement is the moment ContentEditor access comes back (the ban
@@ -486,7 +486,7 @@ class DepartureNotification {
 
 		$work_emails_html = EmailFooter::html();
 		if ( '' !== $work_emails_html ) {
-			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>';
 		}
 
 		$edit_reminder_html = EmailFooter::edit_reminder_html( $voter_id );

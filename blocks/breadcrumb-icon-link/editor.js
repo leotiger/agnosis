@@ -81,9 +81,9 @@
 		contact:   __( 'Contact', 'agnosis' ),
 	};
 
-	blocks.registerBlockType( 'agnosis/breadcrumb-icon-link', {
-
-		edit: function ( props ) {
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it.
+	var Edit = function ( props ) {
 			var type = ICON_SETS[ props.attributes.type ] ? props.attributes.type : 'biography';
 			var icon = props.attributes.icon || DEFAULT_ICON[ type ];
 			var set  = ICON_SETS[ type ] || {};
@@ -142,7 +142,10 @@
 					dangerouslySetInnerHTML: { __html: set[ icon ] || set[ DEFAULT_ICON[ type ] ] || '' },
 				} ) )
 			);
-		},
+	};
+
+	blocks.registerBlockType( 'agnosis/breadcrumb-icon-link', {
+		edit: Edit,
 
 		save: function () {
 			return null;

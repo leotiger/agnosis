@@ -36,8 +36,8 @@ declare(strict_types=1);
 namespace Agnosis\Artist;
 
 use Agnosis\Core\CommunityMailer;
-use Agnosis\Core\EmailBranding;
 use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 
 class VoteDigest {
 
@@ -132,28 +132,12 @@ class VoteDigest {
 	 */
 	private function build_body( array $applications, string $voter_name, int $voter_id, int $window ): string {
 		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12';
-		$accent    = '#7c6af7';
-		$reject    = '#c0392b';
+		$accent    = EmailTemplate::accent();
+		$reject    = EmailTemplate::DANGER;
 		$btn_base  = 'display:inline-block;padding:10px 20px;border-radius:6px;font-size:15px;font-weight:600;text-decoration:none;margin:4px 6px 4px 0;';
 
 		ob_start();
 		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( $this->html_lang() ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<!-- Header -->
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<!-- Body -->
-	<tr><td style="background:#ffffff;padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:18px;color:#555;">
 			<?php
 			printf(
@@ -175,7 +159,7 @@ class VoteDigest {
 		</p>
 
 		<?php foreach ( $applications as $application ) : ?>
-		<div style="margin:0 0 28px;padding:20px;background:#f9f9f9;border-radius:8px;">
+		<div style="margin:0 0 28px;padding:20px;background:<?php echo esc_attr( EmailTemplate::notice_bg() ); ?>;border-radius:8px;">
 			<p style="margin:0 0 12px;font-size:18px;font-weight:700;color:#222;"><?php echo esc_html( $application->display_name ); ?></p>
 
 			<?php if ( ! empty( $application->bio ) ) : ?>
@@ -207,33 +191,21 @@ class VoteDigest {
 		<p style="margin:0;font-size:15px;color:#999;">
 			<?php esc_html_e( 'Prefer these one at a time again? You can switch back any time from your notification preferences link below.', 'agnosis' ); ?>
 		</p>
-	</td></tr>
+		<?php
+		$body_html = (string) ob_get_clean();
 
-	<!-- Footer -->
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
+		ob_start();
+		$prefs_html = EmailFooter::preferences_html( $voter_id );
+		if ( '' !== $prefs_html ) :
 			?>
-		</p>
-		<?php $prefs_html = EmailFooter::preferences_html( $voter_id ); ?>
-		<?php if ( '' !== $prefs_html ) : ?>
-		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;text-align:center;">
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid <?php echo esc_attr( EmailTemplate::border_color() ); ?>;text-align:center;">
 			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
 		</div>
-		<?php endif; ?>
-	</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+			<?php
+		endif;
+		$footer_extra_html = (string) ob_get_clean();
+
+		return EmailTemplate::render( $this->html_lang(), $body_html, $footer_extra_html );
 	}
 
 	/**

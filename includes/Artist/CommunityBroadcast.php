@@ -434,7 +434,7 @@ class CommunityBroadcast {
 		}
 
 		if ( '' !== $body ) {
-			$email_body .= '<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( EmailTemplate::accent() ) . ';border-radius:4px;">'
+			$email_body .= '<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( EmailTemplate::accent() ) . ';border-radius:4px;">'
 				. nl2br( esc_html( $body ) )
 				. '</p>';
 		}

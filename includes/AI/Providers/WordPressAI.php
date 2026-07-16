@@ -54,7 +54,6 @@ class WordPressAI implements ProviderInterface {
 
 		// call_user_func is used deliberately to satisfy Plugin Check's static
 		// analyser (see class docblock). Runtime safety guaranteed by function_exists() above.
-		// @phpstan-ignore-next-line -- string literal is a valid callable; verified by function_exists() above.
 		$builder = call_user_func( 'wp_ai_client_prompt', $user );
 
 		if ( $system !== '' ) {
@@ -145,7 +144,6 @@ class WordPressAI implements ProviderInterface {
 			return '';
 		}
 		try {
-			// @phpstan-ignore-next-line
 			$builder = call_user_func( 'wp_ai_client_prompt', $prompt );
 			if ( ! $builder->is_supported_for_text_generation() ) {
 				return '';

@@ -179,7 +179,7 @@ class RemovalEndpoints {
 		}
 
 		$result = linguaforge_trash_translation_group( $post_id );
-		return ( $result['trashed'] ?? 0 ) > 0;
+		return $result['trashed'] > 0;
 	}
 
 	// -------------------------------------------------------------------------

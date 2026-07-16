@@ -10,8 +10,6 @@
  * preview updating live off its own attribute.
  *
  * No build step: uses wp.* globals enqueued by WordPress core.
- *
- * @package Agnosis\Blocks\GalleryOverview
  */
 ( function ( blocks, element, blockEditor, components, i18n ) {
 	var el        = element.createElement;
@@ -22,83 +20,89 @@
 	var PanelBody  = components.PanelBody;
 	var RangeControl = components.RangeControl;
 
-	blocks.registerBlockType( 'agnosis/gallery-overview', {
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it — an
+	// inline `edit: function () {...}` object-method would be inferred as
+	// lowercase-named and incorrectly flagged as a plain function calling a
+	// hook illegally.
+	var Edit = function ( props ) {
+		var columns    = props.attributes.columns;
+		var blockProps = useBlockProps( {
+			style: {
+				padding:    '1.5rem',
+				border:     '1px dashed #555',
+				background: '#111',
+			},
+		} );
 
-		edit: function ( props ) {
-			var columns    = props.attributes.columns;
-			var blockProps = useBlockProps( {
-				style: {
-					padding:    '1.5rem',
-					border:     '1px dashed #555',
-					background: '#111',
-				},
-			} );
+		// Two preview rows' worth of empty tiles, reflowed to the current
+		// column count — enough to read as "a grid of this width" without
+		// pretending to show real artwork.
+		var tileCount = columns * 2;
+		var tiles     = [];
+		for ( var i = 0; i < tileCount; i++ ) {
+			tiles.push(
+				el( 'div', {
+					key: i,
+					style: {
+						aspectRatio:     '1 / 1',
+						background:      '#2a2a35',
+						border:          '1px solid #3a3a45',
+					},
+				} )
+			);
+		}
 
-			// Two preview rows' worth of empty tiles, reflowed to the current
-			// column count — enough to read as "a grid of this width" without
-			// pretending to show real artwork.
-			var tileCount = columns * 2;
-			var tiles     = [];
-			for ( var i = 0; i < tileCount; i++ ) {
-				tiles.push(
-					el( 'div', {
-						key: i,
-						style: {
-							aspectRatio:     '1 / 1',
-							background:      '#2a2a35',
-							border:          '1px solid #3a3a45',
-						},
-					} )
-				);
-			}
-
-			return el(
-				Fragment,
+		return el(
+			Fragment,
+			null,
+			el(
+				InspectorControls,
 				null,
 				el(
-					InspectorControls,
-					null,
-					el(
-						PanelBody,
-						{ title: __( 'Gallery settings', 'agnosis' ) },
-						el( RangeControl, {
-							label:    __( 'Columns', 'agnosis' ),
-							value:    columns,
-							onChange: function ( value ) {
-								props.setAttributes( { columns: value } );
-							},
-							min: 2,
-							max: 5,
-						} )
-					)
+					PanelBody,
+					{ title: __( 'Gallery settings', 'agnosis' ) },
+					el( RangeControl, {
+						label:    __( 'Columns', 'agnosis' ),
+						value:    columns,
+						onChange: function ( value ) {
+							props.setAttributes( { columns: value } );
+						},
+						min: 2,
+						max: 5,
+					} )
+				)
+			),
+			el(
+				'div',
+				blockProps,
+				el(
+					'p',
+					{ style: { color: '#ededf0', fontFamily: 'sans-serif', margin: '0 0 1rem' } },
+					__( '✦ Agnosis Gallery Overview — rendered on the server', 'agnosis' )
 				),
 				el(
 					'div',
-					blockProps,
-					el(
-						'p',
-						{ style: { color: '#ededf0', fontFamily: 'sans-serif', margin: '0 0 1rem' } },
-						__( '✦ Agnosis Gallery Overview — rendered on the server', 'agnosis' )
-					),
-					el(
-						'div',
-						{
-							style: {
-								display:             'grid',
-								gridTemplateColumns: 'repeat(' + columns + ', 1fr)',
-								gap:                 '0.5rem',
-							},
+					{
+						style: {
+							display:             'grid',
+							gridTemplateColumns: 'repeat(' + columns + ', 1fr)',
+							gap:                 '0.5rem',
 						},
-						tiles
-					),
-					el(
-						'p',
-						{ style: { color: '#888', fontSize: '0.85rem', margin: '0.75rem 0 0' } },
-						columns + ' ' + __( 'columns · proportional · random daily order', 'agnosis' )
-					)
+					},
+					tiles
+				),
+				el(
+					'p',
+					{ style: { color: '#888', fontSize: '0.85rem', margin: '0.75rem 0 0' } },
+					columns + ' ' + __( 'columns · proportional · random daily order', 'agnosis' )
 				)
-			);
-		},
+			)
+		);
+	};
+
+	blocks.registerBlockType( 'agnosis/gallery-overview', {
+		edit: Edit,
 
 		save: function () {
 			return null;

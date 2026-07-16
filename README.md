@@ -41,7 +41,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 | | Minimum |
 |---|---|
 | WordPress | 6.6 |
-| PHP | 8.1 |
+| PHP | 8.2 |
 | MySQL | 5.7 / MariaDB 10.3 |
 | [Lingua Forge](https://github.com/leotiger/lingua-forge) | Required companion plugin — must be installed and active before Agnosis can be activated (declared via the `Requires Plugins` header, WP 6.5+) |
 

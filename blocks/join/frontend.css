@@ -37,7 +37,7 @@
 .agnosis-join__field textarea {
 	width:            100%;
 	padding:          0.7rem 0.9rem;
-	border:           1px solid currentColor;
+	border:           1px solid currentcolor;
 	border-radius:    0;
 	background:       transparent;
 	color:            inherit;
@@ -51,7 +51,7 @@
 
 .agnosis-join__field input:focus,
 .agnosis-join__field textarea:focus {
-	outline:       2px solid currentColor;
+	outline:       2px solid currentcolor;
 	outline-offset: 2px;
 }
 
@@ -69,7 +69,7 @@
 .agnosis-join__submit {
 	align-self:      flex-start;
 	padding:         0.75rem 2rem;
-	border:          1px solid currentColor;
+	border:          1px solid currentcolor;
 	background:      var(--wp--preset--color--foreground, #000);
 	color:           var(--wp--preset--color--background, #fff);
 	font-family:     inherit;
@@ -92,7 +92,7 @@
 
 .agnosis-join__notice {
 	padding:     1rem 1.2rem;
-	border-left: 3px solid currentColor;
+	border-left: 3px solid currentcolor;
 	font-size:   0.95rem;
 	line-height: 1.5;
 }
@@ -109,5 +109,5 @@
 
 /* Editor placeholder */
 .agnosis-join-editor .components-placeholder {
-	border: 1px dashed currentColor;
+	border: 1px dashed currentcolor;
 }

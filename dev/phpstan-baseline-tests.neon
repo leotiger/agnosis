@@ -1,0 +1,2621 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicChatTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicChatTest\\:\\:sent_max_tokens\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicChatTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicChatTest\\:\\:sent_model\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicChatTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 2
+			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
+
+		-
+			message: "#^Cannot access property \\$term_id on WP_Term\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicDescribeTest\\:\\:extract_sent_image_data\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicDescribeTest\\:\\:make_anthropic_body\\(\\) has parameter \\$content_json with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of static method Agnosis\\\\AI\\\\CallCounter\\:\\:get_total\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/CallCounterTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\AI\\\\CallCounterTest\\:\\:\\$post_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/CallCounterTest.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIChatTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\OpenAIChatTest\\:\\:sent_max_tokens\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIChatTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\OpenAIChatTest\\:\\:sent_model\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIChatTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 2
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Cannot access property \\$term_id on WP_Term\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\OpenAIDescribeTest\\:\\:extract_sent_image_data\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\OpenAIDescribeTest\\:\\:extract_sent_system_prompt\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\OpenAIDescribeTest\\:\\:make_openai_body\\(\\) has parameter \\$content_json with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/OpenAIDescribeTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/PromptConfigMediumTermsTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 3
+			path: ../tests/php/Integration/AI/PromptConfigMediumTermsTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\AI\\\\Stubs\\\\WpAiClientTestRegistry\\:\\:\\$prompts type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/Stubs/WpAiClientTestRegistry.php
+
+		-
+			message: "#^Function wp_ai_client_prompt\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/Stubs/wp_ai_client_prompt_global_stub.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\WordPressAIDescribeTest\\:\\:describe_json\\(\\) has parameter \\$content_json with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/AI/WordPressAIDescribeTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\AiProviderPingTest\\:\\:capture_request\\(\\) has parameter \\$captured with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\AiProviderPingTest\\:\\:make_http_response\\(\\) has parameter \\$body with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\AiProviderPingTest\\:\\:make_http_response\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\AiProviderPingTest\\:\\:\\$admin_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\DeliverabilityTest\\:\\:capture_mail\\(\\) has parameter \\$captured with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
+
+		-
+			message: "#^PHPDoc tag @return with type array\\<int, array\\<string, mixed\\>\\|\\(callable\\)\\|null\\> is not subtype of native type callable\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\EmailBrandingColorFieldsTest\\:\\:render\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/EmailBrandingColorFieldsTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$error\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Admin/InboxPageFilterTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Admin/InboxPageFilterTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/InboxPageFilterTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\SettingsInitiateRemovalVoteTest\\:\\:create_admitted_artist\\(\\) should return array\\{int, int\\} but returns array\\{int\\|WP_Error, int\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Admin/SettingsNewsletterLocaleTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\SettingsResettableFieldsTest\\:\\:render\\(\\) has parameter \\$field with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsResettableFieldsTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsTermTranslationCacheTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/SettingsTermTranslationCacheTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Admin/SettingsTermTranslationCacheTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$banned_until\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$confirm_token\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionBannedReapplicationTest\\:\\:rest_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionBannedReapplicationTest\\:\\:rest_post\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionBannedReapplicationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 18
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 21
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Cannot access property \\$display_name on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:rest_get\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:rest_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:rest_post\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$original_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$user_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:rest_get\\(\\) expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$user_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionIntegrationTest\\:\\:rest_post\\(\\) expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionNotificationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionNotificationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionNotificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionNotificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of method Agnosis\\\\Artist\\\\AdmissionNotification\\:\\:on_artist_admitted\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 12
+			path: ../tests/php/Integration/Artist/AdmissionNotificationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionNotificationTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionNotificationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 17
+			path: ../tests/php/Integration/Artist/AdmissionReapplicationAndLengthCapsTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionReapplicationAndLengthCapsTest\\:\\:apply\\(\\) has parameter \\$overrides with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionReapplicationAndLengthCapsTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionReapplicationAndLengthCapsTest\\:\\:rest_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionReapplicationAndLengthCapsTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionReapplicationAndLengthCapsTest\\:\\:rest_post\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionReapplicationAndLengthCapsTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionStatusTest\\:\\:create_admin\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionStatusTest\\:\\:create_subscriber\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionStatusTest\\:\\:rest_get_status\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ApplicationBiographyTest\\:\\:create_user\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ApplicationBiographyTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_biography', post_status\\: 'publish', post_title\\: 'Bio v1', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_biography', post_status\\: 'publish', post_title\\: 'Bio v2', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_biography', post_status\\: 'publish', post_title\\: 'My artistic journey', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Group show —…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Solo exhibition —…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Solo show — Gallery…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/BiographyEventIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastLanguageGroupingTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastLanguageGroupingTest\\:\\:filter_test_language_names\\(\\) has parameter \\$languages with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastLanguageGroupingTest\\:\\:filter_test_language_names\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastLanguageGroupingTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastLanguageGroupingTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityBroadcastTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityBroadcastTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapIntegrationTest.php
+
+		-
+			message: "#^Cannot call method remove_role\\(\\) on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/CommunityCapIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityCapIntegrationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapNotificationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityCapNotificationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapNotificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapNotificationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityCapNotificationTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapNotificationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapVoteIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityCapVoteIntegrationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapVoteIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\CommunityCapVoteIntegrationTest\\:\\:post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapVoteIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/CommunityCapVoteIntegrationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$artist_id\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$rejection_reason\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$translated_message\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormTest\\:\\:build_request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$artist_id of static method Agnosis\\\\Artist\\\\ContactForm\\:\\:artist_accepts_contact\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 8
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:create_artwork\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:rest_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:rest_post\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_post expects int\\|WP_Post\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_post_thumbnail_id expects int\\|WP_Post\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function get_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 12
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:edit\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 15
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:photo_replace\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Part \\$post_id \\(int\\|WP_Error\\) of encapsed string cannot be cast to string\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:\\$admin_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContentEditorTest\\:\\:\\$subscriber_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContentEditorTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureConfirmShimTest\\:\\:create_artist_with_removal_token\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/DepartureNotificationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureNotificationTest\\:\\:create_user\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureNotificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$subject_user_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureNotificationTest\\:\\:insert_removal_request\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureNotificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/DepartureNotificationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureNotificationTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureNotificationTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Cannot access property \\$roles on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Cannot call method remove_role\\(\\) on WP_User\\|false\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureTest\\:\\:create_admitted_artist\\(\\) should return array\\{int, int\\} but returns array\\{int\\|WP_Error, int\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of method Agnosis\\\\Artist\\\\Departure\\:\\:initiate_removal_for_user\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureTest\\:\\:create_artwork\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$initiated_by of method Agnosis\\\\Artist\\\\Departure\\:\\:admin_open_removal_vote\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/DepartureTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$user of method Agnosis\\\\Artist\\\\FrontendAccess\\:\\:redirect_after_login\\(\\) expects WP_Error\\|WP_User, WP_User\\|false given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\FrontendAccessTest\\:\\:\\$admin_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\FrontendAccessTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\FrontendAccessTest\\:\\:\\$subscriber_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\InvitationTest\\:\\:capture_mail\\(\\) has parameter \\$captured with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/InvitationTest.php
+
+		-
+			message: "#^PHPDoc tag @return with type array\\<int, array\\<string, mixed\\>\\|\\(callable\\)\\|null\\> is not subtype of native type callable\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/InvitationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/InvitationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$original_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/JoinPageTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Artist/JoinPageTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$subject of function str_replace expects array\\|string, string\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/JoinPageTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/JoinPageTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to string\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\NotificationPreferencesTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\NotificationPreferencesTest\\:\\:valid_token\\(\\) should return string but returns array\\|string\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$artist_id of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\NotificationPreferencesTest\\:\\:valid_token\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Variable \\$raw_html might not be defined\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$offset of function substr expects int, int\\<0, max\\>\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ProfileEventDateBlockTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'Still Life at Dusk', post_excerpt\\: 'A quiet meditation…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ProfileIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\RemovalVoteConfirmTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VoteDigestTest\\:\\:create_digest_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VoteDigestTest\\:\\:create_instant_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VoteDigestTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoteDigestTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$vote of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:call_verify\\(\\) expects string, array\\|string given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$token of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:call_verify\\(\\) expects string, array\\|string given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoucheRevocationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VoucheRevocationTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoucheRevocationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoucheRevocationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/VoucheRevocationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatNoticesTest\\:\\:\\$admin_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatNoticesTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$object_id of function wp_set_object_terms expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_post expects int\\|WP_Post\\|null, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function get_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 9
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 7
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
+			count: 13
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:build_title_translations\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:set_language_meta\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$translated_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:copy_translated_meta\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$translated_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:count_fanout_translation_call\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$translated_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 16
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$url of method WP_UnitTestCase_Base\\:\\:go_to\\(\\) expects string, string\\|false given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertContains\\(\\) expects iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$post_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:hold_artist_title\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$source_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:supply_translated_meta\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$source_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$artwork_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$lf_languages type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$page_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$queue_calls type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$sync_templates_calls type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Compat\\\\LinguaForgeCompatTest\\:\\:\\$trigger_calls type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Function linguaforge_queue_translation\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/Stubs/lf_global_stubs.php
+
+		-
+			message: "#^Function linguaforge_trigger_translation\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/Stubs/lf_global_stubs.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/EmailFooterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\EmailFooterTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/EmailFooterTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/EmailFooterTest.php
+
+		-
+			message: "#^Constant DIR_TESTDATA not found\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/LoginBrandingTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_src expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/LoginBrandingTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$slug\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$version\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\UpdaterTest\\:\\:call\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\UpdaterTest\\:\\:call\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\UpdaterTest\\:\\:http_200\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\UpdaterTest\\:\\:prime_manifest\\(\\) has parameter \\$fields with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Core\\\\UpdaterTest\\:\\:stub_http\\(\\) has parameter \\$response with no type specified\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$upgrader of method Agnosis\\\\Core\\\\Updater\\:\\:purge_cache\\(\\) expects WP_Upgrader, null given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Core/UpdaterTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertStringContainsString\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/AttachmentStoreTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Email\\\\AttachmentStoreTest\\:\\:\\$created_uids type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/AttachmentStoreTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/BounceHandlerTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\BounceHandlerTest\\:\\:create_admitted_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/BounceHandlerTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/BounceHandlerTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeAliasImapMessage\\.php\\:77\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/FakeAliasImapMessage.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeAliasImapMessage\\.php\\:87\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/FakeAliasImapMessage.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeImapMessage\\.php\\:37\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/FakeImapMessage.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeImapMessage\\.php\\:45\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/FakeImapMessage.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxAliasAuthGateTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\InboxAliasAuthGateTest\\:\\:create_admitted_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxAliasAuthGateTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\InboxAliasAuthGateTest\\:\\:latest_raw_email\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxAliasAuthGateTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxAliasAuthGateTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxBounceDsnTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\InboxBounceDsnTest\\:\\:latest_queue_row\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxBounceDsnTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Email/InboxBounceDsnTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxBounceDsnTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\InboxMarkNoArtworkTest\\:\\:latest_raw_email\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/InboxMarkNoArtworkTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\QueueDrainTest\\:\\:get_scheduled_ids\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/QueueDrainTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\TestableInbox\\:\\:set_pending_messages\\(\\) has parameter \\$messages with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/TestableInbox.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Email\\\\TestableInbox\\:\\:\\$pending_messages type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/TestableInbox.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Email/WebhookAliasAuthGateTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasAuthGateTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookAliasAuthGateTest\\:\\:create_admitted_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasAuthGateTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasAuthGateTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$error\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$raw_email\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 10
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 12
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookAliasEventCoverageTest\\:\\:create_admitted_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookAliasEventCoverageTest\\:\\:create_artist_role_without_active_application\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookAliasEventCoverageTest\\:\\:create_non_artist_user\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Email/WebhookAliasEventCoverageTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookBounceEventTest\\:\\:json_array_request\\(\\) has parameter \\$events with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookBounceEventTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookBounceEventTest\\:\\:params_request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookBounceEventTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$data of method WP_REST_Request\\<array\\<string, mixed\\>\\>\\:\\:set_body\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookBounceEventTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 8
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookQueueIdempotencyTest\\:\\:create_admitted_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookQueueIdempotencyTest\\:\\:\\$tmp_files \\(array\\<string\\>\\) does not accept array\\<bool\\|string\\>\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookQueueIdempotencyTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 9
+			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Email\\\\WebhookReplyRejectionTest\\:\\:queued_submission\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$term_id\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$activity_type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$attempts\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$inbox_url\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$next_attempt_at\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$resolved_at\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 12
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Cannot access property \\$term_id on WP_Term\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Cannot access property \\$user_nicename on WP_User\\|false\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:broadcast_and_capture\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:mock_all_deliveries\\(\\) has parameter \\$deliveries with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:published_artwork_note\\(\\) should return array\\{array\\<string, mixed\\>, int\\} but returns array\\{mixed, int\\|WP_Error\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:published_artwork_with_follower\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$artist_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:actor_request\\(\\) expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$object_id of function wp_set_object_terms expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 8
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_post expects int\\|WP_Post\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function set_post_thumbnail expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function wp_set_post_tags expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Network\\\\ActivityPub\\:\\:broadcast\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:note_for\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 10
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_update_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{ID\\: int\\|WP_Error, post_title\\: 'Still Unpublished'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$url of method WP_UnitTestCase_Base\\:\\:go_to\\(\\) expects string, string\\|false given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertStringContainsString\\(\\) expects string, bool\\|string given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$signature of function openssl_verify expects string, string\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\HttpSignatureTest\\:\\:build_signed_request\\(\\) has invalid return type Agnosis\\\\Tests\\\\Integration\\\\Network\\\\WP_REST_Request\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureTest.php
+
+		-
+			message: "#^PHPDoc tag @return with type Agnosis\\\\Tests\\\\Integration\\\\Network\\\\WP_REST_Request is not subtype of native type WP_REST_Request\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_export expects array\\|OpenSSLAsymmetricKey\\|OpenSSLCertificate\\|string, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/HttpSignatureTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_get_details expects OpenSSLAsymmetricKey, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureTest.php
+
+		-
+			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:get_node_row\\(\\) should return array\\{status\\: string, url\\: string, public_key\\: string, label\\: string\\}\\|null but returns array\\|null\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_export expects array\\|OpenSSLAsymmetricKey\\|OpenSSLCertificate\\|string, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_get_details expects OpenSSLAsymmetricKey, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationContactIconTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\SubdomainNavigationContactIconTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationContactIconTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$artist_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\SubdomainNavigationContactIconTest\\:\\:set_current_artist\\(\\) expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationContactIconTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationContactIconTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of static method Agnosis\\\\Network\\\\SubdomainRouter\\:\\:url_for_artist\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Network/SubdomainRouterIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\ArchiveTest\\:\\:insert_issue\\(\\) has parameter \\$locale_content with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/ArchiveTest.php
+
+		-
+			message: "#^Offset 'medium' on array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Offset 'new_members' does not exist on array\\{artworks\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>, medium\\: array\\<string\\>\\}\\>, events\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\}\\>, new_members\\?\\: array\\<string\\>, open_votes\\?\\: int\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Offset 'open_votes' does not exist on array\\{artworks\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>, medium\\: array\\<string\\>\\}\\>, events\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\}\\>, new_members\\?\\: array\\<string\\>, open_votes\\?\\: int\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: string, post_date\\: string, post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Context Event', post_date\\: string, post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$attempts\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$digest_html\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 19
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$recipient_count\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$resolved_at\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$sent_at\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 13
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\QueueProcessorTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\QueueProcessorTest\\:\\:queue_status_counts\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'English Piece', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'Pieza en Español', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/QueueProcessorTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\SchedulerIntroProposalTest\\:\\:capture_mail\\(\\) has parameter \\$captured with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerIntroProposalTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\SchedulerSendTestTest\\:\\:table_counts\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerSendTestTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$digest_html\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 9
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$intro\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$locale_content\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Cannot access offset 'id' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 7
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\SchedulerTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'Too Old For The…', post_author\\: int\\|WP_Error, post_date\\: non\\-falsy\\-string\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SchedulerTest.php
+
+		-
+			message: "#^Cannot access offset 'id' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Newsletter/SubscriberTest.php
+
+		-
+			message: "#^Cannot access offset 'resent' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SubscriberTest.php
+
+		-
+			message: "#^Cannot access offset 'throttled' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SubscriberTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 50
+			path: ../tests/php/Integration/Newsletter/SubscriberTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 12
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to string\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of static method Agnosis\\\\Newsletter\\\\Tokens\\:\\:artist_unsubscribe_token\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Newsletter/SubscriptionTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Newsletter/SubscriptionTest.php
+
+		-
+			message: "#^Cannot access offset 'token' on array\\{id\\: int, token\\: string, resent\\: bool, already_confirmed\\: bool, throttled\\: bool\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SubscriptionTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Newsletter\\\\SubscriptionTest\\:\\:subscribe\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/SubscriptionTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/EmbedPolicyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_author\\: int\\|WP_Error, post_title\\: 'Test Artwork'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/GalleryOverviewIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\GalleryOverviewIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/GalleryOverviewIntegrationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:capture_mail\\(\\) has parameter \\$captured with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:colour_keywords_provider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:composition_keywords_provider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:create_artist\\(\\) should return WP_User but returns WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:create_event_with_removal_token\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:create_post_for_translation\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:create_post_with_removal_token\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:create_post_with_review_token\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:html_headers\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:lighting_keywords_provider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:resolution_keywords_provider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\NotificationEmailTest\\:\\:sharpness_keywords_provider\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Publishing\\\\Notification\\:\\:on_post_drafted\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Publishing\\\\Notification\\:\\:on_removal_requested\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/NotificationEmailTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_User\\:\\:\\$ID\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/NotificationUrlTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_User\\:\\:\\$display_name\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/NotificationUrlTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Permission Gate…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PermissionGateIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PermissionGateIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PermissionGateIntegrationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$skip_enhancement_received\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$pipeline of class Agnosis\\\\Publishing\\\\PostCreator constructor expects Agnosis\\\\AI\\\\Pipeline\\|null, object given\\.$#"
+			count: 7
+			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PhotoOnlyTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/PostCreatorDuplicateHeroImageTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Shared Title'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorEventTitleMatchTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorEventTitleMatchTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorEventTitleMatchTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorExternalLinkEmbedTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorExternalLinkEmbedTest\\:\\:call_build_post_content\\(\\) has parameter \\$gallery with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorExternalLinkEmbedTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorExternalLinkEmbedTest\\:\\:call_build_post_content\\(\\) has parameter \\$primary with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorExternalLinkEmbedTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMediumTermTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorMediumTermTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMediumTermTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorMergeMissSuggestionTest\\:\\:merge_miss_meta\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorMergeMissSuggestionTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with WP_REST_Response will always evaluate to false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorMergeRedraftsPublishedTargetTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorPromotionIntegrationTest\\:\\:call_handle_promotion_request\\(\\) has parameter \\$submission with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorPromotionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Other Artist Artwork'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorPromotionIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Shared Title'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorPromotionIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorPromotionIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorPromotionIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorReplaceAndRemoveEventsTest\\:\\:call_handle_removal_request\\(\\) has parameter \\$submission with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorReplaceAndRemoveEventsTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Golden Hour'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorReplaceAndRemoveEventsTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Shared Title'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorReplaceAndRemoveEventsTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorReplaceAndRemoveEventsTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PostCreatorReplaceAndRemoveEventsTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$process_called\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$process_raw_called\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$pipeline of class Agnosis\\\\Publishing\\\\PostCreator constructor expects Agnosis\\\\AI\\\\Pipeline\\|null, object given\\.$#"
+			count: 7
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PureLaneTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\QualityRejectionTest\\:\\:make_stub_pipeline\\(\\) has parameter \\$issues with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Publishing/QualityRejectionTest\\.php\\:164\\:\\:__construct\\(\\) has parameter \\$scores with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Integration/Publishing/QualityRejectionTest\\.php\\:82\\:\\:__construct\\(\\) has parameter \\$issues with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\QualityRejectionTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\RemovalEndpointsIntegrationTest\\:\\:request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'Artwork To Remove', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\RemovalEndpointsIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewConfirmActionTokenGateTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmActionTokenGateTest\\:\\:create_post_with_removal_token\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmActionTokenGateTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmActionTokenGateTest\\:\\:create_post_with_review_token\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmActionTokenGateTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Publishing/ReviewConfirmActionTokenGateTest.php
+
+		-
+			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmIntegrationTest\\:\\:simulate_get\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmIntegrationTest\\:\\:simulate_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Shim Test Artwork', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmSocialLinksTest\\:\\:call_private\\(\\) expects array\\<string, mixed\\>, array\\<int, array\\<string, string\\>\\|int\\> given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmSocialLinksTest\\:\\:call_private\\(\\) expects array\\<string, mixed\\>, array\\<int, array\\<string, string\\>\\|int\\|string\\> given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmSocialLinksTest\\:\\:call_private\\(\\) expects array\\<string, mixed\\>, array\\<int, array\\<string, string\\>\\|string\\> given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmSocialLinksTest\\:\\:call_private\\(\\) expects array\\<string, mixed\\>, array\\<int, array\\|int\\> given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmSocialLinksTest\\:\\:call_private\\(\\) expects array\\<string, mixed\\>, array\\<int, array\\|int\\|string\\> given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewConfirmSocialLinksTest.php
+
+		-
+			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsIntegrationTest\\:\\:request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Test Artwork', post_excerpt\\: 'A short excerpt\\.', post_content\\: '\\<\\!\\-\\- wp\\:image \\-\\-\\>…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Amanecer sobre la…', post_excerpt\\: 'Un resumen vívido…', post_content\\: '\\<\\!\\-\\- wp\\:paragraph \\-…', post_author\\: int\\|WP_Error\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsNativeLanguagePipelineTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:\\$cache_cleared_for type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Support/FakeLinguaForge.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:\\$marked_synced type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Support/FakeLinguaForge.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\AI\\\\PipelineAudioBranchTest\\:\\:valid_json_response\\(\\) should return string but returns string\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/PipelineAudioBranchTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\AI\\\\PipelineSkipEnhancementTest\\:\\:make_submission\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/PipelineSkipEnhancementTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\AI\\\\PipelineTest\\:\\:make_submission\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/PipelineTest.php
+
+		-
+			message: "#^Function Agnosis\\\\AI\\\\exec\\(\\) has parameter \\$output with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/Stubs/ai_namespace_stubs.php
+
+		-
+			message: "#^Function Agnosis\\\\AI\\\\shell_exec\\(\\) should return string\\|null but returns string\\|false\\|null\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/Stubs/ai_namespace_stubs.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\Email\\\\FakeParserImapMessage\\:\\:address_list\\(\\) has parameter \\$emails with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/FakeParserImapMessage.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Unit/Email/FakeParserImapMessage\\.php\\:61\\:\\:__construct\\(\\) has parameter \\$emails with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/FakeParserImapMessage.php
+
+		-
+			message: "#^Method class@anonymous/tests/php/Unit/Email/FakeParserImapMessage\\.php\\:61\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/FakeParserImapMessage.php
+
+		-
+			message: "#^PHPDoc tag @return with type array\\<int, object\\{mail\\: string\\}\\> is incompatible with native type object\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/FakeParserImapMessage.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\Email\\\\IntakeGatesTest\\:\\:class_const\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/IntakeGatesTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$objectOrClass of class ReflectionClass constructor expects class\\-string\\<T of object\\>\\|T of object, string given\\.$#"
+			count: 1
+			path: ../tests/php/Unit/Email/IntakeGatesTest.php
+
+		-
+			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
+			count: 3
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
+			count: 3
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
+			count: 4
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
+			count: 9
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
+
+		-
+			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
+			count: 9
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
+
+		-
+			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
+			count: 8
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
+
+		-
+			message: "#^Offset 3 does not exist on array\\{string, bool, string\\}\\.$#"
+			count: 5
+			path: ../tests/php/Unit/Publishing/IndicatorParsingTest.php
+
+		-
+			message: "#^Offset 4 does not exist on array\\{string, bool, string\\}\\.$#"
+			count: 5
+			path: ../tests/php/Unit/Publishing/IndicatorParsingTest.php

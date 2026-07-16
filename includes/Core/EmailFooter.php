@@ -179,9 +179,9 @@ class EmailFooter {
 		foreach ( $addresses as $label => $info ) {
 			$rows .= sprintf(
 				'<p style="margin:0 0 10px;font-size:15px;line-height:1.5;text-align:left;">'
-				. '<strong style="color:#555;">%s:</strong> '
-				. '<a href="mailto:%s" style="color:#7c6af7;text-decoration:underline;">%s</a>'
-				. '<br><span style="color:#888;">%s</span>'
+				. '<strong style="color:' . esc_attr( EmailTemplate::footer_label_color() ) . ';">%s:</strong> '
+				. '<a href="mailto:%s" style="color:' . esc_attr( EmailTemplate::accent() ) . ';text-decoration:underline;">%s</a>'
+				. '<br><span style="color:' . esc_attr( EmailTemplate::text_secondary_color() ) . ';">%s</span>'
 				. '</p>',
 				esc_html( $label ),
 				esc_attr( $info['address'] ),
@@ -269,7 +269,7 @@ class EmailFooter {
 		}
 
 		return sprintf(
-			'<a href="%s" style="color:#999;font-size:13px;text-decoration:underline;">%s</a>',
+			'<a href="%s" style="color:' . esc_attr( EmailTemplate::text_secondary_color() ) . ';font-size:13px;text-decoration:underline;">%s</a>',
 			esc_url( NotificationPreferences::prefs_url( $artist_id ) ),
 			esc_html__( 'Manage notification preferences', 'agnosis' )
 		);

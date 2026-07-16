@@ -15,13 +15,14 @@
 	var useBlockProps = blockEditor.useBlockProps;
 	var Placeholder = components.Placeholder;
 
-	blocks.registerBlockType( 'agnosis/submissions', {
-
-		/**
-		 * Editor component — placeholder only.
-		 * Real content is rendered server-side for logged-in artists.
-		 */
-		edit: function () {
+	/**
+	 * Editor component — placeholder only.
+	 * Real content is rendered server-side for logged-in artists.
+	 *
+	 * Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	 * component and allows the useBlockProps() hook call inside it.
+	 */
+	var Edit = function () {
 			var blockProps = useBlockProps( {
 				className: 'agnosis-submissions-editor',
 			} );
@@ -35,7 +36,7 @@
 						icon:  'art',
 						label: __( 'My Submissions', 'agnosis' ),
 						instructions: __(
-							'Displays the logged-in artist's pending artwork submissions. ' +
+							'Displays the logged-in artist\'s pending artwork submissions. ' +
 							'Artists can approve, edit or discard each one. ' +
 							'Content is rendered live on the frontend.',
 							'agnosis'
@@ -52,7 +53,10 @@
 					)
 				)
 			);
-		},
+	};
+
+	blocks.registerBlockType( 'agnosis/submissions', {
+		edit: Edit,
 
 		/**
 		 * Dynamic block — PHP render_callback handles frontend output.

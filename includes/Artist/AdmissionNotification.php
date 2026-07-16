@@ -426,7 +426,7 @@ class AdmissionNotification {
 				esc_html( $site_name )
 			)
 			. '</p>'
-			. '<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">'
+			. '<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">'
 			. sprintf(
 				/* translators: %d: number of days */
 				esc_html__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
@@ -512,7 +512,7 @@ class AdmissionNotification {
 
 		if ( $application->bio ) {
 			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Bio', 'agnosis' ) . '</p>'
-				. '<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->bio ) . '</p>';
+				. '<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->bio ) . '</p>';
 		}
 
 		if ( $application->portfolio_url ) {
@@ -522,7 +522,7 @@ class AdmissionNotification {
 
 		if ( $application->statement ) {
 			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Statement', 'agnosis' ) . '</p>'
-				. '<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:#f9f9f9;border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->statement ) . '</p>';
+				. '<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->statement ) . '</p>';
 		}
 
 		$body .= '<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr><td>'
@@ -540,7 +540,7 @@ class AdmissionNotification {
 
 		$work_emails_html = EmailFooter::html();
 		if ( '' !== $work_emails_html ) {
-			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>';
 		}
 
 		// $voter_id may be the fallback admin account (see on_application_received()
@@ -590,7 +590,7 @@ class AdmissionNotification {
 	private function build_admin_summary_body( object $application, int $artist_count, int $deferred_count, int $window ): string {
 		$body = '<p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#555;">'
 			. sprintf( /* translators: %d: application ID */ esc_html__( 'Application ID: %d', 'agnosis' ), (int) $application->id ) . '<br>'
-			. sprintf( /* translators: %s: applicant email address */ esc_html__( 'Email: %s', 'agnosis' ), esc_html( $application->email ) ) . '<br>'
+			. sprintf( /* translators: %s: applicant email address */ esc_html_x( 'Email: %s', 'application email', 'agnosis' ), esc_html( $application->email ) ) . '<br>'
 			. sprintf( /* translators: %s: applicant display name */ esc_html__( 'Display name: %s', 'agnosis' ), esc_html( $application->display_name ) )
 			. '</p>'
 			. '<p style="margin:0;font-size:16px;line-height:1.6;color:#555;">'
@@ -663,7 +663,7 @@ class AdmissionNotification {
 
 		$work_emails_html = EmailFooter::html();
 		$footer_extra     = '' !== $work_emails_html
-			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>'
+			? '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>'
 			: '';
 
 		return EmailTemplate::render( $this->html_lang(), $body, $footer_extra );
@@ -716,7 +716,7 @@ class AdmissionNotification {
 				$rows .= '<tr><td style="font-size:16px;color:#555;padding:0 0 6px;">' . esc_html( $label ) . ':</td>'
 					. '<td style="font-size:16px;padding:0 0 6px;"><a href="mailto:' . esc_attr( $address ) . '" style="color:' . esc_attr( $accent ) . ';">' . esc_html( $address ) . '</a></td></tr>';
 			}
-			$body .= '<div style="background:#f9f9f9;padding:16px 20px;border-radius:4px;margin:0 0 20px;">'
+			$body .= '<div style="background:' . esc_attr( EmailTemplate::notice_bg() ) . ';padding:16px 20px;border-radius:4px;margin:0 0 20px;">'
 				. '<p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#333;">' . esc_html__( 'How to share your work — send an email to:', 'agnosis' ) . '</p>'
 				. '<table cellpadding="0" cellspacing="0" width="100%">' . $rows . '</table>'
 				. '<p style="margin:12px 0 4px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Subject line conventions:', 'agnosis' ) . '</p>'

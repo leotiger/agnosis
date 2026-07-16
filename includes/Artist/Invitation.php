@@ -31,6 +31,7 @@ namespace Agnosis\Artist;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailBranding;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
 
 class Invitation {
@@ -130,26 +131,12 @@ class Invitation {
 	}
 
 	private function build_body( string $intro ): string {
-		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$accent    = '#7c6af7';
+		$accent = EmailTemplate::accent();
+
+		$header_extra_html = '<div style="font-size:15px;color:' . esc_attr( EmailBranding::header_subtitle_color() ) . ';margin-top:4px;">' . esc_html__( "You're invited", 'agnosis' ) . '</div>';
 
 		ob_start();
 		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( str_replace( '_', '-', get_locale() ) ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-		<div style="font-size:15px;color:#ece9ff;margin-top:4px;"><?php esc_html_e( "You're invited", 'agnosis' ); ?></div>
-	</td></tr>
-
-	<tr><td style="background:#ffffff;padding:36px 24px;">
 		<?php if ( '' !== trim( $intro ) ) : ?>
 		<div style="margin:0 0 28px;font-size:18px;line-height:1.7;color:#333;">
 			<?php echo wp_kses_post( wpautop( $intro ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_kses_post() escapes/strips internally. ?>
@@ -167,27 +154,10 @@ class Invitation {
 		<p style="margin:0;font-size:15px;color:#999;">
 			<?php esc_html_e( 'No account needed to apply — the community reviews and votes on every application.', 'agnosis' ); ?>
 		</p>
-	</td></tr>
-
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>
 		<?php
-		return (string) ob_get_clean();
+		$body_html = (string) ob_get_clean();
+
+		return EmailTemplate::render( str_replace( '_', '-', get_locale() ), $body_html, '', $header_extra_html );
 	}
 
 	/**

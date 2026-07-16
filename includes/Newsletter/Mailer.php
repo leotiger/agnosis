@@ -11,26 +11,25 @@ declare(strict_types=1);
 namespace Agnosis\Newsletter;
 
 use Agnosis\Core\EmailBranding;
+use Agnosis\Core\EmailTemplate;
 
 class Mailer {
 
 	/**
 	 * Build the full HTML email document (doctype/head/body) for one
-	 * newsletter recipient. Thin wrapper around build_body() — see that
-	 * method for the actual branded card markup and its params.
+	 * newsletter recipient. Thin wrapper around EmailTemplate::render() — see
+	 * build_parts() for the actual per-issue content this fills in.
 	 */
 	public static function build_email( string $type, string $intro, string $digest_html, ?string $unsubscribe_url = null, string $view_online_url = '' ): string {
-		ob_start();
-		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( str_replace( '_', '-', get_locale() ) ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-		<?php echo self::build_body( $type, $intro, $digest_html, $unsubscribe_url, $view_online_url ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- build_body() escapes internally. ?>
-</body>
-</html>
-		<?php
-		return (string) ob_get_clean();
+		[ $body_html, $footer_extra_html, $header_extra_html, $notice_row_html ] = self::build_parts( $type, $intro, $digest_html, $unsubscribe_url, $view_online_url );
+
+		return EmailTemplate::render(
+			str_replace( '_', '-', get_locale() ),
+			$body_html,
+			$footer_extra_html,
+			$header_extra_html,
+			$notice_row_html
+		);
 	}
 
 	/**
@@ -58,65 +57,57 @@ class Mailer {
 	 *                                      itself, since a "view online" link makes no sense there.
 	 */
 	public static function build_body( string $type, string $intro, string $digest_html, ?string $unsubscribe_url = null, string $view_online_url = '' ): string {
-		$site_name = get_bloginfo( 'name' );
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
+		[ $body_html, $footer_extra_html, $header_extra_html, $notice_row_html ] = self::build_parts( $type, $intro, $digest_html, $unsubscribe_url, $view_online_url );
 
+		return EmailTemplate::card( $body_html, $footer_extra_html, $header_extra_html, $notice_row_html );
+	}
+
+	/**
+	 * Compute the four EmailTemplate::render()/card() slots shared by
+	 * build_email() and build_body() — extracted so the doctype-wrapped email
+	 * and the doctype-less Archive fragment can never drift out of sync with
+	 * each other, since both are now built from this single source.
+	 *
+	 * @return array{0: string, 1: string, 2: string, 3: string} [body_html, footer_extra_html, header_extra_html, notice_row_html]
+	 */
+	private static function build_parts( string $type, string $intro, string $digest_html, ?string $unsubscribe_url, string $view_online_url ): array {
 		$heading = 'artist' === $type
 			? __( 'Community Newsletter', 'agnosis' )
 			: __( 'Newsletter', 'agnosis' );
 
+		$header_extra_html = '<div style="font-size:15px;color:' . esc_attr( EmailBranding::header_subtitle_color() ) . ';margin-top:4px;">' . esc_html( $heading ) . '</div>';
+
+		$notice_row_html = '';
+		if ( '' !== $view_online_url ) {
+			$notice_row_html = '<tr><td style="padding:10px 24px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-bottom:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">'
+				. '<p style="margin:0;font-size:14px;color:' . esc_attr( EmailTemplate::text_secondary_color() ) . ';text-align:center;">'
+				. esc_html__( 'Having trouble viewing this email?', 'agnosis' ) . ' '
+				. '<a href="' . esc_url( $view_online_url ) . '" style="color:' . esc_attr( EmailTemplate::accent() ) . ';">' . esc_html__( 'View it online.', 'agnosis' ) . '</a>'
+				. '</p></td></tr>';
+		}
+
+		ob_start();
+		if ( '' !== trim( $intro ) ) {
+			?>
+			<p style="margin:0 0 28px;font-size:18px;line-height:1.7;color:#333;"><?php echo wp_kses_post( wpautop( $intro ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wp_kses_post() escapes/strips internally. ?></p>
+			<?php
+		}
+		echo $digest_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped in Digest::build_*().
+		$body_html = (string) ob_get_clean();
+
 		ob_start();
 		?>
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center" style="background:#f5f5f5;">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-		<div style="font-size:15px;color:#ece9ff;margin-top:4px;"><?php echo esc_html( $heading ); ?></div>
-	</td></tr>
-
-		<?php if ( '' !== $view_online_url ) : ?>
-	<tr><td style="padding:10px 24px;background:#f9f9f9;border-bottom:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#999;text-align:center;">
-			<?php esc_html_e( 'Having trouble viewing this email?', 'agnosis' ); ?>
-			<a href="<?php echo esc_url( $view_online_url ); ?>" style="color:#7c6af7;"><?php esc_html_e( 'View it online.', 'agnosis' ); ?></a>
-		</p>
-	</td></tr>
-	<?php endif; ?>
-
-	<tr><td style="background:#ffffff;padding:36px 24px;">
-		<?php if ( '' !== trim( $intro ) ) : ?>
-		<p style="margin:0 0 28px;font-size:18px;line-height:1.7;color:#333;"><?php echo wp_kses_post( wpautop( $intro ) ); ?></p>
-		<?php endif; ?>
-
-		<?php echo $digest_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fully escaped in Digest::build_*(). ?>
-	</td></tr>
-
-	<tr><td style="background:#ffffff;padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0 0 8px;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
+		<p style="margin:8px 0 0;font-size:<?php echo esc_attr( (string) EmailTemplate::text_secondary_size() ); ?>px;color:<?php echo esc_attr( EmailTemplate::text_secondary_color() ); ?>;text-align:center;">
 			<?php if ( null !== $unsubscribe_url ) : ?>
-				<a href="<?php echo esc_url( $unsubscribe_url ); ?>" style="color:#bbb;"><?php esc_html_e( 'Unsubscribe', 'agnosis' ); ?></a>
+				<a href="<?php echo esc_url( $unsubscribe_url ); ?>" style="color:<?php echo esc_attr( EmailTemplate::text_secondary_color() ); ?>;"><?php esc_html_e( 'Unsubscribe', 'agnosis' ); ?></a>
 			<?php else : ?>
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" style="color:#bbb;"><?php esc_html_e( 'Subscribe to get these by email', 'agnosis' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" style="color:<?php echo esc_attr( EmailTemplate::text_secondary_color() ); ?>;"><?php esc_html_e( 'Subscribe to get these by email', 'agnosis' ); ?></a>
 			<?php endif; ?>
 		</p>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
 		<?php
-		return (string) ob_get_clean();
+		$footer_extra_html = (string) ob_get_clean();
+
+		return [ $body_html, $footer_extra_html, $header_extra_html, $notice_row_html ];
 	}
 
 	/**

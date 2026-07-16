@@ -41,9 +41,9 @@
 		zap:      '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
 	};
 
-	blocks.registerBlockType( 'agnosis/newsletter-popover', {
-
-		edit: function ( props ) {
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it.
+	var Edit = function ( props ) {
 			var icon = props.attributes.icon || 'bell';
 
 			// Inline styles approximating the real .lf-icon-btn treatment
@@ -102,7 +102,10 @@
 					} )
 				)
 			);
-		},
+	};
+
+	blocks.registerBlockType( 'agnosis/newsletter-popover', {
+		edit: Edit,
 
 		save: function () {
 			return null;

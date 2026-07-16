@@ -3,8 +3,8 @@ Contributors: agnosis
 Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
-Requires PHP: 8.1
-Stable tag: 0.9.29
+Requires PHP: 8.2
+Stable tag: 0.9.30
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,7 +46,7 @@ Once published, an artist can also correct their own title, text, or photos dire
 * Digest newsletter for followers; in-site Artist Guide page
 * Settings → Commerce holds a configurable transaction-fee percentage for a planned donation/store revenue layer — not yet a working checkout
 * `agnosis_artwork`/`agnosis_biography`/`agnosis_event` custom post types with Gutenberg gallery blocks
-* Settings: General | Email | AI Providers | Behavior | Network | Community | Commerce | Newsletter | Logs
+* Settings: General | Branding | Email | AI Providers | Behavior | Network | Community | Commerce | Newsletter | Logs
 
 == Installation ==
 
@@ -71,24 +71,17 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.30 =
+* Changed: Minimum required PHP raised from 8.1 to 8.2. A dependency update had already moved the plugin's actual PHP requirement to 8.2 without the plugin's own "Requires PHP" header being updated to match; this release corrects the header to reflect reality rather than rolling the dependency back.
+* Added: A new Branding tab (Settings → Branding, right after General) now holds the email logo, header background, and accent color settings previously on General — plus ten new controls: email width, page/card/footer background color, primary and secondary text color and size, divider/border color, button text color, notice-box background color, and footer label color, so the whole look of your outgoing email — every box, divider, and footer element, not just the header and accent — can be made to match your site.
+* Added: A "Send test email" button on Settings → Branding sends yourself a sample email built from your saved settings — header, body, a button, and the footer card — so you can see how your colors actually look without waiting for a real email to go out.
+* Fixed: The header background and accent color settings only actually applied to 4 of the 10 places Agnosis sends outgoing HTML email. The other 6 — submission review, removal/rejection notices, both newsletter templates, the invitation email, and the artist vote digest — carried their own hardcoded copies of the original colors and silently ignored your settings, and even the 4 that worked showed the old accent color in the footer's contact-address links. All 10 now read the same configured values everywhere in the email, and the new Branding controls above apply across every one of them too.
+* Fixed: If you set a light "Header background" color, the header text (your site name) rendered white-on-white and disappeared — including on the very first email a new applicant needs to read and act on. The header text now automatically switches to dark when your chosen background is light, so it's always readable no matter what color you pick. The same fix now also covers the small subtitle line under the header on newsletter and invitation emails.
+
 = 0.9.29 =
 * Fixed: Several automated emails (departure, ban/reinstatement, and community-vote notices; the community broadcast's "too long"/"empty" bounce notices; the admin new-application summary) were still plain, unstyled text while every other Agnosis email was already nicely formatted. They're now all styled to match.
 * Added: New Settings → General fields let you customize the header background color and the accent color (buttons and links) used across every outgoing HTML email, so your emails can match your site's own branding. Destructive actions (like a removal vote) always keep a fixed red regardless of this setting, so they stay easy to spot.
 * Added: New docs/guides/ folder in the plugin's source repository with a plain-text reference for the Artist Guide, About page, medium categories, join page, privacy policy, and email templates — useful if you want to review or adapt this copy without digging through the code.
-
-= 0.9.28 =
-* Added: Removing or editing an artwork now carries across the Fediverse. When a piece is taken down — by the artist, by a community removal vote, or as part of a data-erasure request — followers' servers are told to drop their copy, and anyone re-checking the old address gets a proper "gone" answer. Corrections to a published piece (new title, text, or photo) now reach followers too, instead of leaving stale copies out there forever.
-* Security: A crafted Fediverse request could pretend to be another person's account — making us deliver artworks to an inbox that never followed us, or silently un-follow a real follower. The identity that signs a request must now match the identity the request claims to act as; anything else is rejected.
-* Security: Registering a network node with our site accepted the request without checking anything, so it could be spammed with fake registrations. Registration is now rate-limited, capped so it can't grow without bound, and must be cryptographically signed by whoever is registering.
-* Fixed: Fediverse apps that look up an artwork by its web address (for example when someone boosts it, or pastes the link into Mastodon's search) now receive the artwork's federation data instead of a regular web page — and on sites without pretty permalinks, those addresses no longer point at a broken page.
-* Fixed: Following the site from Mastodon (and most other Fediverse apps) never actually worked — our replies and new-artwork posts were missing a security header Mastodon requires, so it silently rejected everything we sent while the follow sat "pending" forever on the follower's side. Deliveries now carry and sign that header, and any delivery a remote server rejects is now recorded in Settings → Logs instead of failing invisibly.
-* Fixed: Deleting the plugin didn't remove visitor contact-form messages (names, email addresses, and, briefly, IP addresses) — that table is now included in the cleanup along with everything else the plugin removes.
-* Fixed: Fediverse tools that browse through your full list of published artworks (for example, when Mastodon first loads your profile) couldn't page through past the first batch. Browsing your full artwork history from the Fediverse now works as expected.
-* Added: Artworks now federate with much richer detail — the AI-written alt text, real hashtags from your tags and medium (so Mastodon users can actually discover your work), and the full description instead of a 50-word snippet. You (or, per medium, the site operator) can also now flag a piece as sensitive content, which adds a Fediverse content warning.
-* Fixed: Deleting the plugin left behind some leftover bookkeeping data tied to individual accounts (bounce tracking, notification opt-outs) — that's now cleaned up along with everything else the plugin removes. Your account itself is never touched.
-* Fixed: A Fediverse delivery that failed (for example, a Mastodon instance that was briefly offline) was gone for good after one try, with only a log entry to show for it. Failed deliveries are now retried automatically over the next few days before being given up on. Follower storage was also hardened against growing unbounded on very large or very active nodes.
-* Added: Every artist now has their own identity on the Fediverse. Instead of Mastodon (and similar apps) only ever seeing "the site" post, people can follow an individual artist directly by searching `@theirname@yoursite.com` — and get just that artist's new work in their feed. Following the site as a whole still works exactly as before. Also added the standard "site info" endpoint (NodeInfo) that federation directories and health-check tools look for.
-* Changed: Corrected two more leftover British spellings ("Watercolour" → "Watercolor" in the medium list, "Behaviour" → "Behavior" in the Settings tab list) and reworded the Commerce feature description so it no longer reads as already available — it's a planned addition, not yet built.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

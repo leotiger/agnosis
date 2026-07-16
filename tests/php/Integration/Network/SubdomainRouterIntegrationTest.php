@@ -175,7 +175,7 @@ class SubdomainRouterIntegrationTest extends \WP_UnitTestCase {
 		// Simulate LinguaForge being active if it isn't already — boot() only
 		// checks defined('LINGUAFORGE_VERSION'), so defining it here is sufficient.
 		if ( ! defined( 'LINGUAFORGE_VERSION' ) ) {
-			define( 'LINGUAFORGE_VERSION', 'test' ); // @phpstan-ignore-line
+			define( 'LINGUAFORGE_VERSION', 'test' );
 		}
 
 		update_option( 'linguaforge_routing_mode', 'subdomain' );

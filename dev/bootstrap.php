@@ -420,6 +420,31 @@ if ( ! class_exists( 'Imagick' ) ) {
         }
 
         /**
+         * Appends $image's current dimensions as another page — stand-in for
+         * real Imagick's multi-frame append used by
+         * MediaAdapterTest::make_test_multipage_blob()'s "real extension
+         * available" branch. That branch is only ever reached when
+         * \extension_loaded('imagick') is genuinely true, which never holds
+         * while this fake class is the active \Imagick (see the class guard
+         * above) — so at runtime this is dead code. It still needs a real
+         * method body so PHPStan's static analysis (which has no notion of
+         * that runtime guard) resolves addImage()/getImagesBlob() as defined,
+         * on any machine, regardless of whether the real extension happens to
+         * be installed — same "deterministic on every machine" goal as the
+         * rest of this fake.
+         */
+        public function addImage( Imagick $image ): bool {
+            $this->pages[] = [ $image->width, $image->height ];
+            return true;
+        }
+
+        /** Pairs with addImage() above — see that method's docblock. */
+        public function getImagesBlob(): string {
+            $pages = $this->pages ?: [ [ $this->width, $this->height ] ];
+            return 'FAKEPDF:' . implode( '|', array_map( static fn( $p ) => $p[0] . 'x' . $p[1], $pages ) );
+        }
+
+        /**
          * Deterministic stand-in for real font-metric measurement — used only
          * by TextPosterGenerator::fit_font_size()/generate(), which read
          * 'textWidth' (to scale a line to the canvas width) and 'ascender'

@@ -13,6 +13,23 @@
  * stays 'pending' and is retried on later ticks, up to MAX_ATTEMPTS, before
  * it is marked terminally 'failed'. See security audit §3d.
  *
+ * Claim-then-read (security audit §2c): process() previously SELECTed
+ * 'pending' rows and only updated their status after sending — two
+ * overlapping ticks (WP-Cron firing twice for the same event, or a cron tick
+ * landing while an admin's "Send Now" is still running) could both select
+ * the same rows and each send them, double-mailing recipients. process() now
+ * atomically claims a batch first — a single `UPDATE … WHERE status =
+ * 'pending' ORDER BY id ASC LIMIT %d` tagging the claimed rows with a
+ * per-run `claim_token` — and only reads back rows carrying that exact
+ * token. InnoDB row-locking means at most one concurrent claim ever wins
+ * each row: the WHERE clause's `status = 'pending'` check is re-evaluated
+ * against the live, committed value as each row's lock is acquired, so a
+ * second UPDATE racing for the same row simply finds it already 'claimed'
+ * and skips it. A PHP process that dies mid-batch after claiming but before
+ * finishing would otherwise strand those rows in 'claimed' forever (the
+ * claim UPDATE only ever targets 'pending' rows) — reset_stale_claims(),
+ * run at the top of every process() tick, self-heals that automatically.
+ *
  * @package Agnosis\Newsletter
  */
 
@@ -32,18 +49,44 @@ class QueueProcessor {
 	private const MAX_ATTEMPTS = 3;
 
 	/**
+	 * How long a row may sit 'claimed' before reset_stale_claims() treats it
+	 * as abandoned and returns it to 'pending' — see that method's own
+	 * docblock (security audit §2c). Matches Email\Inbox::force_reprocess()'s
+	 * stuck-'processing' threshold for the intake queue.
+	 */
+	private const STALE_CLAIM_MINUTES = 30;
+
+	/**
 	 * Hook callback for 'agnosis_send_newsletter_queue'.
 	 */
 	public function process(): void {
 		global $wpdb;
 
-		$batch_size = max( 1, (int) get_option( 'agnosis_newsletter_batch_size', 20 ) );
+		$this->reset_stale_claims();
+
+		$batch_size  = max( 1, (int) get_option( 'agnosis_newsletter_batch_size', 20 ) );
+		$claim_token = wp_generate_uuid4();
+
+		// Claim-then-read (security audit §2c) — see this class's own docblock.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_newsletter_queue
+				 SET status = 'claimed', claim_token = %s, claimed_at = %s
+				 WHERE status = 'pending'
+				 ORDER BY id ASC
+				 LIMIT %d",
+				$claim_token,
+				current_time( 'mysql' ),
+				$batch_size
+			)
+		);
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE status = 'pending' ORDER BY id ASC LIMIT %d",
-				$batch_size
+				"SELECT * FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE claim_token = %s ORDER BY id ASC",
+				$claim_token
 			)
 		);
 
@@ -131,6 +174,33 @@ class QueueProcessor {
 	}
 
 	/**
+	 * Reset any row stuck in 'claimed' longer than STALE_CLAIM_MINUTES back
+	 * to 'pending' (security audit §2c) — a PHP process that claimed a batch
+	 * (see process()'s own docblock) and then died mid-run (execution-time
+	 * limit, host OOM kill, uncaught fatal outside send_one()'s own
+	 * try/catch) would otherwise leave those rows permanently unreachable:
+	 * the claim UPDATE only ever targets status = 'pending'. Runs at the top
+	 * of every process() tick — self-healing, no admin action needed, same
+	 * shape as Email\Inbox::force_reprocess()'s stuck-'processing' reset for
+	 * the intake queue.
+	 */
+	private function reset_stale_claims(): void {
+		global $wpdb;
+
+		$cutoff = current_datetime()->modify( '-' . self::STALE_CLAIM_MINUTES . ' minutes' )->format( 'Y-m-d H:i:s' );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_newsletter_queue
+				 SET status = 'pending', claim_token = NULL, claimed_at = NULL
+				 WHERE status = 'claimed' AND claimed_at < %s",
+				$cutoff
+			)
+		);
+	}
+
+	/**
 	 * Reset every terminally-'failed' row for one issue back to 'pending'
 	 * with attempts=0 and resolved_at cleared, so the next cron tick retries
 	 * them (fifth/sixth audit §5e). Previously an outage longer than
@@ -150,7 +220,7 @@ class QueueProcessor {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$wpdb->query(
 			$wpdb->prepare(
-				"UPDATE {$wpdb->prefix}agnosis_newsletter_queue SET status = 'pending', attempts = 0, resolved_at = NULL WHERE issue_id = %d AND status = 'failed'",
+				"UPDATE {$wpdb->prefix}agnosis_newsletter_queue SET status = 'pending', attempts = 0, resolved_at = NULL, claim_token = NULL, claimed_at = NULL WHERE issue_id = %d AND status = 'failed'",
 				$issue_id
 			)
 		);
@@ -240,9 +310,9 @@ class QueueProcessor {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			$wpdb->prefix . 'agnosis_newsletter_queue',
-			[ 'status' => $status, 'resolved_at' => current_time( 'mysql' ) ],
+			[ 'status' => $status, 'resolved_at' => current_time( 'mysql' ), 'claim_token' => null, 'claimed_at' => null ],
 			[ 'id' => $queue_row_id ],
-			[ '%s', '%s' ],
+			[ '%s', '%s', '%s', '%s' ],
 			[ '%d' ]
 		);
 	}
@@ -258,8 +328,8 @@ class QueueProcessor {
 		$attempts  = $prior_attempts + 1;
 		$exhausted = $attempts >= self::MAX_ATTEMPTS;
 
-		$data    = [ 'status' => $exhausted ? 'failed' : 'pending', 'attempts' => $attempts ];
-		$formats = [ '%s', '%d' ];
+		$data    = [ 'status' => $exhausted ? 'failed' : 'pending', 'attempts' => $attempts, 'claim_token' => null, 'claimed_at' => null ];
+		$formats = [ '%s', '%d', '%s', '%s' ];
 		if ( $exhausted ) {
 			$data['resolved_at'] = current_time( 'mysql' );
 			$formats[]           = '%s';
@@ -276,7 +346,16 @@ class QueueProcessor {
 	}
 
 	/**
-	 * Mark an issue 'sent' once no pending queue rows remain for it.
+	 * Mark an issue 'sent' once no pending (or in-flight 'claimed') queue
+	 * rows remain for it.
+	 *
+	 * Counting 'claimed' alongside 'pending' matters now that process()
+	 * claims a batch before working it (security audit §2c): without it, a
+	 * row another overlapping tick had already claimed but not yet finished
+	 * would read as neither 'pending' nor 'sent'/'failed', and this method
+	 * — called at the end of every tick via reconcile_sending_issues() —
+	 * could mark the issue 'sent' while that other tick was still actively
+	 * sending some of its recipients.
 	 */
 	private function maybe_complete_issue( int $issue_id ): void {
 		global $wpdb;
@@ -284,7 +363,7 @@ class QueueProcessor {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$pending = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d AND status = 'pending'",
+				"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d AND status IN ('pending','claimed')",
 				$issue_id
 			)
 		);

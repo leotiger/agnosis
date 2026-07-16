@@ -102,7 +102,7 @@ class CommunityCapNotification {
 
 		$work_emails_html = EmailFooter::html();
 		if ( '' !== $work_emails_html ) {
-			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid #eee;">' . $work_emails_html . '</div>';
+			$footer_extra .= '<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid ' . esc_attr( EmailTemplate::border_color() ) . ';">' . $work_emails_html . '</div>';
 		}
 
 		$edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id );

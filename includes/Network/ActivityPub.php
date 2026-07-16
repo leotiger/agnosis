@@ -108,6 +108,14 @@ class ActivityPub {
 	/** Max retry-queue rows processed per agnosis_ap_retry_deliveries cron tick. */
 	private const RETRY_BATCH_SIZE = 20;
 
+	/**
+	 * How long a delivery-retry row may sit 'claimed' before
+	 * process_delivery_retry_queue()'s stale-claim sweep treats it as
+	 * abandoned and returns it to 'pending' (security audit §2c) — see that
+	 * method's own docblock.
+	 */
+	private const STALE_CLAIM_MINUTES = 30;
+
 	public function register_routes(): void {
 		$args = [ 'permission_callback' => '__return_true' ];
 
@@ -1527,18 +1535,49 @@ class ActivityPub {
 	 * RETRY_INTERVALS, or — once every interval is exhausted — is left in
 	 * place with status='failed' as the terminal record of a delivery that
 	 * was never accepted.
+	 *
+	 * Claim-then-read (security audit §2c): this previously SELECTed due
+	 * 'pending' rows and only updated them after attempting delivery — two
+	 * overlapping cron ticks could both select the same row and both POST
+	 * the same activity to the same inbox, a duplicate delivery. This method
+	 * now atomically claims a batch first — a single `UPDATE … WHERE status
+	 * = 'pending' AND next_attempt_at <= … ORDER BY id ASC LIMIT %d` tagging
+	 * the claimed rows with a per-run `claim_token` — and only reads back
+	 * rows carrying that exact token, the same pattern (and the same
+	 * InnoDB-row-locking guarantee) as Newsletter\QueueProcessor::process();
+	 * see that method's own docblock for the full reasoning. A PHP process
+	 * that dies mid-batch after claiming but before finishing would
+	 * otherwise strand those rows in 'claimed' forever — reset_stale_claims(),
+	 * run at the top of every call, self-heals that automatically.
 	 */
 	public function process_delivery_retry_queue(): void {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- RETRY_BATCH_SIZE is a class constant, not user input; current_time() below is the only variable and is passed as a bound parameter.
+		$this->reset_stale_delivery_claims();
+
+		$claim_token = wp_generate_uuid4();
+		$now         = current_time( 'mysql', true );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange -- RETRY_BATCH_SIZE is a class constant, not user input; $now/$claim_token are bound parameters.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_ap_delivery_queue
+				 SET status = 'claimed', claim_token = %s, claimed_at = %s
+				 WHERE status = 'pending' AND next_attempt_at <= %s
+				 ORDER BY id ASC
+				 LIMIT %d",
+				$claim_token,
+				$now,
+				$now,
+				self::RETRY_BATCH_SIZE
+			)
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}agnosis_ap_delivery_queue
-				 WHERE status = 'pending' AND next_attempt_at <= %s
-				 ORDER BY id ASC LIMIT %d",
-				current_time( 'mysql', true ),
-				self::RETRY_BATCH_SIZE
+				"SELECT * FROM {$wpdb->prefix}agnosis_ap_delivery_queue WHERE claim_token = %s ORDER BY id ASC",
+				$claim_token
 			)
 		);
 
@@ -1555,8 +1594,8 @@ class ActivityPub {
 			$attempts  = (int) $row->attempts + 1;
 			$exhausted = $attempts >= count( self::RETRY_INTERVALS );
 
-			$data   = [ 'attempts' => $attempts, 'last_error' => $result ];
-			$format = [ '%d', '%s' ];
+			$data   = [ 'attempts' => $attempts, 'last_error' => $result, 'claim_token' => null, 'claimed_at' => null ];
+			$format = [ '%d', '%s', '%s', '%s' ];
 
 			if ( $exhausted ) {
 				$data['status']      = 'failed';
@@ -1575,13 +1614,43 @@ class ActivityPub {
 					'activitypub'
 				);
 			} else {
+				// Still has retries left — return to 'pending' for its next
+				// scheduled attempt (the claim above moved it to 'claimed',
+				// so this must be explicit; the pre-claim code never needed
+				// to touch status here since the row had never left 'pending').
+				$data['status']          = 'pending';
 				$data['next_attempt_at'] = gmdate( 'Y-m-d H:i:s', time() + self::RETRY_INTERVALS[ $attempts ] );
+				$format[]                = '%s';
 				$format[]                = '%s';
 			}
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->update() parameterizes every value.
 			$wpdb->update( $wpdb->prefix . 'agnosis_ap_delivery_queue', $data, [ 'id' => $row->id ], $format, [ '%d' ] );
 		}
+	}
+
+	/**
+	 * Reset any delivery-retry row stuck in 'claimed' longer than
+	 * STALE_CLAIM_MINUTES back to 'pending' (security audit §2c) — same
+	 * reasoning as Newsletter\QueueProcessor::reset_stale_claims(): a PHP
+	 * process that claimed a batch and then died mid-run before finishing
+	 * would otherwise leave those rows permanently unreachable, since the
+	 * claim UPDATE only ever targets status = 'pending'.
+	 */
+	private function reset_stale_delivery_claims(): void {
+		global $wpdb;
+
+		$cutoff = gmdate( 'Y-m-d H:i:s', time() - self::STALE_CLAIM_MINUTES * MINUTE_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}agnosis_ap_delivery_queue
+				 SET status = 'pending', claim_token = NULL, claimed_at = NULL
+				 WHERE status = 'claimed' AND claimed_at < %s",
+				$cutoff
+			)
+		);
 	}
 
 	private function resolve_inbox( string $actor_url ): ?string {

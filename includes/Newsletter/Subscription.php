@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
-use Agnosis\Core\EmailBranding;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Core\Turnstile;
 use WP_REST_Request;
@@ -122,25 +122,11 @@ class Subscription {
 			$site_name
 		);
 
-		$accent    = '#7c6af7';
-		$header_bg = '#0d0d12'; // matches the theme's dark header/background colour on the live site.
-		$btn_base  = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 4px;';
+		$accent   = EmailTemplate::accent();
+		$btn_base = 'display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;margin:6px 4px;';
 
 		ob_start();
 		?>
-<!DOCTYPE html>
-<html lang="<?php echo esc_attr( str_replace( '_', '-', get_locale() ) ); ?>">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia,serif;color:#222;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 0;">
-<tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;max-width:600px;width:100%;">
-
-	<tr><td style="background:<?php echo esc_attr( $header_bg ); ?>;padding:28px 24px;">
-		<?php echo EmailBranding::header_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailBranding::header_html() escapes internally. ?>
-	</td></tr>
-
-	<tr><td style="padding:36px 24px;">
 		<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">
 			<?php esc_html_e( 'Thanks for signing up! Confirm your email address to start receiving the newsletter.', 'agnosis' ); ?>
 		</p>
@@ -156,27 +142,10 @@ class Subscription {
 		<p style="font-size:15px;color:#999;margin:0;">
 			<?php esc_html_e( "If you didn't request this, simply ignore this email — you will not be subscribed.", 'agnosis' ); ?>
 		</p>
-	</td></tr>
-
-	<tr><td style="padding:20px 24px;border-top:1px solid #eee;">
-		<p style="margin:0;font-size:14px;color:#bbb;text-align:center;">
-			<?php
-			printf(
-				/* translators: %s: site name */
-				esc_html__( '%s — art blooming out of oblivion', 'agnosis' ),
-				esc_html( $site_name )
-			);
-			?>
-		</p>
-	</td></tr>
-
-</table>
-</td></tr>
-</table>
-</body>
-</html>
 		<?php
-		$body = (string) ob_get_clean();
+		$body_html = (string) ob_get_clean();
+
+		$body = EmailTemplate::render( str_replace( '_', '-', get_locale() ), $body_html );
 
 		wp_mail( $email, $subject, $body, [
 			'Content-Type: text/html; charset=UTF-8',

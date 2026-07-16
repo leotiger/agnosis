@@ -98,9 +98,9 @@
 		);
 	}
 
-	blocks.registerBlockType( 'agnosis/artist-breadcrumb', {
-
-		edit: function ( props ) {
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it.
+	var Edit = function ( props ) {
 			var attributes    = props.attributes;
 			var biographyIcon = attributes.biographyIcon || 'book';
 			var eventsIcon    = attributes.eventsIcon || 'calendar';
@@ -228,7 +228,10 @@
 					)
 				)
 			);
-		},
+	};
+
+	blocks.registerBlockType( 'agnosis/artist-breadcrumb', {
+		edit: Edit,
 
 		save: function () {
 			return null;

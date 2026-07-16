@@ -152,6 +152,7 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_send_invitation',      $settings, 'handle_send_invitation' );
 			$this->loader->add_action( 'admin_post_agnosis_send_invitation_test', $settings, 'handle_send_invitation_test' );
 			$this->loader->add_action( 'admin_post_agnosis_send_deliverability_test', $settings, 'handle_send_deliverability_test' );
+			$this->loader->add_action( 'admin_post_agnosis_send_branding_test',    $settings, 'handle_send_branding_test' );
 			$this->loader->add_action( 'admin_post_agnosis_retry_failed_newsletter_recipients', $settings, 'handle_retry_failed_newsletter_recipients' );
 
 			// Queue management handlers.

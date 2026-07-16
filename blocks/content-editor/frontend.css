@@ -13,7 +13,7 @@
 	right: -2em;
 	width: 1.75em;
 	height: 1.75em;
-	line-height: 1.75em;
+	line-height: 28px; /* 1.75em at the 16px base font-size, matching the em-based height/width above */
 	text-align: center;
 	padding: 0;
 	border: none;
@@ -55,7 +55,7 @@
 .agnosis-editable__save,
 .agnosis-editable__cancel {
 	padding: 0.4em 1em;
-	border: 1px solid currentColor;
+	border: 1px solid currentcolor;
 	border-radius: 4px;
 	background: transparent;
 	cursor: pointer;

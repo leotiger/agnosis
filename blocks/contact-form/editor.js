@@ -11,26 +11,29 @@
 	var useBlockProps = blockEditor.useBlockProps;
 	var Placeholder   = components.Placeholder;
 
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it.
+	var Edit = function () {
+		var blockProps = useBlockProps( {
+			className: 'agnosis-contact-form-editor',
+		} );
+
+		return el(
+			'div',
+			blockProps,
+			el(
+				Placeholder,
+				{
+					icon:         'email',
+					label:        __( 'Artist Contact Form', 'agnosis' ),
+					instructions: __( 'Lets a visitor message the current artist subdomain’s artist. Content is rendered live on the frontend, for the artist currently being viewed.', 'agnosis' ),
+				}
+			)
+		);
+	};
+
 	blocks.registerBlockType( 'agnosis/contact-form', {
-
-		edit: function () {
-			var blockProps = useBlockProps( {
-				className: 'agnosis-contact-form-editor',
-			} );
-
-			return el(
-				'div',
-				blockProps,
-				el(
-					Placeholder,
-					{
-						icon:         'email',
-						label:        __( 'Artist Contact Form', 'agnosis' ),
-						instructions: __( 'Lets a visitor message the current artist subdomain’s artist. Content is rendered live on the frontend, for the artist currently being viewed.', 'agnosis' ),
-					}
-				)
-			);
-		},
+		edit: Edit,
 
 		save: function () {
 			return null;

@@ -29,18 +29,21 @@
 	var __            = i18n.__;
 	var useBlockProps = blockEditor.useBlockProps;
 
+	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
+	// component and allows the useBlockProps() hook call inside it.
+	var Edit = function () {
+		var blockProps = useBlockProps( {
+			href: '#',
+			onClick: function ( event ) {
+				event.preventDefault();
+			},
+		} );
+
+		return el( 'a', blockProps, __( 'Artist Name', 'agnosis' ) );
+	};
+
 	blocks.registerBlockType( 'agnosis/artist-name-link', {
-
-		edit: function () {
-			var blockProps = useBlockProps( {
-				href: '#',
-				onClick: function ( event ) {
-					event.preventDefault();
-				},
-			} );
-
-			return el( 'a', blockProps, __( 'Artist Name', 'agnosis' ) );
-		},
+		edit: Edit,
 
 		save: function () {
 			return null;

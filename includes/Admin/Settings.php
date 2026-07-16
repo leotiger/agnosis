@@ -20,6 +20,9 @@ use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Activator;
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\Debug;
+use Agnosis\Core\EmailBranding;
+use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
 use Agnosis\Core\Turnstile;
 use Agnosis\Newsletter\QueueProcessor;
@@ -33,6 +36,7 @@ class Settings {
 	/** Each tab gets its own option group so saving one tab never clobbers another. */
 	private const GROUPS = [
 		'general'     => 'agnosis_general_options',
+		'branding'    => 'agnosis_branding_options',
 		'email'       => 'agnosis_email_options',
 		'ai'          => 'agnosis_ai_options',
 		'behavior'    => 'agnosis_behavior_options',
@@ -175,6 +179,8 @@ class Settings {
 				'invitation_test_failed' => [ 'error', __( 'Could not send the test invitation — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
 				'deliverability_test_sent'   => [ 'success', __( 'Test email sent — check whether it lands in your inbox or your spam folder.', 'agnosis' ) ],
 				'deliverability_test_failed' => [ 'error', __( 'Could not send the test email — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
+				'branding_test_sent'         => [ 'success', __( 'Branding preview sent — check the inbox you sent it to.', 'agnosis' ) ],
+				'branding_test_failed'       => [ 'error', __( 'Could not send the branding preview — check the address and your site\'s outgoing mail configuration.', 'agnosis' ) ],
 				'newsletter_retry_queued'    => [ 'success', __( 'Failed recipients reset to pending — they will be retried on the next few cron cycles.', 'agnosis' ) ],
 				'newsletter_retry_none'      => [ 'error', __( 'No failed recipients to retry for this newsletter.', 'agnosis' ) ],
 			];
@@ -293,6 +299,7 @@ class Settings {
 	private function tabs(): array {
 		return [
 			'general'    => __( 'General',      'agnosis' ),
+			'branding'   => __( 'Branding',     'agnosis' ),
 			'email'      => __( 'Email Inbox',  'agnosis' ),
 			'ai'         => __( 'AI Providers', 'agnosis' ),
 			'behavior'   => __( 'Behavior',     'agnosis' ),
@@ -438,35 +445,6 @@ class Settings {
 				'desc'     => __( 'Debug dumps older than this are permanently deleted by the daily cleanup — automatically, whether or not debug logging is currently turned on, so files left over from a past debug session don\'t linger indefinitely. A dump is a full raw copy of an artist\'s email, so this defaults shorter than the inbox/queue retention above. Default: 14 days.', 'agnosis' ),
 			],
 
-			// --- GENERAL: Branding ---
-			'agnosis_email_logo_id' => [
-				'tab'      => 'general',
-				'label'    => __( 'Email logo', 'agnosis' ),
-				'input'    => 'media',
-				'type'     => 'integer',
-				'sanitize' => 'absint',
-				'default'  => 0,
-				'desc'     => __( 'Shown in the header of outgoing HTML emails (submission review, removal confirmation, rejection notice, and both newsletters) in place of the plain "✦ Site Name" text. Leave empty to keep the text wordmark. Displayed at up to 40px tall — any width or aspect ratio works.', 'agnosis' ),
-			],
-			'agnosis_email_header_bg' => [
-				'tab'      => 'general',
-				'label'    => __( 'Email header background', 'agnosis' ),
-				'input'    => 'color',
-				'type'     => 'string',
-				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#0d0d12' ),
-				'default'  => '#0d0d12',
-				'desc'     => __( 'Background color of the colored header bar on every outgoing HTML email (submission review, admission/departure/vote notices, both newsletters).', 'agnosis' ),
-			],
-			'agnosis_email_accent' => [
-				'tab'      => 'general',
-				'label'    => __( 'Email accent color', 'agnosis' ),
-				'input'    => 'color',
-				'type'     => 'string',
-				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#7c6af7' ),
-				'default'  => '#7c6af7',
-				'desc'     => __( 'Color of primary buttons and links across every outgoing HTML email. Destructive actions (reject, remove, vote to remove) always use a fixed red regardless of this setting, so they stay visually distinct.', 'agnosis' ),
-			],
-
 			// --- GENERAL: Biography ---
 			'agnosis_biography_preset_title' => [
 				'tab'     => 'general',
@@ -496,6 +474,157 @@ class Settings {
 				'input'    => 'password',
 				'sanitize' => fn( $v ) => $v,
 				'desc'     => __( 'Kept server-side only — used to verify each form submission directly with Cloudflare before it is accepted.', 'agnosis' ),
+			],
+
+			// --- BRANDING ---
+			// Every field here is read by Core\EmailTemplate (the shared shell
+			// every outgoing HTML email is built around) via a static getter
+			// with its own sanitize-fallback, so a stored value that predates
+			// validation — or a direct update_option() call bypassing this
+			// screen's own sanitize callback — can never break an email.
+			// Defaults exactly match the plugin's original hardcoded look, so
+			// an existing install sees zero visual change until an operator
+			// explicitly opens this tab and changes something.
+			'agnosis_email_logo_id' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Email logo', 'agnosis' ),
+				'input'    => 'media',
+				'type'     => 'integer',
+				'sanitize' => 'absint',
+				'default'  => 0,
+				'desc'     => __( 'Shown in the header of outgoing HTML emails (submission review, removal confirmation, rejection notice, invitations, and both newsletters) in place of the plain "✦ Site Name" text. Leave empty to keep the text wordmark. Displayed at up to 40px tall — any width or aspect ratio works.', 'agnosis' ),
+			],
+			'agnosis_email_header_bg' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Header background', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#0d0d12' ),
+				'default'  => '#0d0d12',
+				'desc'     => __( 'Background color of the colored header bar on every outgoing HTML email.', 'agnosis' ),
+			],
+			'agnosis_email_accent' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Accent color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#7c6af7' ),
+				'default'  => '#7c6af7',
+				'desc'     => __( 'Color of primary buttons and links across every outgoing HTML email. Destructive actions (reject, remove, vote to remove) always use a fixed red regardless of this setting, so they stay visually distinct.', 'agnosis' ),
+			],
+			'agnosis_email_width' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Email width (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 600,
+				'min'      => 320,
+				'max'      => 800,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 320, min( 800, (int) $v ) ),
+				'desc'     => __( 'Width of the card every outgoing HTML email is built around. 600px is the long-standing email-safe default most clients render reliably — narrower reads awkwardly on desktop, wider risks getting clipped or horizontally scrolled by some mobile mail apps. Default: 600.', 'agnosis' ),
+			],
+			'agnosis_email_body_bg' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Page background color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#f5f5f5' ),
+				'default'  => '#f5f5f5',
+				'desc'     => __( 'Background color that surrounds the email card — the "letterbox" area visible in most desktop mail clients. Distinct from the card background below.', 'agnosis' ),
+			],
+			'agnosis_email_card_bg' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Card background color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#ffffff' ),
+				'default'  => '#ffffff',
+				'desc'     => __( 'Background color of the card itself — where the body text and footer sit. Keep this light for readable dark text below; for a dark theme, also darken the text colors.', 'agnosis' ),
+			],
+			'agnosis_email_text_color' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Primary text color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#222222' ),
+				'default'  => '#222222',
+				'desc'     => __( 'Default color for body text — the main reading text of every outgoing HTML email.', 'agnosis' ),
+			],
+			'agnosis_email_text_size' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Primary text size (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 16,
+				'min'      => 10,
+				'max'      => 24,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 10, min( 24, (int) $v ) ),
+				'desc'     => __( 'Default base font size for body text. Default: 16.', 'agnosis' ),
+			],
+			'agnosis_email_text_secondary_color' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Secondary text color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#bbbbbb' ),
+				'default'  => '#bbbbbb',
+				'desc'     => __( 'Color for muted/secondary text — the footer tagline, work-address descriptions, and small helper links (unsubscribe, notification preferences, "view online"). Matches the plugin\'s original hardcoded footer color, kept as the default.', 'agnosis' ),
+			],
+			'agnosis_email_text_secondary_size' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Secondary text size (px)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 14,
+				'min'      => 10,
+				'max'      => 20,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 10, min( 20, (int) $v ) ),
+				'desc'     => __( 'Font size for muted/secondary text — the footer tagline and smaller helper text below the main body copy. Default: 14.', 'agnosis' ),
+			],
+			'agnosis_email_footer_bg' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Footer background color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#ffffff' ),
+				'default'  => '#ffffff',
+				'desc'     => __( 'Background color of the footer strip at the bottom of every outgoing HTML email (the tagline, and — on emails that have one — the work-addresses card and unsubscribe/preferences link). Independent of the card background above, so the footer can be set off visually from the body if you like.', 'agnosis' ),
+			],
+			'agnosis_email_border_color' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Divider / border color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#eeeeee' ),
+				'default'  => '#eeeeee',
+				'desc'     => __( 'Color of thin divider lines across outgoing HTML email — between the body and footer, above the work-addresses card, and around the newsletter\'s "view online" banner.', 'agnosis' ),
+			],
+			'agnosis_email_button_text_color' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Button text color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#ffffff' ),
+				'default'  => '#ffffff',
+				'desc'     => __( 'Text color on the solid accent-colored call-to-action buttons (e.g. "Confirm subscription", "Apply to join"). Change this alongside the accent color above if you pick a light accent that white text wouldn\'t read well against.', 'agnosis' ),
+			],
+			'agnosis_email_notice_bg' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Notice box background color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#f9f9f9' ),
+				'default'  => '#f9f9f9',
+				'desc'     => __( 'Background color of the shaded info/quote boxes used throughout outgoing HTML email — quoted bios and statements, "did you mean" suggestions, application summaries, and similar callouts.', 'agnosis' ),
+			],
+			'agnosis_email_footer_label_color' => [
+				'tab'      => 'branding',
+				'label'    => __( 'Footer label color', 'agnosis' ),
+				'input'    => 'color',
+				'type'     => 'string',
+				'sanitize' => fn( $v ) => self::sanitize_color( (string) $v, '#555555' ),
+				'default'  => '#555555',
+				'desc'     => __( 'Color of the bold address labels ("Artwork:", "Biography:", etc.) in the work-addresses reference card that appears in the footer of artist-facing notification emails.', 'agnosis' ),
 			],
 
 			// --- EMAIL ---
@@ -1675,6 +1804,10 @@ class Settings {
 			$this->render_newsletter_dashboard();
 			return;
 		}
+		if ( 'branding' === $tab ) {
+			$this->render_branding_test_form();
+			return;
+		}
 		if ( 'email' !== $tab ) {
 			return;
 		}
@@ -1731,6 +1864,111 @@ class Settings {
 		</div>
 		<?php
 		$this->render_deliverability_card();
+	}
+
+	/**
+	 * "Send test email" card on Settings → Branding (audit AUDIT-0.9.29.md
+	 * §2d, 💡): the color/logo/width fields save blind — an operator's first
+	 * real look at how they combine is whatever email happens to go out
+	 * next, which could be days away and isn't guaranteed to exercise every
+	 * field (e.g. the footer card only appears on artist-facing mail). This
+	 * renders one representative `EmailTemplate::render()` body — the same
+	 * shell every real email uses, with a sample header subtitle, body
+	 * paragraph, button, and a "work addresses" footer card so all of
+	 * Branding's fields are exercised at once — and sends it to an address
+	 * the operator chooses, same one-click pattern as the newsletter/
+	 * invitation/deliverability test-send buttons already on other tabs.
+	 */
+	private function render_branding_test_form(): void {
+		$current_user = wp_get_current_user();
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Preview', 'agnosis' ); ?></h2>
+			<p class="description" style="margin-top:0">
+				<?php esc_html_e( 'These fields save without any preview — the first real look at how your colors, width, and logo combine is otherwise whatever email happens to go out next. Send yourself a sample using the settings currently saved above (save first if you just changed something and want the test to match).', 'agnosis' ); ?>
+			</p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.4rem;align-items:center">
+				<input type="hidden" name="action" value="agnosis_send_branding_test">
+				<?php wp_nonce_field( 'agnosis_send_branding_test' ); ?>
+				<input type="email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
+				<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * admin-post handler: send a one-off sample of the branded email shell
+	 * to a single address, exercising header/body/button/footer together
+	 * (AUDIT-0.9.29.md §2d). Diagnostic only — does not touch any
+	 * subscriber, queue, or setting; uses whatever is currently *saved* in
+	 * Settings → Branding, since this handler runs after the settings form
+	 * (if any) has already submitted and persisted.
+	 */
+	public function handle_send_branding_test(): void {
+		check_admin_referer( 'agnosis_send_branding_test' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$test_email = sanitize_email( wp_unslash( $_POST['test_email'] ?? '' ) );
+		$result     = false;
+
+		if ( is_email( $test_email ) ) {
+			$accent            = EmailTemplate::accent();
+			$header_extra_html = '<div style="font-size:15px;color:' . esc_attr( EmailBranding::header_subtitle_color() ) . ';margin-top:4px;">' . esc_html__( 'Branding preview', 'agnosis' ) . '</div>';
+
+			ob_start();
+			?>
+			<p style="margin:0 0 20px;font-size:18px;line-height:1.6;">
+				<?php esc_html_e( 'This is a sample of the branded email shell — header, body text, a button, and (below) the footer card — built from whatever is currently saved on Settings → Branding.', 'agnosis' ); ?>
+			</p>
+			<table cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr><td>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=agnosis-settings&tab=branding' ) ); ?>" style="display:inline-block;padding:12px 24px;border-radius:6px;font-size:17px;font-weight:600;text-decoration:none;background:<?php echo esc_attr( $accent ); ?>;color:<?php echo esc_attr( EmailTemplate::button_text_color() ); ?>;">
+					<?php esc_html_e( 'Sample button', 'agnosis' ); ?>
+				</a>
+			</td></tr></table>
+			<p style="margin:0;font-size:15px;color:#999;">
+				<?php esc_html_e( "Didn't look right? Adjust the fields above and send another test — nothing here was recorded or sent to anyone but you.", 'agnosis' ); ?>
+			</p>
+			<?php
+			$body_html = (string) ob_get_clean();
+
+			ob_start();
+			$work_emails_html = EmailFooter::html();
+			if ( '' !== $work_emails_html ) :
+				?>
+			<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid <?php echo esc_attr( EmailTemplate::border_color() ); ?>;">
+				<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+			</div>
+				<?php
+			endif;
+			$footer_extra_html = (string) ob_get_clean();
+
+			$body = EmailTemplate::render( str_replace( '_', '-', get_locale() ), $body_html, $footer_extra_html, $header_extra_html );
+
+			$result = wp_mail(
+				$test_email,
+				sprintf(
+					/* translators: %s: site name */
+					__( '[TEST] Branding preview from %s', 'agnosis' ),
+					get_bloginfo( 'name' )
+				),
+				$body,
+				CommunityMailer::html_headers()
+			);
+		}
+
+		wp_safe_redirect( add_query_arg(
+			[
+				'page'            => 'agnosis-settings',
+				'tab'             => 'branding',
+				'agnosis_message' => $result ? 'branding_test_sent' : 'branding_test_failed',
+			],
+			admin_url( 'admin.php' )
+		) );
+		exit;
 	}
 
 	/**
@@ -2943,7 +3181,6 @@ class Settings {
 					wp_send_json_error( [ 'message' => __( 'WordPress AI Client requires WordPress 7.0 or later.', 'agnosis' ) ] );
 				}
 				// call_user_func avoids Plugin Check static-analysis flag.
-				// @phpstan-ignore-next-line
 				$builder = call_user_func( 'wp_ai_client_prompt', 'ping' );
 				if ( ! $builder->is_supported_for_text_generation() ) {
 					wp_send_json_error( [ 'message' => __( 'No text-generation model configured. Set one up under Settings → Connectors.', 'agnosis' ) ] );

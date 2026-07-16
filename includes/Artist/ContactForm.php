@@ -565,7 +565,7 @@ class ContactForm {
 		);
 		$lines[] = sprintf(
 			/* translators: %s: visitor's own email address, for the artist to reply to directly. */
-			__( 'Email: %s', 'agnosis' ),
+			_x( 'Email: %s', 'contact form reply-to email', 'agnosis' ),
 			$visitor_email
 		);
 		$lines[] = '';

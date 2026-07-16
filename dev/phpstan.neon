@@ -1,19 +1,27 @@
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
+    - phpstan-baseline-tests.neon
 
 parameters:
     level: 7
-    phpVersion: 80100
+    phpVersion: 80200
 
     paths:
         - ../agnosis.php
+        - ../uninstall.php
         - ../includes/
+        - ../blocks/
+        - ../tests/php/
+        - ../docs/agnosis-update-manifest.php
 
     excludePaths:
         - ../dev/
         - ../vendor/
         - ../node_modules/
         - ../build/
+
+    scanFiles:
+        - vendor/php-stubs/wordpress-tests-stubs/wordpress-tests-stubs.php
 
     bootstrapFiles:
         - bootstrap.php

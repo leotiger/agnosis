@@ -34,7 +34,7 @@ If you don't have access to one or both, say so in your pull request — a maint
 
 ## Development setup
 
-**Prerequisites:** PHP 8.1+, Composer, Node.js, and Docker (for `wp-env`).
+**Prerequisites:** PHP 8.2+, Composer, Node.js, and Docker (for `wp-env`).
 
 ```bash
 # Clone alongside its companion repos (see "Before you start")

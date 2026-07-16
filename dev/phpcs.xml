@@ -4,8 +4,11 @@
 
     <!-- Scan the plugin source, not the dev tooling. -->
     <file>../agnosis.php</file>
+    <file>../uninstall.php</file>
     <file>../includes/</file>
+    <file>../blocks/</file>
     <file>../tests/php/</file>
+    <file>../docs/agnosis-update-manifest.php</file>
 
     <!-- Exclude generated / vendored / non-PHP trees. -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
@@ -40,7 +43,7 @@
     <arg name="encoding" value="utf-8"/>
 
     <!-- PHP / WP version targets. -->
-    <config name="testVersion" value="8.1-"/>
+    <config name="testVersion" value="8.2-"/>
     <config name="minimum_supported_wp_version" value="6.4"/>
 
     <!-- ── WordPress-Extra with targeted exclusions ────────────────────── -->
@@ -90,7 +93,7 @@
 
         <!--
             WordPress-Docs commenting requirements:
-            PHP 8.1 native type hints + return types replace @param/@return
+            PHP 8.2 native type hints + return types replace @param/@return
             boilerplate. PHPStan reads typed params directly; class/property
             /function docblocks are written where they add value, not by rule.
         -->
@@ -171,7 +174,7 @@
 
     <!--
         WordPress-Docs intentionally omitted at the top level:
-        PHP 8.1 native types are used throughout instead of duplicating
+        PHP 8.2 native types are used throughout instead of duplicating
         them in phpdoc. Useful sub-sniffs stay via WordPress-Extra above.
     -->
 

@@ -32,7 +32,6 @@
 
 	document.addEventListener( 'DOMContentLoaded', function () {
 
-		var wrap   = document.getElementById( 'agnosis-join' );
 		var form   = document.getElementById( 'agnosis-join-form' );
 		var notice = document.getElementById( 'agnosis-join-notice' );
 

@@ -104,11 +104,13 @@ $agnosis_artist_count = count( $agnosis_artist_ids );
 $agnosis_per_artist   = max( 1, (int) ceil( $agnosis_pool_target / $agnosis_artist_count ) );
 
 // ── Medium filter tax_query ──────────────────────────────────────────────────
-$agnosis_tax_query = $agnosis_medium_filter ? [ [
-	'taxonomy' => 'agnosis_medium',
-	'field'    => 'slug',
-	'terms'    => $agnosis_medium_filter,
-] ] : [];
+$agnosis_tax_query = $agnosis_medium_filter ? [
+	[
+		'taxonomy' => 'agnosis_medium',
+		'field'    => 'slug',
+		'terms'    => $agnosis_medium_filter,
+	],
+] : [];
 
 // ── Build pool ───────────────────────────────────────────────────────────────
 $agnosis_pool = [];
@@ -234,21 +236,26 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 		] );
 		if ( $bios ) {
 			$url = (string) get_permalink( $bios[0]->ID );
-			return ( $agnosis_bio_url_cache[ $artist_id ] = $url );
+			$agnosis_bio_url_cache[ $artist_id ] = $url;
+			return $url;
 		}
 		// No biography yet — stay on subdomain home.
 		$url = \Agnosis\Network\SubdomainRouter::url_for_artist( $artist_id );
-		return ( $agnosis_bio_url_cache[ $artist_id ] = $url );
+		$agnosis_bio_url_cache[ $artist_id ] = $url;
+		return $url;
 	}
 
 	// We're on the main domain — link to the artist's subdomain.
 	if ( $agnosis_has_subdomains && class_exists( '\Agnosis\Network\SubdomainRouter' ) ) {
 		$home = \Agnosis\Network\SubdomainRouter::url_for_artist( $artist_id );
 		if ( $home ) {
-			return ( $agnosis_bio_url_cache[ $artist_id ] = $home );
+			$agnosis_bio_url_cache[ $artist_id ] = $home;
+			return $home;
 		}
 	}
-	return ( $agnosis_bio_url_cache[ $artist_id ] = (string) get_author_posts_url( $artist_id ) );
+	$agnosis_author_url                  = (string) get_author_posts_url( $artist_id );
+	$agnosis_bio_url_cache[ $artist_id ] = $agnosis_author_url;
+	return $agnosis_author_url;
 };
 
 // ── Render ────────────────────────────────────────────────────────────────────
@@ -272,7 +279,8 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 <?php endif; ?>
 
 <div class="agnosis-gallery-overview agnosis-gallery-overview--cols-<?php echo (int) $agnosis_columns; ?>">
-	<?php foreach ( $agnosis_posts as $agnosis_post ) :
+	<?php
+	foreach ( $agnosis_posts as $agnosis_post ) :
 		$agnosis_artist_id   = (int) $agnosis_post->post_author;
 		$agnosis_thumb_id    = (int) get_post_thumbnail_id( $agnosis_post->ID );
 		$agnosis_thumb       = wp_get_attachment_image_src( $agnosis_thumb_id, 'agnosis-thumb' );
@@ -308,13 +316,13 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 				],
 			]
 		);
-	?>
+		?>
 	<article class="agnosis-gallery-overview__item<?php echo $agnosis_is_featured ? ' is-featured' : ''; ?>">
 		<?php if ( $agnosis_thumb ) : ?>
 		<figure
 			class="wp-block-image agnosis-gallery-overview__image-wrap wp-lightbox-container"
 			data-wp-interactive="core/image"
-			data-wp-context="<?php echo esc_attr( wp_json_encode( [ 'imageId' => $agnosis_uid ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ); ?>"
+			data-wp-context="<?php echo esc_attr( (string) wp_json_encode( [ 'imageId' => $agnosis_uid ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP ) ); ?>"
 			data-wp-key="<?php echo esc_attr( $agnosis_uid ); ?>"
 		>
 			<img
@@ -373,7 +381,7 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 	<?php for ( $agnosis_p = 1; $agnosis_p <= $agnosis_max_pages; $agnosis_p++ ) : ?>
 	<a href="<?php echo esc_url( $agnosis_filter_url( $agnosis_medium_filter, $agnosis_p ) ); ?>"
 	   class="agnosis-gallery-overview__page-link<?php echo ( $agnosis_p === $agnosis_current_page ) ? ' is-current' : ''; ?>"
-	   <?php echo ( $agnosis_p === $agnosis_current_page ) ? 'aria-current="page"' : ''; ?>>
+		<?php echo ( $agnosis_p === $agnosis_current_page ) ? 'aria-current="page"' : ''; ?>>
 		<?php echo (int) $agnosis_p; ?>
 	</a>
 	<?php endfor; ?>
@@ -384,5 +392,3 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 	<?php endif; ?>
 </nav>
 <?php endif; ?>
-
-<?php

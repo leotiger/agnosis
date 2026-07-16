@@ -183,6 +183,58 @@ class Activator {
 					$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN resolved_at DATETIME DEFAULT NULL" );
 				}
 			}
+
+			// Queue-claiming hardening (security audit §2c): overlapping cron
+			// ticks (or a manual "Send Now" landing mid-tick) could both
+			// SELECT the same 'pending' rows before either had updated them,
+			// double-sending a batch. QueueProcessor::process() now claims a
+			// batch atomically first (an UPDATE…ORDER BY…LIMIT tagging the
+			// claimed rows with a unique claim_token) and only then reads
+			// exactly those rows back — see that method's own docblock.
+			// claimed_at backs a stale-claim sweep for a PHP process that
+			// died mid-batch after claiming but before finishing.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$has_claim_token = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'claim_token'" );
+			if ( empty( $has_claim_token ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN claim_token VARCHAR(36) DEFAULT NULL AFTER attempts" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD COLUMN claimed_at DATETIME DEFAULT NULL AFTER claim_token" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue ADD INDEX idx_claim_token (claim_token)" );
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$queue_status_claimed = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_newsletter_queue LIKE 'status'" );
+			if ( $queue_status_claimed && false === strpos( (string) $queue_status_claimed->Type, 'claimed' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_newsletter_queue MODIFY COLUMN status ENUM('pending','claimed','sent','failed') NOT NULL DEFAULT 'pending'" );
+			}
+		}
+
+		// Same queue-claiming hardening as agnosis_newsletter_queue above, for
+		// the ActivityPub delivery retry queue (security audit §2c) — see
+		// Network\ActivityPub::process_delivery_retry_queue()'s own docblock.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$ap_queue_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_ap_delivery_queue'" );
+		if ( ! empty( $ap_queue_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$ap_has_claim_token = $wpdb->get_results( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_ap_delivery_queue LIKE 'claim_token'" );
+			if ( empty( $ap_has_claim_token ) ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_ap_delivery_queue ADD COLUMN claim_token VARCHAR(36) DEFAULT NULL AFTER attempts" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_ap_delivery_queue ADD COLUMN claimed_at DATETIME DEFAULT NULL AFTER claim_token" );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_ap_delivery_queue ADD INDEX idx_claim_token (claim_token)" );
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$ap_status_claimed = $wpdb->get_row( "SHOW COLUMNS FROM {$wpdb->prefix}agnosis_ap_delivery_queue LIKE 'status'" );
+			if ( $ap_status_claimed && false === strpos( (string) $ap_status_claimed->Type, 'claimed' ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->query( "ALTER TABLE {$wpdb->prefix}agnosis_ap_delivery_queue MODIFY COLUMN status ENUM('pending','claimed','failed') NOT NULL DEFAULT 'pending'" );
+			}
 		}
 
 		// Migrate the outbound workflow-mail sender identity off the
@@ -596,6 +648,11 @@ class Activator {
 		// resolved_at (named sent_at before 0.4.3) is stamped for BOTH a real send
 		// and a terminal failure — "sent_at" was a misleading name for a failure
 		// timestamp; see security audit §3f.
+		// claim_token/claimed_at (security audit §2c) back QueueProcessor's
+		// claim-then-read batch fetch — a unique token tags exactly the rows
+		// one process() run atomically claimed, and claimed_at lets a stale
+		// claim (the PHP process that claimed them died mid-batch) self-heal
+		// back to 'pending' on the next tick.
 		$sql_newsletter_queue = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_queue (
 			id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			issue_id          BIGINT UNSIGNED NOT NULL,
@@ -604,11 +661,14 @@ class Activator {
 			recipient_type    ENUM('artist','public') NOT NULL,
 			unsubscribe_token VARCHAR(64)     NOT NULL,
 			locale            VARCHAR(10)     DEFAULT NULL,
-			status            ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+			status            ENUM('pending','claimed','sent','failed') NOT NULL DEFAULT 'pending',
 			attempts          SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+			claim_token       VARCHAR(36)     DEFAULT NULL,
+			claimed_at        DATETIME        DEFAULT NULL,
 			created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			resolved_at       DATETIME        DEFAULT NULL,
 			PRIMARY KEY       (id),
+			KEY               idx_claim_token (claim_token),
 			KEY               idx_issue (issue_id),
 			KEY               idx_status (status)
 		) $charset_collate;";
@@ -681,6 +741,9 @@ class Activator {
 		// owner_type/owner_id (audit §3h) record which local actor's private
 		// key a retry must re-sign with — signing keys are never stored in
 		// the queue itself, only which actor owns the delivery.
+		// claim_token/claimed_at (security audit §2c) back
+		// process_delivery_retry_queue()'s claim-then-read batch fetch — same
+		// shape as agnosis_newsletter_queue's own claim_token/claimed_at above.
 		$sql_ap_delivery_queue = "CREATE TABLE {$wpdb->prefix}agnosis_ap_delivery_queue (
 			id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			owner_type       ENUM('node','artist') NOT NULL DEFAULT 'node',
@@ -688,13 +751,16 @@ class Activator {
 			inbox_url        VARCHAR(512)    NOT NULL,
 			activity_type    VARCHAR(64)     DEFAULT NULL,
 			activity_json    LONGTEXT        NOT NULL,
-			status           ENUM('pending','failed') NOT NULL DEFAULT 'pending',
+			status           ENUM('pending','claimed','failed') NOT NULL DEFAULT 'pending',
 			attempts         SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+			claim_token      VARCHAR(36)     DEFAULT NULL,
+			claimed_at       DATETIME        DEFAULT NULL,
 			last_error       TEXT            DEFAULT NULL,
 			next_attempt_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			resolved_at      DATETIME        DEFAULT NULL,
 			PRIMARY KEY      (id),
+			KEY              idx_claim_token (claim_token),
 			KEY              idx_status_next (status, next_attempt_at)
 		) $charset_collate;";
 

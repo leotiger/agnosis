@@ -5,7 +5,12 @@
     "rules": {
         "no-descending-specificity": null,
         "no-duplicate-selectors": null,
-        "scss/at-rule-no-unknown": null
+        "selector-class-pattern": [
+            "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z][a-z0-9]*(-[a-z0-9]+)*)?(--[a-z][a-z0-9]*(-[a-z0-9]+)*)?$",
+            {
+                "message": "Selector should be kebab-case, optionally with a BEM __element and/or --modifier (selector-class-pattern)"
+            }
+        ]
     },
     "ignoreFiles": [
         "vendor/**",
