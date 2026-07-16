@@ -449,5 +449,12 @@ class Plugin {
 		// Lingua Forge integration — boots itself only when LF is present;
 		// registers the compat admin notice unconditionally.
 		new LinguaForge();
+
+		// Debounced permalink-flush cron callback — see RewriteFlush's own
+		// docblock. Registered unconditionally (not gated on LF being active):
+		// ReviewEndpoints::finalize_publish() schedules a flush on every
+		// approval regardless of whether Lingua Forge ends up doing any
+		// fan-out translation for that particular post.
+		RewriteFlush::register();
 	}
 }

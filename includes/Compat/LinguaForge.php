@@ -71,6 +71,18 @@
  *     version before 2.6.1 (function_exists() guard) — the fix above still
  *     applies on 2.6.1+ either way, this is additive only.
  *
+ *  9. PERMALINK FLUSH ON FAN-OUT COMPLETION — `mark_fanout_progress()` tracks
+ *     (via `PENDING_FANOUT_META`) which of `request_translations()`'s target
+ *     languages are still outstanding for a post, and once the last one
+ *     finishes translating, schedules a debounced `flush_rewrite_rules()`
+ *     call (`Core\RewriteFlush`) so every newly created translated sibling
+ *     actually resolves instead of 404ing — see `RewriteFlush`'s own
+ *     docblock for why WordPress needs that explicit nudge.
+ *     `Publishing\ReviewEndpoints::finalize_publish()` schedules the same
+ *     flush the moment the primary-language post (and native-language
+ *     sibling, when one applies) is approved — the pair together cover both
+ *     "content that never gets AI-translated" and "content that does."
+ *
  * Since 0.9.22, agnosis.php declares `Requires Plugins: lingua-forge` —
  * WordPress itself now refuses to install or activate Agnosis at all until
  * Lingua Forge is installed and active (and, symmetrically, refuses to let an
@@ -95,6 +107,7 @@ namespace Agnosis\Compat;
 use Agnosis\AI\CallCounter;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
+use Agnosis\Core\RewriteFlush;
 
 class LinguaForge {
 
@@ -219,6 +232,19 @@ class LinguaForge {
 	 */
 	public const TRANSLATED_TERM_META = '_agnosis_translated_term';
 
+	/**
+	 * Post meta key tracking which target languages a source post's current
+	 * translation fan-out (request_translations()) is still waiting on — a
+	 * JSON-encoded array of BCP-47 language codes, written when the fan-out is
+	 * dispatched and shrunk by one entry per `linguaforge_translation_complete`
+	 * firing (mark_fanout_progress()) until empty, at which point every
+	 * language Lingua Forge was asked to translate this post into actually
+	 * exists and a permalink flush is scheduled — see RewriteFlush's own
+	 * docblock for why that flush is needed at all, and this class's own
+	 * docblock (concern list, point 2) for the fan-out this is tracking.
+	 */
+	private const PENDING_FANOUT_META = '_agnosis_lf_pending_fanout';
+
 	// -------------------------------------------------------------------------
 	// Boot
 	// -------------------------------------------------------------------------
@@ -312,6 +338,18 @@ class LinguaForge {
 		// synthetic firing sync_native_sibling() does for its own AI-free
 		// sibling, same guard sync_translated_terms() above already uses.
 		add_action( 'linguaforge_translation_complete', [ $this, 'count_fanout_translation_call' ], 10, 3 );
+
+		// Permalink flush once EVERY target language this post's current
+		// fan-out was dispatched to has finished translating — see
+		// PENDING_FANOUT_META's own docblock and RewriteFlush. Deliberately
+		// NOT skipped for the native-sibling's own synthetic firing the way
+		// sync_translated_terms()/count_fanout_translation_call() are: that
+		// language was excluded from request_translations()'s $languages list
+		// in the first place (see schedule_fanout()'s $exclude_langs), so it
+		// was never added to PENDING_FANOUT_META to begin with — no special
+		// suppression guard is needed here for mark_fanout_progress() to stay
+		// correct.
+		add_action( 'linguaforge_translation_complete', [ $this, 'mark_fanout_progress' ], 10, 3 );
 
 		// Template safeguard (2026-07-09) — LF >= 2.6.1 only. See concern #8
 		// above for why this is additive defense-in-depth, not a workaround.
@@ -492,6 +530,17 @@ class LinguaForge {
 			return;
 		}
 
+		// Record what this fan-out is waiting on BEFORE dispatching a single
+		// translation request — mark_fanout_progress() needs the full target
+		// list in place before the first `linguaforge_translation_complete`
+		// firing can possibly arrive (the async queue path can complete a
+		// translation on a later cron tick well before this foreach below
+		// even finishes queuing the rest). A resubmitted/edited post
+		// (schedule_fanout() called again after a previous fan-out already
+		// completed) simply overwrites this with a fresh target list, so the
+		// flush at completion fires again for the new batch too.
+		update_post_meta( $post_id, self::PENDING_FANOUT_META, wp_json_encode( $languages ) );
+
 		foreach ( $languages as $target_lang ) {
 			// Prefer the async queue (LF 2.4.0+); fall back to the synchronous trigger.
 			// function_exists() is checked inline so static analysis narrows correctly.
@@ -502,6 +551,51 @@ class LinguaForge {
 				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
 				linguaforge_trigger_translation( $post_id, $target_lang );
 			}
+		}
+	}
+
+	/**
+	 * Shrink the pending-fan-out target list (PENDING_FANOUT_META) by one
+	 * language per `linguaforge_translation_complete` firing, and schedule a
+	 * debounced permalink flush (RewriteFlush) the moment it empties out —
+	 * i.e. once every language this post's fan-out was dispatched to actually
+	 * exists as a real, dereferenceable post.
+	 *
+	 * No-ops for a language this post's CURRENT fan-out was never waiting on
+	 * — a re-translation triggered some other way (an admin manually
+	 * re-running LF's own translation tool, for instance) fires this same
+	 * action but isn't one of request_translations()' own tracked targets, so
+	 * there is nothing here to decrement.
+	 *
+	 * @param int    $translated_id Newly created/updated translated post ID (unused).
+	 * @param int    $source_id     Source (primary-language) post ID.
+	 * @param string $target_lang   Target language code that just finished.
+	 */
+	public function mark_fanout_progress( int $translated_id, int $source_id, string $target_lang ): void {
+		unset( $translated_id );
+
+		if ( ! in_array( get_post_type( $source_id ), self::AGNOSIS_POST_TYPES, true ) ) {
+			return;
+		}
+
+		$pending_json = (string) get_post_meta( $source_id, self::PENDING_FANOUT_META, true );
+		if ( '' === $pending_json ) {
+			return; // Nothing tracked for this post — see this method's own docblock.
+		}
+
+		/** @var string[] $pending */
+		$pending = (array) json_decode( $pending_json, true );
+		if ( ! in_array( $target_lang, $pending, true ) ) {
+			return; // Not one of the languages THIS fan-out is waiting on.
+		}
+
+		$pending = array_values( array_diff( $pending, [ $target_lang ] ) );
+
+		if ( empty( $pending ) ) {
+			delete_post_meta( $source_id, self::PENDING_FANOUT_META );
+			RewriteFlush::schedule();
+		} else {
+			update_post_meta( $source_id, self::PENDING_FANOUT_META, wp_json_encode( $pending ) );
 		}
 	}
 

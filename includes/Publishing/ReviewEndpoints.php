@@ -35,6 +35,7 @@ use Agnosis\AI\PromptConfig;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
+use Agnosis\Core\RewriteFlush;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -361,6 +362,13 @@ class ReviewEndpoints {
 
 			LinguaForge::sync_native_sibling( $post_id );
 
+			// The primary-language post (and, when the artist writes in a
+			// different language, its native-language sibling just built
+			// above) now both exist — see RewriteFlush's own docblock for why
+			// a permalink flush is needed for either to actually resolve
+			// instead of 404ing.
+			RewriteFlush::schedule();
+
 			return $post_id;
 		}
 
@@ -601,6 +609,11 @@ class ReviewEndpoints {
 		LinguaForge::schedule_fanout( $pending_for, '' !== $native_lang_for_target ? [ $native_lang_for_target ] : [] );
 
 		LinguaForge::sync_native_sibling( $pending_for );
+
+		// Same reasoning as the direct-publish branch above — the staged
+		// update just landed on the live (primary-language) post and its
+		// native-language sibling (if any) was just refreshed too.
+		RewriteFlush::schedule();
 
 		Logger::info( sprintf( 'finalize_publish(#%d): staged update applied to #%d and staging draft deleted.', $post_id, $pending_for ), 'review' );
 

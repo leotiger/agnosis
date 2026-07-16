@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.31] — 2026-07-16
+
+### Fixed
+- **A newly approved submission's own page — and every Lingua Forge-translated sibling of it — could 404 until an admin manually resaved Settings → Permalinks.** WordPress only matches incoming requests against whatever rewrite rules are cached in the `rewrite_rules` option; neither Agnosis's own CPT registration nor Lingua Forge's language-prefixed CPT/taxonomy rules (`add_rewrite_rule()`, run fresh on every request) retroactively update that cached option — only an explicit `flush_rewrite_rules()` call does. New `Core\RewriteFlush` schedules exactly one debounced flush (a WP-Cron single event, deduplicated via `wp_next_scheduled()` the same way `Compat\LinguaForge::schedule_fanout()` already debounces its own translation dispatch) at two points: `Publishing\ReviewEndpoints::finalize_publish()` calls it once a submission is approved and its primary-language post (plus native-language sibling, when the artist writes in a different language) exists; a new `Compat\LinguaForge::mark_fanout_progress()` — hooked on `linguaforge_translation_complete` alongside this class's existing listeners — tracks which of a post's dispatched target languages (`request_translations()`'s own `$languages` list, recorded in a new `PENDING_FANOUT_META` post meta) are still outstanding, and calls it again once the last one finishes translating. Neither call site flushes synchronously on the request that triggered it — a burst of approvals, or one submission fanning out to a dozen languages, still collapses into a single flush. (`includes/Core/RewriteFlush.php`, `includes/Core/Plugin.php`, `includes/Publishing/ReviewEndpoints.php`, `includes/Compat/LinguaForge.php`)
+
 ## [0.9.30] — 2026-07-15
 
 ### Added
