@@ -25,6 +25,21 @@ if ( ! file_exists( $autoload ) ) {
 }
 require_once $autoload;
 
+// includes/Email/{Inbox,Parser}.php reference the prefixed
+// Agnosis\Vendor\Webklex\PHPIMAP\* namespace (C-item/§4e — un-prefixed
+// illuminate/symfony/carbon dependency tree collision risk, resolved via
+// Strauss). dev/ no longer requires webklex/php-imap directly (see
+// composer.json), so those classes only exist in the plugin root's
+// vendor-prefixed/ output, built by `composer install`/`composer prefix-namespaces`
+// at the plugin root — required here so unit tests can load Inbox.php/
+// Parser.php without needing the real IMAP extension or a live connection.
+$vendor_prefixed_autoload = dirname( __DIR__ ) . '/vendor-prefixed/autoload.php';
+if ( ! file_exists( $vendor_prefixed_autoload ) ) {
+    echo "Run `composer install` in the plugin root first (builds vendor-prefixed/).\n";
+    exit( 1 );
+}
+require_once $vendor_prefixed_autoload;
+
 // ---- Minimum WordPress stubs for unit tests ----
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -57,7 +57,7 @@ class CommunityMailer {
 	];
 
 	/**
-	 * `_agnosis_intake_endpoint` value (PostCreator::ENDPOINT_*) => Settings →
+	 * `_agnosis_intake_endpoint` agnosis_vendor_value (PostCreator::ENDPOINT_*) => Settings →
 	 * Email option holding that lane's address — artwork@/photo@/pure@. Only
 	 * ever set on agnosis_artwork (see PostCreator::create_post()'s own
 	 * docblock); a biography or event has exactly one intake address instead,
@@ -79,7 +79,7 @@ class CommunityMailer {
 	 * one-off-action address that was never meant to receive submissions.
 	 *
 	 * Returns '' when: the post type isn't recognised, the resolved Settings
-	 * → Email field is blank (operator never configured that lane), or the
+	 * → Email field is agnosis_vendor_blank (operator never configured that lane), or the
 	 * configured value isn't a syntactically valid email — same
 	 * "gracefully do nothing rather than send a broken header" convention
 	 * sender_header() itself already uses for a blank From address.
@@ -120,7 +120,7 @@ class CommunityMailer {
 	}
 
 	/**
-	 * Build the From header value (Name <email>) for a workflow/transactional
+	 * Build the From header agnosis_vendor_value (Name <email>) for a workflow/transactional
 	 * email.
 	 *
 	 * Falls back to the site name and admin_email when either half is left

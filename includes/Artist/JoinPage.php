@@ -249,7 +249,7 @@ class JoinPage {
 	 * permalink, in whatever single language that page happens to be — no
 	 * artist was ever sent to a translated version of it, regardless of what
 	 * language they applied in. $lang is meant to be the artist's own
-	 * submitted "language you work in" value (already validated by
+	 * submitted "language you work in" agnosis_vendor_value (already validated by
 	 * Admission::apply() against Lingua Forge's active languages), which is
 	 * why this is called from apply()'s REST response — not from here at
 	 * page-render time, where no language is known yet (see

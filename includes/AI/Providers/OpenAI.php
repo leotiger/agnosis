@@ -26,7 +26,7 @@ class OpenAI implements ProviderInterface {
 	// operator lever — unlike the vision/image models above, which have been
 	// configurable (Settings → AI Providers) since they were introduced. Now
 	// just the constructor default; Pipeline/SubmissionTranslator both pass
-	// the actual configured value (agnosis_openai_text_model option) explicitly.
+	// the actual configured agnosis_vendor_value (agnosis_openai_text_model option) explicitly.
 	private const DEFAULT_TEXT_MODEL   = 'gpt-4o-mini';
 	private const WHISPER_MODEL        = 'whisper-1';
 

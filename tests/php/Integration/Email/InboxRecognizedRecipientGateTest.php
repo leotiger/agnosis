@@ -23,7 +23,7 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Email;
 
 use Agnosis\Email\IntakeGates;
-use Webklex\PHPIMAP\Folder;
+use Agnosis\Vendor\Webklex\PHPIMAP\Folder;
 
 class InboxRecognizedRecipientGateTest extends \WP_UnitTestCase {
 

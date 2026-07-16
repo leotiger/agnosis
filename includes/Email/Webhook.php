@@ -322,7 +322,7 @@ class Webhook {
 		global $wpdb;
 
 		// Deterministic queue UID (fifth audit §3a) — previously embedded
-		// time(), which meant an ESP retry (after a slow 202) or an outright
+		// time(), which meant an ESP agnosis_vendor_retry (after a slow 202) or an outright
 		// replay of the same signed request NEVER collided with the original
 		// row: each one was a fresh INSERT and a fresh AI pipeline spend, even
 		// though the table's own UNIQUE KEY on message_uid exists precisely to

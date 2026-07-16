@@ -13,8 +13,8 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Email;
 
 use Agnosis\Email\Inbox;
-use Webklex\PHPIMAP\Folder;
-use Webklex\PHPIMAP\Support\MessageCollection;
+use Agnosis\Vendor\Webklex\PHPIMAP\Folder;
+use Agnosis\Vendor\Webklex\PHPIMAP\Support\MessageCollection;
 
 class TestableInbox extends Inbox {
 

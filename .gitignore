@@ -5,8 +5,13 @@
 # caches) are ignored by dev/.gitignore. The entries below guard against
 # anyone accidentally running composer install or npm install in the root.
 /vendor/
+/vendor-prefixed/
 /node_modules/
 /build/
+
+# Strauss (dependency-prefixing tool, C-item/§4e) — downloaded on demand by
+# the "prefix-namespaces" composer script, not committed.
+/bin/strauss.phar
 .phpcs.cache
 .phpunit.result.cache
 .phpstan.cache

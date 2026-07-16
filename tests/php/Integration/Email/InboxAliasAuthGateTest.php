@@ -27,7 +27,7 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Email;
 
 use Agnosis\Core\RateLimiter;
-use Webklex\PHPIMAP\Folder;
+use Agnosis\Vendor\Webklex\PHPIMAP\Folder;
 
 class InboxAliasAuthGateTest extends \WP_UnitTestCase {
 

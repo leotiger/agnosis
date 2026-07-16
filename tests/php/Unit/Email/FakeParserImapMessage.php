@@ -31,9 +31,9 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Unit\Email;
 
-use Webklex\PHPIMAP\Message;
-use Webklex\PHPIMAP\Structure;
-use Webklex\PHPIMAP\Support\AttachmentCollection;
+use Agnosis\Vendor\Webklex\PHPIMAP\Message;
+use Agnosis\Vendor\Webklex\PHPIMAP\Structure;
+use Agnosis\Vendor\Webklex\PHPIMAP\Support\AttachmentCollection;
 
 /**
  * phpcs:disable WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid

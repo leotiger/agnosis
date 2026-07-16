@@ -15,7 +15,7 @@ namespace Agnosis\Email;
 
 use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
-use Webklex\PHPIMAP\Message;
+use Agnosis\Vendor\Webklex\PHPIMAP\Message;
 
 class Parser {
 

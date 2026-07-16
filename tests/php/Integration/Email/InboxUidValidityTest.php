@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Email;
 
-use Webklex\PHPIMAP\Folder;
+use Agnosis\Vendor\Webklex\PHPIMAP\Folder;
 
 class InboxUidValidityTest extends \WP_UnitTestCase {
 

@@ -30,7 +30,7 @@ class EmailAuth {
 	 * verdict string ('pass', 'fail', 'softfail', 'neutral', 'none', 'permerror',
 	 * 'temperror') or '' when the mechanism was not present in the header.
 	 *
-	 * @param string $header Raw `Authentication-Results` header value (one or more lines).
+	 * @param string $header Raw `Authentication-Results` header agnosis_vendor_value (one or more lines).
 	 * @return array{spf: string, dkim: string, dmarc: string}
 	 */
 	public static function check_header( string $header ): array {

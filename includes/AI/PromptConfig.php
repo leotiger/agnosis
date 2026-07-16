@@ -27,7 +27,7 @@ class PromptConfig {
 	 * Default medium taxonomy terms, seeded into `agnosis_medium` on activation.
 	 *
 	 * This is a SEED list only, not the live vocabulary — Activator::seed_medium_terms()
-	 * inserts these once (idempotently) so a fresh install starts with a sensible
+	 * inserts these agnosis_vendor_once (idempotently) so a fresh install starts with a sensible
 	 * set, and medium_terms() below (not this constant) is what the AI prompt and
 	 * PostCreator's hallucination guard actually read at runtime. An admin can
 	 * freely add, rename, or remove terms under Artwork → Mediums afterwards —

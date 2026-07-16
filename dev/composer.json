@@ -1,6 +1,6 @@
 {
     "name": "agnosis/agnosis-dev",
-    "description": "Dev tooling for the Agnosis WordPress plugin. The plugin source lives in the parent ../ directory. Runtime deps (webklex/php-imap) are listed here so tests can resolve them; the distributable vendor/ is built from the plugin root composer.json by build-zip.sh.",
+    "description": "Dev tooling for the Agnosis WordPress plugin. The plugin source lives in the parent ../ directory. Runtime deps (webklex/php-imap and its transitive tree) are no longer required here directly (C-item/§4e) — includes/ now references the prefixed Agnosis\\Vendor\\Webklex\\PHPIMAP\\* namespace, resolved for tests via ../vendor-prefixed/autoload.php (see bootstrap.php). The distributable vendor/ + vendor-prefixed/ are built from the plugin root composer.json by build-zip.sh.",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "homepage": "https://github.com/agnosis/agnosis",
@@ -14,8 +14,7 @@
         }
     },
     "require": {
-        "php": ">=8.2",
-        "webklex/php-imap": "^5.3"
+        "php": ">=8.2"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
@@ -72,7 +71,10 @@
         ],
         "make-pot":    "bash bin/make-pot.sh",
         "compile-pos": "bash bin/compile-pos.sh",
-        "build-zip":        "bash bin/build-zip.sh",
+        "build-zip": [
+            "Composer\\Config::disableProcessTimeout",
+            "bash bin/build-zip.sh"
+        ],
         "build-theme-zip":  "bash bin/build-theme-zip.sh",
         "qa": [
             "@lint",

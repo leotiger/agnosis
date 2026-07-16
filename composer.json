@@ -21,5 +21,34 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true
+    },
+    "extra": {
+        "strauss": {
+            "target_directory": "vendor-prefixed",
+            "namespace_prefix": "Agnosis\\Vendor\\",
+            "classmap_prefix": "Agnosis_Vendor_",
+            "update_call_sites": [
+                "includes",
+                "tests/php"
+            ],
+            "delete_vendor_packages": true
+        }
+    },
+    "scripts": {
+        "prefix-namespaces": [
+            "Composer\\Config::disableProcessTimeout",
+            "sh -c 'test -f ./bin/strauss.phar || curl -sS -o bin/strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/latest/download/strauss.phar'",
+            "@php bin/strauss.phar",
+            "@composer dump-autoload"
+        ],
+        "post-install-cmd": [
+            "@prefix-namespaces"
+        ],
+        "post-update-cmd": [
+            "@prefix-namespaces"
+        ],
+        "post-autoload-dump": [
+            "sh -c 'test -f bin/strauss.phar && php bin/strauss.phar include-autoloader || true'"
+        ]
     }
 }

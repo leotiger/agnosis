@@ -35,7 +35,7 @@
  *     taxonomy terms at all, so a translated post is otherwise created with no
  *     tags and no medium term whatsoever. sync_translated_terms() translates
  *     and assigns both onto every translated sibling, cached per (taxonomy,
- *     term name, language) so a recurring value (a common tag, or one of
+ *     term name, language) so a recurring agnosis_vendor_value (a common tag, or one of
  *     `agnosis_medium`'s built-in options) gets the same translated label
  *     every time rather than a fresh AI phrasing per post. Newly-created
  *     translated terms are flagged with TRANSLATED_TERM_META so the AI's own

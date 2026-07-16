@@ -930,7 +930,7 @@ class Settings {
 				'step'     => '1',
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 0, min( 10, (int) $v ) ),
-				'desc'     => __( 'Photos scoring at or below this value (1–10) are automatically rejected — the artist receives a friendly email explaining the issue and is invited to resubmit. Score 0 disables automatic rejection. Must be lower than the enhancement threshold. Default: 3.', 'agnosis' ),
+				'desc'     => __( 'Photos scoring at or below this agnosis_vendor_value (1–10) are automatically rejected — the artist receives a friendly email explaining the issue and is invited to resubmit. Score 0 disables automatic rejection. Must be lower than the enhancement threshold. Default: 3.', 'agnosis' ),
 			],
 
 			'agnosis_quality_threshold' => [
@@ -943,7 +943,7 @@ class Settings {
 				'step'     => '1',
 				'type'     => 'integer',
 				'sanitize' => fn( $v ) => max( 1, min( 10, (int) $v ) ),
-				'desc'     => __( 'Photos scoring below this value (1–10) are automatically enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: 7 — only visibly problematic photos are processed. Set to 1 to disable automatic enhancement entirely.', 'agnosis' ),
+				'desc'     => __( 'Photos scoring below this agnosis_vendor_value (1–10) are automatically enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: 7 — only visibly problematic photos are processed. Set to 1 to disable automatic enhancement entirely.', 'agnosis' ),
 			],
 
 			// --- AI: API keys ---

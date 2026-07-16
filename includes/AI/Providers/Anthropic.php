@@ -27,7 +27,7 @@ class Anthropic implements ProviderInterface {
 	// operator lever — unlike $model above (agnosis_anthropic_model,
 	// configurable since it was introduced). Now just the constructor
 	// default; Pipeline/SubmissionTranslator both pass the actual configured
-	// value (agnosis_anthropic_text_model option) explicitly.
+	// agnosis_vendor_value (agnosis_anthropic_text_model option) explicitly.
 	private const DEFAULT_TEXT_MODEL = 'claude-haiku-4-5-20251001';
 
 	public function __construct(

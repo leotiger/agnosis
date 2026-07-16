@@ -32,6 +32,24 @@ REVIEW.md
 # Dev tooling — all tooling lives under dev/
 dev/
 
+# Strauss (dependency-prefixing tool, C-item/§4e) — build-time only; the
+# strauss.phar binary has no runtime purpose.
+bin/
+
+# Strauss's dev-time backward-compat shim (see Strauss's own README): lets
+# code still using the un-prefixed class names keep working locally during
+# the transition, but must never ship — production code should only ever
+# resolve the real, prefixed classes in vendor-prefixed/.
+vendor/composer/autoload_aliases.php
+
+# Composer-generated CLI shims (e.g. vendor/bin/carbon) for dependencies that
+# Strauss's delete_vendor_packages has moved to vendor-prefixed/ — Strauss
+# only deletes the package's own vendor/<vendor>/<package> directory, not
+# these separately-generated wrapper scripts, so they'd otherwise ship as
+# dangling references to a now-deleted file. No WP plugin runtime code needs
+# vendor/bin/.
+vendor/bin/
+
 # Tests
 tests/
 build/

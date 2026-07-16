@@ -25,7 +25,7 @@ use WP_User;
  * draft, PostCreator's email-subject-as-title on creation or a later
  * bio@ resend, an artist's own edit on the approve-confirm form (routed
  * through ReviewEndpoints::save()), or a front-end post-publish edit via
- * Artist\ContentEditor. Left blank (the default), nothing here changes
+ * Artist\ContentEditor. Left agnosis_vendor_blank (the default), nothing here changes
  * anything and every one of those paths keeps working exactly as before —
  * the artist's own title, whatever it is.
  *

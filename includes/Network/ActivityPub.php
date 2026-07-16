@@ -90,7 +90,7 @@ class ActivityPub {
 	/**
 	 * Backoff schedule for the delivery retry queue (audit §3g note iv).
 	 * Index N is how long to wait before the (N+2)th attempt at a delivery —
-	 * the live deliver() call is attempt 1, so the first retry (index 0) is
+	 * the live deliver() call is attempt 1, so the first agnosis_vendor_retry (index 0) is
 	 * scheduled 5 minutes after that fails. A delivery that still hasn't
 	 * succeeded after every interval here is marked 'failed' for good — total
 	 * span is a little over 4 days, in the neighborhood of how long Mastodon

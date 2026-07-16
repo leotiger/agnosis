@@ -21,11 +21,11 @@ use Agnosis\Artist\Departure;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
-use Webklex\PHPIMAP\Client;
-use Webklex\PHPIMAP\ClientManager;
-use Webklex\PHPIMAP\Folder;
-use Webklex\PHPIMAP\IMAP;
-use Webklex\PHPIMAP\Message;
+use Agnosis\Vendor\Webklex\PHPIMAP\Client;
+use Agnosis\Vendor\Webklex\PHPIMAP\ClientManager;
+use Agnosis\Vendor\Webklex\PHPIMAP\Folder;
+use Agnosis\Vendor\Webklex\PHPIMAP\IMAP;
+use Agnosis\Vendor\Webklex\PHPIMAP\Message;
 
 class Inbox {
 
@@ -364,8 +364,8 @@ class Inbox {
 	 * directly. The Client constructor's setAccountConfig() requires a non-null
 	 * default config which only ClientManager provides.
 	 *
-	 * @throws \Webklex\PHPIMAP\Exceptions\ConnectionFailedException When the TCP/SSL connection cannot be established.
-	 * @throws \Webklex\PHPIMAP\Exceptions\AuthFailedException When the IMAP LOGIN command is rejected.
+	 * @throws \Agnosis\Vendor\Webklex\PHPIMAP\Exceptions\ConnectionFailedException When the TCP/SSL connection cannot be established.
+	 * @throws \Agnosis\Vendor\Webklex\PHPIMAP\Exceptions\AuthFailedException When the IMAP LOGIN command is rejected.
 	 */
 	private function make_client(): Client {
 		$host    = (string) get_option( 'agnosis_imap_host' );
@@ -778,9 +778,9 @@ class Inbox {
 	 *
 	 * @param Folder $folder   Webklex folder to query.
 	 * @param int    $last_uid Last UID persisted from the previous poll (0 = first run).
-	 * @return \Webklex\PHPIMAP\Support\MessageCollection
+	 * @return \Agnosis\Vendor\Webklex\PHPIMAP\Support\MessageCollection
 	 */
-	protected function query_messages( Folder $folder, int $last_uid ): \Webklex\PHPIMAP\Support\MessageCollection {
+	protected function query_messages( Folder $folder, int $last_uid ): \Agnosis\Vendor\Webklex\PHPIMAP\Support\MessageCollection {
 		$base = $folder->query(); // WhereQuery — do not chain through Query-typed fluent setters.
 		$base->setSequence( IMAP::ST_UID );
 		$base->fetchBody( false );
