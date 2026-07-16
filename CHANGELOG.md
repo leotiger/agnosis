@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.32] — 2026-07-16
+
+### Added
+- **The Deliverability card (Settings → Email) now also checks for a DKIM record and whether the sending domain is listed on Spamhaus's Domain Block List** — prompted by a real case: FluentSMTP reported a confirmation email as sent, but it was silently dropped by Spamhaus flagging a newly-registered domain as a possible spam source, something the existing SPF/DMARC-only card had no way to surface. New `Deliverability::dbl_check()` queries `{domain}.dbl.spamhaus.org` for an A record (the standard DNSBL convention) and, when listed, surfaces Spamhaus's own TXT explanation record alongside a red "LISTED" badge; a `127.255.255.x` response (Spamhaus's documented error/rate-limit range) is treated as `unavailable` rather than a false positive. New `Deliverability::dkim_check()` is necessarily best-effort — unlike SPF's bare domain or DMARC's fixed `_dmarc.` subdomain, a DKIM record's location depends on a selector chosen by whichever service actually signs outbound mail, which the plugin has no way to know for certain — so it tries a curated list of common provider selectors (`dkim_selectors()`, filterable via `agnosis_deliverability_dkim_selectors` for a site that knows its own) and only counts a match that actually looks like DKIM (`v=DKIM1` or a `p=` key field, not just any TXT record at that name). Both checks are transient-cached for an hour: DKIM's selector guessing can issue up to ~20 sequential DNS queries per identity, and Spamhaus's public DNSBL mirror has its own fair-use rate policy, so neither should re-query on every admin page load the way the existing uncached SPF/DMARC checks do. The admin UI clearly marks a DKIM "not found" as amber/inconclusive rather than red/failed, with an explicit note that this check cannot prove DKIM is absent — only that it isn't under one of the guessed names. (`includes/Admin/Deliverability.php`, `includes/Admin/Settings.php`)
+
 ## [0.9.31] — 2026-07-16
 
 ### Fixed
