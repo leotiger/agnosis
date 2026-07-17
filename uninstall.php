@@ -95,7 +95,15 @@ function agnosis_uninstall_site(): void {
 	// 4. Role (drops its capabilities; existing user accounts are kept).
 	remove_role( 'agnosis_artist' );
 
-	// 5. Scheduled cron events.
+	// 5. Scheduled cron events. This list must stay in exact parity with
+	// Agnosis\Core\Activator::CRON_HOOKS — this file deliberately loads none
+	// of the plugin's classes (see this file's own header), so it can't
+	// reference that constant directly and keeps its own literal copy
+	// instead. tests/php/Integration/Core/CronHookParityTest.php asserts the
+	// two match; the two had silently drifted apart before that test existed
+	// (audit §4a, AUDIT-1.0.0.md — this list was missing agnosis_vote_digest
+	// and agnosis_flush_permalinks entirely). Adding a new hook anywhere in
+	// the codebase means adding it to BOTH this array and CRON_HOOKS.
 	$cron_hooks = [
 		'agnosis_poll_inbox',
 		'agnosis_cleanup_inbox',
@@ -103,15 +111,23 @@ function agnosis_uninstall_site(): void {
 		'agnosis_check_bans',
 		'agnosis_check_removal_votes',
 		'agnosis_check_cap_votes',
-		'agnosis_publish_submission',
-		'agnosis_dispatch_lf_translations',
+		'agnosis_vote_digest',
 		'agnosis_prepare_newsletters',
 		'agnosis_send_newsletter_queue',
 		'agnosis_ap_retry_deliveries',
+		'agnosis_publish_submission',
+		'agnosis_dispatch_lf_translations',
+		'agnosis_flush_permalinks',
 	];
 
 	foreach ( $cron_hooks as $hook ) {
-		wp_clear_scheduled_hook( $hook );
+		// wp_unschedule_hook() clears every pending instance of $hook
+		// regardless of the arguments it was scheduled with (needed for
+		// agnosis_publish_submission/agnosis_dispatch_lf_translations, both
+		// scheduled per-call with real arguments) — wp_clear_scheduled_hook()
+		// only matches events scheduled with the exact args passed (none, by
+		// default here) and would silently leave a pending instance behind.
+		wp_unschedule_hook( $hook );
 	}
 
 	// 6. Artist usermeta — every _agnosis_* key (audit §2c). Not covered by

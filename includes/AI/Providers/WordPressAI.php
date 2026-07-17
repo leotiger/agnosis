@@ -148,6 +148,17 @@ class WordPressAI implements ProviderInterface {
 			if ( ! $builder->is_supported_for_text_generation() ) {
 				return '';
 			}
+			// $builder's type is unknown (mixed): it comes from the dynamic
+			// call_user_func( 'wp_ai_client_prompt', ... ) above, guarded by
+			// function_exists() since this WP 7.0+ function has no PHPStan
+			// stub available to this project. A plain ->method() call on
+			// mixed (line above, is_supported_for_text_generation()) is
+			// allowed without error, but call_user_func()'s own
+			// callable-shape check specifically flags the array-format
+			// [$builder, 'get_text'] callable here, since $builder's element
+			// type can't be verified against it; get_text() is a real method
+			// on the WP AI Client's builder object at runtime (audit §4d,
+			// AUDIT-1.0.0.md — labeled per that finding, not newly added).
 			// @phpstan-ignore-next-line
 			return trim( (string) call_user_func( [ $builder, 'get_text' ] ) );
 		} catch ( \Throwable $e ) {

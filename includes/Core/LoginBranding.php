@@ -10,7 +10,7 @@
  * maintenance burden across WP core updates). It only replaces the two
  * things a non-technical artist would otherwise see that look completely
  * unrelated to the site they applied to — the WordPress logo/link, and the
- * stock button/link colours — with the site's own identity and basic
+ * stock button/link colors — with the site's own identity and basic
  * palette. Applies to every wp-login.php visit (including admins'), which is
  * correct: there is no reason an admin's password-reset screen should look
  * different from an artist's.

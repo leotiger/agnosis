@@ -1091,7 +1091,106 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertSame( self::REMOTE_INBOX_URL, $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'An Undo of something other than a Follow must not remove the follower.' );
 	}
 
-	public function test_followers_endpoint_lists_stored_inbox_urls(): void {
+	// -------------------------------------------------------------------------
+	// Audit §2b (AUDIT-1.0.0.md) — Delete (remote account gone) and Move
+	// (deliberately unhandled — recorded, not built)
+	// -------------------------------------------------------------------------
+
+	private function delete_request( string $actor, mixed $activity_object ): \WP_REST_Request {
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Delete',
+			'actor'  => $actor,
+			'object' => $activity_object,
+		] ) );
+		return $request;
+	}
+
+	/** A Mastodon-shaped self-delete: object is a bare actor-URL string identical to actor. */
+	public function test_handle_delete_removes_follower_when_object_is_the_signing_actor(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		$response = ( new ActivityPub() )->inbox( $this->delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertNull( $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'A verified self-Delete must remove the actor\'s stored follower row.' );
+	}
+
+	/** Mastodon's real shape: object is an AS2 Tombstone, not a bare string. */
+	public function test_handle_delete_removes_follower_via_tombstone_object(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		$response = ( new ActivityPub() )->inbox( $this->delete_request( self::REMOTE_ACTOR_URL, [
+			'type' => 'Tombstone',
+			'id'   => self::REMOTE_ACTOR_URL,
+		] ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertNull( $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'A Tombstone-shaped self-Delete must remove the actor\'s stored follower row, same as a bare-string object.' );
+	}
+
+	/** A Delete of some OTHER object (e.g. a remote post) is a different activity shape — must not touch followers. */
+	public function test_handle_delete_ignores_object_that_is_not_the_actor_itself(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		$response = ( new ActivityPub() )->inbox( $this->delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL . '/statuses/12345' ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertSame( self::REMOTE_INBOX_URL, $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'A Delete of an object other than the actor itself must not remove the follower.' );
+	}
+
+	/** The remote actor no longer exists at all — every owner's row for it (node AND any artist) must go, unlike Undo's single-target scoping. */
+	public function test_handle_delete_removes_rows_across_every_owner(): void {
+		$artist_id = $this->create_artist();
+		$this->seed_follower_for( 'node', 0, self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+		$this->seed_follower_for( 'artist', $artist_id, self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		global $wpdb;
+		$count_before = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_followers WHERE actor_id = %s",
+			self::REMOTE_ACTOR_URL
+		) );
+		$this->assertSame( 2, $count_before, 'Precondition: the same actor must be following both the node and an artist.' );
+
+		( new ActivityPub() )->inbox( $this->delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL ) );
+
+		$count_after = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_followers WHERE actor_id = %s",
+			self::REMOTE_ACTOR_URL
+		) );
+		$this->assertSame( 0, $count_after, 'A self-Delete must remove every row for that actor_id, regardless of which local owner(s) it followed.' );
+	}
+
+	/** Move is deliberately unhandled at this scale (audit's own explicit call) — must return 'ignored' and leave the follower row alone. */
+	public function test_move_activity_is_ignored_and_does_not_touch_followers(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Move',
+			'actor'  => self::REMOTE_ACTOR_URL,
+			'object' => self::REMOTE_ACTOR_URL,
+			'target' => 'https://mastodon.example/users/newhome',
+		] ) );
+
+		$response = ( new ActivityPub() )->inbox( $request );
+
+		$this->assertSame( 'ignored', $response->get_data()['status'] );
+		$this->assertSame( self::REMOTE_INBOX_URL, $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'Move is deliberately unhandled — the follower row must be untouched.' );
+	}
+
+	/**
+	 * Regression test for audit §2a (AUDIT-1.0.0.md): the followers
+	 * collection must publish actor IDs — resolvable actor documents, per
+	 * AS2/ActivityPub — not the inbox-URL delivery-plumbing detail. A
+	 * consumer dereferencing an item (Mastodon's follower-list rendering, a
+	 * crawler, another node's follower-graph work) expects the former; the
+	 * latter only answers signed POSTs and previously leaked which
+	 * shared-inbox endpoint each follower delivers through.
+	 */
+	public function test_followers_endpoint_lists_stored_actor_ids(): void {
 		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
 		$this->seed_follower( 'https://mastodon.example/users/second', 'https://mastodon.example/users/second/inbox' );
 
@@ -1101,7 +1200,8 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 		$this->assertSame( 'OrderedCollection', $data['type'] );
 		$this->assertSame( 2, $data['totalItems'] );
-		$this->assertContains( self::REMOTE_INBOX_URL, $data['orderedItems'] );
+		$this->assertContains( self::REMOTE_ACTOR_URL, $data['orderedItems'], 'orderedItems must contain the follower\'s actor id.' );
+		$this->assertNotContains( self::REMOTE_INBOX_URL, $data['orderedItems'], 'orderedItems must NOT contain the delivery-plumbing inbox URL.' );
 	}
 
 	public function test_handle_follow_upserts_rather_than_duplicates(): void {
@@ -1169,6 +1269,47 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$seconds_out = strtotime( $row->next_attempt_at . ' UTC' ) - time();
 		$this->assertGreaterThan( 0, $seconds_out, 'The first retry must be scheduled in the future.' );
 		$this->assertLessThanOrEqual( 5 * MINUTE_IN_SECONDS, $seconds_out, 'The first retry interval is 5 minutes.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Audit §2b (AUDIT-1.0.0.md) — a definitive 410 Gone/404 Not Found skips
+	// the retry queue's multi-day backoff entirely, on both the live-delivery
+	// path (below) and the retry-queue processor (further below).
+	// -------------------------------------------------------------------------
+
+	public function test_failed_live_delivery_with_410_records_dead_delivery_instead_of_enqueueing_retry(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+		update_option( 'agnosis_activitypub_enabled', true );
+
+		$captured = [];
+		$this->mock_inbox_capture( $captured, 410 );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new ActivityPub() )->broadcast( $post_id );
+
+		$row = $this->sole_queue_row();
+		$this->assertNotNull( $row, 'A definitively dead inbox must still leave a queryable record.' );
+		$this->assertSame( 'failed', $row->status, 'A 410 Gone must record straight to the terminal failed state, not "pending".' );
+		$this->assertSame( 0, (int) $row->attempts, 'No retry cycle was ever spent — this never entered the pending/backoff loop at all.' );
+		$this->assertNotNull( $row->resolved_at );
+		$this->assertStringContainsString( 'HTTP 410', (string) $row->last_error );
+	}
+
+	/** Same fast-path, the other named code (404 Not Found). */
+	public function test_failed_live_delivery_with_404_records_dead_delivery_instead_of_enqueueing_retry(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+		update_option( 'agnosis_activitypub_enabled', true );
+
+		$captured = [];
+		$this->mock_inbox_capture( $captured, 404 );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new ActivityPub() )->broadcast( $post_id );
+
+		$row = $this->sole_queue_row();
+		$this->assertNotNull( $row );
+		$this->assertSame( 'failed', $row->status );
+		$this->assertStringContainsString( 'HTTP 404', (string) $row->last_error );
 	}
 
 	public function test_retry_processor_deletes_row_on_success(): void {
@@ -1241,6 +1382,130 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$entries = array_values( array_filter( Logger::get_entries(), static fn( array $e ) => 'activitypub' === $e['context'] ) );
 		$this->assertCount( 1, $entries );
 		$this->assertStringContainsString( 'permanently failed', $entries[0]['message'] );
+	}
+
+	/**
+	 * The retry-queue half of the 410/404 fast-path: a queued row's very
+	 * FIRST retry attempt (attempts=0 going in, nowhere near exhausting
+	 * RETRY_INTERVALS' 6 entries) must still jump straight to 'failed' when
+	 * the response is a definitive 410 — contrast with
+	 * test_retry_processor_advances_backoff_on_repeated_failure, where a
+	 * plain connection error at the same starting point correctly advances
+	 * to the next backoff interval instead.
+	 */
+	public function test_retry_processor_marks_row_failed_immediately_on_410_regardless_of_remaining_attempts(): void {
+		$this->seed_queue_row( 0, gmdate( 'Y-m-d H:i:s', time() - 60 ) );
+
+		$captured = [];
+		$this->mock_inbox_capture( $captured, 410 );
+
+		( new ActivityPub() )->process_delivery_retry_queue();
+
+		$row = $this->sole_queue_row();
+		$this->assertNotNull( $row, 'An immediately-dead row is kept as a terminal failure record, not deleted.' );
+		$this->assertSame( 'failed', $row->status );
+		$this->assertSame( 1, (int) $row->attempts, 'Exactly one attempt was made — the fast-path skips the remaining backoff interval count, not the attempt itself.' );
+		$this->assertNotNull( $row->resolved_at );
+	}
+
+	// -------------------------------------------------------------------------
+	// Claim-then-read concurrency (security audit §2c) — closes deferred-test
+	// debt flagged by AUDIT-1.0.0.md §4d, mirroring
+	// QueueProcessorTest's equivalent section for the newsletter queue's
+	// identical mechanism. Every test above only exercises normal,
+	// non-overlapping single-call behavior; these simulate a second,
+	// concurrently-running tick directly (writing 'claimed' rows this call
+	// did not itself claim) to prove the mechanism really prevents
+	// duplicate deliveries.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Force the sole delivery-queue row's status/claim fields directly,
+	 * bypassing process_delivery_retry_queue()'s own claim UPDATE —
+	 * simulates a row already claimed by a different, still-in-flight
+	 * overlapping tick (or one abandoned mid-run).
+	 */
+	private function force_queue_claim( int $row_id, string $status, ?string $claim_token, ?string $claimed_at ): void {
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_ap_delivery_queue',
+			[ 'status' => $status, 'claim_token' => $claim_token, 'claimed_at' => $claimed_at ],
+			[ 'id' => $row_id ],
+			[ '%s', '%s', '%s' ],
+			[ '%d' ]
+		);
+	}
+
+	public function test_retry_processor_does_not_touch_a_row_already_claimed_by_a_concurrent_tick(): void {
+		$this->seed_queue_row( 0, gmdate( 'Y-m-d H:i:s', time() - 60 ) ); // due now
+		$row = $this->sole_queue_row();
+
+		// Simulate a different, still-in-flight tick having already claimed
+		// this row moments ago — the claim UPDATE only ever targets
+		// status = 'pending', so it must skip this row entirely.
+		$foreign_token = wp_generate_uuid4();
+		$this->force_queue_claim( (int) $row->id, 'claimed', $foreign_token, current_time( 'mysql', true ) );
+
+		$fetch_count = 0;
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) use ( &$fetch_count ) {
+				if ( strpos( $url, self::REMOTE_INBOX_URL ) !== false ) {
+					$fetch_count++;
+				}
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		( new ActivityPub() )->process_delivery_retry_queue();
+
+		$this->assertSame( 0, $fetch_count, 'A row claimed by another in-flight tick must not be re-claimed and delivered by this one.' );
+
+		$row_after = $this->sole_queue_row();
+		$this->assertSame( 'claimed', $row_after->status );
+		$this->assertSame( $foreign_token, $row_after->claim_token, 'The foreign claim must survive untouched — process_delivery_retry_queue() must never steal a live claim.' );
+	}
+
+	public function test_retry_processor_reset_stale_claims_recovers_an_abandoned_claim(): void {
+		$this->seed_queue_row( 0, gmdate( 'Y-m-d H:i:s', time() - 60 ) ); // due now
+		$row = $this->sole_queue_row();
+
+		// A process that claimed this row 31 minutes ago and then died
+		// mid-batch (past STALE_CLAIM_MINUTES = 30) — reset_stale_delivery_claims(),
+		// run at the top of every call, must return it to 'pending' so this
+		// same tick can actually deliver it.
+		$stale_claimed_at = gmdate( 'Y-m-d H:i:s', time() - 31 * MINUTE_IN_SECONDS );
+		$this->force_queue_claim( (int) $row->id, 'claimed', wp_generate_uuid4(), $stale_claimed_at );
+
+		$seen = [];
+		$this->mock_transport( $seen ); // Answers the inbox URL with 202.
+
+		( new ActivityPub() )->process_delivery_retry_queue();
+
+		$this->assertNull( $this->sole_queue_row(), 'An abandoned (stale) claim must be recovered and, once it succeeds, deleted like any other successful retry.' );
+	}
+
+	public function test_retry_processor_reset_stale_claims_leaves_a_fresh_claim_untouched(): void {
+		$this->seed_queue_row( 0, gmdate( 'Y-m-d H:i:s', time() - 60 ) ); // due now
+		$row = $this->sole_queue_row();
+
+		// 5 minutes old — well within STALE_CLAIM_MINUTES = 30. A genuinely
+		// in-flight claim must not be mistaken for an abandoned one.
+		$fresh_token      = wp_generate_uuid4();
+		$fresh_claimed_at = gmdate( 'Y-m-d H:i:s', time() - 5 * MINUTE_IN_SECONDS );
+		$this->force_queue_claim( (int) $row->id, 'claimed', $fresh_token, $fresh_claimed_at );
+
+		$seen = [];
+		$this->mock_transport( $seen );
+
+		( new ActivityPub() )->process_delivery_retry_queue();
+
+		$row_after = $this->sole_queue_row();
+		$this->assertNotNull( $row_after, 'A fresh claim must not be reset — the row must not vanish as if it had been (re-)delivered.' );
+		$this->assertSame( 'claimed', $row_after->status );
+		$this->assertSame( $fresh_token, $row_after->claim_token );
 	}
 
 	// -------------------------------------------------------------------------
@@ -1337,7 +1602,7 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 1, $data['totalItems'] );
-		$this->assertSame( [ self::OTHER_INBOX_URL ], $data['orderedItems'], 'Must list only this artist\'s own follower, not the node\'s.' );
+		$this->assertSame( [ self::OTHER_ACTOR_URL ], $data['orderedItems'], 'Must list only this artist\'s own follower (by actor id), not the node\'s.' );
 	}
 
 	public function test_webfinger_resolves_node_handle(): void {

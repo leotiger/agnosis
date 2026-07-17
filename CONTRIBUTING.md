@@ -112,6 +112,7 @@ See the [Architecture](README.md#architecture) section of the README for the `in
   ```
   This is more verbose than a typical changelog, deliberately — it's meant to be readable months later without needing to dig through the diff or the original issue.
 - `readme.txt` (the WordPress.org-format readme) keeps only the **two most recent** version blocks in its `== Changelog ==` section, plus a pointer line to `CHANGELOG.md` for full history — trim the oldest block when a maintainer adds a new one. Its entries are shorter and user-facing (`* Added: ...` / `* Fixed: ...`, plain text, no markdown), aimed at someone reading it in the Plugins screen, not a developer reading a diff.
+- `docs/agnosis-update-manifest.php` — the self-hosted update endpoint's source (deployed separately to `agnosis.art` by a maintainer) — gets the **same treatment on every version bump**: `$version`, `$download_url`, and `$last_updated` updated, and a new `<h4>X.Y.Z</h4>` block prepended to `$changelog`, trimmed to the two most recent releases (same two-version rule as `readme.txt`, stated in the file's own comment). This file went eleven versions stale before an audit caught it (§4b, `AUDIT-1.0.0.md`) — `dev/bin/build-zip.sh` already automates the `$sha256` field at build time, but `$version`/`$download_url`/`$last_updated`/`$changelog` are deliberately still hand-edited (its own docblock explains why), so they only stay current if this step is actually done as part of the bump, not treated as optional.
 
 ## Submitting a pull request
 

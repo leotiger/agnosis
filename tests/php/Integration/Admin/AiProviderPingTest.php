@@ -1,10 +1,14 @@
 <?php
 /**
- * Integration tests — Settings::handle_test_ai() / ping_provider().
+ * Integration tests — Dashboards\AiTestTools::handle_test_ai() / ping_provider().
  *
  * Uses the pre_http_request filter to mock wp_remote_post() without hitting
  * live APIs. wp_send_json_* calls wp_die() which the WP test framework
  * converts to WPDieException — output is captured and inspected.
+ *
+ * AiTestTools moved out of Admin\Settings in the 2026-07-17 god-class
+ * refactor (AUDIT-1.0.0.md §4d) — same behavior, same hook
+ * (wp_ajax_agnosis_test_ai), new home.
  *
  * @package Agnosis\Tests\Integration\Admin
  */
@@ -13,16 +17,16 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Admin;
 
-use Agnosis\Admin\Settings;
+use Agnosis\Admin\Dashboards\AiTestTools;
 
 class AiProviderPingTest extends \WP_UnitTestCase {
 
-	private Settings $settings;
+	private AiTestTools $ai_test_tools;
 	private int $admin_id;
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->settings = new Settings();
+		$this->ai_test_tools = new AiTestTools();
 		$this->admin_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
 		wp_set_current_user( $this->admin_id );
 		// wp_die() branches on the DOING_AJAX *constant* (not the filter) to pick
@@ -76,7 +80,7 @@ class AiProviderPingTest extends \WP_UnitTestCase {
 			}
 		);
 		try {
-			$this->settings->handle_test_ai();
+			$this->ai_test_tools->handle_test_ai();
 		} catch ( \WPDieException $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- wp_send_json_* always calls wp_die(); the exception is the expected exit path.
 			unset( $e );
 		}

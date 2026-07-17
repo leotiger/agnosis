@@ -3,7 +3,7 @@
  * Main plugin orchestrator.
  *
  * Singleton that wires every service together via WordPress hooks.
- * Contains no business logic — all behaviour lives in the service classes.
+ * Contains no business logic — all behavior lives in the service classes.
  *
  * @package Agnosis\Core
  */
@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Agnosis\Core;
 
 use Agnosis\Admin\ContactMessagesPage;
+use Agnosis\Admin\Dashboards;
 use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
@@ -138,22 +139,42 @@ class Plugin {
 			$this->loader->add_action( 'admin_menu',            $settings, 'register_menu' );
 			$this->loader->add_action( 'admin_init',            $settings, 'register_settings' );
 			$this->loader->add_action( 'admin_enqueue_scripts', $settings, 'enqueue_assets' );
-			$this->loader->add_action( 'admin_post_agnosis_clear_logs',         $settings, 'handle_clear_logs' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_debug_files', $settings, 'handle_clear_debug_files' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_term_translations_cache', $settings, 'handle_clear_term_translations_cache' );
-			$this->loader->add_action( 'wp_ajax_agnosis_test_ai',              $settings, 'handle_test_ai' );
-			$this->loader->add_action( 'admin_post_agnosis_admit_application',    $settings, 'handle_admit_application' );
-			$this->loader->add_action( 'admin_post_agnosis_reject_application',   $settings, 'handle_reject_application' );
-			$this->loader->add_action( 'admin_post_agnosis_ban_artist',            $settings, 'handle_ban_artist' );
-			$this->loader->add_action( 'admin_post_agnosis_delete_artist',         $settings, 'handle_delete_artist' );
-			$this->loader->add_action( 'admin_post_agnosis_initiate_removal_vote', $settings, 'handle_initiate_removal_vote' );
-			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_now',   $settings, 'handle_send_newsletter_now' );
-			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_test', $settings, 'handle_send_newsletter_test' );
-			$this->loader->add_action( 'admin_post_agnosis_send_invitation',      $settings, 'handle_send_invitation' );
-			$this->loader->add_action( 'admin_post_agnosis_send_invitation_test', $settings, 'handle_send_invitation_test' );
-			$this->loader->add_action( 'admin_post_agnosis_send_deliverability_test', $settings, 'handle_send_deliverability_test' );
-			$this->loader->add_action( 'admin_post_agnosis_send_branding_test',    $settings, 'handle_send_branding_test' );
-			$this->loader->add_action( 'admin_post_agnosis_retry_failed_newsletter_recipients', $settings, 'handle_retry_failed_newsletter_recipients' );
+
+			// Settings tab clusters (2026-07-17 god-class refactor, AUDIT-1.0.0.md
+			// §4d) — each dashboard/card is now its own class under Admin\Dashboards,
+			// with its own admin-post/AJAX handler(s), rather than everything routed
+			// through Settings itself.
+			$logs_tab = new Dashboards\LogsTab();
+			$this->loader->add_action( 'admin_post_agnosis_clear_logs', $logs_tab, 'handle_clear_logs' );
+
+			$ai_test_tools = new Dashboards\AiTestTools();
+			$this->loader->add_action( 'wp_ajax_agnosis_test_ai', $ai_test_tools, 'handle_test_ai' );
+
+			$admission_dashboard = new Dashboards\AdmissionDashboard();
+			$this->loader->add_action( 'admin_post_agnosis_admit_application',  $admission_dashboard, 'handle_admit_application' );
+			$this->loader->add_action( 'admin_post_agnosis_reject_application', $admission_dashboard, 'handle_reject_application' );
+
+			$members_dashboard = new Dashboards\MembersDashboard();
+			$this->loader->add_action( 'admin_post_agnosis_ban_artist',            $members_dashboard, 'handle_ban_artist' );
+			$this->loader->add_action( 'admin_post_agnosis_delete_artist',         $members_dashboard, 'handle_delete_artist' );
+			$this->loader->add_action( 'admin_post_agnosis_initiate_removal_vote', $members_dashboard, 'handle_initiate_removal_vote' );
+
+			$newsletter_dashboard = new Dashboards\NewsletterDashboard();
+			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_now',   $newsletter_dashboard, 'handle_send_newsletter_now' );
+			$this->loader->add_action( 'admin_post_agnosis_send_newsletter_test',  $newsletter_dashboard, 'handle_send_newsletter_test' );
+			$this->loader->add_action( 'admin_post_agnosis_retry_failed_newsletter_recipients', $newsletter_dashboard, 'handle_retry_failed_newsletter_recipients' );
+
+			$invitation_card = new Dashboards\InvitationCard();
+			$this->loader->add_action( 'admin_post_agnosis_send_invitation',      $invitation_card, 'handle_send_invitation' );
+			$this->loader->add_action( 'admin_post_agnosis_send_invitation_test', $invitation_card, 'handle_send_invitation_test' );
+
+			$deliverability_card = new Dashboards\DeliverabilityCard();
+			$this->loader->add_action( 'admin_post_agnosis_send_deliverability_test', $deliverability_card, 'handle_send_deliverability_test' );
+
+			$branding_test_form = new Dashboards\BrandingTestForm();
+			$this->loader->add_action( 'admin_post_agnosis_send_branding_test', $branding_test_form, 'handle_send_branding_test' );
 
 			// Queue management handlers.
 			$queue = new QueueController();

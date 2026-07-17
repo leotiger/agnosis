@@ -1440,7 +1440,7 @@ class PostCreator {
 	 * best match) would have silently picked whichever one happened to sort
 	 * first, removing a post the artist never named. This method now uses
 	 * find_posts_by_subject() (plural) and branches on how many titles
-	 * actually matched: one match keeps the exact single-post behaviour
+	 * actually matched: one match keeps the exact single-post behavior
 	 * above (same 'agnosis_removal_requested' action, same email); two or
 	 * more instead pre-generates a token for EACH match and fires a new
 	 * 'agnosis_removal_requested_multiple' action, so Notification can send
@@ -2554,7 +2554,7 @@ class PostCreator {
 	 * endpoint can reuse the exact same sideload/attachment-metadata conventions
 	 * for a direct artist-uploaded replacement image, instead of duplicating this
 	 * logic (audit §7c: "reuse existing primitives... instead of reinventing
-	 * them"). No other behaviour change.
+	 * them"). No other behavior change.
 	 */
 	public function upload_media(
 		string $data,

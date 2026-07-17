@@ -9,12 +9,17 @@
  * no way to act on it short of a direct database edit. This suite covers
  * both halves of the fix:
  *
- *   - Settings::render_retry_failed_button() — the private HTML renderer,
- *     exercised via ReflectionMethod (same pattern SettingsTurnstileWarningTest
- *     already uses for this class).
- *   - Settings::handle_retry_failed_newsletter_recipients() — the admin-post
- *     handler, exercised via the RedirectCapture/DieCapture pattern
- *     DeliverabilityTest/SettingsTermTranslationCacheTest already established.
+ *   - Dashboards\NewsletterDashboard::render_retry_failed_button() — the
+ *     private HTML renderer, exercised via ReflectionMethod (same pattern
+ *     SettingsTurnstileWarningTest already uses for Settings).
+ *   - Dashboards\NewsletterDashboard::handle_retry_failed_newsletter_recipients()
+ *     — the admin-post handler, exercised via the RedirectCapture/DieCapture
+ *     pattern DeliverabilityTest/SettingsTermTranslationCacheTest already
+ *     established.
+ *
+ * NewsletterDashboard moved out of Admin\Settings in the 2026-07-17
+ * god-class refactor (AUDIT-1.0.0.md §4d) — same behavior, same hooks, new
+ * home.
  *
  * Scheduler::latest_issue_id()/failed_count_for_latest_issue() and
  * QueueProcessor::retry_failed() themselves have their own direct coverage in
@@ -28,7 +33,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Admin;
 
-use Agnosis\Admin\Settings;
+use Agnosis\Admin\Dashboards\NewsletterDashboard;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
 use Agnosis\Newsletter\Subscriber;
@@ -37,7 +42,7 @@ use Agnosis\Tests\Integration\Support\RedirectCapture;
 
 class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 
-	private Settings $settings;
+	private NewsletterDashboard $newsletter_dashboard;
 	private Scheduler $scheduler;
 	private QueueProcessor $processor;
 	private \ReflectionMethod $render_button;
@@ -45,11 +50,11 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->settings  = new Settings();
-		$this->scheduler = new Scheduler();
-		$this->processor = new QueueProcessor();
+		$this->newsletter_dashboard = new NewsletterDashboard();
+		$this->scheduler            = new Scheduler();
+		$this->processor            = new QueueProcessor();
 
-		$rc                  = new \ReflectionClass( Settings::class );
+		$rc                  = new \ReflectionClass( NewsletterDashboard::class );
 		$this->render_button = $rc->getMethod( 'render_retry_failed_button' );
 		$this->render_button->setAccessible( true );
 
@@ -85,7 +90,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 
 	private function render( string $type ): string {
 		ob_start();
-		$this->render_button->invoke( $this->settings, $type );
+		$this->render_button->invoke( $this->newsletter_dashboard, $type );
 		return (string) ob_get_clean();
 	}
 
@@ -163,7 +168,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'public';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 			$this->fail( 'Expected wp_die() for a user without manage_options.' );
 		} catch ( DieCapture $e ) {
 			$this->assertStringContainsString( 'permission', $e->body );
@@ -176,7 +181,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'public';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 			$this->fail( 'Expected wp_die() for an invalid nonce.' );
 		} catch ( DieCapture $e ) {
 			$this->addToAssertionCount( 1 ); // check_admin_referer() itself dies here.
@@ -192,7 +197,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'public';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'newsletter_retry_queued', $e->url );
@@ -211,7 +216,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'public';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'newsletter_retry_none', $e->url );
@@ -225,7 +230,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'artist';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'newsletter_retry_none', $e->url );
@@ -241,7 +246,7 @@ class SettingsRetryFailedNewsletterTest extends \WP_UnitTestCase {
 		$_POST['newsletter_type'] = 'public';
 
 		try {
-			$this->settings->handle_retry_failed_newsletter_recipients();
+			$this->newsletter_dashboard->handle_retry_failed_newsletter_recipients();
 		} catch ( RedirectCapture $e ) {
 			$this->addToAssertionCount( 1 );
 		}

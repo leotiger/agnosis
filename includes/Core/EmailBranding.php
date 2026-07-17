@@ -26,7 +26,7 @@ class EmailBranding {
 	private const LOGO_MAX_HEIGHT = 150;
 
 	/**
-	 * Markup for the coloured header bar's brand mark: the configured logo
+	 * Markup for the colored header bar's brand mark: the configured logo
 	 * (Settings → General → Email logo) when one is set, or the plain-text
 	 * "✦ Site Name" wordmark every template used before this setting existed.
 	 *
@@ -74,7 +74,7 @@ class EmailBranding {
 				// width is exactly EmailTemplate::width() − 24px − 24px. A
 				// literal-width table fills that exactly, flush against both
 				// padding edges simultaneously — centered by construction,
-				// with no slack to be off-centre, and no percentage-width
+				// with no slack to be off-center, and no percentage-width
 				// guessing for email clients to get wrong. The image is
 				// left-aligned inside it automatically (a block-level
 				// element starts at its container's left edge). Deliberately

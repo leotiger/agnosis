@@ -12,7 +12,7 @@
  * SubdomainRouter's `option_blogname` note).
  *
  * This lives in the plugin — not in a specific theme's functions.php — so
- * that any theme built against Agnosis gets both behaviours automatically
+ * that any theme built against Agnosis gets both behaviors automatically
  * just by using core's Site Logo / Site Title blocks and, optionally,
  * inserting the `agnosis/artist-breadcrumb` block wherever it wants the
  * artist identified.
@@ -94,7 +94,7 @@ class SubdomainNavigation {
 	 * exactly as before — setting it only overrides that for the icons
 	 * specifically, leaving the artist name's color untouched. Likewise
 	 * `iconVerticalAlign` defaults to 'baseline', matching the pre-existing
-	 * behaviour of just inheriting `.agnosis-artist-breadcrumb`'s own
+	 * behavior of just inheriting `.agnosis-artist-breadcrumb`'s own
 	 * `align-items: baseline` — icon-only glyphs (no text baseline of their
 	 * own) can sit visibly high/low against the name's text baseline once
 	 * `iconSize` is turned up or down from its default, so this lets that be
@@ -255,7 +255,7 @@ class SubdomainNavigation {
 	 * an artist subdomain, exactly like render_block() above — but unlike
 	 * that single block, they now sit inside a plain `core/group` in the
 	 * template (agnosis-theme 0.5.10's header.html), and a Group block has no
-	 * "collapse to nothing when every child renders empty" behaviour of its
+	 * "collapse to nothing when every child renders empty" behavior of its
 	 * own — it's static content, so its wrapper `<div>` (padding/gap/whatever
 	 * the Inspector's Style panel set on it) still rendered on the main site,
 	 * empty but visible, which is exactly the bug fixed by
@@ -589,7 +589,7 @@ class SubdomainNavigation {
 	/**
 	 * Strip the breadcrumb's wrapping `core/group` entirely off an artist
 	 * subdomain, so it renders nothing at all — not an empty box — matching
-	 * render_block()'s "renders nothing, not an empty element" behaviour for
+	 * render_block()'s "renders nothing, not an empty element" behavior for
 	 * the older single-block version of this same breadcrumb.
 	 *
 	 * Scoped to ONLY the one Group block carrying `self::BREADCRUMB_GROUP_CLASS`

@@ -108,7 +108,7 @@ class TextPosterGenerator {
 				// so overlapping text (long submissions) reads as layered
 				// rather than as flat, illegible noise. ImagickDraw::setFillAlpha()
 				// is deprecated by newer ImageMagick/Imagick builds — the alpha
-				// channel is baked into the fill colour itself instead, via an
+				// channel is baked into the fill color itself instead, via an
 				// rgba() ImagickPixel string, which has no deprecated equivalent.
 				$alpha = 0 === $i % 2 ? 1.0 : 0.72;
 				$draw->setFillColor( new \ImagickPixel( sprintf( 'rgba(%s,%.2F)', self::TEXT_COLOR_RGB, $alpha ) ) );

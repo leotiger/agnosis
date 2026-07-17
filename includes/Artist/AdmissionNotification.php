@@ -483,7 +483,7 @@ class AdmissionNotification {
 	 * template in the same pass, see CHANGELOG.md 0.9.29). Same content as
 	 * the original version (bio/portfolio/statement, Yes/No links,
 	 * work-email footer, edit reminder), just composed through the shared
-	 * shell instead of hand-rolling its own DOCTYPE/table/colour constants.
+	 * shell instead of hand-rolling its own DOCTYPE/table/color constants.
 	 *
 	 * @param object{id: int, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
 	 * @param int    $voter_id   WP user ID of the recipient — gates EmailFooter::edit_reminder_html()

@@ -631,4 +631,86 @@ class ActivatorTest extends \WP_UnitTestCase {
 
 		$this->assertTrue( true, 'A second maybe_upgrade() call against an already-migrated table must not throw.' );
 	}
+
+	// =========================================================================
+	// deactivate() — cron cleanup (audit §4a, AUDIT-1.0.0.md)
+	// =========================================================================
+
+	/**
+	 * Every recurring hook in CRON_HOOKS is scheduled with no arguments, so a
+	 * plain wp_next_scheduled( $hook ) check (no $args) is a valid "is it
+	 * gone" probe for these.
+	 *
+	 * @return array<int, string>
+	 */
+	private function recurring_cron_hooks(): array {
+		return array_diff( Activator::CRON_HOOKS, $this->arg_bearing_cron_hooks() );
+	}
+
+	/**
+	 * The three single-events that are always scheduled with real arguments.
+	 *
+	 * @return array<int, string>
+	 */
+	private function arg_bearing_cron_hooks(): array {
+		return [
+			'agnosis_publish_submission',
+			'agnosis_dispatch_lf_translations',
+			'agnosis_flush_permalinks',
+		];
+	}
+
+	/**
+	 * Regression test for audit §4a: deactivate() previously cleared only 10
+	 * of the (now) 13 hooks Agnosis schedules — the three single-events
+	 * (agnosis_publish_submission, agnosis_dispatch_lf_translations,
+	 * agnosis_flush_permalinks) were entirely absent, so a pending instance
+	 * of any of them survived deactivation and fired into the void.
+	 */
+	public function test_deactivate_clears_every_recurring_hook(): void {
+		foreach ( $this->recurring_cron_hooks() as $hook ) {
+			wp_clear_scheduled_hook( $hook );
+			wp_schedule_event( time(), 'daily', $hook );
+			$this->assertNotFalse( wp_next_scheduled( $hook ), "Setup failed to schedule {$hook}." );
+		}
+
+		Activator::deactivate();
+
+		foreach ( $this->recurring_cron_hooks() as $hook ) {
+			$this->assertFalse( wp_next_scheduled( $hook ), "deactivate() must clear {$hook}." );
+		}
+	}
+
+	/**
+	 * The real regression: agnosis_publish_submission is scheduled with
+	 * [ $queue_id ] and agnosis_dispatch_lf_translations with a dispatch
+	 * payload array — wp_clear_scheduled_hook( $hook ) with no $args only
+	 * matches events scheduled with an EXACT empty-args match, so it would
+	 * silently fail to clear either even after being added to a naive hook
+	 * list. deactivate() must use wp_unschedule_hook() (args-agnostic)
+	 * instead, which this test proves by scheduling each with real arguments.
+	 */
+	public function test_deactivate_clears_arg_bearing_single_events_regardless_of_arguments(): void {
+		wp_clear_scheduled_hook( 'agnosis_publish_submission', [ 123 ] );
+		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'agnosis_publish_submission', [ 123 ] );
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_publish_submission', [ 123 ] ) );
+
+		wp_clear_scheduled_hook( 'agnosis_dispatch_lf_translations', [ 456, [ 'es', 'fr' ] ] );
+		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'agnosis_dispatch_lf_translations', [ 456, [ 'es', 'fr' ] ] );
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_dispatch_lf_translations', [ 456, [ 'es', 'fr' ] ] ) );
+
+		wp_clear_scheduled_hook( 'agnosis_flush_permalinks' );
+		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'agnosis_flush_permalinks' );
+		$this->assertNotFalse( wp_next_scheduled( 'agnosis_flush_permalinks' ) );
+
+		Activator::deactivate();
+
+		$this->assertFalse( wp_next_scheduled( 'agnosis_publish_submission', [ 123 ] ), 'deactivate() must clear a pending agnosis_publish_submission regardless of its queue-id argument.' );
+		$this->assertFalse( wp_next_scheduled( 'agnosis_dispatch_lf_translations', [ 456, [ 'es', 'fr' ] ] ), 'deactivate() must clear a pending agnosis_dispatch_lf_translations regardless of its dispatch-payload argument.' );
+		$this->assertFalse( wp_next_scheduled( 'agnosis_flush_permalinks' ), 'deactivate() must clear a pending agnosis_flush_permalinks.' );
+	}
+
+	public function test_cron_hooks_constant_has_no_duplicates(): void {
+		$this->assertSame( Activator::CRON_HOOKS, array_unique( Activator::CRON_HOOKS ), 'CRON_HOOKS must not list the same hook twice.' );
+	}
 }

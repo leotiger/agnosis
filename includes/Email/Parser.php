@@ -232,6 +232,24 @@ class Parser {
 		// getTextBody() returns string — cast directly, no ?? needed.
 		$text_body = (string) $message->getTextBody();
 
+		// --- HTML-only fallback (audit §6a, AUDIT-1.0.0.md) ---
+		// Real mail clients — some webmail "rich text" modes, several mobile
+		// clients, most marketing/newsletter composers an artist might paste
+		// from — do send HTML-only messages with no text/plain alternative.
+		// Without this, such a message arrived with an empty $text_body: a
+		// photo attachment still published (correct), but the artist's own
+		// description/title text silently vanished, and a text-only HTML
+		// message dead-ended at the "nothing usable" gate below as if it
+		// were genuinely empty. Comparative read of Postie 1.9.78
+		// (postie-message.php:37–45) confirmed this is a real, recurring
+		// class of sender, not a hypothetical.
+		if ( '' === trim( $text_body ) ) {
+			$html_body = (string) $message->getHTMLBody();
+			if ( '' !== trim( $html_body ) ) {
+				$text_body = $this->html_body_to_text( $html_body );
+			}
+		}
+
 		// --- Reply/forward extraction (2026-07-15; extraction added
 		// 2026-07-14 — eighth audit §3c) — detected BEFORE attachment
 		// processing (unchanged from before §3c), but no longer an
@@ -676,6 +694,50 @@ class Parser {
 	/** Fallback file extension for an attachment that arrived with no filename. */
 	private function extension_for( string $mime ): string {
 		return self::EXTENSION_FOR_MIME[ strtolower( $mime ) ] ?? 'jpg';
+	}
+
+	/**
+	 * Derive a plain-text approximation of an HTML-only email body (audit
+	 * §6a, AUDIT-1.0.0.md — the HTML-only fallback for parse_imap_message()).
+	 *
+	 * Feeds the exact same clean_text()/IntakeGates path a genuine
+	 * text/plain body would: reply/forward extraction and every downstream
+	 * gate apply to the result identically, since by the time this returns
+	 * it's indistinguishable from a body webklex parsed straight out of a
+	 * text/plain part.
+	 */
+	private function html_body_to_text( string $html ): string {
+		// <script>/<style> tags DO arrive in real HTML mail — strip both the
+		// tags AND their content first. A naive "just strip tags" pass alone
+		// would leave raw JS/CSS source sitting in the body as if it were
+		// the artist's own words (the exact lesson behind Postie's own
+		// 1.4.10 changelog entry for this same class of bug).
+		$html = (string) preg_replace( '#<(script|style)\b[^>]*>.*?</\1>#si', '', $html );
+
+		// wp_strip_all_tags() has no concept of block-level structure, so
+		// without this, an HTML email's paragraphs/line breaks would all
+		// collapse into one run-on line. Paragraph-level elements get a
+		// blank line between them (matching how a person typically types a
+		// multi-paragraph plain-text email); simple line breaks get a
+		// single newline.
+		$html = (string) preg_replace( '#</(p|div)>#i', "\n\n", $html );
+		$html = (string) preg_replace( '#<br\s*/?>|</(h[1-6]|li|tr)>#i', "\n", $html );
+
+		$text = wp_strip_all_tags( $html );
+
+		// wp_strip_all_tags() strips markup but never decodes entities — an
+		// HTML-only sender's "It&#8217;s beautiful" would otherwise reach
+		// clean_text() (and the published post) as the literal entity text
+		// rather than an apostrophe.
+		$text = html_entity_decode( $text, ENT_QUOTES, 'UTF-8' );
+
+		// Collapse runs of 3+ blank lines (common once several block-level
+		// tags convert to newlines back-to-back) down to a single blank
+		// line, and trim trailing whitespace on each line.
+		$text = (string) preg_replace( '/[ \t]+\n/', "\n", $text );
+		$text = (string) preg_replace( '/\n{3,}/', "\n\n", $text );
+
+		return trim( $text );
 	}
 
 	private function clean_text( string $text ): string {

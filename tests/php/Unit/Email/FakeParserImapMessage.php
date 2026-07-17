@@ -53,13 +53,20 @@ class FakeParserImapMessage extends Message {
 		private string $text_body = 'Test body.',
 		private int $uid = 1,
 		private array $fake_attachments = [],
-		private bool $cc_unsupported = false
+		private bool $cc_unsupported = false,
+		// Audit §6a (AUDIT-1.0.0.md) HTML-only fallback fixture support —
+		// defaults to '' so every pre-existing construction (which never
+		// passed this param) stays a plain-text-only message, unchanged.
+		private string $html_body = ''
 	) {}
 
 	/** @return array<int, object{mail: string}> */
 	private function address_list( array $emails ): object {
 		return new class( $emails ) {
+			/** @param array<int, string> $emails */
 			public function __construct( private array $emails ) {}
+
+			/** @return array<int, object{mail: string}> */
 			public function toArray(): array {
 				return array_map( static fn( string $e ) => (object) [ 'mail' => $e ], $this->emails );
 			}
@@ -91,6 +98,10 @@ class FakeParserImapMessage extends Message {
 
 	public function getTextBody(): string {
 		return $this->text_body;
+	}
+
+	public function getHTMLBody(): string {
+		return $this->html_body;
 	}
 
 	public function getStructure(): ?Structure {

@@ -642,7 +642,7 @@ class Notification {
 	 * email body (2026-07-14).
 	 *
 	 * Same visual shell as build_removal_email() (header/footer/accent
-	 * colour), but the single title-card-plus-button in that method is
+	 * color), but the single title-card-plus-button in that method is
 	 * replaced with one card per match, each carrying its own confirm
 	 * button/link — every token is independent and single-use, so clicking
 	 * one has no effect on the others.

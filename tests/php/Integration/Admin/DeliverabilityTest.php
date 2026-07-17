@@ -5,8 +5,8 @@
  *
  * Covers the pure diagnostic class (Admin\Deliverability — From-domain vs
  * site-domain matching, SPF/DMARC TXT-record checks, SMTP-plugin detection)
- * and Settings::handle_send_deliverability_test(), the admin-post handler
- * behind the card's "Send Test" button.
+ * and Dashboards\DeliverabilityCard::handle_send_deliverability_test(), the
+ * admin-post handler behind the card's "Send Test" button.
  *
  * dns_get_record() has no WordPress core filter of its own (unlike
  * wp_remote_get()'s pre_http_request), so Deliverability::txt_lookup()
@@ -21,6 +21,11 @@
  * pattern SettingsTermTranslationCacheTest already established for
  * intercepting wp_safe_redirect()/wp_die() without killing the test process.
  *
+ * DeliverabilityCard moved out of Admin\Settings in the 2026-07-17
+ * god-class refactor (AUDIT-1.0.0.md §4d) — same behavior, same hook
+ * (admin_post_agnosis_send_deliverability_test), new home. Admin\Deliverability
+ * itself (the pure diagnostic class under test above) did not move.
+ *
  * @package Agnosis\Tests\Integration\Admin
  */
 
@@ -28,19 +33,19 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Admin;
 
+use Agnosis\Admin\Dashboards\DeliverabilityCard;
 use Agnosis\Admin\Deliverability;
-use Agnosis\Admin\Settings;
 use Agnosis\Tests\Integration\Support\DieCapture;
 use Agnosis\Tests\Integration\Support\RedirectCapture;
 
 class DeliverabilityTest extends \WP_UnitTestCase {
 
-	private Settings $settings;
+	private DeliverabilityCard $deliverability_card;
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->settings = new Settings();
+		$this->deliverability_card = new DeliverabilityCard();
 
 		add_filter(
 			'wp_redirect',
@@ -218,7 +223,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		$_POST['test_email']  = 'someone@example.com';
 
 		try {
-			$this->settings->handle_send_deliverability_test();
+			$this->deliverability_card->handle_send_deliverability_test();
 			$this->fail( 'Expected wp_die() for a user without manage_options.' );
 		} catch ( DieCapture $e ) {
 			$this->assertStringContainsString( 'permission', $e->body );
@@ -231,7 +236,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		$_POST['test_email']  = 'someone@example.com';
 
 		try {
-			$this->settings->handle_send_deliverability_test();
+			$this->deliverability_card->handle_send_deliverability_test();
 			$this->fail( 'Expected wp_die() for an invalid nonce.' );
 		} catch ( DieCapture $e ) {
 			$this->addToAssertionCount( 1 ); // check_admin_referer() itself dies here — reached the right place.
@@ -244,7 +249,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		$_POST['test_email']  = 'not-an-email';
 
 		try {
-			$this->settings->handle_send_deliverability_test();
+			$this->deliverability_card->handle_send_deliverability_test();
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'deliverability_test_failed', $e->url );
@@ -260,7 +265,7 @@ class DeliverabilityTest extends \WP_UnitTestCase {
 		$filter   = $this->capture_mail( $captured );
 
 		try {
-			$this->settings->handle_send_deliverability_test();
+			$this->deliverability_card->handle_send_deliverability_test();
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'deliverability_test_sent', $e->url );

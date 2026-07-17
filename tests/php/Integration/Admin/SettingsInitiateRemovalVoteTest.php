@@ -1,6 +1,6 @@
 <?php
 /**
- * Integration tests — audit §2b: Settings::handle_initiate_removal_vote()
+ * Integration tests — audit §2b: Dashboards\MembersDashboard::handle_initiate_removal_vote()
  * (the admin "Open Vote" button on Settings → Community → Members).
  *
  * The handler resolves the application's subject WP user id with a raw SQL
@@ -17,6 +17,10 @@
  * SettingsRetryFailedNewsletterTest/DeliverabilityTest already established
  * for admin-post handlers that end in `wp_safe_redirect(); exit;`.
  *
+ * MembersDashboard moved out of Admin\Settings in the 2026-07-17 god-class
+ * refactor (AUDIT-1.0.0.md §4d) — same behavior, same hook
+ * (admin_post_agnosis_initiate_removal_vote), new home.
+ *
  * @package Agnosis\Tests\Integration\Admin
  */
 
@@ -24,18 +28,18 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Admin;
 
-use Agnosis\Admin\Settings;
+use Agnosis\Admin\Dashboards\MembersDashboard;
 use Agnosis\Tests\Integration\Support\DieCapture;
 use Agnosis\Tests\Integration\Support\RedirectCapture;
 
 class SettingsInitiateRemovalVoteTest extends \WP_UnitTestCase {
 
-	private Settings $settings;
+	private MembersDashboard $members_dashboard;
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->settings = new Settings();
+		$this->members_dashboard = new MembersDashboard();
 
 		add_filter(
 			'wp_redirect',
@@ -100,7 +104,7 @@ class SettingsInitiateRemovalVoteTest extends \WP_UnitTestCase {
 		$_POST['application_id']   = (string) $app_id;
 		$_REQUEST['agnosis_nonce'] = wp_create_nonce( 'agnosis_vote_' . $app_id );
 
-		$this->settings->handle_initiate_removal_vote();
+		$this->members_dashboard->handle_initiate_removal_vote();
 	}
 
 	// =========================================================================
@@ -115,7 +119,7 @@ class SettingsInitiateRemovalVoteTest extends \WP_UnitTestCase {
 		$_REQUEST['agnosis_nonce'] = wp_create_nonce( 'agnosis_vote_' . $app_id );
 
 		try {
-			$this->settings->handle_initiate_removal_vote();
+			$this->members_dashboard->handle_initiate_removal_vote();
 			$this->fail( 'Expected wp_die() for a user without manage_options.' );
 		} catch ( DieCapture $e ) {
 			$this->assertStringContainsString( 'permission', $e->body );
@@ -130,7 +134,7 @@ class SettingsInitiateRemovalVoteTest extends \WP_UnitTestCase {
 		$_REQUEST['agnosis_nonce'] = 'not-a-valid-nonce';
 
 		try {
-			$this->settings->handle_initiate_removal_vote();
+			$this->members_dashboard->handle_initiate_removal_vote();
 			$this->fail( 'Expected wp_die() for an invalid nonce.' );
 		} catch ( DieCapture $e ) {
 			$this->addToAssertionCount( 1 ); // check_admin_referer() itself dies here.

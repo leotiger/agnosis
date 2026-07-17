@@ -12,7 +12,7 @@
  * since a plain Group block has no such attribute of its own). That meant a
  * different theme built against this plugin would have had to reimplement
  * all of it from scratch to get a working subscribe popover. Now any theme
- * gets the full behaviour from a single `<!-- wp:agnosis/newsletter-popover /-->`,
+ * gets the full behavior from a single `<!-- wp:agnosis/newsletter-popover /-->`,
  * and `popover="auto"` is just written directly in this class's own markup —
  * no content-filter hack needed at all.
  *

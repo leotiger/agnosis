@@ -1228,7 +1228,7 @@ class LinguaForge {
 	 * re-verifies the template assignment for every sibling, not just the one
 	 * that just finished. Deliberately not scoped to $target_lang for that
 	 * reason: passing $translated_id or checking $target_lang would miss the
-	 * "fix every sibling" behaviour this function is designed to provide.
+	 * "fix every sibling" behavior this function is designed to provide.
 	 *
 	 * Hooked only when LF >= 2.6.1 (see constructor) — this function does not
 	 * exist on older LF, and LF 2.6.1's own TranslationTrigger fix already
@@ -1260,7 +1260,7 @@ class LinguaForge {
 	 * Translate every term name a source post holds in $taxonomy and assign the
 	 * translated set to the translated post, replacing whatever it had before
 	 * (wp_set_object_terms()'s default $append = false) — the same "full,
-	 * blunt overwrite on re-translation" behaviour LF's own
+	 * blunt overwrite on re-translation" behavior LF's own
 	 * update_translated_post() already applies to post_content/post_title, so
 	 * this isn't introducing a new class of surprise on re-translation.
 	 *
@@ -1270,7 +1270,7 @@ class LinguaForge {
 	 *
 	 * Any translated name that doesn't already exist in $taxonomy is, by
 	 * definition, a term this method itself is about to create via
-	 * wp_set_object_terms()'s auto-create behaviour — not one an admin
+	 * wp_set_object_terms()'s auto-create behavior — not one an admin
 	 * deliberately added. Such terms are stamped with TRANSLATED_TERM_META so
 	 * `PromptConfig::medium_terms()` can exclude them from the AI's controlled
 	 * vocabulary (fourth audit §4c: without this, AI-translated term names
@@ -1310,7 +1310,7 @@ class LinguaForge {
 		// lookup is ambiguous for those, and not for an actual int (sixth
 		// audit §6, carried from the fifth — pre-existing since 0.9.9, not
 		// introduced by this method). Non-numeric names are completely
-		// unaffected and keep the original behaviour: term_exists() is
+		// unaffected and keep the original behavior: term_exists() is
 		// checked BEFORE the assignment call so a genuinely new name can
 		// still be identified afterward (wp_set_object_terms() auto-creates
 		// it, and its ID is only known once that call returns).
@@ -1366,7 +1366,7 @@ class LinguaForge {
 	 * reusing an existing one, as intended). `wp_set_object_terms()` calls
 	 * `term_exists()` internally and inherits the exact same ambiguity, so
 	 * passing a numeric-looking name straight through — the pre-fix
-	 * behaviour — silently mis-assigns or drops such terms. Passing a
+	 * behavior — silently mis-assigns or drops such terms. Passing a
 	 * genuine PHP int (not a numeric string) sidesteps this entirely:
 	 * `term_exists()` performs ONLY the exact `t.term_id = %d` match when
 	 * given an int, with no name/slug fallback at all — so resolving to a

@@ -133,7 +133,7 @@ class Debug {
 	/**
 	 * Delete *.txt dumps whose mtime is older than $days days. Returns the
 	 * number removed. Same symlink-safety and directory-preservation
-	 * behaviour as clear() — this is clear() with an age filter.
+	 * behavior as clear() — this is clear() with an age filter.
 	 *
 	 * Fourth audit §5c: a raw pipeline dump contains an artist's full raw
 	 * email (attachments included), so unlike agnosis_log's DB-backed

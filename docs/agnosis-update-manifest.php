@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.22';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.22/agnosis-0.9.22.zip';
+	$version      = '0.9.34';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.34/agnosis-0.9.34.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,30 +52,37 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.22.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.22 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.34.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.34 GitHub release,
 	// then deploy this manifest.
-	$sha256 = 'af0a1ddf30b16985bb199dacaf535950936db98f6a6985080b4e7b76bd529b71';
+	$sha256 = '53640211c1ac7e17c24e95dbd982dbdae11bbd82c78beaa3085f5ca2ebafd2b7';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
+	//
+	// This block (and $version/$download_url/$last_updated above) went
+	// eleven versions stale before being caught (audit §4b, AUDIT-1.0.0.md —
+	// still describing 0.9.22 while the plugin was at 0.9.33). See
+	// CONTRIBUTING.md's "Changelog and readme conventions" section for the
+	// standing rule this file is now covered by: update on every version
+	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
-		'<h4>0.9.22</h4>' .
+		'<h4>0.9.34</h4>' .
 		'<ul>' .
-			'<li><strong>Added:</strong> Two new default medium categories, Poetry and Essay, so the built-in list now covers written submissions, not just visual ones.</li>' .
-			'<li><strong>Added:</strong> Agnosis now checks for updates itself and shows the standard WordPress &#8220;Update available&#8221; badge with one-click updating, the same way the companion Lingua Forge plugin already does &#8212; no more manually re-uploading a ZIP for each new release. Package downloads are host-pinned and SHA-256 verified for safety.</li>' .
-			'<li><strong>Changed:</strong> Lingua Forge is now a required plugin, not an optional one &#8212; WordPress won&#8217;t let you activate Agnosis until Lingua Forge is installed and active (and won&#8217;t let you deactivate Lingua Forge while Agnosis is active). Reflects how much of the plugin already depends on it.</li>' .
+			'<li><strong>Fixed:</strong> Agnosis&#8217;s three hand-maintained lists of scheduled background tasks (WP-Cron hooks) had drifted out of sync &#8212; plugin deletion wasn&#8217;t clearing two of them (including one that could leave a stale scheduled task behind indefinitely), and deactivation wasn&#8217;t clearing three others. Reconciled all three lists against a single source of truth, with an automated test that keeps them from drifting apart again.</li>' .
+			'<li><strong>Fixed:</strong> The self-hosted update-check feed had gone eleven versions stale, still describing version 0.9.22 &#8212; brought current, and added to the standing release checklist so it can&#8217;t silently drift again.</li>' .
+			'<li><strong>Fixed:</strong> The fediverse followers list (visible to Mastodon and other federated software) now identifies each follower by their own address, instead of an internal delivery detail it was publishing by mistake.</li>' .
+			'<li><strong>Fixed:</strong> An email with no plain-text version at all &#8212; some webmail &#8220;rich text&#8221; modes, several mobile mail apps, and most marketing/newsletter composers send this way &#8212; no longer loses its description text. Agnosis now reads the message&#8217;s formatted content instead when there&#8217;s no plain text to fall back on.</li>' .
+			'<li><strong>Fixed:</strong> When a follower&#8217;s fediverse account is deleted, Agnosis now removes them from its follower list right away instead of continuing to (unsuccessfully) deliver to them for days. A confirmed-dead delivery address is also now recognized immediately rather than retried for the full waiting period.</li>' .
+			'<li><strong>Changed:</strong> The Installation section now notes that Lingua Forge must be installed and active before Agnosis, since Agnosis won&#8217;t activate without it. Also a code-comment spelling cleanup (behaviour&#8594;behavior, colour&#8594;color) &#8212; no functional change.</li>' .
+			'<li><strong>Changed:</strong> Added automated test coverage for three previously hand-verified-only or deferred safety checks &#8212; the newsletter/fediverse delivery queues&#8217; overlap protection, every outgoing email actually honoring a configured accent color, and the header text-color contrast switch &#8212; no functional change.</li>' .
+			'<li><strong>Changed:</strong> Split the large internal Settings-page code file into several smaller, focused files, organized by which admin dashboard/card each one renders. Purely internal code organization &#8212; no change to how the Settings page looks or behaves. (A follow-up static-analysis check caught and fixed one small code-correctness slip in this same split before it shipped.)</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.21</h4>' .
+		'<h4>0.9.33</h4>' .
 		'<ul>' .
-			'<li><strong>Added:</strong> A visitor can no longer message the same artist more than a configurable number of times per hour &#8212; previously the contact form only limited by IP address and, separately, by sender email address across every artist, so nothing stopped repeated messages to one specific artist. Configurable at Settings &#8594; Email (&#8220;Per-artist contact limit&#8221; and its time window). Applies the same regardless of which language version of the artist&#8217;s page is used.</li>' .
-			'<li><strong>Added:</strong> A new Settings &#8594; General &#8220;Preset biography title&#8221; field lets you force every artist&#8217;s biography page to use the same fixed title instead of their own, with an optional checkbox to append the artist&#8217;s name to it (e.g. &#8220;Meet the Artist &#8212; Jane Doe&#8221;). Leave it blank to keep using each artist&#8217;s own title, exactly as before. Applies to every Lingua Forge translated version of a biography page too.</li>' .
-			'<li><strong>Fixed:</strong> The contact form no longer just hides itself in the browser after a message is sent, since that could be undone to send more. Submitting now reloads the page; the form is then replaced with a &#8220;message sent&#8221; notice until the per-artist limit above allows another message.</li>' .
-			'<li><strong>Fixed:</strong> Resending a biography, artwork, or event with a new photo now actually updates the published post&#8217;s featured image (previously it silently kept the old one), and the new photo now also reaches every Lingua Forge translated version of that page instead of just the primary language.</li>' .
-			'<li><strong>Fixed:</strong> A biography&#8217;s three optional social links, and corrections to its portfolio link, now reach every Lingua Forge translated version of the page &#8212; previously they only ever showed up on the primary language.</li>' .
-			'<li><strong>Fixed:</strong> A biography&#8217;s portfolio link no longer appears twice &#8212; once as a social icon below the photo, once again as a duplicate embedded preview inside the text. It now shows only as the icon.</li>' .
-			'<li><strong>Fixed:</strong> An artist could sometimes receive a second &#8220;please approve this&#8221; email for a submission they&#8217;d already approved and published, or already discarded &#8212; triggered by an admin&#8217;s &#8220;heal the queue&#8221; action, or automatically after a mailbox migration, with no action needed from the artist. This is now fixed at the source.</li>' .
+			'<li><strong>Added:</strong> The artist breadcrumb now shows the artist&#8217;s native language as a two-letter code next to the biography/events/contact icons, with the language&#8217;s own native name shown on hover.</li>' .
+			'<li><strong>Fixed:</strong> Clicking the &#8220;confirm your application&#8221; link in the join email landed artists on a page that still needed one more click to actually confirm &#8212; several first applicants got stuck there, not realizing anything more was needed. That page now confirms automatically the moment it loads in a real browser, while still rejecting a bare prefetch/scan of the link, so the protection against mail-scanner false-positives stays intact.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

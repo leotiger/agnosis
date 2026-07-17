@@ -386,18 +386,54 @@ class Activator {
 		flush_rewrite_rules();
 	}
 
+	/**
+	 * Every WP-Cron hook Agnosis ever schedules — the single source of truth
+	 * for cron cleanup on deactivation.
+	 *
+	 * `uninstall.php` cannot autoload this class (it deliberately loads none
+	 * of the plugin's classes — see that file's own header), so it keeps its
+	 * own literal copy of this exact list rather than referencing this
+	 * constant directly. `tests/php/Integration/Core/CronHookParityTest.php`
+	 * asserts the two stay identical — treat that test as the enforcement
+	 * mechanism for this comment, not the comment alone (audit §4a,
+	 * `AUDIT-1.0.0.md`: the two lists had silently drifted apart before this).
+	 *
+	 * Adding a new scheduled hook anywhere in the codebase means adding it
+	 * here AND to uninstall.php's own `$cron_hooks` array — the parity test
+	 * will fail loudly if only one side is updated.
+	 */
+	public const CRON_HOOKS = [
+		// Recurring events.
+		'agnosis_poll_inbox',
+		'agnosis_cleanup_inbox',
+		'agnosis_check_admissions',
+		'agnosis_check_bans',
+		'agnosis_check_removal_votes',
+		'agnosis_check_cap_votes',
+		'agnosis_vote_digest',
+		'agnosis_prepare_newsletters',
+		'agnosis_send_newsletter_queue',
+		'agnosis_ap_retry_deliveries',
+		// Single events — each scheduled with per-call arguments (a queue id,
+		// a translation dispatch payload), so clearing them needs
+		// wp_unschedule_hook() below, not wp_clear_scheduled_hook( $hook ):
+		// the latter only matches events scheduled with the exact args passed
+		// (default none), and would silently leave a pending instance behind.
+		'agnosis_publish_submission',
+		'agnosis_dispatch_lf_translations',
+		'agnosis_flush_permalinks',
+	];
+
 	/** Runs on plugin deactivation. */
 	public static function deactivate(): void {
-		wp_clear_scheduled_hook( 'agnosis_poll_inbox' );
-		wp_clear_scheduled_hook( 'agnosis_cleanup_inbox' );
-		wp_clear_scheduled_hook( 'agnosis_check_admissions' );
-		wp_clear_scheduled_hook( 'agnosis_check_bans' );
-		wp_clear_scheduled_hook( 'agnosis_check_removal_votes' );
-		wp_clear_scheduled_hook( 'agnosis_check_cap_votes' );
-		wp_clear_scheduled_hook( 'agnosis_vote_digest' );
-		wp_clear_scheduled_hook( 'agnosis_prepare_newsletters' );
-		wp_clear_scheduled_hook( 'agnosis_send_newsletter_queue' );
-		wp_clear_scheduled_hook( 'agnosis_ap_retry_deliveries' );
+		foreach ( self::CRON_HOOKS as $hook ) {
+			// wp_unschedule_hook() removes every pending instance of $hook
+			// regardless of the arguments it was scheduled with — required
+			// for agnosis_publish_submission/agnosis_dispatch_lf_translations
+			// (see the CRON_HOOKS docblock above); harmless and equivalent to
+			// wp_clear_scheduled_hook() for the plain recurring events.
+			wp_unschedule_hook( $hook );
+		}
 		flush_rewrite_rules();
 	}
 

@@ -589,14 +589,14 @@ class Profile {
 			return $h1;
 		}
 
-		// Colour: NOT --wp--preset--color--secondary — that token is a ~6%-opacity
-		// background wash (theme.json), not a text colour, and rendered this
+		// Color: NOT --wp--preset--color--secondary — that token is a ~6%-opacity
+		// background wash (theme.json), not a text color, and rendered this
 		// translated title all but invisible against the dark artwork-page
 		// header (reported 2026-07-07). The theme's own established pattern for
 		// legible-but-muted text over that same dark header (post-date block,
 		// breadcrumb, pagination — see agnosis-theme's single-agnosis_artwork.html
 		// and style.css) is full-strength --foreground at reduced opacity, not a
-		// separate low-alpha colour token. Using a higher opacity (0.75) than
+		// separate low-alpha color token. Using a higher opacity (0.75) than
 		// those nav-ish elements (0.4-0.5) since this is actual translated
 		// content — the work's official site-language title — not incidental
 		// chrome, and should be comfortably readable, not merely present.
@@ -620,7 +620,7 @@ class Profile {
 	 * AI-generated site-language translation (_agnosis_translated_title meta)
 	 * rendered below as a smaller subtitle when it differs from the
 	 * original. Before 0.9.24, an event's post_title was instead translated
-	 * outright per language sibling (Lingua Forge's normal behaviour) — this
+	 * outright per language sibling (Lingua Forge's normal behavior) — this
 	 * block is the front-end half of moving events onto the same dual-title
 	 * path artwork has always used.
 	 *
@@ -671,7 +671,7 @@ class Profile {
 			return $h1;
 		}
 
-		// Same colour/opacity/font-size choice as render_artwork_title() — see
+		// Same color/opacity/font-size choice as render_artwork_title() — see
 		// that method's own comment for why (legible-but-muted foreground at
 		// 0.75 opacity, not the low-alpha --secondary background wash token).
 		return sprintf(

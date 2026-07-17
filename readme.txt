@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.33
+Stable tag: 0.9.34
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -50,10 +50,11 @@ Once published, an artist can also correct their own title, text, or photos dire
 
 == Installation ==
 
-1. Upload the `agnosis` folder to `/wp-content/plugins/`
-2. Activate via **Plugins → Installed Plugins**
-3. Go to **Agnosis** in the admin sidebar and configure your email inbox and AI API keys
-4. Artists apply at the **`/join/`** page and are vouched in by peers
+1. Install and activate **Lingua Forge** first — Agnosis declares it as a required plugin (WordPress 6.5+ Plugin Dependencies) and will refuse to activate with only a generic error if it isn't already installed and active.
+2. Upload the `agnosis` folder to `/wp-content/plugins/`
+3. Activate via **Plugins → Installed Plugins**
+4. Go to **Agnosis** in the admin sidebar and configure your email inbox and AI API keys
+5. Artists apply at the **`/join/`** page and are vouched in by peers
 
 == Frequently Asked Questions ==
 
@@ -71,12 +72,19 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.34 =
+* Fixed: Agnosis's three hand-maintained lists of scheduled background tasks (WP-Cron hooks) had drifted out of sync — plugin deletion wasn't clearing two of them (including one that could leave a stale scheduled task behind indefinitely), and deactivation wasn't clearing three others. Reconciled all three lists against a single source of truth, with an automated test that keeps them from drifting apart again.
+* Fixed: The self-hosted update-check feed had gone eleven versions stale, still describing version 0.9.22 — brought current, and added to the standing release checklist so it can't silently drift again.
+* Fixed: The fediverse followers list (visible to Mastodon and other federated software) now identifies each follower by their own address, instead of an internal delivery detail it was publishing by mistake.
+* Fixed: An email with no plain-text version at all — some webmail "rich text" modes, several mobile mail apps, and most marketing/newsletter composers send this way — no longer loses its description text. Agnosis now reads the message's formatted content instead when there's no plain text to fall back on.
+* Fixed: When a follower's fediverse account is deleted, Agnosis now removes them from its follower list right away instead of continuing to (unsuccessfully) deliver to them for days. A confirmed-dead delivery address is also now recognized immediately rather than retried for the full waiting period.
+* Changed: The Installation section now notes that Lingua Forge must be installed and active before Agnosis, since Agnosis won't activate without it. Also a code-comment spelling cleanup (behaviour→behavior, colour→color) — no functional change.
+* Changed: Added automated test coverage for three previously hand-verified-only or deferred safety checks — the newsletter/fediverse delivery queues' overlap protection, every outgoing email actually honoring a configured accent color, and the header text-color contrast switch — no functional change.
+* Changed: Split the large internal Settings-page code file into several smaller, focused files, organized by which admin dashboard/card each one renders. Purely internal code organization — no change to how the Settings page looks or behaves. (A follow-up static-analysis check caught and fixed one small code-correctness slip in this same split before it shipped.)
+
 = 0.9.33 =
 * Added: The artist breadcrumb now shows the artist's native language as a two-letter code next to the biography/events/contact icons, with the language's own native name shown on hover.
 * Fixed: Clicking the "confirm your application" link in the join email landed artists on a page that still needed one more click to actually confirm — several first applicants got stuck there, not realizing anything more was needed. That page now confirms automatically the moment it loads in a real browser, while still rejecting a bare prefetch/scan of the link, so the protection against mail-scanner false-positives stays intact.
-
-= 0.9.32 =
-* Added: The Deliverability check (Settings → Email) now also looks for a DKIM record (best-effort — it tries a list of common provider selectors, since unlike SPF/DMARC there's no single fixed place a DKIM record lives) and checks whether your sending domain is listed on Spamhaus's Domain Block List — a real, confirmed cause of mail that sends successfully but never arrives, especially for a newer domain still building sending reputation.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

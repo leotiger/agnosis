@@ -1273,7 +1273,7 @@ class Inbox {
 
 	/**
 	 * Per-reason override for the queue row's status. Reasons not listed here
-	 * default to 'failed' — the historical behaviour, still accurate for every
+	 * default to 'failed' — the historical behavior, still accurate for every
 	 * rejection/gate-skip reason. 'goodbye_handled' is the one reason that
 	 * represents an actual success (the confirmation email was sent), so it is
 	 * recorded as 'skipped' instead: not an artwork submission, but not a

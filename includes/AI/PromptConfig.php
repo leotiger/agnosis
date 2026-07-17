@@ -2,11 +2,11 @@
 /**
  * Prompt configuration value object.
  *
- * Holds the customisable prompt strings for the AI description pipeline.
+ * Holds the customizable prompt strings for the AI description pipeline.
  * Read from wp_options via from_options(); defaults give sensible
- * out-of-the-box behaviour without any admin configuration.
+ * out-of-the-box behavior without any admin configuration.
  *
- * Placeholder tokens recognised in system_prompt:
+ * Placeholder tokens recognized in system_prompt:
  *   {tag_count}      — replaced with the configured number of tags.
  *   {excerpt_words}  — replaced with the configured excerpt word-limit.
  *

@@ -97,6 +97,20 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 if ( ! function_exists( 'sanitize_textarea_field' ) ) {
     function sanitize_textarea_field( string $str ): string { return trim( $str ); }
 }
+if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+    // Mirrors WP core's real wp-includes/formatting.php implementation —
+    // Parser::html_body_to_text() (audit §6a, AUDIT-1.0.0.md) relies
+    // specifically on the script/style-content strip this does before
+    // strip_tags(), not just tag removal.
+    function wp_strip_all_tags( string $text, bool $remove_breaks = false ): string {
+        $text = (string) preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $text );
+        $text = strip_tags( $text );
+        if ( $remove_breaks ) {
+            $text = (string) preg_replace( '/[\r\n\t ]+/', ' ', $text );
+        }
+        return trim( $text );
+    }
+}
 if ( ! function_exists( 'sanitize_email' ) ) {
     function sanitize_email( string $email ): string { return filter_var( $email, FILTER_SANITIZE_EMAIL ) ?: ''; }
 }

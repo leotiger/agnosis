@@ -199,7 +199,7 @@ class EmbedPolicy {
 	 * Pure and static — no network access, no AI call — so PostCreator's
 	 * existing is_allowed_embed_host() (exercised directly by
 	 * PostCreatorExternalLinkEmbedTest via ReflectionMethod) can keep
-	 * delegating to this with identical behaviour.
+	 * delegating to this with identical behavior.
 	 */
 	public static function is_trusted_host( string $host ): bool {
 		if ( str_starts_with( $host, 'www.' ) ) {

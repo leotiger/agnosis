@@ -451,6 +451,22 @@ class ActivityPub {
 				return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 			case 'Undo':
 				return $this->handle_undo( $body );
+			case 'Delete':
+				return $this->handle_delete( $body );
+			case 'Move':
+				// Audit §2b, AUDIT-1.0.0.md — deliberately unhandled at this
+				// scale; recording the decision here rather than leaving it
+				// silently falling through to the generic 'ignored' default.
+				// Move means "I migrated my account; re-follow me at X" —
+				// Mastodon sends this instead of a Delete on a genuine
+				// account migration. A follow relationship built on Move
+				// simply lapses rather than transferring: the old actor's
+				// eventual Delete (handled above) removes its
+				// agnosis_followers row, and nothing re-follows the new
+				// actor automatically. Acceptable at gallery scale; revisit
+				// if follower counts or migration reports ever make a real
+				// re-follow-on-Move worth building.
+				return new WP_REST_Response( [ 'status' => 'ignored', 'type' => $type ], 200 );
 			default:
 				return new WP_REST_Response( [ 'status' => 'ignored', 'type' => $type ], 200 );
 		}
@@ -469,9 +485,16 @@ class ActivityPub {
 		[ $owner_type, $owner_id ] = null !== $artist_id ? [ 'artist', (int) $artist_id ] : [ 'node', 0 ];
 
 		global $wpdb;
+		// Per AS2/ActivityPub, a followers collection's items are the
+		// followers' actor IDs, not the delivery-plumbing inbox URLs — a
+		// consumer that dereferences an item expects an actor document, and
+		// an inbox URL only answers signed POSTs (audit §2a, AUDIT-1.0.0.md).
+		// Delivery code (broadcast()/enqueue_delivery_retry() and friends)
+		// keeps reading inbox_url internally; this is the one public-facing
+		// read of this table that needed to change.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- small, node-scale table (audit §3g note iii); parameterized via prepare().
-		$inbox_urls = $wpdb->get_col( $wpdb->prepare(
-			"SELECT inbox_url FROM {$wpdb->prefix}agnosis_followers WHERE owner_type = %s AND owner_id = %d ORDER BY id ASC",
+		$actor_ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT actor_id FROM {$wpdb->prefix}agnosis_followers WHERE owner_type = %s AND owner_id = %d ORDER BY id ASC",
 			$owner_type,
 			$owner_id
 		) );
@@ -484,8 +507,8 @@ class ActivityPub {
 			'@context'   => self::CONTEXT,
 			'type'       => 'OrderedCollection',
 			'id'         => $collection_id,
-			'totalItems' => count( $inbox_urls ),
-			'orderedItems' => $inbox_urls,
+			'totalItems' => count( $actor_ids ),
+			'orderedItems' => $actor_ids,
 		], 200, [ 'Content-Type' => 'application/activity+json' ] );
 	}
 
@@ -1394,6 +1417,53 @@ class ActivityPub {
 	}
 
 	/**
+	 * A remote account self-deleting fans out `Delete { object: actorUrl }`
+	 * to every known inbox (audit §2b, AUDIT-1.0.0.md) — without this, the
+	 * stale agnosis_followers row lingered and every future broadcast kept
+	 * POSTing to a dead inbox until enough failures churned through the
+	 * retry queue (handled, but noisily and forever, since a permanent 410
+	 * was retried like a transient failure — see
+	 * is_permanently_dead_delivery_error()'s own docblock for that half).
+	 *
+	 * Only acts on a genuine self-account-delete: the activity's `object`
+	 * must resolve to the SAME actor as `actor` (the verified signer — see
+	 * verify_inbox_signature()/HttpSignature::verify_actor_binding(), which
+	 * already ran before inbox() was ever reached). A Delete of some other
+	 * object — a remote post/note, not the account itself — is a different,
+	 * unrelated activity shape this plugin has no reason to act on; `object`
+	 * may be a bare actor-URL string or an AS2 Tombstone
+	 * `{ type: 'Tombstone', id: actorUrl }` (Mastodon uses the Tombstone
+	 * form), both are handled.
+	 *
+	 * Deletes every agnosis_followers row for that actor_id regardless of
+	 * owner — unlike Undo (a targeted unfollow of one specific local
+	 * target), the remote actor no longer exists at all, so every row
+	 * naming it — the node's own follower list AND any per-artist follower
+	 * list it appeared in — is equally stale.
+	 *
+	 * @param array<string, mixed> $body
+	 */
+	private function handle_delete( array $body ): WP_REST_Response {
+		$actor  = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		$object = $body['object'] ?? '';
+
+		$object_id = is_array( $object ) ? (string) ( $object['id'] ?? '' ) : (string) $object;
+
+		if ( '' !== $actor && $actor === $object_id ) {
+			global $wpdb;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->delete() parameterizes every value; small, node-scale table.
+			$wpdb->delete(
+				$wpdb->prefix . 'agnosis_followers',
+				[ 'actor_id' => $actor ],
+				[ '%s' ]
+			);
+		}
+
+		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
+	}
+
+	/**
 	 * The signing key and keyId for one local actor (audit §3h). Every
 	 * delivery must be signed by the private key of the actor it's
 	 * ATTRIBUTED to — an artist's Create should carry that artist's own
@@ -1439,11 +1509,64 @@ class ActivityPub {
 			'activitypub'
 		);
 
+		// Audit §2b, AUDIT-1.0.0.md — a definitive 410 Gone/404 Not Found
+		// means the inbox is confirmed dead, not transiently unreachable;
+		// skip the retry queue's multi-day backoff entirely rather than
+		// spending it on an endpoint that's already known gone.
+		if ( $this->is_permanently_dead_delivery_error( $result ) ) {
+			$this->record_dead_delivery( $inbox_url, $activity_type, $body, $owner_type, $owner_id, $result );
+			return;
+		}
+
 		// A cron-driven retry queue picks this delivery back up instead of it
 		// being lost after this one fire-and-forget attempt (audit §3g note
 		// iv) — previously this log line was the only trace a failed
 		// delivery ever left.
 		$this->enqueue_delivery_retry( $inbox_url, $activity_type, $body, $owner_type, $owner_id );
+	}
+
+	/**
+	 * A definitive "this inbox no longer exists" signal from attempt_send()'s
+	 * own `'HTTP %d: %s'` error format (see that method) — HTTP 410 Gone (the
+	 * spec-correct code for a deliberately-removed resource, and what
+	 * Mastodon serves for a deleted account's inbox) or 404 Not Found.
+	 * Retrying either like a transient failure for the full multi-day
+	 * backoff wastes retry-queue cycles on an inbox that's already known
+	 * dead (audit §2b, AUDIT-1.0.0.md).
+	 */
+	private function is_permanently_dead_delivery_error( string $error ): bool {
+		return 1 === preg_match( '/^HTTP (410|404):/', $error );
+	}
+
+	/**
+	 * Insert a delivery-queue row already in its terminal 'failed' state,
+	 * for a first-attempt live delivery that failed with a definitive
+	 * dead-inbox signal — see is_permanently_dead_delivery_error()'s own
+	 * docblock. Skips the normal pending/backoff cycle entirely: still
+	 * recorded in the same table/shape a normally-exhausted retry ends up
+	 * in (queryable via Settings → Logs the same way), just without ever
+	 * occupying a 'pending' row or spending any retry-queue cron cycles on
+	 * an inbox that's already confirmed gone.
+	 */
+	private function record_dead_delivery( string $inbox_url, string $activity_type, string $activity_json, string $owner_type, int $owner_id, string $error ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->insert() parameterizes every value.
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_ap_delivery_queue',
+			[
+				'inbox_url'     => $inbox_url,
+				'activity_type' => $activity_type,
+				'activity_json' => $activity_json,
+				'owner_type'    => $owner_type,
+				'owner_id'      => $owner_id,
+				'status'        => 'failed',
+				'attempts'      => 0,
+				'last_error'    => $error,
+				'resolved_at'   => current_time( 'mysql', true ),
+			],
+			[ '%s', '%s', '%s', '%s', '%d', '%s', '%d', '%s', '%s' ]
+		);
 	}
 
 	/**
@@ -1454,7 +1577,18 @@ class ActivityPub {
 	 * process_delivery_retry_queue() (a queued retry) each need to react to a
 	 * failure differently, so that decision stays with the caller.
 	 *
-	 * @return bool|string True on a 2xx response; an error-message string otherwise.
+	 * Never actually returns `false` — only `true` or a `string` — but kept
+	 * as a native `bool|string` type rather than PHP 8.2's standalone `true`
+	 * type: the audit sandbox's bundled linter tops out at PHP 8.1 and can't
+	 * parse `true` in a type position (though the plugin's real minimum is
+	 * already 8.2), so this stays independently verifiable here instead of
+	 * shipping unverified syntax. The `@return` tag below still gives
+	 * PHPStan the precise `true|string` shape, so
+	 * `is_permanently_dead_delivery_error()`/`record_dead_delivery()`'s
+	 * `string`-typed `$error` parameters don't see a phantom `false` branch
+	 * after the `true === $result` check both call sites narrow on first.
+	 *
+	 * @return true|string True on a 2xx response; an error-message string otherwise.
 	 */
 	private function attempt_send( string $inbox_url, string $body, string $owner_type = 'node', int $owner_id = 0 ): bool|string {
 		[ $private_key, $key_id ] = $this->signing_key_for( $owner_type, $owner_id );
@@ -1592,7 +1726,11 @@ class ActivityPub {
 			}
 
 			$attempts  = (int) $row->attempts + 1;
-			$exhausted = $attempts >= count( self::RETRY_INTERVALS );
+			// Audit §2b, AUDIT-1.0.0.md — a definitive 410/404 exhausts
+			// immediately rather than working through the remaining backoff
+			// intervals; see is_permanently_dead_delivery_error()'s own
+			// docblock.
+			$exhausted = $this->is_permanently_dead_delivery_error( $result ) || $attempts >= count( self::RETRY_INTERVALS );
 
 			$data   = [ 'attempts' => $attempts, 'last_error' => $result, 'claim_token' => null, 'claimed_at' => null ];
 			$format = [ '%d', '%s', '%s', '%s' ];

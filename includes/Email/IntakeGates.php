@@ -205,7 +205,7 @@ class IntakeGates {
 	 * deliberately sets Reply-To back to the artist's own intake address
 	 * (`Core\CommunityMailer::reply_to_header_for_post()`), specifically so
 	 * hitting "reply" starts a new submission — but a mail client's default
-	 * reply behaviour quotes the entire original message and prefixes the
+	 * reply behavior quotes the entire original message and prefixes the
 	 * subject with "Re:", which is never what we want published verbatim:
 	 * the quoted portion is not original content, and is often our own
 	 * previous email verbatim. The policy (both this method's own name and

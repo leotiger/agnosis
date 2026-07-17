@@ -1,10 +1,13 @@
 <?php
 /**
- * Integration tests — Settings' newsletter-dashboard locale-coverage metric
- * (audit §8 — "cheap signal for which LF languages earn their AI translation
- * spend"). locale_label()/format_locale_breakdown() are private, so they're
- * exercised via ReflectionMethod, the same pattern VouchConfirmTest uses for
- * VouchConfirm::verify_token().
+ * Integration tests — Dashboards\NewsletterDashboard's locale-coverage
+ * metric (audit §8 — "cheap signal for which LF languages earn their AI
+ * translation spend"). locale_label()/format_locale_breakdown() are private,
+ * so they're exercised via ReflectionMethod, the same pattern
+ * VouchConfirmTest uses for VouchConfirm::verify_token().
+ *
+ * NewsletterDashboard moved out of Admin\Settings in the 2026-07-17
+ * god-class refactor (AUDIT-1.0.0.md §4d) — same behavior, new home.
  *
  * The real Lingua Forge plugin is deliberately not loaded in this test
  * bootstrap (see Support\FakeLinguaForge's doc), and linguaforge_language_label()
@@ -22,21 +25,21 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Admin;
 
-use Agnosis\Admin\Settings;
+use Agnosis\Admin\Dashboards\NewsletterDashboard;
 use Agnosis\Newsletter\Subscriber;
 
 class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 
-	private Settings $settings;
+	private NewsletterDashboard $newsletter_dashboard;
 	private \ReflectionMethod $locale_label;
 	private \ReflectionMethod $format_locale_breakdown;
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->settings = new Settings();
+		$this->newsletter_dashboard = new NewsletterDashboard();
 
-		$rc = new \ReflectionClass( Settings::class );
+		$rc = new \ReflectionClass( NewsletterDashboard::class );
 
 		$this->locale_label = $rc->getMethod( 'locale_label' );
 		$this->locale_label->setAccessible( true );
@@ -50,7 +53,7 @@ class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 	// =========================================================================
 
 	public function test_locale_label_returns_unknown_for_empty_locale(): void {
-		$label = $this->locale_label->invoke( $this->settings, '' );
+		$label = $this->locale_label->invoke( $this->newsletter_dashboard, '' );
 
 		$this->assertSame( 'Unknown', $label );
 	}
@@ -58,7 +61,7 @@ class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 	public function test_locale_label_falls_back_to_raw_locale_when_lf_absent(): void {
 		// See class doc — linguaforge_language_label() is never defined in this
 		// test bootstrap, so the guarded fallback branch is what's reachable here.
-		$label = $this->locale_label->invoke( $this->settings, 'es_ES' );
+		$label = $this->locale_label->invoke( $this->newsletter_dashboard, 'es_ES' );
 
 		$this->assertSame( 'es_ES', $label );
 	}
@@ -68,7 +71,7 @@ class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 	// =========================================================================
 
 	public function test_format_locale_breakdown_is_empty_with_no_confirmed_subscribers(): void {
-		$breakdown = $this->format_locale_breakdown->invoke( $this->settings );
+		$breakdown = $this->format_locale_breakdown->invoke( $this->newsletter_dashboard );
 
 		$this->assertSame( '', $breakdown );
 	}
@@ -81,7 +84,7 @@ class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 		$c = Subscriber::subscribe( 'c@example.com', 'fr_FR' );
 		Subscriber::confirm( $c['token'] );
 
-		$breakdown = $this->format_locale_breakdown->invoke( $this->settings );
+		$breakdown = $this->format_locale_breakdown->invoke( $this->newsletter_dashboard );
 
 		$this->assertStringContainsString( 'es_ES (2)', $breakdown );
 		$this->assertStringContainsString( 'fr_FR (1)', $breakdown );
@@ -91,7 +94,7 @@ class SettingsNewsletterLocaleTest extends \WP_UnitTestCase {
 		$a = Subscriber::subscribe( 'a@example.com' ); // no locale
 		Subscriber::confirm( $a['token'] );
 
-		$breakdown = $this->format_locale_breakdown->invoke( $this->settings );
+		$breakdown = $this->format_locale_breakdown->invoke( $this->newsletter_dashboard );
 
 		$this->assertStringContainsString( 'Unknown (1)', $breakdown );
 	}

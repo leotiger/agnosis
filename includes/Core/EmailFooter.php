@@ -160,7 +160,7 @@ class EmailFooter {
 	 * one-line explanation underneath — for the HTML templates in
 	 * Publishing\Notification.
 	 *
-	 * Fully self-styled (address label, link colour, and description colour
+	 * Fully self-styled (address label, link color, and description color
 	 * are all set here) rather than relying on `color:inherit` from whatever
 	 * footer wrapper the caller uses — this is meant to be legible on its
 	 * own, since it's the reference card for exactly which address does what.

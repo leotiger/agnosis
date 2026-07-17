@@ -682,4 +682,157 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'View it online', $calls[0]['message'] );
 		$this->assertStringNotContainsString( '/newsletter/', $calls[0]['message'] );
 	}
+
+	// =========================================================================
+	// Claim-then-read concurrency (security audit §2c) — this section closes
+	// deferred-test debt flagged by AUDIT-1.0.0.md §4d: 0.9.30's fix (see
+	// this class's own docblock, and CHANGELOG.md) shipped the claim-then-read
+	// mechanism itself but deferred coverage of the race-prevention property
+	// "by request." Every other test in this file only exercises normal,
+	// non-overlapping single-call behavior, which passes trivially whether or
+	// not the claim mechanism actually works. These tests simulate a second,
+	// concurrently-running tick directly (by writing 'claimed' rows this
+	// process() call did not itself claim) to prove the mechanism really
+	// prevents double-processing.
+	// =========================================================================
+
+	/**
+	 * Force one queue row's status/claim fields directly, bypassing
+	 * process()'s own claim UPDATE — simulates a row already claimed by a
+	 * different, still-in-flight overlapping tick (or one abandoned mid-run).
+	 */
+	private function force_row_claim( int $row_id, string $status, ?string $claim_token, ?string $claimed_at ): void {
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->prefix . 'agnosis_newsletter_queue',
+			[ 'status' => $status, 'claim_token' => $claim_token, 'claimed_at' => $claimed_at ],
+			[ 'id' => $row_id ],
+			[ '%s', '%s', '%s' ],
+			[ '%d' ]
+		);
+	}
+
+	public function test_process_does_not_touch_a_row_already_claimed_by_a_concurrent_tick(): void {
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+		$row   = $this->queue_row( (int) $issue->id );
+
+		// Simulate a different, still-in-flight tick having already claimed
+		// this row moments ago — process()'s claim UPDATE only ever targets
+		// status = 'pending', so it must skip this row entirely.
+		$foreign_token = wp_generate_uuid4();
+		$this->force_row_claim( (int) $row->id, 'claimed', $foreign_token, current_time( 'mysql' ) );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 0, $calls, 'A row claimed by another in-flight tick must not be re-claimed and sent by this one.' );
+
+		$row_after = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'claimed', $row_after->status );
+		$this->assertSame( $foreign_token, $row_after->claim_token, 'The foreign claim must survive untouched — process() must never steal a live claim.' );
+	}
+
+	public function test_reset_stale_claims_recovers_an_abandoned_claim_and_it_gets_sent(): void {
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+		$row   = $this->queue_row( (int) $issue->id );
+
+		// A process that claimed this row 31 minutes ago and then died
+		// mid-batch (past STALE_CLAIM_MINUTES = 30) — reset_stale_claims(),
+		// run at the top of every process() tick, must return it to
+		// 'pending' so this same tick can actually send it.
+		$stale_claimed_at = current_datetime()->modify( '-31 minutes' )->format( 'Y-m-d H:i:s' );
+		$this->force_row_claim( (int) $row->id, 'claimed', wp_generate_uuid4(), $stale_claimed_at );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 1, $calls, 'An abandoned (stale) claim must be recovered and sent on the next tick.' );
+
+		$row_after = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'sent', $row_after->status );
+	}
+
+	public function test_reset_stale_claims_leaves_a_fresh_claim_untouched(): void {
+		$this->create_confirmed_subscriber( 'a@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+		$row   = $this->queue_row( (int) $issue->id );
+
+		// 5 minutes old — well within STALE_CLAIM_MINUTES = 30. A genuinely
+		// in-flight claim must not be mistaken for an abandoned one.
+		$fresh_token      = wp_generate_uuid4();
+		$fresh_claimed_at = current_datetime()->modify( '-5 minutes' )->format( 'Y-m-d H:i:s' );
+		$this->force_row_claim( (int) $row->id, 'claimed', $fresh_token, $fresh_claimed_at );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 0, $calls, 'A fresh claim must not be reset or re-sent.' );
+
+		$row_after = $this->queue_row( (int) $issue->id );
+		$this->assertSame( 'claimed', $row_after->status );
+		$this->assertSame( $fresh_token, $row_after->claim_token );
+	}
+
+	/**
+	 * The specific bug maybe_complete_issue()'s own docblock describes:
+	 * counting only 'pending' rows (not also 'claimed') would let this
+	 * method mark an issue 'sent' while another overlapping tick's claimed
+	 * batch for that same issue was still actively sending.
+	 */
+	public function test_maybe_complete_issue_does_not_mark_issue_sent_while_a_sibling_row_is_still_claimed(): void {
+		$this->create_confirmed_subscriber( 'sendable@example.com' );
+		$this->create_confirmed_subscriber( 'in-flight@example.com' );
+		$this->scheduler->send_now( 'public' );
+		$issue = $this->latest_issue( 'public' );
+
+		global $wpdb;
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, recipient_email FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE issue_id = %d ORDER BY id ASC",
+				$issue->id
+			)
+		);
+		$in_flight_row = null;
+		foreach ( $rows as $r ) {
+			if ( 'in-flight@example.com' === $r->recipient_email ) {
+				$in_flight_row = $r;
+			}
+		}
+		$this->assertNotNull( $in_flight_row );
+
+		// A different, still-running tick has already claimed this
+		// recipient's row moments ago and hasn't finished sending it yet.
+		$this->force_row_claim( (int) $in_flight_row->id, 'claimed', wp_generate_uuid4(), current_time( 'mysql' ) );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process(); // claims + sends only the other, still-pending row
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 1, $calls );
+		$this->assertSame( 'sendable@example.com', $calls[0]['to'] );
+
+		$issue_after = $this->latest_issue( 'public' );
+		$this->assertSame( 'sending', $issue_after->status, 'The issue must not be marked sent while a sibling row from another tick is still claimed.' );
+
+		// Once that other tick's claim finally resolves (marked sent, same
+		// as any normal successful send), the very next tick's
+		// reconciliation pass must complete the issue.
+		$this->force_row_claim( (int) $in_flight_row->id, 'sent', null, null );
+		$this->processor->reconcile_sending_issues();
+
+		$issue_final = $this->latest_issue( 'public' );
+		$this->assertSame( 'sent', $issue_final->status );
+	}
 }

@@ -674,6 +674,120 @@ class ParserTest extends TestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// parse_imap_message() — HTML-only fallback (audit §6a, AUDIT-1.0.0.md)
+	//
+	// Real senders (webmail "rich text" modes, several mobile mail clients,
+	// most marketing/newsletter composers an artist might paste from) send
+	// HTML-only messages with no text/plain alternative at all. Before this
+	// fix, getTextBody() returning '' meant the artist's own description
+	// text silently vanished (a photo attachment still published, but a
+	// text-only HTML message — a poem, a biography — dead-ended at the
+	// "nothing usable" gate as if genuinely empty).
+	// -------------------------------------------------------------------------
+
+	/** The audit's own explicitly requested test: an HTML-only fixture must yield the same submission a plain-text twin does. */
+	public function test_parse_imap_html_only_message_matches_a_plain_text_twin(): void {
+		$plain_message = new FakeParserImapMessage(
+			to_emails: [ 'submit@example.com' ],
+			text_body: "Autumn Light\n\nA study of falling leaves, painted last week.",
+			fake_attachments: [ $this->make_attachment() ]
+		);
+		$html_message = new FakeParserImapMessage(
+			to_emails: [ 'submit@example.com' ],
+			text_body: '',
+			html_body: '<p>Autumn Light</p><p>A study of falling leaves, painted last week.</p>',
+			fake_attachments: [ $this->make_attachment() ]
+		);
+
+		$plain_result = $this->parser->parse_imap_message( $plain_message );
+		$html_result  = $this->parser->parse_imap_message( $html_message );
+
+		$this->assertIsArray( $plain_result );
+		$this->assertIsArray( $html_result );
+		$this->assertSame( $plain_result['description'], $html_result['description'], 'An HTML-only message must derive the same description as its plain-text twin.' );
+	}
+
+	public function test_parse_imap_derives_text_from_html_when_text_body_is_empty(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ], // Attachment-optional recipient — see the text-only test above for why.
+			text_body: '',
+			html_body: '<p>Hello there, this is my new painting.</p>',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Hello there, this is my new painting.', $result['description'] );
+	}
+
+	/**
+	 * <script>/<style> tags DO arrive in real HTML mail (Postie's own 1.4.10
+	 * changelog entry is the origin of this exact lesson) — a naive
+	 * "just strip tags" pass alone would leave raw JS/CSS source sitting in
+	 * the published description as if it were the artist's own words.
+	 */
+	public function test_parse_imap_html_fallback_strips_script_and_style_content(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			text_body: '',
+			html_body: '<style>body{color:red}</style><script>alert(1)</script><p>Real content here.</p>',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'Real content here.', $result['description'] );
+		$this->assertStringNotContainsString( 'alert(1)', $result['description'] );
+		$this->assertStringNotContainsString( 'color:red', $result['description'] );
+	}
+
+	/** HTML entities must decode to their real characters, not survive as literal entity text. */
+	public function test_parse_imap_html_fallback_decodes_entities(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			text_body: '',
+			html_body: '<p>It&#8217;s called &#8220;Autumn Light&#8221;.</p>',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'It’s called “Autumn Light”.', $result['description'] );
+	}
+
+	/** A genuine text/plain body always wins — the HTML fallback only ever engages when getTextBody() is empty. */
+	public function test_parse_imap_ignores_html_body_when_text_body_is_present(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ],
+			text_body: 'The real plain-text description.',
+			html_body: '<p>A completely different HTML description that must be ignored.</p>',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'The real plain-text description.', $result['description'] );
+	}
+
+	/** Both bodies empty must still hit the ordinary "nothing usable" gate — the fallback is not itself a new bypass. */
+	public function test_parse_imap_returns_null_when_both_text_and_html_bodies_are_empty(): void {
+		$message = new FakeParserImapMessage(
+			to_emails: [ 'remove@example.com' ], // Unconfigured — see the equivalent plain-text test above.
+			text_body: '',
+			html_body: '',
+			fake_attachments: []
+		);
+
+		$result = $this->parser->parse_imap_message( $message );
+
+		$this->assertNull( $result );
+	}
+
+	// -------------------------------------------------------------------------
 	// parse_imap_message() / parse_webhook_payload() — reply/forward
 	// extraction (2026-07-15; extraction widening 2026-07-14 — eighth audit
 	// §3c) and last_rejection_reason()
