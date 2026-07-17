@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Network;
 
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\ContactForm;
 use Agnosis\Compat\LinguaForge;
 
@@ -330,10 +331,12 @@ class SubdomainNavigation {
 	 *
 	 * `type=contact` is handled entirely separately (render_contact_icon_link())
 	 * — a popover trigger + panel rather than a plain link — see that method's
-	 * own docblock.
+	 * own docblock. `type=language` is likewise handled separately
+	 * (render_language_badge()) — a plain-text badge with no href at all,
+	 * rather than a link or a popover trigger.
 	 *
-	 * @param array<string, mixed> $attributes Block attributes ('type': 'biography'|'events'|'contact',
-	 *                                          'icon': one of self::LINK_ICON_SETS[type]'s keys).
+	 * @param array<string, mixed> $attributes Block attributes ('type': 'biography'|'events'|'contact'|'language',
+	 *                                          'icon': one of self::LINK_ICON_SETS[type]'s keys — unused for 'language').
 	 * @return string
 	 */
 	public function render_breadcrumb_icon_link_block( array $attributes = [] ): string {
@@ -344,12 +347,16 @@ class SubdomainNavigation {
 		}
 
 		$type = (string) ( $attributes['type'] ?? 'biography' );
-		if ( ! in_array( $type, [ 'biography', 'events', 'contact' ], true ) ) {
+		if ( ! in_array( $type, [ 'biography', 'events', 'contact', 'language' ], true ) ) {
 			$type = 'biography';
 		}
 
 		if ( 'contact' === $type ) {
 			return $this->render_contact_icon_link( (int) $artist_id, $attributes );
+		}
+
+		if ( 'language' === $type ) {
+			return $this->render_language_badge( (int) $artist_id );
 		}
 
 		if ( 'biography' === $type ) {
@@ -493,6 +500,66 @@ class SubdomainNavigation {
 		</div>
 		<?php
 		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Build the language breadcrumb badge: the artist's native language as a
+	 * plain two-letter ISO 639-1 code (e.g. "ES"), with the language's own
+	 * native name — its endonym, e.g. "Español", "Deutsch", "日本語" — as the
+	 * hover tooltip and screen-reader label. Unlike the biography/events/
+	 * contact variants, this renders no `<a href>`/`<button>` at all — there's
+	 * nowhere for it to link to, it's purely informational.
+	 *
+	 * The native name comes from `SubmissionTranslator::language_names()`,
+	 * which is sourced from Lingua Forge's `linguaforge_language_label()` —
+	 * that function deliberately renders a language's name IN ITS OWN
+	 * language (via `locale_get_display_language( $lang, $lang )`, same
+	 * locale on both sides), not translated into the current visitor's own
+	 * page language. That's exactly the behavior wanted here: "ES" always
+	 * tooltips as "Español", regardless of what language the visitor is
+	 * currently browsing the site in.
+	 *
+	 * Language source: the WP 'locale' user meta already set on the artist's
+	 * own account at admission time, from the language they picked on the
+	 * join form (`Admission::iso_to_wp_locale()` maps the submitted ISO code
+	 * to a WP locale string like 'es_ES' before storing it). Reusing this
+	 * existing meta — rather than adding a dedicated field — means an artist
+	 * admitted before this meta was introduced (pre-0.9.22), or any account
+	 * created outside the join flow, has no locale set and renders nothing;
+	 * it also means an artist who later changes their own wp-admin interface
+	 * language (Users → Profile → Language writes this same meta key) changes
+	 * what this badge shows too — an accepted tradeoff for not needing a
+	 * second, separately-maintained "native language" field.
+	 *
+	 * The first two characters of the locale reconstruct the original ISO
+	 * code correctly for every entry in `iso_to_wp_locale()`'s map (every
+	 * value there either IS the bare ISO code, e.g. 'fi', 'ar', or starts
+	 * with it followed by an underscore, e.g. 'es_ES') — except 'zh-tw',
+	 * which maps to 'zh_TW' and reduces back to just 'zh', same as plain
+	 * Chinese. That's an accepted loss of precision for a two-letter badge —
+	 * exactly what was asked for — not a bug.
+	 */
+	private function render_language_badge( int $artist_id ): string {
+		$locale = (string) get_user_meta( $artist_id, 'locale', true );
+		$code   = strtolower( substr( $locale, 0, 2 ) );
+
+		if ( '' === $code ) {
+			return '';
+		}
+
+		$native_name = SubmissionTranslator::language_names()[ $code ] ?? '';
+
+		$this->enqueue_breadcrumb_icon_link_assets();
+
+		$extra_attributes = [ 'class' => 'agnosis-breadcrumb-icon-link--language' ];
+		if ( '' !== $native_name ) {
+			$extra_attributes['title']      = $native_name;
+			$extra_attributes['aria-label'] = $native_name;
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes( $extra_attributes );
+
+		return sprintf( '<span %1$s>%2$s</span>', $wrapper_attributes, esc_html( strtoupper( $code ) ) );
 	}
 
 	/**

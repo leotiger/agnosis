@@ -34,6 +34,22 @@ button.wp-block-agnosis-breadcrumb-icon-link {
 }
 
 /*
+ * The `type=language` variant renders a plain <span> badge (the artist's
+ * two-letter language code) rather than an <a>/<button> wrapping an SVG —
+ * the base rule above's `line-height: 0` is correct for an icon glyph but
+ * would clip real text, so it's reset here. Kept deliberately minimal
+ * (uppercase + a touch of letter-spacing so a 2-letter code doesn't look
+ * cramped) — everything else (size, color) is the block's own Typography/
+ * Color supports, same as the icon variants.
+ */
+.wp-block-agnosis-breadcrumb-icon-link.agnosis-breadcrumb-icon-link--language {
+	line-height: 1;
+	cursor: default;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+/*
  * Contact popover — added 2026-07-12 alongside the contact-form feature.
  * Mirrors blocks/newsletter-popover/frontend.css's own panel rules almost
  * exactly (full-viewport takeover via `position: fixed; inset: 0`, native

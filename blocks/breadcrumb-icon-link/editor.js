@@ -22,6 +22,12 @@
  * means the standard Text Color control directly recolors it — no bespoke
  * Range/ColorPalette controls needed the way `artist-breadcrumb`'s
  * `iconSize`/`iconColor` attributes required.
+ *
+ * 2026-07-17: added a fourth `type`, 'language' — a plain-text badge (the
+ * artist's own two-letter language code) rather than an icon link, so it
+ * skips the Icon SelectControl entirely and previews as static "EN" text
+ * instead of an SVG (see PHP render_callback's own render_language_badge()
+ * for where the real code/tooltip come from on the frontend).
  */
 ( function ( blocks, element, i18n, blockEditor, components ) {
 
@@ -71,6 +77,10 @@
 			{ label: __( 'Envelope', 'agnosis' ), value: 'mail' },
 			{ label: __( 'Speech bubble', 'agnosis' ), value: 'message' },
 		],
+		// 'language' has no entry here deliberately — it's a plain-text badge
+		// (the artist's own two-letter language code), not an SVG glyph, so
+		// there's no icon to pick. Edit() below skips the Icon SelectControl
+		// entirely for this type instead of showing an empty list.
 	};
 
 	var DEFAULT_ICON = { biography: 'book', events: 'calendar', contact: 'mail' };
@@ -79,23 +89,32 @@
 		biography: __( 'Biography', 'agnosis' ),
 		events:    __( 'Events', 'agnosis' ),
 		contact:   __( 'Contact', 'agnosis' ),
+		language:  __( 'Language', 'agnosis' ),
 	};
 
 	// Named (capitalized) so eslint-plugin-react-hooks recognizes this as a
 	// component and allows the useBlockProps() hook call inside it.
 	var Edit = function ( props ) {
-			var type = ICON_SETS[ props.attributes.type ] ? props.attributes.type : 'biography';
-			var icon = props.attributes.icon || DEFAULT_ICON[ type ];
-			var set  = ICON_SETS[ type ] || {};
+			var type       = LABELS[ props.attributes.type ] ? props.attributes.type : 'biography';
+			var isLanguage = 'language' === type;
+			var icon       = props.attributes.icon || DEFAULT_ICON[ type ];
+			var set        = ICON_SETS[ type ] || {};
 
-			var blockProps = useBlockProps( {
-				href: '#',
-				title: LABELS[ type ],
-				onClick: function ( event ) {
-					event.preventDefault();
-				},
-				style: { display: 'inline-flex', alignItems: 'center', lineHeight: 0 },
-			} );
+			// The 'language' variant previews as its own placeholder text
+			// (there's no real artist to read a language from in the editor)
+			// rather than an SVG — same idea as the biography/events/contact
+			// icons, just text instead of a glyph.
+			var blockProps = useBlockProps( isLanguage
+				? { title: LABELS[ type ], style: { display: 'inline-flex', alignItems: 'center' } }
+				: {
+					href: '#',
+					title: LABELS[ type ],
+					onClick: function ( event ) {
+						event.preventDefault();
+					},
+					style: { display: 'inline-flex', alignItems: 'center', lineHeight: 0 },
+				}
+			);
 
 			return el(
 				Fragment,
@@ -113,6 +132,7 @@
 								{ label: __( 'Biography', 'agnosis' ), value: 'biography' },
 								{ label: __( 'Events', 'agnosis' ), value: 'events' },
 								{ label: __( 'Contact', 'agnosis' ), value: 'contact' },
+								{ label: __( 'Language', 'agnosis' ), value: 'language' },
 							],
 							onChange: function ( value ) {
 								// Reset icon to the new type's default rather than
@@ -120,7 +140,10 @@
 								props.setAttributes( { type: value, icon: '' } );
 							},
 						} ),
-						el( SelectControl, {
+						// No icon to pick for 'language' — it's a text badge, not
+						// a glyph — so the Icon control is skipped entirely rather
+						// than shown with an empty options list.
+						isLanguage ? null : el( SelectControl, {
 							label:    __( 'Icon', 'agnosis' ),
 							value:    icon,
 							options:  ICON_OPTIONS[ type ],
@@ -130,17 +153,19 @@
 						} )
 					)
 				),
-				el( 'a', blockProps, el( 'svg', {
-					width:                   '1em',
-					height:                  '1em',
-					viewBox:                 '0 0 24 24',
-					fill:                    'none',
-					stroke:                  'currentColor',
-					strokeWidth:             1.5,
-					'aria-hidden':           true,
-					focusable:               false,
-					dangerouslySetInnerHTML: { __html: set[ icon ] || set[ DEFAULT_ICON[ type ] ] || '' },
-				} ) )
+				isLanguage
+					? el( 'span', blockProps, __( 'EN', 'agnosis' ) )
+					: el( 'a', blockProps, el( 'svg', {
+						width:                   '1em',
+						height:                  '1em',
+						viewBox:                 '0 0 24 24',
+						fill:                    'none',
+						stroke:                  'currentColor',
+						strokeWidth:             1.5,
+						'aria-hidden':           true,
+						focusable:               false,
+						dangerouslySetInnerHTML: { __html: set[ icon ] || set[ DEFAULT_ICON[ type ] ] || '' },
+					} ) )
 			);
 	};
 
@@ -184,6 +209,16 @@
 		description: __( 'Opens a popover with a form to message the artist directly. Hidden automatically if the artist has turned contact messages off.', 'agnosis' ),
 		icon:       'email',
 		attributes: { type: 'contact' },
+		isActive:   [ 'type' ],
+		scope:      [ 'inserter' ],
+	} );
+
+	blocks.registerBlockVariation( 'agnosis/breadcrumb-icon-link', {
+		name:       'language',
+		title:      __( 'Language Badge', 'agnosis' ),
+		description: __( 'The artist’s native language as a two-letter code, with the language’s own name shown on hover. Hidden automatically if the artist has no native language on file.', 'agnosis' ),
+		icon:       'translation',
+		attributes: { type: 'language' },
 		isActive:   [ 'type' ],
 		scope:      [ 'inserter' ],
 	} );

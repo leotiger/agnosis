@@ -95,14 +95,23 @@ class AdmissionConfirm {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Render a "are you sure" page with a single POST button for a validated
-	 * (but not yet actioned) confirm request. Reached only via GET — the
-	 * button's form POSTs action/token back as hidden fields so the token
-	 * never appears in the form's action URL.
+	 * Render the confirm interstitial for a validated (but not yet actioned)
+	 * confirm request, reached only via GET. The confirm button's form POSTs
+	 * action/token back as hidden fields so the token never appears in the
+	 * form's action URL — that's what keeps a mail-scanner's GET prefetch of
+	 * this page from confirming anything (see class docblock).
+	 *
+	 * The form is auto-submitted via a small inline script on page load so a
+	 * human visitor doesn't have to click anything — applicants were landing
+	 * here and not realizing a second step was needed. This preserves the
+	 * scanner protection above: scanners that prefetch links generally don't
+	 * execute JavaScript, so a bare GET still can't trigger the POST. The
+	 * button itself stays as a <noscript> fallback for the rare visitor
+	 * without JS.
 	 */
 	private function render_confirm( string $token ): void {
-		$title       = __( 'Confirm your application?', 'agnosis' );
-		$description = __( 'Your application will open for community review once you confirm below.', 'agnosis' );
+		$title       = __( 'Confirming your application…', 'agnosis' );
+		$description = __( "Hang tight — we're opening your application for community review.", 'agnosis' );
 		$button      = __( 'Confirm my application', 'agnosis' );
 
 		$html = sprintf(
@@ -110,12 +119,13 @@ class AdmissionConfirm {
 			. '<p style="font-size:34px;color:#7c6af7;margin:0 0 16px;">✦</p>'
 			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
 			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%2$s</p>'
-			. '<form method="post" action="%3$s">'
+			. '<form method="post" action="%3$s" id="agnosis-admission-confirm-form">'
 			. '<input type="hidden" name="agnosis_admission" value="1">'
 			. '<input type="hidden" name="action" value="confirm">'
 			. '<input type="hidden" name="token" value="%4$s">'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%5$s</button>'
+			. '<noscript><button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%5$s</button></noscript>'
 			. '</form>'
+			. '<script>document.getElementById("agnosis-admission-confirm-form").submit();</script>'
 			. '<p style="margin:24px 0 0;"><a href="%6$s" style="color:#999;font-size:16px;text-decoration:none;">&larr; %7$s</a></p>'
 			. '</div>',
 			esc_html( $title ),

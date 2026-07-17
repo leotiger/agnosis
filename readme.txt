@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.32
+Stable tag: 0.9.33
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -71,11 +71,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.33 =
+* Added: The artist breadcrumb now shows the artist's native language as a two-letter code next to the biography/events/contact icons, with the language's own native name shown on hover.
+* Fixed: Clicking the "confirm your application" link in the join email landed artists on a page that still needed one more click to actually confirm — several first applicants got stuck there, not realizing anything more was needed. That page now confirms automatically the moment it loads in a real browser, while still rejecting a bare prefetch/scan of the link, so the protection against mail-scanner false-positives stays intact.
+
 = 0.9.32 =
 * Added: The Deliverability check (Settings → Email) now also looks for a DKIM record (best-effort — it tries a list of common provider selectors, since unlike SPF/DMARC there's no single fixed place a DKIM record lives) and checks whether your sending domain is listed on Spamhaus's Domain Block List — a real, confirmed cause of mail that sends successfully but never arrives, especially for a newer domain still building sending reputation.
-
-= 0.9.31 =
-* Fixed: A newly approved submission's page — and every one of its Lingua Forge-translated siblings — could 404 until an admin manually resaved Settings → Permalinks. Agnosis now flushes permalinks automatically: once when a submission is approved (its primary-language post, and native-language sibling when the artist writes in a different language, both exist), and again once every configured language has finished translating.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

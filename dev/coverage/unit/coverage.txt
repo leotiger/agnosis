@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:         
-  2026-07-16 10:15:09         
+  2026-07-17 10:08:28         
                               
  Summary:                     
-  Classes:  3.41% (3/88)      
-  Methods:  6.62% (65/982)    
-  Lines:    6.59% (1155/17534)
+  Classes:  3.37% (3/89)      
+  Methods:  6.55% (65/993)    
+  Lines:    6.54% (1155/17659)
 
 Agnosis\AI\CallCounter
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/  9)
@@ -31,17 +31,17 @@ Agnosis\AI\SubmissionTranslator
 Agnosis\Admin\ContactMessagesPage
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/193)
 Agnosis\Admin\Deliverability
-  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 70)
+  Methods:   0.00% ( 0/13)   Lines:   0.00% (  0/136)
 Agnosis\Admin\InboxPage
   Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/441)
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   0.00% ( 0/52)   Lines:   0.00% (  0/2281)
+  Methods:   0.00% ( 0/54)   Lines:   0.00% (  0/2303)
 Agnosis\Artist\Admission
   Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/537)
 Agnosis\Artist\AdmissionConfirm
-  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 78)
+  Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 79)
 Agnosis\Artist\AdmissionNotification
   Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/403)
 Agnosis\Artist\ApplicationBiography
@@ -83,7 +83,7 @@ Agnosis\Artist\VoteDigest
 Agnosis\Artist\VouchConfirm
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/108)
 Agnosis\Compat\LinguaForge
-  Methods:   0.00% ( 0/36)   Lines:   0.00% (  0/407)
+  Methods:   0.00% ( 0/37)   Lines:   0.00% (  0/423)
 Agnosis\Core\Activator
   Methods:   0.00% ( 0/19)   Lines:   0.00% (  0/376)
 Agnosis\Core\CommunityMailer
@@ -107,11 +107,13 @@ Agnosis\Core\Logger
 Agnosis\Core\LoginBranding
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 20)
 Agnosis\Core\Plugin
-  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/201)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/202)
 Agnosis\Core\Privacy
   Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/469)
 Agnosis\Core\RateLimiter
   Methods:  66.67% ( 4/ 6)   Lines:  57.69% ( 15/ 26)
+Agnosis\Core\RewriteFlush
+  Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/  3)
 Agnosis\Core\Roles
   Methods:   0.00% ( 0/ 1)   Lines:   0.00% (  0/  9)
 Agnosis\Core\Turnstile
@@ -139,7 +141,7 @@ Agnosis\Network\HttpSignature
 Agnosis\Network\Node
   Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 98)
 Agnosis\Network\SubdomainNavigation
-  Methods:   0.00% ( 0/16)   Lines:   0.00% (  0/211)
+  Methods:   0.00% ( 0/17)   Lines:   0.00% (  0/225)
 Agnosis\Network\SubdomainRouter
   Methods:  25.00% ( 2/ 8)   Lines:  10.00% (  5/ 50)
 Agnosis\Newsletter\Archive
@@ -177,7 +179,7 @@ Agnosis\Publishing\RemovalEndpoints
 Agnosis\Publishing\ReviewConfirm
   Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/412)
 Agnosis\Publishing\ReviewEndpoints
-  Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/361)
+  Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/363)
 Agnosis\Publishing\SocialLinks
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/ 21)
 Agnosis\Publishing\SubmissionsPage
