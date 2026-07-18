@@ -34,9 +34,17 @@ class MembersDashboard {
 			 ORDER BY display_name ASC"
 		);
 
+		$voting_disabled = (bool) get_option( 'agnosis_voting_disabled', false );
+
 		?>
 		<div class="card" style="max-width:960px;margin-top:1.5rem;padding:1rem 1.5rem">
 			<h2 style="margin-top:0"><?php esc_html_e( 'Members', 'agnosis' ); ?></h2>
+
+			<?php if ( $voting_disabled ) : ?>
+				<p class="description" style="margin-bottom:1rem">
+					<?php esc_html_e( 'Community voting is disabled (Settings → Community → Rules → "Admin approval only") — removal is by direct Suspend/Delete only; "Open Vote" is unavailable.', 'agnosis' ); ?>
+				</p>
+			<?php endif; ?>
 
 			<?php if ( empty( $members ) ) : ?>
 				<p style="color:#666"><?php esc_html_e( 'No admitted members yet.', 'agnosis' ); ?></p>
@@ -143,7 +151,7 @@ class MembersDashboard {
 									<?php wp_nonce_field( 'agnosis_delete_' . $app_id, 'agnosis_nonce' ); ?>
 									<?php submit_button( __( 'Delete', 'agnosis' ), 'small delete', 'submit', false ); ?>
 								</form>
-								<?php if ( ! $is_banned ) : ?>
+								<?php if ( ! $is_banned && ! $voting_disabled ) : ?>
 									<!-- Initiate community vote -->
 									<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
 										  style="display:inline"

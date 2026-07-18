@@ -1,12 +1,12 @@
 
 
 Code Coverage Report:         
-  2026-07-17 15:44:04         
+  2026-07-18 19:08:18         
                               
  Summary:                     
-  Classes:  3.06% (3/98)      
-  Methods:  6.61% (66/998)    
-  Lines:    6.59% (1167/17707)
+  Classes:  3.03% (3/99)      
+  Methods:  6.52% (66/1013)   
+  Lines:    6.51% (1171/18000)
 
 Agnosis\AI\CallCounter
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/  9)
@@ -27,13 +27,15 @@ Agnosis\AI\Providers\OpenAI
 Agnosis\AI\Providers\WordPressAI
   Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 59)
 Agnosis\AI\SubmissionTranslator
-  Methods:  72.73% ( 8/11)   Lines:  96.83% (183/189)
+  Methods:  72.73% ( 8/11)   Lines:  96.89% (187/193)
 Agnosis\Admin\ContactMessagesPage
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/193)
 Agnosis\Admin\Dashboards\AdmissionDashboard
-  Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/124)
+  Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/136)
 Agnosis\Admin\Dashboards\AiTestTools
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 85)
+Agnosis\Admin\Dashboards\BiographyTitleCache
+  Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 86)
 Agnosis\Admin\Dashboards\BrandingTestForm
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/ 61)
 Agnosis\Admin\Dashboards\DeliverabilityCard
@@ -43,7 +45,7 @@ Agnosis\Admin\Dashboards\InvitationCard
 Agnosis\Admin\Dashboards\LogsTab
   Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/ 85)
 Agnosis\Admin\Dashboards\MembersDashboard
-  Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/170)
+  Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/176)
 Agnosis\Admin\Dashboards\NewsletterDashboard
   Methods:   0.00% ( 0/ 9)   Lines:   0.00% (  0/184)
 Agnosis\Admin\Deliverability
@@ -53,19 +55,19 @@ Agnosis\Admin\InboxPage
 Agnosis\Admin\QueueController
   Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/ 80)
 Agnosis\Admin\Settings
-  Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/510)
+  Methods:   0.00% ( 0/21)   Lines:   0.00% (  0/511)
 Agnosis\Admin\SettingsFields
-  Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/922)
+  Methods:   0.00% ( 0/ 2)   Lines:   0.00% (  0/931)
 Agnosis\Artist\Admission
-  Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/537)
+  Methods:   0.00% ( 0/25)   Lines:   0.00% (  0/545)
 Agnosis\Artist\AdmissionConfirm
   Methods:   0.00% ( 0/ 8)   Lines:   0.00% (  0/ 79)
 Agnosis\Artist\AdmissionNotification
-  Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/403)
+  Methods:   0.00% ( 0/24)   Lines:   0.00% (  0/450)
 Agnosis\Artist\ApplicationBiography
   Methods:   0.00% ( 0/ 4)   Lines:   0.00% (  0/ 81)
 Agnosis\Artist\BiographyTitle
-  Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/ 76)
+  Methods:   0.00% ( 0/11)   Lines:   0.00% (  0/138)
 Agnosis\Artist\CommunityBroadcast
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/187)
 Agnosis\Artist\CommunityCap
@@ -81,7 +83,7 @@ Agnosis\Artist\ContactFormBlock
 Agnosis\Artist\ContentEditor
   Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/583)
 Agnosis\Artist\Departure
-  Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/385)
+  Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/397)
 Agnosis\Artist\DepartureNotification
   Methods:   0.00% ( 0/19)   Lines:   0.00% (  0/308)
 Agnosis\Artist\FrontendAccess
@@ -93,11 +95,11 @@ Agnosis\Artist\JoinPage
 Agnosis\Artist\NotificationPreferences
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/121)
 Agnosis\Artist\Profile
-  Methods:   0.00% ( 0/18)   Lines:   0.00% (  0/321)
+  Methods:   0.00% ( 0/20)   Lines:   0.00% (  0/349)
 Agnosis\Artist\RemovalVoteConfirm
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/113)
 Agnosis\Artist\VoteDigest
-  Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/101)
+  Methods:   0.00% ( 0/ 6)   Lines:   0.00% (  0/103)
 Agnosis\Artist\VouchConfirm
   Methods:   0.00% ( 0/10)   Lines:   0.00% (  0/108)
 Agnosis\Compat\LinguaForge
@@ -125,7 +127,7 @@ Agnosis\Core\Logger
 Agnosis\Core\LoginBranding
   Methods:   0.00% ( 0/ 3)   Lines:   0.00% (  0/ 20)
 Agnosis\Core\Plugin
-  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/210)
+  Methods:   0.00% ( 0/ 5)   Lines:   0.00% (  0/214)
 Agnosis\Core\Privacy
   Methods:   0.00% ( 0/23)   Lines:   0.00% (  0/469)
 Agnosis\Core\RateLimiter
@@ -187,7 +189,7 @@ Agnosis\Newsletter\Tokens
 Agnosis\Publishing\EmbedPolicy
   Methods:   9.09% ( 1/11)   Lines:   0.96% (  1/104)
 Agnosis\Publishing\GalleryOverview
-  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 67)
+  Methods:   0.00% ( 0/ 7)   Lines:   0.00% (  0/ 79)
 Agnosis\Publishing\Notification
   Methods:   0.00% ( 0/22)   Lines:   0.00% (  0/830)
 Agnosis\Publishing\PostCreator

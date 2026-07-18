@@ -398,6 +398,21 @@ class Profile {
 				'uses_context'    => [ 'postId' ],
 			]
 		);
+
+		// agnosis/artwork-copyright (0.9.37) — "© {year} {artist name}" credit
+		// line for single artwork pages. Unlike the bare-registered blocks
+		// above, this one ships a real blocks/artwork-copyright/block.json (with
+		// editorScript + Color/Typography/Spacing supports) so an admin can
+		// configure font size, color, and family per-instance from the block's
+		// own Inspector panel, same directory-registration pattern
+		// Network\SubdomainNavigation uses for artist-name-link/breadcrumb-icon-
+		// link. `usesContext` still resolves the post the same way its
+		// bare-registered siblings here do, since it belongs inside the artwork
+		// template's Post Template, not a subdomain header.
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/artwork-copyright',
+			[ 'render_callback' => [ $this, 'render_artwork_copyright' ] ]
+		);
 	}
 
 	/**
@@ -732,6 +747,88 @@ class Profile {
 		];
 
 		return \Agnosis\Publishing\SocialLinks::render_icon_row( array_map( 'strval', $urls ) );
+	}
+
+	/**
+	 * Render callback for the agnosis/artwork-copyright block (0.9.37).
+	 *
+	 * Outputs "© {year} {artist name}" — the correct, gallery-standard way to
+	 * credit an artwork's copyright holder. `{year}` is the artwork's own
+	 * publish date (get_the_date()), not the current year: a copyright notice
+	 * dates the work itself, and re-rendering "© 2027" on a piece actually
+	 * published in 2026 would misstate when the work first entered publication.
+	 * `{artist name}` is resolved from post_author the same way
+	 * Network\SubdomainNavigation::artist_name() resolves it elsewhere in the
+	 * plugin (display_name, falling back to user_nicename) — kept as a small
+	 * private helper here rather than reusing that method, since this class
+	 * has no dependency on Network\SubdomainNavigation and the two blocks
+	 * resolve an artist from different starting points (subdomain vs.
+	 * post_author).
+	 *
+	 * Renders nothing off an agnosis_artwork post, and nothing when the
+	 * artwork's author account no longer resolves to a user (e.g. deleted),
+	 * same "empty string takes no space" convention as this class's other
+	 * bare-registered blocks above.
+	 *
+	 * Color/Typography/Spacing are ordinary block *supports* (block.json), so
+	 * get_block_wrapper_attributes() alone carries whatever the Inspector's
+	 * standard panels picked — no custom attributes to read.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when not applicable.
+	 */
+	public function render_artwork_copyright( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+			return '';
+		}
+
+		$name = $this->artist_display_name( (int) $post->post_author );
+
+		if ( '' === $name ) {
+			return '';
+		}
+
+		$year = get_the_date( 'Y', $post_id );
+
+		$wrapper_attributes = get_block_wrapper_attributes();
+
+		return sprintf(
+			'<p %s>%s</p>',
+			$wrapper_attributes,
+			esc_html(
+				sprintf(
+					/* translators: 1: publish year, 2: artist name */
+					__( '© %1$s %2$s', 'agnosis' ),
+					$year,
+					$name
+				)
+			)
+		);
+	}
+
+	/**
+	 * Resolves an artist's display name from a user ID.
+	 *
+	 * Same display_name-with-user_nicename-fallback convention as
+	 * Network\SubdomainNavigation::artist_name() — kept local to this class
+	 * (see render_artwork_copyright()'s docblock for why) rather than shared.
+	 *
+	 * @param int $author_id WP_User ID (post_author).
+	 * @return string Display name, or '' if the user no longer resolves.
+	 */
+	private function artist_display_name( int $author_id ): string {
+		if ( $author_id <= 0 ) {
+			return '';
+		}
+
+		$user = get_userdata( $author_id );
+
+		return $user ? (string) ( $user->display_name ?: $user->user_nicename ) : '';
 	}
 
 	// -------------------------------------------------------------------------

@@ -85,6 +85,30 @@ class BiographyTitle {
 	private const PRESET_TITLE_TRANSLATIONS_OPTION = 'agnosis_biography_preset_title_translations';
 
 	/**
+	 * Extra framing passed to SubmissionTranslator::translate_text()'s $context
+	 * param (2026-07-18) — a preset title is a short, bare phrase with no
+	 * surrounding sentence ("Meet the Artist"), which a translation prompt
+	 * with no other framing can genuinely misread: is "Meet" an imperative
+	 * heading, or the past participle of "to meet"? German has no ambiguity
+	 * in the source, but the AI does without this hint — and a live report
+	 * showed exactly that: "Meet the Artist" came back as "Kennengelernt die
+	 * Künstlerin..." (roughly "[Having] met the female artist..."), reading
+	 * "Meet" as a past participle and picking a specific grammatical gender
+	 * neither the source text nor the setting's own intent ("neutral, applies
+	 * to every artist") called for. This context line, plus the general
+	 * gender-neutral instruction SubmissionTranslator now always includes,
+	 * targets both halves of that failure at once.
+	 */
+	private const HEADING_TRANSLATION_CONTEXT =
+		'This text is a short page heading (a title shown at the top of a page), '
+		. 'not a sentence or phrase within running prose. Translate it as a '
+		. 'natural, idiomatic heading in the target language, keeping it just as '
+		. 'short. Preserve the source\'s grammatical form (e.g. an imperative or '
+		. 'a noun phrase stays that form) rather than reinterpreting it as a '
+		. 'different tense, and do not address or refer to a specific person\'s '
+		. 'gender unless the source text itself names or clearly implies one.';
+
+	/**
 	 * Suppresses apply_preset_title() for the exact duration of
 	 * translate_for_sibling()'s own wp_update_post() call below.
 	 *
@@ -220,7 +244,7 @@ class BiographyTitle {
 			return $preset_title;
 		}
 
-		$translated = trim( $translator->translate_text( $preset_title, $target_lang ) );
+		$translated = trim( $translator->translate_text( $preset_title, $target_lang, self::HEADING_TRANSLATION_CONTEXT ) );
 		if ( '' === $translated ) {
 			return $preset_title;
 		}
@@ -229,6 +253,188 @@ class BiographyTitle {
 		update_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, $cache, false );
 
 		return $translated;
+	}
+
+	// -------------------------------------------------------------------------
+	// Admin-editable cache (2026-07-18) — Settings → General → "Biography Title
+	// Translation Cache" panel (Admin\Dashboards\BiographyTitleCache).
+	//
+	// Prompted directly by a live bad-translation report: unlike
+	// Compat\LinguaForge's term-name cache (dozens/hundreds of small labels,
+	// clear-only), a preset title only ever has one entry per configured
+	// language — few enough to be worth hand-editing individually rather than
+	// only ever "clear and hope the next AI call does better". All four
+	// methods below scope themselves to the CURRENTLY configured preset title
+	// only — see this class's own cache docblock above for why an entry left
+	// over from a since-changed preset text is a harmless, intentionally
+	// unmanaged orphan rather than something these need to reach.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The cached translations for the currently configured preset title,
+	 * keyed by target language code.
+	 *
+	 * @return array<string, string> Target language code => cached translation.
+	 */
+	public static function cached_translations(): array {
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		if ( '' === $preset_title ) {
+			return [];
+		}
+
+		$cache = get_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, [] );
+		/** @var array<string, string> */
+		return $cache[ $preset_title ] ?? [];
+	}
+
+	/**
+	 * Admin override: store $translation as the cached value for $target_lang
+	 * under the currently configured preset title, then immediately re-apply
+	 * it to every already-published sibling biography post in that language —
+	 * a correction takes effect right away rather than only on the next sync.
+	 * An empty (or all-whitespace) $translation is treated as "no override" —
+	 * see clear_translation() below, which this delegates to in that case.
+	 *
+	 * @return int Number of live posts updated.
+	 */
+	public static function set_translation_override( string $target_lang, string $translation ): int {
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		$target_lang  = sanitize_key( $target_lang );
+		$translation  = trim( $translation );
+
+		if ( '' === $preset_title || '' === $target_lang ) {
+			return 0;
+		}
+
+		if ( '' === $translation ) {
+			return self::clear_translation( $target_lang );
+		}
+
+		$cache = get_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, [] );
+		$cache[ $preset_title ][ $target_lang ] = sanitize_text_field( $translation );
+		update_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, $cache, false );
+
+		return self::resync_live_titles( $target_lang );
+	}
+
+	/**
+	 * Remove the cached translation for $target_lang under the currently
+	 * configured preset title ("Retranslate with AI" in the admin panel),
+	 * then re-apply the freshly (AI-re-)computed value to every live sibling
+	 * post in that language — translated_preset_title() calls the AI
+	 * translator again immediately since the cache entry is now gone, so this
+	 * both clears the bad value and replaces it with a new attempt in one step.
+	 *
+	 * @return int Number of live posts updated.
+	 */
+	public static function clear_translation( string $target_lang ): int {
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		$target_lang  = sanitize_key( $target_lang );
+
+		if ( '' === $preset_title || '' === $target_lang ) {
+			return 0;
+		}
+
+		$cache = get_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, [] );
+		if ( isset( $cache[ $preset_title ][ $target_lang ] ) ) {
+			unset( $cache[ $preset_title ][ $target_lang ] );
+			if ( empty( $cache[ $preset_title ] ) ) {
+				unset( $cache[ $preset_title ] );
+			}
+			update_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, $cache, false );
+		}
+
+		return self::resync_live_titles( $target_lang );
+	}
+
+	/**
+	 * Clear every cached translation for the currently configured preset
+	 * title (all languages at once), then re-apply freshly (AI-re-)computed
+	 * titles to every live sibling post across all of them. Mirrors the
+	 * "Clear Term Translation Cache" button's all-at-once shape.
+	 *
+	 * @return int Number of live posts updated, across all languages.
+	 */
+	public static function clear_all_translations(): int {
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		if ( '' === $preset_title ) {
+			return 0;
+		}
+
+		$cache = get_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, [] );
+		$langs = array_keys( $cache[ $preset_title ] ?? [] );
+
+		unset( $cache[ $preset_title ] );
+		update_option( self::PRESET_TITLE_TRANSLATIONS_OPTION, $cache, false );
+
+		$updated = 0;
+		foreach ( $langs as $lang ) {
+			// array_keys() types as array<int|string> — a numeric-string language
+			// code would be auto-cast to int as an array key, so PHPStan can't
+			// rule that out statically even though no real Lingua Forge language
+			// code is ever purely numeric. Cast back to string for resync_live_titles().
+			$updated += self::resync_live_titles( (string) $lang );
+		}
+
+		return $updated;
+	}
+
+	/**
+	 * Re-apply the (fresh) translated preset title to every already-published
+	 * agnosis_biography post written in $target_lang — the live-effect half
+	 * of the three admin cache-editing actions above. No-ops gracefully when
+	 * Lingua Forge's per-post language lookup isn't available (nothing
+	 * reliable to filter posts by) or no preset title is configured.
+	 *
+	 * Deliberately walks every agnosis_biography post via get_posts() (which
+	 * fires the normal WP post-update hooks through wp_update_post() below)
+	 * rather than a raw SQL title match like repair_array_titles()'s one-time
+	 * pass — that method targets one exact known-bad literal string; this one
+	 * needs to find every post in a given language regardless of what its
+	 * current title happens to be.
+	 */
+	private static function resync_live_titles( string $target_lang ): int {
+		$preset_title = trim( (string) get_option( 'agnosis_biography_preset_title', '' ) );
+		if ( '' === $preset_title || '' === $target_lang || ! function_exists( 'linguaforge_get_lang' ) ) {
+			return 0;
+		}
+
+		$posts = get_posts( [
+			'post_type'      => 'agnosis_biography',
+			'post_status'    => [ 'publish', 'future', 'draft', 'pending', 'private' ],
+			'posts_per_page' => -1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+		] );
+
+		$updated = 0;
+		foreach ( $posts as $post_id ) {
+			$post_id = (int) $post_id;
+			if ( sanitize_key( linguaforge_get_lang( $post_id ) ) !== $target_lang ) {
+				continue;
+			}
+
+			$translated = self::translated_preset_title( $preset_title, $target_lang );
+			$final      = self::maybe_append_artist_name( $translated, (int) get_post_field( 'post_author', $post_id ) );
+
+			if ( $final === get_post_field( 'post_title', $post_id ) ) {
+				continue; // Nothing actually changed (e.g. no AI provider configured for a fresh retranslate).
+			}
+
+			// Same suppression as translate_for_sibling()/repair_array_titles()
+			// above — without it, this wp_update_post() call would re-fire
+			// wp_insert_post_data and apply_preset_title() would immediately
+			// stomp $final back to the raw, untranslated preset.
+			self::$suppress_preset_override = true;
+			try {
+				wp_update_post( [ 'ID' => $post_id, 'post_title' => $final ] );
+			} finally {
+				self::$suppress_preset_override = false;
+			}
+			++$updated;
+		}
+
+		return $updated;
 	}
 
 	/**

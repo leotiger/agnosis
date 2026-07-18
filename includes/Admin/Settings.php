@@ -14,6 +14,7 @@ namespace Agnosis\Admin;
 
 use Agnosis\Admin\Dashboards\AdmissionDashboard;
 use Agnosis\Admin\Dashboards\AiTestTools;
+use Agnosis\Admin\Dashboards\BiographyTitleCache;
 use Agnosis\Admin\Dashboards\BrandingTestForm;
 use Agnosis\Admin\Dashboards\DeliverabilityCard;
 use Agnosis\Admin\Dashboards\InvitationCard;
@@ -633,6 +634,7 @@ class Settings {
 			$this->render_turnstile_warning();
 			$this->render_debug_panel();
 			$this->render_term_translation_cache_panel();
+			( new BiographyTitleCache() )->render();
 			return;
 		}
 		if ( 'ai' === $tab ) {

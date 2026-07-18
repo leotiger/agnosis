@@ -461,6 +461,21 @@ parameters:
 			path: ../tests/php/Integration/Artist/AdmissionStatusTest.php
 
 		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionVotingDisabledTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\AdmissionVotingDisabledTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionVotingDisabledTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/AdmissionVotingDisabledTest.php
+
+		-
 			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/ApplicationBiographyTest.php
@@ -1019,6 +1034,26 @@ parameters:
 			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVotingDisabledTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\RemovalVotingDisabledTest\\:\\:create_admitted_artist\\(\\) should return array\\{int, int\\} but returns array\\{int\\|WP_Error, int\\}\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVotingDisabledTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$initiated_by of method Agnosis\\\\Artist\\\\Departure\\:\\:admin_open_removal_vote\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/RemovalVotingDisabledTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/RemovalVotingDisabledTest.php
 
 		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"

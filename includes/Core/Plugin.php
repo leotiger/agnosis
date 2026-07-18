@@ -142,6 +142,11 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_clear_debug_files', $settings, 'handle_clear_debug_files' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_term_translations_cache', $settings, 'handle_clear_term_translations_cache' );
 
+			$biography_title_cache = new Dashboards\BiographyTitleCache();
+			$this->loader->add_action( 'admin_post_agnosis_save_biography_title_translation', $biography_title_cache, 'handle_save' );
+			$this->loader->add_action( 'admin_post_agnosis_retranslate_biography_title',       $biography_title_cache, 'handle_retranslate' );
+			$this->loader->add_action( 'admin_post_agnosis_clear_biography_title_cache',        $biography_title_cache, 'handle_clear_all' );
+
 			// Settings tab clusters (2026-07-17 god-class refactor, AUDIT-1.0.0.md
 			// §4d) — each dashboard/card is now its own class under Admin\Dashboards,
 			// with its own admin-post/AJAX handler(s), rather than everything routed

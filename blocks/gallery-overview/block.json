@@ -14,7 +14,8 @@
 		"spacing": {
 			"margin": true,
 			"padding": true
-		}
+		},
+		"interactivity": true
 	},
 	"attributes": {
 		"columns": {
@@ -26,5 +27,6 @@
 			"default": "full"
 		}
 	},
-	"editorScript": "file:./editor.js"
+	"editorScript": "file:./editor.js",
+	"viewScriptModule": "agnosis/gallery-overview-view"
 }

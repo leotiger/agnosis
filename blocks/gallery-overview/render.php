@@ -30,9 +30,22 @@ $agnosis_columns     = max( 1, (int) ( $attributes['columns'] ?? 3 ) );
 $agnosis_pool_target = max( $agnosis_per_page * 4, 60 );
 
 // ── URL inputs ──────────────────────────────────────────────────────────────
+// Deliberately NOT named "agnosis_medium" — that string is also the
+// agnosis_medium taxonomy's own registered query_var (Profile::register_
+// taxonomy(), 'query_var' => true, 'rewrite' => ['slug' => 'medium']), which
+// exists for wp-admin/REST, not for this block. Reusing the same name here
+// collided with it: WordPress's redirect_canonical() recognizes any
+// `?agnosis_medium=X` request as a request for that taxonomy's real archive
+// and silently 301-redirects it to the pretty-permalink URL /medium/x/ — a
+// totally different page/template with no gallery-overview block on it at
+// all. Confirmed live: clicking a medium pill (or the Interactivity Router
+// fetching that same URL) landed on WordPress's own generic taxonomy archive
+// instead of updating this block in place — not a data or caching bug, a
+// straight query-var name collision. "agnosis_medium_filter" carries no
+// taxonomy meaning to WordPress, so it can never trigger that redirect.
 // phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only filter/page, no state change.
-$agnosis_medium_filter = isset( $_GET['agnosis_medium'] )
-	? sanitize_key( wp_unslash( $_GET['agnosis_medium'] ) )
+$agnosis_medium_filter = isset( $_GET['agnosis_medium_filter'] )
+	? sanitize_key( wp_unslash( $_GET['agnosis_medium_filter'] ) )
 	: '';
 $agnosis_current_page  = isset( $_GET['agnosis_overview_page'] )
 	? max( 1, (int) $_GET['agnosis_overview_page'] )
@@ -173,11 +186,22 @@ $agnosis_current_page = min( $agnosis_current_page, $agnosis_max_pages );
 $agnosis_offset       = ( $agnosis_current_page - 1 ) * $agnosis_per_page;
 $agnosis_page_ids     = array_slice( $agnosis_pool, $agnosis_offset, $agnosis_per_page );
 
-if ( empty( $agnosis_page_ids ) ) {
-	return;
-}
-
-$agnosis_posts = get_posts( [
+// Deliberately NOT an early `return;` on empty $agnosis_page_ids (a real
+// case — e.g. a medium filter with zero matching artwork in this context/
+// language). A bare `return;` here means this whole file — including the
+// filter nav and the router-region wrapper div itself — never renders at
+// all, so render_block() returns "" as the block's entire output. That was
+// already a latent bug on a normal full-page load (the block silently
+// vanished, no explanation), but became much more visible once medium-pill
+// clicks started swapping only the router region: the Interactivity Router
+// can't find a `[data-wp-router-region="agnosis/gallery-overview"]` element
+// in a completely empty response to swap in, so the swap blanks the entire
+// gallery area instead of just failing to update it (confirmed live —
+// filtering to a medium with zero results blanked everything below the
+// header). $agnosis_posts is just left empty instead; the render section
+// below shows the filter nav plus a "nothing here" message rather than
+// nothing at all.
+$agnosis_posts = empty( $agnosis_page_ids ) ? [] : get_posts( [
 	'post_type'      => 'agnosis_artwork',
 	'post__in'       => $agnosis_page_ids,
 	'orderby'        => 'post__in',
@@ -186,18 +210,126 @@ $agnosis_posts = get_posts( [
 ] );
 
 // ── Medium filter terms ───────────────────────────────────────────────────────
-$agnosis_medium_terms = get_terms( [ 'taxonomy' => 'agnosis_medium', 'hide_empty' => true ] );
+// Scoped two ways: (a) the current request's language, and (b) mediums actually
+// used somewhere in THIS context's own candidate pool — an artist's own
+// subdomain gallery only ever offers mediums that artist has actually
+// published in, and the sitewide overview only offers mediums some published
+// artwork actually uses, rather than every medium term that has ever existed
+// sitewide. Without (b), an artist subdomain with only photography/digital-art
+// work still showed a "Sculpture" pill with nothing behind it — clicking it
+// landed on a correctly-empty (but confusing) results page (reported
+// 2026-07-18, screenshot of a 3-artwork subdomain still showing all 5 sitewide
+// medium pills). Without (a): agnosis_medium is one flat, language-agnostic
+// taxonomy — Compat\LinguaForge::sync_taxonomy() auto-creates a real term per
+// (medium, target language) AI translation and flags it with
+// TRANSLATED_TERM_META, the same way PromptConfig::medium_terms() already
+// excludes those from the AI's controlled vocabulary; every language's variant
+// of every medium showed up as its own pill regardless of which language site
+// was being viewed, and clicking a pill whose term ID belonged to a different
+// language than the one being browsed silently returned zero artworks — that
+// term's ID matches no artwork tagged in THIS language (also reported
+// 2026-07-18). $agnosis_lang_meta_query above already resolves LF_LANG for the
+// post query; mirrored here for the term list.
+// Resolved into a plain string variable (rather than referencing the LF_LANG
+// constant directly wherever it's needed below) so PHPStan can see it's
+// always defined at every later use-site — the constant itself is only ever
+// guarded here, in this one inline defined()/truthiness check.
+$agnosis_current_lang            = ( defined( 'LF_LANG' ) && LF_LANG ) ? (string) LF_LANG : '';
+$agnosis_primary_lang            = \Agnosis\Compat\LinguaForge::is_active()
+	? sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) )
+	: '';
+$agnosis_is_primary_lang_request = '' === $agnosis_primary_lang
+	|| '' === $agnosis_current_lang
+	|| $agnosis_current_lang === $agnosis_primary_lang;
+
+// Every artwork this context could possibly show, in any medium — deliberately
+// NOT passing $agnosis_tax_query here, so selecting one medium doesn't collapse
+// the pill row down to just that one medium; $agnosis_artist_ids/
+// $agnosis_lang_meta_query are the same artist-scope/language restriction the
+// pool-building loop above already applies. IDs only, no pagination limit —
+// this is purely for "which terms exist here at all", not for display.
+$agnosis_candidate_ids = get_posts( [
+	'post_type'      => 'agnosis_artwork',
+	'post_status'    => 'publish',
+	'author__in'     => $agnosis_artist_ids,
+	'meta_query'     => $agnosis_lang_meta_query,
+	'fields'         => 'ids',
+	'posts_per_page' => -1,
+	'no_found_rows'  => true,
+] );
+
+if ( empty( $agnosis_candidate_ids ) ) {
+	$agnosis_medium_terms = [];
+} else {
+	$agnosis_medium_terms = $agnosis_is_primary_lang_request
+		// Primary/original language (or LF inactive): only the admin-curated
+		// vocabulary — exclude every AI-created translated variant.
+		? get_terms( [
+			'taxonomy'   => 'agnosis_medium',
+			'hide_empty' => true,
+			'object_ids' => $agnosis_candidate_ids,
+			'meta_query' => [
+				[
+					'key'     => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META,
+					'compare' => 'NOT EXISTS',
+				],
+			],
+		] )
+		// Secondary language: only the terms translated into this exact language.
+		: get_terms( [
+			'taxonomy'   => 'agnosis_medium',
+			'hide_empty' => true,
+			'object_ids' => $agnosis_candidate_ids,
+			'meta_query' => [
+				[
+					'key'   => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META,
+					'value' => $agnosis_current_lang,
+				],
+			],
+		] );
+}
+
 if ( is_wp_error( $agnosis_medium_terms ) ) {
 	$agnosis_medium_terms = [];
 }
 
 // ── URL helpers (closures to avoid global function redeclaration) ─────────────
-$agnosis_filter_url = static function ( string $medium, int $page = 1 ): string {
+// Built off the CURRENT request's own URL (host + path + query), not
+// home_url( '/' ) — this block is placed on more than one template (home.html
+// AND archive-agnosis_artwork.html), and home_url( '/' ) always resolves to
+// the site root regardless of which one actually rendered it. A filter or
+// pagination click on the archive page was silently redirecting the visitor
+// to the home page instead of updating the archive in place. (Artist
+// subdomains were never the problem here — SubdomainRouter::rewrite_home()
+// already filters WordPress's own `option_home` per-request, so home_url()
+// itself correctly reflected the subdomain; this was purely a
+// which-template-is-this-block-actually-on gap.)
+// add_query_arg()/remove_query_arg() are flagged by WordPress's Plugin Check
+// tool when called without an explicit URL — the implicit fallback to
+// $_SERVER['REQUEST_URI'] is unescaped input — so the current URL is built
+// and escaped by hand here instead of relying on that fallback.
+$agnosis_current_url = esc_url_raw(
+	( is_ssl() ? 'https://' : 'http://' )
+	. wp_unslash( $_SERVER['HTTP_HOST'] ?? '' )
+	. wp_unslash( $_SERVER['REQUEST_URI'] ?? '' )
+);
+
+// Strip our own two params from the base before anything else. $args below
+// deliberately OMITS a key entirely for its "default" state (no filter, page
+// 1) via array_filter() — but add_query_arg() only ever adds/replaces keys
+// actually present in $args, it never clears an absent one. Without this,
+// clicking "All" while on page 3 of a medium filter would keep the current
+// URL's own stale agnosis_overview_page=3 (and clicking a fresh medium while
+// paginated would do the same), since neither value would be in $args to
+// overwrite it.
+$agnosis_current_url = remove_query_arg( [ 'agnosis_medium_filter', 'agnosis_overview_page' ], $agnosis_current_url );
+
+$agnosis_filter_url = static function ( string $medium, int $page = 1 ) use ( $agnosis_current_url ): string {
 	$args = array_filter( [
-		'agnosis_medium'        => $medium ?: null,
+		'agnosis_medium_filter' => $medium ?: null,
 		'agnosis_overview_page' => $page > 1 ? $page : null,
 	] );
-	return add_query_arg( $args, home_url( '/' ) );
+	return add_query_arg( $args, $agnosis_current_url );
 };
 
 // ── Subdomain URL resolution ──────────────────────────────────────────────────
@@ -261,16 +393,34 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 // ── Render ────────────────────────────────────────────────────────────────────
 // Output directly — the PHP render_callback in GalleryOverview::render_block()
 // wraps this include in its own ob_start()/ob_get_clean() pair.
+//
+// The filter nav + grid + pagination below are wrapped in one Interactivity
+// API router region (data-wp-router-region, paired with view.js's
+// 'agnosis/gallery-overview' store) so a medium-pill or pagination click
+// fetches this SAME render.php's output for the clicked link's real href and
+// swaps only this region — a genuinely correct, complete, server-filtered
+// result (including pagination) rather than a client-side guess about what's
+// already on screen. See view.js's own docblock for why this replaced an
+// earlier pure-client-side attempt.
 ?>
+
+<div
+	data-wp-interactive="agnosis/gallery-overview"
+	data-wp-router-region="agnosis/gallery-overview"
+>
 
 <?php if ( $agnosis_medium_terms ) : ?>
 <nav class="agnosis-medium-filter" aria-label="<?php esc_attr_e( 'Filter by medium', 'agnosis' ); ?>">
 	<a href="<?php echo esc_url( $agnosis_filter_url( '', 1 ) ); ?>"
+	   data-wp-on--mouseenter="actions.prefetch"
+	   data-wp-on--click="actions.navigate"
 	   class="agnosis-medium-filter__term<?php echo ! $agnosis_medium_filter ? ' is-active' : ''; ?>">
 		<?php esc_html_e( 'All', 'agnosis' ); ?>
 	</a>
 	<?php foreach ( $agnosis_medium_terms as $agnosis_term ) : ?>
 	<a href="<?php echo esc_url( $agnosis_filter_url( $agnosis_term->slug, 1 ) ); ?>"
+	   data-wp-on--mouseenter="actions.prefetch"
+	   data-wp-on--click="actions.navigate"
 	   class="agnosis-medium-filter__term<?php echo ( $agnosis_medium_filter === $agnosis_term->slug ) ? ' is-active' : ''; ?>">
 		<?php echo esc_html( $agnosis_term->name ); ?>
 	</a>
@@ -278,6 +428,15 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 </nav>
 <?php endif; ?>
 
+<?php if ( ! $agnosis_posts ) : ?>
+<p class="agnosis-gallery-overview__empty">
+	<?php if ( $agnosis_medium_filter ) : ?>
+		<?php esc_html_e( 'No artwork matches this filter yet.', 'agnosis' ); ?>
+	<?php else : ?>
+		<?php esc_html_e( 'No artwork to show yet.', 'agnosis' ); ?>
+	<?php endif; ?>
+</p>
+<?php else : ?>
 <div class="agnosis-gallery-overview agnosis-gallery-overview--cols-<?php echo (int) $agnosis_columns; ?>">
 	<?php
 	foreach ( $agnosis_posts as $agnosis_post ) :
@@ -370,16 +529,21 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 	</article>
 	<?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <?php if ( $agnosis_max_pages > 1 ) : ?>
 <nav class="agnosis-gallery-overview__pagination" aria-label="<?php esc_attr_e( 'Gallery pages', 'agnosis' ); ?>">
 	<?php if ( $agnosis_current_page > 1 ) : ?>
 	<a href="<?php echo esc_url( $agnosis_filter_url( $agnosis_medium_filter, $agnosis_current_page - 1 ) ); ?>"
+	   data-wp-on--mouseenter="actions.prefetch"
+	   data-wp-on--click="actions.navigate"
 	   class="agnosis-gallery-overview__page-link">← <?php esc_html_e( 'Prev', 'agnosis' ); ?></a>
 	<?php endif; ?>
 
 	<?php for ( $agnosis_p = 1; $agnosis_p <= $agnosis_max_pages; $agnosis_p++ ) : ?>
 	<a href="<?php echo esc_url( $agnosis_filter_url( $agnosis_medium_filter, $agnosis_p ) ); ?>"
+	   data-wp-on--mouseenter="actions.prefetch"
+	   data-wp-on--click="actions.navigate"
 	   class="agnosis-gallery-overview__page-link<?php echo ( $agnosis_p === $agnosis_current_page ) ? ' is-current' : ''; ?>"
 		<?php echo ( $agnosis_p === $agnosis_current_page ) ? 'aria-current="page"' : ''; ?>>
 		<?php echo (int) $agnosis_p; ?>
@@ -388,7 +552,11 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 
 	<?php if ( $agnosis_current_page < $agnosis_max_pages ) : ?>
 	<a href="<?php echo esc_url( $agnosis_filter_url( $agnosis_medium_filter, $agnosis_current_page + 1 ) ); ?>"
+	   data-wp-on--mouseenter="actions.prefetch"
+	   data-wp-on--click="actions.navigate"
 	   class="agnosis-gallery-overview__page-link"><?php esc_html_e( 'Next', 'agnosis' ); ?> →</a>
 	<?php endif; ?>
 </nav>
 <?php endif; ?>
+
+</div><!-- /[data-wp-router-region="agnosis/gallery-overview"] -->

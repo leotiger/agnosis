@@ -813,6 +813,43 @@ class SettingsFields {
 				'sanitize' => fn( $v ) => max( 1, min( 20000, (int) $v ) ),
 				'desc'     => __( 'Longer messages to the Community announcement address are bounced back to the sender instead of being broadcast — the sender is told to shorten it and resend. Measured in characters, not words, so it applies fairly across languages that don\'t use spaces between words (Chinese, Japanese, Thai, etc.). Every recipient\'s copy is translated individually, so this also caps how much a single message can cost in AI translation calls. Default: 2000. Hard maximum: 20000, regardless of this setting.', 'agnosis' ),
 			],
+			// --- COMMUNITY: Voting ---
+			// A single switch covering BOTH community voting systems below
+			// (admission vouching and removal nomination/voting) — a gallery or
+			// other curated context may want a human admin deciding who joins
+			// and who is asked to leave, not a community majority. The admin
+			// override actions this falls back to already existed before this
+			// setting did: Admission::admin_admit()/admin_reject() (Settings →
+			// Community → Pending Applications) and Departure::admin_ban()/
+			// admin_delete() (Settings → Community → Members) were always
+			// available as a bypass alongside voting — this setting just makes
+			// the community-vote path unavailable so admin action becomes the
+			// only path, rather than an optional shortcut.
+			//
+			// Admission::record_vote() (REST vouch + the VouchConfirm email-link
+			// vote) and Departure::nominate() (starting/advancing a NEW
+			// nomination) both refuse while this is on; Admission's expiry cron
+			// stops auto-rejecting applications past the voting window (with no
+			// possible votes, that would silently reject everything an admin
+			// hadn't gotten to yet) — applications simply wait for admin_admit()/
+			// admin_reject(). A removal request already 'open' when this is
+			// turned on is deliberately left alone: artists can still cast a
+			// vote on it (Departure::record_vote_on_request(), reached via
+			// cast_vote() or the RemovalVoteConfirm email link) and it resolves
+			// normally via the existing check_expired_removal_votes() cron —
+			// only *opening new* community votes (fresh nominations reaching
+			// threshold, or Departure::admin_open_removal_vote()'s own admin
+			// bypass) is blocked going forward.
+			'agnosis_voting_disabled' => [
+				'tab'      => 'community',
+				'label'    => __( 'Admin approval only (disable community voting)', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => '0',
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'When enabled, artists can no longer vouch new applicants in or vote to remove a member — every admission and removal decision is made directly by an admin instead (Settings → Community → Pending Applications / Members). Applications wait indefinitely for an admin decision rather than auto-rejecting when no one can vote. A community removal vote already open when this is turned on still runs to its normal conclusion; only starting a new one is blocked. Off by default — most communities want the existing vouching/vote system.', 'agnosis' ),
+			],
+
 			'agnosis_admission_percent' => [
 				'tab'     => 'community',
 				'label'   => __( 'Admission vote threshold (%)', 'agnosis' ),

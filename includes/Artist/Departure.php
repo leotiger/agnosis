@@ -47,6 +47,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Artist;
 
+use Agnosis\Core\Logger;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -507,8 +508,26 @@ class Departure {
 		);
 
 		if ( $existing && 'open' === $existing->status ) {
-			// Full vote already open — cast their vote there instead.
+			// Full vote already open — cast their vote there instead. Always
+			// allowed, even while agnosis_voting_disabled ("admin approval
+			// only") is on: an already-open community vote runs to its normal
+			// conclusion (see that setting's own description) — only *starting*
+			// a new nomination is blocked by the check just below.
 			return $this->record_removal_vote( (int) $existing->id, $voter_id, 'yes' );
+		}
+
+		// agnosis_voting_disabled ("admin approval only"): reached only once the
+		// open-vote fast path above has been ruled out, i.e. this would either
+		// create a brand-new 'nominating' request or advance one that hasn't
+		// reached threshold yet — both are "starting" a community removal
+		// process, not participating in one already under way. Admins remove a
+		// member directly instead (Departure::admin_ban()/admin_delete()).
+		if ( (bool) get_option( 'agnosis_voting_disabled', false ) ) {
+			return new WP_Error(
+				'agnosis_voting_disabled',
+				__( 'Community voting is disabled on this site. Contact an admin to request removal review.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
 		}
 
 		if ( ! $existing ) {
@@ -617,6 +636,22 @@ class Departure {
 	 * @param int $initiated_by     Admin WP user ID.
 	 */
 	public function admin_open_removal_vote( int $subject_user_id, int $initiated_by ): bool {
+		// agnosis_voting_disabled ("admin approval only"): this method's whole
+		// purpose is opening a *community* vote (bypassing nominations, not
+		// bypassing voting itself) — with community voting switched off
+		// entirely, that no longer makes sense as an admin action. Use
+		// admin_ban()/admin_delete() directly instead. Logged rather than
+		// silently ignored since the admin dashboard button that reaches this
+		// (Settings → Community → Members → "Open Vote") is hidden while this
+		// setting is on, so a call arriving here regardless is unexpected.
+		if ( (bool) get_option( 'agnosis_voting_disabled', false ) ) {
+			Logger::warning(
+				sprintf( 'admin_open_removal_vote() blocked for user #%d — community voting is disabled (agnosis_voting_disabled).', $subject_user_id ),
+				'departure'
+			);
+			return false;
+		}
+
 		global $wpdb;
 
 		// Only one open/nominating request allowed per subject.

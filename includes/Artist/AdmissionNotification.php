@@ -125,10 +125,24 @@ class AdmissionNotification {
 
 		/** @var object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null, language: string|null} $application */
 
-		$window = (int) get_option( 'agnosis_admission_window_days', 7 );
+		$window          = (int) get_option( 'agnosis_admission_window_days', 7 );
+		$voting_disabled = (bool) get_option( 'agnosis_voting_disabled', false );
 
 		// Acknowledge the application to the applicant in their own language.
-		$this->send_application_acknowledgment( $application, $window );
+		$this->send_application_acknowledgment( $application, $window, $voting_disabled );
+
+		// agnosis_voting_disabled ("admin approval only"): no community vote
+		// blast at all — nobody can vote (Admission::record_vote() refuses
+		// while this is on), so emailing every artist a set of vote links that
+		// can never be acted on would just be confusing. Send the admin a
+		// single actionable notice instead and stop here; the applicant already
+		// got their (admin-only-aware) acknowledgment above, and the pending
+		// row itself was already created by confirm_application() regardless of
+		// this branch.
+		if ( $voting_disabled ) {
+			$this->send_admin_action_needed( $application );
+			return;
+		}
 
 		// Collect current artists who want their vote emails instantly (the
 		// default) — excludes an artist who has switched to daily-digest mode
@@ -334,9 +348,10 @@ class AdmissionNotification {
 	 * was received and explaining the next steps, in their own language.
 	 *
 	 * @param object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null, language: string|null} $application
-	 * @param int $window Voting window in days.
+	 * @param int  $window          Voting window in days. Unused when $voting_disabled — see build_acknowledgment_body().
+	 * @param bool $voting_disabled Whether agnosis_voting_disabled ("admin approval only") is on.
 	 */
-	private function send_application_acknowledgment( object $application, int $window ): void {
+	private function send_application_acknowledgment( object $application, int $window, bool $voting_disabled = false ): void {
 		$applicant_locale = '' !== ( $application->language ?? '' )
 			? Admission::iso_to_wp_locale( (string) $application->language )
 			: '';
@@ -352,7 +367,7 @@ class AdmissionNotification {
 				__( 'We received your application to %s', 'agnosis' ),
 				get_bloginfo( 'name' )
 			),
-			$this->build_acknowledgment_body( $application, $window ),
+			$this->build_acknowledgment_body( $application, $window, $voting_disabled ),
 			$this->html_headers()
 		);
 
@@ -407,8 +422,13 @@ class AdmissionNotification {
 	 * same addresses legitimately belong once the applicant is actually admitted.
 	 *
 	 * @param object{display_name: string} $application
+	 * @param int  $window          Voting window in days. Ignored when $voting_disabled — an
+	 *                              admin-only application has no fixed window, see the class body below.
+	 * @param bool $voting_disabled Whether agnosis_voting_disabled ("admin approval only") is on —
+	 *                              swaps the "community votes within N days" notice for one that
+	 *                              doesn't promise a vote or a deadline that doesn't exist.
 	 */
-	private function build_acknowledgment_body( object $application, int $window ): string {
+	private function build_acknowledgment_body( object $application, int $window, bool $voting_disabled = false ): string {
 		$site_name = get_bloginfo( 'name' );
 		$accent    = EmailTemplate::accent();
 
@@ -420,19 +440,94 @@ class AdmissionNotification {
 			)
 			. '</p>'
 			. '<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">'
-			. sprintf(
-				/* translators: %s: community name */
-				esc_html__( 'Thank you for applying to %s. Your application has been received and is now open for community review.', 'agnosis' ),
-				esc_html( $site_name )
+			. ( $voting_disabled
+				? sprintf(
+					/* translators: %s: community name */
+					esc_html__( 'Thank you for applying to %s. Your application has been received and is now awaiting review by an admin.', 'agnosis' ),
+					esc_html( $site_name )
+				)
+				: sprintf(
+					/* translators: %s: community name */
+					esc_html__( 'Thank you for applying to %s. Your application has been received and is now open for community review.', 'agnosis' ),
+					esc_html( $site_name )
+				)
 			)
 			. '</p>'
 			. '<p style="margin:0;font-size:17px;line-height:1.6;color:#666;padding:16px 20px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">'
-			. sprintf(
-				/* translators: %d: number of days */
-				esc_html__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
-				absint( $window )
+			. ( $voting_disabled
+				? esc_html__( 'There is no fixed deadline — we will let you know the outcome by email as soon as a decision is made.', 'agnosis' )
+				: sprintf(
+					/* translators: %d: number of days */
+					esc_html__( 'The community has %d days to vote. We will let you know the outcome by email.', 'agnosis' ),
+					absint( $window )
+				)
 			)
 			. '</p>';
+
+		return EmailTemplate::render( $this->html_lang(), $body );
+	}
+
+	/**
+	 * agnosis_voting_disabled ("admin approval only") replacement for the
+	 * community vote blast: a single actionable email to the site admin
+	 * pointing at Settings → Community → Pending Applications, where
+	 * Admission::admin_admit()/admin_reject() already live. Unlike
+	 * send_admin_summary() below (an FYI copy alongside a vote blast that
+	 * actually went out to artists), this is the only notice anyone gets that
+	 * a decision is needed — so it links straight to where one is made.
+	 *
+	 * @param object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
+	 */
+	private function send_admin_action_needed( object $application ): void {
+		wp_mail(
+			get_option( 'admin_email' ),
+			sprintf(
+				/* translators: 1: site name, 2: applicant display name */
+				__( '[%1$s] Application awaiting your review: %2$s', 'agnosis' ),
+				get_bloginfo( 'name' ),
+				$application->display_name
+			),
+			$this->build_admin_action_needed_body( $application ),
+			$this->html_headers()
+		);
+	}
+
+	/**
+	 * @param object{id: int, email: string, display_name: string, bio: string|null, portfolio_url: string|null, statement: string|null} $application
+	 */
+	private function build_admin_action_needed_body( object $application ): string {
+		$accent      = EmailTemplate::accent();
+		$review_url  = add_query_arg(
+			[ 'page' => 'agnosis-settings', 'tab' => 'community', 'subtab' => 'members' ],
+			admin_url( 'admin.php' )
+		);
+
+		$body = '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: %s: applicant display name */
+				esc_html__( '%s has applied to join. Community voting is disabled on this site, so this application needs your direct decision.', 'agnosis' ),
+				esc_html( $application->display_name )
+			)
+			. '</p>';
+
+		if ( $application->bio ) {
+			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Bio', 'agnosis' ) . '</p>'
+				. '<p style="margin:0 0 20px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->bio ) . '</p>';
+		}
+
+		if ( $application->portfolio_url ) {
+			$body .= '<p style="margin:0 0 20px;font-size:17px;color:#555;"><strong>' . esc_html__( 'Portfolio:', 'agnosis' ) . '</strong> '
+				. '<a href="' . esc_url( $application->portfolio_url ) . '" style="color:' . esc_attr( $accent ) . ';">' . esc_html( $application->portfolio_url ) . '</a></p>';
+		}
+
+		if ( $application->statement ) {
+			$body .= '<p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#333;">' . esc_html__( 'Statement', 'agnosis' ) . '</p>'
+				. '<p style="margin:0 0 28px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">' . esc_html( $application->statement ) . '</p>';
+		}
+
+		$body .= '<table cellpadding="0" cellspacing="0" style="margin:0;"><tr><td>'
+			. EmailTemplate::button( $review_url, __( 'Review application', 'agnosis' ) )
+			. '</td></tr></table>';
 
 		return EmailTemplate::render( $this->html_lang(), $body );
 	}

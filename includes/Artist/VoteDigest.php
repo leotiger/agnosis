@@ -47,8 +47,19 @@ class VoteDigest {
 
 	/**
 	 * Entry point for the `agnosis_vote_digest` daily cron.
+	 *
+	 * Skipped entirely while agnosis_voting_disabled ("admin approval only")
+	 * is on: Admission::record_vote() refuses every vote regardless of who
+	 * casts it or how, so a digest nudging artists to go vote on applications
+	 * they can never actually vote on would just be noise. Applications wait
+	 * for an admin instead — see Admission::check_expired_applications() and
+	 * AdmissionNotification::on_application_received(), both gated the same way.
 	 */
 	public function send_daily(): void {
+		if ( (bool) get_option( 'agnosis_voting_disabled', false ) ) {
+			return;
+		}
+
 		$artists = get_users( [
 			'role'       => 'agnosis_artist',
 			'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- small table (admitted artists only), acceptable.

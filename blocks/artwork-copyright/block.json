@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/artwork-copyright",
+	"version": "0.9.37",
+	"title": "Artwork Copyright",
+	"category": "agnosis",
+	"icon": "id-alt",
+	"description": "Renders a © {year} {artist name} copyright notice for an agnosis_artwork post — the year comes from the artwork's own publish date, the name from its author. Renders nothing off an artwork post.",
+	"keywords": [ "copyright", "artwork", "credit", "agnosis" ],
+	"textdomain": "agnosis",
+	"usesContext": [ "postId" ],
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": false
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}

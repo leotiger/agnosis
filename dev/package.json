@@ -16,8 +16,8 @@
         "build":       "wp-scripts build --config webpack.config.js",
         "start":       "wp-scripts start --config webpack.config.js",
 
-        "lint:js":     "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern \"../blocks/**/*.js\" \"../blocks/**/*.jsx\"",
-        "lint:js:fix": "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --fix \"../blocks/**/*.js\" \"../blocks/**/*.jsx\"",
+        "lint:js":     "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --ignore-pattern \"../blocks/*/view.js\" \"../blocks/**/*.js\" \"../blocks/**/*.jsx\" && wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --parser-options=sourceType:module \"../blocks/*/view.js\"",
+        "lint:js:fix": "wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --ignore-pattern \"../blocks/*/view.js\" --fix \"../blocks/**/*.js\" \"../blocks/**/*.jsx\" && wp-scripts lint-js --no-eslintrc --config .eslintrc.json --resolve-plugins-relative-to . --no-error-on-unmatched-pattern --parser-options=sourceType:module --fix \"../blocks/*/view.js\"",
         "lint:css":    "wp-scripts lint-style --config .stylelintrc.json --allow-empty-input \"../blocks/**/*.css\"",
         "lint:css:fix":"wp-scripts lint-style --config .stylelintrc.json --allow-empty-input --fix \"../blocks/**/*.css\"",
         "format":      "wp-scripts format \"../src/**/*.{js,jsx,css,json}\"",
@@ -28,6 +28,9 @@
     },
     "devDependencies": {
         "@wordpress/env": "^10.0.0",
-        "@wordpress/scripts": "^30.0.0"
+        "@wordpress/interactivity": "^6.51.0",
+        "@wordpress/interactivity-router": "^2.51.0",
+        "@wordpress/scripts": "^30.0.0",
+        "typescript": "^5.9.3"
     }
 }

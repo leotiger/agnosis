@@ -46,6 +46,44 @@ class GalleryOverview {
 	 * Called on 'init'.
 	 */
 	public function register_block(): void {
+		// view.js reaches the Interactivity Router only via a dynamic
+		// `import('@wordpress/interactivity-router')` inside its own actions —
+		// but the browser can only resolve that bare specifier through
+		// WordPress's printed `<script type="importmap">`, and WordPress only
+		// adds an entry to that import map for a module declared as a
+		// DEPENDENCY of something actually enqueued, not for a module merely
+		// enqueued standalone on its own. (Confirmed live: enqueuing
+		// '@wordpress/interactivity-router' directly from render_block() did
+		// print its own `<script type="module">` tag, but produced no import
+		// map entry at all — clicking a filter pill threw "Module name,
+		// '@wordpress/interactivity-router' does not resolve to a valid URL".)
+		//
+		// `wp-scripts` build tooling normally detects a dynamic import inside
+		// view.js and auto-registers exactly this dependency on the block's
+		// own view script module — this plugin has no build step, so it has
+		// to be declared by hand here: register view.js as its own script
+		// module with the router listed as a dynamic-import dependency, then
+		// point block.json's "viewScriptModule" at this handle (a pre-
+		// registered id is a valid alternative to "file:./view.js" there)
+		// instead of letting WordPress auto-register it with no dependencies.
+		wp_register_script_module(
+			'agnosis/gallery-overview-view',
+			\AGNOSIS_URL . 'blocks/gallery-overview/view.js',
+			[
+				// The bundled PHPStan stub types every entry in $dependencies as
+				// array{id: string, import?: string} — it doesn't accept the bare-
+				// string shorthand WP core also supports, so both dependencies are
+				// spelled out in full here. Functionally identical either way:
+				// 'import' defaults to 'static' when omitted, same as a bare string.
+				[ 'id' => '@wordpress/interactivity' ],
+				[
+					'id'     => '@wordpress/interactivity-router',
+					'import' => 'dynamic',
+				],
+			],
+			\AGNOSIS_VERSION
+		);
+
 		register_block_type(
 			\AGNOSIS_DIR . 'blocks/gallery-overview',
 			[ 'render_callback' => [ $this, 'render_block' ] ]
@@ -64,6 +102,16 @@ class GalleryOverview {
 	 * @return string Rendered HTML.
 	 */
 	public function render_block( array $attributes ): string {
+		// Medium-filter pills + pagination: client-side navigation via the WP
+		// Interactivity API Router (block.json's "interactivity" support +
+		// "viewScriptModule" — blocks/gallery-overview/view.js). view.js itself
+		// needs no manual enqueue — WordPress auto-enqueues a block's declared
+		// viewScriptModule whenever the block actually renders, the same way it
+		// already does for editorScript. The router module it dynamically
+		// imports at click-time is declared as a dependency of that view script
+		// module in register_block() above (not enqueued standalone here) — see
+		// that method's docblock for why a standalone enqueue doesn't work.
+
 		// Enqueue the WP Interactivity API view module that powers the core/image
 		// lightbox store (showLightbox action, setButtonStyles callback, etc.).
 		wp_enqueue_script_module( '@wordpress/block-library/image/view' );

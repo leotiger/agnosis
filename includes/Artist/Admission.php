@@ -684,6 +684,22 @@ class Admission {
 	): WP_REST_Response|WP_Error {
 		global $wpdb;
 
+		// agnosis_voting_disabled ("admin approval only"): checked here, the one
+		// choke point shared by the authenticated REST vouch route (vouch()
+		// above) and the unauthenticated email-link vote (VouchConfirm), so
+		// neither path can cast a vote once a site has switched to admin-only
+		// admission. Applications still reach 'pending' as before — they just
+		// wait for Admission::admin_admit()/admin_reject() instead of a
+		// community threshold (see check_expired_applications() below, which
+		// stops auto-rejecting them for the same reason).
+		if ( (bool) get_option( 'agnosis_voting_disabled', false ) ) {
+			return new WP_Error(
+				'agnosis_voting_disabled',
+				__( 'Community voting is disabled on this site. Applications are reviewed directly by an admin.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
+		}
+
 		$vote = in_array( $vote, [ 'yes', 'no' ], true ) ? $vote : 'yes';
 
 		// Load the application.
@@ -757,8 +773,19 @@ class Admission {
 	 *     was met just before the window closed but maybe_admit was not called).
 	 *   - Otherwise → reject, fire 'agnosis_application_expired' action so
 	 *     AdmissionNotification can send the notification emails.
+	 *
+	 * Skipped entirely while agnosis_voting_disabled ("admin approval only")
+	 * is on: with no community vote possible, a pending application can never
+	 * reach a threshold on its own, so applying the same window here would
+	 * silently auto-reject every application an admin hadn't gotten to yet.
+	 * Applications wait indefinitely for Admission::admin_admit()/
+	 * admin_reject() instead — see that setting's own description.
 	 */
 	public function check_expired_applications(): void {
+		if ( (bool) get_option( 'agnosis_voting_disabled', false ) ) {
+			return;
+		}
+
 		global $wpdb;
 
 		$window = max( 1, (int) get_option( 'agnosis_admission_window_days', 7 ) );

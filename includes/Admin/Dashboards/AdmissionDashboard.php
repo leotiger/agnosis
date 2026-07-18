@@ -30,8 +30,9 @@ class AdmissionDashboard {
 	public function render(): void {
 		global $wpdb;
 
-		$admission = new Admission();
-		$required  = $admission->calculate_required();
+		$admission       = new Admission();
+		$required        = $admission->calculate_required();
+		$voting_disabled = (bool) get_option( 'agnosis_voting_disabled', false );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$applications = $wpdb->get_results(
@@ -55,6 +56,12 @@ class AdmissionDashboard {
 		<div class="card" style="max-width:900px;margin-top:1.5rem;padding:1rem 1.5rem">
 			<h2 style="margin-top:0"><?php esc_html_e( 'Pending Applications', 'agnosis' ); ?></h2>
 
+			<?php if ( $voting_disabled ) : ?>
+				<p class="description" style="margin-bottom:1rem">
+					<?php esc_html_e( 'Community voting is disabled (Settings → Community → Rules → "Admin approval only") — applications wait here until you Admit or Reject them directly.', 'agnosis' ); ?>
+				</p>
+			<?php endif; ?>
+
 			<?php if ( $unverified_count > 0 ) : ?>
 				<p class="description" style="margin-bottom:1rem">
 					<?php
@@ -77,21 +84,23 @@ class AdmissionDashboard {
 			<?php if ( empty( $applications ) ) : ?>
 				<p style="color:#666"><?php esc_html_e( 'No pending applications.', 'agnosis' ); ?></p>
 			<?php else : ?>
-				<p class="description" style="margin-bottom:1rem">
-					<?php
-					printf(
-						/* translators: %d: number of positive votes currently required for admission */
-						esc_html__( '%d positive vote(s) currently required for admission.', 'agnosis' ),
-						(int) $required
-					);
-					?>
-				</p>
+				<?php if ( ! $voting_disabled ) : ?>
+					<p class="description" style="margin-bottom:1rem">
+						<?php
+						printf(
+							/* translators: %d: number of positive votes currently required for admission */
+							esc_html__( '%d positive vote(s) currently required for admission.', 'agnosis' ),
+							(int) $required
+						);
+						?>
+					</p>
+				<?php endif; ?>
 				<table class="widefat striped" style="border-radius:4px;overflow:hidden">
 					<thead>
 						<tr>
 							<th><?php esc_html_e( 'Applicant', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'Applied', 'agnosis' ); ?></th>
-							<th><?php esc_html_e( 'Votes', 'agnosis' ); ?></th>
+							<th><?php $voting_disabled ? esc_html_e( 'Status', 'agnosis' ) : esc_html_e( 'Votes', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'Bio / Portfolio', 'agnosis' ); ?></th>
 							<th><?php esc_html_e( 'Actions', 'agnosis' ); ?></th>
 						</tr>
@@ -112,17 +121,21 @@ class AdmissionDashboard {
 							</td>
 							<td style="white-space:nowrap"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $app->applied_at ) ) ); ?></td>
 							<td style="min-width:120px">
-								<div style="background:#ddd;border-radius:3px;height:6px;margin-bottom:4px">
-									<div style="background:<?php echo esc_attr( $bar_col ); ?>;width:<?php echo esc_attr( (string) $bar_pct ); ?>%;height:6px;border-radius:3px"></div>
-								</div>
-								<?php
-								printf(
-									/* translators: 1: yes votes received, 2: total votes required */
-									esc_html__( '%1$d / %2$d', 'agnosis' ),
-									(int) $yes,
-									(int) $required
-								);
-								?>
+								<?php if ( $voting_disabled ) : ?>
+									<span style="color:#888;font-size:12px"><?php esc_html_e( 'Awaiting admin review', 'agnosis' ); ?></span>
+								<?php else : ?>
+									<div style="background:#ddd;border-radius:3px;height:6px;margin-bottom:4px">
+										<div style="background:<?php echo esc_attr( $bar_col ); ?>;width:<?php echo esc_attr( (string) $bar_pct ); ?>%;height:6px;border-radius:3px"></div>
+									</div>
+									<?php
+									printf(
+										/* translators: 1: yes votes received, 2: total votes required */
+										esc_html__( '%1$d / %2$d', 'agnosis' ),
+										(int) $yes,
+										(int) $required
+									);
+									?>
+								<?php endif; ?>
 							</td>
 							<td style="max-width:260px;font-size:12px">
 								<?php if ( $app->bio ) : ?>

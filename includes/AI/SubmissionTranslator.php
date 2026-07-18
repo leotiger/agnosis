@@ -34,6 +34,28 @@ use Agnosis\Core\Logger;
 
 class SubmissionTranslator {
 
+	/**
+	 * Appended to every JSON-envelope translation prompt below (call_translate(),
+	 * translate_fields(), translate_to_languages()) — 2026-07-18, prompted by a
+	 * live report: the German translation of a short preset biography title
+	 * ("Meet the Artist") came back gendered feminine ("...die Künstlerin")
+	 * with nothing in the prompt ever asking for anything else. Many
+	 * languages Agnosis translates into (German, French, Spanish, etc.)
+	 * grammatically require SOME gender choice for nouns like "artist" or
+	 * "author" that English leaves unmarked — left unguided, a model has to
+	 * pick one, and defaulting to a specific gender for a generic person is
+	 * exactly the failure mode this instruction heads off. Deliberately
+	 * phrased as a preference ("prefer... where natural"), not an absolute
+	 * rule: a source text that already names or clearly implies a specific
+	 * person's gender should still translate that faithfully, not be forced
+	 * neutral against the source's own meaning.
+	 */
+	private const GENDER_NEUTRAL_INSTRUCTION =
+		'When a term\'s gender is not specified by the source text (e.g. a generic '
+		. 'professional noun like "artist", "author", or "photographer"), prefer '
+		. 'gender-neutral phrasing in the target language where natural, rather '
+		. 'than defaulting to a masculine or feminine form.';
+
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
 	// -------------------------------------------------------------------------
@@ -146,9 +168,18 @@ class SubmissionTranslator {
 	 *
 	 * @param string $content     Plain text to translate.
 	 * @param string $target_code ISO 639-1 code (e.g. 'es', 'fr', 'zh').
+	 * @param string $context     Optional extra framing for the AI, appended to
+	 *                            the prompt as-is (e.g. "this is a short page
+	 *                            heading, not a sentence"). A caller translating
+	 *                            a short, context-free phrase — the exact shape
+	 *                            that produced the ungendered/ungrammatical
+	 *                            "Meet the Artist" → German failure this param
+	 *                            was added for — should supply one; back-
+	 *                            translating a full sentence/paragraph for a
+	 *                            review email generally doesn't need to.
 	 * @return string Translated text, or the original on failure.
 	 */
-	public function translate_text( string $content, string $target_code ): string {
+	public function translate_text( string $content, string $target_code, string $context = '' ): string {
 		$content = trim( $content );
 		if ( '' === $content ) {
 			return $content;
@@ -165,7 +196,7 @@ class SubmissionTranslator {
 
 		// Reuse call_translate() — pass as the body field so the result comes back
 		// under the 'description' key.
-		$translated = $this->call_translate( '', $content, $target_name );
+		$translated = $this->call_translate( '', $content, $target_name, $context );
 		return $translated['description'] ?? $content;
 	}
 
@@ -220,6 +251,7 @@ class SubmissionTranslator {
 
 		$prompt = "Translate the sections below to {$target_name}.\n"
 			. "If a section is already in {$target_name}, include it in the output unchanged.\n"
+			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. trim( $sections );
@@ -304,6 +336,7 @@ class SubmissionTranslator {
 		$json_keys = implode( ', ', array_map( static fn( string $code ) => '"' . $code . '"', array_keys( $names ) ) );
 
 		$prompt = "Translate the text below into EACH of these languages: {$lang_list}.\n"
+			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object whose keys are exactly these language codes: {$json_keys}, and whose values are the translated text for that language.\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. "TEXT:\n{$text}";
@@ -458,9 +491,11 @@ class SubmissionTranslator {
 	 * in the input are omitted from the prompt and from the returned array so
 	 * the caller knows not to overwrite them.
 	 *
+	 * @param string $context Optional extra framing appended to the prompt —
+	 *                        see translate_text()'s own docblock for why this exists.
 	 * @return array<string, string>|null
 	 */
-	private function call_translate( string $subject, string $body, string $target_language_name ): ?array {
+	private function call_translate( string $subject, string $body, string $target_language_name, string $context = '' ): ?array {
 		$sections = '';
 		if ( '' !== $subject ) {
 			$sections .= "SUBJECT:\n{$subject}\n\n";
@@ -477,6 +512,8 @@ class SubmissionTranslator {
 
 		$prompt = "Translate the sections below to {$target_language_name}.\n"
 			. "If a section is already in {$target_language_name}, include it in the output unchanged.\n"
+			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. ( '' !== $context ? trim( $context ) . "\n" : '' )
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. $sections;
