@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
+COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -15,6 +15,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
   ❌ includes/Admin/ContactMessagesPage.php                       0%
   ❌ includes/Admin/Dashboards/AdmissionDashboard.php             0%
   🔶 includes/Admin/Dashboards/AiTestTools.php                   54%
+  ❌ includes/Admin/Dashboards/BiographyTitleCache.php            0%
   ❌ includes/Admin/Dashboards/BrandingTestForm.php               0%
   ❌ includes/Admin/Dashboards/DeliverabilityCard.php            22%
   ❌ includes/Admin/Dashboards/InvitationCard.php                 0%
@@ -26,11 +27,11 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
   ❌ includes/Admin/QueueController.php                           0%
   ❌ includes/Admin/Settings.php                                 15%
   ✅ includes/Admin/SettingsFields.php                          100%
-  ✅ includes/Artist/Admission.php                               82%
+  ✅ includes/Artist/Admission.php                               89%
   ❌ includes/Artist/AdmissionConfirm.php                         0%
-  ✅ includes/Artist/AdmissionNotification.php                   96%
+  ✅ includes/Artist/AdmissionNotification.php                   95%
   ✅ includes/Artist/ApplicationBiography.php                    89%
-  ❌ includes/Artist/BiographyTitle.php                          19%
+  ❌ includes/Artist/BiographyTitle.php                          11%
   ✅ includes/Artist/CommunityBroadcast.php                      98%
   ✅ includes/Artist/CommunityCap.php                            95%
   ✅ includes/Artist/CommunityCapNotification.php                91%
@@ -38,15 +39,15 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
   ✅ includes/Artist/ContactForm.php                             91%
   ✅ includes/Artist/ContactFormBlock.php                        87%
   🔶 includes/Artist/ContentEditor.php                           74%
-  🔶 includes/Artist/Departure.php                               68%
+  ✅ includes/Artist/Departure.php                               89%
   ✅ includes/Artist/DepartureNotification.php                   92%
   🔶 includes/Artist/FrontendAccess.php                          69%
   ✅ includes/Artist/Invitation.php                              83%
   ✅ includes/Artist/JoinPage.php                                89%
   ✅ includes/Artist/NotificationPreferences.php                 95%
-  ❌ includes/Artist/Profile.php                                 29%
+  ❌ includes/Artist/Profile.php                                 26%
   ✅ includes/Artist/RemovalVoteConfirm.php                      89%
-  ✅ includes/Artist/VoteDigest.php                              91%
+  ✅ includes/Artist/VoteDigest.php                              90%
   ✅ includes/Artist/VouchConfirm.php                            87%
   ✅ includes/Compat/LinguaForge.php                             83%
   🔶 includes/Core/Activator.php                                 79%
@@ -91,7 +92,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
   ✅ includes/Newsletter/SubscriptionConfirm.php                 86%
   ✅ includes/Newsletter/Tokens.php                             100%
   ✅ includes/Publishing/EmbedPolicy.php                         92%
-  ❌ includes/Publishing/GalleryOverview.php                     43%
+  ❌ includes/Publishing/GalleryOverview.php                     37%
   ✅ includes/Publishing/Notification.php                        88%
   ✅ includes/Publishing/PostCreator.php                         81%
   ✅ includes/Publishing/RemovalEndpoints.php                    99%
@@ -101,4 +102,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-17 15:47
   ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 68.87%  (12184 / 17691 statements)
+  TOTAL: 68.81%  (12374 / 17984 statements)
