@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
 "POT-Creation-Date: 2026-07-18T10:51+00:00\n"
-"PO-Revision-Date: 2026-07-17 17:01+0000\n"
+"PO-Revision-Date: 2026-07-18 19:18+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Domain: agnosis\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.6; wp-7.0.1; php-8.5.8\n"
+"X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8"
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:194
@@ -250,6 +250,9 @@ msgid ""
 "approval only\") — applications wait here until you Admit or Reject them "
 "directly."
 msgstr ""
+"La votazione della community è disabilitata (Impostazioni → Community → "
+"Regole → \"Solo approvazione amministratore\") — le candidature restano qui "
+"finché non le Approvi o Rifiuti direttamente."
 
 #. translators: %d: number of applications awaiting email confirmation
 #: includes/Admin/Dashboards/AdmissionDashboard.php:71
@@ -295,7 +298,7 @@ msgstr "Bio / Portfolio"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:125
 msgid "Awaiting admin review"
-msgstr ""
+msgstr "In attesa di revisione da parte dell'amministratore"
 
 #. translators: 1: yes votes received, 2: total votes required
 #: includes/Admin/Dashboards/AdmissionDashboard.php:133
@@ -399,7 +402,7 @@ msgstr "HTTP %d"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:58
 msgid "Biography Title Translation Cache"
-msgstr ""
+msgstr "Cache traduzione titolo biografia"
 
 #. translators: %s: the currently configured preset biography title
 #: includes/Admin/Dashboards/BiographyTitleCache.php:64
@@ -410,11 +413,16 @@ msgid ""
 "Save, or use Retranslate to discard it and let the AI try again for just "
 "that language."
 msgstr ""
+"La cache tradotta dall'IA, per lingua, del titolo biografia predefinito "
+"corrente, \"%s\" (Impostazioni → Generale, sopra). Modifica direttamente una "
+"traduzione e Salva, oppure usa Ritraduci per scartarla e lasciare che l'IA "
+"riprovi solo per quella lingua."
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:71
 msgid ""
 "No other languages are configured in Lingua Forge — nothing to translate."
 msgstr ""
+"Nessun'altra lingua è configurata in Lingua Forge — niente da tradurre."
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:76
 #: includes/Core/Privacy.php:163 includes/Newsletter/SignupBlock.php:71
@@ -425,11 +433,13 @@ msgstr "Lingua"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:77
 msgid "Cached translation"
-msgstr ""
+msgstr "Traduzione nella cache"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:95
 msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr ""
+"Non ancora tradotto — lascia vuoto per consentire la traduzione automatica "
+"dell'IA"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:97
 #: includes/Artist/ContentEditor.php:1119
@@ -440,20 +450,24 @@ msgstr "Salva"
 msgid ""
 "Discard the cached translation and have the AI translate this language again?"
 msgstr ""
+"Scartare la traduzione nella cache e far tradurre di nuovo questa lingua "
+"dall'IA?"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:107
 msgid "↻ Retranslate"
-msgstr ""
+msgstr "↻ Ritraduci"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:117
 msgid ""
 "Discard every cached translation for the current preset title and have the "
 "AI translate all of them again?"
 msgstr ""
+"Scartare tutte le traduzioni nella cache per il titolo predefinito corrente "
+"e farle tradurre di nuovo tutte dall'IA?"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:122
 msgid "Clear All (Retranslate All)"
-msgstr ""
+msgstr "Pulisci tutto (Ritraduci tutto)"
 
 #: includes/Admin/Dashboards/BrandingTestForm.php:43
 msgid "Preview"
@@ -555,11 +569,11 @@ msgstr "Record DMARC"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:56
 msgid "DKIM record"
-msgstr ""
+msgstr "Record DKIM"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:57
 msgid "Spamhaus DBL"
-msgstr ""
+msgstr "Spamhaus DBL"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:75
 msgid "SMTP plugin"
@@ -589,6 +603,13 @@ msgid ""
 "DKIM is set up correctly (your provider's dashboard confirmed it), trust "
 "that over this row."
 msgstr ""
+"DKIM è best-effort: non esiste una posizione fissa per un record DKIM come "
+"avviene per SPF e DMARC, quindi questo controllo verifica solo alcuni "
+"selettori comuni dei provider. \"Non trovato\" qui non significa che DKIM "
+"non sia configurato — solo che non si trova sotto uno dei nomi che questo "
+"controllo prova a cercare. Se sai già che il tuo DKIM è configurato "
+"correttamente (la dashboard del tuo provider lo ha confermato), fidati di "
+"quello più che di questa riga."
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:100
 msgid "Send a real test email to:"
@@ -596,10 +617,10 @@ msgstr "Invia una vera email di test a:"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:105
 msgid ""
-"Sends one plain-text email from the same community identity used for review/"
-"vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
-"arriving at all confirms a real deliverability problem regardless of what "
-"the checks above say."
+"Sends one plain-text email from the same community identity used for "
+"review/vote/vouch mail. Reaching your inbox is a good sign; landing in spam "
+"or not arriving at all confirms a real deliverability problem regardless of "
+"what the checks above say."
 msgstr ""
 "Invia una sola email in testo semplice dalla stessa identità della community "
 "usata per le email di review/voto/vouch. Se arriva nella tua inbox è un buon "
@@ -628,19 +649,19 @@ msgstr "Non disponibile su questo host"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:136
 #, php-format
 msgid "Found (selector: %s)"
-msgstr ""
+msgstr "Trovato (selettore: %s)"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:144
 msgid "Not found under common selectors"
-msgstr ""
+msgstr "Non trovato sotto i selettori comuni"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:160
 msgid "Not listed"
-msgstr ""
+msgstr "Non elencato"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:161
 msgid "LISTED"
-msgstr ""
+msgstr "ELENCATO"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:171
 msgid "No address configured"
@@ -655,8 +676,8 @@ msgstr "[TEST] Controllo recapitabilità da %s"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:201
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
-"Inbox page. If you're reading this in your inbox (not spam), the community/"
-"transactional From identity is deliverable to this address."
+"Inbox page. If you're reading this in your inbox (not spam), the "
+"community/transactional From identity is deliverable to this address."
 msgstr ""
 "Questo è un test di recapitabilità eseguito una sola volta dalla pagina "
 "Impostazioni Agnosis → Posta in arrivo. Se stai leggendo questo nella tua "
@@ -733,6 +754,9 @@ msgid ""
 "approval only\") — removal is by direct Suspend/Delete only; \"Open Vote\" "
 "is unavailable."
 msgstr ""
+"La votazione della community è disabilitata (Impostazioni → Community → "
+"Regole → \"Solo approvazione amministratore\") — la rimozione avviene solo "
+"tramite Sospendi/Elimina direttamente; \"Voto aperto\" non è disponibile."
 
 #: includes/Admin/Dashboards/MembersDashboard.php:50
 msgid "No admitted members yet."
@@ -1061,11 +1085,11 @@ msgstr "Tutti i motivi"
 #: includes/Admin/InboxPage.php:571
 #, php-format
 msgid ""
-"%1$d message from an unregistered sender is hidden from this view. <a href="
-"\"%2$s\">View it</a>."
+"%1$d message from an unregistered sender is hidden from this view. <a "
+"href=\"%2$s\">View it</a>."
 msgid_plural ""
-"%1$d messages from unregistered senders are hidden from this view. <a href="
-"\"%2$s\">View them</a>."
+"%1$d messages from unregistered senders are hidden from this view. <a "
+"href=\"%2$s\">View them</a>."
 msgstr[0] ""
 "%1$d messaggio da un mittente non registrato è nascosto da questa vista. <a "
 "href=\"%2$s\">Visualizzalo</a>."
@@ -1157,9 +1181,9 @@ msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
 "enqueued. Click \"Process Pending Queue\" to run the AI pipeline."
 msgstr ""
-"Forzatura del rielaboramento completata. %1$d riga/he della coda reimpostata/"
-"e, %2$d nuovo/i messaggio/i aggiunto/i alla coda. Fai clic su \"Processa "
-"coda in attesa\" per eseguire la pipeline IA."
+"Forzatura del rielaboramento completata. %1$d riga/he della coda "
+"reimpostata/e, %2$d nuovo/i messaggio/i aggiunto/i alla coda. Fai clic su "
+"\"Processa coda in attesa\" per eseguire la pipeline IA."
 
 #: includes/Admin/Settings.php:109
 msgid "Log cleared."
@@ -1468,8 +1492,8 @@ msgid ""
 "agreement (DPA) for your compliance obligations."
 msgstr ""
 "Sono state aggiunte automaticamente delle formulazioni suggerite che coprono "
-"%s e la federazione pubblica — rivedile in Impostazioni → Privacy → \"Guida"
-"\" prima di pubblicare, e verifica con il/i tuo/i fornitore/i il loro "
+"%s e la federazione pubblica — rivedile in Impostazioni → Privacy → "
+"\"Guida\" prima di pubblicare, e verifica con il/i tuo/i fornitore/i il loro "
 "accordo sul trattamento dei dati (DPA) per i tuoi obblighi di conformità."
 
 #: includes/Admin/Settings.php:495
@@ -1712,16 +1736,16 @@ msgid ""
 "Debug dumps older than this are permanently deleted by the daily cleanup — "
 "automatically, whether or not debug logging is currently turned on, so files "
 "left over from a past debug session don't linger indefinitely. A dump is a "
-"full raw copy of an artist's email, so this defaults shorter than the inbox/"
-"queue retention above. Default: 14 days."
+"full raw copy of an artist's email, so this defaults shorter than the "
+"inbox/queue retention above. Default: 14 days."
 msgstr ""
 "I dump di debug più vecchi di questo vengono eliminati definitivamente dalla "
 "pulizia giornaliera — automaticamente, indipendentemente dal fatto che il "
 "logging di debug sia attualmente attivo, così i file rimasti da una "
 "precedente sessione di debug non restano indefinitamente. Un dump è una "
 "copia grezza completa dell'email di un artista, quindi questo valore "
-"predefinito è più breve della conservazione della posta in arrivo/coda "
-"sopra. Predefinito: 14 giorni."
+"predefinito è più breve della conservazione della posta in arrivo/coda sopra."
+" Predefinito: 14 giorni."
 
 #: includes/Admin/SettingsFields.php:62
 msgid "Preset biography title"
@@ -1970,9 +1994,9 @@ msgid ""
 "well against."
 msgstr ""
 "Colore del testo sui pulsanti solidi di chiamata all'azione colorati con il "
-"colore di accento (ad es. \"Conferma iscrizione\", \"Richiedi di partecipare"
-"\"). Cambialo insieme al colore di accento sopra se scegli un accento chiaro "
-"su cui il testo bianco non si leggerebbe bene."
+"colore di accento (ad es. \"Conferma iscrizione\", \"Richiedi di "
+"partecipare\"). Cambialo insieme al colore di accento sopra se scegli un "
+"accento chiaro su cui il testo bianco non si leggerebbe bene."
 
 #: includes/Admin/SettingsFields.php:224
 msgid "Notice box background color"
@@ -2176,10 +2200,10 @@ msgid ""
 "deletion. A confirmation link is emailed back before anything is deleted — e."
 "g. goodbye@agnosis.art"
 msgstr ""
-"L'artista invia qui un'e-mail (qualsiasi oggetto, nessun allegato "
-"necessario) per richiedere la cancellazione dell'account. Prima che venga "
-"eliminato qualsiasi cosa, viene inviata per e-mail una richiesta di conferma "
-"— ad esempio goodbye@agnosis.art"
+"L'artista invia qui un'e-mail (qualsiasi oggetto, nessun allegato necessario)"
+" per richiedere la cancellazione dell'account. Prima che venga eliminato "
+"qualsiasi cosa, viene inviata per e-mail una richiesta di conferma — ad "
+"esempio goodbye@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:316
 msgid "Community announcement address"
@@ -2265,11 +2289,11 @@ msgid ""
 "subscriber and artist addresses clean."
 msgstr ""
 "Segreto HMAC condiviso con il fornitore del webhook (Mailgun, SendGrid…). "
-"Utilizzato sia per l'endpoint di posta in arrivo (/wp-json/agnosis/v1/email/"
-"inbound) sia per l'endpoint degli eventi di bounce/reclamo (/wp-json/agnosis/"
-"v1/email/events) — punta il webhook del tuo fornitore per bounce/reclami "
-"spam a quest'ultimo per mantenere puliti gli indirizzi dei tuoi iscritti e "
-"degli artisti."
+"Utilizzato sia per l'endpoint di posta in arrivo (/wp-"
+"json/agnosis/v1/email/inbound) sia per l'endpoint degli eventi di "
+"bounce/reclamo (/wp-json/agnosis/v1/email/events) — punta il webhook del tuo "
+"fornitore per bounce/reclami spam a quest'ultimo per mantenere puliti gli "
+"indirizzi dei tuoi iscritti e degli artisti."
 
 #: includes/Admin/SettingsFields.php:370
 msgid "Inbox retention (days)"
@@ -2362,9 +2386,9 @@ msgstr ""
 "Quando è abilitato, i messaggi in ingresso devono superare l'autenticazione "
 "SPF o DKIM (tramite l'intestazione Authentication-Results). Impedisce "
 "indirizzi From: falsificati. Richiede che il tuo ESP includa le intestazioni "
-"Authentication-Results e che il tuo dominio abbia configurati i record SPF/"
-"DKIM. Lascia disattivato se non sei sicuro — le e-mail legittime rifiutate "
-"non generano notifiche. Predefinito: disattivato."
+"Authentication-Results e che il tuo dominio abbia configurati i record "
+"SPF/DKIM. Lascia disattivato se non sei sicuro — le e-mail legittime "
+"rifiutate non generano notifiche. Predefinito: disattivato."
 
 #: includes/Admin/SettingsFields.php:436
 msgid "Description provider"
@@ -2546,6 +2570,11 @@ msgid ""
 "issue and is invited to resubmit. Score 0 disables automatic rejection. Must "
 "be lower than the enhancement threshold. Default: 3."
 msgstr ""
+"Le foto con punteggio pari o inferiore a questo agnosis_vendor_value (1–10) "
+"vengono rifiutate automaticamente — l'artista riceve un'email gentile che "
+"spiega il problema ed è invitato a reinviarle. Il punteggio 0 disattiva il "
+"rifiuto automatico. Deve essere inferiore alla soglia di miglioramento. "
+"Predefinito: 3."
 
 #: includes/Admin/SettingsFields.php:549
 msgid "Enhancement threshold (quality score)"
@@ -2558,6 +2587,11 @@ msgid ""
 "7 — only visibly problematic photos are processed. Set to 1 to disable "
 "automatic enhancement entirely."
 msgstr ""
+"Le foto con punteggio inferiore a questo agnosis_vendor_value (1–10) vengono "
+"migliorate automaticamente. Punteggio 10 = fotografia perfetta, 1 = "
+"tecnicamente inutilizzabile. Predefinito: 7 — vengono elaborate solo le foto "
+"visibilmente problematiche. Imposta 1 per disattivare completamente il "
+"miglioramento automatico."
 
 #: includes/Admin/SettingsFields.php:563
 msgid "OpenAI API key"
@@ -2655,8 +2689,8 @@ msgstr "Prompt di sistema"
 
 #: includes/Admin/SettingsFields.php:641
 msgid ""
-"Sent to the AI as the system instruction. Use {tag_count} and "
-"{excerpt_words} as tokens — they are replaced with the values below."
+"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
+" as tokens — they are replaced with the values below."
 msgstr ""
 "Inviato all’AI come istruzione di sistema. Usa {tag_count} e {excerpt_words} "
 "come token — vengono sostituiti con i valori qui sotto."
@@ -2670,8 +2704,8 @@ msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
 msgstr ""
-"Messaggio utente inviato insieme all’immagine dell’opera. Usa "
-"{artist_prompt} dove deve apparire la descrizione dell’artista."
+"Messaggio utente inviato insieme all’immagine dell’opera. Usa {artist_prompt}"
+" dove deve apparire la descrizione dell’artista."
 
 #: includes/Admin/SettingsFields.php:655
 msgid "Enhancement instructions"
@@ -2880,10 +2914,10 @@ msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
 "resend. Measured in characters, not words, so it applies fairly across "
-"languages that don't use spaces between words (Chinese, Japanese, Thai, "
-"etc.). Every recipient's copy is translated individually, so this also caps "
-"how much a single message can cost in AI translation calls. Default: 2000. "
-"Hard maximum: 20000, regardless of this setting."
+"languages that don't use spaces between words (Chinese, Japanese, Thai, etc.)"
+". Every recipient's copy is translated individually, so this also caps how "
+"much a single message can cost in AI translation calls. Default: 2000. Hard "
+"maximum: 20000, regardless of this setting."
 msgstr ""
 "I messaggi più lunghi indirizzati all'indirizzo di annuncio della Comunità "
 "vengono respinti al mittente invece di essere trasmessi — al mittente viene "
@@ -2897,6 +2931,7 @@ msgstr ""
 #: includes/Admin/SettingsFields.php:845
 msgid "Admin approval only (disable community voting)"
 msgstr ""
+"Solo approvazione amministratore (disabilita la votazione della community)"
 
 #: includes/Admin/SettingsFields.php:850
 msgid ""
@@ -2906,9 +2941,19 @@ msgid ""
 "Applications wait indefinitely for an admin decision rather than auto-"
 "rejecting when no one can vote. A community removal vote already open when "
 "this is turned on still runs to its normal conclusion; only starting a new "
-"one is blocked. Off by default — most communities want the existing vouching/"
-"vote system."
+"one is blocked. Off by default — most communities want the existing "
+"vouching/vote system."
 msgstr ""
+"Quando è abilitato, gli artisti non possono più sostenere i nuovi candidati "
+"né votare per rimuovere un membro — ogni decisione di ammissione e rimozione "
+"viene invece presa direttamente da un amministratore (Impostazioni → "
+"Community → Candidature in sospeso / Membri). Le candidature restano in "
+"attesa indefinitamente di una decisione dell'amministratore anziché essere "
+"rifiutate automaticamente quando nessuno può votare. Un voto di rimozione "
+"della community già aperto quando questa opzione viene attivata continua "
+"fino alla sua normale conclusione; viene bloccato solo l'avvio di un nuovo "
+"voto. Disattivato per impostazione predefinita — la maggior parte delle "
+"community desidera l'attuale sistema di sostegno/voto."
 
 #: includes/Admin/SettingsFields.php:855
 msgid "Admission vote threshold (%)"
@@ -2973,10 +3018,10 @@ msgstr "Dopo la candidatura, invia gli artisti a"
 
 #: includes/Admin/SettingsFields.php:894
 msgid ""
-"Optional — pick a page explaining the vouching process and what happens "
-"next. When the application is submitted successfully, the artist is "
-"redirected there instead of just seeing an inline confirmation message. "
-"Leave as \"None\" to keep the inline message only."
+"Optional — pick a page explaining the vouching process and what happens next."
+" When the application is submitted successfully, the artist is redirected "
+"there instead of just seeing an inline confirmation message. Leave as "
+"\"None\" to keep the inline message only."
 msgstr ""
 "Opzionale — scegli una pagina che spieghi il processo di raccomandazione e "
 "cosa succede dopo. Quando la candidatura viene inviata con successo, "
@@ -2991,8 +3036,8 @@ msgstr "Limite massimo della comunità"
 #: includes/Admin/SettingsFields.php:902
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
-"waitlist instead of being rejected, and a freed slot admits the next in "
-"line. Set to 0 for no cap. The community can also vote to change this."
+"waitlist instead of being rejected, and a freed slot admits the next in line."
+" Set to 0 for no cap. The community can also vote to change this."
 msgstr ""
 "Numero massimo di artisti ammessi. Quando è pieno, le nuove candidature "
 "vengono aggiunte a una lista d'attesa invece di essere respinte, e un posto "
@@ -3085,9 +3130,9 @@ msgstr ""
 
 #: includes/Admin/SettingsFields.php:951
 msgid ""
-"Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
-"\" link and site name follow automatically — no need to add either here). "
-"Two or three short paragraphs is plenty. Standing copy, not cleared after "
+"Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
+"join\" link and site name follow automatically — no need to add either here)."
+" Two or three short paragraphs is plenty. Standing copy, not cleared after "
 "use like the newsletter intros above — translated automatically when an "
 "invitation is sent in a language other than the site's own."
 msgstr ""
@@ -3344,6 +3389,8 @@ msgid ""
 "Community voting is disabled on this site. Applications are reviewed "
 "directly by an admin."
 msgstr ""
+"La votazione della community è disabilitata su questo sito. Le candidature "
+"vengono esaminate direttamente da un amministratore."
 
 #: includes/Artist/Admission.php:731
 msgid "You cannot vote on your own application."
@@ -3362,11 +3409,13 @@ msgstr "Questo link di conferma non è valido o è già stato usato."
 
 #: includes/Artist/AdmissionConfirm.php:113
 msgid "Confirming your application…"
-msgstr ""
+msgstr "Conferma della tua candidatura…"
 
 #: includes/Artist/AdmissionConfirm.php:114
 msgid "Hang tight — we're opening your application for community review."
 msgstr ""
+"Un attimo — stiamo aprendo la tua candidatura per la revisione della "
+"community."
 
 #: includes/Artist/AdmissionConfirm.php:115
 #: includes/Artist/AdmissionNotification.php:404
@@ -3484,6 +3533,8 @@ msgid ""
 "Thank you for applying to %s. Your application has been received and is now "
 "awaiting review by an admin."
 msgstr ""
+"Grazie per aver fatto domanda a %s. La tua candidatura è stata ricevuta ed è "
+"ora in attesa di revisione da parte di un amministratore."
 
 #. translators: %s: community name
 #: includes/Artist/AdmissionNotification.php:451
@@ -3500,6 +3551,8 @@ msgid ""
 "There is no fixed deadline — we will let you know the outcome by email as "
 "soon as a decision is made."
 msgstr ""
+"Non c'è una scadenza fissa — ti comunicheremo l'esito via email non appena "
+"verrà presa una decisione."
 
 #. translators: %d: number of days
 #: includes/Artist/AdmissionNotification.php:461
@@ -3513,7 +3566,7 @@ msgstr ""
 #: includes/Artist/AdmissionNotification.php:486
 #, php-format
 msgid "[%1$s] Application awaiting your review: %2$s"
-msgstr ""
+msgstr "[%1$s] Candidatura in attesa della tua revisione: %2$s"
 
 #. translators: %s: applicant display name
 #: includes/Artist/AdmissionNotification.php:508
@@ -3522,6 +3575,9 @@ msgid ""
 "%s has applied to join. Community voting is disabled on this site, so this "
 "application needs your direct decision."
 msgstr ""
+"%s ha presentato domanda per entrare. La votazione della community è "
+"disabilitata su questo sito, quindi questa candidatura richiede la tua "
+"decisione diretta."
 
 #: includes/Artist/AdmissionNotification.php:519
 #: includes/Artist/AdmissionNotification.php:614
@@ -3531,7 +3587,7 @@ msgstr "Portfolio:"
 
 #: includes/Artist/AdmissionNotification.php:529
 msgid "Review application"
-msgstr ""
+msgstr "Esamina la candidatura"
 
 #. translators: 1: applicant name, 2: community name
 #: includes/Artist/AdmissionNotification.php:558
@@ -3886,8 +3942,8 @@ msgstr "Limite massimo della community modificato su %s"
 #: includes/Artist/CommunityCapNotification.php:136
 #, php-format
 msgid ""
-"The community voted to change the membership size cap to %1$s (proposal #"
-"%2$d). The new cap is now in effect."
+"The community voted to change the membership size cap to %1$s (proposal "
+"#%2$d). The new cap is now in effect."
 msgstr ""
 "La community ha votato per modificare il limite massimo di membri a %1$s "
 "(proposta n. %2$d). Il nuovo limite è ora in vigore."
@@ -4194,6 +4250,8 @@ msgid ""
 "Community voting is disabled on this site. Contact an admin to request "
 "removal review."
 msgstr ""
+"La votazione della community è disabilitata su questo sito. Contatta un "
+"amministratore per richiedere la revisione della rimozione."
 
 #: includes/Artist/Departure.php:609
 msgid "Removal request not found."
@@ -5241,10 +5299,10 @@ msgid ""
 "address was kept on file — your account is currently banned, and it's the "
 "only way this site can continue to enforce that."
 msgstr ""
-"La tua biografia, dichiarazione e il link al portfolio sono stati "
-"cancellati. Il tuo indirizzo email è stato conservato — il tuo account è "
-"attualmente bannato, ed è l'unico modo in cui questo sito può continuare a "
-"farlo rispettare."
+"La tua biografia, dichiarazione e il link al portfolio sono stati cancellati."
+" Il tuo indirizzo email è stato conservato — il tuo account è attualmente "
+"bannato, ed è l'unico modo in cui questo sito può continuare a farlo "
+"rispettare."
 
 #: includes/Core/Privacy.php:613 includes/Core/Privacy.php:685
 msgid "[message removed]"
@@ -5297,13 +5355,13 @@ msgstr "Quali dati personali raccogliamo e perché"
 
 #: includes/Core/Privacy.php:768
 msgid ""
-"When you apply to join, we store your email address, display name, "
-"biography, statement, and portfolio link to run the community vouching "
-"process. When you email us artwork, a biography, or an event, the content of "
-"that email (including your address) is stored while it is processed and "
-"reviewed. When you subscribe to our newsletter or message an artist through "
-"their contact form, we store your email address (and, for contact messages, "
-"your IP address) to deliver that message or send you future issues."
+"When you apply to join, we store your email address, display name, biography,"
+" statement, and portfolio link to run the community vouching process. When "
+"you email us artwork, a biography, or an event, the content of that email "
+"(including your address) is stored while it is processed and reviewed. When "
+"you subscribe to our newsletter or message an artist through their contact "
+"form, we store your email address (and, for contact messages, your IP "
+"address) to deliver that message or send you future issues."
 msgstr ""
 "Quando fai domanda per unirti, memorizziamo il tuo indirizzo email, nome "
 "visualizzato, biografia, dichiarazione e link al portfolio per gestire il "
@@ -5891,8 +5949,8 @@ msgstr ""
 
 #: includes/Publishing/EmbedPolicy.php:154
 msgid ""
-"This node couldn't safely load that page to review it (it may be "
-"unreachable, or blocked for security reasons)."
+"This node couldn't safely load that page to review it (it may be unreachable,"
+" or blocked for security reasons)."
 msgstr ""
 "Questo nodo non è riuscito a caricare in modo sicuro quella pagina per "
 "esaminarla (potrebbe essere irraggiungibile o bloccata per motivi di "
@@ -6062,8 +6120,8 @@ msgid ""
 "If you want to permanently remove this %s, click the button below. This "
 "action cannot be undone."
 msgstr ""
-"Se vuoi rimuovere definitivamente questo %s, fai clic sul pulsante qui "
-"sotto. Questa azione non può essere annullata."
+"Se vuoi rimuovere definitivamente questo %s, fai clic sul pulsante qui sotto."
+" Questa azione non può essere annullata."
 
 #. translators: %s: "artwork" or "event"
 #: includes/Publishing/Notification.php:594
@@ -6181,9 +6239,9 @@ msgid ""
 "meant to update an existing event, \"%s\", resend your email with that exact "
 "title instead."
 msgstr ""
-"Il suo oggetto non corrispondeva esattamente a uno dei tuoi titoli "
-"esistenti. Se volevi aggiornare un evento esistente, \"%s\", reinvia la tua "
-"email con quel titolo esatto."
+"Il suo oggetto non corrispondeva esattamente a uno dei tuoi titoli esistenti."
+" Se volevi aggiornare un evento esistente, \"%s\", reinvia la tua email con "
+"quel titolo esatto."
 
 #. translators: %s: fuzzy-matched artwork title suggestion
 #: includes/Publishing/Notification.php:911
@@ -6193,9 +6251,9 @@ msgid ""
 "meant to replace an existing artwork, \"%s\", resend your email with that "
 "exact title instead."
 msgstr ""
-"Il suo oggetto non corrispondeva esattamente a uno dei tuoi titoli "
-"esistenti. Se volevi sostituire un’opera d’arte esistente, \"%s\", reinvia "
-"la tua email con quel titolo esatto."
+"Il suo oggetto non corrispondeva esattamente a uno dei tuoi titoli esistenti."
+" Se volevi sostituire un’opera d’arte esistente, \"%s\", reinvia la tua "
+"email con quel titolo esatto."
 
 #: includes/Publishing/Notification.php:916
 msgid "📄 This was published as a new post"
@@ -6298,8 +6356,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1246
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
-"Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
-"\" in Mail to send it as a JPEG."
+"Formats to \"Most Compatible\" before taking or sending it, or use "
+"\"Options\" in Mail to send it as a JPEG."
 msgstr ""
 "Se la tua foto è stata scattata con un iPhone, prova a impostare "
 "Impostazioni → Fotocamera → Formati su \"Più compatibile\" prima di "
@@ -7094,7 +7152,7 @@ msgstr "Icona"
 
 #: blocks/breadcrumb-icon-link/editor.js:157
 msgid "EN"
-msgstr ""
+msgstr "IT"
 
 #: blocks/breadcrumb-icon-link/editor.js:188
 msgid "Biography Icon"
@@ -7127,7 +7185,7 @@ msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:218
 msgid "Language Badge"
-msgstr ""
+msgstr "Badge lingua"
 
 #: blocks/breadcrumb-icon-link/editor.js:219
 msgid ""
@@ -7135,6 +7193,9 @@ msgid ""
 "name shown on hover. Hidden automatically if the artist has no native "
 "language on file."
 msgstr ""
+"La lingua madre dell'artista come codice a due lettere, con il nome della "
+"lingua mostrato al passaggio del mouse. Nascosto automaticamente se per "
+"l'artista non è registrata alcuna lingua madre."
 
 #: blocks/contact-form/editor.js:28
 msgid "Artist Contact Form"
@@ -7302,6 +7363,12 @@ msgid ""
 "(no biography/events yet, the artist has turned contact off, or no native "
 "language is set), or off an artist subdomain."
 msgstr ""
+"Un singolo link solo icona (Biografia, Eventi o un popover Contatto) "
+"verso/sull'artista corrente, oppure un badge lingua in testo semplice che "
+"mostra la sua lingua madre come codice a due lettere. Non rende nulla se non "
+"c'è nulla da mostrare (nessuna biografia/eventi ancora, l'artista ha "
+"disattivato i contatti, oppure non è impostata alcuna lingua madre), o fuori "
+"da un sottodominio artista."
 
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
@@ -7321,7 +7388,7 @@ msgstr "contatto"
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
 msgid "language"
-msgstr ""
+msgstr "lingua"
 
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
@@ -7336,9 +7403,9 @@ msgstr "Modulo di contatto dell'artista"
 #: blocks/contact-form/block.json
 msgctxt "block description"
 msgid ""
-"Contact form letting a visitor message the current artist subdomain's "
-"artist. Submits to a per-artist REST endpoint; the message is moderated, "
-"translated into the artist's own language, and emailed to them."
+"Contact form letting a visitor message the current artist subdomain's artist."
+" Submits to a per-artist REST endpoint; the message is moderated, translated "
+"into the artist's own language, and emailed to them."
 msgstr ""
 "Modulo di contatto che consente a un visitatore di inviare un messaggio "
 "all'artista del sottodominio corrente. Invia a un endpoint REST per singolo "
@@ -7508,9 +7575,3 @@ msgstr "candidature"
 msgctxt "block keyword"
 msgid "review"
 msgstr "revisione"
-
-#~ msgid ""
-#~ "Your application will open for community review once you confirm below."
-#~ msgstr ""
-#~ "La tua candidatura sarà aperta alla revisione della comunità una volta "
-#~ "che confermi qui sotto."

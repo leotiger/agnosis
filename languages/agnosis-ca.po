@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
 "POT-Creation-Date: 2026-07-18T10:51+00:00\n"
-"PO-Revision-Date: 2026-07-17 16:57+0000\n"
+"PO-Revision-Date: 2026-07-18 19:16+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Catalan\n"
 "Language: ca\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Domain: agnosis\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.6; wp-7.0.1; php-8.5.8\n"
+"X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8"
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:194
@@ -250,6 +250,9 @@ msgid ""
 "approval only\") — applications wait here until you Admit or Reject them "
 "directly."
 msgstr ""
+"La votació de la comunitat està desactivada (Configuració → Comunitat → "
+"Regles → \"Només aprovació d'administrador\") — les sol·licituds queden aquí "
+"fins que les admeteu o les rebutgeu directament."
 
 #. translators: %d: number of applications awaiting email confirmation
 #: includes/Admin/Dashboards/AdmissionDashboard.php:71
@@ -295,7 +298,7 @@ msgstr "Bio / Portafolis"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:125
 msgid "Awaiting admin review"
-msgstr ""
+msgstr "En espera de revisió de l'administrador"
 
 #. translators: 1: yes votes received, 2: total votes required
 #: includes/Admin/Dashboards/AdmissionDashboard.php:133
@@ -399,7 +402,7 @@ msgstr "HTTP %d"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:58
 msgid "Biography Title Translation Cache"
-msgstr ""
+msgstr "Memòria cau de la traducció del títol de la biografia"
 
 #. translators: %s: the currently configured preset biography title
 #: includes/Admin/Dashboards/BiographyTitleCache.php:64
@@ -410,11 +413,15 @@ msgid ""
 "Save, or use Retranslate to discard it and let the AI try again for just "
 "that language."
 msgstr ""
+"La memòria cau traduïda per IA i per idioma que hi ha darrere del títol "
+"predefinit actual de la biografia, \"%s\" (Configuració → General, a dalt). "
+"Editeu una traducció directament i deseu-la, o feu servir Retraduir per "
+"descartar-la i deixar que la IA ho torni a provar només per a aquell idioma."
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:71
 msgid ""
 "No other languages are configured in Lingua Forge — nothing to translate."
-msgstr ""
+msgstr "No hi ha cap altre idioma configurat a Lingua Forge — res per traduir."
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:76
 #: includes/Core/Privacy.php:163 includes/Newsletter/SignupBlock.php:71
@@ -425,11 +432,13 @@ msgstr "Idioma"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:77
 msgid "Cached translation"
-msgstr ""
+msgstr "Traducció a la memòria cau"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:95
 msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr ""
+"Encara no traduït — deixeu-ho en blanc perquè la IA ho tradueixi "
+"automàticament"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:97
 #: includes/Artist/ContentEditor.php:1119
@@ -440,20 +449,24 @@ msgstr "Desa"
 msgid ""
 "Discard the cached translation and have the AI translate this language again?"
 msgstr ""
+"Descartar la traducció de la memòria cau i fer que la IA torni a traduir "
+"aquest idioma?"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:107
 msgid "↻ Retranslate"
-msgstr ""
+msgstr "↻ Retraduir"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:117
 msgid ""
 "Discard every cached translation for the current preset title and have the "
 "AI translate all of them again?"
 msgstr ""
+"Descartar totes les traduccions a la memòria cau per al títol predefinit "
+"actual i fer que la IA les torni a traduir totes?"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:122
 msgid "Clear All (Retranslate All)"
-msgstr ""
+msgstr "Neteja-ho tot (Retraduir-ho tot)"
 
 #: includes/Admin/Dashboards/BrandingTestForm.php:43
 msgid "Preview"
@@ -528,14 +541,14 @@ msgid ""
 msgstr ""
 "Només una comprovació de diagnòstic: aquí no es canvia res de com s'envia el "
 "correu. En allotjaments habituals (PHP mail(), sense connector SMTP), el "
-"correu enviat des d'una adreça que no coincideixi amb el domini del teu "
-"lloc, o des d'un domini sense cap registre SPF/DMARC, té cada vegada més "
+"correu enviat des d'una adreça que no coincideixi amb el domini del teu lloc,"
+" o des d'un domini sense cap registre SPF/DMARC, té cada vegada més "
 "probabilitats d'acabar a correu brossa o de ser rebutjat directament pels "
 "grans proveïdors de bústies. Si alguna fila de sota sembla incorrecta, la "
-"solució més fiable és instal·lar un connector d'enviament SMTP (WP Mail "
-"SMTP, Post SMTP, FluentSMTP i altres funcionen) configurat amb un proveïdor "
-"real de correu transaccional, i afegir registres SPF/DMARC per al domini des "
-"del qual envies al teu proveïdor DNS."
+"solució més fiable és instal·lar un connector d'enviament SMTP (WP Mail SMTP,"
+" Post SMTP, FluentSMTP i altres funcionen) configurat amb un proveïdor real "
+"de correu transaccional, i afegir registres SPF/DMARC per al domini des del "
+"qual envies al teu proveïdor DNS."
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:52
 msgid "From identity"
@@ -555,11 +568,11 @@ msgstr "Registre DMARC"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:56
 msgid "DKIM record"
-msgstr ""
+msgstr "Registre DKIM"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:57
 msgid "Spamhaus DBL"
-msgstr ""
+msgstr "Spamhaus DBL"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:75
 msgid "SMTP plugin"
@@ -589,6 +602,13 @@ msgid ""
 "DKIM is set up correctly (your provider's dashboard confirmed it), trust "
 "that over this row."
 msgstr ""
+"DKIM és de millor esforç: no hi ha una ubicació fixa per a un registre DKIM "
+"com sí que hi ha per a SPF i DMARC, així que això només comprova un grapat "
+"de selectors comuns de proveïdors. \"No trobat\" aquí no vol dir que DKIM no "
+"estigui configurat — només que no és sota cap dels noms que aquesta "
+"comprovació prova. Si ja sabeu que el vostre DKIM està configurat "
+"correctament (el tauler del vostre proveïdor ho ha confirmat), feu cas "
+"d'això abans que d'aquesta fila."
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:100
 msgid "Send a real test email to:"
@@ -596,10 +616,10 @@ msgstr "Envia un correu de prova real a:"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:105
 msgid ""
-"Sends one plain-text email from the same community identity used for review/"
-"vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
-"arriving at all confirms a real deliverability problem regardless of what "
-"the checks above say."
+"Sends one plain-text email from the same community identity used for "
+"review/vote/vouch mail. Reaching your inbox is a good sign; landing in spam "
+"or not arriving at all confirms a real deliverability problem regardless of "
+"what the checks above say."
 msgstr ""
 "Envia un sol correu electrònic en text pla des de la mateixa identitat de la "
 "comunitat que s'utilitza per al correu de revisió/votació/aval. Que arribi a "
@@ -629,19 +649,19 @@ msgstr "No disponible en aquest allotjament"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:136
 #, php-format
 msgid "Found (selector: %s)"
-msgstr ""
+msgstr "Trobat (selector: %s)"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:144
 msgid "Not found under common selectors"
-msgstr ""
+msgstr "No trobat entre els selectors comuns"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:160
 msgid "Not listed"
-msgstr ""
+msgstr "No inclòs a la llista"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:161
 msgid "LISTED"
-msgstr ""
+msgstr "LLISTAT"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:171
 msgid "No address configured"
@@ -656,8 +676,8 @@ msgstr "[PROVA] Comprovació d'entregabilitat des de %s"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:201
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
-"Inbox page. If you're reading this in your inbox (not spam), the community/"
-"transactional From identity is deliverable to this address."
+"Inbox page. If you're reading this in your inbox (not spam), the "
+"community/transactional From identity is deliverable to this address."
 msgstr ""
 "Aquesta és una prova d'entregabilitat puntual des de la pàgina Agnosis "
 "Configuració → Safata d'entrada de correu electrònic. Si estàs llegint això "
@@ -673,9 +693,9 @@ msgid ""
 "Send a one-off email inviting someone to apply. Nothing is tracked or "
 "scheduled — this sends immediately to the address below."
 msgstr ""
-"Envia un correu electrònic puntual convidant algú a presentar la "
-"sol·licitud. No es fa seguiment ni es programa res: s’envia immediatament a "
-"l’adreça de sota."
+"Envia un correu electrònic puntual convidant algú a presentar la sol·licitud."
+" No es fa seguiment ni es programa res: s’envia immediatament a l’adreça de "
+"sota."
 
 #: includes/Admin/Dashboards/InvitationCard.php:45
 msgid "artist@example.com"
@@ -734,6 +754,9 @@ msgid ""
 "approval only\") — removal is by direct Suspend/Delete only; \"Open Vote\" "
 "is unavailable."
 msgstr ""
+"La votació de la comunitat està desactivada (Configuració → Comunitat → "
+"Regles → \"Només aprovació d'administrador\") — la retirada es fa només amb "
+"Suspèn/Suprimeix directament; \"Votació oberta\" no està disponible."
 
 #: includes/Admin/Dashboards/MembersDashboard.php:50
 msgid "No admitted members yet."
@@ -1063,11 +1086,11 @@ msgstr "Tots els motius"
 #: includes/Admin/InboxPage.php:571
 #, php-format
 msgid ""
-"%1$d message from an unregistered sender is hidden from this view. <a href="
-"\"%2$s\">View it</a>."
+"%1$d message from an unregistered sender is hidden from this view. <a "
+"href=\"%2$s\">View it</a>."
 msgid_plural ""
-"%1$d messages from unregistered senders are hidden from this view. <a href="
-"\"%2$s\">View them</a>."
+"%1$d messages from unregistered senders are hidden from this view. <a "
+"href=\"%2$s\">View them</a>."
 msgstr[0] ""
 "%1$d missatge d'un remitent no registrat està amagat d'aquesta vista. <a "
 "href=\"%2$s\">Mostra'l</a>."
@@ -1718,8 +1741,8 @@ msgid ""
 "Debug dumps older than this are permanently deleted by the daily cleanup — "
 "automatically, whether or not debug logging is currently turned on, so files "
 "left over from a past debug session don't linger indefinitely. A dump is a "
-"full raw copy of an artist's email, so this defaults shorter than the inbox/"
-"queue retention above. Default: 14 days."
+"full raw copy of an artist's email, so this defaults shorter than the "
+"inbox/queue retention above. Default: 14 days."
 msgstr ""
 "Els bolcats de depuració més antics que aquest nombre s’eliminen "
 "permanentment amb la neteja diària — automàticament, tant si el registre de "
@@ -2161,13 +2184,13 @@ msgid ""
 "aliases — e.g. pure@agnosis.art"
 msgstr ""
 "Via de desactivació més estricta: res del que s'envia aquí és tocat per IA — "
-"ni millora, ni descripció visual, ni reescriptura. El títol de la "
-"publicació, el cos i el subtítol del títol traduït es prenen literalment de "
-"l'assumpte i del text del missatge de l'artista; els fitxers adjunts es "
-"publiquen exactament tal com s'envien. La comprovació de rebuig per qualitat "
-"s'omet, igual que a Foto només. Feu servir l'indicador d'assumpte [Pure] com "
-"a alternativa per a clients de correu que no admeten àlies a To: — per "
-"exemple, pure@agnosis.art"
+"ni millora, ni descripció visual, ni reescriptura. El títol de la publicació,"
+" el cos i el subtítol del títol traduït es prenen literalment de l'assumpte "
+"i del text del missatge de l'artista; els fitxers adjunts es publiquen "
+"exactament tal com s'envien. La comprovació de rebuig per qualitat s'omet, "
+"igual que a Foto només. Feu servir l'indicador d'assumpte [Pure] com a "
+"alternativa per a clients de correu que no admeten àlies a To: — per exemple,"
+" pure@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:311
 msgid "Goodbye / self-removal address"
@@ -2268,11 +2291,11 @@ msgid ""
 "subscriber and artist addresses clean."
 msgstr ""
 "Secret HMAC compartit amb el vostre proveïdor de webhooks (Mailgun, "
-"SendGrid…). S'utilitza tant per a l'extrem de correu entrant (/wp-json/"
-"agnosis/v1/email/inbound) com per a l'extrem d'esdeveniments de rebots/"
-"queixes (/wp-json/agnosis/v1/email/events) — apunteu el webhook de rebots/"
-"queixes del vostre proveïdor a aquest últim per mantenir netes les adreces "
-"dels subscriptors i dels artistes."
+"SendGrid…). S'utilitza tant per a l'extrem de correu entrant (/wp-"
+"json/agnosis/v1/email/inbound) com per a l'extrem d'esdeveniments de "
+"rebots/queixes (/wp-json/agnosis/v1/email/events) — apunteu el webhook de "
+"rebots/queixes del vostre proveïdor a aquest últim per mantenir netes les "
+"adreces dels subscriptors i dels artistes."
 
 #: includes/Admin/SettingsFields.php:370
 msgid "Inbox retention (days)"
@@ -2302,8 +2325,8 @@ msgstr ""
 "Els missatges de contacte visitant-a-artista (enviats o rebutjats) més "
 "antics que això s'eliminen permanentment durant la neteja diària. L'adreça "
 "IP del visitant s'esborra independentment al cap de 30 dies, sense importar "
-"aquesta configuració, un cop ja no sigui útil per a la investigació "
-"d'abusos. Per defecte: 90 dies."
+"aquesta configuració, un cop ja no sigui útil per a la investigació d'abusos."
+" Per defecte: 90 dies."
 
 #: includes/Admin/SettingsFields.php:392
 msgid "Per-sender hourly submission limit"
@@ -2476,9 +2499,8 @@ msgid ""
 "Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set "
 "to Disabled to skip enhancement and publish the original."
 msgstr ""
-"Millora la imatge de l’obra abans de publicar-la. Fa servir OpenAI gpt-"
-"image-1. Establiu-ho a Desactivat per ometre la millora i publicar "
-"l’original."
+"Millora la imatge de l’obra abans de publicar-la. Fa servir OpenAI gpt-image-"
+"1. Establiu-ho a Desactivat per ometre la millora i publicar l’original."
 
 #: includes/Admin/SettingsFields.php:503
 msgid "OpenAI image model"
@@ -2545,6 +2567,11 @@ msgid ""
 "issue and is invited to resubmit. Score 0 disables automatic rejection. Must "
 "be lower than the enhancement threshold. Default: 3."
 msgstr ""
+"Les fotos amb una puntuació igual o inferior a aquest agnosis_vendor_value "
+"(1–10) es rebutgen automàticament — l'artista rep un correu amable que "
+"explica el problema i se l'invita a tornar a enviar-les. La puntuació 0 "
+"desactiva el rebuig automàtic. Ha de ser inferior al llindar de millora. "
+"Valor per defecte: 3."
 
 #: includes/Admin/SettingsFields.php:549
 msgid "Enhancement threshold (quality score)"
@@ -2557,6 +2584,11 @@ msgid ""
 "7 — only visibly problematic photos are processed. Set to 1 to disable "
 "automatic enhancement entirely."
 msgstr ""
+"Les fotos amb una puntuació inferior a aquest agnosis_vendor_value (1–10) es "
+"milloren automàticament. Puntuació 10 = fotografia perfecta, 1 = tècnicament "
+"inutilitzable. Valor per defecte: 7 — només es processen les fotos "
+"visiblement problemàtiques. Establiu-ho a 1 per desactivar completament la "
+"millora automàtica."
 
 #: includes/Admin/SettingsFields.php:563
 msgid "OpenAI API key"
@@ -2654,8 +2686,8 @@ msgstr "Indicació del sistema"
 
 #: includes/Admin/SettingsFields.php:641
 msgid ""
-"Sent to the AI as the system instruction. Use {tag_count} and "
-"{excerpt_words} as tokens — they are replaced with the values below."
+"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
+" as tokens — they are replaced with the values below."
 msgstr ""
 "Enviada a la IA com a instrucció del sistema. Utilitza {tag_count} i "
 "{excerpt_words} com a tokens — es substitueixen pels valors de més avall."
@@ -2879,10 +2911,10 @@ msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
 "resend. Measured in characters, not words, so it applies fairly across "
-"languages that don't use spaces between words (Chinese, Japanese, Thai, "
-"etc.). Every recipient's copy is translated individually, so this also caps "
-"how much a single message can cost in AI translation calls. Default: 2000. "
-"Hard maximum: 20000, regardless of this setting."
+"languages that don't use spaces between words (Chinese, Japanese, Thai, etc.)"
+". Every recipient's copy is translated individually, so this also caps how "
+"much a single message can cost in AI translation calls. Default: 2000. Hard "
+"maximum: 20000, regardless of this setting."
 msgstr ""
 "Els missatges més llargs a l'adreça d'anuncis de la Comunitat es retornen al "
 "remitent en lloc de ser difosos — se li indica al remitent que el retalli i "
@@ -2890,12 +2922,12 @@ msgstr ""
 "de manera justa a llengües que no fan servir espais entre paraules (xinès, "
 "japonès, tailandès, etc.). La còpia de cada destinatari es tradueix "
 "individualment, de manera que això també limita quant pot costar un sol "
-"missatge en crides de traducció d'IA. Valor per defecte: 2000. Màxim "
-"absolut: 20000, independentment d'aquesta configuració."
+"missatge en crides de traducció d'IA. Valor per defecte: 2000. Màxim absolut:"
+" 20000, independentment d'aquesta configuració."
 
 #: includes/Admin/SettingsFields.php:845
 msgid "Admin approval only (disable community voting)"
-msgstr ""
+msgstr "Només aprovació d'administrador (desactiva la votació de la comunitat)"
 
 #: includes/Admin/SettingsFields.php:850
 msgid ""
@@ -2905,9 +2937,18 @@ msgid ""
 "Applications wait indefinitely for an admin decision rather than auto-"
 "rejecting when no one can vote. A community removal vote already open when "
 "this is turned on still runs to its normal conclusion; only starting a new "
-"one is blocked. Off by default — most communities want the existing vouching/"
-"vote system."
+"one is blocked. Off by default — most communities want the existing "
+"vouching/vote system."
 msgstr ""
+"Quan està activat, els artistes ja no poden avalar nous sol·licitants ni "
+"votar per expulsar un membre — cada decisió d'admissió i retirada la pren "
+"directament un administrador (Configuració → Comunitat → Sol·licituds "
+"pendents / Membres). Les sol·licituds esperen indefinidament una decisió "
+"d'un administrador en lloc de rebutjar-se automàticament quan ningú pot "
+"votar. Una votació de retirada de la comunitat ja oberta quan s'activa això "
+"continua fins a la seva conclusió normal; només es bloqueja l'inici d'una de "
+"nova. Desactivat per defecte — la majoria de comunitats volen mantenir el "
+"sistema existent d'aval/votació."
 
 #: includes/Admin/SettingsFields.php:855
 msgid "Admission vote threshold (%)"
@@ -2960,10 +3001,11 @@ msgstr ""
 "El correu electrònic, el nom, la biografia, la declaració i l'enllaç al "
 "portafolis d'una sol·licitud rebutjada, retirada o abandonada s'anonimitzen "
 "amb la neteja diària després d'aquests dies — el registre de la sol·licitud "
-"en si (estat i dates) es conserva per a l'historial d'admissió. La biografia/"
-"declaració/portafolis d'un artista vetat s'anonimitzen amb la mateixa "
-"programació, però el seu correu electrònic es conserva deliberadament perquè "
-"el vet continuï sent aplicable. Valor per defecte: 180 dies."
+"en si (estat i dates) es conserva per a l'historial d'admissió. La "
+"biografia/declaració/portafolis d'un artista vetat s'anonimitzen amb la "
+"mateixa programació, però el seu correu electrònic es conserva "
+"deliberadament perquè el vet continuï sent aplicable. Valor per defecte: 180 "
+"dies."
 
 #: includes/Admin/SettingsFields.php:890
 msgid "After applying, send artists to"
@@ -2971,10 +3013,10 @@ msgstr "Després de presentar la sol·licitud, envia els artistes a"
 
 #: includes/Admin/SettingsFields.php:894
 msgid ""
-"Optional — pick a page explaining the vouching process and what happens "
-"next. When the application is submitted successfully, the artist is "
-"redirected there instead of just seeing an inline confirmation message. "
-"Leave as \"None\" to keep the inline message only."
+"Optional — pick a page explaining the vouching process and what happens next."
+" When the application is submitted successfully, the artist is redirected "
+"there instead of just seeing an inline confirmation message. Leave as "
+"\"None\" to keep the inline message only."
 msgstr ""
 "Opcional — tria una pàgina que expliqui el procés de validació i què passarà "
 "després. Quan la sol·licitud s'envia correctament, l'artista és redirigit "
@@ -2988,8 +3030,8 @@ msgstr "Límit de mida de la comunitat"
 #: includes/Admin/SettingsFields.php:902
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
-"waitlist instead of being rejected, and a freed slot admits the next in "
-"line. Set to 0 for no cap. The community can also vote to change this."
+"waitlist instead of being rejected, and a freed slot admits the next in line."
+" Set to 0 for no cap. The community can also vote to change this."
 msgstr ""
 "Nombre màxim d'artistes admesos. Quan s'omple, les noves sol·licituds passen "
 "a una llista d'espera en lloc de ser rebutjades, i una plaça alliberada "
@@ -3041,8 +3083,8 @@ msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
 msgstr ""
-"Dies que una votació comunitària de retirada roman oberta. Una majoria "
-"(>50%) dels artistes actius ha de votar sí perquè la retirada tiri endavant."
+"Dies que una votació comunitària de retirada roman oberta. Una majoria (>50%)"
+" dels artistes actius ha de votar sí perquè la retirada tiri endavant."
 
 #: includes/Admin/SettingsFields.php:942
 msgid "Invitation intro"
@@ -3080,14 +3122,14 @@ msgstr ""
 
 #: includes/Admin/SettingsFields.php:951
 msgid ""
-"Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
-"\" link and site name follow automatically — no need to add either here). "
-"Two or three short paragraphs is plenty. Standing copy, not cleared after "
+"Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
+"join\" link and site name follow automatically — no need to add either here)."
+" Two or three short paragraphs is plenty. Standing copy, not cleared after "
 "use like the newsletter intros above — translated automatically when an "
 "invitation is sent in a language other than the site's own."
 msgstr ""
-"Es mostra prop de la part superior del correu electrònic \"Envia la invitació"
-"\" de més avall (un enllaç \"Sol·licita unir-te\" i el nom del lloc "
+"Es mostra prop de la part superior del correu electrònic \"Envia la "
+"invitació\" de més avall (un enllaç \"Sol·licita unir-te\" i el nom del lloc "
 "s'afegeixen automàticament — no cal afegir cap dels dos aquí). Amb dues o "
 "tres paràgrafs curts n'hi ha prou. Text persistent, que no es buida després "
 "d'usar-se com les introduccions del butlletí de més amunt — es tradueix "
@@ -3340,6 +3382,8 @@ msgid ""
 "Community voting is disabled on this site. Applications are reviewed "
 "directly by an admin."
 msgstr ""
+"La votació de la comunitat està desactivada en aquest lloc. Les sol·licituds "
+"les revisa directament un administrador."
 
 #: includes/Artist/Admission.php:731
 msgid "You cannot vote on your own application."
@@ -3358,11 +3402,13 @@ msgstr "Aquest enllaç de confirmació no és vàlid o ja s’ha utilitzat."
 
 #: includes/Artist/AdmissionConfirm.php:113
 msgid "Confirming your application…"
-msgstr ""
+msgstr "Confirmant la vostra sol·licitud…"
 
 #: includes/Artist/AdmissionConfirm.php:114
 msgid "Hang tight — we're opening your application for community review."
 msgstr ""
+"Espereu un moment — estem obrint la vostra sol·licitud per a la revisió de "
+"la comunitat."
 
 #: includes/Artist/AdmissionConfirm.php:115
 #: includes/Artist/AdmissionNotification.php:404
@@ -3481,6 +3527,8 @@ msgid ""
 "Thank you for applying to %s. Your application has been received and is now "
 "awaiting review by an admin."
 msgstr ""
+"Gràcies per sol·licitar unir-vos a %s. La vostra sol·licitud s'ha rebut i "
+"ara està pendent de revisió per part d'un administrador."
 
 #. translators: %s: community name
 #: includes/Artist/AdmissionNotification.php:451
@@ -3497,6 +3545,8 @@ msgid ""
 "There is no fixed deadline — we will let you know the outcome by email as "
 "soon as a decision is made."
 msgstr ""
+"No hi ha cap termini fix — us comunicarem el resultat per correu electrònic "
+"tan bon punt es prengui una decisió."
 
 #. translators: %d: number of days
 #: includes/Artist/AdmissionNotification.php:461
@@ -3511,7 +3561,7 @@ msgstr ""
 #: includes/Artist/AdmissionNotification.php:486
 #, php-format
 msgid "[%1$s] Application awaiting your review: %2$s"
-msgstr ""
+msgstr "[%1$s] Sol·licitud pendent de la vostra revisió: %2$s"
 
 #. translators: %s: applicant display name
 #: includes/Artist/AdmissionNotification.php:508
@@ -3520,6 +3570,9 @@ msgid ""
 "%s has applied to join. Community voting is disabled on this site, so this "
 "application needs your direct decision."
 msgstr ""
+"%s ha sol·licitat unir-se. La votació de la comunitat està desactivada en "
+"aquest lloc, de manera que aquesta sol·licitud necessita la vostra decisió "
+"directa."
 
 #: includes/Artist/AdmissionNotification.php:519
 #: includes/Artist/AdmissionNotification.php:614
@@ -3529,7 +3582,7 @@ msgstr "Portafolis:"
 
 #: includes/Artist/AdmissionNotification.php:529
 msgid "Review application"
-msgstr ""
+msgstr "Revisa la sol·licitud"
 
 #. translators: 1: applicant name, 2: community name
 #: includes/Artist/AdmissionNotification.php:558
@@ -3882,8 +3935,8 @@ msgstr "Límit de mida de la comunitat canviat a %s"
 #: includes/Artist/CommunityCapNotification.php:136
 #, php-format
 msgid ""
-"The community voted to change the membership size cap to %1$s (proposal #"
-"%2$d). The new cap is now in effect."
+"The community voted to change the membership size cap to %1$s (proposal "
+"#%2$d). The new cap is now in effect."
 msgstr ""
 "La comunitat ha votat canviar el límit de mida dels membres a %1$s (proposta "
 "#%2$d). El nou límit ja és en vigor."
@@ -4188,6 +4241,8 @@ msgid ""
 "Community voting is disabled on this site. Contact an admin to request "
 "removal review."
 msgstr ""
+"La votació de la comunitat està desactivada en aquest lloc. Contacteu amb un "
+"administrador per sol·licitar la revisió de la retirada."
 
 #: includes/Artist/Departure.php:609
 msgid "Removal request not found."
@@ -4219,8 +4274,8 @@ msgid ""
 "If you made this request, click the link below to confirm. This action is "
 "permanent and cannot be undone."
 msgstr ""
-"Si has fet aquesta sol·licitud, fes clic a l’enllaç de sota per confirmar-"
-"ho. Aquesta acció és permanent i no es pot desfer."
+"Si has fet aquesta sol·licitud, fes clic a l’enllaç de sota per confirmar-ho."
+" Aquesta acció és permanent i no es pot desfer."
 
 #: includes/Artist/DepartureNotification.php:108
 msgid "Confirm removal"
@@ -5285,13 +5340,13 @@ msgstr "Quines dades personals recopilem i per què"
 
 #: includes/Core/Privacy.php:768
 msgid ""
-"When you apply to join, we store your email address, display name, "
-"biography, statement, and portfolio link to run the community vouching "
-"process. When you email us artwork, a biography, or an event, the content of "
-"that email (including your address) is stored while it is processed and "
-"reviewed. When you subscribe to our newsletter or message an artist through "
-"their contact form, we store your email address (and, for contact messages, "
-"your IP address) to deliver that message or send you future issues."
+"When you apply to join, we store your email address, display name, biography,"
+" statement, and portfolio link to run the community vouching process. When "
+"you email us artwork, a biography, or an event, the content of that email "
+"(including your address) is stored while it is processed and reviewed. When "
+"you subscribe to our newsletter or message an artist through their contact "
+"form, we store your email address (and, for contact messages, your IP "
+"address) to deliver that message or send you future issues."
 msgstr ""
 "Quan et presentes per unir-te, emmagatzemem la teva adreça electrònica, nom "
 "visible, biografia, declaració i enllaç del portafolis per gestionar el "
@@ -5885,8 +5940,8 @@ msgstr ""
 
 #: includes/Publishing/EmbedPolicy.php:154
 msgid ""
-"This node couldn't safely load that page to review it (it may be "
-"unreachable, or blocked for security reasons)."
+"This node couldn't safely load that page to review it (it may be unreachable,"
+" or blocked for security reasons)."
 msgstr ""
 "Aquest node no ha pogut carregar aquesta pàgina de manera segura per revisar-"
 "la (pot ser que no sigui accessible o que estigui bloquejada per motius de "
@@ -6287,8 +6342,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1246
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
-"Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
-"\" in Mail to send it as a JPEG."
+"Formats to \"Most Compatible\" before taking or sending it, or use "
+"\"Options\" in Mail to send it as a JPEG."
 msgstr ""
 "Si la teva foto s’ha fet amb un iPhone, prova de canviar Configuració → "
 "Càmera → Formats a \"Més compatible\" abans de fer-la o enviar-la, o fes "
@@ -6419,9 +6474,9 @@ msgid ""
 "self-timer, and make sure the artwork fills most of the frame so autofocus "
 "locks on it."
 msgstr ""
-"La imatge és borrosa. Recolza el mòbil o la càmera en una superfície "
-"estable, fes servir l'autotemporitzador i assegura't que l'obra ocupi la "
-"major part del marc perquè l'enfoc automàtic s'hi fixi."
+"La imatge és borrosa. Recolza el mòbil o la càmera en una superfície estable,"
+" fes servir l'autotemporitzador i assegura't que l'obra ocupi la major part "
+"del marc perquè l'enfoc automàtic s'hi fixi."
 
 #: includes/Publishing/Notification.php:1407
 msgid ""
@@ -7085,7 +7140,7 @@ msgstr "Icona"
 
 #: blocks/breadcrumb-icon-link/editor.js:157
 msgid "EN"
-msgstr ""
+msgstr "CA"
 
 #: blocks/breadcrumb-icon-link/editor.js:188
 msgid "Biography Icon"
@@ -7118,7 +7173,7 @@ msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:218
 msgid "Language Badge"
-msgstr ""
+msgstr "Insígnia d'idioma"
 
 #: blocks/breadcrumb-icon-link/editor.js:219
 msgid ""
@@ -7126,6 +7181,9 @@ msgid ""
 "name shown on hover. Hidden automatically if the artist has no native "
 "language on file."
 msgstr ""
+"L'idioma nadiu de l'artista com a codi de dues lletres, amb el nom de "
+"l'idioma mostrat en passar-hi el cursor per sobre. S'amaga automàticament si "
+"l'artista no té cap idioma nadiu registrat."
 
 #: blocks/contact-form/editor.js:28
 msgid "Artist Contact Form"
@@ -7293,6 +7351,12 @@ msgid ""
 "(no biography/events yet, the artist has turned contact off, or no native "
 "language is set), or off an artist subdomain."
 msgstr ""
+"Un únic enllaç només amb icona (Biografia, Esdeveniments o un popover de "
+"contacte) cap a/sobre l'artista actual, o una insígnia d'idioma en text pla "
+"que mostra el seu idioma nadiu com a codi de dues lletres. No mostra res si "
+"no hi ha res per mostrar (encara no hi ha biografia/esdeveniments, l'artista "
+"ha desactivat el contacte o no hi ha cap idioma nadiu definit), o fora d'un "
+"subdomini d'artista."
 
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
@@ -7312,7 +7376,7 @@ msgstr "contacte"
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
 msgid "language"
-msgstr ""
+msgstr "idioma"
 
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block keyword"
@@ -7327,9 +7391,9 @@ msgstr "Formulari de contacte de l'artista"
 #: blocks/contact-form/block.json
 msgctxt "block description"
 msgid ""
-"Contact form letting a visitor message the current artist subdomain's "
-"artist. Submits to a per-artist REST endpoint; the message is moderated, "
-"translated into the artist's own language, and emailed to them."
+"Contact form letting a visitor message the current artist subdomain's artist."
+" Submits to a per-artist REST endpoint; the message is moderated, translated "
+"into the artist's own language, and emailed to them."
 msgstr ""
 "Formulari de contacte que permet a un visitant enviar un missatge a "
 "l'artista del subdomini de l'artista actual. S'envia a un punt final REST "
@@ -7499,9 +7563,3 @@ msgstr "trameses"
 msgctxt "block keyword"
 msgid "review"
 msgstr "revisió"
-
-#~ msgid ""
-#~ "Your application will open for community review once you confirm below."
-#~ msgstr ""
-#~ "La teva sol·licitud s’obrirà a la revisió de la comunitat un cop la "
-#~ "confirmis a continuació."
