@@ -1332,22 +1332,22 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
-			count: 4
+			count: 7
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
 			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
-			count: 1
+			count: 2
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$name\\.$#"
-			count: 3
+			count: 4
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$slug\\.$#"
-			count: 4
+			count: 6
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-

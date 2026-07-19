@@ -129,6 +129,21 @@ class TaxonomyLanguageFilter {
 	 * screen, including edit-tags.php — via wp_add_inline_script() rather
 	 * than a dedicated file, matching this codebase's existing convention
 	 * for small admin-only scripts (see Admin\Settings::enqueue_assets()).
+	 *
+	 * Also clears every `agnosis_sync_*`/`agnosis_sync_all_*` query arg
+	 * (2026-07-19, live report): those params are the redirect this same
+	 * class performs after a "Sync translations"/"Sync all translations"
+	 * click, read back by `maybe_render_sync_notice()` to show the one-time
+	 * courtesy notice. Left in the URL, they used to survive a language
+	 * switch — the notice would keep re-rendering on every subsequent
+	 * language view, showing that ONE original run's result regardless of
+	 * which language was actually now being looked at. Reported live as
+	 * three screenshots (German/Spanish/Portuguese) all showing the exact
+	 * same "10 term(s) processed…" text despite genuinely different
+	 * per-language term counts — the notice was stale, not lying about a
+	 * fresh check for each language, and it made a real underlying bug
+	 * (fixed the same day in LinguaForge::insert_translated_term()'s
+	 * collision handling) look even more confusing than it already was.
 	 */
 	private function admin_lang_filter_js(): string {
 		return <<<'JS'
@@ -145,6 +160,21 @@ class TaxonomyLanguageFilter {
 					url.searchParams.delete( 'agnosis_admin_lang' );
 				}
 				url.searchParams.delete( 'paged' );
+				[
+					'agnosis_sync_created',
+					'agnosis_sync_needs_translation',
+					'agnosis_sync_skipped',
+					'agnosis_sync_failed',
+					'agnosis_sync_all_terms',
+					'agnosis_sync_all_total',
+					'agnosis_sync_all_created',
+					'agnosis_sync_all_needs_translation',
+					'agnosis_sync_all_skipped',
+					'agnosis_sync_all_failed',
+					'agnosis_sync_all_timed_out'
+				].forEach( function ( param ) {
+					url.searchParams.delete( param );
+				} );
 				window.location.href = url.toString();
 			} );
 		} )();

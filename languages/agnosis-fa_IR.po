@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-19T15:31+00:00\n"
+"POT-Creation-Date: 2026-07-19T16:27+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:19+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Persian\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:194
-#: includes/Core/Privacy.php:774 includes/Publishing/SubmissionsPage.php:63
+#: includes/Core/Privacy.php:698 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "آگنوزیس"
 
@@ -148,8 +148,8 @@ msgstr "همگام‌سازی مدیوم با ترجمه‌ها"
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
 #: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:303
-#: includes/Admin/TaxonomyLanguageFilter.php:363
+#: includes/Admin/TaxonomyLanguageFilter.php:333
+#: includes/Admin/TaxonomyLanguageFilter.php:393
 msgid "You do not have permission to perform this action."
 msgstr "شما اجازهٔ انجام این عمل را ندارید."
 
@@ -222,7 +222,7 @@ msgstr "پیام"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:164
 #: includes/Core/Privacy.php:297 includes/Core/Privacy.php:333
-#: includes/Core/Privacy.php:369 includes/Core/Privacy.php:411
+#: includes/Core/Privacy.php:369
 msgid "Status"
 msgstr "وضعیت"
 
@@ -3311,17 +3311,17 @@ msgstr ""
 "صفحه یادآوری‌ای نشان می‌دهد تا به‌جای آن استفاده از یک ارائه‌دهندهٔ خدمات ایمیل "
 "(مثلاً پلن رایگان Brevo) را در نظر بگیرید."
 
-#: includes/Admin/TaxonomyLanguageFilter.php:246
+#: includes/Admin/TaxonomyLanguageFilter.php:276
 msgid "Sync translations"
 msgstr "همگام‌سازی ترجمه‌ها"
 
-#: includes/Admin/TaxonomyLanguageFilter.php:308
-#: includes/Admin/TaxonomyLanguageFilter.php:367
+#: includes/Admin/TaxonomyLanguageFilter.php:338
+#: includes/Admin/TaxonomyLanguageFilter.php:397
 msgid "Invalid taxonomy."
 msgstr "طبقه‌بندی نامعتبر."
 
 #. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of terms created as untranslated placeholders needing a hand edit, 5: number of languages that already had one, 6: number of translations that could not be created at all
-#: includes/Admin/TaxonomyLanguageFilter.php:440
+#: includes/Admin/TaxonomyLanguageFilter.php:470
 #, php-format
 msgid ""
 "%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d created as "
@@ -3331,7 +3331,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one, 5: number of translations that could not be created at all
-#: includes/Admin/TaxonomyLanguageFilter.php:456
+#: includes/Admin/TaxonomyLanguageFilter.php:486
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3341,7 +3341,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:466
+#: includes/Admin/TaxonomyLanguageFilter.php:496
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3351,7 +3351,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:475
+#: includes/Admin/TaxonomyLanguageFilter.php:505
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3361,7 +3361,7 @@ msgstr ""
 "قبل به‌روز بود."
 
 #. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one, 4: number of languages the translation could not be created for at all
-#: includes/Admin/TaxonomyLanguageFilter.php:500
+#: includes/Admin/TaxonomyLanguageFilter.php:530
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d created as placeholders "
@@ -3370,7 +3370,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:509
+#: includes/Admin/TaxonomyLanguageFilter.php:539
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d created as untranslated "
@@ -3379,7 +3379,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:517
+#: includes/Admin/TaxonomyLanguageFilter.php:547
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
@@ -4997,26 +4997,26 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "تا این لحظه %d رأی مثبت ثبت شده است."
 msgstr[1] "تا این لحظه %d رأی مثبت ثبت شده است."
 
-#: includes/Compat/LinguaForge.php:1777
+#: includes/Compat/LinguaForge.php:1848
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
 "note."
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:2998
+#: includes/Compat/LinguaForge.php:3069
 msgid "is active and configured for"
 msgstr "فعال است و برای این مورد پیکربندی شده است"
 
-#: includes/Compat/LinguaForge.php:2999
+#: includes/Compat/LinguaForge.php:3070
 msgid "Subdomain"
 msgstr "زیردامنه"
 
-#: includes/Compat/LinguaForge.php:3000
+#: includes/Compat/LinguaForge.php:3071
 msgid "routing mode"
 msgstr "حالت مسیریابی"
 
-#: includes/Compat/LinguaForge.php:3002
+#: includes/Compat/LinguaForge.php:3073
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5024,39 +5024,39 @@ msgstr ""
 "این با زیردامنه‌های هنرمند Agnosis تداخل دارد — هر دو افزونه همان فضای نام "
 "زیردامنه را ادعا می‌کنند."
 
-#: includes/Compat/LinguaForge.php:3003
+#: includes/Compat/LinguaForge.php:3074
 msgid "Artist subdomain routing is"
 msgstr "مسیریابی زیردامنهٔ هنرمند"
 
-#: includes/Compat/LinguaForge.php:3004
+#: includes/Compat/LinguaForge.php:3075
 msgid "completely inactive"
 msgstr "کاملاً غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:3005
+#: includes/Compat/LinguaForge.php:3076
 msgid "until this is resolved."
 msgstr "تا زمانی که این مشکل برطرف شود."
 
-#: includes/Compat/LinguaForge.php:3007
+#: includes/Compat/LinguaForge.php:3078
 msgid "Fix: open"
 msgstr "رفع: باز کنید"
 
-#: includes/Compat/LinguaForge.php:3008
+#: includes/Compat/LinguaForge.php:3079
 msgid "Settings"
 msgstr "تنظیمات"
 
-#: includes/Compat/LinguaForge.php:3008
+#: includes/Compat/LinguaForge.php:3079
 msgid "Language Router"
 msgstr "مسیرساز زبان"
 
-#: includes/Compat/LinguaForge.php:3009
+#: includes/Compat/LinguaForge.php:3080
 msgid "and switch the URL strategy to"
 msgstr "و استراتژی URL را به این مورد تغییر دهید"
 
-#: includes/Compat/LinguaForge.php:3010
+#: includes/Compat/LinguaForge.php:3081
 msgid "Path prefix (subfolder)"
 msgstr "پیشوند مسیر (زیرپوشه)"
 
-#: includes/Compat/LinguaForge.php:3011
+#: includes/Compat/LinguaForge.php:3082
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5064,23 +5064,23 @@ msgstr ""
 "این حالت پیش‌فرض LinguaForge است و اجازه می‌دهد زیردامنه‌های هنرمند در کنار "
 "زیرپوشه‌های زبان وجود داشته باشند"
 
-#: includes/Compat/LinguaForge.php:3016
+#: includes/Compat/LinguaForge.php:3087
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — مسیریابی زیردامنهٔ هنرمند غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:3026
+#: includes/Compat/LinguaForge.php:3097
 msgid "Open LinguaForge Settings"
 msgstr "تنظیمات LinguaForge را باز کنید"
 
-#: includes/Core/Activator.php:908 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:911 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "هنرمند Agnosis"
 
-#: includes/Core/Activator.php:1020 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1023 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "ارسال‌های من"
 
-#: includes/Core/Activator.php:1204
+#: includes/Core/Activator.php:1207
 msgid "Join"
 msgstr "پیوستن"
 
@@ -5181,39 +5181,34 @@ msgstr "مدیریت ترجیحات اعلان"
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — هنری که از دل فراموشی می‌شکفد"
 
-#: includes/Core/Privacy.php:107 includes/Core/Privacy.php:173
-#: includes/Core/Privacy.php:467
+#: includes/Core/Privacy.php:111 includes/Core/Privacy.php:173
+#: includes/Core/Privacy.php:427
 msgid "Agnosis Membership Application"
 msgstr "درخواست عضویت در اگنوسیس"
 
-#: includes/Core/Privacy.php:111 includes/Core/Privacy.php:205
+#: includes/Core/Privacy.php:115 includes/Core/Privacy.php:205
 #: includes/Core/Privacy.php:223 includes/Core/Privacy.php:241
-#: includes/Core/Privacy.php:259 includes/Core/Privacy.php:471
+#: includes/Core/Privacy.php:259 includes/Core/Privacy.php:431
 msgid "Agnosis Governance Participation"
 msgstr "مشارکت در حاکمیت اگنوسیس"
 
-#: includes/Core/Privacy.php:115 includes/Core/Privacy.php:294
-#: includes/Core/Privacy.php:475
+#: includes/Core/Privacy.php:119 includes/Core/Privacy.php:294
+#: includes/Core/Privacy.php:435
 msgid "Agnosis Newsletter Subscription"
 msgstr "اشتراک خبرنامه اگنوسیس"
 
-#: includes/Core/Privacy.php:119 includes/Core/Privacy.php:327
-#: includes/Core/Privacy.php:479
+#: includes/Core/Privacy.php:123 includes/Core/Privacy.php:327
+#: includes/Core/Privacy.php:439
 msgid "Agnosis Newsletter Delivery History"
 msgstr "تاریخچه ارسال خبرنامه اگنوسیس"
 
-#: includes/Core/Privacy.php:123 includes/Core/Privacy.php:362
-#: includes/Core/Privacy.php:483
+#: includes/Core/Privacy.php:127 includes/Core/Privacy.php:362
+#: includes/Core/Privacy.php:443
 msgid "Agnosis Contact Messages Sent"
 msgstr "پیام‌های تماس ارسالی اگنوسیس"
 
-#: includes/Core/Privacy.php:127 includes/Core/Privacy.php:403
-#: includes/Core/Privacy.php:487
-msgid "Agnosis Transactions"
-msgstr "تراکنش‌های اگنوسیس"
-
-#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:448
-#: includes/Core/Privacy.php:491
+#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:408
+#: includes/Core/Privacy.php:447
 msgid "Agnosis Notification Preferences"
 msgstr "ترجیحات اعلان‌های اگنوسیس"
 
@@ -5235,7 +5230,6 @@ msgstr "تاریخ رسیدگی"
 
 #: includes/Core/Privacy.php:208 includes/Core/Privacy.php:226
 #: includes/Core/Privacy.php:244 includes/Core/Privacy.php:262
-#: includes/Core/Privacy.php:406
 msgid "Type"
 msgstr "نوع"
 
@@ -5245,7 +5239,7 @@ msgstr "تأیید پشتیبانی جامعه داده شد"
 
 #: includes/Core/Privacy.php:210 includes/Core/Privacy.php:228
 #: includes/Core/Privacy.php:246 includes/Core/Privacy.php:264
-#: includes/Core/Privacy.php:412 includes/Publishing/ReviewConfirm.php:817
+#: includes/Publishing/ReviewConfirm.php:817
 msgid "Date"
 msgstr "تاریخ"
 
@@ -5313,23 +5307,7 @@ msgstr "نشانی IP"
 msgid "Sent at"
 msgstr "ارسال‌شده در"
 
-#: includes/Core/Privacy.php:407
-msgid "Amount"
-msgstr "مبلغ"
-
-#: includes/Core/Privacy.php:408
-msgid "Currency"
-msgstr "ارز"
-
-#: includes/Core/Privacy.php:409
-msgid "Fee"
-msgstr "کارمزد"
-
-#: includes/Core/Privacy.php:410
-msgid "Gateway"
-msgstr "درگاه"
-
-#: includes/Core/Privacy.php:519
+#: includes/Core/Privacy.php:475
 msgid ""
 "Your membership application/account is still active. To remove this data, "
 "use the \"leave the network\" link from any Agnosis email, or ask an "
@@ -5339,7 +5317,7 @@ msgstr ""
 "شبکه» در هر ایمیل اگنوسیس استفاده کنید، یا از یک مدیر بخواهید این کار را "
 "انجام دهد."
 
-#: includes/Core/Privacy.php:539
+#: includes/Core/Privacy.php:495
 msgid ""
 "Your biography, statement, and portfolio link were erased. Your email "
 "address was kept on file — your account is currently banned, and it's the "
@@ -5349,11 +5327,11 @@ msgstr ""
 "نگه داشته شد — حساب شما در حال حاضر مسدود است و این تنها راهی است که این "
 "سایت می‌تواند به اجرای آن ادامه دهد."
 
-#: includes/Core/Privacy.php:613 includes/Core/Privacy.php:685
+#: includes/Core/Privacy.php:569 includes/Core/Privacy.php:641
 msgid "[message removed]"
 msgstr "[پیام حذف شد]"
 
-#: includes/Core/Privacy.php:624
+#: includes/Core/Privacy.php:580
 msgid ""
 "Vouch messages you wrote were redacted. Governance votes you cast were kept "
 "as-is — a vote is a community record, not personal data, and removing it "
@@ -5363,7 +5341,7 @@ msgstr ""
 "تغییر نگه داشته شدند — رأی یک سابقهٔ اجتماعی است، نه دادهٔ شخصی، و حذف آن "
 "به‌طور خاموش یک تصمیم قطعی‌شده را تغییر می‌دهد."
 
-#: includes/Core/Privacy.php:667
+#: includes/Core/Privacy.php:623
 msgid ""
 "Past newsletter delivery records were anonymized; per-issue delivery counts "
 "were kept for statistics."
@@ -5371,16 +5349,7 @@ msgstr ""
 "سوابق قبلی تحویل خبرنامه ناشناس‌سازی شدند؛ تعداد تحویل‌ها به‌ازای هر شماره برای "
 "آمار نگه داشته شد."
 
-#: includes/Core/Privacy.php:728
-msgid ""
-"Transaction (donation/sale) records were kept in full — financial records "
-"are subject to a legal retention obligation and are exempt from erasure "
-"under GDPR Art. 17(3)(b)."
-msgstr ""
-"سوابق تراکنش‌ها (اهدا/فروش) به‌طور کامل نگه داشته شدند — سوابق مالی مشمول تعهد "
-"قانونی نگهداری هستند و طبق ماده 17(3)(b) GDPR از حذف مستثنا هستند."
-
-#: includes/Core/Privacy.php:766
+#: includes/Core/Privacy.php:690
 msgid ""
 "Agnosis is a federated art-publishing plugin. The following is a starting "
 "point for describing what it collects — review and adapt it to your site's "
@@ -5390,11 +5359,11 @@ msgstr ""
 "داده‌هایی است که جمع‌آوری می‌کند — پیش از انتشار، آن را بازبینی کنید و با "
 "پیکربندی واقعی سایت خود تطبیق دهید."
 
-#: includes/Core/Privacy.php:767
+#: includes/Core/Privacy.php:691
 msgid "What personal data we collect and why"
 msgstr "چه داده‌های شخصی‌ای را جمع‌آوری می‌کنیم و چرا"
 
-#: includes/Core/Privacy.php:768
+#: includes/Core/Privacy.php:692
 msgid ""
 "When you apply to join, we store your email address, display name, "
 "biography, statement, and portfolio link to run the community vouching "
@@ -5412,11 +5381,11 @@ msgstr ""
 "(و برای پیام‌های تماس، نشانی IP شما) را برای ارسال آن پیام یا فرستادن "
 "شماره‌های بعدی ذخیره می‌کنیم."
 
-#: includes/Core/Privacy.php:769
+#: includes/Core/Privacy.php:693
 msgid "Who we share it with"
 msgstr "این داده‌ها را با چه کسانی به اشتراک می‌گذاریم"
 
-#: includes/Core/Privacy.php:770
+#: includes/Core/Privacy.php:694
 msgid ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
@@ -5434,11 +5403,11 @@ msgstr ""
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
 "Fediverse) as part of this plugin's core federation feature."
 
-#: includes/Core/Privacy.php:771
+#: includes/Core/Privacy.php:695
 msgid "How long we retain your data"
 msgstr "داده‌های شما را چه مدت نگه می‌داریم"
 
-#: includes/Core/Privacy.php:772
+#: includes/Core/Privacy.php:696
 msgid ""
 "Retention varies by data type; see this site's administrator for specifics. "
 "You can request a copy of, or the erasure of, the personal data described "
@@ -5449,7 +5418,7 @@ msgstr ""
 "وردپرس این سایت، درخواست نسخه‌ای از داده‌های شخصیِ شرح‌داده‌شده در بالا یا حذف "
 "آن‌ها را بدهید."
 
-#: includes/Core/Privacy.php:800
+#: includes/Core/Privacy.php:724
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
 "Approved posts are published publicly and shared across the Fediverse — this "
@@ -5459,7 +5428,7 @@ msgstr ""
 "شوند. نوشته‌های تأییدشده به‌صورت عمومی منتشر و در سراسر فدیوِرس به اشتراک "
 "گذاشته می‌شوند — این کار بعداً به‌طور کامل قابل بازگشت نیست."
 
-#: includes/Core/Privacy.php:801
+#: includes/Core/Privacy.php:725
 msgid ""
 "Your message may be reviewed by an automated content filter before being "
 "sent to the artist."
@@ -5468,12 +5437,12 @@ msgstr ""
 "شود."
 
 #. translators: %s: link to the site's Privacy Policy page
-#: includes/Core/Privacy.php:809
+#: includes/Core/Privacy.php:733
 #, php-format
 msgid "See our %s for details."
 msgstr "برای جزئیات، %s ما را ببینید."
 
-#: includes/Core/Privacy.php:810
+#: includes/Core/Privacy.php:734
 msgid "Privacy Policy"
 msgstr "سیاست حریم خصوصی"
 
@@ -7598,3 +7567,26 @@ msgstr "ارسال‌ها"
 msgctxt "block keyword"
 msgid "review"
 msgstr "بررسی"
+
+#~ msgid "Agnosis Transactions"
+#~ msgstr "تراکنش‌های اگنوسیس"
+
+#~ msgid "Amount"
+#~ msgstr "مبلغ"
+
+#~ msgid "Currency"
+#~ msgstr "ارز"
+
+#~ msgid "Fee"
+#~ msgstr "کارمزد"
+
+#~ msgid "Gateway"
+#~ msgstr "درگاه"
+
+#~ msgid ""
+#~ "Transaction (donation/sale) records were kept in full — financial records "
+#~ "are subject to a legal retention obligation and are exempt from erasure "
+#~ "under GDPR Art. 17(3)(b)."
+#~ msgstr ""
+#~ "سوابق تراکنش‌ها (اهدا/فروش) به‌طور کامل نگه داشته شدند — سوابق مالی مشمول "
+#~ "تعهد قانونی نگهداری هستند و طبق ماده 17(3)(b) GDPR از حذف مستثنا هستند."

@@ -1583,9 +1583,11 @@ class LinguaForge {
 	 *         genuine AI translation, created as an untranslated fallback
 	 *         placeholder needing a hand edit (see
 	 *         insert_fallback_translated_term()), already present, or could
-	 *         not be produced AT ALL (a hard DB-level insert failure — never
-	 *         just "the AI failed", which now always still produces a
-	 *         placeholder) — for the admin notice after redirect.
+	 *         not be produced AT ALL — either a hard DB-level insert failure,
+	 *         or (2026-07-19) a term-meta linking conflict caught by the
+	 *         read-back check after insert (see that check's own inline
+	 *         comment) — never just "the AI failed", which now always still
+	 *         produces a placeholder — for the admin notice after redirect.
 	 */
 	public function sync_term_across_languages( int $term_id, string $taxonomy ): array {
 		$result = [
@@ -1645,8 +1647,41 @@ class LinguaForge {
 				continue;
 			}
 
+			// add_term_meta( …, $unique = true ) silently returns false and
+			// adds nothing whenever the term already carries a value for
+			// that key — harmless when $created_id is the genuine-lost-race
+			// term from insert_translated_term() (it already holds the
+			// CORRECT value), but a real, previously-silent failure if it
+			// holds something ELSE. That exact silent failure — reusing a
+			// different language's term ID, then having this call no-op —
+			// is how Portuguese/Spanish ended up missing real terms while
+			// "Sync all translations" reported a clean 0-failed run (live
+			// report, 2026-07-19). Reading the meta back after writing and
+			// comparing against what was actually intended catches that
+			// case (and any other future cause of the same silent no-op)
+			// instead of trusting the write succeeded.
 			add_term_meta( $created_id, self::TRANSLATED_TERM_META, $lang, true );
 			add_term_meta( $created_id, self::TERM_TRID_META, $trid, true );
+
+			$linked_lang = (string) get_term_meta( $created_id, self::TRANSLATED_TERM_META, true );
+			$linked_trid = (string) get_term_meta( $created_id, self::TERM_TRID_META, true );
+
+			if ( $lang !== $linked_lang || $trid !== $linked_trid ) {
+				Logger::error(
+					sprintf(
+						'LinguaForge::sync_term_across_languages(#%d, %s → %s): term #%d already carried a conflicting TRANSLATED_TERM_META/TERM_TRID_META value and could not be linked as this translation (found lang=%s, trid=%s).',
+						$term_id,
+						$taxonomy,
+						$lang,
+						$created_id,
+						$linked_lang,
+						$linked_trid
+					),
+					'lingua-forge'
+				);
+				$result['failed'][] = $lang;
+				continue;
+			}
 
 			if ( $ai_translated_ok ) {
 				$result['created'][] = $lang;
@@ -1673,17 +1708,41 @@ class LinguaForge {
 	 * was ever created, so every future sync re-attempted the identical
 	 * insert and re-failed identically, with nothing counting the loss.
 	 *
-	 * On a `term_exists` collision this resolves the term that's actually
-	 * sitting in the way:
-	 *   - Already carries THIS trid → a lost race (e.g. a concurrent sync
-	 *     request creating the same translation), not a real failure —
-	 *     returns that term's ID so the caller links/re-links it normally.
-	 *   - Carries a DIFFERENT trid, or none at all (an admin-curated primary
-	 *     term, or an orphan) → the colliding term is NOT this trid's
-	 *     translation and must never be claimed as one; retries the insert
-	 *     with an explicit language-suffixed slug (`fotografie-nl`), which
-	 *     `wp_insert_term()`'s own same-name/different-slug allowance lets
-	 *     through even though the (accent-insensitive) name still collides.
+	 * Corrected again 2026-07-19, same day (live report: Portuguese missing
+	 * "Arte Digital"/"Escultura" — byte-identical to their own Spanish
+	 * translations — plus "Fotografia"/"Poesia", accent variants of the
+	 * Spanish forms; Italian, Dutch, and Catalan share enough Romance/German
+	 * vocabulary with their neighbors to hit this constantly). The ORIGINAL
+	 * §2b fix's "already carries this trid → safe lost race, reuse" rule was
+	 * too broad: it's only actually safe when the colliding term is tagged
+	 * for the SAME language already. Two different real cases were both
+	 * wrongly folded into "lost race" before this fix:
+	 *   - A different language's translation in the SAME trid group happens
+	 *     to render identically (or accent-equivalently) — e.g. Spanish's
+	 *     "Fotografía" was inserted first, then Portuguese's "Fotografia"
+	 *     collided with IT, not with any primary term. Reusing Spanish's
+	 *     term ID for Portuguese, then tagging it TRANSLATED_TERM_META=pt,
+	 *     is impossible: `add_term_meta( …, $unique = true )` silently
+	 *     refuses to add a second value for a key the term already carries
+	 *     (already 'es'), so the call was a no-op — Portuguese ended up with
+	 *     NO term at all, while the caller still counted the language as
+	 *     `created` because it never checked that return value (see the
+	 *     defensive check added in `sync_term_across_languages()` the same
+	 *     day, which now catches this class of failure regardless of cause).
+	 *   - The AI's "translation" happens to equal the PRIMARY term's own
+	 *     name verbatim (not unusual between closely related languages) —
+	 *     the collision is with the primary term itself, which never carries
+	 *     TRANSLATED_TERM_META. Reusing ITS id and tagging it as a
+	 *     translation would corrupt the primary vocabulary exactly the way
+	 *     `insert_fallback_translated_term()`'s own docblock warns about,
+	 *     just reached from this method instead.
+	 *
+	 * Both are now correctly treated as "this name is already taken by
+	 * something that ISN'T this exact (trid, lang) pair" and fall through to
+	 * the same disambiguated-slug retry a different-trid collision already
+	 * used — the only genuinely safe reuse left is a collision with a term
+	 * that already carries BOTH this trid AND this exact language, which can
+	 * only mean a real concurrent duplicate request beat this one to it.
 	 *
 	 * @param string $name     Translated term name to insert.
 	 * @param string $taxonomy Taxonomy to insert into.
@@ -1691,8 +1750,9 @@ class LinguaForge {
 	 *                         end up carrying — used only to detect the
 	 *                         lost-race case; the caller is still
 	 *                         responsible for actually writing TERM_TRID_META.
-	 * @param string $lang     Target language code, used only to build a
-	 *                         disambiguating slug on collision.
+	 * @param string $lang     Target language code — used both to detect a
+	 *                         genuine lost race and to build a disambiguating
+	 *                         slug on any other collision.
 	 * @return int|null The term ID to link, or null if insertion could not
 	 *                   be resolved at all (a non-`term_exists` WP_Error, or
 	 *                   the suffixed-slug retry itself also failed).
@@ -1710,13 +1770,24 @@ class LinguaForge {
 
 		$existing_id = (int) $created->get_error_data( 'term_exists' );
 		if ( $existing_id > 0 && $trid === get_term_meta( $existing_id, self::TERM_TRID_META, true ) ) {
-			return $existing_id; // Lost race against itself — same trid already landed here.
+			$existing_lang = (string) get_term_meta( $existing_id, self::TRANSLATED_TERM_META, true );
+			if ( $lang === $existing_lang ) {
+				return $existing_id; // Genuine lost race — same trid, same language already landed here.
+			}
+			// Same trid, but this name is already claimed by something that
+			// ISN'T this (trid, lang) pair: either the primary term itself
+			// ($existing_lang === '', since primary terms never carry this
+			// meta) or a DIFFERENT language's translation in this same trid
+			// group. Neither is safe to reuse — falls through to the
+			// disambiguated retry below, same as any other collision.
 		}
 
-		// A different trid group (or a trid-less primary term) is sitting on
-		// this exact name — never claim it. Retry once with a disambiguating
-		// slug rather than the auto-generated one, which is what triggers
-		// wp_insert_term()'s duplicate-name block in the first place.
+		// A different trid group, a trid-less primary term, or (see above) a
+		// same-trid term belonging to the primary term or another language,
+		// is sitting on this exact name — never claim it. Retry once with a
+		// disambiguating slug rather than the auto-generated one, which is
+		// what triggers wp_insert_term()'s duplicate-name block in the first
+		// place.
 		$retried = wp_insert_term(
 			$name,
 			$taxonomy,

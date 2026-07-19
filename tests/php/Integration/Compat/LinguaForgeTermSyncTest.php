@@ -37,21 +37,38 @@
  *     - §2b: a same-name collision against a term in a different trid group
  *       (or a trid-less primary term) resolves via a language-suffixed slug
  *       instead of failing that language forever
+ *     - a same-name collision WITHIN the same trid group — two different
+ *       target languages translating to the identical word — resolves to
+ *       two distinct terms instead of silently losing the second language
+ *       (2026-07-19, the actual live bug: Portuguese/Spanish permanently
+ *       missing several terms — "Arte Digital", "Escultura" — while the
+ *       sync notice claimed zero failures)
  *   sync_all_terms_across_languages()
  *     - aggregates terms/total/created/needs_translation/skipped/failed
  *       across every primary term
  *     - excludes already-translated terms from the primary set
  *     - all-zero result when the taxonomy has no primary terms
- *   insert_translated_term() (private — the §2b homograph fix; exercised via
- *   Reflection, same pattern SettingsTermTranslationCacheTest already uses
- *   for a private method) — the "same trid, lost a race" branch specifically
- *   can't be reached through the public method without genuine concurrency
- *   (find_term_by_trid()'s own earlier lookup would short-circuit to
- *   "skipped" first in any single-threaded call), so it's verified directly:
+ *   insert_translated_term() (private — the §2b homograph fix, corrected
+ *   again 2026-07-19 for the same-trid/cross-language case above; exercised
+ *   via Reflection, same pattern SettingsTermTranslationCacheTest already
+ *   uses for a private method) — the "same trid, lost a race" branch
+ *   specifically can't be reached through the public method without genuine
+ *   concurrency (find_term_by_trid()'s own earlier lookup would short-circuit
+ *   to "skipped" first in any single-threaded call), so it's verified
+ *   directly:
  *     - clean insert
  *     - a non-`term_exists` WP_Error passes through as failure (null)
  *     - a `term_exists` collision where the existing term already carries
- *       THIS trid resolves to that existing term (a lost race, not a failure)
+ *       THIS trid AND this exact language resolves to that existing term (a
+ *       lost race, not a failure)
+ *     - a `term_exists` collision where the existing term carries THIS trid
+ *       but a DIFFERENT language already linked to it retries with a
+ *       language-suffixed slug rather than reusing (and corrupting) the
+ *       other language's term — the 2026-07-19 fix
+ *     - a `term_exists` collision where the existing term IS the primary
+ *       term itself (same trid, no TRANSLATED_TERM_META at all) also retries
+ *       with a suffixed slug, rather than tagging the primary term as its
+ *       own translation
  *     - a `term_exists` collision where the existing term carries a
  *       different trid (or none) retries with a language-suffixed slug
  *     - a collision where even the suffixed-slug retry fails resolves to null
@@ -278,6 +295,42 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		);
 	}
 
+	public function test_sync_term_resolves_a_homograph_collision_within_the_same_trid_group(): void {
+		// The actual live bug, end to end through the public method: TWO
+		// target languages of the SAME primary term translate to the exact
+		// same word ("Arte Digital" is identical in Spanish and Portuguese;
+		// modeled here with the same de/nl "Fotografie" pair the different-
+		// trid-group test above uses, but this time both are genuinely
+		// translating the SAME primary term — a same-trid collision, not a
+		// collision with some unrelated pre-existing term). Before the fix,
+		// whichever language processed second silently lost its term (reused
+		// the first language's ID, then add_term_meta's unique=true no-op'd)
+		// while still being counted as `created` — reported live as
+		// Portuguese/Spanish permanently missing several terms with the sync
+		// notice claiming zero failures.
+		$term_id = $this->insert_term( 'Photo' );
+		$this->seed_translation( 'post_tag', 'Photo', 'de', 'Fotografie' );
+		$this->seed_translation( 'post_tag', 'Photo', 'nl', 'Fotografie' );
+
+		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, 'post_tag' );
+
+		$this->assertSame( [ 'de', 'nl' ], $result['created'], 'Both languages must succeed — neither may be silently dropped.' );
+		$this->assertSame( [], $result['failed'] );
+		$this->assertSame( [], $result['needs_translation'] );
+
+		$matches = get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Fotografie', 'hide_empty' => false ] );
+		$this->assertCount( 2, $matches, 'Each language must get its own distinct term.' );
+
+		$trid = get_term_meta( $term_id, LinguaForge::TERM_TRID_META, true );
+		$linked_langs = [];
+		foreach ( $matches as $term ) {
+			$this->assertSame( $trid, get_term_meta( $term->term_id, LinguaForge::TERM_TRID_META, true ) );
+			$linked_langs[] = get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true );
+		}
+		sort( $linked_langs );
+		$this->assertSame( [ 'de', 'nl' ], $linked_langs, 'Each term must be linked to its own correct, distinct language.' );
+	}
+
 	// -------------------------------------------------------------------------
 	// sync_all_terms_across_languages()
 	// -------------------------------------------------------------------------
@@ -376,6 +429,73 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 			1,
 			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Fotografie', 'hide_empty' => false ] ),
 			'No new term should have been created.'
+		);
+	}
+
+	public function test_insert_translated_term_suffixes_the_slug_on_a_same_trid_collision_with_a_different_language(): void {
+		// The actual live bug (2026-07-19, reported the same day as the fix):
+		// two DIFFERENT languages in the SAME trid group translate to the
+		// same (or accent-equivalent) word — e.g. "Arte Digital" is literally
+		// identical in Spanish and Portuguese, "Fotografía"/"Fotografia"
+		// differ only by an accent. Before this fix, ANY same-trid collision
+		// was treated as a safe "lost race" and resolved to the FIRST
+		// language's own term — reused for the second language too, which
+		// then failed to actually link (add_term_meta's $unique=true silently
+		// no-ops when the term already carries a DIFFERENT value for that
+		// key), leaving the second language with no term at all despite the
+		// caller believing it succeeded.
+		$trid    = wp_generate_uuid4();
+		$de_id   = $this->insert_translated_term( 'Fotografie', 'post_tag', $trid, 'de' );
+		$this->assertIsInt( $de_id );
+		add_term_meta( $de_id, LinguaForge::TRANSLATED_TERM_META, 'de', true );
+		add_term_meta( $de_id, LinguaForge::TERM_TRID_META, $trid, true );
+
+		$nl_id = $this->insert_translated_term( 'Fotografie', 'post_tag', $trid, 'nl' );
+
+		$this->assertIsInt( $nl_id );
+		$this->assertNotSame( $de_id, $nl_id, 'Two different languages in the same trid group must never share one term.' );
+		$this->assertSame( 'Fotografie', get_term( $nl_id, 'post_tag' )->name );
+		$this->assertNotSame(
+			get_term( $de_id, 'post_tag' )->slug,
+			get_term( $nl_id, 'post_tag' )->slug,
+			'The second language must get its own disambiguated slug, not collide again.'
+		);
+		$this->assertCount(
+			2,
+			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Fotografie', 'hide_empty' => false ] ),
+			'Both languages must end up with their own real term.'
+		);
+	}
+
+	public function test_insert_translated_term_suffixes_the_slug_on_a_collision_with_the_primary_term_itself(): void {
+		// AI can legitimately "translate" a word to something byte-identical
+		// to the primary term's own name (not unusual between closely
+		// related languages, or for a term that's a proper noun/loanword).
+		// The colliding term here is the PRIMARY term itself — which never
+		// carries TRANSLATED_TERM_META — so before this fix it was
+		// indistinguishable from a genuine lost race and got reused,
+		// silently tagging the primary term as its own translation
+		// (PromptConfig::medium_terms() would then wrongly exclude it from
+		// the AI's controlled vocabulary from that point on).
+		$trid       = wp_generate_uuid4();
+		$primary_id = $this->insert_term( 'Escultura' );
+		add_term_meta( $primary_id, LinguaForge::TERM_TRID_META, $trid, true );
+		// Deliberately no TRANSLATED_TERM_META — that absence is exactly
+		// what marks a term as primary throughout this class.
+
+		$created_id = $this->insert_translated_term( 'Escultura', 'post_tag', $trid, 'de' );
+
+		$this->assertIsInt( $created_id );
+		$this->assertNotSame( $primary_id, $created_id, "Must never reuse the primary term's own ID." );
+		$this->assertSame(
+			'',
+			get_term_meta( $primary_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'The primary term must never end up tagged as its own translation.'
+		);
+		$this->assertCount(
+			2,
+			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Escultura', 'hide_empty' => false ] ),
+			'The primary term plus one newly created (suffixed-slug) translation term.'
 		);
 	}
 

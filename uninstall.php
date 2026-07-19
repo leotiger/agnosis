@@ -48,7 +48,11 @@ function agnosis_uninstall_site(): void {
 		'agnosis_application_vouches',
 		'agnosis_vouches',
 		'agnosis_nodes',
-		'agnosis_transactions',
+		// agnosis_transactions intentionally absent — C-1 was decided against
+		// for 1.0.0 and the table is dropped by Activator::maybe_upgrade();
+		// this loop's DROP TABLE IF EXISTS would be a harmless no-op for it
+		// anyway, but the entry is removed so this list reflects what
+		// actually still exists.
 		'agnosis_removal_requests',
 		'agnosis_removal_votes',
 		'agnosis_cap_proposals',

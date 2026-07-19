@@ -271,6 +271,28 @@ class Activator {
 		// admin clicks Sync, not here.
 		LinguaForge::purge_self_referential_term_translations();
 
+		// Drop agnosis_transactions — C-1, the "build the donation slice or
+		// drop the table" decision carried across thirteen consecutive audits
+		// (agnosis-audit/AUDIT-0.9.38.md §5), was resolved this cycle in favor
+		// of dropping it. The table went a full year without a single row
+		// written; assessing what it would actually take to use it (per-artist
+		// payout splitting with a 7% platform fee retained, per the plugin's
+		// own stated business model) showed that's a genuine Stripe Connect
+		// integration, not a donation-plugin checkbox — every free WordPress
+		// donation plugin (GiveWP, Charitable, WPForms Lite) only pays out to
+		// one site-wide destination account in its free tier, and the one
+		// split-payment tool that exists (Split Pay for WooCommerce) gates
+		// multi-recipient payouts behind its paid tier too. Decided against
+		// building that for 1.0.0, so the table is dropped rather than left
+		// dormant — see Privacy.php's now-removed agnosis-transactions
+		// exporter/eraser for the other half of this cleanup.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$transactions_table_exists = $wpdb->get_results( "SHOW TABLES LIKE '{$wpdb->prefix}agnosis_transactions'" );
+		if ( ! empty( $transactions_table_exists ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+			$wpdb->query( "DROP TABLE {$wpdb->prefix}agnosis_transactions" );
+		}
+
 		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
 		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char
 		// UNIQUE index under utf8mb4 exceeds the 767-byte limit on older
@@ -488,24 +510,6 @@ class Activator {
 			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY   uq_url (url)
-		) $charset_collate;";
-
-		// Transactions — donations and store sales.
-		$sql_tx = "CREATE TABLE {$wpdb->prefix}agnosis_transactions (
-			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			type         ENUM('donation','sale') NOT NULL,
-			artist_id    BIGINT UNSIGNED NOT NULL,
-			post_id      BIGINT UNSIGNED DEFAULT NULL,
-			amount       DECIMAL(10,2)   NOT NULL,
-			currency     CHAR(3)         NOT NULL DEFAULT 'EUR',
-			fee          DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
-			gateway      VARCHAR(64)     DEFAULT NULL,
-			gateway_ref  VARCHAR(255)    DEFAULT NULL,
-			status       ENUM('pending','completed','refunded','failed') NOT NULL DEFAULT 'pending',
-			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY  (id),
-			KEY          idx_artist (artist_id),
-			KEY          idx_status (status)
 		) $charset_collate;";
 
 		// Vouching / admission log.
@@ -819,7 +823,6 @@ class Activator {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
-		dbDelta( $sql_tx );
 		dbDelta( $sql_vouches );
 		dbDelta( $sql_log );
 		dbDelta( $sql_applications );

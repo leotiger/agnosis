@@ -17,9 +17,9 @@
  * different lookup shapes are needed because this plugin stores personal
  * data both directly by email (application, newsletter, contact-form rows)
  * and indirectly via a WP user account (governance participation,
- * transactions, per-artist preference flags) — the latter group resolves
- * the email to a user ID with `get_user_by( 'email', … )` first and returns
- * nothing for that group when no matching account exists.
+ * per-artist preference flags) — the latter group resolves the email to a
+ * user ID with `get_user_by( 'email', … )` first and returns nothing for
+ * that group when no matching account exists.
  *
  * Erasure is deliberately *not* "delete every row that mentions this
  * email" — a few categories have a legitimate reason to keep a redacted
@@ -50,10 +50,14 @@
  * - `agnosis_contact_messages`: visitor identity + message text is
  *   redacted; the artist-facing status/reason/timestamp is kept for the
  *   same audit-trail reason `Admin\ContactMessagesPage` exists at all.
- * - `agnosis_transactions`: export-only, never erased — financial records
- *   are subject to a legal retention obligation (GDPR Art. 17(3)(b)), and
- *   the eraser reports that explicitly via `items_retained` rather than
- *   silently doing nothing.
+ *
+ * `agnosis_transactions` (donations/store sales) no longer exists — C-1's
+ * "build the donation slice or drop the table" decision (carried across
+ * thirteen consecutive audits, see agnosis-audit/AUDIT-0.9.38.md §5) was
+ * resolved in favor of dropping the table for 1.0.0, so the exporter/eraser
+ * pair this class used to register for it (`export_transactions()`,
+ * `erase_transactions()`) was removed along with it — see
+ * `Core\Activator::maybe_upgrade()` for the table-drop migration.
  *
  * @package Agnosis\Core
  */
@@ -122,10 +126,6 @@ class Privacy {
 		$exporters['agnosis-contact-messages'] = [
 			'exporter_friendly_name' => __( 'Agnosis Contact Messages Sent', 'agnosis' ),
 			'callback'                => [ $this, 'export_contact_messages' ],
-		];
-		$exporters['agnosis-transactions'] = [
-			'exporter_friendly_name' => __( 'Agnosis Transactions', 'agnosis' ),
-			'callback'                => [ $this, 'export_transactions' ],
 		];
 		$exporters['agnosis-preferences'] = [
 			'exporter_friendly_name' => __( 'Agnosis Notification Preferences', 'agnosis' ),
@@ -378,46 +378,6 @@ class Privacy {
 	}
 
 	/** @return array{data: array<int, array{group_id: string, group_label: string, item_id: string, data: array<int, array{name: string, value: string}>}>, done: bool} */
-	public function export_transactions( string $email_address, int $page = 1 ): array {
-		if ( $page > 1 ) {
-			return $this->done();
-		}
-
-		$user = get_user_by( 'email', $email_address );
-		if ( ! $user ) {
-			return $this->done();
-		}
-
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- privacy exporter, bounded to one artist's own rows.
-		$rows = $wpdb->get_results( $wpdb->prepare(
-			"SELECT type, amount, currency, fee, gateway, status, created_at
-			 FROM {$wpdb->prefix}agnosis_transactions WHERE artist_id = %d",
-			$user->ID
-		) );
-
-		$data = [];
-		foreach ( $rows as $i => $row ) {
-			$data[] = [
-				'group_id'    => 'agnosis-transactions',
-				'group_label' => __( 'Agnosis Transactions', 'agnosis' ),
-				'item_id'     => 'agnosis-transaction-' . $i,
-				'data'        => [
-					$this->item( __( 'Type', 'agnosis' ), (string) $row->type ),
-					$this->item( __( 'Amount', 'agnosis' ), (string) $row->amount ),
-					$this->item( __( 'Currency', 'agnosis' ), (string) $row->currency ),
-					$this->item( __( 'Fee', 'agnosis' ), (string) $row->fee ),
-					$this->item( __( 'Gateway', 'agnosis' ), (string) $row->gateway ),
-					$this->item( __( 'Status', 'agnosis' ), (string) $row->status ),
-					$this->item( __( 'Date', 'agnosis' ), (string) $row->created_at ),
-				],
-			];
-		}
-
-		return [ 'data' => $data, 'done' => true ];
-	}
-
-	/** @return array{data: array<int, array{group_id: string, group_label: string, item_id: string, data: array<int, array{name: string, value: string}>}>, done: bool} */
 	public function export_preferences( string $email_address, int $page = 1 ): array {
 		if ( $page > 1 ) {
 			return $this->done();
@@ -482,10 +442,6 @@ class Privacy {
 		$erasers['agnosis-contact-messages'] = [
 			'eraser_friendly_name' => __( 'Agnosis Contact Messages Sent', 'agnosis' ),
 			'callback'              => [ $this, 'erase_contact_messages' ],
-		];
-		$erasers['agnosis-transactions'] = [
-			'eraser_friendly_name' => __( 'Agnosis Transactions', 'agnosis' ),
-			'callback'              => [ $this, 'erase_transactions' ],
 		];
 		$erasers['agnosis-preferences'] = [
 			'eraser_friendly_name' => __( 'Agnosis Notification Preferences', 'agnosis' ),
@@ -695,38 +651,6 @@ class Privacy {
 			'items_removed'  => (bool) $updated,
 			'items_retained' => false,
 			'messages'       => [],
-			'done'           => true,
-		];
-	}
-
-	/** @return array{items_removed: bool, items_retained: bool, messages: array<int, string>, done: bool} */
-	public function erase_transactions( string $email_address, int $page = 1 ): array {
-		if ( $page > 1 ) {
-			return $this->erased();
-		}
-
-		$user = get_user_by( 'email', $email_address );
-		if ( ! $user ) {
-			return $this->erased();
-		}
-
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- privacy eraser, existence check only, no data touched (retained for legal/accounting reasons).
-		$count = (int) $wpdb->get_var( $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_transactions WHERE artist_id = %d",
-			$user->ID
-		) );
-
-		if ( ! $count ) {
-			return $this->erased();
-		}
-
-		return [
-			'items_removed'  => false,
-			'items_retained' => true,
-			'messages'       => [
-				__( 'Transaction (donation/sale) records were kept in full — financial records are subject to a legal retention obligation and are exempt from erasure under GDPR Art. 17(3)(b).', 'agnosis' ),
-			],
 			'done'           => true,
 		];
 	}

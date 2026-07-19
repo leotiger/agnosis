@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-19T15:31+00:00\n"
+"POT-Creation-Date: 2026-07-19T16:27+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:21+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Turkish\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:194
-#: includes/Core/Privacy.php:774 includes/Publishing/SubmissionsPage.php:63
+#: includes/Core/Privacy.php:698 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -149,8 +149,8 @@ msgstr "Ortamı çevirilerle senkronize et"
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
 #: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:303
-#: includes/Admin/TaxonomyLanguageFilter.php:363
+#: includes/Admin/TaxonomyLanguageFilter.php:333
+#: includes/Admin/TaxonomyLanguageFilter.php:393
 msgid "You do not have permission to perform this action."
 msgstr "Bu işlemi gerçekleştirme izniniz yok."
 
@@ -223,7 +223,7 @@ msgstr "Mesaj"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:164
 #: includes/Core/Privacy.php:297 includes/Core/Privacy.php:333
-#: includes/Core/Privacy.php:369 includes/Core/Privacy.php:411
+#: includes/Core/Privacy.php:369
 msgid "Status"
 msgstr "Durum"
 
@@ -3356,17 +3356,17 @@ msgstr ""
 "aşınca, bu sayfa bunun yerine bir e-posta hizmet sağlayıcısı (örn. Brevo'nun "
 "ücretsiz planı) kullanmayı düşünmeniz için bir hatırlatma gösterir."
 
-#: includes/Admin/TaxonomyLanguageFilter.php:246
+#: includes/Admin/TaxonomyLanguageFilter.php:276
 msgid "Sync translations"
 msgstr "Çevirileri senkronize et"
 
-#: includes/Admin/TaxonomyLanguageFilter.php:308
-#: includes/Admin/TaxonomyLanguageFilter.php:367
+#: includes/Admin/TaxonomyLanguageFilter.php:338
+#: includes/Admin/TaxonomyLanguageFilter.php:397
 msgid "Invalid taxonomy."
 msgstr "Geçersiz taksonomi."
 
 #. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of terms created as untranslated placeholders needing a hand edit, 5: number of languages that already had one, 6: number of translations that could not be created at all
-#: includes/Admin/TaxonomyLanguageFilter.php:440
+#: includes/Admin/TaxonomyLanguageFilter.php:470
 #, php-format
 msgid ""
 "%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d created as "
@@ -3376,7 +3376,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one, 5: number of translations that could not be created at all
-#: includes/Admin/TaxonomyLanguageFilter.php:456
+#: includes/Admin/TaxonomyLanguageFilter.php:486
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3386,7 +3386,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:466
+#: includes/Admin/TaxonomyLanguageFilter.php:496
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3396,7 +3396,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:475
+#: includes/Admin/TaxonomyLanguageFilter.php:505
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3406,7 +3406,7 @@ msgstr ""
 "%3$d zaten güncel."
 
 #. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one, 4: number of languages the translation could not be created for at all
-#: includes/Admin/TaxonomyLanguageFilter.php:500
+#: includes/Admin/TaxonomyLanguageFilter.php:530
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d created as placeholders "
@@ -3415,7 +3415,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:509
+#: includes/Admin/TaxonomyLanguageFilter.php:539
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d created as untranslated "
@@ -3424,7 +3424,7 @@ msgid ""
 msgstr ""
 
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:517
+#: includes/Admin/TaxonomyLanguageFilter.php:547
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
@@ -5048,26 +5048,26 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "Şu ana kadar %d olumlu oy kaydedildi."
 msgstr[1] "Şu ana kadar %d olumlu oy kaydedildi."
 
-#: includes/Compat/LinguaForge.php:1777
+#: includes/Compat/LinguaForge.php:1848
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
 "note."
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:2998
+#: includes/Compat/LinguaForge.php:3069
 msgid "is active and configured for"
 msgstr "için etkin ve yapılandırılmıştır"
 
-#: includes/Compat/LinguaForge.php:2999
+#: includes/Compat/LinguaForge.php:3070
 msgid "Subdomain"
 msgstr "Alt alan adı"
 
-#: includes/Compat/LinguaForge.php:3000
+#: includes/Compat/LinguaForge.php:3071
 msgid "routing mode"
 msgstr "yönlendirme modu"
 
-#: includes/Compat/LinguaForge.php:3002
+#: includes/Compat/LinguaForge.php:3073
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5075,39 +5075,39 @@ msgstr ""
 "Bu, Agnosis sanatçı alt alan adlarıyla çakışır — her iki eklenti de aynı alt "
 "alan adı ad alanını talep eder."
 
-#: includes/Compat/LinguaForge.php:3003
+#: includes/Compat/LinguaForge.php:3074
 msgid "Artist subdomain routing is"
 msgstr "Sanatçı alt alan adı yönlendirmesi"
 
-#: includes/Compat/LinguaForge.php:3004
+#: includes/Compat/LinguaForge.php:3075
 msgid "completely inactive"
 msgstr "tamamen devre dışı"
 
-#: includes/Compat/LinguaForge.php:3005
+#: includes/Compat/LinguaForge.php:3076
 msgid "until this is resolved."
 msgstr "bu çözülene kadar."
 
-#: includes/Compat/LinguaForge.php:3007
+#: includes/Compat/LinguaForge.php:3078
 msgid "Fix: open"
 msgstr "Düzeltme: aç"
 
-#: includes/Compat/LinguaForge.php:3008
+#: includes/Compat/LinguaForge.php:3079
 msgid "Settings"
 msgstr "Ayarlar"
 
-#: includes/Compat/LinguaForge.php:3008
+#: includes/Compat/LinguaForge.php:3079
 msgid "Language Router"
 msgstr "Dil Yönlendirici"
 
-#: includes/Compat/LinguaForge.php:3009
+#: includes/Compat/LinguaForge.php:3080
 msgid "and switch the URL strategy to"
 msgstr "ve URL stratejisini şuna değiştir"
 
-#: includes/Compat/LinguaForge.php:3010
+#: includes/Compat/LinguaForge.php:3081
 msgid "Path prefix (subfolder)"
 msgstr "Yol öneki (alt klasör)"
 
-#: includes/Compat/LinguaForge.php:3011
+#: includes/Compat/LinguaForge.php:3082
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5115,23 +5115,23 @@ msgstr ""
 "Bu, LinguaForge varsayılanıdır ve sanatçı alt alan adlarının dil alt "
 "klasörleriyle birlikte var olmasına izin verir"
 
-#: includes/Compat/LinguaForge.php:3016
+#: includes/Compat/LinguaForge.php:3087
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Sanatçı Alt Alan Adı Yönlendirmesi devre dışı"
 
-#: includes/Compat/LinguaForge.php:3026
+#: includes/Compat/LinguaForge.php:3097
 msgid "Open LinguaForge Settings"
 msgstr "LinguaForge Ayarlarını Aç"
 
-#: includes/Core/Activator.php:908 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:911 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis Sanatçı"
 
-#: includes/Core/Activator.php:1020 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1023 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "Gönderimlerim"
 
-#: includes/Core/Activator.php:1204
+#: includes/Core/Activator.php:1207
 msgid "Join"
 msgstr "Katıl"
 
@@ -5232,39 +5232,34 @@ msgstr "Bildirim tercihlerini yönet"
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — unutulmuşluktan filizlenen sanat"
 
-#: includes/Core/Privacy.php:107 includes/Core/Privacy.php:173
-#: includes/Core/Privacy.php:467
+#: includes/Core/Privacy.php:111 includes/Core/Privacy.php:173
+#: includes/Core/Privacy.php:427
 msgid "Agnosis Membership Application"
 msgstr "Agnosis Üyelik Başvurusu"
 
-#: includes/Core/Privacy.php:111 includes/Core/Privacy.php:205
+#: includes/Core/Privacy.php:115 includes/Core/Privacy.php:205
 #: includes/Core/Privacy.php:223 includes/Core/Privacy.php:241
-#: includes/Core/Privacy.php:259 includes/Core/Privacy.php:471
+#: includes/Core/Privacy.php:259 includes/Core/Privacy.php:431
 msgid "Agnosis Governance Participation"
 msgstr "Agnosis Yönetişim Katılımı"
 
-#: includes/Core/Privacy.php:115 includes/Core/Privacy.php:294
-#: includes/Core/Privacy.php:475
+#: includes/Core/Privacy.php:119 includes/Core/Privacy.php:294
+#: includes/Core/Privacy.php:435
 msgid "Agnosis Newsletter Subscription"
 msgstr "Agnosis Bülten Aboneliği"
 
-#: includes/Core/Privacy.php:119 includes/Core/Privacy.php:327
-#: includes/Core/Privacy.php:479
+#: includes/Core/Privacy.php:123 includes/Core/Privacy.php:327
+#: includes/Core/Privacy.php:439
 msgid "Agnosis Newsletter Delivery History"
 msgstr "Agnosis Bülten Teslim Geçmişi"
 
-#: includes/Core/Privacy.php:123 includes/Core/Privacy.php:362
-#: includes/Core/Privacy.php:483
+#: includes/Core/Privacy.php:127 includes/Core/Privacy.php:362
+#: includes/Core/Privacy.php:443
 msgid "Agnosis Contact Messages Sent"
 msgstr "Agnosis İletişim Mesajları Gönderildi"
 
-#: includes/Core/Privacy.php:127 includes/Core/Privacy.php:403
-#: includes/Core/Privacy.php:487
-msgid "Agnosis Transactions"
-msgstr "Agnosis İşlemleri"
-
-#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:448
-#: includes/Core/Privacy.php:491
+#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:408
+#: includes/Core/Privacy.php:447
 msgid "Agnosis Notification Preferences"
 msgstr "Agnosis Bildirim Tercihleri"
 
@@ -5286,7 +5281,6 @@ msgstr "Çözümlenme tarihi"
 
 #: includes/Core/Privacy.php:208 includes/Core/Privacy.php:226
 #: includes/Core/Privacy.php:244 includes/Core/Privacy.php:262
-#: includes/Core/Privacy.php:406
 msgid "Type"
 msgstr "Tür"
 
@@ -5296,7 +5290,7 @@ msgstr "Topluluk onayı verildi"
 
 #: includes/Core/Privacy.php:210 includes/Core/Privacy.php:228
 #: includes/Core/Privacy.php:246 includes/Core/Privacy.php:264
-#: includes/Core/Privacy.php:412 includes/Publishing/ReviewConfirm.php:817
+#: includes/Publishing/ReviewConfirm.php:817
 msgid "Date"
 msgstr "Tarih"
 
@@ -5364,23 +5358,7 @@ msgstr "IP adresi"
 msgid "Sent at"
 msgstr "Gönderilme tarihi"
 
-#: includes/Core/Privacy.php:407
-msgid "Amount"
-msgstr "Tutar"
-
-#: includes/Core/Privacy.php:408
-msgid "Currency"
-msgstr "Para birimi"
-
-#: includes/Core/Privacy.php:409
-msgid "Fee"
-msgstr "Ücret"
-
-#: includes/Core/Privacy.php:410
-msgid "Gateway"
-msgstr "Ağ geçidi"
-
-#: includes/Core/Privacy.php:519
+#: includes/Core/Privacy.php:475
 msgid ""
 "Your membership application/account is still active. To remove this data, "
 "use the \"leave the network\" link from any Agnosis email, or ask an "
@@ -5390,7 +5368,7 @@ msgstr ""
 "bir Agnosis e-postasındaki \"ağdan ayrıl\" bağlantısını kullanın veya bir "
 "yöneticiye sorun."
 
-#: includes/Core/Privacy.php:539
+#: includes/Core/Privacy.php:495
 msgid ""
 "Your biography, statement, and portfolio link were erased. Your email "
 "address was kept on file — your account is currently banned, and it's the "
@@ -5400,11 +5378,11 @@ msgstr ""
 "kayıtlarda tutuldu — hesabınız şu anda yasaklı ve bu, sitenin bunu "
 "uygulamaya devam edebilmesinin tek yolu."
 
-#: includes/Core/Privacy.php:613 includes/Core/Privacy.php:685
+#: includes/Core/Privacy.php:569 includes/Core/Privacy.php:641
 msgid "[message removed]"
 msgstr "[mesaj kaldırıldı]"
 
-#: includes/Core/Privacy.php:624
+#: includes/Core/Privacy.php:580
 msgid ""
 "Vouch messages you wrote were redacted. Governance votes you cast were kept "
 "as-is — a vote is a community record, not personal data, and removing it "
@@ -5414,7 +5392,7 @@ msgstr ""
 "gibi korundu — bir oy topluluğun kaydıdır, kişisel veri değildir; onu "
 "kaldırmak, verilmiş ve kesinleşmiş bir kararı sessizce değiştirmek olurdu."
 
-#: includes/Core/Privacy.php:667
+#: includes/Core/Privacy.php:623
 msgid ""
 "Past newsletter delivery records were anonymized; per-issue delivery counts "
 "were kept for statistics."
@@ -5422,17 +5400,7 @@ msgstr ""
 "Geçmiş bülten teslim kayıtları anonimleştirildi; istatistikler için sayısal "
 "teslim sayıları korundu."
 
-#: includes/Core/Privacy.php:728
-msgid ""
-"Transaction (donation/sale) records were kept in full — financial records "
-"are subject to a legal retention obligation and are exempt from erasure "
-"under GDPR Art. 17(3)(b)."
-msgstr ""
-"İşlem (bağış/satış) kayıtları tam olarak korundu — finansal kayıtlar yasal "
-"saklama yükümlülüğüne tabidir ve GDPR Madde 17(3)(b) kapsamında silinmeden "
-"muaftır."
-
-#: includes/Core/Privacy.php:766
+#: includes/Core/Privacy.php:690
 msgid ""
 "Agnosis is a federated art-publishing plugin. The following is a starting "
 "point for describing what it collects — review and adapt it to your site's "
@@ -5442,11 +5410,11 @@ msgstr ""
 "topladığını açıklamak için bir başlangıç noktasıdır — yayımlamadan önce "
 "sitenizin gerçek yapılandırmasına göre gözden geçirip uyarlayın."
 
-#: includes/Core/Privacy.php:767
+#: includes/Core/Privacy.php:691
 msgid "What personal data we collect and why"
 msgstr "Hangi kişisel verileri topluyoruz ve neden"
 
-#: includes/Core/Privacy.php:768
+#: includes/Core/Privacy.php:692
 msgid ""
 "When you apply to join, we store your email address, display name, "
 "biography, statement, and portfolio link to run the community vouching "
@@ -5465,11 +5433,11 @@ msgstr ""
 "gelecekteki sayıları göndermek için e-posta adresinizi (ve iletişim "
 "mesajlarında IP adresinizi) saklarız."
 
-#: includes/Core/Privacy.php:769
+#: includes/Core/Privacy.php:693
 msgid "Who we share it with"
 msgstr "Bunu kimlerle paylaşıyoruz"
 
-#: includes/Core/Privacy.php:770
+#: includes/Core/Privacy.php:694
 msgid ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
@@ -5487,11 +5455,11 @@ msgstr ""
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
 "Fediverse) as part of this plugin's core federation feature."
 
-#: includes/Core/Privacy.php:771
+#: includes/Core/Privacy.php:695
 msgid "How long we retain your data"
 msgstr "Verilerinizi ne kadar süreyle saklıyoruz"
 
-#: includes/Core/Privacy.php:772
+#: includes/Core/Privacy.php:696
 msgid ""
 "Retention varies by data type; see this site's administrator for specifics. "
 "You can request a copy of, or the erasure of, the personal data described "
@@ -5502,7 +5470,7 @@ msgstr ""
 "silinmesini, bu sitenin standart WordPress veri talebi araçlarını kullanarak "
 "istediğiniz zaman talep edebilirsiniz."
 
-#: includes/Core/Privacy.php:800
+#: includes/Core/Privacy.php:724
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
 "Approved posts are published publicly and shared across the Fediverse — this "
@@ -5512,7 +5480,7 @@ msgstr ""
 "tarafından işlenebilir. Onaylanan gönderiler herkese açık olarak yayımlanır "
 "ve Fediverse genelinde paylaşılır — bu, sonradan tamamen geri alınamaz."
 
-#: includes/Core/Privacy.php:801
+#: includes/Core/Privacy.php:725
 msgid ""
 "Your message may be reviewed by an automated content filter before being "
 "sent to the artist."
@@ -5521,12 +5489,12 @@ msgstr ""
 "tarafından incelenebilir."
 
 #. translators: %s: link to the site's Privacy Policy page
-#: includes/Core/Privacy.php:809
+#: includes/Core/Privacy.php:733
 #, php-format
 msgid "See our %s for details."
 msgstr "Ayrıntılar için %s sayfamıza bakın."
 
-#: includes/Core/Privacy.php:810
+#: includes/Core/Privacy.php:734
 msgid "Privacy Policy"
 msgstr "Gizlilik Politikası"
 
@@ -7665,3 +7633,27 @@ msgstr "gönderimler"
 msgctxt "block keyword"
 msgid "review"
 msgstr "inceleme"
+
+#~ msgid "Agnosis Transactions"
+#~ msgstr "Agnosis İşlemleri"
+
+#~ msgid "Amount"
+#~ msgstr "Tutar"
+
+#~ msgid "Currency"
+#~ msgstr "Para birimi"
+
+#~ msgid "Fee"
+#~ msgstr "Ücret"
+
+#~ msgid "Gateway"
+#~ msgstr "Ağ geçidi"
+
+#~ msgid ""
+#~ "Transaction (donation/sale) records were kept in full — financial records "
+#~ "are subject to a legal retention obligation and are exempt from erasure "
+#~ "under GDPR Art. 17(3)(b)."
+#~ msgstr ""
+#~ "İşlem (bağış/satış) kayıtları tam olarak korundu — finansal kayıtlar "
+#~ "yasal saklama yükümlülüğüne tabidir ve GDPR Madde 17(3)(b) kapsamında "
+#~ "silinmeden muaftır."
