@@ -7,6 +7,7 @@ docs/
 
 # Developer / project documentation
 SECURITY.md
+CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 CHANGELOG.md
 README.md

@@ -4,6 +4,17 @@
 
 Agnosis is a free, federated WordPress plugin for independent artists. Artists who are great at creating — but not at promoting — send an email with their artwork. Agnosis handles the rest.
 
+## Who is this for?
+
+Agnosis was designed for one shape — an open artist collective that vouches its own members in — but the underlying workflow (email in → AI polish → curated review → multilingual publish → federate) fits a few others too:
+
+- **Artist collectives / open communities** — the designed case, and the default out of the box. Existing artists vouch new ones in by email vote; departures work the same way, by community vote or self-removal.
+- **Galleries and curated programs** — turn community voting off (Settings → Community → "Admin approval only") and every admission and removal becomes a direct admin call instead of a community vote. Pair it with the sensitive-medium flag for explicit work, and reshape the medium vocabulary — an ordinary taxonomy, not hardcoded, and manageable per-language from the Tags/Mediums admin screens — to match the gallery's actual program.
+- **Theatre/art schools and student showcases** — admin-approval mode fits an instructor-curated flow, and `agnosis_event` covers performances and exhibitions directly; mediums can become "Stage Design / Costume / Performance / …" in any of the 18 supported languages. Two things worth knowing before using Agnosis for a school: the platform assumes adult artists (public attribution, a public email workflow, and federation of published work) — a deployment involving minors needs its own consent/guardian handling, which is a policy decision for the school to make, not something Agnosis enforces; and there's no built-in cohort/semester structure — a "Class of 2027" grouping is a plain custom taxonomy away, but nothing ships it today.
+- **Writers' collectives and literary magazines** — already a real fit, not a stretch: Poetry and Essay are canonical medium terms, a poster generator gives text-only submissions the same visual presence in galleries and federation that a photograph gets, and the HTML-only-email fallback matters most for exactly these submitters.
+
+**Honest limits:** one Agnosis install is one community — a school with several departments needs either separate installs or one shared vocabulary across all of them; the medium taxonomy is flat, so a deployment that wants nested categories (e.g. Performance > Dance / Drama) has to model that itself; and there's no commerce yet (see Features below).
+
 ## How it works
 
 1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `replace@`, `remove@`, and `goodbye@`
@@ -34,7 +45,7 @@ Agnosis is a free, federated WordPress plugin for independent artists. Artists w
 - **Node identity** — RSA key pair per node; signed peer-to-peer communication
 - **Commerce (planned)** — a future revenue layer of optional visitor donations and art sales, with a configurable transaction fee, is planned and partly scaffolded in Settings → Commerce; the donation/store mechanism itself hasn't been built yet, so running a node has no revenue feature to enable today. Always free for artists to participate
 - **Agnosis Theme** — companion FSE block theme with black-and-white palette, CPT templates, and a gallery overview block
-- **Composer dependencies** — the plugin ZIP ships `webklex/php-imap` (the IMAP intake transport) along with its own dependency tree (`illuminate/*`, `symfony/*`, `nesbot/carbon`, `doctrine/inflector`, `voku/portable-ascii`) — all MIT-licensed, GPL-compatible. These currently ship un-prefixed (a namespace-collision risk if another active plugin bundles a different version of the same packages); prefixing the tree (or replacing webklex with a slimmer IMAP layer) is a planned pre-1.0.0 item — see CHANGELOG.md
+- **Composer dependencies** — the plugin ZIP ships `webklex/php-imap` (the IMAP intake transport) along with its own dependency tree (`illuminate/*`, `symfony/*`, `nesbot/carbon`, `doctrine/inflector`, `voku/portable-ascii`) — all MIT-licensed, GPL-compatible. These ship namespace-prefixed (via [Strauss](https://github.com/BrianHenryIE/strauss), since 0.9.30) into `vendor-prefixed/` under `Agnosis\Vendor\*`, so they can never collide with another active plugin bundling a different version of the same packages
 
 ## Requirements
 
@@ -154,10 +165,11 @@ includes/
   Compat/                LinguaForge integration
 blocks/                  Gutenberg blocks (dynamic PHP render + frontend JS/CSS)
 languages/               Translations (.pot/.po/.mo + compiled .l10n.php caches)
-agnosis-theme/           Companion FSE block theme (separate zip)
 dev/                     Dev tooling (never ships in release zip)
 tests/                   PHPUnit unit + integration suites
 ```
+
+`agnosis-theme/` (the companion FSE block theme) is a separate sibling repository and zip, not a directory inside this one.
 
 ## Contributing
 

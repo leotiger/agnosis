@@ -39,3 +39,44 @@ selectable vocabulary or clutters the admin's term list.
 canonical explanatory text per medium anywhere in the codebase today. An
 admin can add one manually under Artwork → Mediums if desired; it just
 isn't part of the shipped default.
+
+## Multilingual terms and syncing
+
+> Source: `Admin\TaxonomyLanguageFilter`, `Admin\LanguageAwareTermsListTable`,
+> `Compat\LinguaForge` (`sync_term_across_languages()` /
+> `sync_all_terms_across_languages()`), `Admin\ArtworkMediumSync`.
+
+On a multilingual site (Lingua Forge active), every medium term above also
+exists in an AI-translated copy for each configured language — a French
+site sees "Peinture à l'huile" alongside the admin-curated "Oil Painting."
+Translated terms live in the *same* `agnosis_medium` taxonomy as the ones
+above, not a separate list — WordPress's own term list has no concept of
+"language," so Agnosis scopes what's shown instead.
+
+**Artwork → Mediums shows only your own primary-language vocabulary by
+default.** A language dropdown above the list switches to any one
+configured language's translated terms at a time; translated terms never
+mix into the default view, so the 10 canonical terms above (or however many
+an admin has added) stay the list an admin actually manages, whatever the
+site's language count. The same dropdown and behavior apply to Posts →
+Tags.
+
+**Two ways to fill in missing translations on demand**, both gated behind
+the `manage_categories` capability:
+
+- **"Sync translations"** (row action, primary-language terms only) —
+  creates any missing translated copy of that one term, across every
+  configured language, in one click.
+- **"Sync all translations"** (button above the list) — runs the same sync
+  across every primary-language term at once, for filling in a whole
+  backlog rather than clicking through one term at a time. On a large
+  vocabulary this can take more than one click: the action stops cleanly
+  after about 20 seconds of work and reports how many terms are left —
+  clicking it again picks up exactly where it stopped, never redoing work.
+
+**Editing an artwork's medium after it's published propagates
+automatically** to that artwork's already-translated sibling posts. A
+"Medium translations" box on the artwork edit screen, plus a matching bulk
+action on the artwork list screen, can also trigger that same propagation
+on demand — useful for artwork/sibling pairs that drifted out of sync
+before the automatic version existed.

@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.38';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.38/agnosis-0.9.38.zip';
+	$version      = '0.9.39';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.39/agnosis-0.9.39.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,10 +52,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.38.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.38 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.39.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.39 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '6a5f83d931931a348b54357b2bfeec0987dd036f19905b3a88bb00c9192ee914';
+	$sha256 = '';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -67,6 +67,15 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.39</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> The &#8220;Sync all translations&#8221; button on the Tags/Mediums screens no longer risks silently timing out on a large vocabulary. It now stops cleanly after about 20 seconds of work and tells you how many terms are left &#8212; click it again to continue exactly where it stopped.</li>' .
+			'<li><strong>Fixed:</strong> Two languages that happen to translate a term to the same word (e.g. &#8220;Fotografie&#8221; in both German and Dutch) no longer permanently fail that language&#8217;s sync &#8212; it&#8217;s now resolved automatically, and any translation that genuinely couldn&#8217;t be created is now called out in the notice instead of silently disappearing.</li>' .
+			'<li><strong>Fixed:</strong> Corrected several wrong-match translations left over from an earlier automated translation-file update. The translation build process now automatically clears any uncertain matches going forward so they get retranslated properly instead of shipping a plausible-looking but wrong guess.</li>' .
+			'<li><strong>Fixed:</strong> A few small polish issues on the Tags/Mediums language filter added last version &#8212; an &#8220;All languages (unfiltered)&#8221; escape hatch for a term flagged with a since-removed language, search no longer resets the language view, and syncing a term no longer bounces you back to page 1 of the list.</li>' .
+			'<li><strong>Fixed:</strong> A remote Fediverse account that deletes itself is now cleaned up from your followers list even when its signing key can no longer be fetched at all (a known Mastodon-ecosystem timing quirk) &#8212; previously that follower record could be left behind indefinitely.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.38</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> The Tags and Mediums admin screens (Posts &#8594; Artwork &#8594; Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language &#8212; no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a &#8220;Sync translations&#8221; action to create a term&#8217;s translation in every configured language on demand, and editing an artwork&#8217;s medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.</li>' .
@@ -74,12 +83,6 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 			'<li><strong>Added:</strong> A new &#8220;Medium translations&#8221; box on each artwork&#8217;s edit screen, plus a matching bulk action on the artwork list screen, pushes an artwork&#8217;s medium onto its already-translated sibling posts on demand.</li>' .
 			'<li><strong>Fixed:</strong> Term translations are now linked to their source term by a stable ID instead of by matching names, so re-syncing after a re-translation no longer creates near-duplicate terms.</li>' .
 			'<li><strong>Fixed:</strong> Tags and mediums created automatically while AI-tagging a submission in a non-primary language are now correctly recorded as translations, instead of silently joining the primary-language vocabulary.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.37</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> New &#8220;Artwork Copyright&#8221; block automatically shows a &#8220;&#169; {year} {artist name}&#8221; credit line on every single artwork page &#8212; the year comes from the artwork&#8217;s own publish date, the name from the artist. Font size, color, and font family are all configurable from the block&#8217;s own Inspector panel.</li>' .
-			'<li><strong>Fixed:</strong> The gallery overview&#8217;s medium-filter pills mixed every language&#8217;s translated medium term into one row, offered pills for mediums that had no artwork behind them in the current gallery, and reloaded the whole page on every click. The filter now only shows pills that actually apply to what you&#8217;re browsing, and clicking a pill or a page number updates the gallery instantly instead of reloading the page.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

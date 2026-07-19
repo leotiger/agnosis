@@ -44,7 +44,29 @@ if [ ${#PO_FILES[@]} -gt 0 ] && [ -f "${PO_FILES[0]}" ]; then
         echo "  msgmerge: ${PO}"
         msgmerge --quiet --update --backup=off "${PO}" "${POT_FILE}"
     done
-    echo "✓ All .po files merged. Review fuzzy strings, then run compile-pos.sh."
+    echo "✓ All .po files merged."
+
+    # ---- 5. Clear fuzzy matches (policy: never keep a guessed translation
+    #         in a .po — msgmerge's fuzzy guesses are frequently wrong, see
+    #         AUDIT-0.9.38.md §6b). Blank each fuzzy entry back to a clean
+    #         untranslated string so Loco Translate offers it fresh; the
+    #         .mo/.l10n.php compile step already skips fuzzy entries anyway,
+    #         so nothing user-facing changes — this only stops misleading
+    #         "translated-looking" text from sitting in the .po source. ----
+    echo "→ Clearing fuzzy matches..."
+    TOTAL_CLEARED=0
+    CLEAR_COUNT_FILE="$(mktemp)"
+    for PO in "${PO_FILES[@]}"; do
+        awk -f "${DEV_DIR}/bin/clear-fuzzy.awk" "${PO}" > "${PO}.new" 2>"${CLEAR_COUNT_FILE}"
+        CLEARED="$(cat "${CLEAR_COUNT_FILE}")"
+        mv "${PO}.new" "${PO}"
+        if [ "${CLEARED}" -gt 0 ]; then
+            echo "  cleared ${CLEARED}: ${PO}"
+        fi
+        TOTAL_CLEARED=$(( TOTAL_CLEARED + CLEARED ))
+    done
+    rm -f "${CLEAR_COUNT_FILE}"
+    echo "✓ ${TOTAL_CLEARED} fuzzy entries cleared. Run compile-pos.sh next, then translate freshly in Loco Translate."
 else
     echo "ℹ No .po files found in languages/ — add translations and re-run."
 fi

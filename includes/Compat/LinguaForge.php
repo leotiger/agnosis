@@ -1488,7 +1488,8 @@ class LinguaForge {
 
 	/**
 	 * On-demand sync: ensure every configured target language has a
-	 * translated term for a given PRIMARY-language `agnosis_medium` term,
+	 * translated term for a given PRIMARY-language term on a target taxonomy
+	 * (`agnosis_medium` or `post_tag` — see TaxonomyLanguageFilter::TARGET_TAXONOMIES),
 	 * creating any missing one via AI translation.
 	 *
 	 * Trid-based (TERM_TRID_META), same as sync_taxonomy(): "does a
@@ -1497,45 +1498,51 @@ class LinguaForge {
 	 * name and string-matching it against existing terms. That name-matching
 	 * approach — get_term_by( 'name', $translated_name, $taxonomy ) — is what
 	 * this method used to do, and it's what produced the live incident this
-	 * rework exists to fix: running "Sync all translations" more than once
-	 * created a fresh near-duplicate term instead of recognizing the one
-	 * already there (AI translation isn't guaranteed byte-identical across
-	 * calls), leaving every language bucket in `agnosis_medium` out of the
-	 * 1:1 parity with the primary vocabulary it's supposed to have. With a
+	 * rework exists to fix (originally on `agnosis_medium`, before this
+	 * method's Tags-screen expansion): running "Sync all translations" more
+	 * than once created a fresh near-duplicate term instead of recognizing
+	 * the one already there (AI translation isn't guaranteed byte-identical
+	 * across calls), leaving every language bucket out of the 1:1 parity
+	 * with the primary vocabulary it's supposed to have. With a
 	 * trid link, this method is genuinely idempotent: running it any number
 	 * of times converges on exactly one term per (primary term, language)
 	 * pair and then does nothing further.
 	 *
 	 * Unlike `sync_taxonomy()`, this isn't tied to a specific source/
 	 * translated POST pair — it operates on the TERM itself,
-	 * independent of any artwork, for the "Sync translations" row action on
-	 * the Mediums admin screen (Admin\TaxonomyLanguageFilter). Requested
-	 * directly: translated medium terms otherwise only ever get created as a
-	 * side effect of an artwork being translated — a medium with no artwork
-	 * yet published in some language had no translated term for that
-	 * language at all, even though an admin might want the full vocabulary
-	 * to exist ahead of time (e.g. for a future artist submission form in
-	 * that language).
+	 * independent of any artwork, for the "Sync translations" row action and
+	 * the "Sync all translations" button on the Tags/Mediums admin screens
+	 * (Admin\TaxonomyLanguageFilter). Requested directly for mediums:
+	 * translated terms otherwise only ever get created as a side effect of
+	 * an artwork/post being translated — a term with nothing published yet
+	 * in some language had no translated term for that language at all,
+	 * even though an admin might want the full vocabulary to exist ahead of
+	 * time (e.g. for a future artist submission form in that language).
+	 * Later extended to `post_tag` alongside `agnosis_medium`, since nothing
+	 * about the underlying trid mechanism was medium-specific to begin with.
 	 *
 	 * Deliberately a no-op — returns empty results, does nothing — when
 	 * `$term_id` is itself already a translated term (has
 	 * TRANSLATED_TERM_META): syncing only ever makes sense starting from the
 	 * primary/admin-curated term, not from one of its own translations.
 	 *
-	 * @param int    $term_id  Term ID to sync (must be `agnosis_medium`).
-	 * @param string $taxonomy Taxonomy — always 'agnosis_medium' from the one
-	 *                         call site today (the Mediums admin screen's
-	 *                         row action), kept as a parameter since the
-	 *                         underlying trid mechanism itself is already
-	 *                         taxonomy-generic (see sync_taxonomy()).
-	 * @return array{created: string[], skipped: string[]} Language codes a
-	 *         translated term was newly created for, vs. already present —
-	 *         for the admin notice after redirect.
+	 * @param int    $term_id  Term ID to sync — a primary-language term on
+	 *                         one of TaxonomyLanguageFilter::TARGET_TAXONOMIES.
+	 * @param string $taxonomy Taxonomy the term belongs to — `agnosis_medium`
+	 *                         or `post_tag` today; the underlying trid
+	 *                         mechanism itself is fully taxonomy-generic (see
+	 *                         sync_taxonomy()), so this parameter is simply
+	 *                         passed through, not special-cased.
+	 * @return array{created: string[], skipped: string[], failed: string[]}
+	 *         Language codes a translated term was newly created for,
+	 *         already present, or could not be produced at all — for the
+	 *         admin notice after redirect.
 	 */
 	public function sync_term_across_languages( int $term_id, string $taxonomy ): array {
 		$result = [
 			'created' => [],
 			'skipped' => [],
+			'failed'  => [],
 		];
 
 		$term = get_term( $term_id, $taxonomy );
@@ -1566,15 +1573,20 @@ class LinguaForge {
 				// No AI provider configured, or the translation call failed —
 				// translated_term_name() already falls back to the original
 				// name rather than blocking; nothing usable to create here.
+				// Counted as failed (audit §2c) rather than silently
+				// dropped: an operator whose AI key just expired needs a
+				// visible signal, not a notice indistinguishable from
+				// "nothing to do."
+				$result['failed'][] = $lang;
 				continue;
 			}
 
-			$created = wp_insert_term( $translated_name, $taxonomy );
-			if ( is_wp_error( $created ) ) {
+			$created_id = $this->insert_translated_term( $translated_name, $taxonomy, $trid, $lang );
+			if ( null === $created_id ) {
+				$result['failed'][] = $lang;
 				continue;
 			}
 
-			$created_id = (int) $created['term_id'];
 			add_term_meta( $created_id, self::TRANSLATED_TERM_META, $lang, true );
 			add_term_meta( $created_id, self::TERM_TRID_META, $trid, true );
 			$result['created'][] = $lang;
@@ -1582,6 +1594,99 @@ class LinguaForge {
 
 		return $result;
 	}
+
+	/**
+	 * Inserts a translated term, resolving the cross-language homograph
+	 * collision `wp_insert_term()` hits when two languages independently
+	 * translate to the same (or accent-insensitively equal) word — e.g.
+	 * "Fotografie" is both German and Dutch, and "Fotografía"/"Fotografia"
+	 * differ only by an accent AI output isn't guaranteed to keep across
+	 * es/it/pt/ca, which the taxonomy's collation treats as equal.
+	 *
+	 * Added 2026-07-19 (audit §2b, AUDIT-0.9.38.md): the caller used to hand
+	 * `wp_insert_term()`'s `WP_Error` a bare `continue`, which for a
+	 * `term_exists` collision failed that language FOREVER — no trid link
+	 * was ever created, so every future sync re-attempted the identical
+	 * insert and re-failed identically, with nothing counting the loss.
+	 *
+	 * On a `term_exists` collision this resolves the term that's actually
+	 * sitting in the way:
+	 *   - Already carries THIS trid → a lost race (e.g. a concurrent sync
+	 *     request creating the same translation), not a real failure —
+	 *     returns that term's ID so the caller links/re-links it normally.
+	 *   - Carries a DIFFERENT trid, or none at all (an admin-curated primary
+	 *     term, or an orphan) → the colliding term is NOT this trid's
+	 *     translation and must never be claimed as one; retries the insert
+	 *     with an explicit language-suffixed slug (`fotografie-nl`), which
+	 *     `wp_insert_term()`'s own same-name/different-slug allowance lets
+	 *     through even though the (accent-insensitive) name still collides.
+	 *
+	 * @param string $name     Translated term name to insert.
+	 * @param string $taxonomy Taxonomy to insert into.
+	 * @param string $trid     Translation-group ID the new/resolved term must
+	 *                         end up carrying — used only to detect the
+	 *                         lost-race case; the caller is still
+	 *                         responsible for actually writing TERM_TRID_META.
+	 * @param string $lang     Target language code, used only to build a
+	 *                         disambiguating slug on collision.
+	 * @return int|null The term ID to link, or null if insertion could not
+	 *                   be resolved at all (a non-`term_exists` WP_Error, or
+	 *                   the suffixed-slug retry itself also failed).
+	 */
+	private function insert_translated_term( string $name, string $taxonomy, string $trid, string $lang ): ?int {
+		$created = wp_insert_term( $name, $taxonomy );
+
+		if ( ! is_wp_error( $created ) ) {
+			return (int) $created['term_id'];
+		}
+
+		if ( 'term_exists' !== $created->get_error_code() ) {
+			return null;
+		}
+
+		$existing_id = (int) $created->get_error_data( 'term_exists' );
+		if ( $existing_id > 0 && $trid === get_term_meta( $existing_id, self::TERM_TRID_META, true ) ) {
+			return $existing_id; // Lost race against itself — same trid already landed here.
+		}
+
+		// A different trid group (or a trid-less primary term) is sitting on
+		// this exact name — never claim it. Retry once with a disambiguating
+		// slug rather than the auto-generated one, which is what triggers
+		// wp_insert_term()'s duplicate-name block in the first place.
+		$retried = wp_insert_term(
+			$name,
+			$taxonomy,
+			[ 'slug' => sanitize_title( $name . '-' . $lang ) ]
+		);
+
+		return is_wp_error( $retried ) ? null : (int) $retried['term_id'];
+	}
+
+	/**
+	 * Wall-clock budget for one `sync_all_terms_across_languages()` request,
+	 * in seconds.
+	 *
+	 * Added 2026-07-19 (audit §2a, AUDIT-0.9.38.md): each missing (term,
+	 * language) pair the loop below finds is one live AI call
+	 * (`translated_term_name()` → `SubmissionTranslator::translate_text()`).
+	 * On the vocabulary size the live site has already demonstrated (746
+	 * tags observed pre-cleanup) × 17 target languages, a first run from a
+	 * cold cache is potentially thousands of sequential AI calls — PHP's
+	 * `max_execution_time`, the gateway timeout, and the AI provider's rate
+	 * limit would all be hit long before it finished, and the operator got a
+	 * browser error page with no notice either way.
+	 *
+	 * 20s is comfortably inside every default PHP/webserver timeout
+	 * (`max_execution_time` defaults to 30s, most gateway timeouts are
+	 * 30-60s) while still making real progress per click on a typical AI
+	 * provider's per-call latency. The loop already persists each completed
+	 * term before starting the next (term created + trid-linked, cache entry
+	 * written — see `sync_term_across_languages()`), so stopping cleanly at
+	 * this boundary turns that existing resumability into an actual UX
+	 * rather than an accident an operator has to discover by re-clicking a
+	 * button that appeared to fail.
+	 */
+	private const SYNC_ALL_TIME_BUDGET_SECONDS = 20;
 
 	/**
 	 * Runs `sync_term_across_languages()` across EVERY primary-language term
@@ -1597,17 +1702,30 @@ class LinguaForge {
 	 * targeting terms with zero posts using them yet — those would be
 	 * silently skipped entirely under the default hide_empty behavior.
 	 *
+	 * Time-bounded to SYNC_ALL_TIME_BUDGET_SECONDS (see that constant's own
+	 * docblock): the deadline is only ever checked BETWEEN terms, never
+	 * mid-term, so a term already in progress always finishes its full
+	 * per-language loop before the method returns — nothing here can leave a
+	 * term half-synced across languages. Reaching the deadline sets
+	 * `timed_out` and stops there; the caller's redirect notice is
+	 * responsible for telling the operator to click again.
+	 *
 	 * @param string $taxonomy Taxonomy to sync — 'agnosis_medium' or 'post_tag'.
-	 * @return array{terms: int, created: int, skipped: int} Count of primary-
-	 *         language terms processed, and the totals (summed across all of
-	 *         them) of newly-created vs. already-present translated terms —
-	 *         for the admin notice after redirect.
+	 * @return array{terms: int, total: int, created: int, skipped: int, failed: int, timed_out: bool}
+	 *         Count of primary-language terms processed this request vs. the
+	 *         total eligible, the totals (summed across processed terms) of
+	 *         newly-created / already-present / could-not-produce translated
+	 *         terms, and whether the time budget was hit before every term
+	 *         was reached — for the admin notice after redirect.
 	 */
 	public function sync_all_terms_across_languages( string $taxonomy ): array {
 		$result = [
-			'terms'   => 0,
-			'created' => 0,
-			'skipped' => 0,
+			'terms'     => 0,
+			'total'     => 0,
+			'created'   => 0,
+			'skipped'   => 0,
+			'failed'    => 0,
+			'timed_out' => false,
 		];
 
 		$primary_terms = get_terms(
@@ -1627,9 +1745,17 @@ class LinguaForge {
 			return $result;
 		}
 
+		$result['total'] = count( $primary_terms );
+		$deadline        = microtime( true ) + self::SYNC_ALL_TIME_BUDGET_SECONDS;
+
 		foreach ( $primary_terms as $term ) {
 			if ( ! $term instanceof \WP_Term ) {
 				continue;
+			}
+
+			if ( microtime( true ) >= $deadline ) {
+				$result['timed_out'] = true;
+				break;
 			}
 
 			$term_result = $this->sync_term_across_languages( $term->term_id, $taxonomy );
@@ -1637,6 +1763,7 @@ class LinguaForge {
 			++$result['terms'];
 			$result['created'] += count( $term_result['created'] );
 			$result['skipped'] += count( $term_result['skipped'] );
+			$result['failed']  += count( $term_result['failed'] );
 		}
 
 		return $result;

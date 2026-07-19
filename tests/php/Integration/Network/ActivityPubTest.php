@@ -497,6 +497,167 @@ class ActivityPubTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Twelfth audit §4a — key-410 corroboration for a self-Delete. The
+	// signature bytes themselves are never checked in these tests: a genuine
+	// 410 makes fetch_public_key() fail before openssl_verify() is ever
+	// reached, so the Signature header only needs to be STRUCTURALLY valid
+	// (parseable keyId/headers/signature, fresh date, matching digest) — the
+	// signature value itself can be arbitrary. build_delete_request() below
+	// signs for realism anyway, matching build_inbound_signed_request()'s
+	// existing style, but no test here depends on the bytes being correct.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Build a signed Delete request whose keyId's actor document fetch is
+	 * mocked to return $key_fetch_status (410 to exercise corroboration; 200
+	 * with a real key, or 404, to exercise the negative cases).
+	 */
+	private function build_delete_request( string $actor, mixed $activity_object, string $key_actor_url, int $key_fetch_status ): \WP_REST_Request {
+		$key = openssl_pkey_new( [ 'private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA ] );
+		$this->assertNotFalse( $key, 'Precondition: openssl must be able to mint an RSA keypair.' );
+		openssl_pkey_export( $key, $private_pem );
+		$public_pem = openssl_pkey_get_details( $key )['key'];
+
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) use ( $key_actor_url, $public_pem, $key_fetch_status ) {
+				if ( strpos( $url, $key_actor_url ) === false ) {
+					return $preempt;
+				}
+				if ( 200 !== $key_fetch_status ) {
+					return [
+						'response' => [ 'code' => $key_fetch_status, 'message' => 'Error' ],
+						'headers'  => [],
+						'body'     => '',
+						'cookies'  => [],
+						'filename' => '',
+					];
+				}
+				return [
+					'response' => [ 'code' => 200, 'message' => 'OK' ],
+					'headers'  => [],
+					'body'     => (string) wp_json_encode( [ 'publicKey' => [ 'publicKeyPem' => $public_pem ] ] ),
+					'cookies'  => [],
+					'filename' => '',
+				];
+			},
+			10,
+			3
+		);
+
+		$body   = (string) wp_json_encode( [ 'type' => 'Delete', 'actor' => $actor, 'object' => $activity_object ] );
+		$date   = gmdate( 'D, d M Y H:i:s \G\M\T' );
+		$digest = 'SHA-256=' . base64_encode( hash( 'sha256', $body, true ) );
+		$path   = '/' . rest_get_url_prefix() . '/agnosis/v1/activitypub/inbox';
+		$host   = (string) wp_parse_url( rest_url( '/' ), PHP_URL_HOST );
+
+		$signing_string = "(request-target): post {$path}\nhost: {$host}\ndate: {$date}\ndigest: {$digest}";
+		openssl_sign( $signing_string, $raw_sig, $private_pem, OPENSSL_ALGO_SHA256 );
+
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_header( 'date', $date );
+		$request->set_header( 'host', $host );
+		$request->set_header( 'digest', $digest );
+		$request->set_header( 'signature', 'keyId="' . $key_actor_url . '#main-key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="' . base64_encode( $raw_sig ) . '"' );
+		$request->set_body( $body );
+
+		return $request;
+	}
+
+	public function test_verify_inbox_signature_corroborates_a_self_delete_on_a_live_410(): void {
+		$request = $this->build_delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, 410 );
+
+		$this->assertTrue( ( new ActivityPub() )->verify_inbox_signature( $request ), 'A self-Delete whose signing key now 410s must be corroborated and accepted.' );
+	}
+
+	public function test_verify_inbox_signature_does_not_corroborate_on_a_non_410_key_fetch_failure(): void {
+		// 404 (or any other failure) is not the server's own explicit
+		// "permanently gone" — could be transient, unlike 410.
+		$request = $this->build_delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, 404 );
+
+		$result = ( new ActivityPub() )->verify_inbox_signature( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
+	}
+
+	public function test_verify_inbox_signature_does_not_corroborate_a_delete_of_something_other_than_the_actor(): void {
+		// object is a status, not the actor itself — not a self-delete shape,
+		// even though the key genuinely 410s.
+		$request = $this->build_delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL . '/statuses/1', self::REMOTE_ACTOR_URL, 410 );
+
+		$result = ( new ActivityPub() )->verify_inbox_signature( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
+	}
+
+	public function test_verify_inbox_signature_does_not_corroborate_when_keyid_owner_does_not_match_the_claimed_actor(): void {
+		// The 410 is real, but for a DIFFERENT actor than the one the body
+		// claims is self-deleting — an attacker cannot make a victim's real
+		// endpoint return 410, but they CAN point their own (already-410ing)
+		// keyId at a forged Delete naming someone else's actor. The
+		// signing_key_owner()===claimed_actor check must reject this.
+		$request = $this->build_delete_request(
+			'https://mastodon.social/users/victim',
+			'https://mastodon.social/users/victim',
+			'https://attacker.example/users/mallory', // keyId's own actor — genuinely 410s, but isn't the victim.
+			410
+		);
+
+		$result = ( new ActivityPub() )->verify_inbox_signature( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
+	}
+
+	public function test_verify_inbox_signature_does_not_corroborate_a_non_delete_activity(): void {
+		// Same 410, same self-referential actor/object shape, but a Follow
+		// rather than a Delete — corroboration must never apply outside the
+		// one narrow activity type it was built for.
+		$request = $this->build_inbound_signed_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL );
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) {
+				if ( strpos( $url, self::REMOTE_ACTOR_URL ) !== false ) {
+					return [
+						'response' => [ 'code' => 410, 'message' => 'Gone' ],
+						'headers'  => [],
+						'body'     => '',
+						'cookies'  => [],
+						'filename' => '',
+					];
+				}
+				return $preempt;
+			},
+			20, // after build_inbound_signed_request()'s own 200-serving filter, so this one wins.
+			3
+		);
+
+		$result = ( new ActivityPub() )->verify_inbox_signature( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
+	}
+
+	public function test_corroborated_self_delete_actually_cleans_up_the_follower_row_end_to_end(): void {
+		$this->seed_follower( self::REMOTE_ACTOR_URL, self::REMOTE_INBOX_URL );
+
+		$request = $this->build_delete_request( self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, self::REMOTE_ACTOR_URL, 410 );
+
+		// Simulates the full REST dispatch: permission_callback, then the
+		// route callback, exactly as WordPress itself would run them in order.
+		$permission = ( new ActivityPub() )->verify_inbox_signature( $request );
+		$this->assertTrue( $permission, 'Precondition: corroboration must pass before inbox() would ever run in the real request lifecycle.' );
+
+		$response = ( new ActivityPub() )->inbox( $request );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertNull( $this->stored_follower_inbox( self::REMOTE_ACTOR_URL ), 'A corroborated self-Delete must actually remove the stored follower row, same as a normally-verified one.' );
+	}
+
+	// -------------------------------------------------------------------------
 	// Ninth audit §3c — object ids dereference: id from get_permalink(), and
 	// content negotiation on artwork singulars.
 	// -------------------------------------------------------------------------

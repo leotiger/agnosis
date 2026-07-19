@@ -1,0 +1,71 @@
+name: QA
+
+# Runs the same "composer qa" gate CONTRIBUTING.md asks contributors to run
+# locally before opening a PR (lint + PHPStan + unit tests + JS/CSS lint) —
+# audit AUDIT-0.9.38.md §7a: this is what turns that instruction from an
+# honor system into something actually enforced for PRs from strangers.
+#
+# Deliberately does NOT run the integration suite: it needs wp-env (Docker)
+# plus the two companion repos (lingua-forge, agnosis-theme) as sibling
+# checkouts, neither of which a public runner has — CONTRIBUTING.md is
+# explicit that an outside contributor may not have them either ("say so in
+# your PR"), so integration stays maintainer-run, exactly as the audit's own
+# fix column scoped it ("unit-suite CI job").
+#
+# No `npm ci`: dev/package-lock.json is deliberately gitignored (see
+# CONTRIBUTING.md's coding-standards section on the TypeScript pin substituting
+# for a lockfile), so there is nothing for `ci` to install from — `npm install`
+# is used instead, which means JS/CSS lint tolerates dependency drift rather
+# than pinning it (audit §7b note i's second option, taken instead of
+# committing a lockfile).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  qa:
+    name: "PHP ${{ matrix.php-version }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: composer
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: dev/vendor
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('dev/composer.lock') }}
+          restore-keys: composer-${{ matrix.php-version }}-
+
+      - name: Install Composer dependencies
+        working-directory: dev
+        run: composer install --prefer-dist --no-progress
+
+      - name: Install Node dependencies
+        working-directory: dev
+        run: npm install
+
+      - name: Run composer qa (lint + PHPStan + unit tests + JS/CSS lint)
+        working-directory: dev
+        run: composer qa

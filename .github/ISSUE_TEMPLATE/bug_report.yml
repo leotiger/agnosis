@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in Agnosis isn't working as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please **don't** use this form for security vulnerabilities — see [SECURITY.md](../../SECURITY.md) instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you expected to happen, and what actually happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: As specific as you can manage — the exact screen, action, and input that triggers it.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: input
+    id: wp-version
+    attributes:
+      label: WordPress version
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP version
+    validations:
+      required: true
+
+  - type: input
+    id: agnosis-version
+    attributes:
+      label: Agnosis version
+      description: "Settings screen, or the `Version:` header in `agnosis.php`."
+    validations:
+      required: true
+
+  - type: input
+    id: email-driver
+    attributes:
+      label: Email driver
+      description: Which inbound-email method is configured (Settings → Email), if the bug touches submission intake.
+    validations:
+      required: false
+
+  - type: input
+    id: ai-providers
+    attributes:
+      label: AI provider(s) configured
+      description: Only relevant if the bug touches AI polishing, tagging, or translation.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log excerpts
+      description: Settings → Logs. A log excerpt is almost always more useful than a screenshot for tracking down what actually happened server-side.
+      render: shell
+    validations:
+      required: false

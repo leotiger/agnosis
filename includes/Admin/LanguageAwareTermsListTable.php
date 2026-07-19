@@ -42,6 +42,19 @@ class LanguageAwareTermsListTable extends \WP_Terms_List_Table {
 	 * for what it actually does (runs the per-term sync across every
 	 * primary-language term on this taxonomy in one pass).
 	 *
+	 * The dropdown's last option, ALL_LANGUAGES_VALUE ("All languages
+	 * (unfiltered)"), is an escape hatch for a term whose translated-language
+	 * meta names a language no longer configured in Lingua Forge — such a
+	 * term is otherwise unreachable from any other selection (audit
+	 * AUDIT-0.9.38.md §2d). Known residual gap, not fixed here: when
+	 * `$languages` is empty (only the primary language is configured at
+	 * all), this whole method returns early below and neither the dropdown
+	 * nor this escape hatch renders — an orphaned term surviving a config
+	 * change that removed every secondary language would still be
+	 * unreachable from this screen. Narrow enough (requires a language
+	 * having been configured, used, then fully removed) that it's recorded
+	 * here rather than restructuring the early return for it.
+	 *
 	 * @param string $which 'top' or 'bottom' — only rendered once, above the table.
 	 * @return void
 	 */
@@ -77,6 +90,7 @@ class LanguageAwareTermsListTable extends \WP_Terms_List_Table {
 				<?php foreach ( $languages as $code => $label ) : ?>
 				<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $current ); ?>><?php echo esc_html( $label ); ?> (<?php echo esc_html( $code ); ?>)</option>
 				<?php endforeach; ?>
+				<option value="<?php echo esc_attr( TaxonomyLanguageFilter::ALL_LANGUAGES_VALUE ); ?>" <?php selected( TaxonomyLanguageFilter::ALL_LANGUAGES_VALUE, $current ); ?>><?php esc_html_e( 'All languages (unfiltered)', 'agnosis' ); ?></option>
 			</select>
 		</div>
 		<?php if ( current_user_can( 'manage_categories' ) ) : ?>
@@ -84,10 +98,41 @@ class LanguageAwareTermsListTable extends \WP_Terms_List_Table {
 			<a
 				href="<?php echo esc_url( TaxonomyLanguageFilter::sync_all_url( $taxonomy ) ); ?>"
 				class="button"
-				onclick="return confirm( '<?php echo esc_js( __( 'Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary.', 'agnosis' ) ); ?>' );"
+				onclick="return confirm( '<?php echo esc_js( __( 'Create missing translations for every primary-language term, in every configured language? On a large vocabulary this can take more than one click — each run picks up where the last one stopped.', 'agnosis' ) ); ?>' );"
 			><?php esc_html_e( 'Sync all translations', 'agnosis' ); ?></a>
 		</div>
 		<?php endif; ?>
 		<?php
+	}
+
+	/**
+	 * Mirrors the current `agnosis_admin_lang` selection into a hidden field
+	 * on the term search form (audit §2e(i)): WP_List_Table::search_box()
+	 * emits its own hidden fields for orderby/order/post_mime_type/detached,
+	 * but knows nothing about this screen's language filter, so submitting a
+	 * search while viewing a non-primary language silently dropped back to
+	 * the primary view — searching *within* the language currently being
+	 * viewed is exactly the workflow the dropdown makes attractive. Renders
+	 * inside the same page-level `<form>` search_box() itself renders into
+	 * (it emits no `<form>` of its own), so appending here lands the hidden
+	 * field in the right place without duplicating any of core's markup.
+	 *
+	 * @param string $text     The "Search terms" label text.
+	 * @param string $input_id ID prefix for the search input.
+	 * @return void
+	 */
+	// phpcs:ignore Squiz.Commenting.FunctionComment.ScalarTypeHintMissing -- matches WP_List_Table::search_box()'s own untyped signature, same rationale as extra_tablenav() above.
+	public function search_box( $text, $input_id ): void {
+		parent::search_box( $text, $input_id );
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only, mirrors the current display state so a search submit doesn't silently reset the language filter.
+		$current = isset( $_GET['agnosis_admin_lang'] )
+			? sanitize_key( wp_unslash( $_GET['agnosis_admin_lang'] ) )
+			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( '' !== $current ) {
+			printf( '<input type="hidden" name="agnosis_admin_lang" value="%s" />', esc_attr( $current ) );
+		}
 	}
 }

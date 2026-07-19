@@ -419,8 +419,14 @@ class ActivityPub {
 	 * Permission callback for POST /activitypub/inbox.
 	 *
 	 * Verifies the HTTP Signature carried in the incoming request before the
-	 * inbox() callback has a chance to mutate any state.  Returns WP_Error on
-	 * failure so WordPress sends the appropriate 4xx without running inbox().
+	 * inbox() callback has a chance to mutate any state. Returns WP_Error on
+	 * failure so WordPress sends the appropriate 4xx without running inbox() —
+	 * except for one narrow, deliberate exception: a signature failure caused
+	 * specifically by the signing actor's key document now returning 410
+	 * Gone, on a request that is itself a self-Delete for that exact actor,
+	 * is corroborated instead of rejected (audit §4a — see
+	 * corroborated_self_delete()'s own docblock for why this is evidence,
+	 * not a bypass).
 	 *
 	 * @param WP_REST_Request $request Incoming request.
 	 * @return true|WP_Error
@@ -428,7 +434,8 @@ class ActivityPub {
 	public function verify_inbox_signature( WP_REST_Request $request ): bool|WP_Error {
 		$verified = HttpSignature::verify( $request );
 		if ( is_wp_error( $verified ) ) {
-			return $verified;
+			$corroborated = $this->corroborated_self_delete( $request, $verified );
+			return is_wp_error( $corroborated ) ? $verified : true;
 		}
 
 		// Audit §3b: verify() proves the request was signed by the key at
@@ -436,6 +443,71 @@ class ActivityPub {
 		// activity claims to be from, so a valid key on some other server
 		// can't forge a Follow/Undo in another actor's name.
 		return HttpSignature::verify_actor_binding( $request );
+	}
+
+	/**
+	 * Audit §4a's optional "key-410 corroboration": when signature
+	 * verification failed specifically because the signing actor's public
+	 * key could no longer be fetched — the remote actor document itself
+	 * returned HTTP 410 Gone, the server's own explicit "this is
+	 * permanently gone," not a timeout or a transient error — and the
+	 * activity being delivered is itself a genuine self-Delete (`object`
+	 * resolves to the same actor as `actor`) for that SAME actor (bound via
+	 * the Signature header's keyId, exactly as verify_actor_binding() binds
+	 * it after a successful verify()), treat that as sufficient evidence to
+	 * accept the deletion without a cryptographic signature check.
+	 *
+	 * A cryptographic check is structurally impossible to ever obtain here:
+	 * once an actor is truly gone, its public key can never be fetched
+	 * again, by anyone, forever — refusing to ever act on the Delete in
+	 * that case (the previous behavior) meant the follower row could only
+	 * ever be cleaned up as a side effect of the next broadcast's dead-inbox
+	 * fast path, and even then only the delivery attempts stopped, not the
+	 * `agnosis_followers` row itself.
+	 *
+	 * This is corroboration, not a bypass, and it's why the actor-binding
+	 * check still runs (via signing_key_owner(), independent of the failed
+	 * signature): an attacker cannot forge a 410 response from a peer
+	 * server for a URL they don't control, so this path only ever accepts a
+	 * Delete for an actor whose own real endpoint has genuinely stopped
+	 * existing — an attacker's request body alone, no matter what it
+	 * claims, can never produce that 410 for someone else's real actor URL.
+	 *
+	 * @param WP_REST_Request $request        Incoming request.
+	 * @param WP_Error         $original_error verify()'s own failure.
+	 * @return true|WP_Error True when corroborated; the original error otherwise.
+	 */
+	private function corroborated_self_delete( WP_REST_Request $request, WP_Error $original_error ): bool|WP_Error {
+		if ( 'ap_key_fetch_failed' !== $original_error->get_error_code() ) {
+			return $original_error;
+		}
+
+		$error_data    = $original_error->get_error_data();
+		$remote_status = is_array( $error_data ) ? (int) ( $error_data['remote_status'] ?? 0 ) : 0;
+		if ( 410 !== $remote_status ) {
+			return $original_error;
+		}
+
+		// get_json_params() only parses when Content-Type is a JSON media
+		// type; fall back to the raw body so a peer sending a bare or unusual
+		// Content-Type on its Delete isn't denied corroboration for a reason
+		// unrelated to the actual claim — the same fallback
+		// HttpSignature::verify_actor_binding() already relies on.
+		$body = $request->get_json_params();
+		if ( ! is_array( $body ) || [] === $body ) {
+			$body = json_decode( $request->get_body(), true );
+		}
+
+		if ( ! is_array( $body ) || 'Delete' !== ( $body['type'] ?? '' ) ) {
+			return $original_error;
+		}
+
+		$claimed_actor = self::self_delete_actor( $body );
+		if ( '' === $claimed_actor || HttpSignature::signing_key_owner( $request ) !== $claimed_actor ) {
+			return $original_error;
+		}
+
+		return true;
 	}
 
 	public function inbox( WP_REST_Request $request ): WP_REST_Response|WP_Error {
@@ -1426,12 +1498,18 @@ class ActivityPub {
 	 * is_permanently_dead_delivery_error()'s own docblock for that half).
 	 *
 	 * Only acts on a genuine self-account-delete: the activity's `object`
-	 * must resolve to the SAME actor as `actor` (the verified signer — see
+	 * must resolve to the SAME actor as `actor` (self_delete_actor()) — the
+	 * verified signer in the normal case (see
 	 * verify_inbox_signature()/HttpSignature::verify_actor_binding(), which
-	 * already ran before inbox() was ever reached). A Delete of some other
-	 * object — a remote post/note, not the account itself — is a different,
-	 * unrelated activity shape this plugin has no reason to act on; `object`
-	 * may be a bare actor-URL string or an AS2 Tombstone
+	 * already ran before inbox() was ever reached), or, when the signature
+	 * itself could never be verified because the actor's key is truly gone,
+	 * an actor corroborated instead by a live HTTP 410 on that same actor's
+	 * document (audit §4a, verify_inbox_signature()'s
+	 * corroborated_self_delete() — also already ran before inbox() is
+	 * reached, and applies the identical actor-binding check). A Delete of
+	 * some other object — a remote post/note, not the account itself — is a
+	 * different, unrelated activity shape this plugin has no reason to act
+	 * on; `object` may be a bare actor-URL string or an AS2 Tombstone
 	 * `{ type: 'Tombstone', id: actorUrl }` (Mastodon uses the Tombstone
 	 * form), both are handled.
 	 *
@@ -1444,12 +1522,9 @@ class ActivityPub {
 	 * @param array<string, mixed> $body
 	 */
 	private function handle_delete( array $body ): WP_REST_Response {
-		$actor  = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
-		$object = $body['object'] ?? '';
+		$actor = self::self_delete_actor( $body );
 
-		$object_id = is_array( $object ) ? (string) ( $object['id'] ?? '' ) : (string) $object;
-
-		if ( '' !== $actor && $actor === $object_id ) {
+		if ( '' !== $actor ) {
 			global $wpdb;
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->delete() parameterizes every value; small, node-scale table.
@@ -1461,6 +1536,26 @@ class ActivityPub {
 		}
 
 		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
+	}
+
+	/**
+	 * Returns the actor URL when `$body` is a genuine self-account-delete
+	 * shape (`object` resolves to the SAME actor as `actor`), or '' when it
+	 * isn't — `object` may be a bare actor-URL string or an AS2 Tombstone
+	 * `{ type: 'Tombstone', id: actorUrl }` (Mastodon uses the Tombstone
+	 * form), both handled identically here. Shared by handle_delete() and
+	 * verify_inbox_signature()'s audit §4a key-410 corroboration check —
+	 * both need the exact same "is this really a self-delete" test.
+	 *
+	 * @param array<string, mixed> $body
+	 */
+	private static function self_delete_actor( array $body ): string {
+		$actor  = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		$object = $body['object'] ?? '';
+
+		$object_id = is_array( $object ) ? (string) ( $object['id'] ?? '' ) : (string) $object;
+
+		return ( '' !== $actor && $actor === $object_id ) ? $actor : '';
 	}
 
 	/**

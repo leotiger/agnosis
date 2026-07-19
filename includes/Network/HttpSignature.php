@@ -136,8 +136,7 @@ class HttpSignature {
 	 * @return true|WP_Error 401 WP_Error when the binding fails.
 	 */
 	public static function verify_actor_binding( WP_REST_Request $request ): bool|WP_Error {
-		$params    = self::parse_signature_header( (string) $request->get_header( 'signature' ) );
-		$key_owner = (string) strtok( (string) ( $params['keyId'] ?? '' ), '#' );
+		$key_owner = self::signing_key_owner( $request );
 
 		// get_json_params() only parses when the Content-Type is a JSON media
 		// type; fall back to the raw body so a peer sending a bare or unusual
@@ -162,6 +161,27 @@ class HttpSignature {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Extracts the base actor URL (fragment stripped) claimed by the incoming
+	 * request's Signature header `keyId` — "who claims to have signed this,"
+	 * independent of whether the signature actually verifies. '' when no
+	 * Signature header (or no keyId within it) is present.
+	 *
+	 * Factored out of verify_actor_binding() so ActivityPub's audit §4a
+	 * key-410 corroboration path (verify_inbox_signature()) can bind a
+	 * claimed self-delete's actor to the SAME identity, without duplicating
+	 * the parse — that binding is exactly as load-bearing there as it is
+	 * here: it's what stops an attacker from pointing an unrelated,
+	 * genuinely-410ing keyId at someone else's actor id in the activity body.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return string
+	 */
+	public static function signing_key_owner( WP_REST_Request $request ): string {
+		$params = self::parse_signature_header( (string) $request->get_header( 'signature' ) );
+		return (string) strtok( (string) ( $params['keyId'] ?? '' ), '#' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -333,10 +353,31 @@ class HttpSignature {
 	}
 
 	/**
+	 * Sentinel stored in the negative cache (in place of an HTTP status) for
+	 * a fetch that failed before any HTTP response existed at all — DNS,
+	 * TLS, timeout, connection refused. Distinct from any real status code
+	 * (which are always numeric), so a cached failure can always tell the
+	 * two apart on a later read.
+	 */
+	private const NO_HTTP_RESPONSE = 'network';
+
+	/**
 	 * Fetch the actor's RSA public key PEM from the remote actor document.
 	 *
 	 * keyId is the actor URL with an optional fragment (e.g., #main-key).
 	 * Results are cached as a transient to avoid hammering remote servers.
+	 *
+	 * A non-200 failure's WP_Error carries the real remote HTTP status as
+	 * `remote_status` error data (audit §4a) — specifically so a caller can
+	 * tell "the actor document returned 410 Gone" apart from any other
+	 * failure reason. ActivityPub::verify_inbox_signature() uses this to
+	 * corroborate a claimed self-Delete for an actor whose key can now never
+	 * be fetched again: an attacker cannot forge a peer server's own 410
+	 * response for a URL they don't control, so this is genuine evidence,
+	 * not something a forged request body alone could fabricate. The
+	 * negative cache (audit §3g note ii) stores the same status so a cached
+	 * failure still carries it on a later read within the 5-minute window,
+	 * rather than degrading to a generic "unknown reason" the second time.
 	 *
 	 * @param  string $key_id Full keyId URL from the Signature header.
 	 * @return string|WP_Error PEM string on success; WP_Error on failure.
@@ -362,11 +403,12 @@ class HttpSignature {
 		// fetch, distinct transient from the success cache above so a key that
 		// starts resolving again isn't held back by a stale failure entry.
 		$failure_cache_key = 'agnosis_ap_key_fail_' . md5( $key_id );
-		if ( false !== get_transient( $failure_cache_key ) ) {
+		$cached_failure    = get_transient( $failure_cache_key );
+		if ( false !== $cached_failure ) {
 			return new WP_Error(
 				'ap_key_fetch_failed',
 				__( 'Actor document could not be fetched (cached failure).', 'agnosis' ),
-				[ 'status' => 502 ]
+				[ 'status' => 502, 'remote_status' => self::cached_remote_status( $cached_failure ) ]
 			);
 		}
 
@@ -380,20 +422,22 @@ class HttpSignature {
 		] );
 
 		if ( is_wp_error( $response ) ) {
-			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
+			set_transient( $failure_cache_key, self::NO_HTTP_RESPONSE, self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_fetch_failed',
 				__( 'Failed to fetch actor document.', 'agnosis' ),
-				[ 'status' => 502 ]
+				[ 'status' => 502, 'remote_status' => 0 ]
 			);
 		}
 
-		if ( 200 !== (int) wp_remote_retrieve_response_code( $response ) ) {
-			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
+		$remote_status = (int) wp_remote_retrieve_response_code( $response );
+
+		if ( 200 !== $remote_status ) {
+			set_transient( $failure_cache_key, (string) $remote_status, self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_fetch_failed',
 				__( 'Actor document returned a non-200 response.', 'agnosis' ),
-				[ 'status' => 502 ]
+				[ 'status' => 502, 'remote_status' => $remote_status ]
 			);
 		}
 
@@ -401,16 +445,34 @@ class HttpSignature {
 		$pem  = $data['publicKey']['publicKeyPem'] ?? null;
 
 		if ( ! is_string( $pem ) || '' === $pem ) {
-			set_transient( $failure_cache_key, '1', self::KEY_NEGATIVE_CACHE_TTL );
+			// A 200 with no usable key is never corroborating evidence of a
+			// self-delete (the document demonstrably still exists) — cached
+			// distinctly from a real non-200 status so it's never confused
+			// with one on a later read.
+			set_transient( $failure_cache_key, (string) $remote_status, self::KEY_NEGATIVE_CACHE_TTL );
 			return new WP_Error(
 				'ap_key_not_found',
 				__( 'Actor document does not contain a publicKey.publicKeyPem field.', 'agnosis' ),
-				[ 'status' => 502 ]
+				[ 'status' => 502, 'remote_status' => $remote_status ]
 			);
 		}
 
 		set_transient( $cache_key, $pem, self::KEY_CACHE_TTL );
 		return $pem;
+	}
+
+	/**
+	 * Parses a negative-cache transient value back into a `remote_status` for
+	 * a cached-failure WP_Error — the numeric HTTP status when one was ever
+	 * recorded, or 0 for NO_HTTP_RESPONSE (or anything else unexpected).
+	 *
+	 * @param mixed $cached_failure The transient's raw value.
+	 * @return int
+	 */
+	private static function cached_remote_status( mixed $cached_failure ): int {
+		return ( is_string( $cached_failure ) && ctype_digit( $cached_failure ) )
+			? (int) $cached_failure
+			: 0;
 	}
 
 	/**

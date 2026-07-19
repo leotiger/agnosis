@@ -65,14 +65,12 @@ msgid "All"
 msgstr "Tout"
 
 #: blocks/gallery-overview/render.php:434
-#, fuzzy
 msgid "No artwork matches this filter yet."
-msgstr "Aucune ligne de la file ne correspond à ce filtre."
+msgstr ""
 
 #: blocks/gallery-overview/render.php:436
-#, fuzzy
 msgid "No artwork to show yet."
-msgstr "Aucune œuvre dans la corbeille."
+msgstr ""
 
 #: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
@@ -4861,9 +4859,9 @@ msgstr ""
 
 #. translators: 1: publish year, 2: artist name
 #: includes/Artist/Profile.php:806
-#, fuzzy, php-format
+#, php-format
 msgid "© %1$s %2$s"
-msgstr "%1$s — %2$s"
+msgstr ""
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:996
@@ -7209,9 +7207,8 @@ msgid "Artist Name"
 msgstr "Nom de l’artiste"
 
 #: blocks/artwork-copyright/editor.js:33
-#, fuzzy
 msgid "© 2026 Artist Name"
-msgstr "Nom de l’artiste"
+msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
@@ -7439,10 +7436,9 @@ msgstr ""
 "s’affiche rien en dehors d’un sous-domaine d’artiste."
 
 #: blocks/artwork-copyright/block.json
-#, fuzzy
 msgctxt "block title"
 msgid "Artwork Copyright"
-msgstr "Œuvre publiée"
+msgstr ""
 
 #: blocks/artwork-copyright/block.json
 msgctxt "block description"

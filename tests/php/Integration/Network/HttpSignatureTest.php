@@ -324,6 +324,84 @@ class HttpSignatureTest extends \WP_UnitTestCase {
 		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
 	}
 
+	// ── 5b. remote_status error data (audit §4a) ─────────────────────────────
+
+	public function test_verify_error_data_carries_the_real_remote_status_on_non_200(): void {
+		$this->mock_actor_fetch( '', 410 );
+
+		$result = HttpSignature::verify( $this->build_signed_request() );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 410, $result->get_error_data()['remote_status'], 'A live 410 must be distinguishable from any other failure reason so ActivityPub can corroborate a self-delete against it.' );
+	}
+
+	public function test_verify_error_data_reports_zero_remote_status_for_a_network_failure(): void {
+		add_filter( 'pre_http_request', static fn () => new \WP_Error( 'http_request_failed', 'Connection refused' ) );
+
+		$result = HttpSignature::verify( $this->build_signed_request() );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 0, $result->get_error_data()['remote_status'], 'A network-level failure (no HTTP response at all) must never be confused with a real 410.' );
+	}
+
+	public function test_verify_error_data_carries_remote_status_through_the_negative_cache(): void {
+		$this->mock_actor_fetch( '', 410 );
+
+		// First request: live fetch, populates the negative cache.
+		HttpSignature::verify( $this->build_signed_request() );
+
+		// Second request within the 5-minute window: served from the negative
+		// cache — the whole point of this test is that remote_status survives
+		// that cache round-trip instead of degrading to "unknown reason".
+		$result = HttpSignature::verify( $this->build_signed_request( [ 'date' => gmdate( 'D, d M Y H:i:s \G\M\T', time() + 1 ) ] ) );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_fetch_failed', $result->get_error_code() );
+		$this->assertSame( 410, $result->get_error_data()['remote_status'] );
+	}
+
+	public function test_verify_error_data_does_not_report_410_when_document_exists_but_has_no_key(): void {
+		// A 200 with no usable publicKey field is never corroborating
+		// evidence of a self-delete — the document demonstrably still exists.
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) {
+				if ( strpos( $url, self::ACTOR_URL ) !== false ) {
+					return [
+						'response' => [ 'code' => 200, 'message' => 'OK' ],
+						'headers'  => [],
+						'body'     => (string) wp_json_encode( [ 'type' => 'Person', 'id' => self::ACTOR_URL ] ),
+						'cookies'  => [],
+						'filename' => '',
+					];
+				}
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		$result = HttpSignature::verify( $this->build_signed_request() );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'ap_key_not_found', $result->get_error_code() );
+		$this->assertNotSame( 410, $result->get_error_data()['remote_status'] ?? null );
+	}
+
+	// ── signing_key_owner() (audit §4a) ──────────────────────────────────────
+
+	public function test_signing_key_owner_returns_the_key_ids_base_url(): void {
+		$request = $this->build_signed_request();
+
+		$this->assertSame( self::ACTOR_URL, HttpSignature::signing_key_owner( $request ) );
+	}
+
+	public function test_signing_key_owner_returns_empty_string_without_a_signature_header(): void {
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+
+		$this->assertSame( '', HttpSignature::signing_key_owner( $request ) );
+	}
+
 	public function test_verify_returns_502_when_actor_document_has_no_public_key(): void {
 		// Serve an actor document without publicKey.
 		add_filter(

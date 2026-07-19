@@ -1,4 +1,4 @@
-COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
+COMBINED COVERAGE  (unit + integration)  —  2026-07-19 13:15
 ──────────────────────────────────────────────────────────────────────
   File                                                           Cov%
 ──────────────────────────────────────────────────────────────────────
@@ -7,11 +7,12 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
   ✅ includes/AI/EnhancementResult.php                          100%
   ✅ includes/AI/MediaAdapter.php                                80%
   🔶 includes/AI/Pipeline.php                                    72%
-  ✅ includes/AI/PromptConfig.php                               100%
+  ✅ includes/AI/PromptConfig.php                                98%
   ✅ includes/AI/Providers/Anthropic.php                         95%
   🔶 includes/AI/Providers/OpenAI.php                            59%
   ✅ includes/AI/Providers/WordPressAI.php                       95%
   ✅ includes/AI/SubmissionTranslator.php                        99%
+  ✅ includes/Admin/ArtworkMediumSync.php                        84%
   ❌ includes/Admin/ContactMessagesPage.php                       0%
   ❌ includes/Admin/Dashboards/AdmissionDashboard.php             0%
   🔶 includes/Admin/Dashboards/AiTestTools.php                   54%
@@ -24,9 +25,11 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
   ❌ includes/Admin/Dashboards/NewsletterDashboard.php           25%
   🔶 includes/Admin/Deliverability.php                           79%
   ❌ includes/Admin/InboxPage.php                                14%
+  ✅ includes/Admin/LanguageAwareTermsListTable.php              80%
   ❌ includes/Admin/QueueController.php                           0%
   ❌ includes/Admin/Settings.php                                 15%
   ✅ includes/Admin/SettingsFields.php                          100%
+  ✅ includes/Admin/TaxonomyLanguageFilter.php                   85%
   ✅ includes/Artist/Admission.php                               89%
   ❌ includes/Artist/AdmissionConfirm.php                         0%
   ✅ includes/Artist/AdmissionNotification.php                   95%
@@ -49,7 +52,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
   ✅ includes/Artist/RemovalVoteConfirm.php                      89%
   ✅ includes/Artist/VoteDigest.php                              90%
   ✅ includes/Artist/VouchConfirm.php                            87%
-  ✅ includes/Compat/LinguaForge.php                             83%
+  ✅ includes/Compat/LinguaForge.php                             86%
   🔶 includes/Core/Activator.php                                 79%
   ✅ includes/Core/CommunityMailer.php                           93%
   ❌ includes/Core/DateFormatter.php                              0%
@@ -76,7 +79,7 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
   🔶 includes/Email/Parser.php                                   66%
   ✅ includes/Email/Webhook.php                                  98%
   ✅ includes/Network/ActivityPub.php                            86%
-  ✅ includes/Network/HttpSignature.php                          90%
+  ✅ includes/Network/HttpSignature.php                          91%
   🔶 includes/Network/Node.php                                   53%
   ❌ includes/Network/SubdomainNavigation.php                    39%
   🔶 includes/Network/SubdomainRouter.php                        66%
@@ -102,4 +105,4 @@ COMBINED COVERAGE  (unit + integration)  —  2026-07-18 19:14
   ❌ includes/Publishing/SubmissionsPage.php                     18%
   ✅ includes/Publishing/TextPosterGenerator.php                 88%
 ──────────────────────────────────────────────────────────────────────
-  TOTAL: 68.81%  (12374 / 17984 statements)
+  TOTAL: 69.37%  (12896 / 18590 statements)

@@ -65,14 +65,12 @@ msgid "All"
 msgstr "Semua"
 
 #: blocks/gallery-overview/render.php:434
-#, fuzzy
 msgid "No artwork matches this filter yet."
-msgstr "Tidak ada baris antrean yang cocok dengan filter ini."
+msgstr ""
 
 #: blocks/gallery-overview/render.php:436
-#, fuzzy
 msgid "No artwork to show yet."
-msgstr "Tidak ada karya di tempat sampah."
+msgstr ""
 
 #: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
@@ -4747,9 +4745,9 @@ msgstr ""
 
 #. translators: 1: publish year, 2: artist name
 #: includes/Artist/Profile.php:806
-#, fuzzy, php-format
+#, php-format
 msgid "© %1$s %2$s"
-msgstr "%1$s — %2$s"
+msgstr ""
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:996
@@ -7052,9 +7050,8 @@ msgid "Artist Name"
 msgstr "Nama Artis"
 
 #: blocks/artwork-copyright/editor.js:33
-#, fuzzy
 msgid "© 2026 Artist Name"
-msgstr "Nama Artis"
+msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
@@ -7280,10 +7277,9 @@ msgstr ""
 "di luar subdomain artis."
 
 #: blocks/artwork-copyright/block.json
-#, fuzzy
 msgctxt "block title"
 msgid "Artwork Copyright"
-msgstr "Karya diterbitkan"
+msgstr ""
 
 #: blocks/artwork-copyright/block.json
 msgctxt "block description"

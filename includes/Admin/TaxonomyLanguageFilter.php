@@ -40,6 +40,18 @@ class TaxonomyLanguageFilter {
 
 	private const TARGET_TAXONOMIES = [ 'agnosis_medium', 'post_tag' ];
 
+	/**
+	 * `?agnosis_admin_lang=` sentinel meaning "don't scope by language at
+	 * all" — the escape hatch for a term whose TRANSLATED_TERM_META names a
+	 * language that's since been removed from Lingua Forge's configuration:
+	 * without this, such a term is excluded from the default view (it has
+	 * the meta) AND from every configured language's view (the meta value
+	 * matches none of them), making it unreachable from any dropdown
+	 * selection (audit AUDIT-0.9.38.md §2d). Not a real language code, so it
+	 * can never collide with one.
+	 */
+	public const ALL_LANGUAGES_VALUE = 'all';
+
 	// -------------------------------------------------------------------------
 	// Language filter (both taxonomies)
 	// -------------------------------------------------------------------------
@@ -142,7 +154,10 @@ class TaxonomyLanguageFilter {
 	/**
 	 * Restricts the query to the primary/admin-curated vocabulary by
 	 * default, or to one specific target language's translated terms when
-	 * `?agnosis_admin_lang=` is present.
+	 * `?agnosis_admin_lang=` is present — or applies no language scoping at
+	 * all when it's ALL_LANGUAGES_VALUE (audit §2d's orphaned-term escape
+	 * hatch: a term flagged for a language no longer in Lingua Forge's
+	 * configuration is otherwise unreachable from any other selection).
 	 *
 	 * @param array<string, mixed> $args       get_terms()'s own args.
 	 * @param string[]             $taxonomies Taxonomies the query is scoped to.
@@ -158,6 +173,10 @@ class TaxonomyLanguageFilter {
 			? sanitize_key( wp_unslash( $_GET['agnosis_admin_lang'] ) )
 			: '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( self::ALL_LANGUAGES_VALUE === $selected ) {
+			return $args;
+		}
 
 		$meta_query = '' === $selected
 			? [ [ 'key' => LinguaForge::TRANSLATED_TERM_META, 'compare' => 'NOT EXISTS' ] ]
@@ -182,6 +201,10 @@ class TaxonomyLanguageFilter {
 	 * only ever hooked to `agnosis_medium_row_actions`/`post_tag_row_actions`
 	 * in the first place, see Core\Plugin).
 	 *
+	 * Carries the current `paged` value into the action URL, when present,
+	 * so handle_sync_term()'s redirect can return the operator to the same
+	 * page instead of always bouncing to page 1 (audit §2d/§2e(iii)).
+	 *
 	 * @param string[] $actions Existing row actions (Edit, Quick Edit, Delete, View).
 	 * @param \WP_Term $term    The term this row belongs to.
 	 * @return string[]
@@ -199,15 +222,21 @@ class TaxonomyLanguageFilter {
 			return $actions;
 		}
 
+		$action_args = [
+			'action'   => 'agnosis_sync_term',
+			'term_id'  => $term->term_id,
+			'taxonomy' => $term->taxonomy,
+		];
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only, mirrors the row's own current page into the row action's URL; not itself an input driving any action.
+		$paged = absint( wp_unslash( $_GET['paged'] ?? 0 ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		if ( $paged > 1 ) {
+			$action_args['paged'] = $paged;
+		}
+
 		$url = wp_nonce_url(
-			add_query_arg(
-				[
-					'action'   => 'agnosis_sync_term',
-					'term_id'  => $term->term_id,
-					'taxonomy' => $term->taxonomy,
-				],
-				admin_url( 'admin-post.php' )
-			),
+			add_query_arg( $action_args, admin_url( 'admin-post.php' ) ),
 			'agnosis_sync_term_' . $term->term_id
 		);
 
@@ -251,7 +280,15 @@ class TaxonomyLanguageFilter {
 	 * admin-post handler for the per-term "Sync translations" row action —
 	 * creates any missing translated copy of this one term across every
 	 * configured language, then redirects back with a plain-language
-	 * summary.
+	 * summary, including how many languages could not be produced at all
+	 * (`agnosis_sync_failed`, audit §2b/§2c).
+	 *
+	 * Carries `paged` through the redirect when the request that triggered
+	 * this action had one (audit §2d/§2e(iii)): the row action only ever
+	 * appears on the primary-language view, so `agnosis_admin_lang` has
+	 * nothing to preserve here, but without `paged` an operator working
+	 * through page 3 of a long primary vocabulary was silently bounced back
+	 * to page 1 after every single sync click.
 	 */
 	public function handle_sync_term(): void {
 		$term_id = absint( wp_unslash( $_GET['term_id'] ?? 0 ) );
@@ -269,16 +306,21 @@ class TaxonomyLanguageFilter {
 
 		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, $taxonomy );
 
-		wp_safe_redirect(
-			add_query_arg(
-				[
-					'taxonomy'             => $taxonomy,
-					'agnosis_sync_created' => count( $result['created'] ),
-					'agnosis_sync_skipped' => count( $result['skipped'] ),
-				],
-				admin_url( 'edit-tags.php' )
-			)
-		);
+		$redirect_args = [
+			'taxonomy'             => $taxonomy,
+			'agnosis_sync_created' => count( $result['created'] ),
+			'agnosis_sync_skipped' => count( $result['skipped'] ),
+			'agnosis_sync_failed'  => count( $result['failed'] ),
+		];
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only pagination state carried through a redirect this method already nonce-checked above; not itself an input driving any action.
+		$paged = absint( wp_unslash( $_GET['paged'] ?? 0 ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		if ( $paged > 1 ) {
+			$redirect_args['paged'] = $paged;
+		}
+
+		wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit-tags.php' ) ) );
 		exit;
 	}
 
@@ -287,6 +329,16 @@ class TaxonomyLanguageFilter {
 	 * same per-term sync across every primary-language term on the given
 	 * taxonomy in one pass (Compat\LinguaForge::sync_all_terms_across_languages()),
 	 * then redirects back with an aggregate summary.
+	 *
+	 * The underlying sync is time-bounded (LinguaForge::SYNC_ALL_TIME_BUDGET_SECONDS,
+	 * audit §2a) rather than guaranteed to finish every term in one request —
+	 * `total`/`timed_out` are carried through the redirect alongside the
+	 * existing counts so `maybe_render_sync_notice()` can tell the operator
+	 * "X of Y done, click again" instead of a bare, possibly-incomplete
+	 * "complete" message. `agnosis_sync_all_failed` (audit §2b/§2c) is
+	 * carried through the same way — languages a translation could not be
+	 * produced for at all, previously absorbed silently into neither
+	 * `created` nor `skipped`.
 	 */
 	public function handle_sync_all_terms(): void {
 		$taxonomy = sanitize_key( wp_unslash( $_GET['taxonomy'] ?? '' ) );
@@ -306,10 +358,13 @@ class TaxonomyLanguageFilter {
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'taxonomy'                 => $taxonomy,
-					'agnosis_sync_all_terms'   => $result['terms'],
-					'agnosis_sync_all_created' => $result['created'],
-					'agnosis_sync_all_skipped' => $result['skipped'],
+					'taxonomy'                   => $taxonomy,
+					'agnosis_sync_all_terms'     => $result['terms'],
+					'agnosis_sync_all_total'     => $result['total'],
+					'agnosis_sync_all_created'   => $result['created'],
+					'agnosis_sync_all_skipped'   => $result['skipped'],
+					'agnosis_sync_all_failed'    => $result['failed'],
+					'agnosis_sync_all_timed_out' => $result['timed_out'] ? '1' : '0',
 				],
 				admin_url( 'edit-tags.php' )
 			)
@@ -319,29 +374,72 @@ class TaxonomyLanguageFilter {
 
 	/**
 	 * Renders a plain-language summary notice after either sync action's
-	 * redirect — per-term ("X created, Y already up to date") or sync-all
-	 * ("N terms processed: X created, Y already up to date"). No-ops
-	 * silently when neither action's query args are present; this is purely
-	 * a courtesy notice for the two actions above, not something any other
-	 * flow needs to trigger.
+	 * redirect — per-term ("X created, Y already up to date") or sync-all,
+	 * which itself now has two possible outcomes since the underlying sync
+	 * is time-bounded (audit §2a): either every eligible term was reached
+	 * ("N terms processed: X created, Y already up to date") or the request
+	 * hit its time budget partway through, in which case the notice says so
+	 * explicitly and tells the operator to click the button again — the sync
+	 * is idempotent and resumable, so re-clicking picks up from where this
+	 * request stopped rather than redoing any work. No-ops silently when
+	 * none of the sync actions' query args are present; this is purely a
+	 * courtesy notice for the actions above, not something any other flow
+	 * needs to trigger.
+	 *
+	 * Both branches now also surface a `failed` count (audit §2c, closed
+	 * alongside §2b): a translation that couldn't be produced at all — no AI
+	 * provider configured, the translate call failed, or a homograph
+	 * collision `insert_translated_term()` couldn't resolve — used to be
+	 * silently absorbed into neither `created` nor `skipped`, so an operator
+	 * whose AI key had expired saw "0 created, 0 already up to date" with no
+	 * way to tell that apart from "nothing to do." Any non-zero `failed`
+	 * escalates the notice to a warning even when the run otherwise
+	 * completed.
 	 */
 	public function maybe_render_sync_notice(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only courtesy notice reflecting the redirect this same class just performed after its own nonce-checked action, no state change here.
 		if ( isset( $_GET['agnosis_sync_all_terms'], $_GET['agnosis_sync_all_created'], $_GET['agnosis_sync_all_skipped'] ) ) {
-			$terms   = (int) $_GET['agnosis_sync_all_terms'];
-			$created = (int) $_GET['agnosis_sync_all_created'];
-			$skipped = (int) $_GET['agnosis_sync_all_skipped'];
+			$terms     = (int) $_GET['agnosis_sync_all_terms'];
+			$total     = isset( $_GET['agnosis_sync_all_total'] ) ? (int) $_GET['agnosis_sync_all_total'] : $terms;
+			$created   = (int) $_GET['agnosis_sync_all_created'];
+			$skipped   = (int) $_GET['agnosis_sync_all_skipped'];
+			$failed    = isset( $_GET['agnosis_sync_all_failed'] ) ? (int) $_GET['agnosis_sync_all_failed'] : 0;
+			$timed_out = isset( $_GET['agnosis_sync_all_timed_out'] ) && '1' === $_GET['agnosis_sync_all_timed_out'];
 			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-			$message = sprintf(
-				/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one */
-				esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date.', 'agnosis' ),
-				$terms,
-				$created,
-				$skipped
-			);
+			if ( $timed_out ) {
+				$message = sprintf(
+					/* translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created */
+					esc_html__( '%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to date, %5$d failed) — this ran out of time before reaching every term. Click "Sync all translations" again to continue; it picks up where this stopped.', 'agnosis' ),
+					$terms,
+					$total,
+					$created,
+					$skipped,
+					$failed
+				);
 
-			wp_admin_notice( $message, [ 'type' => 'success' ] );
+				wp_admin_notice( $message, [ 'type' => 'warning' ] );
+				return;
+			}
+
+			$message = $failed > 0
+				? sprintf(
+					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created */
+					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date, %4$d failed — check the AI provider configuration and run it again for those.', 'agnosis' ),
+					$terms,
+					$created,
+					$skipped,
+					$failed
+				)
+				: sprintf(
+					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one */
+					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date.', 'agnosis' ),
+					$terms,
+					$created,
+					$skipped
+				);
+
+			wp_admin_notice( $message, [ 'type' => $failed > 0 ? 'warning' : 'success' ] );
 			return;
 		}
 
@@ -352,15 +450,24 @@ class TaxonomyLanguageFilter {
 
 		$created = (int) $_GET['agnosis_sync_created'];
 		$skipped = (int) $_GET['agnosis_sync_skipped'];
+		$failed  = isset( $_GET['agnosis_sync_failed'] ) ? (int) $_GET['agnosis_sync_failed'] : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$message = sprintf(
-			/* translators: 1: number of newly-created translated terms, 2: number of languages that already had one */
-			esc_html__( 'Sync complete: %1$d translation(s) created, %2$d language(s) already up to date.', 'agnosis' ),
-			$created,
-			$skipped
-		);
+		$message = $failed > 0
+			? sprintf(
+				/* translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for */
+				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d language(s) already up to date, %3$d failed — check the AI provider configuration and try again.', 'agnosis' ),
+				$created,
+				$skipped,
+				$failed
+			)
+			: sprintf(
+				/* translators: 1: number of newly-created translated terms, 2: number of languages that already had one */
+				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d language(s) already up to date.', 'agnosis' ),
+				$created,
+				$skipped
+			);
 
-		wp_admin_notice( $message, [ 'type' => 'success' ] );
+		wp_admin_notice( $message, [ 'type' => $failed > 0 ? 'warning' : 'success' ] );
 	}
 }

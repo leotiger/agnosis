@@ -64,14 +64,12 @@ msgid "All"
 msgstr "全部"
 
 #: blocks/gallery-overview/render.php:434
-#, fuzzy
 msgid "No artwork matches this filter yet."
-msgstr "没有队列行符合此筛选条件。"
+msgstr ""
 
 #: blocks/gallery-overview/render.php:436
-#, fuzzy
 msgid "No artwork to show yet."
-msgstr "回收站中没有艺术作品。"
+msgstr ""
 
 #: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
@@ -4416,9 +4414,9 @@ msgstr ""
 
 #. translators: 1: publish year, 2: artist name
 #: includes/Artist/Profile.php:806
-#, fuzzy, php-format
+#, php-format
 msgid "© %1$s %2$s"
-msgstr "%1$s — %2$s"
+msgstr ""
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:996
@@ -6566,9 +6564,8 @@ msgid "Artist Name"
 msgstr "艺术家姓名"
 
 #: blocks/artwork-copyright/editor.js:33
-#, fuzzy
 msgid "© 2026 Artist Name"
-msgstr "艺术家姓名"
+msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
@@ -6784,10 +6781,9 @@ msgid ""
 msgstr "链接到当前艺术家自己的子域名首页。在艺术家子域名之外不显示任何内容。"
 
 #: blocks/artwork-copyright/block.json
-#, fuzzy
 msgctxt "block title"
 msgid "Artwork Copyright"
-msgstr "作品已发布"
+msgstr ""
 
 #: blocks/artwork-copyright/block.json
 msgctxt "block description"

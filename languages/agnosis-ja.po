@@ -64,14 +64,12 @@ msgid "All"
 msgstr "すべて"
 
 #: blocks/gallery-overview/render.php:434
-#, fuzzy
 msgid "No artwork matches this filter yet."
-msgstr "このフィルターに一致するキューの行はありません。"
+msgstr ""
 
 #: blocks/gallery-overview/render.php:436
-#, fuzzy
 msgid "No artwork to show yet."
-msgstr "ゴミ箱に作品はありません。"
+msgstr ""
 
 #: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
@@ -4670,9 +4668,9 @@ msgstr ""
 
 #. translators: 1: publish year, 2: artist name
 #: includes/Artist/Profile.php:806
-#, fuzzy, php-format
+#, php-format
 msgid "© %1$s %2$s"
-msgstr "%1$s — %2$s"
+msgstr ""
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:996
@@ -6942,9 +6940,8 @@ msgid "Artist Name"
 msgstr "アーティスト名"
 
 #: blocks/artwork-copyright/editor.js:33
-#, fuzzy
 msgid "© 2026 Artist Name"
-msgstr "アーティスト名"
+msgstr ""
 
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
@@ -7169,10 +7166,9 @@ msgstr ""
 "メイン以外では何も表示しません。"
 
 #: blocks/artwork-copyright/block.json
-#, fuzzy
 msgctxt "block title"
 msgid "Artwork Copyright"
-msgstr "作品公開済み"
+msgstr ""
 
 #: blocks/artwork-copyright/block.json
 msgctxt "block description"
