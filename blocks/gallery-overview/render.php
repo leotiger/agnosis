@@ -5,10 +5,13 @@
  * Proportional, randomised artwork grid across all artists.
  *
  * Logic:
- *   1. Collect all distinct artwork authors.
+ *   1. Collect all distinct artwork authors (or, on an artist's own subdomain,
+ *      just that one artist — see "Artist pool" below).
  *   2. Per-artist budget = ceil( pool_size / artist_count ), min 1.
- *   3. Fill each artist's slot: featured post first (_agnosis_featured=1),
- *      then most-recent posts to exhaust the budget.
+ *   3. Fill each artist's slot: on the shared main gallery, featured post
+ *      first (_agnosis_featured=1), then most-recent posts to exhaust the
+ *      budget. On an artist's own subdomain, promote@ doesn't apply — see
+ *      "Featured artwork first" below — so this is just most-recent-first.
  *   4. Shuffle the assembled pool using a day-based seed so pagination is
  *      stable within a calendar day but the order renews each morning.
  *   5. Apply medium filter and paginate at agnosis_gallery_per_page items/page.
@@ -131,8 +134,20 @@ $agnosis_pool = [];
 foreach ( $agnosis_artist_ids as $agnosis_raw_id ) {
 	$agnosis_artist_id = (int) $agnosis_raw_id;
 
-	// Featured artwork first.
-	$agnosis_featured = get_posts( [
+	// Featured artwork first — only meaningful on the shared main gallery. There,
+	// $agnosis_per_artist can be smaller than an artist's total published output,
+	// so pulling the featured piece first guarantees it survives the per-artist
+	// budget cut below rather than possibly getting crowded out by more-recent
+	// work. On an artist's own subdomain $agnosis_per_artist already equals
+	// $agnosis_pool_target (one "artist" in the whole pool — see the ID-collection
+	// branch above), so every one of that artist's own artworks is included
+	// regardless of this query; and the day-seeded shuffle a few lines down
+	// reorders the entire pool by post ID anyway, so "first" here wouldn't even
+	// survive as a visible position. Skipping it on subdomain avoids a wasted
+	// query and — more importantly — an artist's own single-artist gallery is
+	// not a curatorial context promote@ was designed for; see the ✦ badge
+	// suppression further down for the other half of this.
+	$agnosis_featured = ( null === $agnosis_subdomain_artist_id ) ? get_posts( [
 		'post_type'      => 'agnosis_artwork',
 		'post_status'    => 'publish',
 		'author'         => $agnosis_artist_id,
@@ -144,7 +159,7 @@ foreach ( $agnosis_artist_ids as $agnosis_raw_id ) {
 		'tax_query'      => $agnosis_tax_query,
 		'fields'         => 'ids',
 		'no_found_rows'  => true,
-	] );
+	] ) : [];
 
 	$agnosis_exclude   = $agnosis_featured;
 	$agnosis_remaining = $agnosis_per_artist - count( $agnosis_featured );
@@ -445,7 +460,13 @@ $agnosis_artist_url_for = static function ( int $artist_id ) use ( $agnosis_has_
 		$agnosis_thumb       = wp_get_attachment_image_src( $agnosis_thumb_id, 'agnosis-thumb' );
 		$agnosis_full_src    = (string) get_the_post_thumbnail_url( $agnosis_post->ID, 'full' );
 		$agnosis_meta        = wp_get_attachment_metadata( $agnosis_thumb_id );
-		$agnosis_is_featured = '1' === get_post_meta( $agnosis_post->ID, '_agnosis_featured', true );
+		// Promoting only applies to the shared main gallery (see the pool-
+		// building loop's own comment above) — never show the ✦ badge on an
+		// artist's own subdomain gallery, even for a piece that IS flagged
+		// featured from having been promoted while also appearing on the main
+		// gallery elsewhere.
+		$agnosis_is_featured = null === $agnosis_subdomain_artist_id
+			&& '1' === get_post_meta( $agnosis_post->ID, '_agnosis_featured', true );
 		$agnosis_artist      = get_userdata( $agnosis_artist_id );
 		$agnosis_post_url    = $agnosis_post_url_for( $agnosis_post );
 		$agnosis_art_url     = $agnosis_artist_url_for( $agnosis_artist_id );

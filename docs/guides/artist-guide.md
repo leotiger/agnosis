@@ -64,7 +64,7 @@ Send an event announcement to the events address and include the date and place 
 
 ## Asking to be featured
 
-Want a published piece highlighted on your gallery? Email the promote address with that artwork's exact title in the subject line — no message needed. It becomes your featured piece until you feature another.
+Want a published piece highlighted on the shared main gallery? Email the promote address with that artwork's exact title in the subject line — no message needed. It becomes your featured piece there — marked with a ✦ badge — until you feature another. This only affects the shared main gallery; your own subdomain gallery already shows all of your published work and isn't affected by featuring.
 
 ## Updating, removing, or leaving
 

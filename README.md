@@ -169,7 +169,7 @@ dev/                     Dev tooling (never ships in release zip)
 tests/                   PHPUnit unit + integration suites
 ```
 
-`agnosis-theme/` (the companion FSE block theme) is a separate sibling repository and zip, not a directory inside this one.
+[`agnosis-theme`](https://github.com/leotiger/agnosis-theme) (the companion FSE block theme) is a separate sibling repository and zip, not a directory inside this one.
 
 ## Contributing
 

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Agnosis\Core;
 
 use Agnosis\Artist\BiographyTitle;
+use Agnosis\Compat\LinguaForge;
 use Agnosis\Email\AttachmentStore;
 
 class Activator {
@@ -256,6 +257,20 @@ class Activator {
 		// Artist\BiographyTitle::repair_array_titles()'s own docblock (0.9.23).
 		BiographyTitle::repair_array_titles();
 
+		// Purge any term-translation cache entry poisoned by the same class
+		// of bug as the "Array" repair just above, fixed 0.9.39 in
+		// Compat\LinguaForge::translated_term_name(): a failed term
+		// translation (short, context-free label → AI model returns a
+		// non-scalar JSON value) used to get cached as if it were a genuine
+		// translation, permanently blocking every future retry for that
+		// (taxonomy, term, language) triple — the reported symptom was
+		// "Mixed Media" staying missing from German medium sync no matter
+		// how many times "Sync all translations" was re-run. See
+		// LinguaForge::purge_self_referential_term_translations()'s own
+		// docblock; the actual re-translation happens the next time an
+		// admin clicks Sync, not here.
+		LinguaForge::purge_self_referential_term_translations();
+
 		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
 		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char
 		// UNIQUE index under utf8mb4 exceeds the 767-byte limit on older
@@ -368,6 +383,7 @@ class Activator {
 		self::create_join_page();
 		self::create_about_page();
 		self::create_help_page();
+		self::create_promo_page();
 	}
 
 	/** Runs on plugin activation. */
@@ -1036,20 +1052,44 @@ class Activator {
 	}
 
 	/**
+	 * Create the "Powered by Agnosis" promo page on first activation — as a
+	 * DRAFT, unlike every other managed page above.
+	 *
+	 * This page promotes the plugin itself to a visitor who might want Agnosis
+	 * for their own site, not the running community — an easy-reading summary
+	 * of README.md's opening sections, pointing to the GitHub repo for full
+	 * documentation and installation. Whether to actually publish it (and where
+	 * to link it from) is a call for the site owner, not something activation
+	 * should make unilaterally the way the other managed pages do.
+	 */
+	private static function create_promo_page(): void {
+		self::create_managed_page( 'agnosis_promo_page_id', 'Powered by Agnosis', 'powered-by-agnosis', self::promo_page_content(), 'draft' );
+	}
+
+	/**
 	 * Shared creator for a managed content page. Idempotent: stores the new ID in
-	 * $option and is a no-op when that page already exists and is published. Tags
-	 * the page with _agnosis_managed_page so uninstall.php removes it.
+	 * $option and is a no-op as long as that page still exists in any non-trashed
+	 * status. Tags the page with _agnosis_managed_page so uninstall.php removes it.
+	 *
+	 * The idempotency check accepts 'draft' as well as 'publish' — this runs on
+	 * every activation AND is deferred to 'init' on every upgrade cycle
+	 * (create_managed_pages()'s own docblock), so a page deliberately left in
+	 * draft (an admin's own choice, or a page like the promo one below that is
+	 * INTENDED to start in draft and wait for a human to publish it) must not
+	 * get a fresh duplicate created the next time this runs. Only a genuinely
+	 * trashed or hard-deleted page is recreated.
 	 *
 	 * @param string $option  Option name holding the page ID.
 	 * @param string $title   Page title (source language; LF translates it).
 	 * @param string $slug    URL slug.
 	 * @param string $content Block markup for the page body.
+	 * @param string $status  Post status to create with. Default 'publish'.
 	 */
-	private static function create_managed_page( string $option, string $title, string $slug, string $content ): void {
+	private static function create_managed_page( string $option, string $title, string $slug, string $content, string $status = 'publish' ): void {
 		$existing_id = (int) get_option( $option );
 		if ( $existing_id ) {
 			$existing = get_post( $existing_id );
-			if ( $existing && 'publish' === $existing->post_status ) {
+			if ( $existing && 'trash' !== $existing->post_status ) {
 				return;
 			}
 		}
@@ -1058,7 +1098,7 @@ class Activator {
 			'post_title'   => $title,
 			'post_name'    => $slug,
 			'post_content' => $content,
-			'post_status'  => 'publish',
+			'post_status'  => $status,
 			'post_type'    => 'page',
 			'post_author'  => 1,
 			'meta_input'   => [ '_agnosis_managed_page' => '1' ],
@@ -1116,13 +1156,29 @@ class Activator {
 			'<!-- wp:heading --><h2>Events</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Send an event announcement to the events address and include the date and place in your message. Both are shown on your event page.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Asking to be featured</h2><!-- /wp:heading -->',
-			'<!-- wp:paragraph --><p>Want a published piece highlighted on your gallery? Email the promote address with that artwork&#8217;s exact title in the subject line &#8212; no message needed. It becomes your featured piece until you feature another.</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p>Want a published piece highlighted on the shared main gallery? Email the promote address with that artwork&#8217;s exact title in the subject line &#8212; no message needed. It becomes your featured piece there &#8212; marked with a &#10022; badge &#8212; until you feature another. This only affects the shared main gallery; your own subdomain gallery already shows all of your published work and isn&#8217;t affected by featuring.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Updating, removing, or leaving</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Send a new version &#8212; or new images &#8212; to the replace address using the piece&#8217;s exact title to update it. Use the remove address to take a single piece down. You can also leave the community entirely at any time via the goodbye address and take everything you&#8217;ve published with you &#8212; no lock-in, ever.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Write in your own language</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Write to us in whatever language you are comfortable with. Your words are published in the community&#8217;s main language and translated automatically, so your work reads naturally for everyone.</p><!-- /wp:paragraph -->',
 			'<!-- wp:heading --><h2>Your own space</h2><!-- /wp:heading -->',
 			'<!-- wp:paragraph --><p>Every admitted artist gets their own address on the web showing only their published work. Visit <code>/my-submissions</code> any time to check the status of everything you&#8217;ve sent &#8212; sign in there directly, with no dashboard to learn.</p><!-- /wp:paragraph -->',
+		] );
+	}
+
+	/** Block markup for the "Powered by Agnosis" promo page. */
+	private static function promo_page_content(): string {
+		return implode( "\n", [
+			'<!-- wp:paragraph --><p><strong>This site runs on Agnosis</strong> &#8212; a free, federated WordPress plugin for independent artists. Artists who are great at creating but not at promoting send an email with their artwork; Agnosis handles the rest &#8212; AI writes the presentation, the community decides who joins, and the work is published here and across the open social web (the &#8220;fediverse&#8221;).</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>How it works</h2><!-- /wp:heading -->',
+			'<!-- wp:list --><ul><li><strong>Receive</strong> &#8212; an artist emails their work to a dedicated address, no account or upload form needed.</li><li><strong>Enhance</strong> &#8212; a photograph with a technical problem is corrected by AI; a good photograph is left untouched.</li><li><strong>Describe</strong> &#8212; AI writes a title suggestion, description, tags, and alt text, grounded only in what was actually sent.</li><li><strong>Review</strong> &#8212; the artist gets an email preview and decides, with one click, to publish, edit, or discard.</li><li><strong>Publish</strong> &#8212; the piece goes live as its own gallery page.</li><li><strong>Broadcast</strong> &#8212; it federates out to Mastodon, Pixelfed, and the wider Fediverse automatically.</li></ul><!-- /wp:list -->',
+			'<!-- wp:heading --><h2>Who it&#8217;s for</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Agnosis was designed for one shape &#8212; an open artist collective that vouches its own members in &#8212; but the same email-in, AI-polish, curated-review, federate workflow also fits galleries and curated programs (with community voting switched off), theatre and art schools running student showcases, and writers&#8217; collectives or literary magazines.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Free, open-source, and yours to run</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Agnosis is free for artists to use and free to self-host &#8212; no dashboards to learn beyond WordPress&#8217;s own, no algorithm deciding who gets seen, and no ads. Any artist can leave at any time and take everything they published with them.</p><!-- /wp:paragraph -->',
+			'<!-- wp:heading --><h2>Want to run your own?</h2><!-- /wp:heading -->',
+			'<!-- wp:paragraph --><p>Agnosis is free and open-source. Full documentation &#8212; requirements, server configuration, and installation instructions &#8212; lives in the project&#8217;s README on GitHub:</p><!-- /wp:paragraph -->',
+			'<!-- wp:paragraph --><p><a href="https://github.com/leotiger/agnosis">github.com/leotiger/agnosis</a></p><!-- /wp:paragraph -->',
 		] );
 	}
 

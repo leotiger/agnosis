@@ -29,10 +29,10 @@ Thanks for taking the time to contribute. This document covers how to report bug
 
 Agnosis has two companion repositories that its dev environment expects as **sibling directories** (same parent folder as `agnosis/`):
 
-- [`lingua-forge`](https://github.com/leotiger/lingua-forge) — the multi-language plugin Agnosis integrates with (`includes/Compat/LinguaForge.php`). Referenced by `dev/.wp-env.json` and required for the integration test suite to activate cleanly. As of 0.9.22 this is also a hard runtime dependency, not just a dev/test convenience: `agnosis.php` declares `Requires Plugins: lingua-forge`, so WordPress itself refuses to activate Agnosis on any site (including a wp-env test instance) until Lingua Forge is installed and active.
-- `agnosis-theme` — the companion FSE block theme. Also referenced by `dev/.wp-env.json`.
+- [`lingua-forge`](https://github.com/leotiger/lingua-forge) — the multi-language plugin Agnosis integrates with (`includes/Compat/LinguaForge.php`). Referenced by `dev/.wp-env.json` and required for the integration test suite to activate cleanly. As of 0.9.22 this is also a hard runtime dependency, not just a dev/test convenience: `agnosis.php` declares `Requires Plugins: lingua-forge`, so WordPress itself refuses to activate Agnosis on any site (including a wp-env test instance) until Lingua Forge is installed and active. Public, with its own [README](https://github.com/leotiger/lingua-forge#readme), [CONTRIBUTING.md](https://github.com/leotiger/lingua-forge/blob/main/CONTRIBUTING.md), [SECURITY.md](https://github.com/leotiger/lingua-forge/blob/main/SECURITY.md), and a self-hosted release/update channel (not distributed via the WordPress.org directory — see its README for why).
+- [`agnosis-theme`](https://github.com/leotiger/agnosis-theme) — the companion FSE block theme. Also referenced by `dev/.wp-env.json`. Public, with its own [README](https://github.com/leotiger/agnosis-theme#readme), [CONTRIBUTING.md](https://github.com/leotiger/agnosis-theme/blob/main/CONTRIBUTING.md), and release ZIPs.
 
-If you don't have access to one or both, say so in your pull request — a maintainer can run the full integration suite before merging. Unit tests, PHPCS, and PHPStan (`composer qa`, see below) don't need either sibling and cover most contributions on their own.
+Unit tests, PHPCS, and PHPStan (`composer qa`, see below) don't need either sibling and cover most contributions on their own.
 
 ## Development setup
 
@@ -41,8 +41,8 @@ If you don't have access to one or both, say so in your pull request — a maint
 ```bash
 # Clone alongside its companion repos (see "Before you start")
 git clone https://github.com/leotiger/agnosis
-git clone https://github.com/leotiger/lingua-forge   # optional, for integration tests
-# ...and agnosis-theme similarly, if you have access
+git clone https://github.com/leotiger/lingua-forge   # required for wp-env to activate Agnosis at all; see above
+git clone https://github.com/leotiger/agnosis-theme  # optional, for integration tests
 
 cd agnosis/dev
 npm install

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-18T20:53+00:00\n"
+"POT-Creation-Date: 2026-07-19T14:14+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:20+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Portuguese (Portugal)\n"
@@ -56,47 +56,130 @@ msgstr "Agnosis requer PHP %s ou superior."
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "Agnosis requer WordPress %s ou superior."
 
-#: blocks/gallery-overview/render.php:413
+#: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
 msgstr "Filtrar por meio"
 
-#: blocks/gallery-overview/render.php:418
+#: blocks/gallery-overview/render.php:433
 msgid "All"
 msgstr "Todos"
 
-#: blocks/gallery-overview/render.php:434
+#: blocks/gallery-overview/render.php:449
 msgid "No artwork matches this filter yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:436
+#: blocks/gallery-overview/render.php:451
 msgid "No artwork to show yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:472
+#: blocks/gallery-overview/render.php:493
 msgid "Enlarged image"
 msgstr "Imagem ampliada"
 
-#: blocks/gallery-overview/render.php:503
+#: blocks/gallery-overview/render.php:524
 msgid "Featured"
 msgstr "Destacado"
 
-#: blocks/gallery-overview/render.php:509
+#: blocks/gallery-overview/render.php:530
 msgid "Enlarge"
 msgstr "Ampliar"
 
-#: blocks/gallery-overview/render.php:535
+#: blocks/gallery-overview/render.php:556
 msgid "Gallery pages"
 msgstr "Páginas da galeria"
 
-#: blocks/gallery-overview/render.php:540
+#: blocks/gallery-overview/render.php:561
 msgid "Prev"
 msgstr "Anterior"
 
-#: blocks/gallery-overview/render.php:557
+#: blocks/gallery-overview/render.php:578
 #: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "Seguinte"
+
+#: includes/Admin/ArtworkMediumSync.php:44
+msgid "Medium translations"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:57
+msgid "Requires Lingua Forge."
+msgstr "Requer o Lingua Forge."
+
+#: includes/Admin/ArtworkMediumSync.php:65
+msgid ""
+"This artwork's medium is translated from its primary-language original — "
+"nothing to sync from here."
+msgstr ""
+"O meio desta obra é traduzido do seu original no idioma principal — não há "
+"nada para sincronizar a partir daqui."
+
+#: includes/Admin/ArtworkMediumSync.php:80
+msgid ""
+"Push this artwork's current medium onto every already-translated sibling "
+"post."
+msgstr "Enviar o meio atual desta obra para cada publicação irmã já traduzida."
+
+#: includes/Admin/ArtworkMediumSync.php:82
+msgid "Sync medium to translations"
+msgstr "Sincronizar meio com as traduções"
+
+#: includes/Admin/ArtworkMediumSync.php:93
+#: includes/Admin/ArtworkMediumSync.php:165
+#: includes/Admin/ContactMessagesPage.php:159
+#: includes/Admin/Dashboards/AdmissionDashboard.php:182
+#: includes/Admin/Dashboards/AdmissionDashboard.php:211
+#: includes/Admin/Dashboards/BiographyTitleCache.php:161
+#: includes/Admin/Dashboards/BiographyTitleCache.php:177
+#: includes/Admin/Dashboards/BiographyTitleCache.php:190
+#: includes/Admin/Dashboards/BrandingTestForm.php:69
+#: includes/Admin/Dashboards/DeliverabilityCard.php:187
+#: includes/Admin/Dashboards/InvitationCard.php:76
+#: includes/Admin/Dashboards/InvitationCard.php:103
+#: includes/Admin/Dashboards/LogsTab.php:131
+#: includes/Admin/Dashboards/MembersDashboard.php:184
+#: includes/Admin/Dashboards/MembersDashboard.php:216
+#: includes/Admin/Dashboards/MembersDashboard.php:243
+#: includes/Admin/Dashboards/NewsletterDashboard.php:284
+#: includes/Admin/Dashboards/NewsletterDashboard.php:313
+#: includes/Admin/Dashboards/NewsletterDashboard.php:341
+#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
+#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
+#: includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
+#: includes/Admin/Settings.php:865
+#: includes/Admin/TaxonomyLanguageFilter.php:299
+#: includes/Admin/TaxonomyLanguageFilter.php:349
+msgid "You do not have permission to perform this action."
+msgstr "Não tem permissão para executar esta ação."
+
+#. translators: %d: number of translated sibling posts the medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:122
+#, php-format
+msgid "Medium pushed to %d translated sibling post(s)."
+msgstr "Meio enviado para %d publicação/ões irmã(s) traduzida(s)."
+
+#: includes/Admin/ArtworkMediumSync.php:156
+msgid ""
+"Push every primary-language artwork's current medium onto its translated "
+"siblings? This can take a moment on a large catalog."
+msgstr ""
+"Enviar o meio atual de cada obra no idioma principal para as suas traduções? "
+"Isto pode demorar um pouco num catálogo grande."
+
+#: includes/Admin/ArtworkMediumSync.php:157
+msgid "Sync all medium assignments"
+msgstr "Sincronizar todas as atribuições de meio"
+
+#. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:199
+#, php-format
+msgid ""
+"Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
+"%2$d sibling post(s)."
+msgstr ""
+"Sincronização concluída: %1$d obra(s) no idioma principal processada(s), "
+"meio enviado para %2$d publicação/ões irmã(s)."
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -159,34 +242,6 @@ msgstr "Ações"
 #, php-format
 msgid "(deleted artist #%d)"
 msgstr "(artista eliminado #%d)"
-
-#: includes/Admin/ContactMessagesPage.php:159
-#: includes/Admin/Dashboards/AdmissionDashboard.php:182
-#: includes/Admin/Dashboards/AdmissionDashboard.php:211
-#: includes/Admin/Dashboards/BiographyTitleCache.php:161
-#: includes/Admin/Dashboards/BiographyTitleCache.php:177
-#: includes/Admin/Dashboards/BiographyTitleCache.php:190
-#: includes/Admin/Dashboards/BrandingTestForm.php:69
-#: includes/Admin/Dashboards/DeliverabilityCard.php:187
-#: includes/Admin/Dashboards/InvitationCard.php:76
-#: includes/Admin/Dashboards/InvitationCard.php:103
-#: includes/Admin/Dashboards/LogsTab.php:131
-#: includes/Admin/Dashboards/MembersDashboard.php:184
-#: includes/Admin/Dashboards/MembersDashboard.php:216
-#: includes/Admin/Dashboards/MembersDashboard.php:243
-#: includes/Admin/Dashboards/NewsletterDashboard.php:284
-#: includes/Admin/Dashboards/NewsletterDashboard.php:313
-#: includes/Admin/Dashboards/NewsletterDashboard.php:341
-#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
-#: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
-#: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:185
-#: includes/Admin/ArtworkMediumSync.php:93
-#: includes/Admin/ArtworkMediumSync.php:165
-msgid "You do not have permission to perform this action."
-msgstr "Não tem permissão para executar esta ação."
 
 #: includes/Admin/ContactMessagesPage.php:182
 msgid "Message deleted."
@@ -1183,13 +1238,28 @@ msgstr "A correr…"
 msgid "Delete this queue row?"
 msgstr "Eliminar esta linha da fila?"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:61
+#: includes/Admin/LanguageAwareTermsListTable.php:84
 msgid "Filter by language"
 msgstr "Filtrar por idioma"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:67
+#: includes/Admin/LanguageAwareTermsListTable.php:89
 msgid "Primary language"
 msgstr "Idioma principal"
+
+#: includes/Admin/LanguageAwareTermsListTable.php:93
+msgid "All languages (unfiltered)"
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:101
+msgid ""
+"Create missing translations for every primary-language term, in every "
+"configured language? On a large vocabulary this can take more than one click "
+"— each run picks up where the last one stopped."
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:102
+msgid "Sync all translations"
+msgstr "Sincronizar todas as traduções"
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -3334,12 +3404,53 @@ msgstr ""
 "ultrapassarem, esta página mostra um lembrete para considerar um fornecedor "
 "de serviços de e-mail (por exemplo, o plano gratuito da Brevo) em vez disso."
 
-#: includes/Admin/TaxonomyLanguageFilter.php:164
+#: includes/Admin/TaxonomyLanguageFilter.php:246
 msgid "Sync translations"
 msgstr "Sincronizar traduções"
 
+#: includes/Admin/TaxonomyLanguageFilter.php:304
+#: includes/Admin/TaxonomyLanguageFilter.php:353
+msgid "Invalid taxonomy."
+msgstr "Taxonomia inválida."
+
+#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:413
+#, php-format
+msgid ""
+"%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to "
+"date, %5$d failed) — this ran out of time before reaching every term. Click "
+"\"Sync all translations\" again to continue; it picks up where this stopped."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:428
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date, %4$d failed — check the AI provider configuration and "
+"run it again for those."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:436
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date."
+msgstr ""
+"Sincronização total concluída: %1$d termo(s) processado(s), %2$d "
+"tradução(ões) criada(s), %3$d já atualizados."
+
+#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for
+#: includes/Admin/TaxonomyLanguageFilter.php:459
+#, php-format
+msgid ""
+"Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
+"date, %3$d failed — check the AI provider configuration and try again."
+msgstr ""
+
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:221
+#: includes/Admin/TaxonomyLanguageFilter.php:466
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
@@ -3348,7 +3459,7 @@ msgstr ""
 "Sincronização concluída: %1$d tradução(ões) criada(s), %2$d idioma(s) já "
 "atualizados."
 
-#: includes/AI/PromptConfig.php:155
+#: includes/AI/PromptConfig.php:230
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -4099,8 +4210,8 @@ msgid "Something went wrong. Please try again."
 msgstr "Algo correu mal. Tente novamente."
 
 #: includes/Artist/ContentEditor.php:246 includes/Artist/ContentEditor.php:707
-#: includes/Publishing/ReviewEndpoints.php:814
-#: includes/Publishing/ReviewEndpoints.php:831
+#: includes/Publishing/ReviewEndpoints.php:866
+#: includes/Publishing/ReviewEndpoints.php:883
 msgid "Authentication required."
 msgstr "É necessária autenticação."
 
@@ -4978,19 +5089,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "%d voto positivo registado até agora."
 msgstr[1] "%d votos positivos registados até agora."
 
-#: includes/Compat/LinguaForge.php:2047
+#: includes/Compat/LinguaForge.php:2901
 msgid "is active and configured for"
 msgstr "está ativo e configurado para"
 
-#: includes/Compat/LinguaForge.php:2048
+#: includes/Compat/LinguaForge.php:2902
 msgid "Subdomain"
 msgstr "Subdomínio"
 
-#: includes/Compat/LinguaForge.php:2049
+#: includes/Compat/LinguaForge.php:2903
 msgid "routing mode"
 msgstr "modo de encaminhamento"
 
-#: includes/Compat/LinguaForge.php:2051
+#: includes/Compat/LinguaForge.php:2905
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -4998,39 +5109,39 @@ msgstr ""
 "Isto entra em conflito com os subdomínios de artistas do Agnosis — ambos os "
 "plugins reivindicariam o mesmo espaço de nomes de subdomínio."
 
-#: includes/Compat/LinguaForge.php:2052
+#: includes/Compat/LinguaForge.php:2906
 msgid "Artist subdomain routing is"
 msgstr "O encaminhamento por subdomínio de artista está"
 
-#: includes/Compat/LinguaForge.php:2053
+#: includes/Compat/LinguaForge.php:2907
 msgid "completely inactive"
 msgstr "completamente inativo"
 
-#: includes/Compat/LinguaForge.php:2054
+#: includes/Compat/LinguaForge.php:2908
 msgid "until this is resolved."
 msgstr "até isto ser resolvido."
 
-#: includes/Compat/LinguaForge.php:2056
+#: includes/Compat/LinguaForge.php:2910
 msgid "Fix: open"
 msgstr "Correção: abrir"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Settings"
 msgstr "Definições"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Language Router"
 msgstr "Roteador de Idioma"
 
-#: includes/Compat/LinguaForge.php:2058
+#: includes/Compat/LinguaForge.php:2912
 msgid "and switch the URL strategy to"
 msgstr "e mudar a estratégia de URL para"
 
-#: includes/Compat/LinguaForge.php:2059
+#: includes/Compat/LinguaForge.php:2913
 msgid "Path prefix (subfolder)"
 msgstr "Prefixo de caminho (subpasta)"
 
-#: includes/Compat/LinguaForge.php:2060
+#: includes/Compat/LinguaForge.php:2914
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5038,23 +5149,23 @@ msgstr ""
 "Isto é o padrão do LinguaForge e permite que os subdomínios de artistas "
 "coexistam com as subpastas de idioma"
 
-#: includes/Compat/LinguaForge.php:2065
+#: includes/Compat/LinguaForge.php:2919
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Encaminhamento por Subdomínio de Artista desativado"
 
-#: includes/Compat/LinguaForge.php:2075
+#: includes/Compat/LinguaForge.php:2929
 msgid "Open LinguaForge Settings"
 msgstr "Abrir as Definições do LinguaForge"
 
-#: includes/Core/Activator.php:892 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:908 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Artista Agnosis"
 
-#: includes/Core/Activator.php:1004 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1020 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "As minhas submissões"
 
-#: includes/Core/Activator.php:1148
+#: includes/Core/Activator.php:1204
 msgid "Join"
 msgstr "Juntar-se"
 
@@ -5548,70 +5659,70 @@ msgstr "Este pedido de webhook já foi processado."
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:1154
+#: includes/Network/ActivityPub.php:1226
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
-#: includes/Network/HttpSignature.php:159
+#: includes/Network/HttpSignature.php:158
 msgid "Signature keyId does not belong to the activity actor."
 msgstr "O keyId da assinatura não pertence ao ator da atividade."
 
-#: includes/Network/HttpSignature.php:185
+#: includes/Network/HttpSignature.php:205
 msgid "OpenSSL is required for HTTP Signature verification."
 msgstr "É necessário OpenSSL para a verificação de Assinatura HTTP."
 
-#: includes/Network/HttpSignature.php:195
+#: includes/Network/HttpSignature.php:215
 msgid "Signature header is required."
 msgstr "O cabeçalho da assinatura é obrigatório."
 
-#: includes/Network/HttpSignature.php:204
+#: includes/Network/HttpSignature.php:224
 msgid ""
 "Signature header is missing required fields (keyId, headers, signature)."
 msgstr ""
 "O cabeçalho da assinatura não inclui os campos obrigatórios (keyId, headers, "
 "signature)."
 
-#: includes/Network/HttpSignature.php:224
+#: includes/Network/HttpSignature.php:244
 msgid "Signature must cover the Date header."
 msgstr "Signature must cover the Date header."
 
-#: includes/Network/HttpSignature.php:231
+#: includes/Network/HttpSignature.php:251
 msgid "Signature on a POST request must cover the Digest header."
 msgstr "Signature on a POST request must cover the Digest header."
 
-#: includes/Network/HttpSignature.php:246
+#: includes/Network/HttpSignature.php:266
 msgid "Request date is too old or too far in the future."
 msgstr "A data do pedido é demasiado antiga ou demasiado futura."
 
-#: includes/Network/HttpSignature.php:277
+#: includes/Network/HttpSignature.php:297
 msgid "Signature value is not valid base64."
 msgstr "O valor da assinatura não é um base64 válido."
 
-#: includes/Network/HttpSignature.php:289
+#: includes/Network/HttpSignature.php:309
 msgid "HTTP Signature verification failed."
 msgstr "A verificação da Assinatura HTTP falhou."
 
-#: includes/Network/HttpSignature.php:327
+#: includes/Network/HttpSignature.php:347
 msgid "Digest header does not match the request body."
 msgstr "O cabeçalho Digest não corresponde ao corpo do pedido."
 
-#: includes/Network/HttpSignature.php:350
+#: includes/Network/HttpSignature.php:391
 msgid "keyId in Signature header is not a valid URL."
 msgstr "O keyId no cabeçalho Signature não é um URL válido."
 
-#: includes/Network/HttpSignature.php:368
+#: includes/Network/HttpSignature.php:410
 msgid "Actor document could not be fetched (cached failure)."
 msgstr "Actor document could not be fetched (cached failure)."
 
-#: includes/Network/HttpSignature.php:386
+#: includes/Network/HttpSignature.php:428
 msgid "Failed to fetch actor document."
 msgstr "Não foi possível obter o documento do ator."
 
-#: includes/Network/HttpSignature.php:395
+#: includes/Network/HttpSignature.php:439
 msgid "Actor document returned a non-200 response."
 msgstr "O documento do ator devolveu uma resposta diferente de 200."
 
-#: includes/Network/HttpSignature.php:407
+#: includes/Network/HttpSignature.php:455
 msgid "Actor document does not contain a publicKey.publicKeyPem field."
 msgstr "O documento do ator não contém um campo publicKey.publicKeyPem."
 
@@ -6949,23 +7060,23 @@ msgstr "Submissão não encontrada."
 msgid "This submission is not awaiting review."
 msgstr "Esta submissão não está à espera de revisão."
 
-#: includes/Publishing/ReviewEndpoints.php:392
+#: includes/Publishing/ReviewEndpoints.php:401
 msgid "The original published item could not be found."
 msgstr "Não foi possível encontrar o item publicado original."
 
-#: includes/Publishing/ReviewEndpoints.php:847
+#: includes/Publishing/ReviewEndpoints.php:899
 msgid "You do not have permission to review this submission."
 msgstr "Não tem permissão para rever esta submissão."
 
-#: includes/Publishing/ReviewEndpoints.php:872
+#: includes/Publishing/ReviewEndpoints.php:924
 msgid "Review link not found or already used."
 msgstr "Link de revisão não encontrado ou já utilizado."
 
-#: includes/Publishing/ReviewEndpoints.php:880
+#: includes/Publishing/ReviewEndpoints.php:932
 msgid "Invalid review token."
 msgstr "Token de revisão inválido."
 
-#: includes/Publishing/ReviewEndpoints.php:888
+#: includes/Publishing/ReviewEndpoints.php:940
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Este link de revisão expirou. Inicie sessão para gerir as suas submissões."
@@ -7611,52 +7722,3 @@ msgstr "submissões"
 msgctxt "block keyword"
 msgid "review"
 msgstr "revisão"
-
-#: includes/Admin/TaxonomyLanguageFilter.php:267
-#: includes/Admin/TaxonomyLanguageFilter.php:301
-msgid "Invalid taxonomy."
-msgstr "Taxonomia inválida."
-
-#: includes/Admin/TaxonomyLanguageFilter.php:338
-msgid "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date."
-msgstr "Sincronização total concluída: %1$d termo(s) processado(s), %2$d tradução(ões) criada(s), %3$d já atualizados."
-
-#: includes/Admin/LanguageAwareTermsListTable.php:87
-msgid "Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary."
-msgstr "Criar as traduções em falta para cada termo mostrado aqui, em todos os idiomas configurados? Isto pode demorar um pouco num vocabulário grande."
-
-#: includes/Admin/LanguageAwareTermsListTable.php:88
-msgid "Sync all translations"
-msgstr "Sincronizar todas as traduções"
-
-#: includes/Admin/ArtworkMediumSync.php:57
-msgid "Requires Lingua Forge."
-msgstr "Requer o Lingua Forge."
-
-#: includes/Admin/ArtworkMediumSync.php:65
-msgid "This artwork's medium is translated from its primary-language original — nothing to sync from here."
-msgstr "O meio desta obra é traduzido do seu original no idioma principal — não há nada para sincronizar a partir daqui."
-
-#: includes/Admin/ArtworkMediumSync.php:80
-msgid "Push this artwork's current medium onto every already-translated sibling post."
-msgstr "Enviar o meio atual desta obra para cada publicação irmã já traduzida."
-
-#: includes/Admin/ArtworkMediumSync.php:82
-msgid "Sync medium to translations"
-msgstr "Sincronizar meio com as traduções"
-
-#: includes/Admin/ArtworkMediumSync.php:122
-msgid "Medium pushed to %d translated sibling post(s)."
-msgstr "Meio enviado para %d publicação/ões irmã(s) traduzida(s)."
-
-#: includes/Admin/ArtworkMediumSync.php:156
-msgid "Push every primary-language artwork's current medium onto its translated siblings? This can take a moment on a large catalog."
-msgstr "Enviar o meio atual de cada obra no idioma principal para as suas traduções? Isto pode demorar um pouco num catálogo grande."
-
-#: includes/Admin/ArtworkMediumSync.php:157
-msgid "Sync all medium assignments"
-msgstr "Sincronizar todas as atribuições de meio"
-
-#: includes/Admin/ArtworkMediumSync.php:199
-msgid "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s)."
-msgstr "Sincronização concluída: %1$d obra(s) no idioma principal processada(s), meio enviado para %2$d publicação/ões irmã(s)."

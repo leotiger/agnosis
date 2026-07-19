@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-18T20:53+00:00\n"
+"POT-Creation-Date: 2026-07-19T14:14+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:19+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Persian\n"
@@ -56,47 +56,130 @@ msgstr "آگنوزیس به PHP نسخهٔ %s یا بالاتر نیاز دار�
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "آگنوزیس به وردپرس نسخهٔ %s یا بالاتر نیاز دارد."
 
-#: blocks/gallery-overview/render.php:413
+#: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
 msgstr "فیلتر بر اساس مدیوم"
 
-#: blocks/gallery-overview/render.php:418
+#: blocks/gallery-overview/render.php:433
 msgid "All"
 msgstr "همه"
 
-#: blocks/gallery-overview/render.php:434
+#: blocks/gallery-overview/render.php:449
 msgid "No artwork matches this filter yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:436
+#: blocks/gallery-overview/render.php:451
 msgid "No artwork to show yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:472
+#: blocks/gallery-overview/render.php:493
 msgid "Enlarged image"
 msgstr "تصویر بزرگ‌شده"
 
-#: blocks/gallery-overview/render.php:503
+#: blocks/gallery-overview/render.php:524
 msgid "Featured"
 msgstr "ویژه"
 
-#: blocks/gallery-overview/render.php:509
+#: blocks/gallery-overview/render.php:530
 msgid "Enlarge"
 msgstr "بزرگ‌نمایی"
 
-#: blocks/gallery-overview/render.php:535
+#: blocks/gallery-overview/render.php:556
 msgid "Gallery pages"
 msgstr "صفحات گالری"
 
-#: blocks/gallery-overview/render.php:540
+#: blocks/gallery-overview/render.php:561
 msgid "Prev"
 msgstr "قبلی"
 
-#: blocks/gallery-overview/render.php:557
+#: blocks/gallery-overview/render.php:578
 #: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "بعدی"
+
+#: includes/Admin/ArtworkMediumSync.php:44
+msgid "Medium translations"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:57
+msgid "Requires Lingua Forge."
+msgstr "به Lingua Forge نیاز دارد."
+
+#: includes/Admin/ArtworkMediumSync.php:65
+msgid ""
+"This artwork's medium is translated from its primary-language original — "
+"nothing to sync from here."
+msgstr ""
+"مدیوم این اثر هنری از نسخهٔ اصلی به زبان اصلی ترجمه شده است — چیزی برای "
+"همگام‌سازی از اینجا وجود ندارد."
+
+#: includes/Admin/ArtworkMediumSync.php:80
+msgid ""
+"Push this artwork's current medium onto every already-translated sibling "
+"post."
+msgstr "مدیوم فعلی این اثر هنری را به هر نسخهٔ خواهر ترجمه‌شده ارسال کنید."
+
+#: includes/Admin/ArtworkMediumSync.php:82
+msgid "Sync medium to translations"
+msgstr "همگام‌سازی مدیوم با ترجمه‌ها"
+
+#: includes/Admin/ArtworkMediumSync.php:93
+#: includes/Admin/ArtworkMediumSync.php:165
+#: includes/Admin/ContactMessagesPage.php:159
+#: includes/Admin/Dashboards/AdmissionDashboard.php:182
+#: includes/Admin/Dashboards/AdmissionDashboard.php:211
+#: includes/Admin/Dashboards/BiographyTitleCache.php:161
+#: includes/Admin/Dashboards/BiographyTitleCache.php:177
+#: includes/Admin/Dashboards/BiographyTitleCache.php:190
+#: includes/Admin/Dashboards/BrandingTestForm.php:69
+#: includes/Admin/Dashboards/DeliverabilityCard.php:187
+#: includes/Admin/Dashboards/InvitationCard.php:76
+#: includes/Admin/Dashboards/InvitationCard.php:103
+#: includes/Admin/Dashboards/LogsTab.php:131
+#: includes/Admin/Dashboards/MembersDashboard.php:184
+#: includes/Admin/Dashboards/MembersDashboard.php:216
+#: includes/Admin/Dashboards/MembersDashboard.php:243
+#: includes/Admin/Dashboards/NewsletterDashboard.php:284
+#: includes/Admin/Dashboards/NewsletterDashboard.php:313
+#: includes/Admin/Dashboards/NewsletterDashboard.php:341
+#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
+#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
+#: includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
+#: includes/Admin/Settings.php:865
+#: includes/Admin/TaxonomyLanguageFilter.php:299
+#: includes/Admin/TaxonomyLanguageFilter.php:349
+msgid "You do not have permission to perform this action."
+msgstr "شما اجازهٔ انجام این عمل را ندارید."
+
+#. translators: %d: number of translated sibling posts the medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:122
+#, php-format
+msgid "Medium pushed to %d translated sibling post(s)."
+msgstr "مدیوم به %d پست خواهر ترجمه‌شده ارسال شد."
+
+#: includes/Admin/ArtworkMediumSync.php:156
+msgid ""
+"Push every primary-language artwork's current medium onto its translated "
+"siblings? This can take a moment on a large catalog."
+msgstr ""
+"مدیوم فعلی هر اثر هنری به زبان اصلی به نسخه‌های ترجمه‌شدهٔ آن ارسال شود؟ این "
+"کار ممکن است در یک کاتالوگ بزرگ کمی طول بکشد."
+
+#: includes/Admin/ArtworkMediumSync.php:157
+msgid "Sync all medium assignments"
+msgstr "همگام‌سازی همه تخصیص‌های مدیوم"
+
+#. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:199
+#, php-format
+msgid ""
+"Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
+"%2$d sibling post(s)."
+msgstr ""
+"همگام‌سازی کامل شد: %1$d اثر هنری به زبان اصلی پردازش شد، مدیوم به %2$d پست "
+"خواهر ارسال شد."
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -159,34 +242,6 @@ msgstr "اقدامات"
 #, php-format
 msgid "(deleted artist #%d)"
 msgstr "(هنرمند حذف‌شدهٔ #%d)"
-
-#: includes/Admin/ContactMessagesPage.php:159
-#: includes/Admin/Dashboards/AdmissionDashboard.php:182
-#: includes/Admin/Dashboards/AdmissionDashboard.php:211
-#: includes/Admin/Dashboards/BiographyTitleCache.php:161
-#: includes/Admin/Dashboards/BiographyTitleCache.php:177
-#: includes/Admin/Dashboards/BiographyTitleCache.php:190
-#: includes/Admin/Dashboards/BrandingTestForm.php:69
-#: includes/Admin/Dashboards/DeliverabilityCard.php:187
-#: includes/Admin/Dashboards/InvitationCard.php:76
-#: includes/Admin/Dashboards/InvitationCard.php:103
-#: includes/Admin/Dashboards/LogsTab.php:131
-#: includes/Admin/Dashboards/MembersDashboard.php:184
-#: includes/Admin/Dashboards/MembersDashboard.php:216
-#: includes/Admin/Dashboards/MembersDashboard.php:243
-#: includes/Admin/Dashboards/NewsletterDashboard.php:284
-#: includes/Admin/Dashboards/NewsletterDashboard.php:313
-#: includes/Admin/Dashboards/NewsletterDashboard.php:341
-#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
-#: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
-#: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:185
-#: includes/Admin/ArtworkMediumSync.php:93
-#: includes/Admin/ArtworkMediumSync.php:165
-msgid "You do not have permission to perform this action."
-msgstr "شما اجازهٔ انجام این عمل را ندارید."
 
 #: includes/Admin/ContactMessagesPage.php:182
 msgid "Message deleted."
@@ -1161,13 +1216,28 @@ msgstr "در حال اجرا…"
 msgid "Delete this queue row?"
 msgstr "این سطر صف حذف شود؟"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:61
+#: includes/Admin/LanguageAwareTermsListTable.php:84
 msgid "Filter by language"
 msgstr "فیلتر بر اساس زبان"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:67
+#: includes/Admin/LanguageAwareTermsListTable.php:89
 msgid "Primary language"
 msgstr "زبان اصلی"
+
+#: includes/Admin/LanguageAwareTermsListTable.php:93
+msgid "All languages (unfiltered)"
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:101
+msgid ""
+"Create missing translations for every primary-language term, in every "
+"configured language? On a large vocabulary this can take more than one click "
+"— each run picks up where the last one stopped."
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:102
+msgid "Sync all translations"
+msgstr "همگام‌سازی همه ترجمه‌ها"
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -3241,19 +3311,60 @@ msgstr ""
 "صفحه یادآوری‌ای نشان می‌دهد تا به‌جای آن استفاده از یک ارائه‌دهندهٔ خدمات ایمیل "
 "(مثلاً پلن رایگان Brevo) را در نظر بگیرید."
 
-#: includes/Admin/TaxonomyLanguageFilter.php:164
+#: includes/Admin/TaxonomyLanguageFilter.php:246
 msgid "Sync translations"
 msgstr "همگام‌سازی ترجمه‌ها"
 
+#: includes/Admin/TaxonomyLanguageFilter.php:304
+#: includes/Admin/TaxonomyLanguageFilter.php:353
+msgid "Invalid taxonomy."
+msgstr "طبقه‌بندی نامعتبر."
+
+#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:413
+#, php-format
+msgid ""
+"%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to "
+"date, %5$d failed) — this ran out of time before reaching every term. Click "
+"\"Sync all translations\" again to continue; it picks up where this stopped."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:428
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date, %4$d failed — check the AI provider configuration and "
+"run it again for those."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:436
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date."
+msgstr ""
+"همگام‌سازی کامل انجام شد: %1$d واژه پردازش شد، %2$d ترجمه ایجاد شد، %3$d از "
+"قبل به‌روز بود."
+
+#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for
+#: includes/Admin/TaxonomyLanguageFilter.php:459
+#, php-format
+msgid ""
+"Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
+"date, %3$d failed — check the AI provider configuration and try again."
+msgstr ""
+
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:221
+#: includes/Admin/TaxonomyLanguageFilter.php:466
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
 "date."
 msgstr "همگام‌سازی کامل شد: %1$d ترجمه ایجاد شد، %2$d زبان از قبل به‌روز بود."
 
-#: includes/AI/PromptConfig.php:155
+#: includes/AI/PromptConfig.php:230
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -3994,8 +4105,8 @@ msgid "Something went wrong. Please try again."
 msgstr "مشکلی پیش آمد. لطفاً دوباره تلاش کنید."
 
 #: includes/Artist/ContentEditor.php:246 includes/Artist/ContentEditor.php:707
-#: includes/Publishing/ReviewEndpoints.php:814
-#: includes/Publishing/ReviewEndpoints.php:831
+#: includes/Publishing/ReviewEndpoints.php:866
+#: includes/Publishing/ReviewEndpoints.php:883
 msgid "Authentication required."
 msgstr "احراز هویت لازم است."
 
@@ -4864,19 +4975,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "تا این لحظه %d رأی مثبت ثبت شده است."
 msgstr[1] "تا این لحظه %d رأی مثبت ثبت شده است."
 
-#: includes/Compat/LinguaForge.php:2047
+#: includes/Compat/LinguaForge.php:2901
 msgid "is active and configured for"
 msgstr "فعال است و برای این مورد پیکربندی شده است"
 
-#: includes/Compat/LinguaForge.php:2048
+#: includes/Compat/LinguaForge.php:2902
 msgid "Subdomain"
 msgstr "زیردامنه"
 
-#: includes/Compat/LinguaForge.php:2049
+#: includes/Compat/LinguaForge.php:2903
 msgid "routing mode"
 msgstr "حالت مسیریابی"
 
-#: includes/Compat/LinguaForge.php:2051
+#: includes/Compat/LinguaForge.php:2905
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -4884,39 +4995,39 @@ msgstr ""
 "این با زیردامنه‌های هنرمند Agnosis تداخل دارد — هر دو افزونه همان فضای نام "
 "زیردامنه را ادعا می‌کنند."
 
-#: includes/Compat/LinguaForge.php:2052
+#: includes/Compat/LinguaForge.php:2906
 msgid "Artist subdomain routing is"
 msgstr "مسیریابی زیردامنهٔ هنرمند"
 
-#: includes/Compat/LinguaForge.php:2053
+#: includes/Compat/LinguaForge.php:2907
 msgid "completely inactive"
 msgstr "کاملاً غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:2054
+#: includes/Compat/LinguaForge.php:2908
 msgid "until this is resolved."
 msgstr "تا زمانی که این مشکل برطرف شود."
 
-#: includes/Compat/LinguaForge.php:2056
+#: includes/Compat/LinguaForge.php:2910
 msgid "Fix: open"
 msgstr "رفع: باز کنید"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Settings"
 msgstr "تنظیمات"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Language Router"
 msgstr "مسیرساز زبان"
 
-#: includes/Compat/LinguaForge.php:2058
+#: includes/Compat/LinguaForge.php:2912
 msgid "and switch the URL strategy to"
 msgstr "و استراتژی URL را به این مورد تغییر دهید"
 
-#: includes/Compat/LinguaForge.php:2059
+#: includes/Compat/LinguaForge.php:2913
 msgid "Path prefix (subfolder)"
 msgstr "پیشوند مسیر (زیرپوشه)"
 
-#: includes/Compat/LinguaForge.php:2060
+#: includes/Compat/LinguaForge.php:2914
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -4924,23 +5035,23 @@ msgstr ""
 "این حالت پیش‌فرض LinguaForge است و اجازه می‌دهد زیردامنه‌های هنرمند در کنار "
 "زیرپوشه‌های زبان وجود داشته باشند"
 
-#: includes/Compat/LinguaForge.php:2065
+#: includes/Compat/LinguaForge.php:2919
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — مسیریابی زیردامنهٔ هنرمند غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:2075
+#: includes/Compat/LinguaForge.php:2929
 msgid "Open LinguaForge Settings"
 msgstr "تنظیمات LinguaForge را باز کنید"
 
-#: includes/Core/Activator.php:892 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:908 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "هنرمند Agnosis"
 
-#: includes/Core/Activator.php:1004 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1020 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "ارسال‌های من"
 
-#: includes/Core/Activator.php:1148
+#: includes/Core/Activator.php:1204
 msgid "Join"
 msgstr "پیوستن"
 
@@ -5422,68 +5533,68 @@ msgstr "این درخواست وب‌هوک قبلاً پردازش شده اس�
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:1154
+#: includes/Network/ActivityPub.php:1226
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
-#: includes/Network/HttpSignature.php:159
+#: includes/Network/HttpSignature.php:158
 msgid "Signature keyId does not belong to the activity actor."
 msgstr "keyId امضای دیجیتال به actor فعالیت تعلق ندارد."
 
-#: includes/Network/HttpSignature.php:185
+#: includes/Network/HttpSignature.php:205
 msgid "OpenSSL is required for HTTP Signature verification."
 msgstr "برای تأیید امضای HTTP، OpenSSL لازم است."
 
-#: includes/Network/HttpSignature.php:195
+#: includes/Network/HttpSignature.php:215
 msgid "Signature header is required."
 msgstr "هدر امضا الزامی است."
 
-#: includes/Network/HttpSignature.php:204
+#: includes/Network/HttpSignature.php:224
 msgid ""
 "Signature header is missing required fields (keyId, headers, signature)."
 msgstr "هدر امضا شامل فیلدهای لازم نیست (keyId، headers، signature)."
 
-#: includes/Network/HttpSignature.php:224
+#: includes/Network/HttpSignature.php:244
 msgid "Signature must cover the Date header."
 msgstr "Signature must cover the Date header."
 
-#: includes/Network/HttpSignature.php:231
+#: includes/Network/HttpSignature.php:251
 msgid "Signature on a POST request must cover the Digest header."
 msgstr "Signature on a POST request must cover the Digest header."
 
-#: includes/Network/HttpSignature.php:246
+#: includes/Network/HttpSignature.php:266
 msgid "Request date is too old or too far in the future."
 msgstr "تاریخ درخواست خیلی قدیمی است یا خیلی در آینده قرار دارد."
 
-#: includes/Network/HttpSignature.php:277
+#: includes/Network/HttpSignature.php:297
 msgid "Signature value is not valid base64."
 msgstr "مقدار امضا base64 معتبر نیست."
 
-#: includes/Network/HttpSignature.php:289
+#: includes/Network/HttpSignature.php:309
 msgid "HTTP Signature verification failed."
 msgstr "تأیید امضای HTTP ناموفق بود."
 
-#: includes/Network/HttpSignature.php:327
+#: includes/Network/HttpSignature.php:347
 msgid "Digest header does not match the request body."
 msgstr "هدر Digest با بدنهٔ درخواست مطابقت ندارد."
 
-#: includes/Network/HttpSignature.php:350
+#: includes/Network/HttpSignature.php:391
 msgid "keyId in Signature header is not a valid URL."
 msgstr "keyId در هدر Signature یک URL معتبر نیست."
 
-#: includes/Network/HttpSignature.php:368
+#: includes/Network/HttpSignature.php:410
 msgid "Actor document could not be fetched (cached failure)."
 msgstr "Actor document could not be fetched (cached failure)."
 
-#: includes/Network/HttpSignature.php:386
+#: includes/Network/HttpSignature.php:428
 msgid "Failed to fetch actor document."
 msgstr "واکشی سند actor ناموفق بود."
 
-#: includes/Network/HttpSignature.php:395
+#: includes/Network/HttpSignature.php:439
 msgid "Actor document returned a non-200 response."
 msgstr "سند actor پاسخی غیر از 200 برگرداند."
 
-#: includes/Network/HttpSignature.php:407
+#: includes/Network/HttpSignature.php:455
 msgid "Actor document does not contain a publicKey.publicKeyPem field."
 msgstr "سند actor شامل فیلد publicKey.publicKeyPem نیست."
 
@@ -6803,23 +6914,23 @@ msgstr "ارسال پیدا نشد."
 msgid "This submission is not awaiting review."
 msgstr "این ارسال در انتظار بازبینی نیست."
 
-#: includes/Publishing/ReviewEndpoints.php:392
+#: includes/Publishing/ReviewEndpoints.php:401
 msgid "The original published item could not be found."
 msgstr "موردِ منتشرشدهٔ اصلی پیدا نشد."
 
-#: includes/Publishing/ReviewEndpoints.php:847
+#: includes/Publishing/ReviewEndpoints.php:899
 msgid "You do not have permission to review this submission."
 msgstr "شما اجازهٔ بازبینی این ارسال را ندارید."
 
-#: includes/Publishing/ReviewEndpoints.php:872
+#: includes/Publishing/ReviewEndpoints.php:924
 msgid "Review link not found or already used."
 msgstr "لینک بازبینی پیدا نشد یا قبلاً استفاده شده است."
 
-#: includes/Publishing/ReviewEndpoints.php:880
+#: includes/Publishing/ReviewEndpoints.php:932
 msgid "Invalid review token."
 msgstr "توکن بازبینی نامعتبر است."
 
-#: includes/Publishing/ReviewEndpoints.php:888
+#: includes/Publishing/ReviewEndpoints.php:940
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "این لینک بازبینی منقضی شده است. لطفاً برای مدیریت ارسال‌های خود وارد شوید."
@@ -7458,52 +7569,3 @@ msgstr "ارسال‌ها"
 msgctxt "block keyword"
 msgid "review"
 msgstr "بررسی"
-
-#: includes/Admin/TaxonomyLanguageFilter.php:267
-#: includes/Admin/TaxonomyLanguageFilter.php:301
-msgid "Invalid taxonomy."
-msgstr "طبقه‌بندی نامعتبر."
-
-#: includes/Admin/TaxonomyLanguageFilter.php:338
-msgid "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date."
-msgstr "همگام‌سازی کامل انجام شد: %1$d واژه پردازش شد، %2$d ترجمه ایجاد شد، %3$d از قبل به‌روز بود."
-
-#: includes/Admin/LanguageAwareTermsListTable.php:87
-msgid "Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary."
-msgstr "ترجمه‌های مفقود برای هر واژه نمایش داده‌شده در اینجا، به همه زبان‌های پیکربندی‌شده ایجاد شود؟ این کار ممکن است در واژگان بزرگ کمی طول بکشد."
-
-#: includes/Admin/LanguageAwareTermsListTable.php:88
-msgid "Sync all translations"
-msgstr "همگام‌سازی همه ترجمه‌ها"
-
-#: includes/Admin/ArtworkMediumSync.php:57
-msgid "Requires Lingua Forge."
-msgstr "به Lingua Forge نیاز دارد."
-
-#: includes/Admin/ArtworkMediumSync.php:65
-msgid "This artwork's medium is translated from its primary-language original — nothing to sync from here."
-msgstr "مدیوم این اثر هنری از نسخهٔ اصلی به زبان اصلی ترجمه شده است — چیزی برای همگام‌سازی از اینجا وجود ندارد."
-
-#: includes/Admin/ArtworkMediumSync.php:80
-msgid "Push this artwork's current medium onto every already-translated sibling post."
-msgstr "مدیوم فعلی این اثر هنری را به هر نسخهٔ خواهر ترجمه‌شده ارسال کنید."
-
-#: includes/Admin/ArtworkMediumSync.php:82
-msgid "Sync medium to translations"
-msgstr "همگام‌سازی مدیوم با ترجمه‌ها"
-
-#: includes/Admin/ArtworkMediumSync.php:122
-msgid "Medium pushed to %d translated sibling post(s)."
-msgstr "مدیوم به %d پست خواهر ترجمه‌شده ارسال شد."
-
-#: includes/Admin/ArtworkMediumSync.php:156
-msgid "Push every primary-language artwork's current medium onto its translated siblings? This can take a moment on a large catalog."
-msgstr "مدیوم فعلی هر اثر هنری به زبان اصلی به نسخه‌های ترجمه‌شدهٔ آن ارسال شود؟ این کار ممکن است در یک کاتالوگ بزرگ کمی طول بکشد."
-
-#: includes/Admin/ArtworkMediumSync.php:157
-msgid "Sync all medium assignments"
-msgstr "همگام‌سازی همه تخصیص‌های مدیوم"
-
-#: includes/Admin/ArtworkMediumSync.php:199
-msgid "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s)."
-msgstr "همگام‌سازی کامل شد: %1$d اثر هنری به زبان اصلی پردازش شد، مدیوم به %2$d پست خواهر ارسال شد."

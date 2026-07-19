@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-18T20:53+00:00\n"
+"POT-Creation-Date: 2026-07-19T14:14+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:16+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Chinese (China)\n"
@@ -55,47 +55,126 @@ msgstr "Agnosis 需要 PHP %s 或更高版本。"
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "Agnosis 需要 WordPress %s 或更高版本。"
 
-#: blocks/gallery-overview/render.php:413
+#: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
 msgstr "按媒介筛选"
 
-#: blocks/gallery-overview/render.php:418
+#: blocks/gallery-overview/render.php:433
 msgid "All"
 msgstr "全部"
 
-#: blocks/gallery-overview/render.php:434
+#: blocks/gallery-overview/render.php:449
 msgid "No artwork matches this filter yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:436
+#: blocks/gallery-overview/render.php:451
 msgid "No artwork to show yet."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:472
+#: blocks/gallery-overview/render.php:493
 msgid "Enlarged image"
 msgstr "放大后的图片"
 
-#: blocks/gallery-overview/render.php:503
+#: blocks/gallery-overview/render.php:524
 msgid "Featured"
 msgstr "精选"
 
-#: blocks/gallery-overview/render.php:509
+#: blocks/gallery-overview/render.php:530
 msgid "Enlarge"
 msgstr "放大"
 
-#: blocks/gallery-overview/render.php:535
+#: blocks/gallery-overview/render.php:556
 msgid "Gallery pages"
 msgstr "画廊页面"
 
-#: blocks/gallery-overview/render.php:540
+#: blocks/gallery-overview/render.php:561
 msgid "Prev"
 msgstr "上一页"
 
-#: blocks/gallery-overview/render.php:557
+#: blocks/gallery-overview/render.php:578
 #: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
 msgstr "下一页"
+
+#: includes/Admin/ArtworkMediumSync.php:44
+msgid "Medium translations"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:57
+msgid "Requires Lingua Forge."
+msgstr "需要 Lingua Forge。"
+
+#: includes/Admin/ArtworkMediumSync.php:65
+msgid ""
+"This artwork's medium is translated from its primary-language original — "
+"nothing to sync from here."
+msgstr "此作品的媒介是从其主要语言原文翻译而来 — 没有什么可从此处同步的。"
+
+#: includes/Admin/ArtworkMediumSync.php:80
+msgid ""
+"Push this artwork's current medium onto every already-translated sibling "
+"post."
+msgstr "将此作品当前的媒介推送到每个已翻译的姊妹文章。"
+
+#: includes/Admin/ArtworkMediumSync.php:82
+msgid "Sync medium to translations"
+msgstr "将媒介与翻译同步"
+
+#: includes/Admin/ArtworkMediumSync.php:93
+#: includes/Admin/ArtworkMediumSync.php:165
+#: includes/Admin/ContactMessagesPage.php:159
+#: includes/Admin/Dashboards/AdmissionDashboard.php:182
+#: includes/Admin/Dashboards/AdmissionDashboard.php:211
+#: includes/Admin/Dashboards/BiographyTitleCache.php:161
+#: includes/Admin/Dashboards/BiographyTitleCache.php:177
+#: includes/Admin/Dashboards/BiographyTitleCache.php:190
+#: includes/Admin/Dashboards/BrandingTestForm.php:69
+#: includes/Admin/Dashboards/DeliverabilityCard.php:187
+#: includes/Admin/Dashboards/InvitationCard.php:76
+#: includes/Admin/Dashboards/InvitationCard.php:103
+#: includes/Admin/Dashboards/LogsTab.php:131
+#: includes/Admin/Dashboards/MembersDashboard.php:184
+#: includes/Admin/Dashboards/MembersDashboard.php:216
+#: includes/Admin/Dashboards/MembersDashboard.php:243
+#: includes/Admin/Dashboards/NewsletterDashboard.php:284
+#: includes/Admin/Dashboards/NewsletterDashboard.php:313
+#: includes/Admin/Dashboards/NewsletterDashboard.php:341
+#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
+#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
+#: includes/Admin/QueueController.php:115
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
+#: includes/Admin/Settings.php:865
+#: includes/Admin/TaxonomyLanguageFilter.php:299
+#: includes/Admin/TaxonomyLanguageFilter.php:349
+msgid "You do not have permission to perform this action."
+msgstr "你没有权限执行此操作。"
+
+#. translators: %d: number of translated sibling posts the medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:122
+#, php-format
+msgid "Medium pushed to %d translated sibling post(s)."
+msgstr "媒介已推送到 %d 篇已翻译的姊妹文章。"
+
+#: includes/Admin/ArtworkMediumSync.php:156
+msgid ""
+"Push every primary-language artwork's current medium onto its translated "
+"siblings? This can take a moment on a large catalog."
+msgstr ""
+"将每篇主要语言作品当前的媒介推送到其翻译版本?对于较大的目录,这可能需要一些时"
+"间。"
+
+#: includes/Admin/ArtworkMediumSync.php:157
+msgid "Sync all medium assignments"
+msgstr "同步所有媒介分配"
+
+#. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
+#: includes/Admin/ArtworkMediumSync.php:199
+#, php-format
+msgid ""
+"Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
+"%2$d sibling post(s)."
+msgstr "同步完成:已处理 %1$d 篇主要语言作品,媒介已推送到 %2$d 篇姊妹文章。"
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -158,34 +237,6 @@ msgstr "操作"
 #, php-format
 msgid "(deleted artist #%d)"
 msgstr "（已删除的艺术家 #%d）"
-
-#: includes/Admin/ContactMessagesPage.php:159
-#: includes/Admin/Dashboards/AdmissionDashboard.php:182
-#: includes/Admin/Dashboards/AdmissionDashboard.php:211
-#: includes/Admin/Dashboards/BiographyTitleCache.php:161
-#: includes/Admin/Dashboards/BiographyTitleCache.php:177
-#: includes/Admin/Dashboards/BiographyTitleCache.php:190
-#: includes/Admin/Dashboards/BrandingTestForm.php:69
-#: includes/Admin/Dashboards/DeliverabilityCard.php:187
-#: includes/Admin/Dashboards/InvitationCard.php:76
-#: includes/Admin/Dashboards/InvitationCard.php:103
-#: includes/Admin/Dashboards/LogsTab.php:131
-#: includes/Admin/Dashboards/MembersDashboard.php:184
-#: includes/Admin/Dashboards/MembersDashboard.php:216
-#: includes/Admin/Dashboards/MembersDashboard.php:243
-#: includes/Admin/Dashboards/NewsletterDashboard.php:284
-#: includes/Admin/Dashboards/NewsletterDashboard.php:313
-#: includes/Admin/Dashboards/NewsletterDashboard.php:341
-#: includes/Admin/InboxPage.php:883 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
-#: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
-#: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:185
-#: includes/Admin/ArtworkMediumSync.php:93
-#: includes/Admin/ArtworkMediumSync.php:165
-msgid "You do not have permission to perform this action."
-msgstr "你没有权限执行此操作。"
 
 #: includes/Admin/ContactMessagesPage.php:182
 msgid "Message deleted."
@@ -1117,13 +1168,28 @@ msgstr "运行中…"
 msgid "Delete this queue row?"
 msgstr "要删除此队列行吗？"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:61
+#: includes/Admin/LanguageAwareTermsListTable.php:84
 msgid "Filter by language"
 msgstr "按语言筛选"
 
-#: includes/Admin/LanguageAwareTermsListTable.php:67
+#: includes/Admin/LanguageAwareTermsListTable.php:89
 msgid "Primary language"
 msgstr "主要语言"
+
+#: includes/Admin/LanguageAwareTermsListTable.php:93
+msgid "All languages (unfiltered)"
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:101
+msgid ""
+"Create missing translations for every primary-language term, in every "
+"configured language? On a large vocabulary this can take more than one click "
+"— each run picks up where the last one stopped."
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:102
+msgid "Sync all translations"
+msgstr "同步所有翻译"
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -3020,19 +3086,58 @@ msgstr ""
 "仅供参考——即使超过此数量，自托管发送仍可继续工作。一旦确认的公开订阅者超过此"
 "数，本页面会显示提醒，建议改用邮件服务提供商（例如 Brevo 的免费层）。"
 
-#: includes/Admin/TaxonomyLanguageFilter.php:164
+#: includes/Admin/TaxonomyLanguageFilter.php:246
 msgid "Sync translations"
 msgstr "同步翻译"
 
+#: includes/Admin/TaxonomyLanguageFilter.php:304
+#: includes/Admin/TaxonomyLanguageFilter.php:353
+msgid "Invalid taxonomy."
+msgstr "无效的分类法。"
+
+#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:413
+#, php-format
+msgid ""
+"%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to "
+"date, %5$d failed) — this ran out of time before reaching every term. Click "
+"\"Sync all translations\" again to continue; it picks up where this stopped."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created
+#: includes/Admin/TaxonomyLanguageFilter.php:428
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date, %4$d failed — check the AI provider configuration and "
+"run it again for those."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:436
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"already up to date."
+msgstr "全部同步完成:已处理 %1$d 个术语,已创建 %2$d 个翻译,%3$d 个已是最新。"
+
+#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for
+#: includes/Admin/TaxonomyLanguageFilter.php:459
+#, php-format
+msgid ""
+"Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
+"date, %3$d failed — check the AI provider configuration and try again."
+msgstr ""
+
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:221
+#: includes/Admin/TaxonomyLanguageFilter.php:466
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
 "date."
 msgstr "同步完成:已创建 %1$d 个翻译,%2$d 种语言已是最新。"
 
-#: includes/AI/PromptConfig.php:155
+#: includes/AI/PromptConfig.php:230
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -3734,8 +3839,8 @@ msgid "Something went wrong. Please try again."
 msgstr "出了点问题。请再试一次。"
 
 #: includes/Artist/ContentEditor.php:246 includes/Artist/ContentEditor.php:707
-#: includes/Publishing/ReviewEndpoints.php:814
-#: includes/Publishing/ReviewEndpoints.php:831
+#: includes/Publishing/ReviewEndpoints.php:866
+#: includes/Publishing/ReviewEndpoints.php:883
 msgid "Authentication required."
 msgstr "需要身份验证。"
 
@@ -4571,79 +4676,79 @@ msgid "%d positive vote recorded so far."
 msgid_plural "%d positive votes recorded so far."
 msgstr[0] "目前已记录 %d 票赞成。"
 
-#: includes/Compat/LinguaForge.php:2047
+#: includes/Compat/LinguaForge.php:2901
 msgid "is active and configured for"
 msgstr "已激活并为以下内容配置"
 
-#: includes/Compat/LinguaForge.php:2048
+#: includes/Compat/LinguaForge.php:2902
 msgid "Subdomain"
 msgstr "子域名"
 
-#: includes/Compat/LinguaForge.php:2049
+#: includes/Compat/LinguaForge.php:2903
 msgid "routing mode"
 msgstr "路由模式"
 
-#: includes/Compat/LinguaForge.php:2051
+#: includes/Compat/LinguaForge.php:2905
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
 msgstr "这与 Agnosis 艺术家子域名冲突——两个插件都会声明同一个子域名命名空间。"
 
-#: includes/Compat/LinguaForge.php:2052
+#: includes/Compat/LinguaForge.php:2906
 msgid "Artist subdomain routing is"
 msgstr "艺术家子域名路由"
 
-#: includes/Compat/LinguaForge.php:2053
+#: includes/Compat/LinguaForge.php:2907
 msgid "completely inactive"
 msgstr "完全未启用"
 
-#: includes/Compat/LinguaForge.php:2054
+#: includes/Compat/LinguaForge.php:2908
 msgid "until this is resolved."
 msgstr "直到此问题解决。"
 
-#: includes/Compat/LinguaForge.php:2056
+#: includes/Compat/LinguaForge.php:2910
 msgid "Fix: open"
 msgstr "修复：打开"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Settings"
 msgstr "设置"
 
-#: includes/Compat/LinguaForge.php:2057
+#: includes/Compat/LinguaForge.php:2911
 msgid "Language Router"
 msgstr "语言路由器"
 
-#: includes/Compat/LinguaForge.php:2058
+#: includes/Compat/LinguaForge.php:2912
 msgid "and switch the URL strategy to"
 msgstr "并将 URL 策略切换为"
 
-#: includes/Compat/LinguaForge.php:2059
+#: includes/Compat/LinguaForge.php:2913
 msgid "Path prefix (subfolder)"
 msgstr "路径前缀（子文件夹）"
 
-#: includes/Compat/LinguaForge.php:2060
+#: includes/Compat/LinguaForge.php:2914
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
 msgstr "这是 LinguaForge 的默认设置，并允许艺术家子域名与语言子文件夹共存"
 
-#: includes/Compat/LinguaForge.php:2065
+#: includes/Compat/LinguaForge.php:2919
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — 艺术家子域名路由已禁用"
 
-#: includes/Compat/LinguaForge.php:2075
+#: includes/Compat/LinguaForge.php:2929
 msgid "Open LinguaForge Settings"
 msgstr "打开 LinguaForge 设置"
 
-#: includes/Core/Activator.php:892 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:908 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis 艺术家"
 
-#: includes/Core/Activator.php:1004 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1020 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "我的提交"
 
-#: includes/Core/Activator.php:1148
+#: includes/Core/Activator.php:1204
 msgid "Join"
 msgstr "加入"
 
@@ -5099,68 +5204,68 @@ msgstr "此 webhook 请求已经处理过。"
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:1154
+#: includes/Network/ActivityPub.php:1226
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
-#: includes/Network/HttpSignature.php:159
+#: includes/Network/HttpSignature.php:158
 msgid "Signature keyId does not belong to the activity actor."
 msgstr "签名 keyId 不属于该活动的执行者。"
 
-#: includes/Network/HttpSignature.php:185
+#: includes/Network/HttpSignature.php:205
 msgid "OpenSSL is required for HTTP Signature verification."
 msgstr "验证 HTTP 签名需要 OpenSSL。"
 
-#: includes/Network/HttpSignature.php:195
+#: includes/Network/HttpSignature.php:215
 msgid "Signature header is required."
 msgstr "需要签名头。"
 
-#: includes/Network/HttpSignature.php:204
+#: includes/Network/HttpSignature.php:224
 msgid ""
 "Signature header is missing required fields (keyId, headers, signature)."
 msgstr "签名头缺少必需字段（keyId、headers、signature）。"
 
-#: includes/Network/HttpSignature.php:224
+#: includes/Network/HttpSignature.php:244
 msgid "Signature must cover the Date header."
 msgstr "Signature must cover the Date header."
 
-#: includes/Network/HttpSignature.php:231
+#: includes/Network/HttpSignature.php:251
 msgid "Signature on a POST request must cover the Digest header."
 msgstr "Signature on a POST request must cover the Digest header."
 
-#: includes/Network/HttpSignature.php:246
+#: includes/Network/HttpSignature.php:266
 msgid "Request date is too old or too far in the future."
 msgstr "请求日期过旧或过于超前。"
 
-#: includes/Network/HttpSignature.php:277
+#: includes/Network/HttpSignature.php:297
 msgid "Signature value is not valid base64."
 msgstr "签名值不是有效的 base64。"
 
-#: includes/Network/HttpSignature.php:289
+#: includes/Network/HttpSignature.php:309
 msgid "HTTP Signature verification failed."
 msgstr "HTTP 签名验证失败。"
 
-#: includes/Network/HttpSignature.php:327
+#: includes/Network/HttpSignature.php:347
 msgid "Digest header does not match the request body."
 msgstr "Digest 头与请求正文不匹配。"
 
-#: includes/Network/HttpSignature.php:350
+#: includes/Network/HttpSignature.php:391
 msgid "keyId in Signature header is not a valid URL."
 msgstr "Signature 头中的 keyId 不是有效的 URL。"
 
-#: includes/Network/HttpSignature.php:368
+#: includes/Network/HttpSignature.php:410
 msgid "Actor document could not be fetched (cached failure)."
 msgstr "Actor document could not be fetched (cached failure)."
 
-#: includes/Network/HttpSignature.php:386
+#: includes/Network/HttpSignature.php:428
 msgid "Failed to fetch actor document."
 msgstr "获取 actor 文档失败。"
 
-#: includes/Network/HttpSignature.php:395
+#: includes/Network/HttpSignature.php:439
 msgid "Actor document returned a non-200 response."
 msgstr "Actor 文档返回了非 200 响应。"
 
-#: includes/Network/HttpSignature.php:407
+#: includes/Network/HttpSignature.php:455
 msgid "Actor document does not contain a publicKey.publicKeyPem field."
 msgstr "Actor 文档不包含 publicKey.publicKeyPem 字段。"
 
@@ -6381,23 +6486,23 @@ msgstr "未找到提交。"
 msgid "This submission is not awaiting review."
 msgstr "此提交未在等待审核。"
 
-#: includes/Publishing/ReviewEndpoints.php:392
+#: includes/Publishing/ReviewEndpoints.php:401
 msgid "The original published item could not be found."
 msgstr "未能找到原始已发布项目。"
 
-#: includes/Publishing/ReviewEndpoints.php:847
+#: includes/Publishing/ReviewEndpoints.php:899
 msgid "You do not have permission to review this submission."
 msgstr "您没有审核此提交的权限。"
 
-#: includes/Publishing/ReviewEndpoints.php:872
+#: includes/Publishing/ReviewEndpoints.php:924
 msgid "Review link not found or already used."
 msgstr "审核链接未找到或已被使用。"
 
-#: includes/Publishing/ReviewEndpoints.php:880
+#: includes/Publishing/ReviewEndpoints.php:932
 msgid "Invalid review token."
 msgstr "无效的审核令牌。"
 
-#: includes/Publishing/ReviewEndpoints.php:888
+#: includes/Publishing/ReviewEndpoints.php:940
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr "此审核链接已过期。请登录以管理您的提交。"
 
@@ -7021,52 +7126,3 @@ msgstr "提交"
 msgctxt "block keyword"
 msgid "review"
 msgstr "审核"
-
-#: includes/Admin/TaxonomyLanguageFilter.php:267
-#: includes/Admin/TaxonomyLanguageFilter.php:301
-msgid "Invalid taxonomy."
-msgstr "无效的分类法。"
-
-#: includes/Admin/TaxonomyLanguageFilter.php:338
-msgid "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date."
-msgstr "全部同步完成:已处理 %1$d 个术语,已创建 %2$d 个翻译,%3$d 个已是最新。"
-
-#: includes/Admin/LanguageAwareTermsListTable.php:87
-msgid "Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary."
-msgstr "为此处显示的每个术语在所有已配置的语言中创建缺失的翻译?对于较大的词汇表,这可能需要一些时间。"
-
-#: includes/Admin/LanguageAwareTermsListTable.php:88
-msgid "Sync all translations"
-msgstr "同步所有翻译"
-
-#: includes/Admin/ArtworkMediumSync.php:57
-msgid "Requires Lingua Forge."
-msgstr "需要 Lingua Forge。"
-
-#: includes/Admin/ArtworkMediumSync.php:65
-msgid "This artwork's medium is translated from its primary-language original — nothing to sync from here."
-msgstr "此作品的媒介是从其主要语言原文翻译而来 — 没有什么可从此处同步的。"
-
-#: includes/Admin/ArtworkMediumSync.php:80
-msgid "Push this artwork's current medium onto every already-translated sibling post."
-msgstr "将此作品当前的媒介推送到每个已翻译的姊妹文章。"
-
-#: includes/Admin/ArtworkMediumSync.php:82
-msgid "Sync medium to translations"
-msgstr "将媒介与翻译同步"
-
-#: includes/Admin/ArtworkMediumSync.php:122
-msgid "Medium pushed to %d translated sibling post(s)."
-msgstr "媒介已推送到 %d 篇已翻译的姊妹文章。"
-
-#: includes/Admin/ArtworkMediumSync.php:156
-msgid "Push every primary-language artwork's current medium onto its translated siblings? This can take a moment on a large catalog."
-msgstr "将每篇主要语言作品当前的媒介推送到其翻译版本?对于较大的目录,这可能需要一些时间。"
-
-#: includes/Admin/ArtworkMediumSync.php:157
-msgid "Sync all medium assignments"
-msgstr "同步所有媒介分配"
-
-#: includes/Admin/ArtworkMediumSync.php:199
-msgid "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s)."
-msgstr "同步完成:已处理 %1$d 篇主要语言作品,媒介已推送到 %2$d 篇姊妹文章。"

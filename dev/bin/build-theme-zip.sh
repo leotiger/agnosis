@@ -7,7 +7,10 @@
 #   ./dev/bin/build-theme-zip.sh [output-dir]
 #
 # Uses rsync to copy the theme source so uncommitted changes are included.
-# Excludes dev-only files (.git, node_modules, .DS_Store, etc.).
+# Exclusions are read from agnosis-theme/.distignore (audit AUDIT-0.9.38.md
+# §7c) the same way build-zip.sh reads the plugin's own .distignore, instead
+# of the hardcoded list this script used to carry — one file to update when
+# what should ship changes, not two scripts that can silently drift apart.
 #
 # Output: ../agnosis-deploy/agnosis-theme-<version>.zip  (or [output-dir]/agnosis-theme-<version>.zip)
 
@@ -33,16 +36,26 @@ ZIP_PATH="$OUTPUT_DIR/$ZIP_NAME"
 
 echo "==> Building $ZIP_NAME"
 
-# Exclusions — dev-only files that should not ship.
-RSYNC_EXCLUDES=(
-    --exclude=".git/"
-    --exclude=".gitignore"
-    --exclude=".gitattributes"
-    --exclude=".editorconfig"
-    --exclude=".DS_Store"
-    --exclude="node_modules/"
-    --exclude="*.map"
-)
+# Build rsync exclusions from .distignore (same parsing rule as build-zip.sh:
+# dot-only filenames, e.g. .DS_Store, match anywhere in the tree; everything
+# else is anchored to the theme root with a leading slash).
+RSYNC_EXCLUDES=()
+if [ -f "$THEME_DIR/.distignore" ]; then
+    while IFS= read -r line; do
+        [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+        [[ "$line" =~ ^# ]] && continue
+        if [[ "$line" == .* && "$line" != */* ]]; then
+            RSYNC_EXCLUDES+=(--exclude="$line")
+        else
+            RSYNC_EXCLUDES+=(--exclude="/${line}")
+        fi
+    done < "$THEME_DIR/.distignore"
+else
+    echo "WARNING: no .distignore found in $THEME_DIR — nothing will be excluded from the ZIP." >&2
+fi
+
+# Always exclude macOS metadata, even if .distignore is ever edited to drop it.
+RSYNC_EXCLUDES+=(--exclude=".DS_Store")
 
 # Copy into a temp dir named exactly 'agnosis-theme' so the ZIP always
 # extracts to agnosis-theme/ regardless of the source path.

@@ -56,6 +56,25 @@ class SubmissionTranslator {
 		. 'gender-neutral phrasing in the target language where natural, rather '
 		. 'than defaulting to a masculine or feminine form.';
 
+	/**
+	 * Appended to every JSON-envelope translation prompt below, alongside
+	 * GENDER_NEUTRAL_INSTRUCTION — added 2026-07-19 after a live, reproducible
+	 * report: medium-term translation ("Mixed Media" → German) failed on
+	 * every single retry, not a transient AI hiccup. Cause: for a short,
+	 * context-free phrase, the model sometimes returns a nested object or
+	 * array where a plain string was expected — the exact "Array — Cal
+	 * Talaia" failure shape this file's own is_string() guards further down
+	 * already document and defend against (falling back to the original
+	 * text rather than ever publishing something like the literal string
+	 * "Array"). Those guards make the failure safe, but nothing in the
+	 * prompt itself ever told the model not to do this in the first place —
+	 * this instruction is that missing ask, reducing how often the fallback
+	 * path is needed at all.
+	 */
+	private const PLAIN_STRING_VALUES_INSTRUCTION =
+		'Each value in that JSON object must be a single plain string — never a '
+		. 'nested object, an array, or a list of alternative phrasings or options.';
+
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
 	// -------------------------------------------------------------------------
@@ -275,6 +294,7 @@ class SubmissionTranslator {
 			. "If a section is already in {$target_name}, include it in the output unchanged.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
+			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. trim( $sections );
 
@@ -293,11 +313,25 @@ class SubmissionTranslator {
 			return [];
 		}
 
+		// Same non-scalar-value guard as call_translate() (see that method's
+		// own docblock), and the same 2026-07-19 fix to log it instead of
+		// silently falling back — a caller here loses one field, not the
+		// whole batch, but that's still worth a log entry rather than nothing.
 		$result = [];
 		foreach ( array_keys( $fields ) as $key ) {
 			if ( isset( $decoded[ $key ] ) && is_string( $decoded[ $key ] ) ) {
 				$result[ $key ] = sanitize_textarea_field( $decoded[ $key ] );
+				continue;
 			}
+			Logger::warning(
+				sprintf(
+					'SubmissionTranslator::translate_fields: "%s" field %s for %s translation — falling back to the original text.',
+					$key,
+					isset( $decoded[ $key ] ) ? 'was not a plain string (likely a nested object/array in the model\'s response)' : 'was missing from the model\'s response',
+					$target_name
+				),
+				'pipeline'
+			);
 		}
 
 		return $result;
@@ -360,6 +394,7 @@ class SubmissionTranslator {
 		$prompt = "Translate the text below into EACH of these languages: {$lang_list}.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object whose keys are exactly these language codes: {$json_keys}, and whose values are the translated text for that language.\n"
+			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. "TEXT:\n{$text}";
 
@@ -378,9 +413,20 @@ class SubmissionTranslator {
 			return [];
 		}
 
+		// Same non-scalar-value guard as call_translate() (see that method's
+		// own docblock), and the same 2026-07-19 fix to log it instead of
+		// silently dropping just that one language from the batch.
 		$result = [];
 		foreach ( array_keys( $names ) as $code ) {
 			if ( ! isset( $decoded[ $code ] ) || ! is_string( $decoded[ $code ] ) ) {
+				Logger::warning(
+					sprintf(
+						'SubmissionTranslator::translate_to_languages: "%s" field %s — skipping that language.',
+						$code,
+						isset( $decoded[ $code ] ) ? 'was not a plain string (likely a nested object/array in the model\'s response)' : 'was missing from the model\'s response'
+					),
+					'pipeline'
+				);
 				continue;
 			}
 			$translated = sanitize_text_field( $decoded[ $code ] );
@@ -537,6 +583,7 @@ class SubmissionTranslator {
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. ( '' !== $context ? trim( $context ) . "\n" : '' )
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
+			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. $sections;
 
@@ -574,12 +621,45 @@ class SubmissionTranslator {
 		// translate_fields(), the callers in Compat\LinguaForge) applies
 		// here too, instead of ever publishing "Array" as if it were a
 		// genuine translation.
-		if ( '' !== $subject && isset( $decoded['subject'] ) && is_string( $decoded['subject'] ) ) {
-			$result['subject'] = sanitize_text_field( $decoded['subject'] );
+		//
+		// Until 2026-07-19 this fallback was completely silent — no log entry
+		// at all, unlike the log_json_decode_failure() case just above for a
+		// response that isn't valid JSON in the first place. That gap is what
+		// made a live medium-term sync failure ("Mixed Media" missing from
+		// German, reproducibly, on every retry) genuinely undiagnosable: the
+		// admin notice said "check the AI provider configuration," which was
+		// never the actual cause, and nothing in Settings → Logs distinguished
+		// this from a normal "nothing to translate" no-op. Each branch below
+		// now logs which field was affected and why, same warning level and
+		// 'pipeline' channel every other translation failure in this file uses.
+		if ( '' !== $subject ) {
+			if ( isset( $decoded['subject'] ) && is_string( $decoded['subject'] ) ) {
+				$result['subject'] = sanitize_text_field( $decoded['subject'] );
+			} else {
+				Logger::warning(
+					sprintf(
+						'SubmissionTranslator::call_translate: "subject" field %s for %s translation — falling back to the original text.',
+						isset( $decoded['subject'] ) ? 'was not a plain string (likely a nested object/array in the model\'s response)' : 'was missing from the model\'s response',
+						$target_language_name
+					),
+					'pipeline'
+				);
+			}
 		}
 
-		if ( '' !== $body && isset( $decoded['description'] ) && is_string( $decoded['description'] ) ) {
-			$result['description'] = sanitize_textarea_field( $decoded['description'] );
+		if ( '' !== $body ) {
+			if ( isset( $decoded['description'] ) && is_string( $decoded['description'] ) ) {
+				$result['description'] = sanitize_textarea_field( $decoded['description'] );
+			} else {
+				Logger::warning(
+					sprintf(
+						'SubmissionTranslator::call_translate: "description" field %s for %s translation — falling back to the original text.',
+						isset( $decoded['description'] ) ? 'was not a plain string (likely a nested object/array in the model\'s response)' : 'was missing from the model\'s response',
+						$target_language_name
+					),
+					'pipeline'
+				);
+			}
 		}
 
 		return ! empty( $result ) ? $result : null;

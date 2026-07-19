@@ -217,6 +217,31 @@ class LinguaForge {
 	private const TERM_TRANSLATIONS_OPTION = 'agnosis_term_translations';
 
 	/**
+	 * Extra framing passed to SubmissionTranslator::translate_text()'s $context
+	 * param for term-label translation — added 2026-07-19 after a live,
+	 * reproducible report: "Mixed Media" was missing from German (and other
+	 * languages') medium sync on every single retry, not a transient AI
+	 * hiccup. A term label is exactly the "short, bare phrase with no
+	 * surrounding sentence" shape Artist\BiographyTitle::
+	 * HEADING_TRANSLATION_CONTEXT was already added for on 2026-07-18 (the
+	 * "Meet the Artist" mis-gendering bug) — translate_text() silently falls
+	 * back to the SOURCE name whenever the model's JSON response has a
+	 * non-string value for the requested field (SubmissionTranslator::
+	 * call_translate()'s own docblock: seen in practice on exactly this kind
+	 * of short, context-free phrase), and sync_term_across_languages() then
+	 * reports that as a `failed` language — reproducibly, since nothing
+	 * about the input changes between retries. translated_term_name() was
+	 * calling translate_text() with the bare two-argument form, never
+	 * passing this context at all, unlike BiographyTitle's own call site.
+	 */
+	private const TERM_TRANSLATION_CONTEXT =
+		'This text is a single controlled-vocabulary category label (like a tag '
+		. 'or a dropdown option), not a sentence or phrase within running prose. '
+		. 'Translate it as a short, natural label in the target language — a '
+		. 'single word or short noun phrase, matching the source\'s length and '
+		. 'form — rather than a full sentence or explanation.';
+
+	/**
 	 * Term meta key flagging a taxonomy term (post_tag or agnosis_medium) as
 	 * one sync_taxonomy() itself created via AI translation, rather than one
 	 * an admin created directly (fourth audit §4c). Value is the target
@@ -2335,6 +2360,32 @@ class LinguaForge {
 	 * encountered, not a corrupted cache or a wrong translation ever being
 	 * served — acceptable for a low-traffic admin-side cache, so left
 	 * unguarded rather than adding real locking for a cosmetic race.
+	 *
+	 * A FAILED translation attempt is never cached (fixed 2026-07-19, same
+	 * live report as TERM_TRANSLATION_CONTEXT above). `translate_text()`
+	 * falls back to returning the SOURCE name unchanged on any failure — no
+	 * AI provider, an empty response, or the model returning a non-scalar
+	 * JSON value SubmissionTranslator::call_translate() had to drop. The
+	 * pre-fix code only skipped the cache write when the result was an empty
+	 * string, which a same-as-source fallback never is, so it got written to
+	 * the cache exactly like a genuine translation would. Every later sync
+	 * attempt then hit that cache entry first and returned the same fallback
+	 * immediately — the actual AI call was never retried again, ever, for
+	 * that (term, language) pair, which is why re-running "Sync all
+	 * translations" could not fix a term that had failed once (the specific
+	 * symptom reported: "Mixed Media" permanently missing from German sync,
+	 * unchanged across repeated retries). Only clearing the whole term
+	 * translation cache (Settings → General → "Clear Term Translation
+	 * Cache") ever un-stuck it. Now: a result identical to the source name is
+	 * treated as a failure and never cached, so the next sync attempt calls
+	 * the AI translator again instead of replaying a stale failure. Trade-off
+	 * accepted deliberately: a term whose translation is GENUINELY identical
+	 * to its source (a loanword kept as-is in the target language) will incur
+	 * one extra AI call on every future "Sync all" run instead of being
+	 * cached — indistinguishable from a failure with the information
+	 * available here, and the caller (`sync_term_across_languages()`) already
+	 * treats the two identically for its own `failed` count, so this doesn't
+	 * introduce a new ambiguity, only extends the existing one to the cache.
 	 */
 	private function translated_term_name( string $name, string $taxonomy, string $target_lang ): string {
 		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
@@ -2349,8 +2400,8 @@ class LinguaForge {
 			return $name;
 		}
 
-		$translated = trim( $translator->translate_text( $name, $target_lang ) );
-		if ( '' === $translated ) {
+		$translated = trim( $translator->translate_text( $name, $target_lang, self::TERM_TRANSLATION_CONTEXT ) );
+		if ( '' === $translated || $translated === $name ) {
 			return $name;
 		}
 
@@ -2377,6 +2428,70 @@ class LinguaForge {
 	 */
 	public static function clear_term_translations_cache(): void {
 		delete_option( self::TERM_TRANSLATIONS_OPTION );
+	}
+
+	/**
+	 * One-time repair (0.9.39) for cache entries poisoned by the term-
+	 * translation-cache bug fixed in translated_term_name() above: before
+	 * that fix, a FAILED translation attempt (the AI model returning a
+	 * non-scalar JSON value for a short, context-free label — see
+	 * TERM_TRANSLATION_CONTEXT's own docblock — or simply no AI provider
+	 * configured) got cached as if `translated name === source name` were a
+	 * genuine translation, permanently short-circuiting every future retry
+	 * for that (taxonomy, term, language) triple. Live symptom this was
+	 * found from: "Mixed Media" missing from German medium sync, unchanged
+	 * across repeated "Sync all translations" runs — translated_term_name()
+	 * was returning the poisoned cache hit instantly, never calling the AI
+	 * translator again.
+	 *
+	 * Purges any cache entry whose stored value is identical to its own
+	 * source name — the exact self-referential shape only that bug could
+	 * produce; a genuine translation into a different language essentially
+	 * never matches the source string verbatim for a controlled vocabulary
+	 * label. Purging (rather than re-translating here) is deliberate: this
+	 * runs from Activator::maybe_upgrade(), which fires on every page load
+	 * until the version check passes, so it must stay a plain, fast option
+	 * read/write. The next "Sync translations" / "Sync all translations"
+	 * click — an existing, on-demand admin action — is what actually
+	 * re-attempts the AI call, now benefiting from both this cleared cache
+	 * entry and TERM_TRANSLATION_CONTEXT's improved prompt framing.
+	 *
+	 * Called once from Activator::maybe_upgrade() on the 0.9.39 upgrade.
+	 * Safe to re-run: once the cache holds no self-referential entries, this
+	 * is a single get_option() call and nothing else.
+	 *
+	 * @return int Number of poisoned cache entries removed.
+	 */
+	public static function purge_self_referential_term_translations(): int {
+		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
+		if ( ! is_array( $cache ) ) {
+			return 0;
+		}
+
+		$removed = 0;
+
+		foreach ( $cache as $taxonomy => $by_name ) {
+			foreach ( (array) $by_name as $name => $by_lang ) {
+				foreach ( (array) $by_lang as $lang => $value ) {
+					if ( $value === $name ) {
+						unset( $cache[ $taxonomy ][ $name ][ $lang ] );
+						++$removed;
+					}
+				}
+				if ( empty( $cache[ $taxonomy ][ $name ] ) ) {
+					unset( $cache[ $taxonomy ][ $name ] );
+				}
+			}
+			if ( empty( $cache[ $taxonomy ] ) ) {
+				unset( $cache[ $taxonomy ] );
+			}
+		}
+
+		if ( $removed > 0 ) {
+			update_option( self::TERM_TRANSLATIONS_OPTION, $cache, false );
+		}
+
+		return $removed;
 	}
 
 	/** Total number of cached (taxonomy, term name, language) translations, for the Settings panel. */
