@@ -58,6 +58,28 @@ jobs:
           key: composer-${{ matrix.php-version }}-${{ hashFiles('dev/composer.lock') }}
           restore-keys: composer-${{ matrix.php-version }}-
 
+      # dev/bootstrap.php requires ../vendor-prefixed/autoload.php (the
+      # Strauss-prefixed webklex/php-imap tree Inbox.php/Parser.php actually
+      # reference — C-item/§4e) — that's built by the PLUGIN ROOT's
+      # composer.json, not dev/'s, via its post-install-cmd. Without this
+      # step, `composer analyse`/`composer test:unit` fail immediately with
+      # "Run `composer install` in the plugin root first" the moment either
+      # touches Inbox.php/Parser.php, since dev/'s own install never builds
+      # it. composer.lock isn't committed at the root (gitignored, same as
+      # vendor/ and vendor-prefixed/ themselves — see root .gitignore), so
+      # the cache key hashes composer.json instead.
+      - name: Cache root Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            vendor
+            vendor-prefixed
+          key: composer-root-${{ matrix.php-version }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-root-${{ matrix.php-version }}-
+
+      - name: Install root Composer dependencies (builds vendor-prefixed/)
+        run: composer install --prefer-dist --no-progress
+
       - name: Install Composer dependencies
         working-directory: dev
         run: composer install --prefer-dist --no-progress

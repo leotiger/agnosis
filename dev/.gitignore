@@ -11,6 +11,10 @@ package-lock.json
 .phpunit.result.cache
 .phpstan.cache
 
+# composer coverage output — reproducible, and embeds this machine's own
+# absolute filesystem paths; never commit (audit H-1, AUDIT-0.9.39.md §6).
+coverage/
+
 # wp-env runtime data.
 .wp-env/
 .wp-env.override.json

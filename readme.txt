@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.39
+Stable tag: 0.9.40
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,6 +83,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.40 =
+* Fixed: Repository housekeeping — a large (90 MB) local test-coverage report had been accidentally tracked in the plugin's source repository. It's now excluded going forward. No functional or behavioral change to how the plugin runs on your site.
+
 = 0.9.39 =
 * Added: A new "Powered by Agnosis" page is created as a draft the first time the plugin activates or upgrades. It's a short, easy-reading summary of what Agnosis is and how it works, with a link to the GitHub repository for full documentation and installation — meant for a visitor who wants to know what your site runs on, and how to get it for their own. It starts as a draft; publish it (and link it from wherever you like) whenever you're ready.
 * Fixed: The "Sync all translations" button on the Tags/Mediums screens no longer risks silently timing out on a large vocabulary. It now stops cleanly after about 20 seconds of work and tells you how many terms are left — click it again to continue exactly where it stopped.
@@ -95,13 +98,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: "Sync all translations" could still leave a real percentage of every language's vocabulary with no term at all whenever the AI translation call itself failed (reported live: German 9/10, Italian 8/10, Portuguese 6/10) — there was previously no way to fix what didn't exist. A missing translation is now always created as a real term using the original name as a placeholder, clearly marked "needs translation" in its Description column on the Tags/Mediums screen, so nothing is ever silently absent — just rename the placeholder and clear the note to finish the translation by hand. The sync notice now tells these apart from genuine failures instead of always pointing at your AI provider configuration.
 * Fixed: Found the real reason the two fixes directly above still weren't enough (reported live with screenshots: German fully synced at 10/10, but Portuguese stuck at 6/10 and Spanish at 9/10, with the sync notice claiming a clean "0 failed" run every time). Two different languages sharing an identical or near-identical word — very common between related languages, e.g. "Arte Digital" and "Escultura" are the same word in Spanish and Portuguese — were silently colliding with each other during sync, and the language that lost the collision ended up with no term at all despite being counted as a success. This is now resolved correctly: each language always gets its own real term. As a bonus safety net, any future linking problem of this kind will now be correctly reported as a failure instead of silently miscounted as a success. Also fixed: switching the language dropdown on the Tags/Mediums screen no longer keeps showing a stale sync result from an earlier click. Run "Sync all translations" again after updating to fill in any terms still missing for your languages.
 * Removed: The unused `agnosis_transactions` database table has been dropped. A donation feature would have needed to collect a payment, keep a platform fee, and pay the rest out to the specific artist — no free WordPress plugin does that (they all pay a single site-wide account), and doing it properly means a real Stripe Connect integration, which is out of scope for this release. Rather than leave an empty table (and its unused privacy-export tooling) sitting around indefinitely, both are removed. This runs automatically on update; nothing to do on your end.
-
-= 0.9.38 =
-* Added: The Tags and Mediums admin screens (Posts → Artwork → Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language — no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a "Sync translations" action to create a term's translation in every configured language on demand, and editing an artwork's medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.
-* Added: A "Sync all translations" button next to the Tags/Mediums language dropdown syncs every primary-language term to every configured language in one click, instead of the "Sync translations" row action one term at a time. It's safe to click again if a large vocabulary times out partway through — it resumes rather than redoing work.
-* Added: A new "Medium translations" box on each artwork's edit screen, plus a matching bulk action on the artwork list screen, lets you push an artwork's medium onto its already-translated sibling posts on demand — useful for pairs that drifted out of sync before the automatic version above existed.
-* Fixed: Term translations are now linked to their source term by a stable ID instead of by matching names, so re-syncing after a re-translation no longer creates near-duplicate terms.
-* Fixed: Tags and mediums created automatically while AI-tagging a submission in a non-primary language are now correctly recorded as translations, instead of silently joining your primary-language vocabulary.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

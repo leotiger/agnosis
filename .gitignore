@@ -2,8 +2,11 @@
 **/.DS_Store
 
 # Dev tooling lives in dev/. Heavy install artefacts (vendor/, node_modules/,
-# caches) are ignored by dev/.gitignore. The entries below guard against
-# anyone accidentally running composer install or npm install in the root.
+# caches) are ignored by dev/.gitignore. Running `composer install` in the
+# root IS required (it builds vendor-prefixed/, which dev/bootstrap.php
+# needs even for unit tests — CONTRIBUTING.md's Development setup); these
+# entries just mean its own build output never gets committed, same as
+# dev/vendor/ and node_modules/ never are.
 /vendor/
 /vendor-prefixed/
 /node_modules/

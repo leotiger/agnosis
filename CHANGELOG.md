@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.40] — 2026-07-19
+
+### Fixed
+- **`dev/coverage/` (90 MB of local PHPUnit coverage output, embedding this machine's own `/Users/tiger/...` filesystem paths) was tracked by git without being excluded by any `.gitignore` — flagged as a going-public blocker (H-1, `agnosis-audit/AUDIT-0.9.39.md` §6).** Coverage reports are `composer coverage`'s own reproducible output, not source, and had no reason to live in the repository at all — let alone one about to go public with a stranger's local machine path baked into every HTML report. Added `coverage/` to `dev/.gitignore` so it can't be re-added by accident. Untracking the already-committed copy, and folding its removal into the git-history decision (H-2, same audit), is a maintainer-run `git` operation outside this session's reach — no `git` commands are ever run against this repo from here. (`dev/.gitignore`)
+
 ## [0.9.39] — 2026-07-19
 
 ### Added

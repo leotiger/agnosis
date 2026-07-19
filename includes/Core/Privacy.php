@@ -59,6 +59,24 @@
  * `erase_transactions()`) was removed along with it — see
  * `Core\Activator::maybe_upgrade()` for the table-drop migration.
  *
+ * `agnosis_followers` (remote Fediverse accounts that follow this site) is
+ * deliberately outside this class's exporter/eraser tooling entirely — not
+ * an oversight, a considered position (privacy audit P-2,
+ * AUDIT-0.9.39.md §3c). A remote follower's actor URI and inbox URL are
+ * personal data, but a WordPress DSAR is keyed by email address, and a
+ * remote follower has no email this site ever sees — there is no key to
+ * export or erase *by*. Erasure here is protocol-native instead of
+ * request-driven: an `Undo Follow` activity removes the row when the
+ * follower unfollows, and an actor `Delete` removes it when the account
+ * itself is deleted (including the previously-unverifiable case, now
+ * resolved via `HttpSignature`'s key-410 corroboration — see
+ * `Network\ActivityPub::verify_inbox_signature()`) — so a deleted remote
+ * account's row does not persist indefinitely. This is the same position
+ * every other Fediverse server implementation takes. If a DSAR names a
+ * specific actor URI, the answer is a manual row deletion by this site's
+ * administrator (`agnosis_followers` is a small, directly queryable table)
+ * rather than anything the automated tools above can key on.
+ *
  * @package Agnosis\Core
  */
 
@@ -691,9 +709,23 @@ class Privacy {
 			. '<h2>' . esc_html__( 'What personal data we collect and why', 'agnosis' ) . '</h2>'
 			. '<p>' . esc_html__( 'When you apply to join, we store your email address, display name, biography, statement, and portfolio link to run the community vouching process. When you email us artwork, a biography, or an event, the content of that email (including your address) is stored while it is processed and reviewed. When you subscribe to our newsletter or message an artist through their contact form, we store your email address (and, for contact messages, your IP address) to deliver that message or send you future issues.', 'agnosis' ) . '</p>'
 			. '<h2>' . esc_html__( 'Who we share it with', 'agnosis' ) . '</h2>'
-			. '<p>' . esc_html__( 'Submitted artwork descriptions and images may be sent to a third-party AI provider (OpenAI or Anthropic, depending on this site\'s configuration) to help write publication text and enhance images. If this site instead uses WordPress\'s own built-in AI Client (configured under Settings → Connectors), submitted content is sent to whichever AI service that connector points to instead. Approved posts are also broadcast publicly over ActivityPub (the Fediverse) as part of this plugin\'s core federation feature.', 'agnosis' ) . '</p>'
+			. '<p>' . esc_html__( 'Submitted artwork descriptions and images may be sent to a third-party AI provider (OpenAI or Anthropic, depending on this site\'s configuration) to help write publication text and enhance images. If this site instead uses WordPress\'s own built-in AI Client (configured under Settings → Connectors), submitted content is sent to whichever AI service that connector points to instead. Approved posts are also broadcast publicly over ActivityPub (the Fediverse) as part of this plugin\'s core federation feature.', 'agnosis' ) . '</p>';
+
+		// Turnstile is an opt-in, config-gated security check (both a site key
+		// and a secret key must be set) — only disclose it when it's actually
+		// live on this install (privacy audit P-1, AUDIT-0.9.39.md §3c). When
+		// enabled it loads on the Join, contact-form, and newsletter-signup
+		// forms, and sends the visitor's IP to Cloudflare on every completed
+		// submission (Turnstile::verify(), Turnstile.php).
+		if ( Turnstile::is_enabled() ) {
+			$content .= '<h2>' . esc_html__( 'Security check (Cloudflare Turnstile)', 'agnosis' ) . '</h2>'
+				. '<p>' . esc_html__( 'This site uses Cloudflare Turnstile, an automated security check, on its Join, contact, and newsletter-signup forms to block spam submissions. Completing it sends your IP address to Cloudflare for verification.', 'agnosis' ) . '</p>';
+		}
+
+		$content .= '<h2>' . esc_html__( 'Software updates', 'agnosis' ) . '</h2>'
+			. '<p>' . esc_html__( 'This site checks agnosis.art roughly every 12 hours for available plugin updates. That check includes this site\'s own web address so the update server can confirm compatibility; no visitor data is involved.', 'agnosis' ) . '</p>'
 			. '<h2>' . esc_html__( 'How long we retain your data', 'agnosis' ) . '</h2>'
-			. '<p>' . esc_html__( 'Retention varies by data type; see this site\'s administrator for specifics. You can request a copy of, or the erasure of, the personal data described above at any time using this site\'s standard WordPress data request tools.', 'agnosis' ) . '</p>';
+			. '<p>' . esc_html__( 'By default: contact-form messages are kept for 90 days, and the sender\'s IP address on them is cleared sooner, after 30 days. Membership applications that are rejected, withdrawn, or leave the network are anonymized after 180 days. Raw submission emails are deleted from the processing queue after 7 days, and diagnostic copies kept only if this site\'s administrator has debug logging turned on are deleted after 14 days. This site\'s administrator can adjust each of these periods under Settings. You can request a copy of, or the erasure of, the personal data described above at any time using this site\'s standard WordPress data request tools.', 'agnosis' ) . '</p>';
 
 		wp_add_privacy_policy_content( __( 'Agnosis', 'agnosis' ), wp_kses_post( $content ) );
 	}

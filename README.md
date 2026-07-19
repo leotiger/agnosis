@@ -74,6 +74,24 @@ Without this, WordPress sets auth cookies for the exact host only. Artists who l
 
 Set `agnosis_base_domain` to your root domain in **Agnosis → Settings → General** after activation.
 
+### nginx: protecting the queue and debug directories
+
+Agnosis writes two directories it never wants served directly: `wp-content/uploads/agnosis-queue/` (raw, pre-publication submission files — originals under a short-lived per-submission directory) and `wp-content/agnosis-debug/` (raw diagnostic copies, only present if debug logging is turned on). Both are guarded with an Apache `.htaccess` (`Deny from all`) written automatically on first use — **which nginx does not read**. On nginx, add the equivalent `location` block yourself:
+
+```nginx
+location ^~ /wp-content/uploads/agnosis-queue/ {
+    deny all;
+    return 404;
+}
+
+location ^~ /wp-content/agnosis-debug/ {
+    deny all;
+    return 404;
+}
+```
+
+Without this, a guessed path is served on nginx even though the `.htaccess` file sits right there doing nothing. The practical exposure is bounded — files are on short TTLs (queue: a few days; debug: two weeks by default) and a request would need to guess both the per-submission directory and the original, sanitized filename — but there's no reason to rely on that when a two-line server config closes it outright.
+
 ## Installation
 
 Agnosis requires [Lingua Forge](https://github.com/leotiger/lingua-forge) to be installed and active first (`agnosis.php` declares it via the `Requires Plugins` header) — WordPress will refuse to activate Agnosis otherwise.
@@ -88,8 +106,11 @@ wp plugin install agnosis-<version>.zip --activate
 # Or both from source — note the order
 git clone https://github.com/leotiger/lingua-forge wp-content/plugins/lingua-forge
 git clone https://github.com/leotiger/agnosis wp-content/plugins/agnosis
+cd wp-content/plugins/agnosis && composer install && cd -
 wp plugin activate lingua-forge agnosis
 ```
+
+A plain `git clone` alone has no `webklex/php-imap` — the plugin's fallback autoloader only covers its own `Agnosis\` classes, so email intake via IMAP silently doesn't exist until `composer install` runs (it also handles the required namespace-prefixing step automatically). If you just want to run a real site rather than develop the plugin, using the release ZIP above avoids this step entirely.
 
 Then open **Agnosis** in the admin sidebar and configure your email inbox and AI API keys.
 

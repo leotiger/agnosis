@@ -74,7 +74,9 @@ class AttachmentStoreTest extends \WP_UnitTestCase {
 	}
 
 	public function test_store_sanitises_uid_directory_traversal(): void {
-		// A uid with directory-traversal characters must not escape the queue dir.
+		// The directory name is now an HMAC of the uid (P-3 hardening), never
+		// the raw value, so a traversal-shaped uid can't escape the queue dir
+		// regardless — this test still exercises that guarantee end-to-end.
 		$uid  = '../../../etc-test-' . uniqid();
 		$this->created_uids[] = $uid;
 
@@ -90,6 +92,21 @@ class AttachmentStoreTest extends \WP_UnitTestCase {
 			// systems where wp_mkdir_p() refuses to create the path.
 			$this->addToAssertionCount( 1 );
 		}
+	}
+
+	public function test_store_derives_directory_name_from_uid_not_raw_value(): void {
+		// The on-disk directory name must not be (or contain) the raw uid —
+		// that's the whole point of the P-3 hardening.
+		$uid  = 'test-hmac-' . uniqid();
+		$this->created_uids[] = $uid;
+
+		$path = AttachmentStore::store( $uid, 0, 'file.jpg', 'data' );
+		$dir_name = basename( dirname( $path ) );
+
+		$this->assertStringNotContainsString( $uid, $dir_name );
+		// Deterministic: storing again under the same uid resolves to the same directory.
+		$path2 = AttachmentStore::store( $uid, 1, 'file2.jpg', 'data' );
+		$this->assertSame( dirname( $path ), dirname( $path2 ) );
 	}
 
 	// ── delete_dir() ──────────────────────────────────────────────────────────
@@ -176,5 +193,40 @@ class AttachmentStoreTest extends \WP_UnitTestCase {
 		AttachmentStore::sweep_orphans( 7 );
 
 		$this->assertDirectoryExists( $dir );
+	}
+
+	public function test_sweep_orphans_keeps_old_dir_with_live_queue_row(): void {
+		// Guards the P-3 hardening's keep-set rewrite: since the directory
+		// name is now a derived HMAC rather than the raw message_uid, the
+		// live-row check can no longer match a scanned entry name directly
+		// against the queue table — this test would fail if that mapping
+		// were ever broken.
+		global $wpdb;
+
+		$uid = 'test-live-' . uniqid();
+		$this->created_uids[] = $uid;
+
+		$path = AttachmentStore::store( $uid, 0, 'file.jpg', 'data' );
+		$dir  = dirname( $path );
+
+		$wpdb->insert(
+			$wpdb->prefix . 'agnosis_queue',
+			[
+				'message_uid' => $uid,
+				'status'      => 'pending',
+				'raw_email'   => '{}',
+			],
+			[ '%s', '%s', '%s' ]
+		);
+
+		// Back-date the directory past the TTL — only a live row should save it.
+		touch( $dir, time() - ( 8 * DAY_IN_SECONDS ) );
+
+		AttachmentStore::sweep_orphans( 7 );
+
+		$this->assertDirectoryExists( $dir );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->prefix}agnosis_queue WHERE message_uid = %s", $uid ) );
 	}
 }

@@ -44,7 +44,12 @@ git clone https://github.com/leotiger/agnosis
 git clone https://github.com/leotiger/lingua-forge   # required for wp-env to activate Agnosis at all; see above
 git clone https://github.com/leotiger/agnosis-theme  # optional, for integration tests
 
-cd agnosis/dev
+cd agnosis
+composer install   # builds vendor-prefixed/ — dev/bootstrap.php requires it for
+                    # Inbox.php/Parser.php's prefixed webklex/php-imap classes,
+                    # even for the WordPress-free unit suite (C-item/§4e)
+
+cd dev
 npm install
 composer install
 

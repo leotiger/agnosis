@@ -12,9 +12,22 @@
  *   uploads/agnosis-queue/
  *     .htaccess          — deny direct HTTP access
  *     index.php          — empty guard (WordPress convention)
- *     {uid}/
+ *     {token}/
  *       0-filename.jpg   — one file per attachment, prefixed with its index
  *       1-photo.png
+ *
+ * `{token}` is `hash_hmac('sha256', $uid, wp_salt())`, truncated — not the
+ * raw queue `message_uid` (which, for IMAP intake, is a small sequential
+ * integer). The `.htaccess` guard above is inert on nginx (it only reads
+ * Apache config), so on that stack a guessed/enumerated path would have been
+ * directly servable if the directory name were the guessable uid itself;
+ * deriving it from a per-install-salted HMAC instead closes that without a
+ * schema change (P-3, `agnosis-audit/AUDIT-0.9.39.md` §4 — see the README's
+ * own nginx `location` block for the primary fix this pairs with). Still a
+ * deterministic function of `$uid`, so `store()`/`delete_dir()` recompute the
+ * same path from the uid alone; `sweep_orphans()` correspondingly builds its
+ * keep-set from live rows' *derived* directory names rather than matching a
+ * scanned directory name straight back to a `message_uid` column value.
  *
  * Temp files are deleted by PostCreator immediately after a successful upload.
  * The cleanup cron sweeps any orphans left by failed or permanently-stuck rows.
@@ -101,6 +114,22 @@ class AttachmentStore {
 
 		global $wpdb;
 
+		// Build the keep-set from every uid a live queue row still cares
+		// about, up front — a scanned directory's own name is now a derived
+		// HMAC (see uid_dir()), not the message_uid itself, so it can no
+		// longer be matched back to a row with a direct `WHERE message_uid =
+		// %s` lookup against the entry name. One query instead of one per
+		// directory, as a side effect.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- sweep; real-time check against live queue.
+		$live_uids = (array) $wpdb->get_col(
+			"SELECT message_uid FROM {$wpdb->prefix}agnosis_queue WHERE status IN ('pending','processing')"
+		);
+
+		$keep = [];
+		foreach ( $live_uids as $live_uid ) {
+			$keep[ basename( self::uid_dir( (string) $live_uid ) ) ] = true;
+		}
+
 		$cutoff = time() - ( $days * DAY_IN_SECONDS );
 		$swept  = 0;
 
@@ -123,16 +152,7 @@ class AttachmentStore {
 			}
 
 			// Keep dirs whose queue row is still pending or processing.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- sweep; real-time check against live queue.
-			$live = (int) $wpdb->get_var(
-				$wpdb->prepare(
-					"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_queue
-					 WHERE message_uid = %s AND status IN ('pending','processing')",
-					$entry
-				)
-			);
-
-			if ( $live > 0 ) {
+			if ( isset( $keep[ $entry ] ) ) {
 				continue;
 			}
 
@@ -185,11 +205,18 @@ class AttachmentStore {
 		return trailingslashit( $upload['basedir'] ) . self::QUEUE_DIR;
 	}
 
-	/** Absolute path to the uid-specific subdirectory. */
+	/**
+	 * Absolute path to the uid-specific subdirectory.
+	 *
+	 * The directory name is a per-install-salted HMAC of $uid, not $uid
+	 * itself (P-3 hardening, see class docblock) — this both prevents
+	 * directory traversal (the hash output is always a fixed-length hex
+	 * string) and stops the directory name from directly exposing the
+	 * queue's own guessable message_uid.
+	 */
 	private static function uid_dir( string $uid ): string {
-		// Sanitise the uid to prevent directory traversal — keep only safe chars.
-		$safe_uid = preg_replace( '/[^a-zA-Z0-9_\-]/', '-', $uid );
-		return trailingslashit( self::queue_base_dir() ) . $safe_uid;
+		$token = substr( hash_hmac( 'sha256', $uid, wp_salt() ), 0, 32 );
+		return trailingslashit( self::queue_base_dir() ) . $token;
 	}
 
 	/**

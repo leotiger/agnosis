@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.39';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.39/agnosis-0.9.39.zip';
+	$version      = '0.9.40';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.40/agnosis-0.9.40.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,10 +52,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.39.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.39 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.40.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.40 GitHub release,
 	// then deploy this manifest.
-	$sha256 = 'f8157dc37ac88c368f98afb21976b3b5b5ab0b0e9f019cb96138a4d01201b995';
+	$sha256 = '';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -67,6 +67,11 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.40</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> Repository housekeeping &#8212; a large (90 MB) local test-coverage report had been accidentally tracked in the plugin&#8217;s source repository. It&#8217;s now excluded going forward. No functional or behavioral change to how the plugin runs on your site.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.39</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> A new &#8220;Powered by Agnosis&#8221; page is created as a draft the first time the plugin activates or upgrades &#8212; a short summary of what Agnosis is, with a link to GitHub for full docs and installation. Starts as a draft; publish it whenever you&#8217;re ready.</li>' .
@@ -80,15 +85,6 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 			'<li><strong>Fixed:</strong> &#8220;Sync all translations&#8221; could still leave a real percentage of every language&#8217;s vocabulary with no term at all whenever the AI translation call itself failed (reported live: German 9/10, Italian 8/10, Portuguese 6/10). A missing translation is now always created as a real term using the original name as a placeholder, clearly marked &#8220;needs translation&#8221; in its Description column on the Tags/Mediums screen &#8212; nothing is ever silently absent, and the sync notice now tells this apart from a genuine failure.</li>' .
 			'<li><strong>Fixed:</strong> Found the real reason the two fixes directly above still weren&#8217;t enough (reported live with screenshots: German fully synced at 10/10, Portuguese stuck at 6/10, Spanish at 9/10, with the sync notice claiming a clean &#8220;0 failed&#8221; run every time). Two languages sharing an identical or near-identical word &#8212; common between related languages, e.g. &#8220;Arte Digital&#8221; and &#8220;Escultura&#8221; are the same word in Spanish and Portuguese &#8212; were silently colliding during sync, and the language that lost the collision ended up with no term at all despite being counted a success. Each language now always gets its own real term, and any future linking problem of this kind is correctly reported as a failure instead of silently miscounted. Also fixed: switching the language dropdown no longer keeps showing a stale sync result from an earlier click. Run &#8220;Sync all translations&#8221; again after updating to fill in any terms still missing for your languages.</li>' .
 			'<li><strong>Removed:</strong> The unused &#8220;agnosis_transactions&#8221; database table has been dropped. A real donation feature would need to collect a payment, keep a platform fee, and pay the rest out to the specific artist &#8212; no free WordPress plugin does that, and doing it properly means a genuine Stripe Connect integration, out of scope for this release. Runs automatically on update; nothing to do on your end.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.38</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> The Tags and Mediums admin screens (Posts &#8594; Artwork &#8594; Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language &#8212; no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a &#8220;Sync translations&#8221; action to create a term&#8217;s translation in every configured language on demand, and editing an artwork&#8217;s medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.</li>' .
-			'<li><strong>Added:</strong> A &#8220;Sync all translations&#8221; button next to the Tags/Mediums language dropdown syncs every primary-language term to every configured language in one click, instead of the per-term &#8220;Sync translations&#8221; row action. Safe to click again if a large vocabulary times out partway through &#8212; it resumes rather than redoing work.</li>' .
-			'<li><strong>Added:</strong> A new &#8220;Medium translations&#8221; box on each artwork&#8217;s edit screen, plus a matching bulk action on the artwork list screen, pushes an artwork&#8217;s medium onto its already-translated sibling posts on demand.</li>' .
-			'<li><strong>Fixed:</strong> Term translations are now linked to their source term by a stable ID instead of by matching names, so re-syncing after a re-translation no longer creates near-duplicate terms.</li>' .
-			'<li><strong>Fixed:</strong> Tags and mediums created automatically while AI-tagging a submission in a non-primary language are now correctly recorded as translations, instead of silently joining the primary-language vocabulary.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 
