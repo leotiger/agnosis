@@ -33,11 +33,11 @@ class Turnstile {
 	}
 
 	public static function site_key(): string {
-		return trim( (string) get_option( 'agnosis_turnstile_site_key', '' ) );
+		return Secrets::turnstile_site_key();
 	}
 
 	private static function secret_key(): string {
-		return trim( (string) get_option( 'agnosis_turnstile_secret_key', '' ) );
+		return Secrets::turnstile_secret_key();
 	}
 
 	/**

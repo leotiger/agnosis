@@ -16,6 +16,7 @@ declare(strict_types=1);
 // them here at bootstrap time. Each file only defines functions — no side effects.
 require_once dirname( __DIR__ ) . '/tests/php/Unit/Email/Stubs/email_namespace_stubs.php';
 require_once dirname( __DIR__ ) . '/tests/php/Unit/AI/Stubs/ai_namespace_stubs.php';
+require_once dirname( __DIR__ ) . '/tests/php/Unit/Core/Stubs/core_namespace_stubs.php';
 
 // Ensure vendor/ is available.
 $autoload = __DIR__ . '/vendor/autoload.php';

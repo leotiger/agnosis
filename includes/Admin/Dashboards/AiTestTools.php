@@ -17,6 +17,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin\Dashboards;
 
+use Agnosis\Core\Secrets;
+
 class AiTestTools {
 
 	public function render(): void {
@@ -78,7 +80,7 @@ class AiTestTools {
 		switch ( $provider ) {
 
 			case 'openai':
-				$key = (string) get_option( 'agnosis_openai_api_key', '' );
+				$key = Secrets::openai_api_key();
 				if ( empty( $key ) ) {
 					wp_send_json_error( [ 'message' => __( 'OpenAI API key not configured.', 'agnosis' ) ] );
 				}
@@ -99,7 +101,7 @@ class AiTestTools {
 				// no break — ping_provider() always calls wp_send_json_* → wp_die().
 
 			case 'anthropic':
-				$key = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				$key = Secrets::anthropic_api_key();
 				if ( empty( $key ) ) {
 					wp_send_json_error( [ 'message' => __( 'Anthropic API key not configured.', 'agnosis' ) ] );
 				}

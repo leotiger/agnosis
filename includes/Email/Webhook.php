@@ -19,6 +19,7 @@ use Agnosis\Artist\CommunityBroadcast;
 use Agnosis\Artist\Departure;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
+use Agnosis\Core\Secrets;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -734,7 +735,7 @@ class Webhook {
 	 * same window.
 	 */
 	public function verify_signature( WP_REST_Request $request ): bool|WP_Error {
-		$secret = get_option( 'agnosis_webhook_secret', '' );
+		$secret = Secrets::webhook_secret();
 
 		if ( empty( $secret ) ) {
 			// No secret configured → reject all webhook requests. Not part of

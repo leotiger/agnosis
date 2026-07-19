@@ -31,6 +31,7 @@ use Agnosis\AI\Providers\Anthropic;
 use Agnosis\AI\Providers\OpenAI;
 use Agnosis\AI\Providers\WordPressAI;
 use Agnosis\Core\Logger;
+use Agnosis\Core\Secrets;
 
 class SubmissionTranslator {
 
@@ -450,7 +451,7 @@ class SubmissionTranslator {
 
 		switch ( $provider ) {
 			case 'anthropic':
-				$key = (string) get_option( 'agnosis_anthropic_api_key', '' );
+				$key = Secrets::anthropic_api_key();
 				if ( '' === $key ) {
 					return null;
 				}
@@ -469,7 +470,7 @@ class SubmissionTranslator {
 
 			case 'openai':
 			default:
-				$key = (string) get_option( 'agnosis_openai_api_key', '' );
+				$key = Secrets::openai_api_key();
 				if ( '' === $key ) {
 					return null;
 				}

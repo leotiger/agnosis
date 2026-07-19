@@ -69,6 +69,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	$changelog =
 		'<h4>0.9.40</h4>' .
 		'<ul>' .
+			'<li><strong>Added:</strong> The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names &#8212; nothing changes if you don&#8217;t use them.</li>' .
 			'<li><strong>Fixed:</strong> Repository housekeeping &#8212; a large (90 MB) local test-coverage report had been accidentally tracked in the plugin&#8217;s source repository. It&#8217;s now excluded going forward. No functional or behavioral change to how the plugin runs on your site.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .

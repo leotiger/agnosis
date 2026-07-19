@@ -23,6 +23,7 @@ use Agnosis\Admin\Dashboards\MembersDashboard;
 use Agnosis\Admin\Dashboards\NewsletterDashboard;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Debug;
+use Agnosis\Core\Secrets;
 use Agnosis\Core\Turnstile;
 
 class Settings {
@@ -318,13 +319,37 @@ class Settings {
 		echo '</tbody></table>';
 	}
 
-	/** @param array<string, mixed> $field */
+	/**
+	 * @param array<string, mixed> $field
+	 *
+	 * P-4 (AUDIT-0.9.39.md §3c): any field whose option name is one of
+	 * Secrets::MAP's five keys renders a locked, non-editable notice instead
+	 * of its normal input whenever the matching wp-config.php constant is
+	 * actually defined — the constant always wins over whatever's saved
+	 * here, so letting an operator type a new value into this field would
+	 * silently save something that's then ignored. Generic on
+	 * Secrets::override_constant_name() rather than special-casing five
+	 * field keys by name here.
+	 */
 	private function render_field( string $key, array $field ): void {
+		echo '<tr><th scope="row"><label for="' . esc_attr( $key ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
+
+		$override_constant = Secrets::override_constant_name( $key );
+		if ( null !== $override_constant && Secrets::is_overridden( $key ) ) {
+			echo '<input type="text" value="' . esc_attr__( '••••••••  (defined in wp-config.php)', 'agnosis' ) . '" class="regular-text" readonly disabled>';
+			$override_notice = sprintf(
+				/* translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in <code> */
+				esc_html__( 'Set via the %s constant in wp-config.php — this field is inert until that constant is removed.', 'agnosis' ),
+				'<code>' . esc_html( $override_constant ) . '</code>'
+			);
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $override_notice is built from esc_html()'d pieces above, same pattern as $desc below.
+			echo '<p class="description">' . $override_notice . '</p></td></tr>';
+			return;
+		}
+
 		$value = get_option( $key, $field['default'] ?? '' );
 		$type  = $field['input'] ?? 'text';
 		$desc  = isset( $field['desc'] ) ? '<p class="description">' . esc_html( $field['desc'] ) . '</p>' : '';
-
-		echo '<tr><th scope="row"><label for="' . esc_attr( $key ) . '">' . esc_html( $field['label'] ) . '</label></th><td>';
 
 		switch ( $type ) {
 			case 'password':
@@ -461,8 +486,8 @@ class Settings {
 	 * green-confirmation/amber-warning shape.
 	 */
 	private function render_privacy_policy_notice(): void {
-		$openai_configured    = '' !== (string) get_option( 'agnosis_openai_api_key', '' );
-		$anthropic_configured = '' !== (string) get_option( 'agnosis_anthropic_api_key', '' );
+		$openai_configured    = '' !== Secrets::openai_api_key();
+		$anthropic_configured = '' !== Secrets::anthropic_api_key();
 
 		if ( ! $openai_configured && ! $anthropic_configured ) {
 			return;

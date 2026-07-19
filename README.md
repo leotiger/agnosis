@@ -114,6 +114,20 @@ A plain `git clone` alone has no `webklex/php-imap` — the plugin's fallback au
 
 Then open **Agnosis** in the admin sidebar and configure your email inbox and AI API keys.
 
+### Optional: API keys via wp-config.php
+
+By default, the OpenAI/Anthropic API keys, the inbound-webhook HMAC secret, and both Cloudflare Turnstile keys are stored the same way every mainstream WordPress plugin stores them — as plain `wp_options` rows, editable from Settings → Agnosis. If you'd rather keep these alongside the rest of your secrets in `wp-config.php` (an environment variable, a secrets manager writing PHP constants at deploy time, etc.), define any of the following before the `/* That's all, stop editing! */` line:
+
+```php
+define( 'AGNOSIS_OPENAI_KEY', '...' );
+define( 'AGNOSIS_ANTHROPIC_KEY', '...' );
+define( 'AGNOSIS_WEBHOOK_SECRET', '...' );
+define( 'AGNOSIS_TURNSTILE_SITE_KEY', '...' );
+define( 'AGNOSIS_TURNSTILE_SECRET_KEY', '...' );
+```
+
+A defined, non-empty constant always wins over whatever's saved in the database — its matching Settings field switches to a locked, read-only notice so you can't accidentally type a value there that would then be silently ignored. Define only the ones you want to manage this way; anything left undefined keeps working from Settings exactly as before.
+
 ## Development
 
 ```bash

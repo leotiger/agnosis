@@ -84,6 +84,7 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 == Changelog ==
 
 = 0.9.40 =
+* Added: The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names — nothing changes if you don't use them.
 * Fixed: Repository housekeeping — a large (90 MB) local test-coverage report had been accidentally tracked in the plugin's source repository. It's now excluded going forward. No functional or behavioral change to how the plugin runs on your site.
 
 = 0.9.39 =
