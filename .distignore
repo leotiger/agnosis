@@ -56,6 +56,11 @@ tests/
 build/
 coverage/
 
+# Local security-scan reports (gitleaks/trufflehog) — see .gitignore for why
+# these shouldn't be tracked at all; kept here too in case one is ever
+# force-added.
+gitleaks-*.json
+
 # Belt-and-braces — dev config files that shouldn't ship
 node_modules/
 package.json

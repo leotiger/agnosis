@@ -28,6 +28,15 @@ package-lock.json
 *.swp
 *~
 
+# Local gitleaks/trufflehog scan reports (H-2, AUDIT-0.9.39.md §4) — a
+# point-in-time verification artifact, not source; it goes stale the moment
+# another commit lands, and the durable record of "scan ran, here's the
+# result" belongs in agnosis-audit's AUDIT-*.md, not a JSON blob here. Same
+# reasoning as dev/coverage/ (H-1): generated output, no reason to be
+# tracked at all — belt-and-braces .distignore entry too, in case one is
+# ever force-added.
+gitleaks-*.json
+
 # Secrets / local overrides — never commit.
 .env
 .env.local
