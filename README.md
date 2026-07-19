@@ -169,6 +169,8 @@ composer coverage
 # → coverage/combined/summary.txt
 ```
 
+Combined unit + integration coverage is around 70% as of 2026-07-20 — re-run `composer coverage` locally for the current, exact figure rather than trusting this line as it ages.
+
 Coverage is collected with pcov and merged from unit + integration Clover XMLs via `phpunit/phpcov`. `composer coverage` needs pcov in **two** places:
 
 - **Inside `tests-wordpress`** — installed automatically by `composer coverage:setup` (runs as the first step of `coverage:run`). Lost on container rebuild; the script re-installs it idempotently every run.
