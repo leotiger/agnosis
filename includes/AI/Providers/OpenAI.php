@@ -42,7 +42,7 @@ class OpenAI implements ProviderInterface {
 	// Description
 	// -------------------------------------------------------------------------
 
-	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult {
+	public function describe( string $image_data, string $mime_type, string $artist_prompt, string $native_lang = '' ): DescriptionResult {
 		if ( empty( $this->api_key ) ) {
 			return DescriptionResult::failure( 'OpenAI API key not configured.' );
 		}
@@ -56,7 +56,7 @@ class OpenAI implements ProviderInterface {
 		$image_b64  = base64_encode( $vision_image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
-		$system    = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
+		$system    = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
 		$user_text = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [
@@ -132,7 +132,7 @@ class OpenAI implements ProviderInterface {
 	 * lower max_tokens ceiling since the JSON response itself is a few dozen
 	 * tokens instead of a full title/excerpt/body.
 	 */
-	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+	public function describe_secondary( string $image_data, string $mime_type, string $native_lang = '' ): DescriptionResult {
 		if ( empty( $this->api_key ) ) {
 			return DescriptionResult::failure( 'OpenAI API key not configured.' );
 		}
@@ -146,7 +146,7 @@ class OpenAI implements ProviderInterface {
 			'max_tokens'      => 300,
 			'response_format' => [ 'type' => 'json_object' ],
 			'messages'        => [
-				[ 'role' => 'system', 'content' => PromptConfig::secondary_system_prompt() ],
+				[ 'role' => 'system', 'content' => PromptConfig::secondary_system_prompt( PromptConfig::existing_tags_for_language( $native_lang ) ) ],
 				[
 					'role'    => 'user',
 					'content' => [

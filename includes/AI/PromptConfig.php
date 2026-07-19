@@ -9,6 +9,10 @@
  * Placeholder tokens recognized in system_prompt:
  *   {tag_count}      — replaced with the configured number of tags.
  *   {excerpt_words}  — replaced with the configured excerpt word-limit.
+ *   {medium_list}    — replaced with the live medium vocabulary (see medium_terms()).
+ *   {existing_tags}  — replaced with existing tags in the artist's own
+ *                      language (see existing_tags_for_language()), or an
+ *                      empty string when none apply yet.
  *
  * Placeholder token in user_template:
  *   {artist_prompt}  — replaced with the artist's own description, or a
@@ -75,22 +79,33 @@ class PromptConfig {
 	}
 
 	/**
-	 * Resolve {tag_count}, {excerpt_words} and {medium_list} tokens in the system prompt.
+	 * Resolve {tag_count}, {excerpt_words}, {medium_list} and {existing_tags}
+	 * tokens in the system prompt.
 	 *
-	 * $medium_terms is injectable rather than looked up internally (via
-	 * medium_terms() below) so this stays a pure, WP-function-free value object —
-	 * PromptConfigTest exercises it under plain PHPUnit with no WordPress loaded
-	 * at all. Real callers (the OpenAI/Anthropic/WordPressAI providers) pass
-	 * PromptConfig::medium_terms() explicitly; omitting it falls back to the
-	 * CANONICAL_MEDIUMS seed list, which is what every existing caller/test that
-	 * doesn't pass this argument continues to see.
+	 * $medium_terms/$existing_tags are injectable rather than looked up
+	 * internally (via medium_terms()/existing_tags_for_language() below) so
+	 * this stays a pure, WP-function-free value object — PromptConfigTest
+	 * exercises it under plain PHPUnit with no WordPress loaded at all. Real
+	 * callers (the OpenAI/Anthropic/WordPressAI providers) pass both
+	 * explicitly; omitting $medium_terms falls back to the CANONICAL_MEDIUMS
+	 * seed list (existing behavior, unchanged), and omitting $existing_tags
+	 * simply renders that section as nothing — a fresh vocabulary with
+	 * nothing yet to reuse is exactly what an empty list should produce, not
+	 * an error.
 	 *
-	 * @param array<string>|null $medium_terms Live medium vocabulary, or null for the seed default.
+	 * @param array<string>|null $medium_terms  Live medium vocabulary, or null for the seed default.
+	 * @param array<string>      $existing_tags Existing tags in the artist's own language,
+	 *                                          from PromptConfig::existing_tags_for_language() —
+	 *                                          empty when unknown/none yet.
 	 */
-	public function resolved_system_prompt( ?array $medium_terms = null ): string {
+	public function resolved_system_prompt( ?array $medium_terms = null, array $existing_tags = [] ): string {
+		$existing_tags_line = ! empty( $existing_tags )
+			? 'Existing tags already in use for this language — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags )
+			: '';
+
 		return str_replace(
-			[ '{tag_count}', '{excerpt_words}', '{medium_list}' ],
-			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', $medium_terms ?? self::CANONICAL_MEDIUMS ) ],
+			[ '{tag_count}', '{excerpt_words}', '{medium_list}', '{existing_tags}' ],
+			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', $medium_terms ?? self::CANONICAL_MEDIUMS ), $existing_tags_line ],
 			$this->system_prompt
 		);
 	}
@@ -144,6 +159,66 @@ class PromptConfig {
 		}
 
 		return $terms;
+	}
+
+	/** Existing-tag candidates offered to the intake prompt — bounds prompt size on a large vocabulary. */
+	private const EXISTING_TAGS_PROMPT_LIMIT = 150;
+
+	/**
+	 * Existing `post_tag` vocabulary already in use for a given language —
+	 * the soft, cheap first line of defense against near-duplicate tag
+	 * proliferation (see Compat\LinguaForge::resolve_primary_tags() for the
+	 * hard, trid-gated second line, applied later at approval). Injected
+	 * into the intake describe()/describe_secondary() prompts so the AI's
+	 * own proposal already leans toward reusing a close match instead of
+	 * inventing a near-duplicate, rather than relying entirely on
+	 * after-the-fact reconciliation.
+	 *
+	 * Scoped to ONE language, not the whole site's tag vocabulary: tags are
+	 * created in the artist's own native language at intake (the
+	 * native-language pipeline — NATIVE-LANGUAGE-PIPELINE.md), so the only
+	 * vocabulary relevant to THIS submission is whatever already exists in
+	 * THAT language — showing a Catalan artist a list of English primary
+	 * tags would be actively unhelpful, not just wasted tokens.
+	 *
+	 * A primary-language artist's own tags live in the unflagged "primary"
+	 * bucket (no `TRANSLATED_TERM_META`) — same convention medium_terms()
+	 * uses. A non-primary-language artist's tags are flagged with that meta
+	 * set to their own language (Compat\LinguaForge::
+	 * flag_newly_created_terms_by_post_language()) — so which query runs
+	 * depends on whether $lang matches the site's configured primary.
+	 *
+	 * Calls the live WordPress term API (get_terms()), so — same reasoning
+	 * medium_terms() itself documents — this is NOT called from
+	 * resolved_system_prompt() itself; real callers resolve $lang and pass
+	 * the result in explicitly.
+	 *
+	 * @param string $lang ISO 639-1 code — the artist's own declared
+	 *                      language for this submission.
+	 * @return array<string>
+	 */
+	public static function existing_tags_for_language( string $lang ): array {
+		if ( '' === $lang || ! taxonomy_exists( 'post_tag' ) ) {
+			return [];
+		}
+
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+
+		$meta_query = ( '' === $primary_lang || $lang === $primary_lang )
+			? [ [ 'key' => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META, 'compare' => 'NOT EXISTS' ] ]
+			: [ [ 'key' => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META, 'value' => $lang ] ];
+
+		$terms = get_terms( [
+			'taxonomy'   => 'post_tag',
+			'fields'     => 'names',
+			'hide_empty' => false,
+			'number'     => self::EXISTING_TAGS_PROMPT_LIMIT,
+			'orderby'    => 'count',
+			'order'      => 'DESC',
+			'meta_query' => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one bounded lookup per submission's own describe() call, not a hot path.
+		] );
+
+		return is_wp_error( $terms ) || empty( $terms ) ? [] : $terms;
 	}
 
 	/**
@@ -207,6 +282,8 @@ class PromptConfig {
 			. 'Look for: blur or camera shake, underexposure or overexposure, poor white balance, distracting backgrounds, '
 			. 'clipped highlights, heavy noise, or anything that obscures the artwork.' . "\n\n"
 
+			. '{existing_tags}' . "\n\n"
+
 			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
 			. '{' . "\n"
 			. '  "title":    "Short evocative title, max 10 words, no full stop",' . "\n"
@@ -246,13 +323,29 @@ class PromptConfig {
 	 * describe_video_from_context() already use for their own non-customizable
 	 * lean paths — same precedent, same reasoning: a one-off structured
 	 * extraction doesn't need an admin-editable template.
+	 *
+	 * $existing_tags — same purpose and source as resolved_system_prompt()'s
+	 * own parameter (PromptConfig::existing_tags_for_language()) — a
+	 * secondary gallery image proposes tags too (see PostCreator's
+	 * $all_tags merge across every image result), so it needs the same
+	 * near-duplicate nudge the primary pass gets. No {token} substitution
+	 * here since, unlike system_prompt, this string is never admin-editable —
+	 * built directly with the resolved value rather than templated.
+	 *
+	 * @param array<string> $existing_tags Existing tags in the artist's own
+	 *                                     language, or empty when unknown/none yet.
 	 */
-	public static function secondary_system_prompt(): string {
+	public static function secondary_system_prompt( array $existing_tags = [] ): string {
+		$existing_tags_line = ! empty( $existing_tags )
+			? 'Existing tags already in use for this language — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags ) . "\n\n"
+			: '';
+
 		return 'You are assessing one image among several in a multi-image artwork gallery submission. '
 			. "This image's own title, description, and editorial text will never be published — only its alt text, tags, and photographic quality matter here.\n\n"
 			. 'Also assess the photographic quality of the submitted image — the quality of the photograph itself, not the artwork. '
 			. 'Look for: blur or camera shake, underexposure or overexposure, poor white balance, distracting backgrounds, '
 			. 'clipped highlights, heavy noise, or anything that obscures the artwork.' . "\n\n"
+			. $existing_tags_line
 			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
 			. '{' . "\n"
 			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible.",' . "\n"

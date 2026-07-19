@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.37
+Stable tag: 0.9.38
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,15 +72,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.38 =
+* Added: The Tags and Mediums admin screens (Posts → Artwork → Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language — no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a "Sync translations" action to create a term's translation in every configured language on demand, and editing an artwork's medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.
+
 = 0.9.37 =
 * Added: New "Artwork Copyright" block automatically shows a "© {year} {artist name}" credit line on every single artwork page — the year comes from the artwork's own publish date, the name from the artist. Font size, color, and font family are all configurable from the block's own Inspector panel.
 * Fixed: The gallery overview's medium-filter pills mixed every language's translated medium term into one row, offered pills for mediums that had no artwork behind them in the current gallery, and reloaded the whole page on every click. The filter now only shows pills that actually apply to what you're browsing, and clicking a pill or a page number updates the gallery instantly instead of reloading the page.
-
-= 0.9.36 =
-* Added: New "Biography Title Translation Cache" panel (Settings → General) lets you hand-edit or retranslate the per-language AI cache behind the "Preset biography title" setting — fix a bad translation directly, or retranslate one language (or all of them) with one click. Prompted by a live report of a German translation coming back ungrammatical and incorrectly gendered.
-* Changed: AI translation prompts now steer away from defaulting to a specific grammatical gender for generic terms (like "artist") whose gender isn't specified by the source text, and short phrases (like a preset title) now get extra context so they're translated as a heading, not misread as a sentence.
-* Changed: Cleared 252 fuzzy-marked (wrong-guess) entries across all 18 translation language files, so Loco Translate shows them as genuinely untranslated and ready for a proper translation instead of a bad auto-match.
-* Fixed: A static-analysis type-safety nit in the new translation cache panel's code, caught before release.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

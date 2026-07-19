@@ -17,6 +17,8 @@ use Agnosis\Admin\Dashboards;
 use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
+use Agnosis\Admin\ArtworkMediumSync;
+use Agnosis\Admin\TaxonomyLanguageFilter;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\ApplicationBiography;
@@ -146,6 +148,34 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_save_biography_title_translation', $biography_title_cache, 'handle_save' );
 			$this->loader->add_action( 'admin_post_agnosis_retranslate_biography_title',       $biography_title_cache, 'handle_retranslate' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_biography_title_cache',        $biography_title_cache, 'handle_clear_all' );
+
+			// Tags/Mediums admin screens: language filter dropdown, on-demand
+			// per-term "Sync translations" row action, and a one-click "Sync
+			// all translations" button — all apply to BOTH taxonomies, see
+			// TaxonomyLanguageFilter's own docblock for why the 746-tag/
+			// 38-medium overcrowded screens needed this.
+			$taxonomy_language_filter = new TaxonomyLanguageFilter();
+			$this->loader->add_filter( 'wp_list_table_class_name', $taxonomy_language_filter, 'maybe_swap_list_table_class', 10, 2 );
+			$this->loader->add_action( 'load-edit-tags.php',       $taxonomy_language_filter, 'maybe_register_scoping' );
+			$this->loader->add_filter( 'agnosis_medium_row_actions', $taxonomy_language_filter, 'add_sync_row_action', 10, 2 );
+			$this->loader->add_filter( 'post_tag_row_actions',     $taxonomy_language_filter, 'add_sync_row_action', 10, 2 );
+			$this->loader->add_action( 'admin_post_agnosis_sync_term',      $taxonomy_language_filter, 'handle_sync_term' );
+			$this->loader->add_action( 'admin_post_agnosis_sync_all_terms', $taxonomy_language_filter, 'handle_sync_all_terms' );
+			$this->loader->add_action( 'admin_notices',            $taxonomy_language_filter, 'maybe_render_sync_notice' );
+
+			// On-demand medium-ASSIGNMENT sync (distinct from the TERM sync
+			// above: that ensures a translated medium term exists at all,
+			// this pushes a specific artwork's current medium onto its
+			// already-translated siblings) — a per-artwork edit-screen
+			// button plus a bulk sweep, see ArtworkMediumSync's own
+			// docblock for why the automatic-only version wasn't enough.
+			$artwork_medium_sync = new ArtworkMediumSync();
+			$this->loader->add_action( 'add_meta_boxes',       $artwork_medium_sync, 'register_meta_box' );
+			$this->loader->add_action( 'admin_post_agnosis_sync_medium_assignment',      $artwork_medium_sync, 'handle_sync' );
+			$this->loader->add_action( 'admin_post_agnosis_sync_all_medium_assignments', $artwork_medium_sync, 'handle_sync_all' );
+			$this->loader->add_action( 'restrict_manage_posts', $artwork_medium_sync, 'render_bulk_sync_button' );
+			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_single_notice' );
+			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_bulk_notice' );
 
 			// Settings tab clusters (2026-07-17 god-class refactor, AUDIT-1.0.0.md
 			// §4d) — each dashboard/card is now its own class under Admin\Dashboards,

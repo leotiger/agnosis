@@ -26,10 +26,16 @@ interface ProviderInterface {
 	 * @param string $image_data  Raw binary of the image.
 	 * @param string $mime_type   e.g. 'image/jpeg'.
 	 * @param string $artist_prompt  The artist's own description / notes.
+	 * @param string $native_lang    The artist's own declared language (ISO
+	 *                               639-1), resolved once by
+	 *                               Pipeline::process() and threaded through
+	 *                               to build PromptConfig::existing_tags_for_language() —
+	 *                               '' when unknown, in which case the
+	 *                               existing-tags nudge is simply omitted.
 	 *
 	 * @return DescriptionResult
 	 */
-	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult;
+	public function describe( string $image_data, string $mime_type, string $artist_prompt, string $native_lang = '' ): DescriptionResult;
 
 	/**
 	 * Slim, cheaper description pass for a secondary (non-primary) image in a
@@ -51,11 +57,12 @@ interface ProviderInterface {
 	 * Implementations MUST return '' for title/excerpt/body/medium — callers
 	 * must never read those fields from a secondary result.
 	 *
-	 * @param string $image_data Raw binary of the image.
-	 * @param string $mime_type  e.g. 'image/jpeg'.
+	 * @param string $image_data  Raw binary of the image.
+	 * @param string $mime_type   e.g. 'image/jpeg'.
+	 * @param string $native_lang Same as describe()'s own $native_lang — see there.
 	 * @return DescriptionResult
 	 */
-	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult;
+	public function describe_secondary( string $image_data, string $mime_type, string $native_lang = '' ): DescriptionResult;
 
 	/**
 	 * Enhance / upscale / clean the artwork image.

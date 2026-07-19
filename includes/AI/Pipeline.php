@@ -81,6 +81,7 @@ class Pipeline {
 		$results = [];
 
 		$artist_context = $this->build_artist_context( $submission );
+		$native_lang    = $this->resolve_native_lang_code( $submission );
 
 		$adapted = MediaAdapter::adapt( $submission['attachments'] ?? [] );
 
@@ -116,7 +117,8 @@ class Pipeline {
 					$attachment['filename'],
 					$attachment['poster_data'] ?? '',
 					$attachment['poster_mime'] ?? '',
-					$artist_context
+					$artist_context,
+					$native_lang
 				);
 			} else {
 				$result = $this->process_single(
@@ -125,7 +127,8 @@ class Pipeline {
 					$attachment['filename'],
 					$artist_context,
 					$skip_enhancement,
-					$found_primary // $use_slim — true once a primary has already been found.
+					$found_primary, // $use_slim — true once a primary has already been found.
+					$native_lang
 				);
 			}
 
@@ -265,12 +268,28 @@ class Pipeline {
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 */
 	private function resolve_native_language_name( array $submission ): string {
-		$artist_id = (int) ( $submission['artist_id'] ?? 0 );
-		$lang_code = SubmissionTranslator::resolve_artist_lang( $artist_id );
+		$lang_code = $this->resolve_native_lang_code( $submission );
 		if ( '' === $lang_code ) {
 			return '';
 		}
 		return SubmissionTranslator::language_names()[ $lang_code ] ?? '';
+	}
+
+	/**
+	 * Resolve the artist's own declared language code (ISO 639-1) for this
+	 * submission — the raw code resolve_native_language_name() itself
+	 * resolves to a display name for the reply-language directive.
+	 * Separated out so process() can also thread the CODE (not the display
+	 * name) down to describe()/describe_secondary() for
+	 * PromptConfig::existing_tags_for_language() — added alongside the
+	 * tag-dedup rework, since neither of those calls needed the artist's
+	 * language before this.
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission.
+	 */
+	private function resolve_native_lang_code( array $submission ): string {
+		$artist_id = (int) ( $submission['artist_id'] ?? 0 );
+		return SubmissionTranslator::resolve_artist_lang( $artist_id );
 	}
 
 	// -------------------------------------------------------------------------
@@ -284,6 +303,11 @@ class Pipeline {
 	 *                       text below are completely unaffected either way —
 	 *                       both description paths populate the same
 	 *                       DescriptionResult fields this method reads.
+	 * @param string $native_lang The artist's own declared language code —
+	 *                            threaded through to describe()/
+	 *                            describe_secondary() for the existing-tags
+	 *                            prompt injection (PromptConfig::
+	 *                            existing_tags_for_language()).
 	 * @return array<string, mixed>
 	 */
 	private function process_single(
@@ -292,12 +316,13 @@ class Pipeline {
 		string $filename,
 		string $artist_prompt,
 		bool $skip_enhancement = false,
-		bool $use_slim = false
+		bool $use_slim = false,
+		string $native_lang = ''
 	): array {
 		// Step 1 — Describe (also assesses photo quality as part of the same vision call).
 		$description = $use_slim
-			? $this->description_provider->describe_secondary( $image_data, $mime_type )
-			: $this->description_provider->describe( $image_data, $mime_type, $artist_prompt );
+			? $this->description_provider->describe_secondary( $image_data, $mime_type, $native_lang )
+			: $this->description_provider->describe( $image_data, $mime_type, $artist_prompt, $native_lang );
 
 		$quality_score  = $description->photo_quality_score;
 		$quality_issues = $description->photo_quality_issues;
@@ -505,6 +530,10 @@ class Pipeline {
 	 * and enhancing only the poster frame would have no effect on what's
 	 * actually published (the original video file).
 	 *
+	 * @param string $native_lang The artist's own declared language code —
+	 *                            same purpose as process_single()'s own
+	 *                            parameter, threaded to the poster-frame
+	 *                            describe() call below.
 	 * @return array<string, mixed>
 	 */
 	private function process_video_single(
@@ -513,12 +542,13 @@ class Pipeline {
 		string $filename,
 		string $poster_data,
 		string $poster_mime,
-		string $artist_context
+		string $artist_context,
+		string $native_lang = ''
 	): array {
 		if ( '' !== $poster_data ) {
 			// Describe the extracted poster frame, not the video binary itself —
 			// the description_provider's vision call expects a still image.
-			$description = $this->description_provider->describe( $poster_data, $poster_mime ?: 'image/jpeg', $artist_context );
+			$description = $this->description_provider->describe( $poster_data, $poster_mime ?: 'image/jpeg', $artist_context, $native_lang );
 
 			if ( $description->success ) {
 				return [

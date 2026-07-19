@@ -339,7 +339,16 @@ class ReviewEndpoints {
 				}
 
 				if ( ! empty( $translated['tags'] ) ) {
-					wp_set_post_tags( $post_id, $translated['tags'] );
+					// Trid-gated reconciliation, not a blind wp_set_post_tags()
+					// — see LinguaForge::resolve_primary_tags()'s own docblock.
+					// Native tags translated straight to a new post_tag term
+					// every approval is exactly the bug the medium/tag trid
+					// rework closed everywhere else; this was the one call
+					// site that rework never reached.
+					$primary_tag_ids = ( new LinguaForge() )->resolve_primary_tags( $translated['native_tag_ids'], $translated['tags'] );
+					if ( ! empty( $primary_tag_ids ) ) {
+						wp_set_object_terms( $post_id, $primary_tag_ids, 'post_tag' );
+					}
 				}
 			}
 
@@ -529,19 +538,28 @@ class ReviewEndpoints {
 
 		// Translated tags (when translation happened) take priority over the
 		// staging draft's own native-language tag terms — see
-		// translate_native_content_to_primary()'s docblock. Falls back to the
-		// staging draft's own tags exactly as before this feature existed.
+		// translate_native_content_to_primary()'s docblock. When translation
+		// DID happen, resolve through the same trid-gated reconciliation the
+		// direct-publish branch above uses (LinguaForge::resolve_primary_tags())
+		// rather than a blind wp_set_post_tags() — this was the one call site
+		// the medium/tag trid rework never reached. When it didn't (no
+		// declared native language, or the artist already writes in primary),
+		// the staging draft's own tags are already primary-language — assign
+		// them directly exactly as before this feature existed.
 		if ( null !== $translated && ! empty( $translated['tags'] ) ) {
-			$tags = $translated['tags'];
+			$primary_tag_ids = ( new LinguaForge() )->resolve_primary_tags( $translated['native_tag_ids'], $translated['tags'] );
+			if ( ! empty( $primary_tag_ids ) ) {
+				wp_set_object_terms( $pending_for, $primary_tag_ids, 'post_tag' );
+			}
 		} else {
 			$tags = wp_get_post_tags( $post_id, [ 'fields' => 'names' ] );
-		}
-		// wp_get_post_tags() can return WP_Error (e.g. an invalid taxonomy) —
-		// a WP_Error object is never empty(), so the old bare `! empty( $tags )`
-		// check would have passed it straight into wp_set_post_tags(), which
-		// only accepts array|string for its second parameter.
-		if ( ! is_wp_error( $tags ) && ! empty( $tags ) ) {
-			wp_set_post_tags( $pending_for, $tags );
+			// wp_get_post_tags() can return WP_Error (e.g. an invalid taxonomy) —
+			// a WP_Error object is never empty(), so the old bare `! empty( $tags )`
+			// check would have passed it straight into wp_set_post_tags(), which
+			// only accepts array|string for its second parameter.
+			if ( ! is_wp_error( $tags ) && ! empty( $tags ) ) {
+				wp_set_post_tags( $pending_for, $tags );
+			}
 		}
 
 		if ( null !== $translated ) {
@@ -688,7 +706,7 @@ class ReviewEndpoints {
 	 * artist's own native-language sibling post, agnosis-audit/
 	 * NATIVE-LANGUAGE-PIPELINE.md §4d) needs to exist at all.
 	 *
-	 * @return array{display_title: string, excerpt: string, content: string, medium: string, tags: string[], native_excerpt: string, native_body: string, native_tags: string[]}|null
+	 * @return array{display_title: string, excerpt: string, content: string, medium: string, tags: string[], native_tag_ids: int[], native_excerpt: string, native_body: string, native_tags: string[]}|null
 	 */
 	private function translate_native_content_to_primary( \WP_Post $source ): ?array {
 		$native_lang = (string) get_post_meta( $source->ID, '_agnosis_native_lang', true );
@@ -714,8 +732,20 @@ class ReviewEndpoints {
 		$body_plain   = wp_strip_all_tags( $remainder );
 
 		$native_medium = (string) get_post_meta( $source->ID, '_agnosis_native_medium', true );
-		$native_tags   = wp_get_post_tags( $source->ID, [ 'fields' => 'names' ] );
-		$native_tags   = is_wp_error( $native_tags ) ? [] : $native_tags;
+
+		// Fetched as full term objects, not just ['fields' => 'names'] —
+		// resolve_primary_tags() below needs the native term IDs too, to
+		// pair each translated name back to the exact native term it came
+		// from (see that method's own docblock for why positional pairing
+		// is the only signal translate_fields() leaves available). Both
+		// $native_tags (names, for the translation prompt below and for
+		// '_agnosis_native_tags') and $native_tag_ids (for the pairing) are
+		// derived from this SAME single query, so their ordering always
+		// matches each other.
+		$native_terms   = wp_get_post_terms( $source->ID, 'post_tag', [ 'fields' => 'all' ] );
+		$native_terms   = is_wp_error( $native_terms ) ? [] : $native_terms;
+		$native_tags    = wp_list_pluck( $native_terms, 'name' );
+		$native_tag_ids = wp_list_pluck( $native_terms, 'term_id' );
 
 		// Batched into ONE chat() call via translate_fields() — title, excerpt,
 		// body, medium, and tags together — rather than one call per field.
@@ -736,7 +766,23 @@ class ReviewEndpoints {
 			return null; // Nothing with any text content to translate.
 		}
 
-		$translated = $translator->translate_fields( $fields, $primary_lang );
+		// Existing primary-language tags folded into THIS SAME call as a
+		// per-field instruction, not a separate reconciliation call after
+		// translating — see translate_fields()'s own docblock for why: a
+		// second AI call here would break the exactly-one-call-per-approval
+		// invariant this whole pipeline exists to guarantee. Compat\LinguaForge::
+		// resolve_primary_tags() (below) trusts an exact match against this
+		// same list precisely because the AI was told, in this one prompt,
+		// to copy the existing text verbatim when it fits — not asked to
+		// freely translate and hope for a coincidental match afterward.
+		$field_instructions = [];
+		$existing_primary_tags = PromptConfig::existing_tags_for_language( $primary_lang );
+		if ( ! empty( $existing_primary_tags ) ) {
+			$field_instructions['tags'] = 'When translating, if a tag means the same as one of these already-existing tags, use its EXACT existing text instead of inventing new wording: '
+				. implode( ' | ', $existing_primary_tags );
+		}
+
+		$translated = $translator->translate_fields( $fields, $primary_lang, $field_instructions );
 		if ( empty( $translated ) ) {
 			Logger::warning(
 				sprintf( 'translate_native_content_to_primary(#%d): native→primary translation failed — publishing native-language content unchanged.', $source->ID ),
@@ -767,6 +813,12 @@ class ReviewEndpoints {
 			'content'        => $content,
 			'medium'         => trim( $translated['medium'] ?? $native_medium ),
 			'tags'           => $tags,
+			// Native term IDs, same order as $native_tags — lets
+			// LinguaForge::resolve_primary_tags() pair each translated name
+			// in 'tags' back to the exact native term it came from, by
+			// array position (see that method's own docblock for why
+			// that's the only pairing signal available).
+			'native_tag_ids' => $native_tag_ids,
 			// Phase 2 (§4b) — see this method's own docblock above. Native
 			// tags are the SAME $native_tags read above, before translation —
 			// kept distinct from 'tags' (the translated set applied to the

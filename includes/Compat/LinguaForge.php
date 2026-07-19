@@ -233,6 +233,36 @@ class LinguaForge {
 	public const TRANSLATED_TERM_META = '_agnosis_translated_term';
 
 	/**
+	 * Term meta key holding a stable "translation group ID" (a v4 UUID)
+	 * shared by a primary-language term and every one of its per-language
+	 * translated copies — the term-level equivalent of the `$trid` Lingua
+	 * Forge itself already uses to group a POST's translations together
+	 * (see `create_native_sibling_post()`'s own `$trid` parameter).
+	 *
+	 * Added 2026-07-19 after a live incident made the previous design's
+	 * flaw impossible to ignore: `sync_term_across_languages()` used to
+	 * decide "does this primary term already have a Catalan translation?"
+	 * by re-asking the AI to translate the name and checking whether a
+	 * term with that EXACT resulting string already existed
+	 * (`get_term_by( 'name', $translated_name, $taxonomy )`). That only
+	 * works if the AI returns byte-identical output on every call for the
+	 * same input, which it doesn't reliably — running "Sync all
+	 * translations" twice created a fresh near-duplicate term instead of
+	 * recognizing the one already there, and on a live site this had
+	 * already drifted every language bucket in `agnosis_medium` out of the
+	 * 1:1 parity with the 10 primary terms it's supposed to have (some
+	 * languages short by several, others with 3 extra near-duplicate
+	 * spellings of the same concept — reported live with a full term dump).
+	 *
+	 * With TERM_TRID_META, "does a translation already exist" is answered
+	 * by an explicit, persistent term_id-to-term_id link, never by
+	 * re-deriving and string-matching a name — making the sync genuinely
+	 * idempotent: running it any number of times converges on exactly one
+	 * term per (primary term, language) pair and then does nothing further.
+	 */
+	public const TERM_TRID_META = '_agnosis_term_trid';
+
+	/**
 	 * Post meta key tracking which target languages a source post's current
 	 * translation fan-out (request_translations()) is still waiting on — a
 	 * JSON-encoded array of BCP-47 language codes, written when the fan-out is
@@ -332,6 +362,28 @@ class LinguaForge {
 		// linguaforge_translation_complete, which — per copy_translated_meta()'s
 		// own docblock above — fires on both creation and re-translation either way.
 		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_terms' ], 10, 3 );
+
+		// Re-propagate an artwork's medium term to its already-published
+		// translated siblings whenever it's CHANGED after initial publish —
+		// sync_translated_terms() just above only ever fires at translation-
+		// creation time, so without this, editing a medium later would leave
+		// every existing sibling stuck on the old translated term forever.
+		// See on_medium_terms_changed()'s own docblock for the self-limiting
+		// primary-language-only guard that keeps this from looping on the
+		// wp_set_object_terms() call it itself makes on each sibling.
+		add_action( 'set_object_terms', [ $this, 'on_medium_terms_changed' ], 10, 6 );
+
+		// Language attribution at term-creation time (2026-07-19, prompted by
+		// a live incident: 127 `post_tag` terms accumulated in the "primary"
+		// bucket during Catalan testing, because nothing had ever recorded
+		// what language a freshly auto-created term was actually written in
+		// — see flag_newly_created_terms_by_post_language()'s own docblock.
+		// Priority 5 so this runs BEFORE on_medium_terms_changed() (10) on
+		// the same 'set_object_terms' firing: that method re-propagates a
+		// medium to already-translated siblings and should see a just-
+		// created term's language flag already settled, not stale.
+		add_action( 'created_term', [ $this, 'track_newly_created_term' ], 10, 3 );
+		add_action( 'set_object_terms', [ $this, 'flag_newly_created_terms_by_post_language' ], 5, 4 );
 
 		// AI-call instrumentation (seventh audit G-2) — counts one real
 		// translation call per genuine LF fan-out completion; skips the
@@ -1173,6 +1225,721 @@ class LinguaForge {
 	}
 
 	/**
+	 * Resolve (and lazily assign) the "translation group ID" — TERM_TRID_META,
+	 * a v4 UUID — that links a term to every one of its per-language
+	 * translated copies. Every term that ever participates in the trid-based
+	 * medium sync gets one on first use, whether it's the primary term or one
+	 * of its translations, so the same lookup works uniformly from either
+	 * side of the relationship.
+	 *
+	 * @param int $term_id Term ID to resolve/assign a trid for.
+	 * @return string The term's trid (existing or newly assigned).
+	 */
+	private function get_or_create_term_trid( int $term_id ): string {
+		$trid = get_term_meta( $term_id, self::TERM_TRID_META, true );
+		if ( is_string( $trid ) && '' !== $trid ) {
+			return $trid;
+		}
+
+		$trid = wp_generate_uuid4();
+		add_term_meta( $term_id, self::TERM_TRID_META, $trid, true );
+
+		return $trid;
+	}
+
+	/**
+	 * Find the term in $taxonomy that carries a given trid AND is flagged as
+	 * that trid group's $lang translation — the sole "does a translation
+	 * already exist" check used anywhere in the trid-based sync paths. Never
+	 * a name comparison: this is the explicit term_id-to-term_id link that
+	 * replaces the old get_term_by( 'name', $translated_name, $taxonomy )
+	 * approach, which broke down under AI translation non-determinism (see
+	 * TERM_TRID_META's own docblock for the live incident that forced this).
+	 *
+	 * @param string $trid     Translation group ID to look up.
+	 * @param string $taxonomy Taxonomy to search.
+	 * @param string $lang     Language code the match must be flagged as.
+	 * @return \WP_Term|null The matching term, or null if this trid has no
+	 *                        $lang translation yet.
+	 */
+	private function find_term_by_trid( string $trid, string $taxonomy, string $lang ): ?\WP_Term {
+		$terms = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'number'     => 1,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- bounded lookup within one taxonomy's term set, not a hot path.
+					'relation' => 'AND',
+					[
+						'key'   => self::TERM_TRID_META,
+						'value' => $trid,
+					],
+					[
+						'key'   => self::TRANSLATED_TERM_META,
+						'value' => $lang,
+					],
+				],
+			]
+		);
+
+		if ( is_wp_error( $terms ) || empty( $terms ) || ! $terms[0] instanceof \WP_Term ) {
+			return null;
+		}
+
+		return $terms[0];
+	}
+
+	/**
+	 * Find the UNTRANSLATED (primary/admin-curated) member of a trid group —
+	 * the term this class's own convention always leaves without
+	 * TRANSLATED_TERM_META, since that meta exists specifically to mark
+	 * everything OTHER than the primary term. Symmetric counterpart to
+	 * find_term_by_trid() (which finds a specific $lang's translated
+	 * member): this one finds the one member no $lang value applies to.
+	 *
+	 * @param string $trid     Translation group ID to look up.
+	 * @param string $taxonomy Taxonomy to search.
+	 * @return \WP_Term|null The primary-language term carrying this trid, or
+	 *                        null if none does (yet, or ever).
+	 */
+	private function find_primary_term_by_trid( string $trid, string $taxonomy ): ?\WP_Term {
+		$terms = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'number'     => 1,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- bounded lookup within one taxonomy's term set, not a hot path.
+					'relation' => 'AND',
+					[
+						'key'   => self::TERM_TRID_META,
+						'value' => $trid,
+					],
+					[
+						'key'     => self::TRANSLATED_TERM_META,
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
+
+		if ( is_wp_error( $terms ) || empty( $terms ) || ! $terms[0] instanceof \WP_Term ) {
+			return null;
+		}
+
+		return $terms[0];
+	}
+
+	/**
+	 * Resolve a submission's native-language tags to the `post_tag` term IDs
+	 * to assign onto the primary-language post — the single choke point
+	 * where every tag, regardless of what language it was originally
+	 * written in, gets reconciled against ONE canonical vocabulary
+	 * (primary-language tags) before becoming "real," rather than each
+	 * translation moment inventing near-duplicates independently.
+	 *
+	 * Why primary, and not the artist's own native language, is that one
+	 * vocabulary: there is exactly one primary language per site, but
+	 * potentially dozens of native languages — one per artist. Every
+	 * submission passes through primary exactly once (this method's own
+	 * call site), so it's the only point a single, sitewide vocabulary can
+	 * actually mean "single." Anchoring on native language instead would
+	 * just relocate the fragmentation this whole rework exists to remove:
+	 * a Catalan artist's tags would dedupe against past Catalan tags, a
+	 * French artist's against past French tags, and two artists describing
+	 * the same thing in different languages would never be compared at all.
+	 *
+	 * Deliberately makes NO AI call of its own. An earlier version of this
+	 * method ran a separate reconciliation call here for any tag without an
+	 * established trid — correct in isolation, but it broke a harder
+	 * constraint: NATIVE-LANGUAGE-PIPELINE.md §7's exactly-one-AI-call-per-
+	 * cross-language-approval invariant, asserted directly by
+	 * ReviewEndpointsNativeLanguagePipelineTest::test_approve_of_native_language_draft_makes_exactly_one_ai_call().
+	 * The reconciliation decision now happens INSIDE that one call instead:
+	 * Publishing\ReviewEndpoints::translate_native_content_to_primary()
+	 * passes the existing primary vocabulary to SubmissionTranslator::
+	 * translate_fields() as a per-field instruction on 'tags', telling the
+	 * AI to copy an existing tag's exact text when a proposed one means the
+	 * same thing. This method's own exact-name lookup below is trusted as a
+	 * result — not the "guess by re-deriving a translation and hoping it
+	 * matches" pattern that caused the medium/tag parity incident this whole
+	 * trid rework exists to fix, but reading back a choice the AI was
+	 * explicitly told to make from a list it was actually shown, the same
+	 * closed-set trust model the `medium` field already uses elsewhere
+	 * ("pick exactly one from: …").
+	 *
+	 * For each native term ID, in order:
+	 *   1. Already has a trid, AND a primary term still carries that same
+	 *      trid → reuse it. Free.
+	 *   2. Otherwise → exact-name match against the current primary
+	 *      vocabulary (trusted per above) → link and reuse. No match →
+	 *      create a new primary term. Either way, the native term's trid is
+	 *      established/linked here, so every future submission reusing that
+	 *      exact native term (WordPress's own exact-name dedup already
+	 *      collapses repeated identical native-language tag text to the
+	 *      same term ID) resolves via step 1 from then on.
+	 *
+	 * $native_term_ids and $translated_names can only be paired by array
+	 * position — translate_fields() collapses the whole tag list into one
+	 * pipe-delimited text field with no structured per-tag correspondence in
+	 * its response, so there's no stronger signal available. When the two
+	 * arrays come back a different length (the AI merged, split, or dropped
+	 * an entry), positional pairing is unsafe: every translated name in that
+	 * batch is resolved without a native link instead — degrades to "no free
+	 * reuse next time" rather than risking a wrong pairing.
+	 *
+	 * @param int[]    $native_term_ids  Native-language `post_tag` term IDs,
+	 *                                   in the same order their names were
+	 *                                   joined for translation.
+	 * @param string[] $translated_names Translated tag names, already split
+	 *                                   back out of the AI's pipe-delimited
+	 *                                   response.
+	 * @return int[] `post_tag` term IDs to assign to the primary-language post.
+	 */
+	public function resolve_primary_tags( array $native_term_ids, array $translated_names ): array {
+		$taxonomy = 'post_tag';
+		$paired   = count( $native_term_ids ) === count( $translated_names );
+
+		$existing_primary = $this->existing_primary_tag_map( $taxonomy );
+		$assign            = [];
+
+		foreach ( $translated_names as $i => $name ) {
+			$name = trim( (string) $name );
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$native_id = $paired ? (int) ( $native_term_ids[ $i ] ?? 0 ) : 0;
+
+			if ( $native_id > 0 ) {
+				$trid = get_term_meta( $native_id, self::TERM_TRID_META, true );
+				if ( is_string( $trid ) && '' !== $trid ) {
+					$primary = $this->find_primary_term_by_trid( $trid, $taxonomy );
+					if ( $primary instanceof \WP_Term ) {
+						$assign[] = $primary->term_id;
+						continue; // Free — already resolved by a previous approval.
+					}
+					// Trid recorded but no primary term carries it any more
+					// (e.g. that term was deleted since) — fall through and
+					// re-resolve as if this were the first time.
+				}
+			}
+
+			if ( isset( $existing_primary[ $name ] ) ) {
+				$term_id = $existing_primary[ $name ];
+			} else {
+				$created = wp_insert_term( $name, $taxonomy );
+				if ( is_wp_error( $created ) ) {
+					// Most likely a genuine race — another request created
+					// the same tag between the query above and this call.
+					$existing = get_term_by( 'name', $name, $taxonomy );
+					$term_id  = $existing instanceof \WP_Term ? $existing->term_id : 0;
+				} else {
+					$term_id = (int) $created['term_id'];
+				}
+			}
+
+			if ( 0 === $term_id ) {
+				continue; // Creation failed and no fallback match — drop rather than assign nothing usable.
+			}
+
+			if ( $native_id > 0 ) {
+				$trid = $this->get_or_create_term_trid( $term_id );
+				add_term_meta( $native_id, self::TERM_TRID_META, $trid, true );
+			}
+
+			$assign[] = $term_id;
+		}
+
+		return array_values( array_unique( $assign ) );
+	}
+
+	/**
+	 * Name => term_id map of the current primary `post_tag` vocabulary — the
+	 * exact-match lookup resolve_primary_tags() trusts (see that method's
+	 * own docblock for why trusting a name match is safe specifically here).
+	 *
+	 * @param string $taxonomy Taxonomy — always 'post_tag' from the one call site today.
+	 * @return array<string, int> Term name => term_id.
+	 */
+	private function existing_primary_tag_map( string $taxonomy ): array {
+		$terms = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one bounded lookup per approval, not a hot path.
+					[
+						'key'     => self::TRANSLATED_TERM_META,
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
+		$terms = is_wp_error( $terms ) ? [] : $terms;
+
+		$by_name = [];
+		foreach ( $terms as $term ) {
+			if ( $term instanceof \WP_Term ) {
+				$by_name[ $term->name ] = $term->term_id;
+			}
+		}
+
+		return $by_name;
+	}
+
+	/**
+	 * On-demand sync: ensure every configured target language has a
+	 * translated term for a given PRIMARY-language `agnosis_medium` term,
+	 * creating any missing one via AI translation.
+	 *
+	 * Trid-based (TERM_TRID_META), same as sync_taxonomy(): "does a
+	 * translation already exist for this language" is answered by an
+	 * explicit term_id-to-term_id link, never by re-deriving the translated
+	 * name and string-matching it against existing terms. That name-matching
+	 * approach — get_term_by( 'name', $translated_name, $taxonomy ) — is what
+	 * this method used to do, and it's what produced the live incident this
+	 * rework exists to fix: running "Sync all translations" more than once
+	 * created a fresh near-duplicate term instead of recognizing the one
+	 * already there (AI translation isn't guaranteed byte-identical across
+	 * calls), leaving every language bucket in `agnosis_medium` out of the
+	 * 1:1 parity with the primary vocabulary it's supposed to have. With a
+	 * trid link, this method is genuinely idempotent: running it any number
+	 * of times converges on exactly one term per (primary term, language)
+	 * pair and then does nothing further.
+	 *
+	 * Unlike `sync_taxonomy()`, this isn't tied to a specific source/
+	 * translated POST pair — it operates on the TERM itself,
+	 * independent of any artwork, for the "Sync translations" row action on
+	 * the Mediums admin screen (Admin\TaxonomyLanguageFilter). Requested
+	 * directly: translated medium terms otherwise only ever get created as a
+	 * side effect of an artwork being translated — a medium with no artwork
+	 * yet published in some language had no translated term for that
+	 * language at all, even though an admin might want the full vocabulary
+	 * to exist ahead of time (e.g. for a future artist submission form in
+	 * that language).
+	 *
+	 * Deliberately a no-op — returns empty results, does nothing — when
+	 * `$term_id` is itself already a translated term (has
+	 * TRANSLATED_TERM_META): syncing only ever makes sense starting from the
+	 * primary/admin-curated term, not from one of its own translations.
+	 *
+	 * @param int    $term_id  Term ID to sync (must be `agnosis_medium`).
+	 * @param string $taxonomy Taxonomy — always 'agnosis_medium' from the one
+	 *                         call site today (the Mediums admin screen's
+	 *                         row action), kept as a parameter since the
+	 *                         underlying trid mechanism itself is already
+	 *                         taxonomy-generic (see sync_taxonomy()).
+	 * @return array{created: string[], skipped: string[]} Language codes a
+	 *         translated term was newly created for, vs. already present —
+	 *         for the admin notice after redirect.
+	 */
+	public function sync_term_across_languages( int $term_id, string $taxonomy ): array {
+		$result = [
+			'created' => [],
+			'skipped' => [],
+		];
+
+		$term = get_term( $term_id, $taxonomy );
+		if ( ! $term instanceof \WP_Term ) {
+			return $result;
+		}
+
+		if ( get_term_meta( $term_id, self::TRANSLATED_TERM_META, true ) ) {
+			return $result;
+		}
+
+		if ( ! function_exists( 'linguaforge_languages' ) ) {
+			return $result;
+		}
+
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		$trid         = $this->get_or_create_term_trid( $term_id );
+
+		foreach ( $this->get_target_languages( $primary_lang ) as $lang ) {
+			$existing = $this->find_term_by_trid( $trid, $taxonomy, $lang );
+			if ( $existing instanceof \WP_Term ) {
+				$result['skipped'][] = $lang;
+				continue;
+			}
+
+			$translated_name = $this->translated_term_name( $term->name, $taxonomy, $lang );
+			if ( $translated_name === $term->name ) {
+				// No AI provider configured, or the translation call failed —
+				// translated_term_name() already falls back to the original
+				// name rather than blocking; nothing usable to create here.
+				continue;
+			}
+
+			$created = wp_insert_term( $translated_name, $taxonomy );
+			if ( is_wp_error( $created ) ) {
+				continue;
+			}
+
+			$created_id = (int) $created['term_id'];
+			add_term_meta( $created_id, self::TRANSLATED_TERM_META, $lang, true );
+			add_term_meta( $created_id, self::TERM_TRID_META, $trid, true );
+			$result['created'][] = $lang;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Runs `sync_term_across_languages()` across EVERY primary-language term
+	 * on the given taxonomy in one pass — the "Sync all translations" button
+	 * on the Tags/Mediums admin screens (Admin\TaxonomyLanguageFilter),
+	 * requested alongside the per-term row action for clearing a whole
+	 * backlog of missing translations at once rather than one term at a
+	 * time.
+	 *
+	 * Deliberately queries with `hide_empty => false`: an admin filling in
+	 * missing translations ahead of time (the exact scenario
+	 * sync_term_across_languages() itself documents) is very likely
+	 * targeting terms with zero posts using them yet — those would be
+	 * silently skipped entirely under the default hide_empty behavior.
+	 *
+	 * @param string $taxonomy Taxonomy to sync — 'agnosis_medium' or 'post_tag'.
+	 * @return array{terms: int, created: int, skipped: int} Count of primary-
+	 *         language terms processed, and the totals (summed across all of
+	 *         them) of newly-created vs. already-present translated terms —
+	 *         for the admin notice after redirect.
+	 */
+	public function sync_all_terms_across_languages( string $taxonomy ): array {
+		$result = [
+			'terms'   => 0,
+			'created' => 0,
+			'skipped' => 0,
+		];
+
+		$primary_terms = get_terms(
+			[
+				'taxonomy'   => $taxonomy,
+				'hide_empty' => false,
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- admin-triggered one-off action, not a hot path; same pattern as scope_by_language()'s default view.
+					[
+						'key'     => self::TRANSLATED_TERM_META,
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
+
+		if ( is_wp_error( $primary_terms ) || empty( $primary_terms ) ) {
+			return $result;
+		}
+
+		foreach ( $primary_terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
+				continue;
+			}
+
+			$term_result = $this->sync_term_across_languages( $term->term_id, $taxonomy );
+
+			++$result['terms'];
+			$result['created'] += count( $term_result['created'] );
+			$result['skipped'] += count( $term_result['skipped'] );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Automatically re-propagate an artwork's medium term to every already-
+	 * published translated sibling whenever it changes AFTER initial publish
+	 * (e.g. an admin correction, or the front-end self-correction flow) —
+	 * `sync_translated_terms()` above only ever fires at translation-creation
+	 * time (`linguaforge_translation_complete`), so a medium changed later
+	 * would otherwise leave every existing sibling silently pointing at the
+	 * old, now-wrong translated term forever.
+	 *
+	 * Hooked on WordPress core's own `set_object_terms` action, which fires
+	 * for every `wp_set_object_terms()` call, not just ours — heavily gated
+	 * as a result. Self-limiting rather than needing an explicit re-entrancy
+	 * guard: this only acts on a PRIMARY-language artwork post, and
+	 * `sync_taxonomy()` below only ever calls `wp_set_object_terms()` on the
+	 * TRANSLATED sibling — which is never itself primary-language — so the
+	 * `set_object_terms` firing that call produces is excluded by the same
+	 * primary-language check on its own next pass through this method,
+	 * without any additional suppression flag.
+	 *
+	 * @param int      $object_id  Post (or other object) the terms were set on.
+	 * @param int[]    $terms      Term IDs/slugs as passed to wp_set_object_terms().
+	 * @param int[]    $tt_ids     Resulting term_taxonomy_ids.
+	 * @param string   $taxonomy   Taxonomy the terms were set on.
+	 * @param bool     $append     Whether terms were appended or replaced.
+	 * @param int[]    $old_tt_ids term_taxonomy_ids the object had before this call.
+	 */
+	/**
+	 * Term IDs auto-created via `wp_insert_term()` during the CURRENT
+	 * request, not yet correlated to whichever post triggered their
+	 * creation. Populated by track_newly_created_term() (hooked to WP
+	 * core's `created_term`), consumed by
+	 * flag_newly_created_terms_by_post_language() (hooked to
+	 * `set_object_terms`) a few lines later in the SAME
+	 * `wp_set_object_terms()` call: that function resolves any not-yet-
+	 * existing term name via `wp_insert_term()` — firing `created_term` —
+	 * synchronously and strictly BEFORE it fires its own `set_object_terms`
+	 * action at the end of that same call (verified against WP core
+	 * source), so by the time the consumer below runs, every term it might
+	 * need to correlate against for THIS call is already in this array.
+	 *
+	 * A `created_term` firing with no matching `set_object_terms` in the
+	 * same request is possible and expected (e.g. a taxonomy's default term
+	 * created by `register_taxonomy()`, or an admin adding a term via the
+	 * Tags screen's own "Add new tag" box with no post involved at all) —
+	 * left unconsumed for the rest of the request, harmless: it's an
+	 * in-memory array, never persisted, and simply means that term's
+	 * language is left undetermined (the existing safe default: untouched,
+	 * i.e. still counted as "primary" until something actually flags it).
+	 *
+	 * @var int[]
+	 */
+	private static array $newly_created_term_ids = [];
+
+	/**
+	 * @param int    $term_id  Newly created term's ID.
+	 * @param int    $tt_id    Term taxonomy ID (unused).
+	 * @param string $taxonomy Taxonomy the term was created in.
+	 */
+	public function track_newly_created_term( int $term_id, int $tt_id, string $taxonomy ): void {
+		unset( $tt_id );
+
+		if ( in_array( $taxonomy, [ 'agnosis_medium', 'post_tag' ], true ) ) {
+			self::$newly_created_term_ids[] = $term_id;
+		}
+	}
+
+	/**
+	 * Closes the gap that caused a live data-integrity incident: 127
+	 * `post_tag` terms accumulated in the "primary language" bucket during
+	 * Catalan testing, because TRANSLATED_TERM_META has only ever been set
+	 * by the dedicated translation fan-out (sync_taxonomy() / the "Sync
+	 * translations" admin action) — a term auto-created while tagging a
+	 * post directly (the normal AI-tagging path on ANY newly submitted
+	 * artwork, e.g. PostCreator/ReviewEndpoints calling wp_set_post_tags())
+	 * never had its language recorded anywhere at all. A term created from
+	 * content submitted/tested in Catalan looked byte-for-byte identical to
+	 * a genuine primary-language term: both simply lacked the meta. Silent,
+	 * compounding corruption on a multi-language site — caught only once
+	 * Admin\TaxonomyLanguageFilter's language dropdown made the "primary"
+	 * bucket's real contents visible for the first time.
+	 *
+	 * Whenever a post's terms are set, cross-references this request's
+	 * newly-created term IDs (track_newly_created_term()) against the terms
+	 * actually assigned to THIS post: any match was, by definition, just
+	 * created as a side effect of tagging it. If the post isn't in the
+	 * primary language, that term is a translated term the moment it's
+	 * born — stamped immediately, rather than left to silently join the
+	 * "primary" bucket the way the 127 did.
+	 *
+	 * @param int      $object_id  Post (or other object) the terms were set on.
+	 * @param int[]    $terms      Term IDs/slugs as passed to wp_set_object_terms() (unused).
+	 * @param int[]    $tt_ids     Resulting term_taxonomy_ids (unused — re-fetched as term IDs below).
+	 * @param string   $taxonomy   Taxonomy the terms were set on.
+	 */
+	public function flag_newly_created_terms_by_post_language( int $object_id, array $terms, array $tt_ids, string $taxonomy ): void {
+		unset( $terms, $tt_ids );
+
+		if ( empty( self::$newly_created_term_ids ) || ! in_array( $taxonomy, [ 'agnosis_medium', 'post_tag' ], true ) ) {
+			return;
+		}
+
+		$assigned_ids = wp_get_object_terms( $object_id, $taxonomy, [ 'fields' => 'ids' ] );
+		if ( is_wp_error( $assigned_ids ) ) {
+			return;
+		}
+
+		/** @var int[] $matched */
+		$matched = array_intersect( self::$newly_created_term_ids, $assigned_ids );
+		if ( empty( $matched ) ) {
+			return;
+		}
+
+		// Consumed either way (flagged below or not) — don't let them leak
+		// into a later, unrelated wp_set_object_terms() call in the same
+		// request (e.g. a bulk-import script processing many posts).
+		self::$newly_created_term_ids = array_values( array_diff( self::$newly_created_term_ids, $matched ) );
+
+		// sanitize_key() on both sides — not just defensiveness: this is the
+		// exact comparison a casing/whitespace mismatch between the two
+		// would silently defeat, which is precisely the class of bug this
+		// method exists to close (see class docblock for the incident).
+		//
+		// `_agnosis_native_lang` (checked first) over `_lf_lang`: the native-
+		// language pipeline (NATIVE-LANGUAGE-PIPELINE.md) creates a post's
+		// tags at INTAKE, on the draft, via PostCreator::write_post_meta()'s
+		// wp_set_post_tags() call — before the post is ever published.
+		// `_lf_lang` is only ever written by set_language_meta(), hooked to
+		// `agnosis_post_published`, so it doesn't exist yet at intake time —
+		// this method would read `$post_lang = ''` and silently skip
+		// flagging, exactly reproducing the 127-Catalan-tags bug through a
+		// different, newer door: every non-primary-language artist's intake
+		// tags landing unflagged in the "primary" bucket, ongoing, since the
+		// native pipeline shipped (2026-07-12). `_agnosis_native_lang` IS
+		// already set at intake (PostCreator::create_post(), unconditionally,
+		// every submission) and is the artist's actual declared language —
+		// exactly the signal this method needs and didn't have. `_lf_lang`
+		// stays as the fallback for anything with no native-language meta at
+		// all (biography/event posts predating this pipeline, or any future
+		// post type this hook fires for that never goes through it).
+		$native_lang  = sanitize_key( (string) get_post_meta( $object_id, '_agnosis_native_lang', true ) );
+		$post_lang    = '' !== $native_lang ? $native_lang : sanitize_key( (string) get_post_meta( $object_id, '_lf_lang', true ) );
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+
+		if ( '' === $post_lang || '' === $primary_lang || $post_lang === $primary_lang ) {
+			return; // Primary-language post (or language unknown) — these newly-created terms genuinely ARE the primary vocabulary.
+		}
+
+		foreach ( $matched as $term_id ) {
+			if ( ! get_term_meta( (int) $term_id, self::TRANSLATED_TERM_META, true ) ) {
+				add_term_meta( (int) $term_id, self::TRANSLATED_TERM_META, $post_lang, true );
+			}
+		}
+	}
+
+	/**
+	 * @param int      $object_id  Post (or other object) the terms were set on.
+	 * @param int[]    $terms      Term IDs/slugs as passed to wp_set_object_terms() (unused).
+	 * @param int[]    $tt_ids     Resulting term_taxonomy_ids.
+	 * @param string   $taxonomy   Taxonomy the terms were set on.
+	 * @param bool     $append     Whether terms were appended or replaced (unused).
+	 * @param int[]    $old_tt_ids term_taxonomy_ids the object had before this call.
+	 */
+	public function on_medium_terms_changed( int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids ): void {
+		unset( $terms, $append );
+
+		if ( 'agnosis_medium' !== $taxonomy ) {
+			return;
+		}
+
+		// No actual change (a re-save that happens to re-set the same terms) —
+		// nothing to propagate. Order-independent comparison since
+		// wp_set_object_terms() doesn't guarantee tt_id ordering matches.
+		sort( $tt_ids );
+		sort( $old_tt_ids );
+		if ( $tt_ids === $old_tt_ids ) {
+			return;
+		}
+
+		// Everything else this method used to do inline — post-type check,
+		// primary-language direction-of-truth guard, siblings lookup, the
+		// actual propagation loop — now lives in
+		// sync_medium_assignment_to_siblings(), a public, directly-callable
+		// version of the exact same logic: Admin\ArtworkMediumSync calls it
+		// on demand (one artwork's edit-screen button, or a bulk sweep of
+		// every primary-language artwork), for artwork/sibling pairs that
+		// drifted out of sync BEFORE this automatic hook existed — this
+		// reactive firing only ever catches a change from here forward.
+		$this->sync_medium_assignment_to_siblings( $object_id );
+	}
+
+	/**
+	 * On-demand version of the propagation on_medium_terms_changed() above
+	 * runs automatically on save — pushes a primary-language artwork's
+	 * CURRENT medium assignment onto every already-translated sibling right
+	 * now, regardless of whether anything actually just changed.
+	 *
+	 * Exists because the automatic hook only ever fires reactively (on a
+	 * save that changes the medium): it does nothing for an artwork/sibling
+	 * pair that was ALREADY out of sync before that feature shipped, or
+	 * drifted for any other reason — requested directly as "a real sync
+	 * button" once that gap became clear. Admin\ArtworkMediumSync's
+	 * per-artwork meta box button and bulk "Sync all medium assignments"
+	 * action both call this (the bulk one in a loop, via
+	 * sync_all_medium_assignments() below); on_medium_terms_changed() now
+	 * delegates to it too, so there is exactly one implementation of "push
+	 * this artwork's medium to its siblings," triggered three ways.
+	 *
+	 * No-ops (returns 0) on anything that isn't a primary-language
+	 * `agnosis_artwork` post — same direction-of-truth rule the automatic
+	 * hook always enforced: a translated post's medium is a translation of
+	 * the primary's, never an independent source to propagate FROM.
+	 *
+	 * @param int $post_id Primary-language `agnosis_artwork` post ID.
+	 * @return int Number of translated siblings the medium was pushed to.
+	 */
+	public function sync_medium_assignment_to_siblings( int $post_id ): int {
+		if ( 'agnosis_artwork' !== get_post_type( $post_id ) ) {
+			return 0;
+		}
+
+		// Only propagate FROM the primary-language post TO its translated
+		// siblings — a translated post's own medium is expected to be a
+		// translation of the primary's, not an independent source of truth.
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		$post_lang    = sanitize_key( (string) get_post_meta( $post_id, '_lf_lang', true ) );
+		if ( '' === $primary_lang || $post_lang !== $primary_lang ) {
+			return 0;
+		}
+
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return 0;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$translations = linguaforge_get_translations( $post_id );
+
+		$synced = 0;
+		foreach ( $translations as $lang => $sibling_id ) {
+			$sibling_id = (int) $sibling_id;
+			if ( $sibling_id === $post_id || 0 === $sibling_id ) {
+				continue;
+			}
+			$this->sync_taxonomy( $post_id, $sibling_id, 'agnosis_medium', (string) $lang );
+			++$synced;
+		}
+
+		return $synced;
+	}
+
+	/**
+	 * Bulk version of sync_medium_assignment_to_siblings() — sweeps every
+	 * published primary-language `agnosis_artwork` post and re-propagates
+	 * its medium assignment to all its translated siblings in one pass.
+	 * Built alongside the per-artwork button for the same reason: clearing
+	 * today's backlog of already-out-of-sync artwork/sibling pairs (the
+	 * Catalan-testing data-integrity incident this whole area exists to
+	 * help clean up), not just future edits.
+	 *
+	 * @return array{artworks: int, synced: int} Count of primary-language
+	 *         artworks examined, and the total number of sibling posts a
+	 *         medium was actually pushed to across all of them — for the
+	 *         admin notice after redirect.
+	 */
+	public function sync_all_medium_assignments(): array {
+		$result = [
+			'artworks' => 0,
+			'synced'   => 0,
+		];
+
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		if ( '' === $primary_lang ) {
+			return $result;
+		}
+
+		$artwork_ids = get_posts(
+			[
+				'post_type'      => 'agnosis_artwork',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- admin-triggered one-off bulk action, not a hot path.
+					[
+						'key'   => '_lf_lang',
+						'value' => $primary_lang,
+					],
+				],
+			]
+		);
+
+		foreach ( $artwork_ids as $post_id ) {
+			++$result['artworks'];
+			$result['synced'] += $this->sync_medium_assignment_to_siblings( (int) $post_id );
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Record one AI translation call for each language Lingua Forge's own
 	 * fan-out genuinely translates (seventh audit G-2 —
 	 * `AI\CallCounter`/`agnosis-audit/NATIVE-LANGUAGE-PIPELINE.md` §7).
@@ -1257,98 +2024,115 @@ class LinguaForge {
 	}
 
 	/**
-	 * Translate every term name a source post holds in $taxonomy and assign the
-	 * translated set to the translated post, replacing whatever it had before
-	 * (wp_set_object_terms()'s default $append = false) — the same "full,
-	 * blunt overwrite on re-translation" behavior LF's own
-	 * update_translated_post() already applies to post_content/post_title, so
-	 * this isn't introducing a new class of surprise on re-translation.
+	 * Sync every term a source post holds in $taxonomy onto the translated
+	 * post, replacing whatever it had before (wp_set_object_terms()'s
+	 * default $append = false) — the same "full, blunt overwrite on
+	 * re-translation" behavior LF's own update_translated_post() already
+	 * applies to post_content/post_title, so this isn't introducing a new
+	 * class of surprise on re-translation.
 	 *
-	 * A source post with no terms in $taxonomy clears the translated post's own
-	 * terms too, rather than leaving a stale set behind from a previous
+	 * A source post with no terms in $taxonomy clears the translated post's
+	 * own terms too, rather than leaving a stale set behind from a previous
 	 * translation pass.
 	 *
-	 * Any translated name that doesn't already exist in $taxonomy is, by
-	 * definition, a term this method itself is about to create via
-	 * wp_set_object_terms()'s auto-create behavior — not one an admin
-	 * deliberately added. Such terms are stamped with TRANSLATED_TERM_META so
-	 * `PromptConfig::medium_terms()` can exclude them from the AI's controlled
-	 * vocabulary (fourth audit §4c: without this, AI-translated term names
-	 * accumulate in `agnosis_medium`/`post_tag` indistinguishable from
-	 * admin-curated ones, polluting both the AI prompt's term list and the
-	 * admin taxonomy screens).
+	 * Trid-based (TERM_TRID_META): for each source term, resolves (or
+	 * lazily assigns) its trid, then finds-or-creates the $target_lang
+	 * member of that SAME trid group — never a name comparison on the
+	 * translated side. This taxonomy-generic version replaced an older,
+	 * purely name-matching implementation (translate the name via AI, then
+	 * term_exists()/get_term_by('name', ...) to see if a term with that
+	 * exact string already existed) that broke down under AI translation
+	 * non-determinism: re-running a sync could create a fresh
+	 * near-duplicate term instead of recognizing the one already there.
+	 * That was first fixed for `agnosis_medium` only — a live incident left
+	 * every language bucket there out of the 1:1 parity it's supposed to
+	 * have with the 10-term primary vocabulary — then extended here to
+	 * `post_tag` once it was clear the same non-determinism risk existed
+	 * there too, just without the fixed-count symptom that made the medium
+	 * version obvious. Works uniformly whether a source term is itself
+	 * primary or already one of another language's translations (both
+	 * carry a trid once touched by this method), so no special-casing is
+	 * needed for which side of the relationship a term happens to be on.
 	 *
-	 * Numeric-looking names ("2026", or an AI translation that happens to
-	 * come back as a bare number) are handled separately from the plain
-	 * term_exists()/auto-create flow above — see resolve_numeric_term_name()
-	 * (sixth audit §6, carried from the fifth) for why WordPress's own term
-	 * lookup is ambiguous for those specifically, and how this method avoids
-	 * it.
+	 * Numeric-looking translated names ("2026", or an AI translation that
+	 * happens to come back as a bare number) still go through
+	 * resolve_numeric_term_name() rather than a plain wp_insert_term() call
+	 * — see that method's own docblock for why WordPress's term lookup is
+	 * ambiguous for those specifically (sixth audit §6, carried from the
+	 * fifth; this predates and is independent of the trid rework).
+	 *
+	 * @param int    $source_id     Source post ID (primary-language, or
+	 *                               itself already translated).
+	 * @param int    $translated_id Translated sibling post ID to assign onto.
+	 * @param string $taxonomy      Taxonomy to sync — 'post_tag' or 'agnosis_medium'.
+	 * @param string $target_lang   Language code being synced to.
 	 */
 	private function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
-		$names = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'names' ] );
+		$terms = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'all' ] );
 
-		if ( is_wp_error( $names ) ) {
+		if ( is_wp_error( $terms ) ) {
 			return;
 		}
 
-		if ( empty( $names ) ) {
+		if ( empty( $terms ) ) {
 			wp_set_object_terms( $translated_id, [], $taxonomy );
 			return;
 		}
 
-		$translated_names = array_map(
-			fn( string $name ) => $this->translated_term_name( $name, $taxonomy, $target_lang ),
-			$names
-		);
+		$assign = [];
 
-		// Numeric-looking names (a literal year like "2026", or an AI
-		// translation that happens to come back as a bare number) are
-		// resolved to a real term ID here, BEFORE anything below ever hands
-		// the raw numeric string to term_exists()/wp_set_object_terms() —
-		// see resolve_numeric_term_name()'s docblock for why WordPress's own
-		// lookup is ambiguous for those, and not for an actual int (sixth
-		// audit §6, carried from the fifth — pre-existing since 0.9.9, not
-		// introduced by this method). Non-numeric names are completely
-		// unaffected and keep the original behavior: term_exists() is
-		// checked BEFORE the assignment call so a genuinely new name can
-		// still be identified afterward (wp_set_object_terms() auto-creates
-		// it, and its ID is only known once that call returns).
-		$assign     = []; // int|string values, in order, for wp_set_object_terms().
-		$new_names  = []; // non-numeric names not yet existing — resolved to IDs after assignment.
-		$newly_made = []; // term IDs already known to be freshly created — numeric names resolve immediately.
-
-		foreach ( $translated_names as $name ) {
-			if ( is_numeric( $name ) ) {
-				[ $term_id, $was_new ] = $this->resolve_numeric_term_name( $name, $taxonomy );
-				if ( 0 === $term_id ) {
-					continue; // Nothing resolvable — drop rather than pass the ambiguous numeric string through.
-				}
-				$assign[] = $term_id;
-				if ( $was_new ) {
-					$newly_made[] = $term_id;
-				}
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof \WP_Term ) {
 				continue;
 			}
 
-			if ( ! term_exists( $name, $taxonomy ) ) {
-				$new_names[] = $name;
+			$trid     = $this->get_or_create_term_trid( $term->term_id );
+			$existing = $this->find_term_by_trid( $trid, $taxonomy, $target_lang );
+
+			if ( $existing instanceof \WP_Term ) {
+				$assign[] = $existing->term_id;
+				continue;
 			}
-			$assign[] = $name;
+
+			$translated_name = $this->translated_term_name( $term->name, $taxonomy, $target_lang );
+			if ( $translated_name === $term->name ) {
+				// No AI provider configured, or the translation call failed —
+				// fall back to assigning the SOURCE term itself rather than
+				// creating nothing.
+				$assign[] = $term->term_id;
+				continue;
+			}
+
+			if ( is_numeric( $translated_name ) ) {
+				[ $created_id, $was_new ] = $this->resolve_numeric_term_name( $translated_name, $taxonomy );
+				if ( 0 === $created_id ) {
+					continue; // Nothing resolvable — drop rather than pass the ambiguous numeric string through.
+				}
+			} else {
+				$created = wp_insert_term( $translated_name, $taxonomy );
+				if ( is_wp_error( $created ) ) {
+					// Most likely a genuine race — another request created
+					// the same translation between our trid lookup and this
+					// call. One more trid lookup catches that; otherwise
+					// fall back to the source term rather than dropping the
+					// assignment entirely.
+					$existing = $this->find_term_by_trid( $trid, $taxonomy, $target_lang );
+					$assign[] = $existing instanceof \WP_Term ? $existing->term_id : $term->term_id;
+					continue;
+				}
+				$created_id = (int) $created['term_id'];
+				$was_new    = true;
+			}
+
+			if ( $was_new ) {
+				add_term_meta( $created_id, self::TRANSLATED_TERM_META, $target_lang, true );
+				add_term_meta( $created_id, self::TERM_TRID_META, $trid, true );
+			}
+
+			$assign[] = $created_id;
 		}
 
 		wp_set_object_terms( $translated_id, $assign, $taxonomy );
-
-		foreach ( $newly_made as $term_id ) {
-			add_term_meta( $term_id, self::TRANSLATED_TERM_META, $target_lang, true );
-		}
-
-		foreach ( $new_names as $name ) {
-			$term = get_term_by( 'name', $name, $taxonomy );
-			if ( $term instanceof \WP_Term ) {
-				add_term_meta( $term->term_id, self::TRANSLATED_TERM_META, $target_lang, true );
-			}
-		}
 	}
 
 	/**

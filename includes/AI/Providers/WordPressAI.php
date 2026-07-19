@@ -33,7 +33,7 @@ class WordPressAI implements ProviderInterface {
 
 	public function __construct( private readonly PromptConfig $config ) {}
 
-	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult {
+	public function describe( string $image_data, string $mime_type, string $artist_prompt, string $native_lang = '' ): DescriptionResult {
 
 		if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
 			return DescriptionResult::failure(
@@ -47,7 +47,7 @@ class WordPressAI implements ProviderInterface {
 			);
 		}
 
-		$system = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
+		$system = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
 		// Append a note since we have no image to send.
 		$user = $this->config->build_user_message( $artist_prompt )
 			. "\n\n(Note: no image is available — generate artwork metadata solely from the artist's text above.)";
@@ -122,7 +122,9 @@ class WordPressAI implements ProviderInterface {
 	 * quality gate, exactly as this provider's primary-image path already
 	 * behaves when it has no image to work from).
 	 */
-	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+	public function describe_secondary( string $image_data, string $mime_type, string $native_lang = '' ): DescriptionResult {
+		unset( $native_lang ); // Text-only provider — no image support, nothing to inject a tag vocabulary into.
+
 		return DescriptionResult::failure(
 			'WordPress AI Client is text-only and cannot analyze images — secondary gallery images get no AI-generated alt text, tags, or quality score with this provider.'
 		);

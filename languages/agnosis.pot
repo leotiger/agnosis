@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Agnosis 0.9.35\n"
+"Project-Id-Version: Agnosis 0.9.38\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-18T10:51+00:00\n"
+"POT-Creation-Date: 2026-07-18T20:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: agnosis\n"
@@ -51,35 +51,43 @@ msgstr ""
 msgid "Agnosis requires WordPress %s or higher."
 msgstr ""
 
-#: blocks/gallery-overview/render.php:267
+#: blocks/gallery-overview/render.php:413
 msgid "Filter by medium"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:270
+#: blocks/gallery-overview/render.php:418
 msgid "All"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:313
+#: blocks/gallery-overview/render.php:434
+msgid "No artwork matches this filter yet."
+msgstr ""
+
+#: blocks/gallery-overview/render.php:436
+msgid "No artwork to show yet."
+msgstr ""
+
+#: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:344
+#: blocks/gallery-overview/render.php:503
 msgid "Featured"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:350
+#: blocks/gallery-overview/render.php:509
 msgid "Enlarge"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:375
+#: blocks/gallery-overview/render.php:535
 msgid "Gallery pages"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:378
+#: blocks/gallery-overview/render.php:540
 msgid "Prev"
 msgstr ""
 
-#: blocks/gallery-overview/render.php:391
+#: blocks/gallery-overview/render.php:557
 #: includes/Admin/ContactMessagesPage.php:291
 #: includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
@@ -182,6 +190,9 @@ msgstr ""
 #: includes/Admin/QueueController.php:148
 #: includes/Admin/Settings.php:846
 #: includes/Admin/Settings.php:865
+#: includes/Admin/TaxonomyLanguageFilter.php:185
+#: includes/Admin/ArtworkMediumSync.php:93
+#: includes/Admin/ArtworkMediumSync.php:165
 msgid "You do not have permission to perform this action."
 msgstr ""
 
@@ -1014,6 +1025,14 @@ msgstr ""
 
 #: includes/Admin/InboxPage.php:784
 msgid "Delete this queue row?"
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:61
+msgid "Filter by language"
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:67
+msgid "Primary language"
 msgstr ""
 
 #: includes/Admin/Settings.php:48
@@ -2276,6 +2295,16 @@ msgstr ""
 msgid "Advisory only — self-hosted sending keeps working above this count. Once confirmed public subscribers pass it, this page shows a reminder to consider an email service provider (e.g. Brevo's free tier) instead."
 msgstr ""
 
+#: includes/Admin/TaxonomyLanguageFilter.php:164
+msgid "Sync translations"
+msgstr ""
+
+#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:221
+#, php-format
+msgid "Sync complete: %1$d translation(s) created, %2$d language(s) already up to date."
+msgstr ""
+
 #: includes/AI/PromptConfig.php:155
 msgid "The artist sent no subject line or message with this submission — let the image speak entirely for itself."
 msgstr ""
@@ -3378,8 +3407,8 @@ msgid "Preferences saved"
 msgstr ""
 
 #: includes/Artist/Profile.php:27
-#: includes/Artist/Profile.php:742
-#: includes/Artist/Profile.php:755
+#: includes/Artist/Profile.php:839
+#: includes/Artist/Profile.php:852
 msgid "Artworks"
 msgstr ""
 
@@ -3536,54 +3565,60 @@ msgstr ""
 msgid "Federated posts under this medium will carry a content warning on the Fediverse (e.g. Mastodon) unless the artist turns it off for a specific piece."
 msgstr ""
 
-#: includes/Artist/Profile.php:743
-#: includes/Artist/Profile.php:756
+#. translators: 1: publish year, 2: artist name
+#: includes/Artist/Profile.php:806
+#, php-format
+msgid "© %1$s %2$s"
+msgstr ""
+
+#: includes/Artist/Profile.php:840
+#: includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69
 #: includes/Publishing/PostCreator.php:996
 msgid "Artwork"
 msgstr ""
 
-#: includes/Artist/Profile.php:744
+#: includes/Artist/Profile.php:841
 msgid "Add New"
 msgstr ""
 
-#: includes/Artist/Profile.php:745
+#: includes/Artist/Profile.php:842
 msgid "Add New Artwork"
 msgstr ""
 
-#: includes/Artist/Profile.php:746
+#: includes/Artist/Profile.php:843
 msgid "Edit Artwork"
 msgstr ""
 
-#: includes/Artist/Profile.php:747
+#: includes/Artist/Profile.php:844
 msgid "New Artwork"
 msgstr ""
 
-#: includes/Artist/Profile.php:748
+#: includes/Artist/Profile.php:845
 msgid "View Artwork"
 msgstr ""
 
-#: includes/Artist/Profile.php:749
+#: includes/Artist/Profile.php:846
 msgid "Search Artworks"
 msgstr ""
 
-#: includes/Artist/Profile.php:750
+#: includes/Artist/Profile.php:847
 msgid "No artworks found."
 msgstr ""
 
-#: includes/Artist/Profile.php:751
+#: includes/Artist/Profile.php:848
 msgid "No artworks in trash."
 msgstr ""
 
-#: includes/Artist/Profile.php:752
+#: includes/Artist/Profile.php:849
 msgid "All Artworks"
 msgstr ""
 
-#: includes/Artist/Profile.php:753
+#: includes/Artist/Profile.php:850
 msgid "Artwork Archives"
 msgstr ""
 
-#: includes/Artist/Profile.php:754
+#: includes/Artist/Profile.php:851
 msgid "Artwork Attributes"
 msgstr ""
 
@@ -3688,63 +3723,63 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Compat/LinguaForge.php:1875
+#: includes/Compat/LinguaForge.php:2047
 msgid "is active and configured for"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1876
+#: includes/Compat/LinguaForge.php:2048
 msgid "Subdomain"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1877
+#: includes/Compat/LinguaForge.php:2049
 msgid "routing mode"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1879
+#: includes/Compat/LinguaForge.php:2051
 msgid "This conflicts with Agnosis artist subdomains — both plugins would claim the same subdomain namespace."
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1880
+#: includes/Compat/LinguaForge.php:2052
 msgid "Artist subdomain routing is"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1881
+#: includes/Compat/LinguaForge.php:2053
 msgid "completely inactive"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1882
+#: includes/Compat/LinguaForge.php:2054
 msgid "until this is resolved."
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1884
+#: includes/Compat/LinguaForge.php:2056
 msgid "Fix: open"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1885
+#: includes/Compat/LinguaForge.php:2057
 msgid "Settings"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1885
+#: includes/Compat/LinguaForge.php:2057
 msgid "Language Router"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1886
+#: includes/Compat/LinguaForge.php:2058
 msgid "and switch the URL strategy to"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1887
+#: includes/Compat/LinguaForge.php:2059
 msgid "Path prefix (subfolder)"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1888
+#: includes/Compat/LinguaForge.php:2060
 msgid "This is the LinguaForge default and allows artist subdomains to coexist with language subfolders"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1893
+#: includes/Compat/LinguaForge.php:2065
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr ""
 
-#: includes/Compat/LinguaForge.php:1903
+#: includes/Compat/LinguaForge.php:2075
 msgid "Open LinguaForge Settings"
 msgstr ""
 
@@ -4531,15 +4566,15 @@ msgstr ""
 msgid "Automatic review found that page's content isn't allowed to be embedded on this site."
 msgstr ""
 
-#: includes/Publishing/GalleryOverview.php:123
+#: includes/Publishing/GalleryOverview.php:171
 msgid "Gallery overview"
 msgstr ""
 
-#: includes/Publishing/GalleryOverview.php:149
+#: includes/Publishing/GalleryOverview.php:197
 msgid "Feature this artwork in the gallery overview"
 msgstr ""
 
-#: includes/Publishing/GalleryOverview.php:153
+#: includes/Publishing/GalleryOverview.php:201
 msgid "Featured artworks are always chosen first when selecting one work per artist for the homepage overview."
 msgstr ""
 
@@ -5384,6 +5419,10 @@ msgstr ""
 msgid "Artist Name"
 msgstr ""
 
+#: blocks/artwork-copyright/editor.js:33
+msgid "© 2026 Artist Name"
+msgstr ""
+
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
 msgid "Envelope"
@@ -5552,6 +5591,7 @@ msgstr ""
 
 #: blocks/artist-breadcrumb/block.json
 #: blocks/artist-name-link/block.json
+#: blocks/artwork-copyright/block.json
 #: blocks/breadcrumb-icon-link/block.json
 #: blocks/contact-form/block.json
 #: blocks/join/block.json
@@ -5570,6 +5610,33 @@ msgstr ""
 #: blocks/artist-name-link/block.json
 msgctxt "block description"
 msgid "Links to the current artist's own subdomain home. Renders nothing off an artist subdomain."
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block title"
+msgid "Artwork Copyright"
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block description"
+msgid "Renders a © {year} {artist name} copyright notice for an agnosis_artwork post — the year comes from the artwork's own publish date, the name from its author. Renders nothing off an artwork post."
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block keyword"
+msgid "copyright"
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+#: blocks/gallery-overview/block.json
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artwork"
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block keyword"
+msgid "credit"
 msgstr ""
 
 #: blocks/breadcrumb-icon-link/block.json
@@ -5642,12 +5709,6 @@ msgstr ""
 #: blocks/gallery-overview/block.json
 msgctxt "block keyword"
 msgid "gallery"
-msgstr ""
-
-#: blocks/gallery-overview/block.json
-#: blocks/submissions/block.json
-msgctxt "block keyword"
-msgid "artwork"
 msgstr ""
 
 #: blocks/gallery-overview/block.json
@@ -5755,4 +5816,53 @@ msgstr ""
 #: blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "review"
+msgstr ""
+
+#: includes/Admin/TaxonomyLanguageFilter.php:267
+#: includes/Admin/TaxonomyLanguageFilter.php:301
+msgid "Invalid taxonomy."
+msgstr ""
+
+#: includes/Admin/TaxonomyLanguageFilter.php:338
+msgid "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date."
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:87
+msgid "Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary."
+msgstr ""
+
+#: includes/Admin/LanguageAwareTermsListTable.php:88
+msgid "Sync all translations"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:57
+msgid "Requires Lingua Forge."
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:65
+msgid "This artwork's medium is translated from its primary-language original — nothing to sync from here."
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:80
+msgid "Push this artwork's current medium onto every already-translated sibling post."
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:82
+msgid "Sync medium to translations"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:122
+msgid "Medium pushed to %d translated sibling post(s)."
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:156
+msgid "Push every primary-language artwork's current medium onto its translated siblings? This can take a moment on a large catalog."
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:157
+msgid "Sync all medium assignments"
+msgstr ""
+
+#: includes/Admin/ArtworkMediumSync.php:199
+msgid "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s)."
 msgstr ""

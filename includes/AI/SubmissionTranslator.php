@@ -221,13 +221,32 @@ class SubmissionTranslator {
 	 * translating" from "the call failed" by checking whether $fields was
 	 * non-empty going in.
 	 *
-	 * @param array<string, string> $fields      Field name => plain text.
-	 * @param string                $target_code ISO 639-1 code (e.g. 'es', 'fr', 'zh').
+	 * $field_instructions lets a caller attach an extra instruction line to
+	 * ONE specific field's own section, without a second `chat()` call —
+	 * added for Publishing\ReviewEndpoints::translate_native_content_to_primary()'s
+	 * 'tags' field: rather than a separate reconciliation call after
+	 * translating, the existing-tag vocabulary and a "reuse exact existing
+	 * text when it fits" instruction are folded into THIS SAME call,
+	 * preserving the one-batched-call-per-approval invariant
+	 * NATIVE-LANGUAGE-PIPELINE.md §7 is built around and
+	 * ReviewEndpointsNativeLanguagePipelineTest asserts directly. Same trust
+	 * model the `medium` field already uses elsewhere ("pick exactly one
+	 * from: …") — a bounded copy-or-translate choice within one prompt, not
+	 * an independently-derived translation matched against a list it never
+	 * saw.
+	 *
+	 * @param array<string, string> $fields             Field name => plain text.
+	 * @param string                $target_code        ISO 639-1 code (e.g. 'es', 'fr', 'zh').
+	 * @param array<string, string> $field_instructions Field name => extra
+	 *                                                   instruction text inserted
+	 *                                                   into that field's own
+	 *                                                   section. Optional —
+	 *                                                   most callers pass nothing.
 	 * @return array<string, string> Field name => translated text, only for
 	 *                               fields that were non-empty AND present in
 	 *                               the AI's response.
 	 */
-	public function translate_fields( array $fields, string $target_code ): array {
+	public function translate_fields( array $fields, string $target_code, array $field_instructions = [] ): array {
 		$fields = array_filter( $fields, static fn( $v ) => '' !== trim( (string) $v ) );
 		if ( empty( $fields ) ) {
 			return [];
@@ -244,7 +263,10 @@ class SubmissionTranslator {
 
 		$sections = '';
 		foreach ( $fields as $key => $text ) {
-			$sections .= strtoupper( $key ) . ":\n" . trim( (string) $text ) . "\n\n";
+			$instruction = trim( (string) ( $field_instructions[ $key ] ?? '' ) );
+			$sections   .= strtoupper( $key ) . ":\n"
+				. ( '' !== $instruction ? $instruction . "\n" : '' )
+				. trim( (string) $text ) . "\n\n";
 		}
 
 		$json_keys = implode( ', ', array_map( static fn( $k ) => '"' . $k . '"', array_keys( $fields ) ) );

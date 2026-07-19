@@ -37,7 +37,7 @@ class Anthropic implements ProviderInterface {
 		private readonly string $text_model = self::DEFAULT_TEXT_MODEL,
 	) {}
 
-	public function describe( string $image_data, string $mime_type, string $artist_prompt ): DescriptionResult {
+	public function describe( string $image_data, string $mime_type, string $artist_prompt, string $native_lang = '' ): DescriptionResult {
 		if ( empty( $this->api_key ) ) {
 			return DescriptionResult::failure( 'Anthropic API key not configured.' );
 		}
@@ -49,7 +49,7 @@ class Anthropic implements ProviderInterface {
 		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
 
 		$image_b64    = base64_encode( $vision_image_data );
-		$system_prompt = $this->config->resolved_system_prompt( PromptConfig::medium_terms() );
+		$system_prompt = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
 		$user_content  = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [
@@ -134,7 +134,7 @@ class Anthropic implements ProviderInterface {
 	 * shorter, no artist-context user message is sent, and max_tokens is cut
 	 * to match the tiny JSON response this asks for.
 	 */
-	public function describe_secondary( string $image_data, string $mime_type ): DescriptionResult {
+	public function describe_secondary( string $image_data, string $mime_type, string $native_lang = '' ): DescriptionResult {
 		if ( empty( $this->api_key ) ) {
 			return DescriptionResult::failure( 'Anthropic API key not configured.' );
 		}
@@ -145,7 +145,7 @@ class Anthropic implements ProviderInterface {
 		$body = wp_json_encode( [
 			'model'      => $this->model,
 			'max_tokens' => 300,
-			'system'     => PromptConfig::secondary_system_prompt(),
+			'system'     => PromptConfig::secondary_system_prompt( PromptConfig::existing_tags_for_language( $native_lang ) ),
 			'messages'   => [
 				[
 					'role'    => 'user',

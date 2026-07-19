@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-18T10:51+00:00\n"
+"POT-Creation-Date: 2026-07-18T20:53+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:21+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Turkish\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Domain: agnosis\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8"
+"X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8\n"
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:194
@@ -56,35 +56,45 @@ msgstr "Agnosis, PHP %s veya üzerini gerektirir."
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "Agnosis, WordPress %s veya üzerini gerektirir."
 
-#: blocks/gallery-overview/render.php:267
+#: blocks/gallery-overview/render.php:413
 msgid "Filter by medium"
 msgstr "Ortamına göre filtrele"
 
-#: blocks/gallery-overview/render.php:270
+#: blocks/gallery-overview/render.php:418
 msgid "All"
 msgstr "Tümü"
 
-#: blocks/gallery-overview/render.php:313
+#: blocks/gallery-overview/render.php:434
+#, fuzzy
+msgid "No artwork matches this filter yet."
+msgstr "Bu filtreyle eşleşen kuyruk satırı yok."
+
+#: blocks/gallery-overview/render.php:436
+#, fuzzy
+msgid "No artwork to show yet."
+msgstr "Çöp kutusunda eser yok."
+
+#: blocks/gallery-overview/render.php:472
 msgid "Enlarged image"
 msgstr "Büyütülmüş görsel"
 
-#: blocks/gallery-overview/render.php:344
+#: blocks/gallery-overview/render.php:503
 msgid "Featured"
 msgstr "Öne çıkan"
 
-#: blocks/gallery-overview/render.php:350
+#: blocks/gallery-overview/render.php:509
 msgid "Enlarge"
 msgstr "Büyüt"
 
-#: blocks/gallery-overview/render.php:375
+#: blocks/gallery-overview/render.php:535
 msgid "Gallery pages"
 msgstr "Galeri sayfaları"
 
-#: blocks/gallery-overview/render.php:378
+#: blocks/gallery-overview/render.php:540
 msgid "Prev"
 msgstr "Önceki"
 
-#: blocks/gallery-overview/render.php:391
+#: blocks/gallery-overview/render.php:557
 #: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
 #: includes/Admin/InboxPage.php:613
 msgid "Next"
@@ -174,6 +184,9 @@ msgstr "(silinmiş sanatçı #%d)"
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
 #: includes/Admin/Settings.php:865
+#: includes/Admin/TaxonomyLanguageFilter.php:185
+#: includes/Admin/ArtworkMediumSync.php:93
+#: includes/Admin/ArtworkMediumSync.php:165
 msgid "You do not have permission to perform this action."
 msgstr "Bu işlemi gerçekleştirme izniniz yok."
 
@@ -613,10 +626,10 @@ msgstr "Şuraya gerçek bir test e-postası gönderin:"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:105
 msgid ""
-"Sends one plain-text email from the same community identity used for "
-"review/vote/vouch mail. Reaching your inbox is a good sign; landing in spam "
-"or not arriving at all confirms a real deliverability problem regardless of "
-"what the checks above say."
+"Sends one plain-text email from the same community identity used for review/"
+"vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
+"arriving at all confirms a real deliverability problem regardless of what "
+"the checks above say."
 msgstr ""
 "İnceleme/oy/vouch e-postaları için kullanılan aynı topluluk kimliğinden düz "
 "metin bir e-posta gönderir. E-postanın gelen kutunuza ulaşması iyi bir "
@@ -672,8 +685,8 @@ msgstr "[TEST] %s için teslim edilebilirlik kontrolü"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:201
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
-"Inbox page. If you're reading this in your inbox (not spam), the "
-"community/transactional From identity is deliverable to this address."
+"Inbox page. If you're reading this in your inbox (not spam), the community/"
+"transactional From identity is deliverable to this address."
 msgstr ""
 "Bu, Agnosis Ayarları → E-posta Gelen Kutusu sayfasından yapılan tek seferlik "
 "bir teslim edilebilirlik testidir. Bunu gelen kutunuzda okuyorsanız (spam’de "
@@ -855,9 +868,9 @@ msgid ""
 "deliverability at this size."
 msgstr ""
 "Onaylanmış herkese açık %1$d aboneniz var; bu sayı, yapılandırılmış %2$d "
-"rahatlık eşiğinin üzerinde. Kendi kendine barındırılan gönderim yine çalışır,"
-" ancak bu büyüklükte daha iyi teslimat için bir e-posta hizmet sağlayıcısına "
-"(örn. Brevo’nun ücretsiz planı) bağlanmak isteyebilirsiniz."
+"rahatlık eşiğinin üzerinde. Kendi kendine barındırılan gönderim yine "
+"çalışır, ancak bu büyüklükte daha iyi teslimat için bir e-posta hizmet "
+"sağlayıcısına (örn. Brevo’nun ücretsiz planı) bağlanmak isteyebilirsiniz."
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:84
 #: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:305
@@ -1077,11 +1090,11 @@ msgstr "Tüm nedenler"
 #: includes/Admin/InboxPage.php:571
 #, php-format
 msgid ""
-"%1$d message from an unregistered sender is hidden from this view. <a "
-"href=\"%2$s\">View it</a>."
+"%1$d message from an unregistered sender is hidden from this view. <a href="
+"\"%2$s\">View it</a>."
 msgid_plural ""
-"%1$d messages from unregistered senders are hidden from this view. <a "
-"href=\"%2$s\">View them</a>."
+"%1$d messages from unregistered senders are hidden from this view. <a href="
+"\"%2$s\">View them</a>."
 msgstr[0] ""
 "Kayıtlı olmayan bir gönderenden gelen %1$d mesaj bu görünümden gizlenmiş. <a "
 "href=\"%2$s\">Görüntüle</a>."
@@ -1161,6 +1174,14 @@ msgstr "Çalışıyor…"
 #: includes/Admin/InboxPage.php:784
 msgid "Delete this queue row?"
 msgstr "Bu kuyruk satırı silinsin mi?"
+
+#: includes/Admin/LanguageAwareTermsListTable.php:61
+msgid "Filter by language"
+msgstr "Dile göre filtrele"
+
+#: includes/Admin/LanguageAwareTermsListTable.php:67
+msgid "Primary language"
+msgstr "Birincil dil"
 
 #: includes/Admin/Settings.php:48 includes/Admin/Settings.php:49
 msgid "Configuration"
@@ -1471,9 +1492,8 @@ msgid ""
 msgstr ""
 "%s ve herkese açık federasyonu kapsayan önerilen metin otomatik olarak "
 "eklendi — yayımlamadan önce Ayarlar → Gizlilik → \"Kılavuz\" altında gözden "
-"geçirin ve uyumluluk yükümlülükleriniz için "
-"sağlayıcınızın/sağlayıcılarınızın kendi veri işleme sözleşmesini (DPA) "
-"kontrol edin."
+"geçirin ve uyumluluk yükümlülükleriniz için sağlayıcınızın/"
+"sağlayıcılarınızın kendi veri işleme sözleşmesini (DPA) kontrol edin."
 
 #: includes/Admin/Settings.php:495
 msgid "No Privacy Policy page is set."
@@ -1714,8 +1734,8 @@ msgid ""
 "Debug dumps older than this are permanently deleted by the daily cleanup — "
 "automatically, whether or not debug logging is currently turned on, so files "
 "left over from a past debug session don't linger indefinitely. A dump is a "
-"full raw copy of an artist's email, so this defaults shorter than the "
-"inbox/queue retention above. Default: 14 days."
+"full raw copy of an artist's email, so this defaults shorter than the inbox/"
+"queue retention above. Default: 14 days."
 msgstr ""
 "Bu süreden daha eski hata ayıklama dökümleri günlük temizlik tarafından "
 "kalıcı olarak silinir — hata ayıklama kaydı şu anda açık olsun ya da olmasın "
@@ -1869,8 +1889,8 @@ msgid ""
 "Keep this light for readable dark text below; for a dark theme, also darken "
 "the text colors."
 msgstr ""
-"Kartın kendi arka plan rengi — gövde metninin ve altbilginin yer aldığı alan."
-" Okunabilir koyu metin için bunu açık tutun; koyu bir tema için metin "
+"Kartın kendi arka plan rengi — gövde metninin ve altbilginin yer aldığı "
+"alan. Okunabilir koyu metin için bunu açık tutun; koyu bir tema için metin "
 "renklerini de koyulaştırın."
 
 #: includes/Admin/SettingsFields.php:157
@@ -1933,9 +1953,9 @@ msgid ""
 "so the footer can be set off visually from the body if you like."
 msgstr ""
 "Gönderilen her HTML e-postasının alt kısmındaki altbilgi şeridinin arka plan "
-"rengi (slogan ve — varsa — çalışma adresleri kartı ile abonelikten "
-"çıkma/tercihler bağlantısı). Yukarıdaki kart arka planından bağımsızdır; "
-"böylece isterseniz altbilgiyi gövdeden görsel olarak ayırabilirsiniz."
+"rengi (slogan ve — varsa — çalışma adresleri kartı ile abonelikten çıkma/"
+"tercihler bağlantısı). Yukarıdaki kart arka planından bağımsızdır; böylece "
+"isterseniz altbilgiyi gövdeden görsel olarak ayırabilirsiniz."
 
 #: includes/Admin/SettingsFields.php:206
 msgid "Divider / border color"
@@ -2179,12 +2199,12 @@ msgid ""
 msgstr ""
 "Herhangi bir aktif sanatçı buraya e-posta göndererek (herhangi bir konu, ek "
 "gerekmez) diğer tüm topluluk üyelerine mesaj iletir — örn. community@agnosis."
-"art. Asla bir gönderi olarak işlenmez ve asla bir yazıya dönüşmez: her alıcı,"
-" yanıt verebilmeleri için gönderenin adı ve e-posta adresiyle birlikte konu "
-"ve mesajın kendi diline çevrilmiş hâlini alır. Ayarlar → Topluluk → Kurallar "
-"altında yapılandırılan adresten gönderilir; bu adres buradakinden farklı "
-"olabilir. Yalnızca aktif, kabul edilmiş bir sanatçı tarafından gönderilen "
-"mesajlar için çalışır."
+"art. Asla bir gönderi olarak işlenmez ve asla bir yazıya dönüşmez: her "
+"alıcı, yanıt verebilmeleri için gönderenin adı ve e-posta adresiyle birlikte "
+"konu ve mesajın kendi diline çevrilmiş hâlini alır. Ayarlar → Topluluk → "
+"Kurallar altında yapılandırılan adresten gönderilir; bu adres buradakinden "
+"farklı olabilir. Yalnızca aktif, kabul edilmiş bir sanatçı tarafından "
+"gönderilen mesajlar için çalışır."
 
 #: includes/Admin/SettingsFields.php:323
 msgid "IMAP host"
@@ -2599,9 +2619,10 @@ msgid ""
 "scales proportionally — no cropping. Default: 420. Existing images need to "
 "be regenerated after changing this value."
 msgstr ""
-"Sanatçı bildirim e-postalarında kullanılan agnosis-email boyutunun genişliği."
-" Yükseklik kırpma olmadan orantılı olarak ölçeklenir. Varsayılan: 420. Bu "
-"değeri değiştirdikten sonra mevcut görsellerin yeniden oluşturulması gerekir."
+"Sanatçı bildirim e-postalarında kullanılan agnosis-email boyutunun "
+"genişliği. Yükseklik kırpma olmadan orantılı olarak ölçeklenir. Varsayılan: "
+"420. Bu değeri değiştirdikten sonra mevcut görsellerin yeniden oluşturulması "
+"gerekir."
 
 #: includes/Admin/SettingsFields.php:611
 msgid "Gallery overview — items per page"
@@ -2638,8 +2659,8 @@ msgstr "Sistem istemi"
 
 #: includes/Admin/SettingsFields.php:641
 msgid ""
-"Sent to the AI as the system instruction. Use {tag_count} and {excerpt_words}"
-" as tokens — they are replaced with the values below."
+"Sent to the AI as the system instruction. Use {tag_count} and "
+"{excerpt_words} as tokens — they are replaced with the values below."
 msgstr ""
 "Yapay zekâya sistem talimatı olarak gönderilir. {tag_count} ve "
 "{excerpt_words} öğelerini belirteç olarak kullanın — bunlar aşağıdaki "
@@ -2864,18 +2885,18 @@ msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
 "resend. Measured in characters, not words, so it applies fairly across "
-"languages that don't use spaces between words (Chinese, Japanese, Thai, etc.)"
-". Every recipient's copy is translated individually, so this also caps how "
-"much a single message can cost in AI translation calls. Default: 2000. Hard "
-"maximum: 20000, regardless of this setting."
+"languages that don't use spaces between words (Chinese, Japanese, Thai, "
+"etc.). Every recipient's copy is translated individually, so this also caps "
+"how much a single message can cost in AI translation calls. Default: 2000. "
+"Hard maximum: 20000, regardless of this setting."
 msgstr ""
 "Topluluk duyuru adresine gönderilen daha uzun mesajlar yayımlanmak yerine "
-"gönderene geri iade edilir — gönderenden kısaltıp yeniden göndermesi istenir."
-" Kelimeyle değil karakterle ölçülür; bu nedenle kelimeler arasında boşluk "
-"kullanmayan dillerde (Çince, Japonca, Tayca vb.) adil biçimde uygulanır. Her "
-"alıcının kopyası ayrı ayrı çevrildiğinden, bu aynı zamanda tek bir mesajın "
-"AI çeviri çağrılarında yaratabileceği maliyeti de sınırlar. Varsayılan: 2000."
-" Bu ayardan bağımsız mutlak üst sınır: 20000."
+"gönderene geri iade edilir — gönderenden kısaltıp yeniden göndermesi "
+"istenir. Kelimeyle değil karakterle ölçülür; bu nedenle kelimeler arasında "
+"boşluk kullanmayan dillerde (Çince, Japonca, Tayca vb.) adil biçimde "
+"uygulanır. Her alıcının kopyası ayrı ayrı çevrildiğinden, bu aynı zamanda "
+"tek bir mesajın AI çeviri çağrılarında yaratabileceği maliyeti de sınırlar. "
+"Varsayılan: 2000. Bu ayardan bağımsız mutlak üst sınır: 20000."
 
 #: includes/Admin/SettingsFields.php:845
 msgid "Admin approval only (disable community voting)"
@@ -2889,8 +2910,8 @@ msgid ""
 "Applications wait indefinitely for an admin decision rather than auto-"
 "rejecting when no one can vote. A community removal vote already open when "
 "this is turned on still runs to its normal conclusion; only starting a new "
-"one is blocked. Off by default — most communities want the existing "
-"vouching/vote system."
+"one is blocked. Off by default — most communities want the existing vouching/"
+"vote system."
 msgstr ""
 "Etkinleştirildiğinde, sanatçılar artık yeni başvuranları destekleyip içeri "
 "alamaz veya bir üyeyi çıkarmak için oy veremez — her kabul ve kaldırma "
@@ -2951,10 +2972,9 @@ msgstr ""
 "Reddedilmiş, geri çekilmiş veya ayrılmış bir başvurunun e-postası, adı, "
 "biyografisi, beyanı ve portföy bağlantısı bu kadar gün sonra günlük temizlik "
 "tarafından anonimleştirilir — başvuru kaydının kendisi (durum ve tarihler) "
-"kabul geçmişi için saklanır. Yasaklı bir sanatçının "
-"biyografisi/beyanı/portföyü aynı zaman çizelgesine göre anonimleştirilir, "
-"ancak yasağın uygulanabilir kalması için e-postaları bilerek saklanır. "
-"Varsayılan: 180 gün."
+"kabul geçmişi için saklanır. Yasaklı bir sanatçının biyografisi/beyanı/"
+"portföyü aynı zaman çizelgesine göre anonimleştirilir, ancak yasağın "
+"uygulanabilir kalması için e-postaları bilerek saklanır. Varsayılan: 180 gün."
 
 #: includes/Admin/SettingsFields.php:890
 msgid "After applying, send artists to"
@@ -2962,10 +2982,10 @@ msgstr "Başvuru sonrası sanatçıyı şuraya yönlendir"
 
 #: includes/Admin/SettingsFields.php:894
 msgid ""
-"Optional — pick a page explaining the vouching process and what happens next."
-" When the application is submitted successfully, the artist is redirected "
-"there instead of just seeing an inline confirmation message. Leave as "
-"\"None\" to keep the inline message only."
+"Optional — pick a page explaining the vouching process and what happens "
+"next. When the application is submitted successfully, the artist is "
+"redirected there instead of just seeing an inline confirmation message. "
+"Leave as \"None\" to keep the inline message only."
 msgstr ""
 "İsteğe bağlı — başvuru sürecini ve sonrasında ne olacağını açıklayan bir "
 "sayfa seçin. Başvuru başarıyla gönderildiğinde, sanatçı yalnızca satır içi "
@@ -2979,8 +2999,8 @@ msgstr "Topluluk boyutu sınırı"
 #: includes/Admin/SettingsFields.php:902
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
-"waitlist instead of being rejected, and a freed slot admits the next in line."
-" Set to 0 for no cap. The community can also vote to change this."
+"waitlist instead of being rejected, and a freed slot admits the next in "
+"line. Set to 0 for no cap. The community can also vote to change this."
 msgstr ""
 "Kabul edilmiş sanatçı sayısının azami sınırı. Dolu olduğunda yeni başvurular "
 "reddedilmek yerine bekleme listesine alınır ve boşalan bir yer sıradaki "
@@ -3063,8 +3083,8 @@ msgstr ""
 "\n"
 "Topluluğun parçası olmak basittir: Diğer sanatçılar yeni başvuranlara kefil "
 "olur ve herkes yayımladıkları içerik üzerinde tam sahipliğini korur; "
-"istediğiniz zaman ayrılabilir ve çalışmalarınızı yanınızda götürebilirsiniz."
-"\n"
+"istediğiniz zaman ayrılabilir ve çalışmalarınızı yanınızda "
+"götürebilirsiniz.\n"
 "\n"
 "Kabul edildikten sonra yeni çalışmalarınızı bir e-posta olarak göndererek "
 "sunarsınız — gösterge paneli yok, form yok; ayrıca eserlerinizi bir e-posta "
@@ -3073,9 +3093,9 @@ msgstr ""
 
 #: includes/Admin/SettingsFields.php:951
 msgid ""
-"Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
-"join\" link and site name follow automatically — no need to add either here)."
-" Two or three short paragraphs is plenty. Standing copy, not cleared after "
+"Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
+"\" link and site name follow automatically — no need to add either here). "
+"Two or three short paragraphs is plenty. Standing copy, not cleared after "
 "use like the newsletter intros above — translated automatically when an "
 "invitation is sent in a language other than the site's own."
 msgstr ""
@@ -3211,8 +3231,8 @@ msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
 msgstr ""
-"Ziyaretçiler agnosis/newsletter-signup bloğu üzerinden abone olur (çift onay)"
-". Özet: son sayıdan bu yana yayımlanan yeni eserler ve etkinlikler."
+"Ziyaretçiler agnosis/newsletter-signup bloğu üzerinden abone olur (çift "
+"onay). Özet: son sayıdan bu yana yayımlanan yeni eserler ve etkinlikler."
 
 #: includes/Admin/SettingsFields.php:1032
 msgid "Public newsletter frequency (days)"
@@ -3266,6 +3286,19 @@ msgstr ""
 "üstünde çalışmaya devam eder. Onaylanmış herkese açık abone sayısı bunu "
 "aşınca, bu sayfa bunun yerine bir e-posta hizmet sağlayıcısı (örn. Brevo'nun "
 "ücretsiz planı) kullanmayı düşünmeniz için bir hatırlatma gösterir."
+
+#: includes/Admin/TaxonomyLanguageFilter.php:164
+msgid "Sync translations"
+msgstr "Çevirileri senkronize et"
+
+#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:221
+#, php-format
+msgid ""
+"Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
+"date."
+msgstr ""
+"Senkronizasyon tamamlandı: %1$d çeviri oluşturuldu, %2$d dil zaten güncel."
 
 #: includes/AI/PromptConfig.php:155
 msgid ""
@@ -3874,8 +3907,8 @@ msgstr "%s adresinde topluluk boyut sınırı değişti"
 #: includes/Artist/CommunityCapNotification.php:136
 #, php-format
 msgid ""
-"The community voted to change the membership size cap to %1$s (proposal "
-"#%2$d). The new cap is now in effect."
+"The community voted to change the membership size cap to %1$s (proposal #"
+"%2$d). The new cap is now in effect."
 msgstr ""
 "Topluluk, üyelik boyutu üst sınırını %1$s olarak değiştirmek için oy verdi "
 "(öneri #%2$d). Yeni sınır artık yürürlükte."
@@ -3894,8 +3927,8 @@ msgid ""
 "A community vote to change the membership size cap (proposal #%d) closed "
 "without a majority. The cap is unchanged."
 msgstr ""
-"Topluluk oylamasıyla üyelik boyutu üst sınırını değiştirme önerisi (öneri "
-"#%d) çoğunluk sağlanmadan kapandı. Üst sınır değişmedi."
+"Topluluk oylamasıyla üyelik boyutu üst sınırını değiştirme önerisi (öneri #"
+"%d) çoğunluk sağlanmadan kapandı. Üst sınır değişmedi."
 
 #: includes/Artist/CommunityCapVote.php:76
 msgid "Only community members can do this."
@@ -4562,8 +4595,8 @@ msgstr ""
 msgid "Preferences saved"
 msgstr "Tercihler kaydedildi"
 
-#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:742
-#: includes/Artist/Profile.php:755
+#: includes/Artist/Profile.php:27 includes/Artist/Profile.php:839
+#: includes/Artist/Profile.php:852
 msgid "Artworks"
 msgstr "Eserler"
 
@@ -4718,52 +4751,58 @@ msgstr ""
 "Fediverse (e.g. Mastodon) unless the artist turns it off for a specific "
 "piece."
 
-#: includes/Artist/Profile.php:743 includes/Artist/Profile.php:756
+#. translators: 1: publish year, 2: artist name
+#: includes/Artist/Profile.php:806
+#, fuzzy, php-format
+msgid "© %1$s %2$s"
+msgstr "%1$s — %2$s"
+
+#: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
 #: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:996
 msgid "Artwork"
 msgstr "Eser"
 
-#: includes/Artist/Profile.php:744
+#: includes/Artist/Profile.php:841
 msgid "Add New"
 msgstr "Yeni Ekle"
 
-#: includes/Artist/Profile.php:745
+#: includes/Artist/Profile.php:842
 msgid "Add New Artwork"
 msgstr "Yeni Eser Ekle"
 
-#: includes/Artist/Profile.php:746
+#: includes/Artist/Profile.php:843
 msgid "Edit Artwork"
 msgstr "Eseri Düzenle"
 
-#: includes/Artist/Profile.php:747
+#: includes/Artist/Profile.php:844
 msgid "New Artwork"
 msgstr "Yeni Eser"
 
-#: includes/Artist/Profile.php:748
+#: includes/Artist/Profile.php:845
 msgid "View Artwork"
 msgstr "Eseri Görüntüle"
 
-#: includes/Artist/Profile.php:749
+#: includes/Artist/Profile.php:846
 msgid "Search Artworks"
 msgstr "Eserlerde Ara"
 
-#: includes/Artist/Profile.php:750
+#: includes/Artist/Profile.php:847
 msgid "No artworks found."
 msgstr "Eser bulunamadı."
 
-#: includes/Artist/Profile.php:751
+#: includes/Artist/Profile.php:848
 msgid "No artworks in trash."
 msgstr "Çöp kutusunda eser yok."
 
-#: includes/Artist/Profile.php:752
+#: includes/Artist/Profile.php:849
 msgid "All Artworks"
 msgstr "Tüm Eserler"
 
-#: includes/Artist/Profile.php:753
+#: includes/Artist/Profile.php:850
 msgid "Artwork Archives"
 msgstr "Eser Arşivleri"
 
-#: includes/Artist/Profile.php:754
+#: includes/Artist/Profile.php:851
 msgid "Artwork Attributes"
 msgstr "Eser Nitelikleri"
 
@@ -4877,19 +4916,19 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "Şu ana kadar %d olumlu oy kaydedildi."
 msgstr[1] "Şu ana kadar %d olumlu oy kaydedildi."
 
-#: includes/Compat/LinguaForge.php:1875
+#: includes/Compat/LinguaForge.php:2047
 msgid "is active and configured for"
 msgstr "için etkin ve yapılandırılmıştır"
 
-#: includes/Compat/LinguaForge.php:1876
+#: includes/Compat/LinguaForge.php:2048
 msgid "Subdomain"
 msgstr "Alt alan adı"
 
-#: includes/Compat/LinguaForge.php:1877
+#: includes/Compat/LinguaForge.php:2049
 msgid "routing mode"
 msgstr "yönlendirme modu"
 
-#: includes/Compat/LinguaForge.php:1879
+#: includes/Compat/LinguaForge.php:2051
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -4897,39 +4936,39 @@ msgstr ""
 "Bu, Agnosis sanatçı alt alan adlarıyla çakışır — her iki eklenti de aynı alt "
 "alan adı ad alanını talep eder."
 
-#: includes/Compat/LinguaForge.php:1880
+#: includes/Compat/LinguaForge.php:2052
 msgid "Artist subdomain routing is"
 msgstr "Sanatçı alt alan adı yönlendirmesi"
 
-#: includes/Compat/LinguaForge.php:1881
+#: includes/Compat/LinguaForge.php:2053
 msgid "completely inactive"
 msgstr "tamamen devre dışı"
 
-#: includes/Compat/LinguaForge.php:1882
+#: includes/Compat/LinguaForge.php:2054
 msgid "until this is resolved."
 msgstr "bu çözülene kadar."
 
-#: includes/Compat/LinguaForge.php:1884
+#: includes/Compat/LinguaForge.php:2056
 msgid "Fix: open"
 msgstr "Düzeltme: aç"
 
-#: includes/Compat/LinguaForge.php:1885
+#: includes/Compat/LinguaForge.php:2057
 msgid "Settings"
 msgstr "Ayarlar"
 
-#: includes/Compat/LinguaForge.php:1885
+#: includes/Compat/LinguaForge.php:2057
 msgid "Language Router"
 msgstr "Dil Yönlendirici"
 
-#: includes/Compat/LinguaForge.php:1886
+#: includes/Compat/LinguaForge.php:2058
 msgid "and switch the URL strategy to"
 msgstr "ve URL stratejisini şuna değiştir"
 
-#: includes/Compat/LinguaForge.php:1887
+#: includes/Compat/LinguaForge.php:2059
 msgid "Path prefix (subfolder)"
 msgstr "Yol öneki (alt klasör)"
 
-#: includes/Compat/LinguaForge.php:1888
+#: includes/Compat/LinguaForge.php:2060
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -4937,11 +4976,11 @@ msgstr ""
 "Bu, LinguaForge varsayılanıdır ve sanatçı alt alan adlarının dil alt "
 "klasörleriyle birlikte var olmasına izin verir"
 
-#: includes/Compat/LinguaForge.php:1893
+#: includes/Compat/LinguaForge.php:2065
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Sanatçı Alt Alan Adı Yönlendirmesi devre dışı"
 
-#: includes/Compat/LinguaForge.php:1903
+#: includes/Compat/LinguaForge.php:2075
 msgid "Open LinguaForge Settings"
 msgstr "LinguaForge Ayarlarını Aç"
 
@@ -5020,8 +5059,8 @@ msgstr "Saf"
 msgid ""
 "Publish exactly as sent — no AI at all, not even the title/description pass."
 msgstr ""
-"Tam olarak gönderildiği gibi yayınlayın — hiç yapay zekâ yok, hatta "
-"başlık/açıklama işlemi bile yok."
+"Tam olarak gönderildiği gibi yayınlayın — hiç yapay zekâ yok, hatta başlık/"
+"açıklama işlemi bile yok."
 
 #: includes/Core/EmailFooter.php:103
 msgid "Send a message to every other artist in the community."
@@ -5270,13 +5309,13 @@ msgstr "Hangi kişisel verileri topluyoruz ve neden"
 
 #: includes/Core/Privacy.php:768
 msgid ""
-"When you apply to join, we store your email address, display name, biography,"
-" statement, and portfolio link to run the community vouching process. When "
-"you email us artwork, a biography, or an event, the content of that email "
-"(including your address) is stored while it is processed and reviewed. When "
-"you subscribe to our newsletter or message an artist through their contact "
-"form, we store your email address (and, for contact messages, your IP "
-"address) to deliver that message or send you future issues."
+"When you apply to join, we store your email address, display name, "
+"biography, statement, and portfolio link to run the community vouching "
+"process. When you email us artwork, a biography, or an event, the content of "
+"that email (including your address) is stored while it is processed and "
+"reviewed. When you subscribe to our newsletter or message an artist through "
+"their contact form, we store your email address (and, for contact messages, "
+"your IP address) to deliver that message or send you future issues."
 msgstr ""
 "Katılmak için başvurduğunuzda, topluluk onay sürecini yürütmek amacıyla e-"
 "posta adresinizi, görünen adınızı, biyografinizi, beyanınızı ve portföy "
@@ -5852,8 +5891,8 @@ msgstr ""
 
 #: includes/Publishing/EmbedPolicy.php:154
 msgid ""
-"This node couldn't safely load that page to review it (it may be unreachable,"
-" or blocked for security reasons)."
+"This node couldn't safely load that page to review it (it may be "
+"unreachable, or blocked for security reasons)."
 msgstr ""
 "Bu düğüm o sayfayı incelemek için güvenli bir şekilde yükleyemedi "
 "(ulaşılamıyor olabilir ya da güvenlik nedenleriyle engellenmiş olabilir)."
@@ -5869,15 +5908,15 @@ msgid ""
 "this site."
 msgstr "O sayfanın içeriğinin bu sitede gömülmesine izin verilmiyor."
 
-#: includes/Publishing/GalleryOverview.php:123
+#: includes/Publishing/GalleryOverview.php:171
 msgid "Gallery overview"
 msgstr "Galeri genel görünümü"
 
-#: includes/Publishing/GalleryOverview.php:149
+#: includes/Publishing/GalleryOverview.php:197
 msgid "Feature this artwork in the gallery overview"
 msgstr "Bu eseri galeri genel görünümünde öne çıkar"
 
-#: includes/Publishing/GalleryOverview.php:153
+#: includes/Publishing/GalleryOverview.php:201
 msgid ""
 "Featured artworks are always chosen first when selecting one work per artist "
 "for the homepage overview."
@@ -6230,8 +6269,8 @@ msgstr ""
 "E-postanızı aldık, ancak içinden kullanılabilir bir fotoğraf, ses veya video "
 "dosyası işleyemedik — bu nedenle hiçbir şey yayınlanmadı. Bu durum, bir "
 "görsel doğrudan ileti gövdesine yapıştırıldığında veya eklendiğinde ya da "
-"bir dosya bu sunucunun dönüştüremediği bir biçimde geldiğinde (örneğin, "
-"HEIC/HEIF biçiminde kaydedilmiş bir iPhone fotoğrafı) olabilir."
+"bir dosya bu sunucunun dönüştüremediği bir biçimde geldiğinde (örneğin, HEIC/"
+"HEIF biçiminde kaydedilmiş bir iPhone fotoğrafı) olabilir."
 
 #: includes/Publishing/Notification.php:1243
 #: includes/Publishing/Notification.php:1349
@@ -6250,8 +6289,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1246
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
-"Formats to \"Most Compatible\" before taking or sending it, or use "
-"\"Options\" in Mail to send it as a JPEG."
+"Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
+"\" in Mail to send it as a JPEG."
 msgstr ""
 "Fotoğrafınız bir iPhone ile çekildiyse, göndermeden önce Ayarlar → Kamera → "
 "Biçimler bölümünü \"En Uyumlu\" olarak değiştirmeyi deneyin ya da Mail'deki "
@@ -6263,9 +6302,9 @@ msgid ""
 "WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
 "video."
 msgstr ""
-"Desteklenen biçimler: görseller için JPEG, PNG, WebP, GIF, TIFF veya "
-"HEIC/HEIF; ses için MP3, WAV, M4A, OGG veya FLAC; video için MP4, MOV, AVI, "
-"WebM, OGG veya MPEG."
+"Desteklenen biçimler: görseller için JPEG, PNG, WebP, GIF, TIFF veya HEIC/"
+"HEIF; ses için MP3, WAV, M4A, OGG veya FLAC; video için MP4, MOV, AVI, WebM, "
+"OGG veya MPEG."
 
 #: includes/Publishing/Notification.php:1252
 msgid ""
@@ -7014,6 +7053,11 @@ msgstr "Blokun kendi metin rengiyle eşleşmesi için boş bırakın."
 msgid "Artist Name"
 msgstr "Sanatçı Adı"
 
+#: blocks/artwork-copyright/editor.js:33
+#, fuzzy
+msgid "© 2026 Artist Name"
+msgstr "Sanatçı Adı"
+
 #: blocks/breadcrumb-icon-link/editor.js:77
 #: blocks/newsletter-popover/editor.js:28
 msgid "Envelope"
@@ -7213,9 +7257,10 @@ msgid "subdomain"
 msgstr "alt alan adı"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
-#: blocks/breadcrumb-icon-link/block.json blocks/contact-form/block.json
-#: blocks/join/block.json blocks/newsletter-popover/block.json
-#: blocks/newsletter-signup/block.json blocks/submissions/block.json
+#: blocks/artwork-copyright/block.json blocks/breadcrumb-icon-link/block.json
+#: blocks/contact-form/block.json blocks/join/block.json
+#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
+#: blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
 msgstr "agnosis"
@@ -7233,6 +7278,36 @@ msgid ""
 msgstr ""
 "Geçerli sanatçının kendi alt alan adının ana sayfasına bağlantı verir. Bir "
 "sanatçı alt alan adı dışında hiçbir şey göstermez."
+
+#: blocks/artwork-copyright/block.json
+#, fuzzy
+msgctxt "block title"
+msgid "Artwork Copyright"
+msgstr "Eser yayınlandı"
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block description"
+msgid ""
+"Renders a © {year} {artist name} copyright notice for an agnosis_artwork "
+"post — the year comes from the artwork's own publish date, the name from its "
+"author. Renders nothing off an artwork post."
+msgstr ""
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block keyword"
+msgid "copyright"
+msgstr ""
+
+#: blocks/artwork-copyright/block.json blocks/gallery-overview/block.json
+#: blocks/submissions/block.json
+msgctxt "block keyword"
+msgid "artwork"
+msgstr "sanat eseri"
+
+#: blocks/artwork-copyright/block.json
+msgctxt "block keyword"
+msgid "credit"
+msgstr ""
 
 #: blocks/breadcrumb-icon-link/block.json
 msgctxt "block title"
@@ -7287,14 +7362,14 @@ msgstr "Sanatçı İletişim Formu"
 #: blocks/contact-form/block.json
 msgctxt "block description"
 msgid ""
-"Contact form letting a visitor message the current artist subdomain's artist."
-" Submits to a per-artist REST endpoint; the message is moderated, translated "
-"into the artist's own language, and emailed to them."
+"Contact form letting a visitor message the current artist subdomain's "
+"artist. Submits to a per-artist REST endpoint; the message is moderated, "
+"translated into the artist's own language, and emailed to them."
 msgstr ""
 "Ziyaretçinin geçerli sanatçı alt alan adının sanatçısına mesaj göndermesini "
-"sağlayan iletişim formu. Her sanatçıya özel bir REST uç noktasına gönderilir;"
-" mesaj denetlenir, sanatçının kendi diline çevrilir ve onlara e-posta ile "
-"gönderilir."
+"sağlayan iletişim formu. Her sanatçıya özel bir REST uç noktasına "
+"gönderilir; mesaj denetlenir, sanatçının kendi diline çevrilir ve onlara e-"
+"posta ile gönderilir."
 
 #: blocks/contact-form/block.json
 msgctxt "block keyword"
@@ -7326,11 +7401,6 @@ msgstr ""
 msgctxt "block keyword"
 msgid "gallery"
 msgstr "galeri"
-
-#: blocks/gallery-overview/block.json blocks/submissions/block.json
-msgctxt "block keyword"
-msgid "artwork"
-msgstr "sanat eseri"
 
 #: blocks/gallery-overview/block.json
 msgctxt "block keyword"
@@ -7458,3 +7528,52 @@ msgstr "gönderimler"
 msgctxt "block keyword"
 msgid "review"
 msgstr "inceleme"
+
+#: includes/Admin/TaxonomyLanguageFilter.php:267
+#: includes/Admin/TaxonomyLanguageFilter.php:301
+msgid "Invalid taxonomy."
+msgstr "Geçersiz taksonomi."
+
+#: includes/Admin/TaxonomyLanguageFilter.php:338
+msgid "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date."
+msgstr "Tam senkronizasyon tamamlandı: %1$d terim işlendi, %2$d çeviri oluşturuldu, %3$d zaten güncel."
+
+#: includes/Admin/LanguageAwareTermsListTable.php:87
+msgid "Create missing translations for every term shown here, in every configured language? This can take a moment on a large vocabulary."
+msgstr "Burada gösterilen her terim için, yapılandırılmış tüm dillerde eksik çeviriler oluşturulsun mu? Bu, büyük bir kelime dağarcığında biraz zaman alabilir."
+
+#: includes/Admin/LanguageAwareTermsListTable.php:88
+msgid "Sync all translations"
+msgstr "Tüm çevirileri senkronize et"
+
+#: includes/Admin/ArtworkMediumSync.php:57
+msgid "Requires Lingua Forge."
+msgstr "Lingua Forge gerektirir."
+
+#: includes/Admin/ArtworkMediumSync.php:65
+msgid "This artwork's medium is translated from its primary-language original — nothing to sync from here."
+msgstr "Bu eserin ortamı, birincil dildeki orijinalinden çevrilmiştir — buradan senkronize edilecek bir şey yok."
+
+#: includes/Admin/ArtworkMediumSync.php:80
+msgid "Push this artwork's current medium onto every already-translated sibling post."
+msgstr "Bu eserin mevcut ortamını, zaten çevrilmiş her kardeş gönderiye aktarın."
+
+#: includes/Admin/ArtworkMediumSync.php:82
+msgid "Sync medium to translations"
+msgstr "Ortamı çevirilerle senkronize et"
+
+#: includes/Admin/ArtworkMediumSync.php:122
+msgid "Medium pushed to %d translated sibling post(s)."
+msgstr "Ortam %d çevrilmiş kardeş gönderiye aktarıldı."
+
+#: includes/Admin/ArtworkMediumSync.php:156
+msgid "Push every primary-language artwork's current medium onto its translated siblings? This can take a moment on a large catalog."
+msgstr "Her birincil dil eserinin mevcut ortamı çevirilerine aktarılsın mı? Bu, büyük bir katalogda biraz zaman alabilir."
+
+#: includes/Admin/ArtworkMediumSync.php:157
+msgid "Sync all medium assignments"
+msgstr "Tüm ortam atamalarını senkronize et"
+
+#: includes/Admin/ArtworkMediumSync.php:199
+msgid "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s)."
+msgstr "Senkronizasyon tamamlandı: %1$d birincil dil eseri işlendi, ortam %2$d kardeş gönderiye aktarıldı."

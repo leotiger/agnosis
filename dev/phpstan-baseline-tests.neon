@@ -1177,7 +1177,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
-			count: 13
+			count: 16
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1202,7 +1202,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$translated_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 16
+			count: 20
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1217,6 +1217,16 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
