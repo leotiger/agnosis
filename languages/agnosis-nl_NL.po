@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-19T14:14+00:00\n"
+"POT-Creation-Date: 2026-07-19T15:31+00:00\n"
 "PO-Revision-Date: 2026-07-18 19:16+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Dutch\n"
@@ -150,8 +150,8 @@ msgstr "Medium synchroniseren met vertalingen"
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:846
 #: includes/Admin/Settings.php:865
-#: includes/Admin/TaxonomyLanguageFilter.php:299
-#: includes/Admin/TaxonomyLanguageFilter.php:349
+#: includes/Admin/TaxonomyLanguageFilter.php:303
+#: includes/Admin/TaxonomyLanguageFilter.php:363
 msgid "You do not have permission to perform this action."
 msgstr "Je hebt geen toestemming om deze actie uit te voeren."
 
@@ -3390,31 +3390,43 @@ msgstr ""
 msgid "Sync translations"
 msgstr "Vertalingen synchroniseren"
 
-#: includes/Admin/TaxonomyLanguageFilter.php:304
-#: includes/Admin/TaxonomyLanguageFilter.php:353
+#: includes/Admin/TaxonomyLanguageFilter.php:308
+#: includes/Admin/TaxonomyLanguageFilter.php:367
 msgid "Invalid taxonomy."
 msgstr "Ongeldige taxonomie."
 
-#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created
-#: includes/Admin/TaxonomyLanguageFilter.php:413
+#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of terms created as untranslated placeholders needing a hand edit, 5: number of languages that already had one, 6: number of translations that could not be created at all
+#: includes/Admin/TaxonomyLanguageFilter.php:440
 #, php-format
 msgid ""
-"%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to "
-"date, %5$d failed) — this ran out of time before reaching every term. Click "
-"\"Sync all translations\" again to continue; it picks up where this stopped."
+"%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d created as "
+"placeholders needing translation, %5$d already up to date, %6$d failed) — "
+"this ran out of time before reaching every term. Click \"Sync all "
+"translations\" again to continue; it picks up where this stopped."
 msgstr ""
 
-#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created
-#: includes/Admin/TaxonomyLanguageFilter.php:428
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one, 5: number of translations that could not be created at all
+#: includes/Admin/TaxonomyLanguageFilter.php:456
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
-"already up to date, %4$d failed — check the AI provider configuration and "
-"run it again for those."
+"created as placeholders needing translation, %4$d already up to date, %5$d "
+"failed outright — check the AI provider configuration and run it again for "
+"those."
+msgstr ""
+
+#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:466
+#, php-format
+msgid ""
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
+"created as untranslated placeholders (AI translation wasn't available for "
+"these) — edit them in this list to add the correct name, %4$d already up to "
+"date."
 msgstr ""
 
 #. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:436
+#: includes/Admin/TaxonomyLanguageFilter.php:475
 #, php-format
 msgid ""
 "Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
@@ -3423,16 +3435,26 @@ msgstr ""
 "Volledige synchronisatie voltooid: %1$d term(en) verwerkt, %2$d "
 "vertaling(en) aangemaakt, %3$d al up-to-date."
 
-#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for
-#: includes/Admin/TaxonomyLanguageFilter.php:459
+#. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one, 4: number of languages the translation could not be created for at all
+#: includes/Admin/TaxonomyLanguageFilter.php:500
 #, php-format
 msgid ""
-"Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
-"date, %3$d failed — check the AI provider configuration and try again."
+"Sync complete: %1$d translation(s) created, %2$d created as placeholders "
+"needing translation, %3$d language(s) already up to date, %4$d failed "
+"outright — check the AI provider configuration and try again."
+msgstr ""
+
+#. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one
+#: includes/Admin/TaxonomyLanguageFilter.php:509
+#, php-format
+msgid ""
+"Sync complete: %1$d translation(s) created, %2$d created as untranslated "
+"placeholders (AI translation wasn't available for these) — edit them in this "
+"list to add the correct name, %3$d language(s) already up to date."
 msgstr ""
 
 #. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
-#: includes/Admin/TaxonomyLanguageFilter.php:466
+#: includes/Admin/TaxonomyLanguageFilter.php:517
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d language(s) already up to "
@@ -5072,19 +5094,26 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "Er is tot nu toe %d positieve stem geregistreerd."
 msgstr[1] "Er zijn tot nu toe %d positieve stemmen geregistreerd."
 
-#: includes/Compat/LinguaForge.php:2901
+#: includes/Compat/LinguaForge.php:1777
+msgid ""
+"Placeholder — AI translation was unavailable or failed when this term was "
+"created. Edit the name to provide the correct translation, then clear this "
+"note."
+msgstr ""
+
+#: includes/Compat/LinguaForge.php:2998
 msgid "is active and configured for"
 msgstr "is actief en geconfigureerd voor"
 
-#: includes/Compat/LinguaForge.php:2902
+#: includes/Compat/LinguaForge.php:2999
 msgid "Subdomain"
 msgstr "Subdomein"
 
-#: includes/Compat/LinguaForge.php:2903
+#: includes/Compat/LinguaForge.php:3000
 msgid "routing mode"
 msgstr "routeringsmodus"
 
-#: includes/Compat/LinguaForge.php:2905
+#: includes/Compat/LinguaForge.php:3002
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5092,39 +5121,39 @@ msgstr ""
 "Dit botst met de artist-subdomeinen van Agnosis — beide plugins zouden "
 "hetzelfde subdomeinnaamruimte opeisen."
 
-#: includes/Compat/LinguaForge.php:2906
+#: includes/Compat/LinguaForge.php:3003
 msgid "Artist subdomain routing is"
 msgstr "Routering van artist-subdomeinen is"
 
-#: includes/Compat/LinguaForge.php:2907
+#: includes/Compat/LinguaForge.php:3004
 msgid "completely inactive"
 msgstr "volledig inactief"
 
-#: includes/Compat/LinguaForge.php:2908
+#: includes/Compat/LinguaForge.php:3005
 msgid "until this is resolved."
 msgstr "tot dit is opgelost."
 
-#: includes/Compat/LinguaForge.php:2910
+#: includes/Compat/LinguaForge.php:3007
 msgid "Fix: open"
 msgstr "Oplossing: open"
 
-#: includes/Compat/LinguaForge.php:2911
+#: includes/Compat/LinguaForge.php:3008
 msgid "Settings"
 msgstr "Instellingen"
 
-#: includes/Compat/LinguaForge.php:2911
+#: includes/Compat/LinguaForge.php:3008
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:2912
+#: includes/Compat/LinguaForge.php:3009
 msgid "and switch the URL strategy to"
 msgstr "en zet de URL-strategie op"
 
-#: includes/Compat/LinguaForge.php:2913
+#: includes/Compat/LinguaForge.php:3010
 msgid "Path prefix (subfolder)"
 msgstr "Padprefix (submap)"
 
-#: includes/Compat/LinguaForge.php:2914
+#: includes/Compat/LinguaForge.php:3011
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5132,11 +5161,11 @@ msgstr ""
 "Dit is de standaard van LinguaForge en laat artist-subdomeinen naast "
 "taalsubmappen bestaan"
 
-#: includes/Compat/LinguaForge.php:2919
+#: includes/Compat/LinguaForge.php:3016
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — routering van artist-subdomeinen is uitgeschakeld"
 
-#: includes/Compat/LinguaForge.php:2929
+#: includes/Compat/LinguaForge.php:3026
 msgid "Open LinguaForge Settings"
 msgstr "Open LinguaForge-instellingen"
 

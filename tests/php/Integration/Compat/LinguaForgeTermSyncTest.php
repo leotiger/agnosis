@@ -18,21 +18,31 @@
  * translated_term_name() always falls back to the original name UNLESS a
  * translation is pre-seeded into the `agnosis_term_translations` cache —
  * the same technique LinguaForgeCompatTest's own trid tests already use.
+ * Since 2026-07-19 that fallback no longer means "create nothing" — it means
+ * a real, trid-linked PLACEHOLDER term is created instead (the source name,
+ * verbatim, tagged TERM_NEEDS_TRANSLATION_META and given a visible
+ * "needs translation" description) — see insert_fallback_translated_term()'s
+ * own docblock for the live report (German 9/10, Italian 8/10, Portuguese
+ * 6/10 permanently missing) this change responds to. `failed` is now
+ * reserved for a genuine DB-level insert failure, not "the AI couldn't
+ * translate this."
  *
  * Coverage:
  *   sync_term_across_languages()
  *     - no-op on an already-translated term
  *     - creates a translated term per configured target language
  *     - skips a language whose translation is already trid-linked
- *     - counts a language as `failed` with no provider/cache translation
+ *     - creates a trid-linked, flagged PLACEHOLDER term (not a bare
+ *       `failed` count) when no provider/cache translation is available
  *     - §2b: a same-name collision against a term in a different trid group
  *       (or a trid-less primary term) resolves via a language-suffixed slug
  *       instead of failing that language forever
  *   sync_all_terms_across_languages()
- *     - aggregates terms/total/created/skipped/failed across every primary term
+ *     - aggregates terms/total/created/needs_translation/skipped/failed
+ *       across every primary term
  *     - excludes already-translated terms from the primary set
  *     - all-zero result when the taxonomy has no primary terms
- *   insert_translated_term() (private — the actual §2b fix; exercised via
+ *   insert_translated_term() (private — the §2b homograph fix; exercised via
  *   Reflection, same pattern SettingsTermTranslationCacheTest already uses
  *   for a private method) — the "same trid, lost a race" branch specifically
  *   can't be reached through the public method without genuine concurrency
@@ -45,13 +55,23 @@
  *     - a `term_exists` collision where the existing term carries a
  *       different trid (or none) retries with a language-suffixed slug
  *     - a collision where even the suffixed-slug retry fails resolves to null
+ *   insert_fallback_translated_term() (private — the 2026-07-19 fix;
+ *   exercised via Reflection, same pattern as above):
+ *     - always creates a distinctly-slugged placeholder, even though the
+ *       source name collides with the primary term itself (which carries
+ *       THIS SAME trid) — the one case insert_translated_term()'s own
+ *       "lost race" resolution would wrongly short-circuit to reusing the
+ *       primary term's own ID, corrupting the primary vocabulary
+ *     - sets the visible "needs translation" description
+ *     - a non-`term_exists`/genuine insert failure resolves to null
  *
  * Deliberately NOT covered: sync_all_terms_across_languages()'s time-bounded
  * `timed_out` branch (SYNC_ALL_TIME_BUDGET_SECONDS, audit §2a) — it's a real
  * wall-clock deadline with no injectable clock or filter seam, so reliably
  * triggering it would mean either a genuinely slow (20s+) test or asserting
  * on a `>=` comparison no test can safely force. The aggregation logic
- * around it (total/terms/created/skipped/failed summing) IS covered.
+ * around it (total/terms/created/needs_translation/skipped/failed summing)
+ * IS covered.
  *
  * @package Agnosis\Tests\Integration\Compat
  */
@@ -111,7 +131,10 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 
 		$result = ( new LinguaForge() )->sync_term_across_languages( $translated_id, 'post_tag' );
 
-		$this->assertSame( [ 'created' => [], 'skipped' => [], 'failed' => [] ], $result );
+		$this->assertSame(
+			[ 'created' => [], 'needs_translation' => [], 'skipped' => [], 'failed' => [] ],
+			$result
+		);
 	}
 
 	public function test_sync_term_creates_a_translated_term_per_target_language(): void {
@@ -122,6 +145,7 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, 'post_tag' );
 
 		$this->assertSame( [ 'de', 'nl' ], $result['created'] );
+		$this->assertSame( [], $result['needs_translation'] );
 		$this->assertSame( [], $result['skipped'] );
 		$this->assertSame( [], $result['failed'] );
 
@@ -139,35 +163,78 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		$this->seed_translation( 'post_tag', 'Landscape', 'de', 'Landschaft' );
 
 		$lf = new LinguaForge();
-		$lf->sync_term_across_languages( $term_id, 'post_tag' ); // First run creates it.
-		$result = $lf->sync_term_across_languages( $term_id, 'post_tag' ); // Second run must reuse it.
+		$first  = $lf->sync_term_across_languages( $term_id, 'post_tag' ); // First run creates both.
+		$result = $lf->sync_term_across_languages( $term_id, 'post_tag' ); // Second run must reuse both.
+
+		// 'nl' has no cache entry seeded at all, so the first run falls back
+		// to a trid-linked PLACEHOLDER term for it rather than skipping
+		// creation entirely (2026-07-19 fix) — so by the second run, both
+		// 'de' (a genuine translation) and 'nl' (a placeholder) are already
+		// linked and converge to skipped, exactly like a genuine translation
+		// would. This is the point of the test: a placeholder must not be
+		// wastefully regenerated on every sync any more than a real one is.
+		$this->assertSame( [ 'de' ], $first['created'] );
+		$this->assertSame( [ 'nl' ], $first['needs_translation'] );
 
 		$this->assertSame( [], $result['created'] );
-		$this->assertSame( [ 'de' ], $result['skipped'] );
-		// 'nl' has no cache entry seeded at all, so it falls back to the
-		// original name and is counted as failed on every run, same as the
-		// first — this test is only about 'de' converging to skipped rather
-		// than being recreated.
-		$this->assertSame( [ 'nl' ], $result['failed'] );
+		$this->assertSame( [], $result['needs_translation'] );
+		$this->assertSame( [ 'de', 'nl' ], $result['skipped'] );
+		$this->assertSame( [], $result['failed'] );
 
 		$this->assertCount(
 			1,
 			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Landschaft', 'hide_empty' => false ] ),
 			'A second sync must not create a duplicate translated term.'
 		);
+		$this->assertCount(
+			2, // The primary 'Landscape' term itself, plus the one 'nl' placeholder — same name, disambiguated slug.
+			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Landscape', 'hide_empty' => false ] ),
+			'A second sync must not create a duplicate placeholder term either.'
+		);
 	}
 
-	public function test_sync_term_counts_a_language_as_failed_with_no_provider_and_no_cache(): void {
+	public function test_sync_term_creates_fallback_placeholders_with_no_provider_and_no_cache(): void {
 		$term_id = $this->insert_term( 'Landscape' );
 		// No agnosis_term_translations cache entry and no AI provider
 		// configured in the test environment — translated_term_name() falls
-		// back to the original name for every target language.
+		// back to the original name for every target language, which now
+		// (2026-07-19) means a trid-linked PLACEHOLDER term is created for
+		// each one instead of the language being left with no term at all.
 
 		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, 'post_tag' );
 
 		$this->assertSame( [], $result['created'] );
+		$this->assertSame( [ 'de', 'nl' ], $result['needs_translation'] );
 		$this->assertSame( [], $result['skipped'] );
-		$this->assertSame( [ 'de', 'nl' ], $result['failed'] );
+		$this->assertSame( [], $result['failed'] );
+
+		$trid = get_term_meta( $term_id, LinguaForge::TERM_TRID_META, true );
+		$this->assertNotSame( '', $trid );
+
+		foreach ( [ 'de', 'nl' ] as $lang ) {
+			$placeholder = $this->find_trid_linked_term( 'post_tag', $trid, $lang, exclude: $term_id );
+			$this->assertInstanceOf( \WP_Term::class, $placeholder, "A placeholder term must exist for '$lang'." );
+			$this->assertSame( 'Landscape', $placeholder->name, 'The placeholder must reuse the source name verbatim.' );
+			$this->assertNotSame( 'landscape', $placeholder->slug, 'The placeholder must use a disambiguated slug, not collide with the primary term.' );
+			$this->assertSame( $lang, get_term_meta( $placeholder->term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+			$this->assertSame( '1', get_term_meta( $placeholder->term_id, LinguaForge::TERM_NEEDS_TRANSLATION_META, true ) );
+			$this->assertNotSame( '', $placeholder->description, 'The placeholder must carry a visible note explaining it needs a hand translation.' );
+		}
+	}
+
+	/** Find the term (if any) carrying $trid + TRANSLATED_TERM_META=$lang in $taxonomy, other than $exclude. */
+	private function find_trid_linked_term( string $taxonomy, string $trid, string $lang, int $exclude ): ?\WP_Term {
+		$matches = get_terms( [
+			'taxonomy'   => $taxonomy,
+			'hide_empty' => false,
+			'exclude'    => [ $exclude ],
+			'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- test helper, not production code.
+				[ 'key' => LinguaForge::TERM_TRID_META, 'value' => $trid ],
+				[ 'key' => LinguaForge::TRANSLATED_TERM_META, 'value' => $lang ],
+			],
+		] );
+
+		return ( ! is_wp_error( $matches ) && isset( $matches[0] ) && $matches[0] instanceof \WP_Term ) ? $matches[0] : null;
 	}
 
 	public function test_sync_term_resolves_a_homograph_collision_with_a_different_trid_group(): void {
@@ -179,15 +246,17 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 
 		$term_id = $this->insert_term( 'Foto' );
 		$this->seed_translation( 'post_tag', 'Foto', 'de', 'Fotografie' );
-		// 'nl' is deliberately left unseeded — falls back to the original
-		// name and is counted as failed, keeping this test's only collision
-		// unambiguous (two languages colliding on the exact same string in
-		// the same call is a separate, narrower edge case not exercised here).
+		// 'nl' is deliberately left unseeded — falls back to a placeholder
+		// term (needs_translation), keeping this test's only genuine
+		// homograph collision unambiguous (two languages colliding on the
+		// exact same string in the same call is a separate, narrower edge
+		// case not exercised here).
 
 		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, 'post_tag' );
 
 		$this->assertSame( [ 'de' ], $result['created'], 'The homograph collision must resolve, not fail.' );
-		$this->assertSame( [ 'nl' ], $result['failed'] );
+		$this->assertSame( [ 'nl' ], $result['needs_translation'] );
+		$this->assertSame( [], $result['failed'] );
 
 		$trid    = get_term_meta( $term_id, LinguaForge::TERM_TRID_META, true );
 		$matches = get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Fotografie', 'hide_empty' => false ] );
@@ -218,7 +287,9 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		$this->insert_term( 'Portrait' );
 		$this->seed_translation( 'post_tag', 'Landscape', 'de', 'Landschaft' );
 		// 'Landscape' nl and both of 'Portrait's languages have no cache
-		// entry and no provider — all three fail.
+		// entry and no provider — all three fall back to placeholder terms
+		// (needs_translation), not `failed` (2026-07-19: a bare AI failure no
+		// longer means "create nothing").
 
 		$result = ( new LinguaForge() )->sync_all_terms_across_languages( 'post_tag' );
 
@@ -226,8 +297,9 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		$this->assertSame( 2, $result['total'] );
 		$this->assertFalse( $result['timed_out'] );
 		$this->assertSame( 1, $result['created'] );
+		$this->assertSame( 3, $result['needs_translation'] );
 		$this->assertSame( 0, $result['skipped'] );
-		$this->assertSame( 3, $result['failed'] );
+		$this->assertSame( 0, $result['failed'] );
 	}
 
 	public function test_sync_all_excludes_already_translated_terms_from_the_primary_set(): void {
@@ -244,7 +316,15 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		$result = ( new LinguaForge() )->sync_all_terms_across_languages( 'post_tag' );
 
 		$this->assertSame(
-			[ 'terms' => 0, 'total' => 0, 'created' => 0, 'skipped' => 0, 'failed' => 0, 'timed_out' => false ],
+			[
+				'terms'             => 0,
+				'total'             => 0,
+				'created'           => 0,
+				'needs_translation' => 0,
+				'skipped'           => 0,
+				'failed'            => 0,
+				'timed_out'         => false,
+			],
 			$result
 		);
 	}
@@ -321,6 +401,66 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		wp_insert_term( 'Fotografie (de)', 'post_tag', [ 'slug' => 'fotografie-de' ] );
 
 		$id = $this->insert_translated_term( 'Fotografie', 'post_tag', wp_generate_uuid4(), 'de' );
+
+		$this->assertNull( $id );
+	}
+
+	// -------------------------------------------------------------------------
+	// insert_fallback_translated_term() — the 2026-07-19 fix, via Reflection.
+	// -------------------------------------------------------------------------
+
+	private function insert_fallback_translated_term( string $name, string $taxonomy, string $trid, string $lang ): ?int {
+		$method = new \ReflectionMethod( LinguaForge::class, 'insert_fallback_translated_term' );
+		$method->setAccessible( true );
+		/** @var int|null $result */
+		$result = $method->invoke( new LinguaForge(), $name, $taxonomy, $trid, $lang );
+		return $result;
+	}
+
+	public function test_insert_fallback_translated_term_creates_a_distinctly_slugged_placeholder_even_though_the_source_name_collides_with_the_primary_term_itself(): void {
+		// The exact case insert_translated_term()'s own collision handling
+		// would resolve WRONGLY: the primary term carries this same trid
+		// (get_or_create_term_trid() assigns/stores it there too), so a
+		// plain wp_insert_term() attempt colliding with it would look
+		// EXACTLY like insert_translated_term()'s "same trid, lost a race"
+		// case and resolve to the primary term's own ID — corrupting the
+		// primary vocabulary by tagging it as its own translation. This
+		// method must never attempt the plain insert in the first place.
+		$trid        = wp_generate_uuid4();
+		$primary_id  = $this->insert_term( 'Mixed Media', 'agnosis_medium' );
+		add_term_meta( $primary_id, LinguaForge::TERM_TRID_META, $trid, true );
+
+		$id = $this->insert_fallback_translated_term( 'Mixed Media', 'agnosis_medium', $trid, 'de' );
+
+		$this->assertIsInt( $id );
+		$this->assertNotSame( $primary_id, $id, 'Must never reuse the primary term\'s own ID.' );
+		$this->assertSame( 'Mixed Media', get_term( $id, 'agnosis_medium' )->name, 'The placeholder reuses the source name verbatim.' );
+		$this->assertNotSame(
+			get_term( $primary_id, 'agnosis_medium' )->slug,
+			get_term( $id, 'agnosis_medium' )->slug,
+			'The placeholder must use a disambiguated slug, not collide with the primary term.'
+		);
+		$this->assertSame(
+			$trid,
+			get_term_meta( $primary_id, LinguaForge::TERM_TRID_META, true ),
+			"The primary term's own trid meta must be completely untouched by creating a placeholder for another language."
+		);
+	}
+
+	public function test_insert_fallback_translated_term_sets_a_visible_needs_translation_note(): void {
+		$id = $this->insert_fallback_translated_term( 'Sculpture', 'agnosis_medium', wp_generate_uuid4(), 'de' );
+
+		$this->assertIsInt( $id );
+		$this->assertNotSame( '', get_term( $id, 'agnosis_medium' )->description, 'A placeholder must carry a human-readable note explaining it needs translation.' );
+	}
+
+	public function test_insert_fallback_translated_term_returns_null_on_a_genuine_insert_failure(): void {
+		$force_failure = static fn () => new \WP_Error( 'db_insert_error', 'Simulated failure for this test.' );
+		add_filter( 'pre_insert_term', $force_failure );
+
+		$id = $this->insert_fallback_translated_term( 'Whatever', 'agnosis_medium', wp_generate_uuid4(), 'de' );
+
+		remove_filter( 'pre_insert_term', $force_failure );
 
 		$this->assertNull( $id );
 	}

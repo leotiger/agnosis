@@ -288,6 +288,26 @@ class LinguaForge {
 	public const TERM_TRID_META = '_agnosis_term_trid';
 
 	/**
+	 * Term meta key flagging a translated term that was created as a
+	 * FALLBACK placeholder — the source term's own name, reused verbatim —
+	 * because AI translation wasn't available or failed, rather than a
+	 * genuine AI-produced translation. Added 2026-07-19 (a follow-up to the
+	 * term-translation-cache fix above): that fix stopped a failure from
+	 * being permanently cached, but a live report made clear it wasn't
+	 * enough on its own — a real AI provider still fails a real percentage
+	 * of calls, and "Sync all translations" was consistently leaving a
+	 * meaningful fraction of (term, language) pairs with NO term at all
+	 * (German 9/10, Italian 8/10, Portuguese 6/10 reported on one run).
+	 * `insert_fallback_translated_term()` now always creates SOMETHING —
+	 * trid-linked like a genuine translation — so a taxonomy's per-language
+	 * count is never short, and an admin can find and hand-correct exactly
+	 * these terms (this meta is what the placeholder's readable `description`
+	 * note, set at creation, explains) instead of the slot staying invisible
+	 * and unfixable. Never set on a genuine AI-produced translation.
+	 */
+	public const TERM_NEEDS_TRANSLATION_META = '_agnosis_term_needs_translation';
+
+	/**
 	 * Post meta key tracking which target languages a source post's current
 	 * translation fan-out (request_translations()) is still waiting on — a
 	 * JSON-encoded array of BCP-47 language codes, written when the fan-out is
@@ -1558,16 +1578,21 @@ class LinguaForge {
 	 *                         mechanism itself is fully taxonomy-generic (see
 	 *                         sync_taxonomy()), so this parameter is simply
 	 *                         passed through, not special-cased.
-	 * @return array{created: string[], skipped: string[], failed: string[]}
-	 *         Language codes a translated term was newly created for,
-	 *         already present, or could not be produced at all — for the
-	 *         admin notice after redirect.
+	 * @return array{created: string[], needs_translation: string[], skipped: string[], failed: string[]}
+	 *         Language codes a translated term was newly created for via a
+	 *         genuine AI translation, created as an untranslated fallback
+	 *         placeholder needing a hand edit (see
+	 *         insert_fallback_translated_term()), already present, or could
+	 *         not be produced AT ALL (a hard DB-level insert failure — never
+	 *         just "the AI failed", which now always still produces a
+	 *         placeholder) — for the admin notice after redirect.
 	 */
 	public function sync_term_across_languages( int $term_id, string $taxonomy ): array {
 		$result = [
-			'created' => [],
-			'skipped' => [],
-			'failed'  => [],
+			'created'           => [],
+			'needs_translation' => [],
+			'skipped'           => [],
+			'failed'            => [],
 		];
 
 		$term = get_term( $term_id, $taxonomy );
@@ -1593,28 +1618,42 @@ class LinguaForge {
 				continue;
 			}
 
-			$translated_name = $this->translated_term_name( $term->name, $taxonomy, $lang );
-			if ( $translated_name === $term->name ) {
-				// No AI provider configured, or the translation call failed —
-				// translated_term_name() already falls back to the original
-				// name rather than blocking; nothing usable to create here.
-				// Counted as failed (audit §2c) rather than silently
-				// dropped: an operator whose AI key just expired needs a
-				// visible signal, not a notice indistinguishable from
-				// "nothing to do."
-				$result['failed'][] = $lang;
-				continue;
-			}
+			// No AI provider configured, or the translation call failed —
+			// translated_term_name() already falls back to the original name
+			// rather than blocking. Added 2026-07-19: this no longer means
+			// "create nothing" (a live report found that left a real
+			// percentage of every language's vocabulary permanently missing
+			// — German 9/10, Italian 8/10, Portuguese 6/10 on one run,
+			// "unacceptable" per the report). A trid-linked placeholder is
+			// created either way now, using the untranslated source name and
+			// a visible "needs translation" note (insert_fallback_translated_term()'s
+			// own docblock) — so an operator can find and hand-correct it
+			// directly in the Tags/Mediums screen instead of the slot simply
+			// not existing.
+			$translated_name  = $this->translated_term_name( $term->name, $taxonomy, $lang );
+			$ai_translated_ok = $translated_name !== $term->name;
 
-			$created_id = $this->insert_translated_term( $translated_name, $taxonomy, $trid, $lang );
+			$created_id = $ai_translated_ok
+				? $this->insert_translated_term( $translated_name, $taxonomy, $trid, $lang )
+				: $this->insert_fallback_translated_term( $term->name, $taxonomy, $trid, $lang );
+
 			if ( null === $created_id ) {
+				// Only reached now for a genuine DB-level insert failure —
+				// both insert paths above already resolve every collision
+				// case they can. Still worth a visible signal.
 				$result['failed'][] = $lang;
 				continue;
 			}
 
 			add_term_meta( $created_id, self::TRANSLATED_TERM_META, $lang, true );
 			add_term_meta( $created_id, self::TERM_TRID_META, $trid, true );
-			$result['created'][] = $lang;
+
+			if ( $ai_translated_ok ) {
+				$result['created'][] = $lang;
+			} else {
+				add_term_meta( $created_id, self::TERM_NEEDS_TRANSLATION_META, '1', true );
+				$result['needs_translation'][] = $lang;
+			}
 		}
 
 		return $result;
@@ -1688,6 +1727,61 @@ class LinguaForge {
 	}
 
 	/**
+	 * Creates a FALLBACK translated term when AI translation isn't available
+	 * or failed — the source term's own name, reused verbatim as a readable
+	 * placeholder, rather than leaving the (term, language) pair with no
+	 * term at all. Added 2026-07-19 (see TERM_NEEDS_TRANSLATION_META's own
+	 * docblock for the live report this responds to).
+	 *
+	 * The source name will ALWAYS collide with the primary term itself in
+	 * `wp_insert_term()` — same taxonomy, byte-identical name — which is why
+	 * this can't reuse `insert_translated_term()`'s own collision handling:
+	 * that method treats a same-trid collision as a harmless lost race and
+	 * returns the EXISTING term's ID to link, which here would be the
+	 * primary term's own ID (it carries this exact trid too, via
+	 * `get_or_create_term_trid()`). Linking the primary term to itself as
+	 * its own "German translation" would tag it with TRANSLATED_TERM_META
+	 * and silently corrupt the primary vocabulary — `PromptConfig::
+	 * medium_terms()` excludes anything carrying that meta from the AI's
+	 * controlled vocabulary, so the primary term would vanish from it.
+	 * This method sidesteps the ambiguity entirely by never attempting the
+	 * plain (colliding) insert in the first place — it goes straight to a
+	 * disambiguated slug, the same `{name}-{lang}` shape
+	 * `insert_translated_term()` falls back to for a genuine cross-language
+	 * homograph.
+	 *
+	 * The new term's `description` is set to a plain-language note so the
+	 * placeholder is visibly distinguishable in the Tags/Mediums list table
+	 * (WP_Terms_List_Table's own Description column renders it automatically
+	 * — no admin-UI code needed here) — an operator can rename the term and
+	 * clear the description in one edit to correct it by hand.
+	 *
+	 * @param string $name     Primary term's own name — used verbatim as the
+	 *                         placeholder's display name.
+	 * @param string $taxonomy Taxonomy to insert into.
+	 * @param string $trid     Translation-group ID this placeholder belongs to.
+	 * @param string $lang     Target language code — used to build the
+	 *                         disambiguating slug.
+	 * @return int|null The new term ID, or null if even the forced,
+	 *                   disambiguated insert failed (a genuine DB-level
+	 *                   failure, or a slug collision from some unrelated
+	 *                   term already sitting on it — not expected in
+	 *                   practice, but never silently claimed either way).
+	 */
+	private function insert_fallback_translated_term( string $name, string $taxonomy, string $trid, string $lang ): ?int {
+		$created = wp_insert_term(
+			$name,
+			$taxonomy,
+			[
+				'slug'        => sanitize_title( $name . '-' . $lang ),
+				'description' => __( 'Placeholder — AI translation was unavailable or failed when this term was created. Edit the name to provide the correct translation, then clear this note.', 'agnosis' ),
+			]
+		);
+
+		return is_wp_error( $created ) ? null : (int) $created['term_id'];
+	}
+
+	/**
 	 * Wall-clock budget for one `sync_all_terms_across_languages()` request,
 	 * in seconds.
 	 *
@@ -1736,21 +1830,23 @@ class LinguaForge {
 	 * responsible for telling the operator to click again.
 	 *
 	 * @param string $taxonomy Taxonomy to sync — 'agnosis_medium' or 'post_tag'.
-	 * @return array{terms: int, total: int, created: int, skipped: int, failed: int, timed_out: bool}
+	 * @return array{terms: int, total: int, created: int, needs_translation: int, skipped: int, failed: int, timed_out: bool}
 	 *         Count of primary-language terms processed this request vs. the
 	 *         total eligible, the totals (summed across processed terms) of
-	 *         newly-created / already-present / could-not-produce translated
-	 *         terms, and whether the time budget was hit before every term
-	 *         was reached — for the admin notice after redirect.
+	 *         genuinely AI-translated / created-as-untranslated-placeholder
+	 *         (needs a hand edit) / already-present / hard-failed-to-insert
+	 *         translated terms, and whether the time budget was hit before
+	 *         every term was reached — for the admin notice after redirect.
 	 */
 	public function sync_all_terms_across_languages( string $taxonomy ): array {
 		$result = [
-			'terms'     => 0,
-			'total'     => 0,
-			'created'   => 0,
-			'skipped'   => 0,
-			'failed'    => 0,
-			'timed_out' => false,
+			'terms'              => 0,
+			'total'              => 0,
+			'created'            => 0,
+			'needs_translation'  => 0,
+			'skipped'            => 0,
+			'failed'             => 0,
+			'timed_out'          => false,
 		];
 
 		$primary_terms = get_terms(
@@ -1786,9 +1882,10 @@ class LinguaForge {
 			$term_result = $this->sync_term_across_languages( $term->term_id, $taxonomy );
 
 			++$result['terms'];
-			$result['created'] += count( $term_result['created'] );
-			$result['skipped'] += count( $term_result['skipped'] );
-			$result['failed']  += count( $term_result['failed'] );
+			$result['created']           += count( $term_result['created'] );
+			$result['needs_translation'] += count( $term_result['needs_translation'] );
+			$result['skipped']           += count( $term_result['skipped'] );
+			$result['failed']            += count( $term_result['failed'] );
 		}
 
 		return $result;

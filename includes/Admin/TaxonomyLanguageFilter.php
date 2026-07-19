@@ -280,8 +280,12 @@ class TaxonomyLanguageFilter {
 	 * admin-post handler for the per-term "Sync translations" row action —
 	 * creates any missing translated copy of this one term across every
 	 * configured language, then redirects back with a plain-language
-	 * summary, including how many languages could not be produced at all
-	 * (`agnosis_sync_failed`, audit §2b/§2c).
+	 * summary. `agnosis_sync_needs_translation` (2026-07-19) counts
+	 * languages that got a real term but only as an untranslated fallback
+	 * placeholder (AI translation unavailable/failed — see
+	 * `LinguaForge::insert_fallback_translated_term()`'s own docblock);
+	 * `agnosis_sync_failed` (audit §2b/§2c) is now reserved for a genuine
+	 * DB-level insert failure, which the fallback path makes rare.
 	 *
 	 * Carries `paged` through the redirect when the request that triggered
 	 * this action had one (audit §2d/§2e(iii)): the row action only ever
@@ -307,10 +311,11 @@ class TaxonomyLanguageFilter {
 		$result = ( new LinguaForge() )->sync_term_across_languages( $term_id, $taxonomy );
 
 		$redirect_args = [
-			'taxonomy'             => $taxonomy,
-			'agnosis_sync_created' => count( $result['created'] ),
-			'agnosis_sync_skipped' => count( $result['skipped'] ),
-			'agnosis_sync_failed'  => count( $result['failed'] ),
+			'taxonomy'                      => $taxonomy,
+			'agnosis_sync_created'          => count( $result['created'] ),
+			'agnosis_sync_needs_translation' => count( $result['needs_translation'] ),
+			'agnosis_sync_skipped'          => count( $result['skipped'] ),
+			'agnosis_sync_failed'           => count( $result['failed'] ),
 		];
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only pagination state carried through a redirect this method already nonce-checked above; not itself an input driving any action.
@@ -338,7 +343,16 @@ class TaxonomyLanguageFilter {
 	 * "complete" message. `agnosis_sync_all_failed` (audit §2b/§2c) is
 	 * carried through the same way — languages a translation could not be
 	 * produced for at all, previously absorbed silently into neither
-	 * `created` nor `skipped`.
+	 * `created` nor `skipped`. `agnosis_sync_all_needs_translation`
+	 * (2026-07-19) is carried the same way again: languages that got a real,
+	 * trid-linked term but only as an untranslated fallback placeholder
+	 * because AI translation was unavailable or failed — never blank/missing
+	 * anymore, but still needing a hand edit (see `LinguaForge::
+	 * insert_fallback_translated_term()`'s own docblock for why this was
+	 * added: `failed` alone used to mean the term simply didn't exist at
+	 * all, and a live report found that leaving a real percentage of every
+	 * language's vocabulary — German 9/10, Italian 8/10, Portuguese 6/10 on
+	 * one run — permanently missing).
 	 */
 	public function handle_sync_all_terms(): void {
 		$taxonomy = sanitize_key( wp_unslash( $_GET['taxonomy'] ?? '' ) );
@@ -358,13 +372,14 @@ class TaxonomyLanguageFilter {
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'taxonomy'                   => $taxonomy,
-					'agnosis_sync_all_terms'     => $result['terms'],
-					'agnosis_sync_all_total'     => $result['total'],
-					'agnosis_sync_all_created'   => $result['created'],
-					'agnosis_sync_all_skipped'   => $result['skipped'],
-					'agnosis_sync_all_failed'    => $result['failed'],
-					'agnosis_sync_all_timed_out' => $result['timed_out'] ? '1' : '0',
+					'taxonomy'                          => $taxonomy,
+					'agnosis_sync_all_terms'            => $result['terms'],
+					'agnosis_sync_all_total'            => $result['total'],
+					'agnosis_sync_all_created'          => $result['created'],
+					'agnosis_sync_all_needs_translation' => $result['needs_translation'],
+					'agnosis_sync_all_skipped'          => $result['skipped'],
+					'agnosis_sync_all_failed'           => $result['failed'],
+					'agnosis_sync_all_timed_out'        => $result['timed_out'] ? '1' : '0',
 				],
 				admin_url( 'edit-tags.php' )
 			)
@@ -387,33 +402,46 @@ class TaxonomyLanguageFilter {
 	 * needs to trigger.
 	 *
 	 * Both branches now also surface a `failed` count (audit §2c, closed
-	 * alongside §2b): a translation that couldn't be produced at all — no AI
-	 * provider configured, the translate call failed, or a homograph
-	 * collision `insert_translated_term()` couldn't resolve — used to be
-	 * silently absorbed into neither `created` nor `skipped`, so an operator
-	 * whose AI key had expired saw "0 created, 0 already up to date" with no
-	 * way to tell that apart from "nothing to do." Any non-zero `failed`
-	 * escalates the notice to a warning even when the run otherwise
-	 * completed.
+	 * alongside §2b): a translation that couldn't be produced at all — a
+	 * genuine DB-level insert failure — used to be silently absorbed into
+	 * neither `created` nor `skipped`, so an operator whose AI key had
+	 * expired saw "0 created, 0 already up to date" with no way to tell that
+	 * apart from "nothing to do." Any non-zero `failed` escalates the notice
+	 * to a warning even when the run otherwise completed.
+	 *
+	 * A `needs_translation` count (2026-07-19) is now surfaced separately
+	 * from `failed`: since `LinguaForge::insert_fallback_translated_term()`
+	 * was added, "the AI couldn't translate this" no longer means "no term
+	 * exists at all" — it means a real, trid-linked term was created using
+	 * the untranslated source name as a placeholder, which the operator can
+	 * find and hand-correct directly in this same list (its Description
+	 * column carries a plain-language note). `failed` is now reserved for
+	 * the genuinely rare case even the disambiguated fallback insert itself
+	 * couldn't complete. The old "check the AI provider configuration"
+	 * wording is dropped from the `needs_translation` case specifically —
+	 * that phrasing was actively misleading here; a config problem isn't
+	 * usually why one specific short label failed to translate.
 	 */
 	public function maybe_render_sync_notice(): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only courtesy notice reflecting the redirect this same class just performed after its own nonce-checked action, no state change here.
 		if ( isset( $_GET['agnosis_sync_all_terms'], $_GET['agnosis_sync_all_created'], $_GET['agnosis_sync_all_skipped'] ) ) {
-			$terms     = (int) $_GET['agnosis_sync_all_terms'];
-			$total     = isset( $_GET['agnosis_sync_all_total'] ) ? (int) $_GET['agnosis_sync_all_total'] : $terms;
-			$created   = (int) $_GET['agnosis_sync_all_created'];
-			$skipped   = (int) $_GET['agnosis_sync_all_skipped'];
-			$failed    = isset( $_GET['agnosis_sync_all_failed'] ) ? (int) $_GET['agnosis_sync_all_failed'] : 0;
-			$timed_out = isset( $_GET['agnosis_sync_all_timed_out'] ) && '1' === $_GET['agnosis_sync_all_timed_out'];
+			$terms             = (int) $_GET['agnosis_sync_all_terms'];
+			$total             = isset( $_GET['agnosis_sync_all_total'] ) ? (int) $_GET['agnosis_sync_all_total'] : $terms;
+			$created           = (int) $_GET['agnosis_sync_all_created'];
+			$needs_translation = isset( $_GET['agnosis_sync_all_needs_translation'] ) ? (int) $_GET['agnosis_sync_all_needs_translation'] : 0;
+			$skipped           = (int) $_GET['agnosis_sync_all_skipped'];
+			$failed            = isset( $_GET['agnosis_sync_all_failed'] ) ? (int) $_GET['agnosis_sync_all_failed'] : 0;
+			$timed_out         = isset( $_GET['agnosis_sync_all_timed_out'] ) && '1' === $_GET['agnosis_sync_all_timed_out'];
 			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 			if ( $timed_out ) {
 				$message = sprintf(
-					/* translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of languages that already had one, 5: number of translations that could not be created */
-					esc_html__( '%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d already up to date, %5$d failed) — this ran out of time before reaching every term. Click "Sync all translations" again to continue; it picks up where this stopped.', 'agnosis' ),
+					/* translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of terms created as untranslated placeholders needing a hand edit, 5: number of languages that already had one, 6: number of translations that could not be created at all */
+					esc_html__( '%1$d of %2$d term(s) done (%3$d translation(s) created, %4$d created as placeholders needing translation, %5$d already up to date, %6$d failed) — this ran out of time before reaching every term. Click "Sync all translations" again to continue; it picks up where this stopped.', 'agnosis' ),
 					$terms,
 					$total,
 					$created,
+					$needs_translation,
 					$skipped,
 					$failed
 				);
@@ -422,24 +450,36 @@ class TaxonomyLanguageFilter {
 				return;
 			}
 
-			$message = $failed > 0
-				? sprintf(
-					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one, 4: number of translations that could not be created */
-					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date, %4$d failed — check the AI provider configuration and run it again for those.', 'agnosis' ),
+			if ( $failed > 0 ) {
+				$message = sprintf(
+					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one, 5: number of translations that could not be created at all */
+					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d created as placeholders needing translation, %4$d already up to date, %5$d failed outright — check the AI provider configuration and run it again for those.', 'agnosis' ),
 					$terms,
 					$created,
+					$needs_translation,
 					$skipped,
 					$failed
-				)
-				: sprintf(
+				);
+			} elseif ( $needs_translation > 0 ) {
+				$message = sprintf(
+					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one */
+					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d created as untranslated placeholders (AI translation wasn\'t available for these) — edit them in this list to add the correct name, %4$d already up to date.', 'agnosis' ),
+					$terms,
+					$created,
+					$needs_translation,
+					$skipped
+				);
+			} else {
+				$message = sprintf(
 					/* translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one */
 					esc_html__( 'Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d already up to date.', 'agnosis' ),
 					$terms,
 					$created,
 					$skipped
 				);
+			}
 
-			wp_admin_notice( $message, [ 'type' => $failed > 0 ? 'warning' : 'success' ] );
+			wp_admin_notice( $message, [ 'type' => ( $failed > 0 || $needs_translation > 0 ) ? 'warning' : 'success' ] );
 			return;
 		}
 
@@ -448,26 +488,38 @@ class TaxonomyLanguageFilter {
 			return;
 		}
 
-		$created = (int) $_GET['agnosis_sync_created'];
-		$skipped = (int) $_GET['agnosis_sync_skipped'];
-		$failed  = isset( $_GET['agnosis_sync_failed'] ) ? (int) $_GET['agnosis_sync_failed'] : 0;
+		$created           = (int) $_GET['agnosis_sync_created'];
+		$needs_translation = isset( $_GET['agnosis_sync_needs_translation'] ) ? (int) $_GET['agnosis_sync_needs_translation'] : 0;
+		$skipped           = (int) $_GET['agnosis_sync_skipped'];
+		$failed            = isset( $_GET['agnosis_sync_failed'] ) ? (int) $_GET['agnosis_sync_failed'] : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-		$message = $failed > 0
-			? sprintf(
-				/* translators: 1: number of newly-created translated terms, 2: number of languages that already had one, 3: number of languages the translation could not be created for */
-				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d language(s) already up to date, %3$d failed — check the AI provider configuration and try again.', 'agnosis' ),
+		if ( $failed > 0 ) {
+			$message = sprintf(
+				/* translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one, 4: number of languages the translation could not be created for at all */
+				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d created as placeholders needing translation, %3$d language(s) already up to date, %4$d failed outright — check the AI provider configuration and try again.', 'agnosis' ),
 				$created,
+				$needs_translation,
 				$skipped,
 				$failed
-			)
-			: sprintf(
+			);
+		} elseif ( $needs_translation > 0 ) {
+			$message = sprintf(
+				/* translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one */
+				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d created as untranslated placeholders (AI translation wasn\'t available for these) — edit them in this list to add the correct name, %3$d language(s) already up to date.', 'agnosis' ),
+				$created,
+				$needs_translation,
+				$skipped
+			);
+		} else {
+			$message = sprintf(
 				/* translators: 1: number of newly-created translated terms, 2: number of languages that already had one */
 				esc_html__( 'Sync complete: %1$d translation(s) created, %2$d language(s) already up to date.', 'agnosis' ),
 				$created,
 				$skipped
 			);
+		}
 
-		wp_admin_notice( $message, [ 'type' => $failed > 0 ? 'warning' : 'success' ] );
+		wp_admin_notice( $message, [ 'type' => ( $failed > 0 || $needs_translation > 0 ) ? 'warning' : 'success' ] );
 	}
 }

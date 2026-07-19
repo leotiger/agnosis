@@ -327,7 +327,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
-			count: 8
+			count: 9
 			path: ../tests/php/Integration/Admin/TaxonomyLanguageFilterTest.php
 
 		-
@@ -1332,7 +1332,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
-			count: 3
+			count: 4
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
@@ -1342,12 +1342,17 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$name\\.$#"
-			count: 2
+			count: 3
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$slug\\.$#"
-			count: 2
+			count: 4
+			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$description\\.$#"
+			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-

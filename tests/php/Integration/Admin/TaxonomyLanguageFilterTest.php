@@ -282,7 +282,29 @@ class TaxonomyLanguageFilterTest extends \WP_UnitTestCase {
 			$this->fail( 'Expected a redirect.' );
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'agnosis_sync_created=1', $e->url );
+			$this->assertStringContainsString( 'agnosis_sync_needs_translation=0', $e->url );
 			$this->assertStringContainsString( 'agnosis_sync_skipped=0', $e->url );
+			$this->assertStringContainsString( 'agnosis_sync_failed=0', $e->url );
+		}
+	}
+
+	public function test_handle_sync_term_counts_a_fallback_placeholder_as_needs_translation_not_failed(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$term_id = $this->insert_term( 'Landscape' );
+		// No agnosis_term_translations cache entry seeded for 'de' — falls
+		// back to a trid-linked placeholder term (2026-07-19 fix) rather than
+		// `agnosis_sync_failed`.
+
+		$_GET['term_id']      = (string) $term_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['taxonomy']     = 'post_tag'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agnosis_sync_term_' . $term_id ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->filter->handle_sync_term();
+			$this->fail( 'Expected a redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_sync_created=0', $e->url );
+			$this->assertStringContainsString( 'agnosis_sync_needs_translation=1', $e->url );
 			$this->assertStringContainsString( 'agnosis_sync_failed=0', $e->url );
 		}
 	}
@@ -319,6 +341,7 @@ class TaxonomyLanguageFilterTest extends \WP_UnitTestCase {
 			$this->assertStringContainsString( 'agnosis_sync_all_terms=1', $e->url );
 			$this->assertStringContainsString( 'agnosis_sync_all_total=1', $e->url );
 			$this->assertStringContainsString( 'agnosis_sync_all_created=1', $e->url );
+			$this->assertStringContainsString( 'agnosis_sync_all_needs_translation=0', $e->url );
 			$this->assertStringContainsString( 'agnosis_sync_all_timed_out=0', $e->url );
 		}
 	}
@@ -350,6 +373,11 @@ class TaxonomyLanguageFilterTest extends \WP_UnitTestCase {
 		unset( $_GET['agnosis_sync_created'], $_GET['agnosis_sync_skipped'], $_GET['agnosis_sync_failed'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
+	/**
+	 * A genuine hard failure (`failed > 0`) keeps the "check the AI provider
+	 * configuration" wording — this is now reserved for the rare case even
+	 * the disambiguated fallback insert itself couldn't complete.
+	 */
 	public function test_notice_is_a_warning_when_a_per_term_sync_has_failures(): void {
 		$_GET['agnosis_sync_created'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$_GET['agnosis_sync_skipped'] = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -358,8 +386,36 @@ class TaxonomyLanguageFilterTest extends \WP_UnitTestCase {
 		$html = $this->render_notice();
 
 		$this->assertStringContainsString( 'notice-warning', $html );
+		$this->assertStringContainsString( 'check the AI provider configuration', $html );
 
 		unset( $_GET['agnosis_sync_created'], $_GET['agnosis_sync_skipped'], $_GET['agnosis_sync_failed'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	/**
+	 * 2026-07-19: a fallback placeholder (needs_translation > 0, failed = 0)
+	 * must still warn — an operator needs to know something needs a hand
+	 * edit — but must NOT say "check the AI provider configuration", which
+	 * is misleading for this specific cause (a real, trid-linked term WAS
+	 * created; nothing about the provider needs checking to fix it).
+	 */
+	public function test_notice_is_a_warning_with_helpful_wording_when_a_per_term_sync_needs_translation(): void {
+		$_GET['agnosis_sync_created']           = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_needs_translation'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_skipped']           = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_failed']            = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$html = $this->render_notice();
+
+		$this->assertStringContainsString( 'notice-warning', $html );
+		$this->assertStringContainsString( 'edit them in this list', $html );
+		$this->assertStringNotContainsString( 'check the AI provider configuration', $html );
+
+		unset( // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$_GET['agnosis_sync_created'],
+			$_GET['agnosis_sync_needs_translation'],
+			$_GET['agnosis_sync_skipped'],
+			$_GET['agnosis_sync_failed']
+		);
 	}
 
 	public function test_notice_is_a_warning_when_sync_all_timed_out(): void {
@@ -402,6 +458,33 @@ class TaxonomyLanguageFilterTest extends \WP_UnitTestCase {
 			$_GET['agnosis_sync_all_terms'],
 			$_GET['agnosis_sync_all_total'],
 			$_GET['agnosis_sync_all_created'],
+			$_GET['agnosis_sync_all_skipped'],
+			$_GET['agnosis_sync_all_failed'],
+			$_GET['agnosis_sync_all_timed_out']
+		);
+	}
+
+	/** Sync-all mirror of test_notice_is_a_warning_with_helpful_wording_when_a_per_term_sync_needs_translation(). */
+	public function test_notice_is_a_warning_with_helpful_wording_when_sync_all_needs_translation(): void {
+		$_GET['agnosis_sync_all_terms']            = '2'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_total']            = '2'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_created']          = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_needs_translation'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_skipped']          = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_failed']           = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_sync_all_timed_out']        = '0'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$html = $this->render_notice();
+
+		$this->assertStringContainsString( 'notice-warning', $html );
+		$this->assertStringContainsString( 'edit them in this list', $html );
+		$this->assertStringNotContainsString( 'check the AI provider configuration', $html );
+
+		unset( // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$_GET['agnosis_sync_all_terms'],
+			$_GET['agnosis_sync_all_total'],
+			$_GET['agnosis_sync_all_created'],
+			$_GET['agnosis_sync_all_needs_translation'],
 			$_GET['agnosis_sync_all_skipped'],
 			$_GET['agnosis_sync_all_failed'],
 			$_GET['agnosis_sync_all_timed_out']
