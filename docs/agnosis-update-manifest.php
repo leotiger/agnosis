@@ -55,7 +55,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// TODO(release): pending the built agnosis-0.9.38.zip — run
 	// dev/bin/build-zip.sh, upload the result to the v0.9.38 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '';
+	$sha256 = '6a5f83d931931a348b54357b2bfeec0987dd036f19905b3a88bb00c9192ee914';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -70,6 +70,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 		'<h4>0.9.38</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> The Tags and Mediums admin screens (Posts &#8594; Artwork &#8594; Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language &#8212; no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a &#8220;Sync translations&#8221; action to create a term&#8217;s translation in every configured language on demand, and editing an artwork&#8217;s medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.</li>' .
+			'<li><strong>Added:</strong> A &#8220;Sync all translations&#8221; button next to the Tags/Mediums language dropdown syncs every primary-language term to every configured language in one click, instead of the per-term &#8220;Sync translations&#8221; row action. Safe to click again if a large vocabulary times out partway through &#8212; it resumes rather than redoing work.</li>' .
+			'<li><strong>Added:</strong> A new &#8220;Medium translations&#8221; box on each artwork&#8217;s edit screen, plus a matching bulk action on the artwork list screen, pushes an artwork&#8217;s medium onto its already-translated sibling posts on demand.</li>' .
+			'<li><strong>Fixed:</strong> Term translations are now linked to their source term by a stable ID instead of by matching names, so re-syncing after a re-translation no longer creates near-duplicate terms.</li>' .
+			'<li><strong>Fixed:</strong> Tags and mediums created automatically while AI-tagging a submission in a non-primary language are now correctly recorded as translations, instead of silently joining the primary-language vocabulary.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.37</h4>' .

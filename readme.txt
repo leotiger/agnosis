@@ -74,6 +74,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 = 0.9.38 =
 * Added: The Tags and Mediums admin screens (Posts → Artwork → Mediums, etc.) now show only your own primary-language terms by default, with a new dropdown to switch to any other configured language — no more hundreds of AI-translated duplicates mixed into one list. Mediums also got a "Sync translations" action to create a term's translation in every configured language on demand, and editing an artwork's medium after publishing now correctly updates its already-translated sibling posts too, instead of leaving them stuck on the old term.
+* Added: A "Sync all translations" button next to the Tags/Mediums language dropdown syncs every primary-language term to every configured language in one click, instead of the "Sync translations" row action one term at a time. It's safe to click again if a large vocabulary times out partway through — it resumes rather than redoing work.
+* Added: A new "Medium translations" box on each artwork's edit screen, plus a matching bulk action on the artwork list screen, lets you push an artwork's medium onto its already-translated sibling posts on demand — useful for pairs that drifted out of sync before the automatic version above existed.
+* Fixed: Term translations are now linked to their source term by a stable ID instead of by matching names, so re-syncing after a re-translation no longer creates near-duplicate terms.
+* Fixed: Tags and mediums created automatically while AI-tagging a submission in a non-primary language are now correctly recorded as translations, instead of silently joining your primary-language vocabulary.
 
 = 0.9.37 =
 * Added: New "Artwork Copyright" block automatically shows a "© {year} {artist name}" credit line on every single artwork page — the year comes from the artwork's own publish date, the name from the artist. Font size, color, and font family are all configurable from the block's own Inspector panel.
