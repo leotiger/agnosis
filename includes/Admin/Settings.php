@@ -3,7 +3,7 @@
  * Admin settings page.
  *
  * Single settings screen under Settings → Agnosis.
- * Tabbed: General | Email | AI Providers | Network | Commerce.
+ * Tabbed: General | Email | AI Providers | Network | Donations.
  *
  * @package Agnosis\Admin
  */
@@ -39,7 +39,7 @@ class Settings {
 		'behavior'    => 'agnosis_behavior_options',
 		'network'     => 'agnosis_network_options',
 		'community'   => 'agnosis_community_options',
-		'commerce'    => 'agnosis_commerce_options',
+		'donations'   => 'agnosis_donations_options',
 		'newsletter'  => 'agnosis_newsletter_options',
 	];
 
@@ -209,6 +209,9 @@ class Settings {
 				<?php ( new LogsTab() )->render(); ?>
 			<?php elseif ( 'community' === $active_tab ) : ?>
 				<?php $this->render_community_tab(); ?>
+			<?php elseif ( 'donations' === $active_tab ) : ?>
+				<?php // No settings fields on this tab (yet) — see render_donations_status(); a form/Save button with nothing in it is just confusing. ?>
+				<?php $this->render_tab_tools( $active_tab ); ?>
 			<?php else : ?>
 				<form method="post" action="options.php">
 					<?php
@@ -302,7 +305,7 @@ class Settings {
 			'behavior'   => __( 'Behavior',     'agnosis' ),
 			'network'    => __( 'Network',      'agnosis' ),
 			'community'  => __( 'Community',    'agnosis' ),
-			'commerce'   => __( 'Commerce',     'agnosis' ),
+			'donations'  => __( 'Donations',    'agnosis' ),
 			'newsletter' => __( 'Newsletter',   'agnosis' ),
 			'logs'       => __( 'Logs',         'agnosis' ),
 		];
@@ -471,6 +474,26 @@ class Settings {
 					</p>
 				</div>
 			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Status card for the Donations tab, which has no settings fields of its
+	 * own — see SettingsFields.php's "--- DONATIONS ---" comment for why
+	 * (the old fee-based Commerce plan was dropped, C-1). Mirrors
+	 * render_turnstile_warning()'s card shape.
+	 */
+	private function render_donations_status(): void {
+		?>
+		<div class="card" style="max-width:800px;margin-top:1.5rem;padding:1rem 1.5rem">
+			<h2 style="margin-top:0"><?php esc_html_e( 'Donations', 'agnosis' ); ?></h2>
+			<p>
+				<?php esc_html_e( 'A simple way for visitors to support an artist directly is planned, with no platform fee. That feature hasn\'t been built yet, so there is nothing to configure here today.', 'agnosis' ); ?>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'Agnosis is not a marketplace. Art sales, checkout, and other commerce functionality are left to dedicated plugins.', 'agnosis' ); ?>
+			</p>
 		</div>
 		<?php
 	}
@@ -679,6 +702,10 @@ class Settings {
 		}
 		if ( 'branding' === $tab ) {
 			( new BrandingTestForm() )->render();
+			return;
+		}
+		if ( 'donations' === $tab ) {
+			$this->render_donations_status();
 			return;
 		}
 		if ( 'email' !== $tab ) {

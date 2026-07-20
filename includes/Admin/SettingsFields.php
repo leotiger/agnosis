@@ -951,18 +951,18 @@ class SettingsFields {
 				'desc'       => __( 'Shown near the top of the "Send Invitation" email below (an "Apply to join" link and site name follow automatically — no need to add either here). Two or three short paragraphs is plenty. Standing copy, not cleared after use like the newsletter intros above — translated automatically when an invitation is sent in a language other than the site\'s own.', 'agnosis' ),
 			],
 
-			// --- COMMERCE ---
-			'agnosis_tx_fee_percent' => [
-				'tab'     => 'commerce',
-				'label'   => __( 'Transaction fee (%)', 'agnosis' ),
-				'input'   => 'number',
-				'default' => 7.0,
-				'step'    => '0.5',
-				'min'     => '0',
-				'desc'    => __( 'Percentage retained by this node on donations and art sales. Artists pay nothing up front.', 'agnosis' ),
-				'type'    => 'number',
-				'sanitize' => fn( $v ) => (float) $v,
-			],
+			// --- DONATIONS ---
+			// No fields here (yet). This tab used to hold agnosis_tx_fee_percent,
+			// a 7%-platform-fee setting for a donation/art-sale split-payment
+			// model — that model was decided against for 1.0.0 (C-1,
+			// agnosis-audit/AUDIT-0.9.38.md §9: real per-artist payout splitting
+			// needs a genuine Stripe Connect integration, out of scope) and its
+			// backing agnosis_transactions table was dropped in 0.9.40 (see
+			// Core\Activator::maybe_upgrade()). The plan going forward is a
+			// simpler, no-fee visitor-donation feature instead; Agnosis leaves
+			// marketplace/checkout functionality to dedicated commerce plugins.
+			// Settings::render_tab_tools()'s 'donations' branch renders a status
+			// card here in place of a settings field until that feature exists.
 
 			// --- NEWSLETTER ---
 			'agnosis_newsletter_from_name' => [

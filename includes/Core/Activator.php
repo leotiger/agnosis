@@ -293,6 +293,14 @@ class Activator {
 			$wpdb->query( "DROP TABLE {$wpdb->prefix}agnosis_transactions" );
 		}
 
+		// Delete the leftover agnosis_tx_fee_percent option too — scaffolding
+		// for the same dropped fee-based plan, but seeded directly into
+		// wp_options (not table-backed, so the DROP TABLE above doesn't touch
+		// it). The Commerce settings tab it belonged to is renamed Donations
+		// and no longer has a fee field at all; see SettingsFields.php's
+		// "--- DONATIONS ---" comment.
+		delete_option( 'agnosis_tx_fee_percent' );
+
 		// Shorten agnosis_newsletter_subscribers.email from VARCHAR(255) to
 		// VARCHAR(191) on existing installs (security audit §3f/§2d) — a 255-char
 		// UNIQUE index under utf8mb4 exceeds the 767-byte limit on older
@@ -942,7 +950,6 @@ class Activator {
 			'agnosis_community_max_artists'       => 50,  // community size cap (0 = unlimited)
 			'agnosis_cap_proposal_threshold'      => 3,   // co-signers to open a cap-change vote
 			'agnosis_cap_vote_window_days'        => 7,   // days a cap-change vote stays open
-			'agnosis_tx_fee_percent'              => 7.0,
 			'agnosis_activitypub_enabled'         => true,
 			'agnosis_quality_threshold'           => 7,
 			'agnosis_quality_rejection_threshold' => 3,

@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.40';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.40/agnosis-0.9.40.zip';
+	$version      = '0.9.41';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.41/agnosis-0.9.41.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,10 +52,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.40.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.40 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.41.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.41 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '4756a3154d8416c0ab5be5dd0ea0702da2f8ed2e0ab6d405941f17c5c4962671';
+	$sha256 = '';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -67,25 +67,15 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.41</h4>' .
+		'<ul>' .
+			'<li><strong>Changed:</strong> Replaced the planned &#8220;Commerce&#8221; revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings &#8594; Commerce is renamed Settings &#8594; Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace &#8212; art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn&#8217;t change how any existing site behaves.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.40</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names &#8212; nothing changes if you don&#8217;t use them.</li>' .
 			'<li><strong>Fixed:</strong> Repository housekeeping &#8212; a large (90 MB) local test-coverage report had been accidentally tracked in the plugin&#8217;s source repository. It&#8217;s now excluded going forward. No functional or behavioral change to how the plugin runs on your site.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.39</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> A new &#8220;Powered by Agnosis&#8221; page is created as a draft the first time the plugin activates or upgrades &#8212; a short summary of what Agnosis is, with a link to GitHub for full docs and installation. Starts as a draft; publish it whenever you&#8217;re ready.</li>' .
-			'<li><strong>Fixed:</strong> The &#8220;Sync all translations&#8221; button on the Tags/Mediums screens no longer risks silently timing out on a large vocabulary. It now stops cleanly after about 20 seconds of work and tells you how many terms are left &#8212; click it again to continue exactly where it stopped.</li>' .
-			'<li><strong>Fixed:</strong> Two languages that happen to translate a term to the same word (e.g. &#8220;Fotografie&#8221; in both German and Dutch) no longer permanently fail that language&#8217;s sync &#8212; it&#8217;s now resolved automatically, and any translation that genuinely couldn&#8217;t be created is now called out in the notice instead of silently disappearing.</li>' .
-			'<li><strong>Fixed:</strong> Corrected several wrong-match translations left over from an earlier automated translation-file update. The translation build process now automatically clears any uncertain matches going forward so they get retranslated properly instead of shipping a plausible-looking but wrong guess.</li>' .
-			'<li><strong>Fixed:</strong> A few small polish issues on the Tags/Mediums language filter added last version &#8212; an &#8220;All languages (unfiltered)&#8221; escape hatch for a term flagged with a since-removed language, search no longer resets the language view, and syncing a term no longer bounces you back to page 1 of the list.</li>' .
-			'<li><strong>Fixed:</strong> A remote Fediverse account that deletes itself is now cleaned up from your followers list even when its signing key can no longer be fetched at all (a known Mastodon-ecosystem timing quirk) &#8212; previously that follower record could be left behind indefinitely.</li>' .
-			'<li><strong>Fixed:</strong> Promoting an artwork (the promote@ address) now only highlights it on the shared main gallery, as intended. It no longer shows a &#8220;Featured&#8221; mark or changes anything on your own subdomain gallery, which already shows all of your published work. The Artist Guide page&#8217;s own description was corrected to match.</li>' .
-			'<li><strong>Fixed:</strong> A medium or tag that failed to translate into a given language (e.g. &#8220;Mixed Media&#8221; not appearing in German) is no longer stuck that way forever &#8212; a failed translation was mistakenly cached as if it had succeeded, so re-running &#8220;Sync all translations&#8221; never actually retried it. Existing stuck entries are cleared automatically on this update; re-run Sync translations afterward to fill them in.</li>' .
-			'<li><strong>Fixed:</strong> &#8220;Sync all translations&#8221; could still leave a real percentage of every language&#8217;s vocabulary with no term at all whenever the AI translation call itself failed (reported live: German 9/10, Italian 8/10, Portuguese 6/10). A missing translation is now always created as a real term using the original name as a placeholder, clearly marked &#8220;needs translation&#8221; in its Description column on the Tags/Mediums screen &#8212; nothing is ever silently absent, and the sync notice now tells this apart from a genuine failure.</li>' .
-			'<li><strong>Fixed:</strong> Found the real reason the two fixes directly above still weren&#8217;t enough (reported live with screenshots: German fully synced at 10/10, Portuguese stuck at 6/10, Spanish at 9/10, with the sync notice claiming a clean &#8220;0 failed&#8221; run every time). Two languages sharing an identical or near-identical word &#8212; common between related languages, e.g. &#8220;Arte Digital&#8221; and &#8220;Escultura&#8221; are the same word in Spanish and Portuguese &#8212; were silently colliding during sync, and the language that lost the collision ended up with no term at all despite being counted a success. Each language now always gets its own real term, and any future linking problem of this kind is correctly reported as a failure instead of silently miscounted. Also fixed: switching the language dropdown no longer keeps showing a stale sync result from an earlier click. Run &#8220;Sync all translations&#8221; again after updating to fill in any terms still missing for your languages.</li>' .
-			'<li><strong>Removed:</strong> The unused &#8220;agnosis_transactions&#8221; database table has been dropped. A real donation feature would need to collect a payment, keep a platform fee, and pay the rest out to the specific artist &#8212; no free WordPress plugin does that, and doing it properly means a genuine Stripe Connect integration, out of scope for this release. Runs automatically on update; nothing to do on your end.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.40
+Stable tag: 0.9.41
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ Once published, an artist can also correct their own title, text, or photos dire
 
 **Community-first admission.** New artists are vouched in by existing artists — no gatekeepers, no committees. The community grows itself.
 
-**Zero cost to artists — for now.** Agnosis doesn't charge artists to participate. A future revenue layer of optional visitor donations and art sales (with a configurable transaction fee) is planned and partly scaffolded in Settings → Commerce, but that donation/store mechanism itself hasn't been built yet — today, running a node has no revenue feature to enable.
+**Zero cost to artists.** Agnosis doesn't charge artists to participate, and never will. A simple visitor-donation feature, with no platform fee, is planned but not yet built — today, running a node has no donation feature to enable. Agnosis is not a marketplace; art sales and checkout are left to dedicated plugins.
 
 **Rhizome network.** Any site can run an Agnosis node. Nodes federate with each other and with the broader Fediverse. No central server. No single point of failure. Nodes can also run in a subdomain mode, giving each artist their own scoped `artistname.yoursite.com` space.
 
@@ -55,9 +55,9 @@ One Agnosis install is one community — a deployment with several departments o
 * Node identity & peer discovery
 * Per-artist subdomain mode
 * Digest newsletter for followers; in-site Artist Guide page
-* Settings → Commerce holds a configurable transaction-fee percentage for a planned donation/store revenue layer — not yet a working checkout
+* Settings → Donations holds a status note for a planned, no-fee visitor-donation feature — not yet a working mechanism; Agnosis leaves marketplace/checkout functionality to dedicated plugins
 * `agnosis_artwork`/`agnosis_biography`/`agnosis_event` custom post types with Gutenberg gallery blocks
-* Settings: General | Branding | Email | AI Providers | Behavior | Network | Community | Commerce | Newsletter | Logs
+* Settings: General | Branding | Email | AI Providers | Behavior | Network | Community | Donations | Newsletter | Logs
 
 == Installation ==
 
@@ -70,7 +70,7 @@ One Agnosis install is one community — a deployment with several departments o
 == Frequently Asked Questions ==
 
 = Is it really free for artists? =
-Yes. Agnosis never charges artists to participate. A donation/art-sale revenue model with a configurable transaction fee is planned (Settings → Commerce holds the fee setting), but that mechanism hasn't been built yet, so no money currently changes hands through the plugin either way.
+Yes. Agnosis never charges artists to participate, and takes no fee. A simple way for visitors to donate directly to an artist is planned (Settings → Donations), but that mechanism hasn't been built yet, so no money currently changes hands through the plugin. Agnosis is not a marketplace — if you want to sell art through your site, pair it with a dedicated commerce plugin.
 
 = Do I need to run my own server? =
 No. Node hosts in the network can offer space to artists. But if you want your own node, install this plugin on any WordPress site.
@@ -83,22 +83,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.41 =
+* Changed: Replaced the planned "Commerce" revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings → Commerce is renamed Settings → Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace — art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn't change how any existing site behaves.
+
 = 0.9.40 =
 * Added: The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names — nothing changes if you don't use them.
 * Fixed: Repository housekeeping — a large (90 MB) local test-coverage report had been accidentally tracked in the plugin's source repository. It's now excluded going forward. No functional or behavioral change to how the plugin runs on your site.
-
-= 0.9.39 =
-* Added: A new "Powered by Agnosis" page is created as a draft the first time the plugin activates or upgrades. It's a short, easy-reading summary of what Agnosis is and how it works, with a link to the GitHub repository for full documentation and installation — meant for a visitor who wants to know what your site runs on, and how to get it for their own. It starts as a draft; publish it (and link it from wherever you like) whenever you're ready.
-* Fixed: The "Sync all translations" button on the Tags/Mediums screens no longer risks silently timing out on a large vocabulary. It now stops cleanly after about 20 seconds of work and tells you how many terms are left — click it again to continue exactly where it stopped.
-* Fixed: Two languages that happen to translate a term to the same word (e.g. "Fotografie" in both German and Dutch) no longer permanently fail that language's sync. It's now resolved automatically, and any translation that genuinely couldn't be created is now called out in the notice instead of silently disappearing.
-* Fixed: Corrected several wrong-match translations left over from an earlier automated translation-file update (mislabeled text like "queue rows" instead of "artwork" in a couple of German UI messages). The translation build process now automatically clears any uncertain matches going forward so they get retranslated properly instead of shipping a plausible-looking but wrong guess.
-* Fixed: A few small polish issues on the Tags/Mediums language filter added last version. Added an "All languages (unfiltered)" option so a term flagged for a language you've since removed from your settings is no longer permanently hidden. Searching while viewing a non-primary language no longer resets you back to the primary view. Syncing a term's translations no longer bounces you back to page 1 of the list.
-* Fixed: A remote Fediverse account that deletes itself is now cleaned up from your followers list even in the case where its signing key can no longer be fetched at all (a known Mastodon-ecosystem timing quirk) — previously that follower record could be left behind indefinitely.
-* Fixed: Promoting an artwork (the promote@ address) now only highlights it on the shared main gallery, as intended. It no longer shows a "Featured" mark or changes anything on your own subdomain gallery, which already shows all of your published work. The Artist Guide page's own description of this was corrected to match.
-* Fixed: A medium or tag that failed to translate into a given language (e.g. "Mixed Media" not appearing in German) is no longer stuck that way forever — previously, a failed translation was mistakenly cached as if it had succeeded, so re-running "Sync all translations" never actually retried it. Existing stuck entries are automatically cleared on this update; re-run Sync translations afterward to fill them in. AI translation prompts for these short labels were also improved to reduce how often this happens in the first place.
-* Fixed: "Sync all translations" could still leave a real percentage of every language's vocabulary with no term at all whenever the AI translation call itself failed (reported live: German 9/10, Italian 8/10, Portuguese 6/10) — there was previously no way to fix what didn't exist. A missing translation is now always created as a real term using the original name as a placeholder, clearly marked "needs translation" in its Description column on the Tags/Mediums screen, so nothing is ever silently absent — just rename the placeholder and clear the note to finish the translation by hand. The sync notice now tells these apart from genuine failures instead of always pointing at your AI provider configuration.
-* Fixed: Found the real reason the two fixes directly above still weren't enough (reported live with screenshots: German fully synced at 10/10, but Portuguese stuck at 6/10 and Spanish at 9/10, with the sync notice claiming a clean "0 failed" run every time). Two different languages sharing an identical or near-identical word — very common between related languages, e.g. "Arte Digital" and "Escultura" are the same word in Spanish and Portuguese — were silently colliding with each other during sync, and the language that lost the collision ended up with no term at all despite being counted as a success. This is now resolved correctly: each language always gets its own real term. As a bonus safety net, any future linking problem of this kind will now be correctly reported as a failure instead of silently miscounted as a success. Also fixed: switching the language dropdown on the Tags/Mediums screen no longer keeps showing a stale sync result from an earlier click. Run "Sync all translations" again after updating to fill in any terms still missing for your languages.
-* Removed: The unused `agnosis_transactions` database table has been dropped. A donation feature would have needed to collect a payment, keep a platform fee, and pay the rest out to the specific artist — no free WordPress plugin does that (they all pay a single site-wide account), and doing it properly means a real Stripe Connect integration, which is out of scope for this release. Rather than leave an empty table (and its unused privacy-export tooling) sitting around indefinitely, both are removed. This runs automatically on update; nothing to do on your end.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
