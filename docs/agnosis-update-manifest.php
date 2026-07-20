@@ -55,7 +55,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// TODO(release): pending the built agnosis-0.9.41.zip — run
 	// dev/bin/build-zip.sh, upload the result to the v0.9.41 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '';
+	$sha256 = 'ef4b62e284cb835225353f8552a724550ce922dabe6dc5cc4ef4d09b9675040c';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -70,6 +70,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 		'<h4>0.9.41</h4>' .
 		'<ul>' .
 			'<li><strong>Changed:</strong> Replaced the planned &#8220;Commerce&#8221; revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings &#8594; Commerce is renamed Settings &#8594; Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace &#8212; art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn&#8217;t change how any existing site behaves.</li>' .
+			'<li><strong>Fixed:</strong> The &#8220;Mediums&#8221; checklist on the Artworks Quick Edit panel (and the artwork edit screen) no longer mixes every language&#8217;s translation of every medium into one list &#8212; it now shows only the mediums for that artwork&#8217;s own language. Previously all of them appeared together (e.g. seven different-language versions of &#8220;Watercolor&#8221; at once), which also made it possible to accidentally assign a wrong-language medium to an artwork.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.40</h4>' .

@@ -1491,9 +1491,18 @@ msgstr "Comportamiento"
 msgid "Network"
 msgstr "Red"
 
-#: includes/Admin/Settings.php:304
-msgid "Commerce"
-msgstr "Comercio"
+#: includes/Admin/Settings.php:308
+#: includes/Admin/Settings.php:490
+msgid "Donations"
+msgstr ""
+
+#: includes/Admin/Settings.php:492
+msgid "A simple way for visitors to support an artist directly is planned, with no platform fee. That feature hasn't been built yet, so there is nothing to configure here today."
+msgstr ""
+
+#: includes/Admin/Settings.php:495
+msgid "Agnosis is not a marketplace. Art sales, checkout, and other commerce functionality are left to dedicated plugins."
+msgstr ""
 
 #: includes/Admin/Settings.php:306
 msgid "Logs"
@@ -3231,15 +3240,6 @@ msgstr ""
 "introducciones del boletín anteriores — se traduce automáticamente cuando se "
 "envía una invitación en un idioma distinto al propio del sitio."
 
-#: includes/Admin/SettingsFields.php:957
-msgid "Transaction fee (%)"
-msgstr "Comisión de transacción (%)"
-
-#: includes/Admin/SettingsFields.php:962
-msgid ""
-"Percentage retained by this node on donations and art sales. Artists pay "
-"nothing up front."
-msgstr ""
 "Porcentaje retenido por este nodo en donaciones y ventas de arte. Los "
 "artistas no pagan nada por adelantado."
 

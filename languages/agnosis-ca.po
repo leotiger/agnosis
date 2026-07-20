@@ -1492,9 +1492,18 @@ msgstr "Comportament"
 msgid "Network"
 msgstr "Xarxa"
 
-#: includes/Admin/Settings.php:304
-msgid "Commerce"
-msgstr "Comerç"
+#: includes/Admin/Settings.php:308
+#: includes/Admin/Settings.php:490
+msgid "Donations"
+msgstr ""
+
+#: includes/Admin/Settings.php:492
+msgid "A simple way for visitors to support an artist directly is planned, with no platform fee. That feature hasn't been built yet, so there is nothing to configure here today."
+msgstr ""
+
+#: includes/Admin/Settings.php:495
+msgid "Agnosis is not a marketplace. Art sales, checkout, and other commerce functionality are left to dedicated plugins."
+msgstr ""
 
 #: includes/Admin/Settings.php:306
 msgid "Logs"
@@ -3230,15 +3239,6 @@ msgstr ""
 "automàticament quan s'envia una invitació en un idioma diferent del propi "
 "del lloc."
 
-#: includes/Admin/SettingsFields.php:957
-msgid "Transaction fee (%)"
-msgstr "Comissió de transacció (%)"
-
-#: includes/Admin/SettingsFields.php:962
-msgid ""
-"Percentage retained by this node on donations and art sales. Artists pay "
-"nothing up front."
-msgstr ""
 "Percentatge retingut per aquest node sobre les donacions i les vendes d'art. "
 "Els artistes no paguen res per avançat."
 

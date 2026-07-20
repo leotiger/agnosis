@@ -1364,9 +1364,18 @@ msgstr "動作"
 msgid "Network"
 msgstr "ネットワーク"
 
-#: includes/Admin/Settings.php:304
-msgid "Commerce"
-msgstr "コマース"
+#: includes/Admin/Settings.php:308
+#: includes/Admin/Settings.php:490
+msgid "Donations"
+msgstr ""
+
+#: includes/Admin/Settings.php:492
+msgid "A simple way for visitors to support an artist directly is planned, with no platform fee. That feature hasn't been built yet, so there is nothing to configure here today."
+msgstr ""
+
+#: includes/Admin/Settings.php:495
+msgid "Agnosis is not a marketplace. Art sales, checkout, and other commerce functionality are left to dedicated plugins."
+msgstr ""
 
 #: includes/Admin/Settings.php:306
 msgid "Logs"
@@ -2851,15 +2860,6 @@ msgid ""
 msgstr ""
 "下の「招待を送信」メールの上部付近に表示されます（「参加申請」リンクとサイト名は自動的に続くため、ここに追加する必要はありません）。2〜3段落の短い文章で十分です。これは上のニュースレター用冒頭文のように使用後に消去されるものではない定型文です。サイトの言語以外で招待が送信された場合は、自動的に翻訳されます。"
 
-#: includes/Admin/SettingsFields.php:957
-msgid "Transaction fee (%)"
-msgstr "取引手数料（%）"
-
-#: includes/Admin/SettingsFields.php:962
-msgid ""
-"Percentage retained by this node on donations and art sales. Artists pay "
-"nothing up front."
-msgstr "このノードが寄付と作品販売から受け取る割合です。アーティストの初期費用はありません。"
 
 #: includes/Admin/SettingsFields.php:970
 msgid "Sender name"
