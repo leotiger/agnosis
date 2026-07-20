@@ -170,7 +170,9 @@ class Plugin {
 			// button plus a bulk sweep, see ArtworkMediumSync's own
 			// docblock for why the automatic-only version wasn't enough.
 			$artwork_medium_sync = new ArtworkMediumSync();
-			$this->loader->add_filter( 'wp_terms_checklist_args', $artwork_medium_sync, 'filter_checklist_by_language', 10, 2 );
+			$this->loader->add_action( 'load-post.php',     $artwork_medium_sync, 'register_edit_screen_scoping' );
+			$this->loader->add_action( 'load-post-new.php', $artwork_medium_sync, 'register_edit_screen_scoping' );
+			$this->loader->add_action( 'load-edit.php',     $artwork_medium_sync, 'register_list_screen_scoping' );
 			$this->loader->add_action( 'add_meta_boxes',       $artwork_medium_sync, 'register_meta_box' );
 			$this->loader->add_action( 'admin_post_agnosis_sync_medium_assignment',      $artwork_medium_sync, 'handle_sync' );
 			$this->loader->add_action( 'admin_post_agnosis_sync_all_medium_assignments', $artwork_medium_sync, 'handle_sync_all' );

@@ -23,26 +23,57 @@
  * delegates to — one shared implementation, three ways to trigger it
  * (automatic on edit, one artwork on demand, all artwork on demand).
  *
- * filter_checklist_by_language() (2026-07-20) closes a gap in all of that:
+ * Language scoping for the Mediums checklist (register_edit_screen_scoping() /
+ * register_list_screen_scoping(), 2026-07-20) closes a gap in all of that:
  * `agnosis_medium` has no meta_box_cb override, so both Quick Edit and the
  * classic edit-screen checklist meta box render every term in the flat
  * taxonomy via core's default wp_terms_checklist() — every language's
  * translated copy of every medium mixed into one list (reported live: a
  * Quick Edit panel showing 7 different-language "Watercolor" checkboxes at
  * once, none of them the English one, with no indication any of it was
- * translated). Scoping this is what TaxonomyLanguageFilter already does for
- * the Tags/Mediums admin term-LIST screens (edit-tags.php) — but that
- * class's own `get_terms_args` filter is only ever registered on
- * `load-edit-tags.php`, so it never touches the checklist an artwork's own
- * edit/Quick Edit screen renders. This isn't just cosmetic: with every
- * language mixed in, nothing stopped an editor from checking a WRONG-
- * language term directly onto a PRIMARY-language artwork, which
+ * translated). This isn't just cosmetic: with every language mixed in,
+ * nothing stopped an editor from checking a WRONG-language term directly
+ * onto a PRIMARY-language artwork, which
  * sync_medium_assignment_to_siblings()/sync_taxonomy() would then treat as
  * if it were genuine primary vocabulary — translating an already-translated
  * term instead of the real one, corrupting exactly the propagation this
- * class exists to keep correct. Scoping the checklist to the post's own
- * language closes that off at the source rather than trying to detect and
- * repair the corruption after the fact.
+ * class exists to keep correct.
+ *
+ * A first version of this fix hooked `wp_terms_checklist_args` directly
+ * (like `TaxonomyLanguageFilter::scope_by_language()` hooks `get_terms_args`
+ * for the Tags/Mediums term-LIST screens) — shipped in 0.9.41, and turned
+ * out to do nothing at all, for two independent reasons found by reading
+ * WordPress core's own source directly rather than assuming:
+ *   1. `wp_terms_checklist()` (wp-admin/includes/template.php) applies the
+ *      `wp_terms_checklist_args` filter, but then only reads the *walker*,
+ *      *selected_cats*, *popular_cats*, and *checked_ontop* keys off the
+ *      filtered result — the actual term list comes from a SEPARATE,
+ *      hardcoded `get_terms( [ 'taxonomy' => $taxonomy, 'get' => 'all' ] )`
+ *      call a few lines later that never sees anything this filter added
+ *      (a `meta_query` included). The right hook is the lower-level
+ *      `get_terms_args` (which that inner `get_terms()` call itself fires) —
+ *      exactly what `TaxonomyLanguageFilter` already uses, just not scoped
+ *      to reach this screen.
+ *   2. Quick Edit specifically can't be scoped by "the post's own language"
+ *      at all, regardless of which filter is used: `WP_Posts_List_Table::
+ *      inline_edit()` (wp-admin/includes/class-wp-posts-list-table.php)
+ *      renders the ENTIRE Quick Edit row — including this checklist — ONCE
+ *      per page load, as a single hidden template shared by every row via
+ *      JS, calling `wp_terms_checklist( 0, ... )` with a hardcoded post ID
+ *      of 0. There is no per-row server round-trip, so there is no specific
+ *      post to derive a language from at render time — a `$post_id`-based
+ *      filter can only ever apply the SAME language to every row, forever.
+ *      Quick Edit is instead scoped to the Artworks list's own active
+ *      language filter (Lingua Forge's `lf_lang_filter` — the "EN" dropdown
+ *      next to "All dates" in the toolbar, `restrict_manage_posts`): while
+ *      that's set to one specific language, every visible row genuinely IS
+ *      that language, so scoping the shared template to it is correct. Left
+ *      unscoped when "All languages" is selected — showing every language
+ *      mixed is the honest answer to a deliberately mixed view, rather than
+ *      silently guessing one.
+ * The classic single-artwork edit screen (post.php/post-new.php) doesn't
+ * have problem 2 — `post_categories_meta_box()` passes the real `$post->ID`
+ * — so it's scoped the original way, by that specific post's own language.
  *
  * @package Agnosis\Admin
  */
@@ -62,58 +93,134 @@ class ArtworkMediumSync {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Scopes the `agnosis_medium` checklist to the post's own language —
-	 * core's `wp_terms_checklist()` (which both Quick Edit and the classic
-	 * edit-screen checklist meta box render through, since this taxonomy has
-	 * no `meta_box_cb` override) otherwise pulls in every language's
-	 * translated copy of every term via a plain, unfiltered `get_terms()`.
-	 * Same meta_query shape as `TaxonomyLanguageFilter::scope_by_language()`
-	 * (that class's own docblock explains the underlying data model: every
-	 * translated term is a sibling row in this SAME flat taxonomy, flagged
-	 * with `LinguaForge::TRANSLATED_TERM_META` = the language it was
-	 * translated into) — but that filter is only ever registered on
-	 * `load-edit-tags.php`, the Tags/Mediums term-LIST screens, so it never
-	 * reaches a checklist rendered on an artwork's own edit/Quick Edit
-	 * screen. This is that missing piece, registered unconditionally (cheap
-	 * no-op check on `$args['taxonomy']`) rather than scoped to one screen,
-	 * so both Quick Edit and the classic meta box get it for free.
+	 * Registers checklist language scoping for the classic single-artwork
+	 * edit screen (post.php/post-new.php) — hooked to `load-post.php` and
+	 * `load-post-new.php` (screen-load actions, fire once, early, well
+	 * before `post_categories_meta_box()` renders the checklist), the same
+	 * "register only on the screen that needs it" pattern
+	 * `TaxonomyLanguageFilter::maybe_register_scoping()` uses for
+	 * `load-edit-tags.php`.
 	 *
-	 * Language priority mirrors Compat\LinguaForge::on_medium_terms_changed()'s
-	 * own `_agnosis_native_lang`-then-`_lf_lang` fallback, for the same
-	 * reason documented there: `_agnosis_native_lang` is written at intake
-	 * (before a post is ever published), `_lf_lang` only once
-	 * `agnosis_post_published` fires — reading only the latter would show the
-	 * primary-language bucket to a native-language draft that hasn't
-	 * published yet. Anything that resolves to "unknown" (new/unsaved post,
-	 * meta not yet written, Lingua Forge's primary language unconfigured)
-	 * falls back to the primary-language bucket — the safe default, since
-	 * that's where a checked box actually needs to land for
-	 * sync_medium_assignment_to_siblings() to treat it as genuine primary
-	 * vocabulary rather than accidentally letting a translated-language term
-	 * get checked directly onto what will become a primary-language artwork.
-	 *
-	 * @param array<string, mixed> $args    wp_terms_checklist()'s own args (includes 'taxonomy' as a single string, not an array).
-	 * @param int                  $post_id Post the checklist is being rendered for — 0 on "Add New".
-	 * @return array<string, mixed>
+	 * `$_GET['post']` gives a real post ID on post.php; post-new.php has
+	 * none yet, so resolve_post_language(0) falls back to the primary-
+	 * language bucket — the safe default, since that's where a checked box
+	 * actually needs to land for sync_medium_assignment_to_siblings() to
+	 * treat it as genuine primary vocabulary rather than accidentally
+	 * letting a translated-language term get checked directly onto what
+	 * will become a primary-language artwork.
 	 */
-	public function filter_checklist_by_language( array $args, int $post_id ): array {
-		if ( 'agnosis_medium' !== ( $args['taxonomy'] ?? '' ) || ! LinguaForge::is_active() ) {
-			return $args;
+	public function register_edit_screen_scoping(): void {
+		if ( ! LinguaForge::is_active() ) {
+			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only screen detection, no state change.
+		$post_id = isset( $_GET['post'] ) ? absint( wp_unslash( $_GET['post'] ) ) : 0;
+
+		$this->register_scoping_for_language( $this->resolve_post_language( $post_id ) );
+	}
+
+	/**
+	 * Registers checklist language scoping for the Artworks LIST screen
+	 * (edit.php) — covers Quick Edit's checklist, which core renders ONCE
+	 * per page load as a hidden template shared by every row
+	 * (`WP_Posts_List_Table::inline_edit()` calls `wp_terms_checklist( 0,
+	 * ... )` with a hardcoded post ID — see class docblock for why this
+	 * means there is no real post to derive a language from here). Scoped
+	 * instead to the list's own active language filter — Lingua Forge's
+	 * `lf_lang_filter` (the "EN" dropdown next to "All dates",
+	 * `restrict_manage_posts`), read with the exact same precedence Lingua
+	 * Forge's own `Admin\Filters` class uses (URL param first, falling back
+	 * to the user's last-selected value in user meta, since the dropdown's
+	 * own selection persists that way across requests). Left unscoped
+	 * (returns without registering) when "All languages" is selected — a
+	 * deliberately mixed list doesn't have one language to guess.
+	 *
+	 * Hooked to `load-edit.php`, which fires for every post-type list
+	 * screen; the `agnosis_artwork` check keeps this from doing anything on
+	 * an unrelated post type's list (defense in depth — the taxonomy check
+	 * inside register_scoping_for_language()'s own filter callback would
+	 * already no-op there regardless, since no other post type uses
+	 * `agnosis_medium`).
+	 */
+	public function register_list_screen_scoping(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only screen detection, no state change.
+		$post_type = isset( $_GET['post_type'] ) ? sanitize_key( wp_unslash( $_GET['post_type'] ) ) : 'post';
+		if ( 'agnosis_artwork' !== $post_type || ! LinguaForge::is_active() ) {
+			return;
+		}
+
+		$lang = isset( $_GET['lf_lang_filter'] ) && '' !== $_GET['lf_lang_filter']
+			? sanitize_key( wp_unslash( $_GET['lf_lang_filter'] ) )
+			: sanitize_key( (string) get_user_meta( get_current_user_id(), 'lf_lang_filter', true ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( '' === $lang ) {
+			return;
+		}
+
+		$this->register_scoping_for_language( $lang );
+	}
+
+	/**
+	 * Resolves a specific post's own language — same
+	 * `_agnosis_native_lang`-then-`_lf_lang` priority
+	 * Compat\LinguaForge::on_medium_terms_changed() already uses, for the
+	 * same reason documented there: `_agnosis_native_lang` is written at
+	 * intake (before a post is ever published), `_lf_lang` only once
+	 * `agnosis_post_published` fires — reading only the latter would show
+	 * the primary-language bucket to a native-language draft that hasn't
+	 * published yet. `$post_id` of 0 (no post yet) resolves straight to the
+	 * primary-language bucket.
+	 */
+	private function resolve_post_language( int $post_id ): string {
+		if ( 0 === $post_id ) {
+			return sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		}
+
+		$native_lang = sanitize_key( (string) get_post_meta( $post_id, '_agnosis_native_lang', true ) );
+		if ( '' !== $native_lang ) {
+			return $native_lang;
+		}
+
+		$lf_lang = sanitize_key( (string) get_post_meta( $post_id, '_lf_lang', true ) );
+		return '' !== $lf_lang ? $lf_lang : sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+	}
+
+	/**
+	 * Registers the `get_terms_args` filter that actually reaches
+	 * `wp_terms_checklist()`'s inner `get_terms()` call (unlike
+	 * `wp_terms_checklist_args`, see class docblock) — same meta_query shape
+	 * `TaxonomyLanguageFilter::scope_by_language()` uses, scoped to one
+	 * resolved language for the remainder of this request. Both
+	 * register_edit_screen_scoping() and register_list_screen_scoping() feed
+	 * this the same way, just with a different resolved `$lang`.
+	 *
+	 * @param string $lang Language code the checklist should be scoped to.
+	 */
+	private function register_scoping_for_language( string $lang ): void {
 		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
-		$native_lang  = sanitize_key( (string) get_post_meta( $post_id, '_agnosis_native_lang', true ) );
-		$post_lang    = '' !== $native_lang ? $native_lang : sanitize_key( (string) get_post_meta( $post_id, '_lf_lang', true ) );
 
-		$meta_query = ( '' === $post_lang || '' === $primary_lang || $post_lang === $primary_lang )
-			? [ [ 'key' => LinguaForge::TRANSLATED_TERM_META, 'compare' => 'NOT EXISTS' ] ]
-			: [ [ 'key' => LinguaForge::TRANSLATED_TERM_META, 'value' => $post_lang ] ];
+		add_filter(
+			'get_terms_args',
+			static function ( array $args, array $taxonomies ) use ( $lang, $primary_lang ): array {
+				if ( ! in_array( 'agnosis_medium', $taxonomies, true ) ) {
+					return $args;
+				}
 
-		$args['meta_query'] = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- checklist rendering on a single-post admin screen, not a hot path.
-			? array_merge( $args['meta_query'], $meta_query )
-			: $meta_query;
+				$meta_query = ( '' === $lang || '' === $primary_lang || $lang === $primary_lang )
+					? [ [ 'key' => LinguaForge::TRANSLATED_TERM_META, 'compare' => 'NOT EXISTS' ] ]
+					: [ [ 'key' => LinguaForge::TRANSLATED_TERM_META, 'value' => $lang ] ];
 
-		return $args;
+				$args['meta_query'] = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- checklist rendering on a single admin screen load, not a hot path.
+					? array_merge( $args['meta_query'], $meta_query )
+					: $meta_query;
+
+				return $args;
+			},
+			10,
+			2
+		);
 	}
 
 	// -------------------------------------------------------------------------
