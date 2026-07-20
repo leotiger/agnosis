@@ -55,7 +55,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// TODO(release): pending the built agnosis-0.9.41.zip — run
 	// dev/bin/build-zip.sh, upload the result to the v0.9.41 GitHub release,
 	// then deploy this manifest.
-	$sha256 = 'ef4b62e284cb835225353f8552a724550ce922dabe6dc5cc4ef4d09b9675040c';
+	$sha256 = '20118d6ce4fa14273a96600b11f6e6ef305e482eb12b32c80f98e9e67a804b99';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
