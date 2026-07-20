@@ -26,6 +26,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   qa:
     name: "PHP ${{ matrix.php-version }}"
