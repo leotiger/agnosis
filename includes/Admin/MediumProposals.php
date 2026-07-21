@@ -229,7 +229,7 @@ class MediumProposals {
 	 * carrying this exact proposal, clear the meta on each.
 	 */
 	public function handle_approve(): void {
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- unslashed + decoded on the next line together.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- unslashed, decoded, and sanitized on the next line together (Plugin Check's static analysis doesn't trace sanitization through the intermediate rawurldecode() call; sanitize_text_field() is the outermost wrapper and this is genuinely safe).
 		$proposal = sanitize_text_field( rawurldecode( wp_unslash( $_GET['proposal'] ?? '' ) ) );
 
 		check_admin_referer( 'agnosis_medium_proposal_' . $proposal );
@@ -264,7 +264,7 @@ class MediumProposals {
 	 * proposal, without creating or assigning any term.
 	 */
 	public function handle_reject(): void {
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- unslashed + decoded on the next line together.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- unslashed, decoded, and sanitized on the next line together (Plugin Check's static analysis doesn't trace sanitization through the intermediate rawurldecode() call; sanitize_text_field() is the outermost wrapper and this is genuinely safe).
 		$proposal = sanitize_text_field( rawurldecode( wp_unslash( $_GET['proposal'] ?? '' ) ) );
 
 		check_admin_referer( 'agnosis_medium_proposal_' . $proposal );
@@ -372,7 +372,8 @@ class MediumProposals {
 				sprintf(
 					/* translators: %s: the underlying WP_Error message from wp_insert_term() */
 					esc_html__( 'Could not approve this proposal: %s', 'agnosis' ),
-					esc_html( rawurldecode( (string) $_GET['agnosis_medium_proposal_error'] ) )
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- unslashed, decoded, and escaped for output all in this one expression (same rawurldecode()-breaks-tracing note as handle_approve()/handle_reject() above); esc_html() is the outermost wrapper and this is genuinely safe.
+					esc_html( rawurldecode( (string) wp_unslash( $_GET['agnosis_medium_proposal_error'] ) ) )
 				),
 				[ 'type' => 'error' ]
 			);
