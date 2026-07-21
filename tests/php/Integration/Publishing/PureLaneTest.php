@@ -186,6 +186,36 @@ class PureLaneTest extends \WP_UnitTestCase {
 		$this->assertSame( 'My Own Title', get_post_meta( $post_id, '_agnosis_translated_title', true ), 'The "translated" title must equal the artist\'s own subject — never an AI rewrite — for pure@.' );
 	}
 
+	/**
+	 * A real-world concern (2026-07-21): mail clients on Windows/Microsoft
+	 * platforms (Outlook, Exchange) commonly send plain-text bodies with
+	 * CRLF (\r\n) line endings rather than the bare \n a Unix-originated
+	 * email typically has. This confirms the full intake-to-post-content
+	 * chain — Parser's sanitize_textarea_field() (which deliberately
+	 * preserves \r\n untouched, keep_newlines=true) → Pipeline::process_raw()'s
+	 * wpautop() (which normalizes \r\n/\r to \n internally before inserting
+	 * <br /> — verified directly against WordPress core's own
+	 * wp-includes/formatting.php source) → PostCreator::paragraphs_to_blocks() —
+	 * handles CRLF-separated lines exactly the same as bare-\n ones, end to
+	 * end through the real pipeline, not just in isolation.
+	 */
+	public function test_pure_address_preserves_crlf_line_breaks_in_body(): void {
+		$queue_id = $this->insert_queue_row(
+			'test-pure-crlf',
+			'pure@agnosis.art',
+			'A Poem',
+			"Roses are red\r\nViolets are blue\r\nThis poem arrived\r\nFrom a Windows PC too"
+		);
+
+		$creator = new PostCreator( $this->make_spy_pipeline() );
+		$creator->handle( $queue_id );
+
+		$post_id = $this->get_published_post_id( $queue_id );
+		$content = get_post( $post_id )->post_content;
+
+		$this->assertSame( 3, substr_count( $content, '<br' ), 'All three CRLF-separated line breaks must survive as <br /> tags, same as bare-\n input.' );
+	}
+
 	public function test_pure_address_records_intake_endpoint_meta(): void {
 		$queue_id = $this->insert_queue_row( 'test-pure-meta', 'pure@agnosis.art' );
 

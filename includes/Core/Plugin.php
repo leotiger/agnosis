@@ -388,6 +388,14 @@ class Plugin {
 		// PostCreator::handle_removal_request()'s own docblock.
 		$this->loader->add_action( 'agnosis_removal_requested_multiple', $notification, 'on_removal_requested_multiple', 10, 3 );
 		$this->loader->add_action( 'agnosis_submission_rejected',  $notification, 'on_submission_rejected',  10, 4 );
+		// Manual discard (artist/admin clicks "discard" on the review screen) is
+		// a DIFFERENT event from the automatic AI photo-quality gate above —
+		// 'agnosis_submission_rejected' carries a real detected score and only
+		// ever fires from PostCreator's own quality check; reusing it for a
+		// manual discard (as ReviewEndpoints::reject() used to) sent every
+		// discarded draft the same "photo quality too low, 0/10" email
+		// regardless of post type or the artist's actual reason (2026-07-21 fix).
+		$this->loader->add_action( 'agnosis_submission_discarded', $notification, 'on_submission_discarded', 10, 3 );
 		$this->loader->add_action( 'agnosis_submission_no_attachment', $notification, 'on_submission_no_attachment', 10, 2 );
 		$this->loader->add_action( 'agnosis_submission_looks_like_reply', $notification, 'on_submission_looks_like_reply', 10, 2 );
 		// fifth audit §2b/§2c — remove@/promote@ artist feedback.

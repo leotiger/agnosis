@@ -1163,6 +1163,124 @@ class Notification {
 	}
 
 	// -------------------------------------------------------------------------
+	// Manual discard (review-screen "discard" action)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Hook callback for 'agnosis_submission_discarded'.
+	 *
+	 * Fired from ReviewEndpoints::reject() whenever an artist (or admin)
+	 * manually discards a draft artwork, biography, or event from the review
+	 * screen — for whatever reason: they changed their mind, want to redo it,
+	 * or the AI's take just isn't what they wanted. Deliberately a SEPARATE
+	 * hook from 'agnosis_submission_rejected' (on_submission_rejected() above),
+	 * which is reserved for PostCreator's own automatic AI photo-quality gate
+	 * and carries a real detected score — reject() used to fire that same hook
+	 * with a hardcoded score of 0, so every manual discard sent the exact same
+	 * "photo quality too low" email regardless of post type, whether the draft
+	 * had a photo at all, or the real reason it was discarded (2026-07-21 fix,
+	 * reported live: a discarded text-only poem — no photo, just a synthetic
+	 * poster image — got the same "retake your photo" bounce as an actual
+	 * low-quality photo rejection). This message makes no claim about why the
+	 * draft was discarded — it wasn't, and can't be, an AI judgment call.
+	 *
+	 * @param int    $post_id   Discarded draft's post ID (logging/context only — post is already trashed/deleted by the time this fires).
+	 * @param int    $artist_id WordPress user ID of the submitting artist.
+	 * @param string $title     The discarded draft's post_title, for context in the email (may be empty).
+	 */
+	public function on_submission_discarded( int $post_id, int $artist_id, string $title ): void {
+		unset( $post_id ); // Logging/context only — nothing here reads the post itself, it's already trashed/deleted.
+
+		$artist = get_userdata( $artist_id );
+		if ( ! $artist || ! $artist->user_email ) {
+			return;
+		}
+
+		$artist_locale = (string) get_user_meta( $artist_id, 'locale', true );
+		if ( '' !== $artist_locale ) {
+			switch_to_locale( $artist_locale );
+		}
+
+		$subject = sprintf(
+			/* translators: %s: site name */
+			__( '[%s] Your submission was not published', 'agnosis' ),
+			get_bloginfo( 'name' )
+		);
+
+		wp_mail(
+			$artist->user_email,
+			$subject,
+			$this->build_discarded_email( $artist->display_name, $title, $artist_id ),
+			$this->html_headers()
+		);
+
+		if ( '' !== $artist_locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Build the HTML "manually discarded" email body.
+	 *
+	 * @param string $artist_name Artist's display name.
+	 * @param string $title       The discarded draft's post_title (may be empty — omitted from the message when so).
+	 * @param int    $artist_id   WP user ID — gates EmailFooter::edit_reminder_html().
+	 * @return string HTML email body.
+	 */
+	private function build_discarded_email( string $artist_name, string $title, int $artist_id ): string {
+		ob_start();
+		?>
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $artist_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 24px;font-size:20px;line-height:1.6;color:#555;">
+			<?php if ( '' !== trim( $title ) ) : ?>
+				<?php
+				printf(
+					/* translators: %s: discarded submission's title */
+					esc_html__( 'Your submission "%s" was reviewed and was not published.', 'agnosis' ),
+					esc_html( $title )
+				);
+				?>
+			<?php else : ?>
+				<?php esc_html_e( 'Your submission was reviewed and was not published.', 'agnosis' ); ?>
+			<?php endif; ?>
+		</p>
+		<p style="margin:0 0 28px;font-size:18px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'If this wasn\'t intentional, or you\'d like to submit something new, just send another email any time — we\'ll pick it up automatically.', 'agnosis' ); ?>
+		</p>
+		<?php
+		$body_html = (string) ob_get_clean();
+
+		ob_start();
+		$work_emails_html = EmailFooter::html();
+		if ( '' !== $work_emails_html ) :
+			?>
+		<div style="margin:16px 0 0;padding-top:14px;border-top:1px solid <?php echo esc_attr( EmailTemplate::border_color() ); ?>;">
+			<?php echo $work_emails_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::html() escapes each label/address itself. ?>
+		</div>
+			<?php
+		endif;
+		$edit_reminder_html = EmailFooter::edit_reminder_html( $artist_id );
+		if ( '' !== $edit_reminder_html ) :
+			?>
+		<p style="margin:12px 0 0;font-size:15px;color:#888;text-align:center;">
+			<?php echo $edit_reminder_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::edit_reminder_html() escapes internally. ?>
+		</p>
+			<?php
+		endif;
+		$footer_extra_html = (string) ob_get_clean();
+
+		return EmailTemplate::render( $this->html_lang(), $body_html, $footer_extra_html );
+	}
+
+	// -------------------------------------------------------------------------
 	// Submission with no recognizable attachment
 	// -------------------------------------------------------------------------
 

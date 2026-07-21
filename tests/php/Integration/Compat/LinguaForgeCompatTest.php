@@ -1689,6 +1689,31 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Regression test for the 2026-07-21 fix: the sibling's body_block used
+	 * to be hand-wrapped in a single '<!-- wp:paragraph --><p>...</p>' with no
+	 * wpautop() call, so a multi-line native body (a poem, a bio with
+	 * paragraph breaks) lost every one of its line breaks on the sibling post
+	 * — even though the primary post itself (via build_post_content()'s own
+	 * 0.9.42 fix) preserved them correctly. Now runs through the same
+	 * wpautop()+PostCreator::paragraphs_to_blocks() path.
+	 */
+	public function test_sync_native_sibling_preserves_line_breaks_in_multiline_native_body(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Resumen.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', "Primera línea\nSegunda línea\nTercera línea" );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$trid    = FakeLinguaForge::$trids[ $this->artwork_id ] ?? '';
+		$sibling = $this->find_sibling_by_trid( $trid, $this->artwork_id );
+
+		$this->assertInstanceOf( \WP_Post::class, $sibling );
+		$this->assertSame( 2, substr_count( $sibling->post_content, '<br' ), 'Both line breaks in the three-line native body must survive as <br /> tags.' );
+	}
+
 	public function test_sync_native_sibling_updates_an_existing_sibling_in_place_and_resyncs_the_title(): void {
 		self::$lf_languages = [ 'en', 'es' ];
 		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );

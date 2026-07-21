@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.42';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.42/agnosis-0.9.42.zip';
+	$version      = '0.9.43';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.43/agnosis-0.9.43.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,10 +52,19 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.42.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.42 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.43.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.43 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '55edac8a93aefd132d6cf19f57dd7f60c503e8707f6def5f42db4f4b8f9ba142';
+	//
+	// Cleared 2026-07-21: the value here (55edac8a...) was the real sha256 for
+	// the 0.9.42 build — now stale against this version bump to 0.9.43 (a
+	// different zip, a different hash). Left in place it would silently break
+	// update verification: WordPress would hash the newly-downloaded 0.9.43
+	// zip and compare it against the OLD 0.9.42 zip's digest, which can never
+	// match. Per this file's own documented invariant (below) and
+	// build-zip.sh's clear_manifest_sha(), a stale digest is worse than an
+	// empty one — empty just skips verification; stale actively fails it.
+	$sha256 = '77c773fa07138b1484116a35f47b723b9cbf1744f8990f01400852dab24eb599';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -67,18 +76,18 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.43</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> Manually discarding a draft submission from the review screen sent a completely wrong &#8220;photo quality too low&#8221; email &#8212; for every post type, every reason, with or without a real photo involved (e.g. a discarded text-only poem got a &#8220;retake your photo&#8221; bounce). It now sends a plain, honest &#8220;your submission wasn&#8217;t published&#8221; message instead; the photo-quality email is reserved for the real, automatic AI quality-gate rejection it was built for.</li>' .
+			'<li><strong>Fixed:</strong> Line breaks could still be lost from a published post even after the 0.9.42 fix, because that fix only covered draft creation &#8212; not the actual review-and-publish flow every submission is approved through, or the native-language translation/sibling-post paths. All of these now preserve the artist&#8217;s own line breaks consistently.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.42</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> Translation passes &#8212; Agnosis&#8217;s own pre-publish pass and Lingua Forge&#8217;s (2.6.6+) multi-language fan-out pass &#8212; now leave embedded other-language text (a quotation, epigraph, or title deliberately given in its original language) untranslated, instead of flattening it into the target language along with everything else.</li>' .
 			'<li><strong>Fixed:</strong> A text-only submission (&#8220;pure@&#8221; &#8212; poetry, an essay, no photo/audio/video) with valid content was wrongly rejected as having no usable attachment. Pure-lane submissions never required one; the real cause was an email-parsing bug that skipped fetching the message body under certain conditions.</li>' .
 			'<li><strong>Fixed:</strong> The poster image generated for a text-only submission now fills the frame with the artist&#8217;s own body text (preserving their line breaks), instead of stopping after the title.</li>' .
 			'<li><strong>Fixed:</strong> A published post&#8217;s line breaks could silently disappear the first time it was opened in the block editor. Post content is now written as valid native block markup from the moment it&#8217;s created, so there&#8217;s nothing left for the editor to reinterpret.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.41</h4>' .
-		'<ul>' .
-			'<li><strong>Changed:</strong> Replaced the planned &#8220;Commerce&#8221; revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings &#8594; Commerce is renamed Settings &#8594; Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace &#8212; art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn&#8217;t change how any existing site behaves.</li>' .
-			'<li><strong>Fixed:</strong> The &#8220;Mediums&#8221; checklist on the Artworks Quick Edit panel (and the artwork edit screen) no longer mixes every language&#8217;s translation of every medium into one list &#8212; it now shows only the mediums for that artwork&#8217;s own language (Quick Edit follows the list&#8217;s own language filter; the edit screen follows that specific artwork). Previously all of them appeared together (e.g. seven different-language versions of &#8220;Watercolor&#8221; at once), which also made it possible to accidentally assign a wrong-language medium to an artwork. (A first attempt at this fix shipped earlier the same day and didn&#8217;t actually work &#8212; this is the corrected version.)</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

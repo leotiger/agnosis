@@ -291,6 +291,41 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 		$this->assertEmpty( get_post_meta( $this->post_id, '_agnosis_review_token', true ) );
 	}
 
+	/**
+	 * 2026-07-21 fix: reject() must fire the manual-discard hook, NOT the
+	 * automatic AI photo-quality-gate hook — reusing the latter (with a
+	 * hardcoded score of 0) sent every discarded draft the same "photo
+	 * quality too low" email regardless of post type or reason. See
+	 * ReviewEndpoints::reject()'s own comment and Notification::
+	 * on_submission_discarded()'s docblock for the full incident.
+	 */
+	public function test_reject_fires_submission_discarded_not_submission_rejected(): void {
+		$discarded_args = null;
+		$rejected_fired = false;
+
+		$discarded_filter = function ( ...$args ) use ( &$discarded_args ) {
+			$discarded_args = $args;
+		};
+		$rejected_filter = function ( ...$args ) use ( &$rejected_fired ) {
+			unset( $args );
+			$rejected_fired = true;
+		};
+		add_action( 'agnosis_submission_discarded', $discarded_filter, 10, 3 );
+		add_action( 'agnosis_submission_rejected', $rejected_filter, 10, 4 );
+
+		$req = $this->request( [ 'id' => $this->post_id, 'token' => self::VALID_TOKEN ] );
+		$this->endpoints->reject( $req );
+
+		remove_action( 'agnosis_submission_discarded', $discarded_filter, 10 );
+		remove_action( 'agnosis_submission_rejected', $rejected_filter, 10 );
+
+		$this->assertNotNull( $discarded_args, 'reject() must fire agnosis_submission_discarded.' );
+		$this->assertSame( $this->post_id, $discarded_args[0] );
+		$this->assertSame( $this->artist_id, $discarded_args[1] );
+		$this->assertSame( 'Test Artwork', $discarded_args[2] );
+		$this->assertFalse( $rejected_fired, 'reject() must NOT fire agnosis_submission_rejected — that hook is reserved for the automatic AI photo-quality gate.' );
+	}
+
 	public function test_reject_with_wrong_token_returns_403_and_does_not_trash(): void {
 		$req    = $this->request( [ 'id' => $this->post_id, 'token' => 'bad-token' ] );
 		$result = $this->endpoints->reject( $req );
@@ -335,6 +370,28 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( '<!-- wp:image -->', $content );
 		// New body must also be present.
 		$this->assertStringContainsString( 'New body text.', $content );
+	}
+
+	/**
+	 * Regression test for the 2026-07-21 fix: save() used to hand-wrap the
+	 * request's 'body' param in a single '<!-- wp:paragraph --><p>...</p>'
+	 * with no wpautop() call at all, so an artist's own line breaks (typed
+	 * into this form's textarea) never became <br /> tags — reported live: a
+	 * poem's line breaks were still lost even after build_post_content()'s
+	 * own 0.9.42 fix, because the artist's actual review-and-publish flow
+	 * runs through THIS method, which build_post_content() doesn't touch.
+	 */
+	public function test_save_preserves_line_breaks_in_multiline_body(): void {
+		$req = $this->request( [
+			'id'    => $this->post_id,
+			'token' => self::VALID_TOKEN,
+			'body'  => "Roses are red\nViolets are blue",
+		] );
+
+		$this->endpoints->save( $req );
+
+		$content = get_post( $this->post_id )->post_content;
+		$this->assertSame( 1, substr_count( $content, '<br' ), 'The single line break between the two lines must survive as a <br /> tag.' );
 	}
 
 	public function test_save_with_publish_true_publishes_post(): void {

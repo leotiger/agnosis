@@ -116,7 +116,16 @@ class ReviewEndpoints {
 		// Preserve any image/gallery blocks embedded at the top of the content.
 		$image_blocks = $this->extract_image_blocks( $post->post_content );
 		$body         = (string) ( $request->get_param( 'body' ) ?? '' );
-		$body_block   = $body ? '<!-- wp:paragraph --><p>' . wp_kses_post( $body ) . '</p><!-- /wp:paragraph -->' : '';
+		// wpautop() + PostCreator::paragraphs_to_blocks() (2026-07-21) — this used
+		// to hand-wrap $body in a single '<!-- wp:paragraph --><p>...</p>' with no
+		// wpautop() call at all, so an artist's own line breaks (typed into this
+		// form's textarea) never became <br /> tags — reported live: a poem's
+		// line breaks were STILL lost after the original 0.9.42 fix, because
+		// THIS is the path the artist's actual review-and-publish flow runs
+		// through, not build_post_content() (which already got this fix, and
+		// which this save() path bypasses entirely). See paragraphs_to_blocks()'s
+		// own docblock for the full incident.
+		$body_block   = $body ? PostCreator::paragraphs_to_blocks( wpautop( wp_kses_post( $body ) ) ) : '';
 		$new_content  = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
 
 		$should_publish = (bool) $request->get_param( 'publish' );
@@ -253,7 +262,18 @@ class ReviewEndpoints {
 			delete_post_meta( $post_id, '_agnosis_review_backtranslation' );
 		}
 
-		do_action( 'agnosis_submission_rejected', $post_id, (int) $post->post_author, 0, [] );
+		// 2026-07-21 fix: this used to fire 'agnosis_submission_rejected' — the
+		// SAME hook PostCreator's automatic AI photo-quality gate uses, with a
+		// real detected score — hardcoding score=0 and no issues. Notification's
+		// listener for that hook is a photo-quality-specific template ("photo
+		// quality score: 0/10", camera tips), so every manual discard sent that
+		// exact email regardless of post type, whether it had a photo at all, or
+		// the artist's actual reason for discarding (reported live: a discarded
+		// text-only poem, whose only "photo" was a synthetic poster image,
+		// triggered the same "retake your photo" bounce). A manual discard here
+		// has no relationship to AI-detected photo quality at all — it's a
+		// distinct event with its own, honest, reason-agnostic notification.
+		do_action( 'agnosis_submission_discarded', $post_id, (int) $post->post_author, $post->post_title );
 
 		return new WP_REST_Response( [ 'status' => 'rejected', 'post_id' => $post_id ], 200 );
 	}
@@ -798,8 +818,12 @@ class ReviewEndpoints {
 		// submission that never needed translating shouldn't inflate the count.
 		CallCounter::record( $source->ID, 'native_to_primary' );
 
+		// Same wpautop() + paragraphs_to_blocks() fix as save() above (2026-07-21)
+		// — $translated['body'] is plain AI-translated text and previously got
+		// the identical single-<p>-no-wpautop() treatment, losing the artist's
+		// line breaks on every native-language-to-primary approval.
 		$body_block = isset( $translated['body'] ) && '' !== trim( $translated['body'] )
-			? '<!-- wp:paragraph --><p>' . wp_kses_post( $translated['body'] ) . '</p><!-- /wp:paragraph -->'
+			? PostCreator::paragraphs_to_blocks( wpautop( wp_kses_post( $translated['body'] ) ) )
 			: '';
 		$content = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
 

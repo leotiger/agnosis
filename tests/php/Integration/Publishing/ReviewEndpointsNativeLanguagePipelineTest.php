@@ -180,6 +180,28 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( self::TRANSLATED_RESPONSE['body'], $post->post_content );
 	}
 
+	/**
+	 * Regression test for the 2026-07-21 fix: translate_native_content_to_primary()
+	 * used to hand-wrap the AI-translated body in a single
+	 * '<!-- wp:paragraph --><p>...</p>' with no wpautop() call, so a
+	 * multi-line translated body (e.g. a poem) lost every one of its line
+	 * breaks the moment a native-language artwork was approved into the
+	 * site's primary language. Now runs through the same
+	 * wpautop()+PostCreator::paragraphs_to_blocks() path build_post_content()
+	 * already uses.
+	 */
+	public function test_approve_preserves_line_breaks_in_multiline_translated_body(): void {
+		$multiline_response          = self::TRANSLATED_RESPONSE;
+		$multiline_response['body']  = "Line one\nLine two\nLine three";
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( $multiline_response );
+
+		$this->approve();
+
+		$content = get_post( $this->post_id )->post_content;
+		// Three lines means two line breaks between them, not three.
+		$this->assertSame( 2, substr_count( $content, '<br' ), 'Each line break in the translated body must survive as a <br /> tag.' );
+	}
+
 	public function test_approve_preserves_the_original_native_text_before_overwriting_it(): void {
 		$this->approve();
 

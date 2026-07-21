@@ -25,6 +25,19 @@
  *     - HTML contains the issue panel when issues present
  *     - HTML omits per-issue advice when issues empty
  *
+ *   on_submission_discarded() (2026-07-21 — manual review-screen discard,
+ *   deliberately separate from on_submission_rejected()'s automatic AI
+ *   photo-quality gate; see ReviewEndpoints::reject()'s own comment for the
+ *   incident this fixes):
+ *     - Sends email when artist exists and has a valid email address
+ *     - Skips sending when artist_id does not match any user
+ *
+ *   build_discarded_email() (via Reflection — private method):
+ *     - HTML contains artist name
+ *     - HTML contains the discarded post's title when non-empty
+ *     - HTML omits any title reference when title is empty (generic wording instead)
+ *     - HTML makes no claim about photo quality (regression guard for the fixed incident)
+ *
  *   on_post_drafted():
  *     - Sends email when review token meta is present
  *     - Skips when no review token meta
@@ -52,6 +65,7 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 	private Notification $notification;
 	private \ReflectionMethod $issues_to_advice;
 	private \ReflectionMethod $build_rejection_email;
+	private \ReflectionMethod $build_discarded_email;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -65,6 +79,9 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 
 		$this->build_rejection_email = $rc->getMethod( 'build_rejection_email' );
 		$this->build_rejection_email->setAccessible( true );
+
+		$this->build_discarded_email = $rc->getMethod( 'build_discarded_email' );
+		$this->build_discarded_email->setAccessible( true );
 	}
 
 	protected function tearDown(): void {
@@ -457,6 +474,125 @@ class NotificationEmailTest extends \WP_UnitTestCase {
 			'Artist',
 			3,
 			[ 'too dark', 'blurry' ]
+		);
+
+		$this->assertStringContainsString( '<!DOCTYPE html>', $html );
+		$this->assertStringContainsString( '</html>', $html );
+	}
+
+	// =========================================================================
+	// on_submission_discarded() (2026-07-21 — manual review-screen discard)
+	// =========================================================================
+
+	public function test_on_submission_discarded_sends_email_to_artist(): void {
+		$artist   = $this->create_artist( 'poet@example.com' );
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_discarded( 1, $artist->ID, 'Naevius dixit' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured, 'wp_mail() should have been called.' );
+		$this->assertSame( 'poet@example.com', $captured['to'] );
+	}
+
+	public function test_on_submission_discarded_subject_contains_site_name(): void {
+		$artist   = $this->create_artist();
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->notification->on_submission_discarded( 1, $artist->ID, 'A Poem' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$site_name = get_bloginfo( 'name' );
+		if ( $site_name ) {
+			$this->assertStringContainsString( $site_name, $captured['subject'] );
+		} else {
+			$this->assertNotEmpty( $captured['subject'] );
+		}
+	}
+
+	public function test_on_submission_discarded_skips_for_invalid_artist_id(): void {
+		$called = false;
+		$filter = function () use ( &$called ) {
+			$called = true;
+			return true;
+		};
+		add_filter( 'pre_wp_mail', $filter, 10, 1 );
+
+		$this->notification->on_submission_discarded( 1, 999999, 'A Poem' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertFalse( $called, 'wp_mail() must not fire for a non-existent artist.' );
+	}
+
+	// =========================================================================
+	// build_discarded_email() — HTML content
+	// =========================================================================
+
+	public function test_build_discarded_email_contains_artist_name(): void {
+		$html = (string) $this->build_discarded_email->invoke(
+			$this->notification,
+			'Guillermo',
+			'A Poem',
+			0
+		);
+
+		$this->assertStringContainsString( 'Guillermo', $html );
+	}
+
+	public function test_build_discarded_email_contains_title_when_present(): void {
+		$html = (string) $this->build_discarded_email->invoke(
+			$this->notification,
+			'Ana',
+			'Naevius dixit',
+			0
+		);
+
+		$this->assertStringContainsString( 'Naevius dixit', $html );
+	}
+
+	public function test_build_discarded_email_omits_title_reference_when_title_is_empty(): void {
+		$html = (string) $this->build_discarded_email->invoke(
+			$this->notification,
+			'Ana',
+			'',
+			0
+		);
+
+		// Generic wording ("Your submission was reviewed...") is used instead
+		// of the quoted-title variant — just confirm the email still renders
+		// sensibly with no title to reference.
+		$this->assertStringContainsString( 'was reviewed and was not published', $html );
+	}
+
+	/**
+	 * Regression guard for the incident this whole feature fixes (2026-07-21):
+	 * a manual discard must never claim anything about photo quality — that
+	 * claim only ever belongs to on_submission_rejected()'s automatic AI gate.
+	 */
+	public function test_build_discarded_email_makes_no_photo_quality_claim(): void {
+		$html = (string) $this->build_discarded_email->invoke(
+			$this->notification,
+			'Ana',
+			'A Poem',
+			0
+		);
+
+		$this->assertStringNotContainsString( 'photo quality', $html );
+		$this->assertStringNotContainsString( 'Photo quality', $html );
+		$this->assertStringNotContainsString( '/ 10', $html );
+	}
+
+	public function test_build_discarded_email_is_valid_html(): void {
+		$html = (string) $this->build_discarded_email->invoke(
+			$this->notification,
+			'Artist',
+			'A Poem',
+			0
 		);
 
 		$this->assertStringContainsString( '<!DOCTYPE html>', $html );

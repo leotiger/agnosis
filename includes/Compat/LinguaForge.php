@@ -108,6 +108,7 @@ use Agnosis\AI\CallCounter;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RewriteFlush;
+use Agnosis\Publishing\PostCreator;
 
 class LinguaForge {
 
@@ -842,8 +843,13 @@ class LinguaForge {
 		if ( preg_match( '/^((?:<!-- wp:(?:image|gallery)[^>]*-->.*?<!-- \/wp:(?:image|gallery) -->[\s]*)+)/s', $source->post_content, $matches ) ) {
 			$image_blocks = trim( $matches[1] );
 		}
+		// Same wpautop() + paragraphs_to_blocks() fix as ReviewEndpoints::save()/
+		// translate_native_content_to_primary() (2026-07-21) — $native_body is
+		// plain text (stripped of markup when preserved, per the comment above)
+		// and previously got the identical single-<p>-no-wpautop() treatment,
+		// losing the artist's own line breaks on the native-language sibling post.
 		$body_block = '' !== $native_body
-			? '<!-- wp:paragraph --><p>' . wp_kses_post( $native_body ) . '</p><!-- /wp:paragraph -->'
+			? PostCreator::paragraphs_to_blocks( wpautop( wp_kses_post( $native_body ) ) )
 			: '';
 		$content = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
 

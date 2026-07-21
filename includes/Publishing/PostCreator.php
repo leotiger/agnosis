@@ -2300,7 +2300,7 @@ class PostCreator {
 		// editor). Emitting real wp:paragraph blocks from creation means
 		// there's nothing left for the editor to "recover" — the content is
 		// already valid, native block markup the moment the post is made.
-		$body = $this->paragraphs_to_blocks( $body );
+		$body = self::paragraphs_to_blocks( $body );
 
 		$embed_blocks = $this->build_external_link_embeds( $artist_text );
 
@@ -2370,10 +2370,28 @@ class PostCreator {
 	 * (rare, but possible with malformed input) passes through untouched
 	 * rather than being dropped.
 	 *
+	 * `public static` (not `private`) since 2026-07-21 — the identical
+	 * missing-wpautop()-then-hand-wrap-in-one-<p> bug this method was
+	 * originally written to close turned out to have THREE other call sites
+	 * with the exact same shape, none of which this class owns:
+	 * ReviewEndpoints::save() (artist edits body on the review web form),
+	 * ReviewEndpoints::translate_native_content_to_primary() (AI-translated
+	 * body at cross-language approval), and Compat\LinguaForge's
+	 * native-language sibling-post builder. Reported live: a poem's line
+	 * breaks were STILL lost after the original 0.9.42 fix, because the
+	 * artist's review-and-publish flow runs through save(), which rebuilds
+	 * post_content from the raw form body with its own hardcoded
+	 * '<!-- wp:paragraph --><p>' . wp_kses_post( $body ) . '</p><!-- /wp:paragraph -->'
+	 * — never calling wpautop() at all, so single line breaks never became
+	 * <br />, and this method's own fix (called only from
+	 * build_post_content()) never even ran on that path. All four call
+	 * sites now share this one helper instead of four hand-rolled copies of
+	 * the same wrap.
+	 *
 	 * @param string $html wpautop()-processed HTML (bare <p>/<br> tags, no block comments).
 	 * @return string Same content with each <p>...</p> wrapped in a wp:paragraph block.
 	 */
-	private function paragraphs_to_blocks( string $html ): string {
+	public static function paragraphs_to_blocks( string $html ): string {
 		if ( '' === trim( $html ) ) {
 			return $html;
 		}
