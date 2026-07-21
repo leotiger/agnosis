@@ -4,6 +4,8 @@
 
 Agnosis is a free, federated WordPress plugin for independent artists. Artists who are great at creating — but not at promoting — send an email with their artwork. Agnosis handles the rest.
 
+The name is Greek: γνῶσις (*gnōsis*) means "knowledge"; the prefix ἀ- negates it, giving ἄγνωσις (*agnōsis*) — "without knowledge," unknown.
+
 ## Who is this for?
 
 Agnosis was designed for one shape — an open artist collective that vouches its own members in — but the underlying workflow (email in → AI polish → curated review → multilingual publish → federate) fits a few others too:
