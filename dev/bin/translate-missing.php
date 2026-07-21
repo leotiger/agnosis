@@ -13,7 +13,7 @@
  * was built to clean up after. This script removes the dependency on
  * Loco Translate entirely: it finds every empty msgstr/msgstr[N] across
  * every locale — ordinary untranslated strings AND plural-slot gaps in
- * one pass — and fills them by calling the Anthropic API with a prompt
+ * one pass — and fills them by calling an AI provider with a prompt
  * that knows what Agnosis actually is, so translations land in the
  * right register instead of a generic machine-translation guess.
  *
@@ -21,26 +21,49 @@
  * spirit as fill-loco-gaps.php — not wired into make-pot.sh/compile-pos.sh,
  * not run automatically on every version bump.
  *
- * Requires: an ANTHROPIC_API_KEY environment variable (never read from
- * or written to any file in this repo). Get one at
- * https://console.anthropic.com/ — this is a separate key from anything
- * Agnosis itself stores at runtime (Core\Secrets); this script only ever
- * runs on a developer's own machine, never inside WordPress.
+ * Three providers supported via --provider=anthropic|openai|gemini
+ * (default: anthropic). Each needs its own API key — either export the
+ * matching environment variable before running, or leave it unset and
+ * this script prompts for it interactively (input hidden, used for that
+ * run only, never written to any file in this repo or persisted
+ * anywhere by the script itself):
+ *   anthropic → ANTHROPIC_API_KEY  (https://console.anthropic.com/)
+ *   openai    → OPENAI_API_KEY     (https://platform.openai.com/api-keys)
+ *   gemini    → GEMINI_API_KEY     (https://aistudio.google.com/apikey)
+ * These are separate keys from anything Agnosis itself stores at
+ * runtime (Core\Secrets); this script only ever runs on a developer's
+ * own machine, never inside WordPress. The default model per provider
+ * is a reasonable, cost-aware pick as of when this script was written —
+ * provider model names move fast, so a stderr notice prints whenever a
+ * non-anthropic default is used unconfirmed; pass --model=NAME to pin
+ * an exact, currently-correct one.
  *
  * Writes AI translations DIRECTLY into the .po files (by design — see
- * AUDIT-0.9.44.md §5d annotation for the trade-off discussion). Every
- * write is also appended to dev/translate-missing.log for a fast
+ * AUDIT-0.9.44.md §5d annotation for the trade-off discussion) — and
+ * saves after EVERY batch, not just once a whole locale finishes, so an
+ * interrupted run (Ctrl-C, a crash, or an external wrapper killing the
+ * process on its own timeout) keeps whatever was already translated.
+ * Every write is also appended to dev/translate-missing.log for a fast
  * post-hoc skim; nothing here claims professional/native-speaker
  * accuracy — same caveat as every AI-drafted string this project has
  * shipped so far.
  *
+ * If you're running this through a tool/wrapper that enforces its own
+ * process timeout (e.g. a 300-second cap), pass --time-budget=SECONDS set
+ * safely under that limit; the script then stops itself cleanly before a
+ * new batch starts, instead of being killed mid-batch. Because progress is
+ * saved per batch either way, just re-run the same command — it picks up
+ * exactly where the previous run left off.
+ *
  * Usage (from dev/):
- *   php bin/translate-missing.php                    # all locales, all gaps
+ *   php bin/translate-missing.php                    # all locales, all gaps, Anthropic Haiku
  *   php bin/translate-missing.php --dry-run           # call the API, print results, write nothing
  *   php bin/translate-missing.php --locale=ar         # scope to one locale
  *   php bin/translate-missing.php --limit=10          # cap items translated (testing/cost control)
  *   php bin/translate-missing.php --batch-size=40      # items per API call (default 40)
- *   php bin/translate-missing.php --model=claude-haiku-4-5-20251001  # override model
+ *   php bin/translate-missing.php --provider=openai --model=gpt-4o-mini   # use OpenAI instead
+ *   php bin/translate-missing.php --provider=gemini --model=gemini-2.0-flash  # use Gemini instead
+ *   php bin/translate-missing.php --time-budget=270   # stop cleanly under a 300s wrapper timeout; re-run to resume
  * ---------------------------------------------------------------------------
  */
 
@@ -50,11 +73,34 @@ $devDir  = dirname(__DIR__);
 $langDir = $devDir . '/../languages';
 $logFile = $devDir . '/translate-missing.log';
 
+const PROVIDERS = [
+    'anthropic' => [
+        'env'   => 'ANTHROPIC_API_KEY',
+        'model' => 'claude-haiku-4-5-20251001',
+        'label' => 'Anthropic',
+        'url'   => 'https://console.anthropic.com/',
+    ],
+    'openai' => [
+        'env'   => 'OPENAI_API_KEY',
+        'model' => 'gpt-4o-mini',
+        'label' => 'OpenAI',
+        'url'   => 'https://platform.openai.com/api-keys',
+    ],
+    'gemini' => [
+        'env'   => 'GEMINI_API_KEY',
+        'model' => 'gemini-2.0-flash',
+        'label' => 'Google Gemini',
+        'url'   => 'https://aistudio.google.com/apikey',
+    ],
+];
+
 $onlyLocale = null;
 $dryRun     = false;
 $limit      = null;
 $batchSize  = 40;
-$model      = 'claude-haiku-4-5-20251001';
+$provider   = 'anthropic';
+$model      = null; // resolved to PROVIDERS[$provider]['model'] below if not set explicitly.
+$timeBudget = null; // seconds; null = unlimited (see --time-budget below)
 
 foreach (array_slice($argv, 1) as $arg) {
     if ($arg === '--dry-run') {
@@ -65,10 +111,14 @@ foreach (array_slice($argv, 1) as $arg) {
         $limit = (int) substr($arg, strlen('--limit='));
     } elseif (str_starts_with($arg, '--batch-size=')) {
         $batchSize = max(1, (int) substr($arg, strlen('--batch-size=')));
+    } elseif (str_starts_with($arg, '--provider=')) {
+        $provider = substr($arg, strlen('--provider='));
     } elseif (str_starts_with($arg, '--model=')) {
         $model = substr($arg, strlen('--model='));
+    } elseif (str_starts_with($arg, '--time-budget=')) {
+        $timeBudget = max(1, (int) substr($arg, strlen('--time-budget=')));
     } elseif ($arg === '--help' || $arg === '-h') {
-        fwrite(STDOUT, "Usage: php bin/translate-missing.php [--dry-run] [--locale=xx] [--limit=N] [--batch-size=N] [--model=NAME]\n");
+        fwrite(STDOUT, "Usage: php bin/translate-missing.php [--dry-run] [--locale=xx] [--limit=N] [--batch-size=N] [--provider=anthropic|openai|gemini] [--model=NAME] [--time-budget=SECONDS]\n");
         exit(0);
     } else {
         fwrite(STDERR, "Unknown argument: {$arg}\n");
@@ -76,16 +126,61 @@ foreach (array_slice($argv, 1) as $arg) {
     }
 }
 
+if (!isset(PROVIDERS[$provider])) {
+    fwrite(STDERR, "Unknown --provider: {$provider}. Supported: " . implode(', ', array_keys(PROVIDERS)) . "\n");
+    exit(1);
+}
+$providerConfig = PROVIDERS[$provider];
+if ($model === null) {
+    $model = $providerConfig['model'];
+    fwrite(STDERR, "No --model given — defaulting to {$model} for {$providerConfig['label']}. Provider model names move fast; verify this is still current, or pin one with --model=NAME.\n");
+}
+
 if (!function_exists('curl_init')) {
     fwrite(STDERR, "PHP's curl extension is required but not available.\n");
     exit(1);
 }
 
-$apiKey = getenv('ANTHROPIC_API_KEY');
+/**
+ * Prompt for the API key at an interactive terminal, input hidden (via
+ * `stty -echo` on Unix-likes; visible on Windows, which has no
+ * equivalent builtin `stty`). Returns '' if input isn't a real TTY
+ * (piped/non-interactive invocation) rather than hanging forever
+ * waiting for a line that will never come.
+ */
+function prompt_for_api_key(string $providerLabel, string $envVar): string
+{
+    if (function_exists('posix_isatty') && !posix_isatty(STDIN)) {
+        return '';
+    }
+
+    fwrite(STDOUT, "{$envVar} is not set in the environment.\nEnter your {$providerLabel} API key now (input hidden; used for this run only, never saved anywhere): ");
+
+    $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    if (!$isWindows) {
+        shell_exec('stty -echo 2>/dev/null');
+    }
+    $key = trim((string) fgets(STDIN));
+    if (!$isWindows) {
+        shell_exec('stty echo 2>/dev/null');
+    }
+    fwrite(STDOUT, "\n");
+
+    return $key;
+}
+
+$apiKey = getenv($providerConfig['env']);
 if ($apiKey === false || $apiKey === '') {
-    fwrite(STDERR, "ANTHROPIC_API_KEY is not set. Export it before running:\n  export ANTHROPIC_API_KEY=sk-ant-...\n");
+    $apiKey = prompt_for_api_key($providerConfig['label'], $providerConfig['env']);
+}
+if ($apiKey === '') {
+    fwrite(STDERR, "No API key provided for {$providerConfig['label']}. Either export it before running:\n  export {$providerConfig['env']}=...\nor re-run interactively and enter it at the prompt. Get a key at {$providerConfig['url']}\n");
     exit(1);
 }
+
+// Clock starts here, not at script entry — so time spent waiting on a human
+// typing an interactive API key doesn't count against --time-budget.
+$scriptStart = microtime(true);
 
 const LOCALE_NAMES = [
     'ar'    => 'Arabic',
@@ -284,32 +379,56 @@ function parse_entries(array $lines): array
 }
 
 /**
- * One call to the Anthropic Messages API. Returns [assocArrayOfIdToText, usage].
+ * Strip markdown fences defensively (even though every provider's prompt
+ * forbids them) and parse the model's raw text response as the {id: text}
+ * JSON object all three providers are asked for identically. Returns null
+ * on parse failure rather than throwing, so callers can log and move on.
  */
-function call_anthropic(string $apiKey, string $model, string $system, array $items): array
+function parse_json_response(string $text): ?array
 {
-    $userPayload = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $body = json_encode([
-        'model'      => $model,
-        'max_tokens' => min(8192, max(2048, count($items) * 150)),
-        'system'     => $system,
-        'messages'   => [
-            ['role' => 'user', 'content' => "Translate this batch:\n\n" . $userPayload],
-        ],
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $text = trim($text);
+    $text = preg_replace('/^```(?:json)?\s*/', '', $text);
+    $text = preg_replace('/\s*```$/', '', $text);
 
+    $parsed = json_decode($text, true);
+    return is_array($parsed) ? $parsed : null;
+}
+
+/**
+ * Each provider reports token usage under different key names. Normalize
+ * to a common ['input_tokens' => int, 'output_tokens' => int] shape so
+ * the main loop's cost tally doesn't need to know which provider ran.
+ */
+function normalize_usage(string $provider, ?array $raw): ?array
+{
+    if ($raw === null) {
+        return null;
+    }
+    return match ($provider) {
+        'anthropic' => ['input_tokens' => (int) ($raw['input_tokens'] ?? 0), 'output_tokens' => (int) ($raw['output_tokens'] ?? 0)],
+        'openai'    => ['input_tokens' => (int) ($raw['prompt_tokens'] ?? 0), 'output_tokens' => (int) ($raw['completion_tokens'] ?? 0)],
+        'gemini'    => ['input_tokens' => (int) ($raw['promptTokenCount'] ?? 0), 'output_tokens' => (int) ($raw['candidatesTokenCount'] ?? 0)],
+        default     => null,
+    };
+}
+
+/**
+ * Shared POST-JSON-with-retry: one retry on a curl-level failure or a 5xx,
+ * none on 4xx (bad key/request — retrying won't help). Returns
+ * [$decodedBodyOrNull, $httpStatus] — callers still print their own error
+ * detail since only they know how to extract the useful bit of a given
+ * provider's error payload.
+ */
+function post_json_with_retry(string $url, array $headers, string $body): array
+{
     for ($attempt = 1; $attempt <= 2; $attempt++) {
-        $ch = curl_init('https://api.anthropic.com/v1/messages');
+        $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
-                'content-type: application/json',
-                'x-api-key: ' . $apiKey,
-                'anthropic-version: 2023-06-01',
-            ],
-            CURLOPT_POSTFIELDS => $body,
-            CURLOPT_TIMEOUT    => 120,
+            CURLOPT_HTTPHEADER     => $headers,
+            CURLOPT_POSTFIELDS     => $body,
+            CURLOPT_TIMEOUT        => 120,
         ]);
         $response = curl_exec($ch);
         $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -328,26 +447,128 @@ function call_anthropic(string $apiKey, string $model, string $system, array $it
         }
         if ($status !== 200) {
             fwrite(STDERR, "  API error {$status}: " . substr($response, 0, 500) . "\n");
-            return [[], null];
+            return [null, $status];
         }
 
-        $decoded = json_decode($response, true);
-        $text = $decoded['content'][0]['text'] ?? '';
-        $usage = $decoded['usage'] ?? null;
-
-        // Strip markdown fences defensively even though the prompt forbids them.
-        $text = trim($text);
-        $text = preg_replace('/^```(?:json)?\s*/', '', $text);
-        $text = preg_replace('/\s*```$/', '', $text);
-
-        $parsed = json_decode($text, true);
-        if (!is_array($parsed)) {
-            fwrite(STDERR, "  Could not parse model response as JSON: " . substr($text, 0, 300) . "\n");
-            return [[], $usage];
-        }
-        return [$parsed, $usage];
+        return [json_decode($response, true), $status];
     }
-    return [[], null];
+    return [null, 0];
+}
+
+/**
+ * One batch call to the Anthropic Messages API. Returns [assocArrayOfIdToText, usage].
+ */
+function call_anthropic(string $apiKey, string $model, string $system, array $items): array
+{
+    $userPayload = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $body = json_encode([
+        'model'      => $model,
+        'max_tokens' => min(8192, max(2048, count($items) * 150)),
+        'system'     => $system,
+        'messages'   => [
+            ['role' => 'user', 'content' => "Translate this batch:\n\n" . $userPayload],
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    [$decoded, $status] = post_json_with_retry('https://api.anthropic.com/v1/messages', [
+        'content-type: application/json',
+        'x-api-key: ' . $apiKey,
+        'anthropic-version: 2023-06-01',
+    ], $body);
+    if ($status !== 200 || $decoded === null) {
+        return [[], null];
+    }
+
+    $text  = $decoded['content'][0]['text'] ?? '';
+    $usage = normalize_usage('anthropic', $decoded['usage'] ?? null);
+    $parsed = parse_json_response($text);
+    if ($parsed === null) {
+        fwrite(STDERR, "  Could not parse model response as JSON: " . substr($text, 0, 300) . "\n");
+        return [[], $usage];
+    }
+    return [$parsed, $usage];
+}
+
+/**
+ * One batch call to the OpenAI Chat Completions API. Returns [assocArrayOfIdToText, usage].
+ */
+function call_openai(string $apiKey, string $model, string $system, array $items): array
+{
+    $userPayload = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $body = json_encode([
+        'model'      => $model,
+        'max_tokens' => min(8192, max(2048, count($items) * 150)),
+        'messages'   => [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user',   'content' => "Translate this batch:\n\n" . $userPayload],
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    [$decoded, $status] = post_json_with_retry('https://api.openai.com/v1/chat/completions', [
+        'content-type: application/json',
+        'Authorization: Bearer ' . $apiKey,
+    ], $body);
+    if ($status !== 200 || $decoded === null) {
+        return [[], null];
+    }
+
+    $text  = $decoded['choices'][0]['message']['content'] ?? '';
+    $usage = normalize_usage('openai', $decoded['usage'] ?? null);
+    $parsed = parse_json_response($text);
+    if ($parsed === null) {
+        fwrite(STDERR, "  Could not parse model response as JSON: " . substr($text, 0, 300) . "\n");
+        return [[], $usage];
+    }
+    return [$parsed, $usage];
+}
+
+/**
+ * One batch call to Google's Generative Language API (Gemini). Returns
+ * [assocArrayOfIdToText, usage]. Auth is a `key=` query param, not a
+ * header — that's Gemini's own REST convention, unlike Anthropic/OpenAI.
+ */
+function call_gemini(string $apiKey, string $model, string $system, array $items): array
+{
+    $userPayload = json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $body = json_encode([
+        'systemInstruction' => ['parts' => [['text' => $system]]],
+        'contents'          => [
+            ['role' => 'user', 'parts' => [['text' => "Translate this batch:\n\n" . $userPayload]]],
+        ],
+        'generationConfig' => [
+            'maxOutputTokens' => min(8192, max(2048, count($items) * 150)),
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/'
+        . rawurlencode($model) . ':generateContent?key=' . rawurlencode($apiKey);
+
+    [$decoded, $status] = post_json_with_retry($url, ['content-type: application/json'], $body);
+    if ($status !== 200 || $decoded === null) {
+        return [[], null];
+    }
+
+    $text  = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
+    $usage = normalize_usage('gemini', $decoded['usageMetadata'] ?? null);
+    $parsed = parse_json_response($text);
+    if ($parsed === null) {
+        fwrite(STDERR, "  Could not parse model response as JSON: " . substr($text, 0, 300) . "\n");
+        return [[], $usage];
+    }
+    return [$parsed, $usage];
+}
+
+/**
+ * Dispatch a translation batch to whichever provider was selected.
+ */
+function call_ai(string $provider, string $apiKey, string $model, string $system, array $items): array
+{
+    return match ($provider) {
+        'anthropic' => call_anthropic($apiKey, $model, $system, $items),
+        'openai'    => call_openai($apiKey, $model, $system, $items),
+        'gemini'    => call_gemini($apiKey, $model, $system, $items),
+        default     => throw new \InvalidArgumentException("Unknown provider: {$provider}"),
+    };
 }
 
 // ---------------------------------------------------------------------
@@ -437,7 +658,7 @@ if ($totalItems === 0) {
     echo "Nothing to translate — every locale is fully filled.\n";
     exit(0);
 }
-fwrite(STDERR, "{$totalItems} missing string(s) across " . count($work) . " locale(s)" . ($dryRun ? " (dry run)" : "") . ".\n");
+fwrite(STDERR, "{$totalItems} missing string(s) across " . count($work) . " locale(s), via {$providerConfig['label']} ({$model})" . ($dryRun ? " (dry run)" : "") . ".\n");
 
 $logLines = [];
 $totalIn  = 0;
@@ -449,9 +670,23 @@ foreach ($work as $locale => $w) {
     $langName = LOCALE_NAMES[$locale];
     $items    = $w['items'];
     $lines    = $w['lines'];
+    $path     = $w['path'];
 
-    $chunks = array_chunk($items, $batchSize);
-    foreach ($chunks as $chunk) {
+    $chunks           = array_chunk($items, $batchSize);
+    $totalChunks      = count($chunks);
+    $writtenForLocale = 0;
+
+    foreach ($chunks as $chunkIndex => $chunk) {
+        // Stop cleanly BEFORE starting a new batch if the caller's time budget
+        // is spent — better than being SIGKILL'd mid-curl_exec() by whatever
+        // external wrapper enforces its own process timeout (e.g. a 300s cap),
+        // which would waste that batch's API cost with nothing saved for it.
+        // Progress is already saved after every completed batch, so re-running
+        // the same command picks up exactly where this run stopped.
+        if ($timeBudget !== null && (microtime(true) - $scriptStart) >= $timeBudget) {
+            fwrite(STDERR, "Time budget of {$timeBudget}s reached — stopping cleanly after {$processed}/{$totalItems} item(s). Progress is saved batch-by-batch; re-run the same command to continue.\n");
+            break 2;
+        }
         if ($limit !== null && $processed >= $limit) {
             break 2;
         }
@@ -465,13 +700,17 @@ foreach ($work as $locale => $w) {
         $system = DOMAIN_PROMPT . "\n\nTarget language for this batch: {$langName} (locale code: {$locale}).";
         $payloadItems = array_map(fn($it) => ['id' => $it['id']] + $it['payload'], $chunk);
 
-        fwrite(STDERR, "[{$locale}] translating " . count($chunk) . " item(s)...\n");
-        [$result, $usage] = call_anthropic($apiKey, $model, $system, $payloadItems);
+        // Batch counter (within this locale) + running total (across every
+        // locale) so a locale needing several batches doesn't read as stuck
+        // repeating itself — each line is visibly a different, advancing step.
+        fwrite(STDERR, "[{$locale}] translating " . count($chunk) . " item(s) via {$providerConfig['label']} (batch " . ($chunkIndex + 1) . "/{$totalChunks} · {$processed}/{$totalItems} overall)...\n");
+        [$result, $usage] = call_ai($provider, $apiKey, $model, $system, $payloadItems);
         if ($usage !== null) {
             $totalIn  += $usage['input_tokens']  ?? 0;
             $totalOut += $usage['output_tokens'] ?? 0;
         }
 
+        $batchWritten = 0;
         foreach ($chunk as $it) {
             $id = $it['id'];
             if (!isset($result[$id]) || !is_string($result[$id]) || $result[$id] === '') {
@@ -492,16 +731,26 @@ foreach ($work as $locale => $w) {
             if (!$dryRun) {
                 $lines[$apply['line']] = $newLine;
                 $totalWritten++;
+                $batchWritten++;
             } else {
                 echo "  {$newLine}\n";
             }
         }
         $processed += count($chunk);
+
+        // Persist after EVERY batch, not just once the whole locale is done —
+        // so Ctrl-C (or a crash) mid-locale keeps whatever that locale already
+        // translated instead of discarding a partially-finished locale and
+        // re-paying for those same strings on the next run.
+        if (!$dryRun && $batchWritten > 0) {
+            file_put_contents($path, implode("\n", $lines));
+            $writtenForLocale += $batchWritten;
+            fwrite(STDERR, "  ↳ saved (batch " . ($chunkIndex + 1) . "/{$totalChunks}, {$writtenForLocale}/" . count($items) . " strings so far for {$locale})\n");
+        }
     }
 
-    if (!$dryRun) {
-        file_put_contents($w['path'], implode("\n", $lines));
-        echo "✓ wrote " . basename($w['path']) . "\n";
+    if (!$dryRun && $writtenForLocale > 0) {
+        echo "✓ wrote " . basename($path) . " ({$writtenForLocale} string(s))\n";
     }
 }
 
@@ -510,7 +759,7 @@ if ($logLines !== []) {
 }
 
 $costNote = ($totalIn + $totalOut > 0)
-    ? "input_tokens={$totalIn} output_tokens={$totalOut} (see Anthropic's current per-model pricing for the cost this represents)"
+    ? "input_tokens={$totalIn} output_tokens={$totalOut} on {$providerConfig['label']} ({$model}) — see that provider's current per-model pricing for the cost this represents"
     : "no usage data returned";
 echo ($dryRun ? "Dry run complete" : "Applied {$totalWritten} translation(s)") . ". {$costNote}.\n";
 echo "Log: {$logFile}\n";

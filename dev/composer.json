@@ -101,7 +101,7 @@
         "make-pot":         "Extract source strings and merge into .po files.",
         "compile-pos":      "Compile .po files into .mo binaries and .l10n.php caches.",
         "fill-loco-gaps":   "On-demand (not per-version): scan for plural entries Loco Translate left partially translated (AUDIT-0.9.44.md §5d) and print a JSON report; pass -- --apply=FILE.json to write provided translations into empty slots only.",
-        "translate-missing": "On-demand (not per-version): AI-translate (Anthropic Haiku, requires ANTHROPIC_API_KEY) every empty string across all 18 locales in one pass, replacing the manual Loco Translate workflow. Writes directly to .po; see dev/translate-missing.log. Flags: --dry-run, --locale=xx, --limit=N, --batch-size=N, --model=NAME.",
+        "translate-missing": "On-demand (not per-version): AI-translate every empty string across all 18 locales in one pass, replacing the manual Loco Translate workflow. Anthropic (default, Haiku), OpenAI, or Gemini via --provider=anthropic|openai|gemini. Needs that provider's API key — set ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY or leave it unset to be prompted (hidden input, used for that run only). Writes directly to .po; see dev/translate-missing.log. Flags: --dry-run, --locale=xx, --limit=N, --batch-size=N, --provider=NAME, --model=NAME.",
         "build-zip":        "Package the plugin into a distributable zip via rsync + .distignore (includes uncommitted changes).",
         "build-theme-zip":  "Package the Agnosis Theme into a distributable zip, output to agnosis-deploy/.",
         "qa":               "Local pre-deploy gate: lint → analyse → unit tests → js/css lint."
