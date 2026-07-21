@@ -303,8 +303,8 @@ class SettingsFields {
 			],
 			'agnosis_email_pure' => [
 				'tab'   => 'email',
-				'label' => __( 'Pure address (no AI at all)', 'agnosis' ),
-				'desc'  => __( 'Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, no vision description, no rewriting. The published post title, body, and translated-title subtitle are taken verbatim from the artist\'s own subject and message text; the attached file(s) are published exactly as sent. The quality-rejection gate is bypassed, same as Photo-only. Use the [Pure] subject indicator as a fallback for mail clients that do not support To: aliases — e.g. pure@agnosis.art', 'agnosis' ),
+				'label' => __( 'Pure address (content untouched by AI)', 'agnosis' ),
+				'desc'  => __( 'Strictest opt-out lane: your words and image are never touched, enhanced, or rewritten by AI. The published post title, body, and translated-title subtitle are taken verbatim from the artist\'s own subject and message text; the attached file(s) are published exactly as sent. AI is only ever used to classify the medium and a few tags, so the post is still findable and doesn\'t ship untagged into the fediverse. The quality-rejection gate is bypassed, same as Photo-only. Use the [Pure] subject indicator as a fallback for mail clients that do not support To: aliases — e.g. pure@agnosis.art', 'agnosis' ),
 			],
 			'agnosis_email_goodbye' => [
 				'tab'   => 'email',

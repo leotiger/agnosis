@@ -71,6 +71,8 @@
         ],
         "make-pot":    "bash bin/make-pot.sh",
         "compile-pos": "bash bin/compile-pos.sh",
+        "fill-loco-gaps": "php bin/fill-loco-gaps.php",
+        "translate-missing": "php bin/translate-missing.php",
         "build-zip": [
             "Composer\\Config::disableProcessTimeout",
             "bash bin/build-zip.sh"
@@ -98,7 +100,9 @@
         "coverage":         "Full coverage pipeline: coverage:run → coverage:merge. Reports land in coverage/unit/, coverage/integration/, coverage/combined/.",
         "make-pot":         "Extract source strings and merge into .po files.",
         "compile-pos":      "Compile .po files into .mo binaries and .l10n.php caches.",
-        "build-zip":        "Package the plugin into a distributable zip via git archive.",
+        "fill-loco-gaps":   "On-demand (not per-version): scan for plural entries Loco Translate left partially translated (AUDIT-0.9.44.md §5d) and print a JSON report; pass -- --apply=FILE.json to write provided translations into empty slots only.",
+        "translate-missing": "On-demand (not per-version): AI-translate (Anthropic Haiku, requires ANTHROPIC_API_KEY) every empty string across all 18 locales in one pass, replacing the manual Loco Translate workflow. Writes directly to .po; see dev/translate-missing.log. Flags: --dry-run, --locale=xx, --limit=N, --batch-size=N, --model=NAME.",
+        "build-zip":        "Package the plugin into a distributable zip via rsync + .distignore (includes uncommitted changes).",
         "build-theme-zip":  "Package the Agnosis Theme into a distributable zip, output to agnosis-deploy/.",
         "qa":               "Local pre-deploy gate: lint → analyse → unit tests → js/css lint."
     }

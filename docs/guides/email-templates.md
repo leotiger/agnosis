@@ -65,7 +65,7 @@ Sent once the community admits the applicant — the richest email in the set. D
 > - `[Biography]` — biography update
 > - `[Event]` — event announcement
 > - `[Photo]` — publish as-is, no AI enhancement (fallback for mail apps without To: aliases)
-> - `[Pure]` — publish exactly as sent, no AI at all (fallback for mail apps without To: aliases)
+> - `[Pure]` — publish exactly as sent, content untouched by AI (fallback for mail apps without To: aliases)
 >
 > **To leave the network and delete your account:** *(if a goodbye address is configured)*
 > {goodbye address}

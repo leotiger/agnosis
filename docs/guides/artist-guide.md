@@ -54,6 +54,12 @@ If your photograph *is* the artwork, send it to the photo address (or put `[Phot
 
 This lane isn't only for photographers. Whatever medium you work in — painting, sculpture, drawing, anything — you can send it the same way whenever you simply don't want AI touching the photograph that represents your piece. It skips automatic correction no matter what the artwork itself is; a description, tags, and alt text are still written for you as usual.
 
+## Publishing your own words, untouched
+
+Want your title, your message, and your photograph published exactly as you sent them — no AI-written description, no rewriting, no image correction, ever? Send to the pure address (or put `[Pure]` at the start of the subject line). Your subject line becomes the title and your message becomes the body, word for word; any attached photo is published exactly as sent.
+
+The one thing AI still does here is classify the medium and a few tags from what you sent, so your piece stays easy to find on the site and reaches the wider fediverse properly tagged — it never reads your words to rewrite them, and never touches your photograph.
+
 ## Your biography
 
 Email your artist statement to the biography address. The words you write are your statement — AI only tidies the formatting.

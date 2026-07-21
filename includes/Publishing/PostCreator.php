@@ -515,14 +515,22 @@ class PostCreator {
 					}
 				}
 
-				// ---- pure@ medium classification (2026-07-21) -----------------------
+				// ---- pure@ medium + tags classification (2026-07-21) -----------------
 				// process_raw() above makes zero OTHER AI calls by design (see its own
 				// docblock) — medium-term auto-assignment had silently never worked at
 				// all for this lane as a direct result, since 'medium' was never even a
-				// key in its result array before this fix. write_post_meta() only ever
-				// reads $primary['medium'] (see primary_result()), so classifying just
-				// the first result is sufficient — there is no gallery-wide medium to
-				// resolve here the way tags are merged across images.
+				// key in its result array before this fix, and 'tags' was a permanent
+				// empty array, so a pure@ post shipped tagless/undiscoverable into the
+				// fediverse. write_post_meta() only ever reads $primary['medium']/
+				// ['tags'] (see primary_result()), so classifying just the first result
+				// is sufficient — there is no gallery-wide medium/tag set to resolve
+				// here the way tags are merged across multiple images in process().
+				//
+				// Both classify_medium_from_image()/classify_medium_from_text() return
+				// medium AND tags from the ONE classification call — no second API call
+				// for tags, they were already in the same response and previously just
+				// discarded. The artist's own words/photo are never read by either call
+				// beyond what's needed to classify them — content itself stays untouched.
 				//
 				// Vision-based classification only when the artist attached a REAL
 				// photo ($had_original_attachment, captured above BEFORE the
@@ -532,16 +540,20 @@ class PostCreator {
 				// real image binary. Every other case (no attachment at all — the
 				// TextPosterGenerator synthetic-poster path — or a non-image real
 				// attachment) falls back to classifying the artist's own submitted
-				// text instead of silently leaving medium unclassified.
+				// text instead of silently leaving medium/tags unclassified.
 				if ( $pure && ! empty( $results ) ) {
-					$medium = ( $had_original_attachment && 'image' === ( $results[0]['media_type'] ?? '' ) )
+					$classification = ( $had_original_attachment && 'image' === ( $results[0]['media_type'] ?? '' ) )
 						? $this->pipeline->classify_medium_from_image( $submission, $results[0]['original_data'], $results[0]['mime_type'] )
 						: $this->pipeline->classify_medium_from_text( (string) ( $submission['description'] ?? '' ) ?: (string) $submission['subject'] );
 
-					$results[0]['medium'] = $medium;
+					$results[0]['medium'] = $classification['medium'];
+					$results[0]['tags']   = $classification['tags'];
 
-					if ( '' !== $medium ) {
-						Logger::info( sprintf( 'Queue #%d: pure@ submission classified as medium "%s".', $queue_id, $medium ), 'publisher' );
+					if ( '' !== $classification['medium'] ) {
+						Logger::info( sprintf( 'Queue #%d: pure@ submission classified as medium "%s".', $queue_id, $classification['medium'] ), 'publisher' );
+					}
+					if ( ! empty( $classification['tags'] ) ) {
+						Logger::info( sprintf( 'Queue #%d: pure@ submission classified with tags: %s.', $queue_id, implode( ', ', $classification['tags'] ) ), 'publisher' );
 					}
 				}
 
@@ -842,9 +854,14 @@ class PostCreator {
 	 *
 	 * pure = true means the submission came via pure@ or [Pure] — a strictly stronger
 	 * lane than photo_only:
-	 *   - No AI call of any kind runs (no describe(), no enhance(), no translate()).
-	 *   - Title/excerpt/body/tags/alt text are taken directly from the artist's own
-	 *     subject and message text (see Pipeline::process_raw()).
+	 *   - No describe()/enhance()/translate() call ever touches the artist's own
+	 *     content — Pipeline::process_raw() itself makes zero AI calls of any kind.
+	 *   - Title/excerpt/body/alt text are taken directly from the artist's own
+	 *     subject and message text, verbatim (see Pipeline::process_raw()).
+	 *   - Medium and tags are the one deliberate exception: a single classification-only
+	 *     AI call (Pipeline::classify_medium_from_image()/classify_medium_from_text(),
+	 *     below) reads the content just enough to categorize it, so the post is still
+	 *     findable — it never rewrites or generates the artist's own words or image.
 	 *   - Implies photo_only (no enhancement, no quality gate) as a subset.
 	 *
 	 * @param array<string, mixed> $submission

@@ -96,7 +96,7 @@ class EmailFooter {
 			],
 			__( 'Pure', 'agnosis' )       => [
 				'option' => 'agnosis_email_pure',
-				'desc'   => __( 'Publish exactly as sent — no AI at all, not even the title/description pass.', 'agnosis' ),
+				'desc'   => __( 'Publish exactly as sent — your words and image untouched by AI; only medium and tags are classified.', 'agnosis' ),
 			],
 			__( 'Community', 'agnosis' )  => [
 				'option' => 'agnosis_email_community',

@@ -1,6 +1,6 @@
 <?php
 /**
- * Integration tests for the pure@ medium-classification wiring added
+ * Integration tests for the pure@ medium+tags classification wiring added
  * 2026-07-21 (see PureLaneTest's own docblock for the wider context).
  *
  * process_raw() itself still makes zero AI calls (unchanged), but
@@ -13,8 +13,12 @@
  *     sent to a pure@ address).
  *
  * Before this fix, pure@'s result array never even had a 'medium' key, so
- * medium-term auto-assignment silently never worked for this lane at all —
- * these tests exercise the real end-to-end PostCreator::handle() →
+ * medium-term auto-assignment silently never worked for this lane at all,
+ * and 'tags' was a permanent empty array, so a pure@ post shipped
+ * tagless/undiscoverable into the fediverse. F-1 (2026-07-21, fourteenth
+ * audit): both classify_*() methods now return medium AND tags from that
+ * SAME one call — no second API call — so these tests cover both fields
+ * together. These tests exercise the real end-to-end PostCreator::handle() →
  * write_post_meta() chain, not just Pipeline in isolation, since that's
  * exactly the kind of disconnect PostCreatorMediumTermTest's own docblock
  * warns never gets caught by unit-level tests alone.
@@ -130,20 +134,29 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 	 * A Pipeline stub whose process_raw() delegates to the real
 	 * implementation (so the real, no-AI result shape is exercised) but
 	 * whose classify_medium_from_image()/classify_medium_from_text() are
-	 * instrumented spies returning a caller-supplied fixed value, rather than
-	 * making a real AI call.
+	 * instrumented spies returning a caller-supplied fixed
+	 * [ 'medium' => ..., 'tags' => ... ] value, rather than making a real AI
+	 * call — mirrors the real methods' return shape (2026-07-21: both now
+	 * return tags alongside medium, from the same classification call, so a
+	 * pure@ post no longer ships tagless — see Pipeline's own docblock).
+	 *
+	 * @param array<string> $tags_to_return
 	 */
-	private function make_pipeline_with_medium( string $medium_to_return ): object {
-		return new class( $medium_to_return ) extends Pipeline {
+	private function make_pipeline_with_medium( string $medium_to_return, array $tags_to_return = [] ): object {
+		return new class( $medium_to_return, $tags_to_return ) extends Pipeline {
 			public string $medium_to_return;
+			/** @var array<string> */
+			public array $tags_to_return;
 			public bool $image_classify_called = false;
 			public bool $text_classify_called  = false;
 			/** @var array<string, mixed>|null */
 			public ?array $image_classify_args = null;
 			public ?string $text_classify_arg = null;
 
-			public function __construct( string $medium_to_return ) {
+			/** @param array<string> $tags_to_return */
+			public function __construct( string $medium_to_return, array $tags_to_return = [] ) {
 				$this->medium_to_return = $medium_to_return;
+				$this->tags_to_return   = $tags_to_return;
 			}
 
 			public function process( array $submission, bool $skip_enhancement = false ): array {
@@ -154,16 +167,16 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			// implementation (zero AI calls, per its own docblock) is exactly
 			// what these tests need to exercise.
 
-			public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): string {
+			public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): array {
 				$this->image_classify_called = true;
 				$this->image_classify_args   = [ 'image_data' => $image_data, 'mime_type' => $mime_type ];
-				return $this->medium_to_return;
+				return [ 'medium' => $this->medium_to_return, 'tags' => $this->tags_to_return ];
 			}
 
-			public function classify_medium_from_text( string $text ): string {
+			public function classify_medium_from_text( string $text ): array {
 				$this->text_classify_called = true;
 				$this->text_classify_arg    = $text;
-				return $this->medium_to_return;
+				return [ 'medium' => $this->medium_to_return, 'tags' => $this->tags_to_return ];
 			}
 		};
 	}
@@ -189,7 +202,7 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			]
 		);
 
-		$pipeline = $this->make_pipeline_with_medium( 'Photography' );
+		$pipeline = $this->make_pipeline_with_medium( 'Photography', [ 'portrait', 'black-and-white' ] );
 		( new PostCreator( $pipeline ) )->handle( $queue_id );
 
 		$this->assertTrue( $pipeline->image_classify_called, 'A real attached photo must route through classify_medium_from_image().' );
@@ -199,6 +212,16 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 		$this->assertSame(
 			[ 'Photography' ],
 			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+		// 2026-07-21 (F-1): tags now come from the SAME classification call as
+		// medium — no second API call — so a pure@ post is no longer published
+		// tagless/undiscoverable. wp_get_post_terms() does not preserve
+		// insertion order (it comes back alphabetical, not classification
+		// order — caught live: 'black-and-white' before 'portrait'), so this
+		// must compare content, not position.
+		$this->assertEqualsCanonicalizing(
+			[ 'portrait', 'black-and-white' ],
+			wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
 	}
 
@@ -216,7 +239,7 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			[] // No attachment — TextPosterGenerator injects a synthetic poster.
 		);
 
-		$pipeline = $this->make_pipeline_with_medium( 'Poetry' );
+		$pipeline = $this->make_pipeline_with_medium( 'Poetry', [ 'nature', 'rhyme' ] );
 		( new PostCreator( $pipeline ) )->handle( $queue_id );
 
 		$this->assertTrue( $pipeline->text_classify_called, 'A text-only submission (no real photo) must route through classify_medium_from_text().' );
@@ -227,6 +250,13 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 		$this->assertSame(
 			[ 'Poetry' ],
 			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+		// 2026-07-21 (F-1): same one-call classification also supplies tags for
+		// the text-only (synthetic-poster) branch. Order-independent for the
+		// same reason as the image-attachment test above.
+		$this->assertEqualsCanonicalizing(
+			[ 'nature', 'rhyme' ],
+			wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
 	}
 

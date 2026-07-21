@@ -126,7 +126,9 @@ class PureLaneTest extends \WP_UnitTestCase {
 	 * implementation so the actual (near-)zero-AI result shape is exercised.
 	 *
 	 * classify_medium_from_image()/classify_medium_from_text() are stubbed to
-	 * a safe '' no-op, same reasoning as the never-constructed
+	 * a safe [ 'medium' => '', 'tags' => [] ] no-op (2026-07-21: both now
+	 * return an array — medium and tags come from the same classification
+	 * call, see Pipeline's own docblock), same reasoning as the never-constructed
 	 * description_provider property below: the real implementations call
 	 * $this->description_provider->describe()/chat() directly, and this
 	 * stub's no-op __construct() never runs Pipeline's real constructor (so
@@ -157,12 +159,12 @@ class PureLaneTest extends \WP_UnitTestCase {
 				return '';
 			}
 
-			public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): string {
-				return '';
+			public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): array {
+				return [ 'medium' => '', 'tags' => [] ];
 			}
 
-			public function classify_medium_from_text( string $text ): string {
-				return '';
+			public function classify_medium_from_text( string $text ): array {
+				return [ 'medium' => '', 'tags' => [] ];
 			}
 		};
 	}

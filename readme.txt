@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.44
+Stable tag: 0.9.45
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,13 +83,18 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.45 =
+* Changed: Six places describing the "Pure" email lane said AI never touches it "at all" — no longer accurate now that a classification call runs to categorize the piece. Reworded to the real promise: your words and photo are never touched or rewritten by AI, which is only ever used to classify the medium and a few tags so your post stays findable.
+* Changed: The in-site Artist Guide now has a section explaining the Pure lane directly — it wasn't documented there before.
+* Fixed: A submission sent to the Pure address published with no tags at all, since the classification step computed a medium but silently dropped the tags from the very same AI response. Both are now kept, with no extra AI call needed.
+* Fixed: A gender-neutral phrasing rule for AI translation (added 0.9.39, to stop things like "artist" defaulting to a gendered word in German/French/Spanish) was applied to Agnosis's own translations but never passed through to Lingua Forge's own translation pass — so an LF-retranslated biography or artwork could regress to a gendered default. Both AI translation instructions now travel together.
+
 = 0.9.44 =
+* Added: A new Settings → AI Providers option (Max AI response tokens) lets you raise the AI response length ceiling for translation and other chat-based AI tasks, instead of a fixed limit — useful if you're translating long text into several configured languages.
+* Fixed: On a site with several configured languages, the artist's own artwork/event title in the last-configured language would silently never get auto-translated. AI translation calls now correctly size their response budget for however many languages are configured.
+* Fixed: Two small input-handling hardening improvements to the medium-proposal review screen (Artwork → Mediums), found by WordPress.org's Plugin Check tool.
 * Fixed: Medium taxonomy term auto-assignment (the "Poetry"/"Photography"/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission — the AI's own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the "pure@" (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.
 * Fixed: An AI-proposed medium that doesn't match your site's configured vocabulary is no longer silently discarded. A new review queue on Artwork → Mediums shows each pending proposal, which submission(s) it's for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.
-
-= 0.9.43 =
-* Fixed: Manually discarding a draft submission from the review screen sent a completely wrong "photo quality too low" email — for every post type, every reason, with or without a real photo involved (e.g. a discarded text-only poem got a "retake your photo" bounce). It now sends a plain, honest "your submission wasn't published" message instead; the photo-quality email is reserved for the real, automatic AI quality-gate rejection it was built for.
-* Fixed: Line breaks could still be lost from a published post even after the 0.9.42 fix, because that fix only covered draft creation — not the actual review-and-publish flow every submission is approved through, or the native-language translation/sibling-post paths. All of these now preserve the artist's own line breaks consistently.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

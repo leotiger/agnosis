@@ -22,6 +22,10 @@ coverage/
 # WP-CLI phar — downloaded on demand by bin/make-pot.sh.
 wp-cli.phar
 
+# Append-only run log from bin/translate-missing.php — local record of
+# what it wrote, not source content.
+translate-missing.log
+
 
 # Playwright artefacts.
 e2e/.auth/

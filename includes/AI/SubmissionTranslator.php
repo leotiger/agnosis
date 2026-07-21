@@ -50,8 +50,17 @@ class SubmissionTranslator {
 	 * rule: a source text that already names or clearly implies a specific
 	 * person's gender should still translate that faithfully, not be forced
 	 * neutral against the source's own meaning.
+	 *
+	 * `public` (not `private`) since 2026-07-21 (F-2, fourteenth audit) — same
+	 * reason as PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION below: this
+	 * instruction is also fed to Lingua Forge's own, separate translation pass
+	 * via its `linguaforge_translation_extra_instruction` filter (LF 2.6.6+;
+	 * see Compat\LinguaForge::preserve_embedded_other_language_text()).
+	 * Before this fix it was silently lost on every LF fan-out and native
+	 * sync/retranslate — an LF-translated biography could regress to exactly
+	 * the masculine-default phrasing this instruction was added to prevent.
 	 */
-	private const GENDER_NEUTRAL_INSTRUCTION =
+	public const GENDER_NEUTRAL_INSTRUCTION =
 		'When a term\'s gender is not specified by the source text (e.g. a generic '
 		. 'professional noun like "artist", "author", or "photographer"), prefer '
 		. 'gender-neutral phrasing in the target language where natural, rather '
@@ -96,7 +105,8 @@ class SubmissionTranslator {
 	 * Compat\LinguaForge::preserve_embedded_other_language_text()). Both
 	 * translation passes hit the identical embedded-quotation problem, so
 	 * both read from this single constant rather than risking the two
-	 * copies drifting apart.
+	 * copies drifting apart. GENDER_NEUTRAL_INSTRUCTION above joined this
+	 * constant as `public` for the exact same reason, same day (F-2).
 	 */
 	public const PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION =
 		'The source text may deliberately contain passages in a language other than '

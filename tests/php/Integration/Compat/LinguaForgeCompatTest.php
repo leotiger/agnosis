@@ -41,7 +41,11 @@
  *                               LINGUAFORGE_VERSION >= 2.6.1 (concern #8)
  *   preserve_embedded_other_language_text() — appends SubmissionTranslator's
  *                               shared PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION
- *                               constant onto LF's own linguaforge_translation_extra_instruction
+ *                               AND GENDER_NEUTRAL_INSTRUCTION constants (F-2,
+ *                               fourteenth audit — the latter existed since
+ *                               2026-07-19 but was never forwarded here until
+ *                               2026-07-21) onto LF's own
+ *                               linguaforge_translation_extra_instruction
  *                               filter, additive to any existing value; hooked
  *                               only when LINGUAFORGE_VERSION >= 2.6.6
  *
@@ -592,7 +596,11 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	// ── preserve_embedded_other_language_text(): LF's own translation pass ────
 	// (LF >= 2.6.6 only — see Compat\LinguaForge's constructor comment for the
 	// Naevius/Latin-quotation incident this closes on LF's side, mirroring
-	// SubmissionTranslator's own pre-publish fix from the same day.)
+	// SubmissionTranslator's own pre-publish fix from the same day. F-2
+	// (fourteenth audit, 2026-07-21) added a second, unrelated instruction to
+	// this same callback — GENDER_NEUTRAL_INSTRUCTION, previously never
+	// forwarded to LF at all — method name is unchanged, see its own
+	// docblock for why.)
 
 	/**
 	 * Same caveat as test_sync_translated_template_is_not_hooked_below_2_6_1():
@@ -617,27 +625,33 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	/**
 	 * The callback itself, called directly (as the hook-registration tests
 	 * above can't exercise it while the fixed test-process LF version stays
-	 * below 2.6.6). Confirms it appends the exact same instruction text
+	 * below 2.6.6). Confirms it appends BOTH shared instruction texts
 	 * SubmissionTranslator uses for Agnosis's own pre-publish translation —
-	 * the whole point of sharing one public constant instead of maintaining
-	 * two copies of the same sentence.
+	 * the whole point of sharing public constants instead of maintaining
+	 * separate copies of the same sentences. F-2 (fourteenth audit): before
+	 * this fix, only the embedded-language instruction was appended here —
+	 * GENDER_NEUTRAL_INSTRUCTION existed in SubmissionTranslator since
+	 * 2026-07-19 but was never forwarded to LF at all.
 	 */
-	public function test_preserve_embedded_other_language_text_appends_shared_instruction(): void {
+	public function test_preserve_embedded_other_language_text_appends_shared_instructions(): void {
 		$result = ( new LinguaForge() )->preserve_embedded_other_language_text( '', $this->artwork_id );
 
-		$this->assertSame( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
+		$this->assertStringContainsString( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
+		$this->assertStringContainsString( SubmissionTranslator::GENDER_NEUTRAL_INSTRUCTION, $result );
 	}
 
 	/**
 	 * Additive, not destructive: another plugin's own extra instruction
 	 * (supplied earlier on the same filter, at a lower priority) must survive
-	 * alongside this one, not be overwritten by it.
+	 * alongside both of this callback's own instructions, not be overwritten
+	 * by either of them.
 	 */
 	public function test_preserve_embedded_other_language_text_is_additive_to_existing_instruction(): void {
 		$result = ( new LinguaForge() )->preserve_embedded_other_language_text( 'Some other instruction.', $this->artwork_id );
 
 		$this->assertStringContainsString( 'Some other instruction.', $result );
 		$this->assertStringContainsString( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
+		$this->assertStringContainsString( SubmissionTranslator::GENDER_NEUTRAL_INSTRUCTION, $result );
 	}
 
 	// ── set_language_meta(): primary-language alignment (§2d residual) ─────────

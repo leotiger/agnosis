@@ -32,12 +32,12 @@ msgstr "https://agnosis.art"
 #. Description of the plugin
 #: agnosis.php
 msgid ""
-"Art blooming out of oblivion. Email your art, AI polishes it, the world sees "
-"it. A free, federated publishing network for independent artists."
+"Art blooming out of oblivion. Email your art, AI polishes it, the world sees"
+" it. A free, federated publishing network for independent artists."
 msgstr ""
 "Seni bermekaran dari kelupaan. Kirim karya Anda lewat email, AI memolesnya, "
-"dunia melihatnya. Jaringan penerbitan terdesentralisasi gratis untuk seniman "
-"independen."
+"dunia melihatnya. Jaringan penerbitan terdesentralisasi gratis untuk seniman"
+" independen."
 
 #. Author of the plugin
 #: agnosis.php
@@ -119,8 +119,8 @@ msgid ""
 "Push this artwork's current medium onto every already-translated sibling "
 "post."
 msgstr ""
-"Dorong medium karya seni ini saat ini ke setiap postingan saudara yang sudah "
-"diterjemahkan."
+"Dorong medium karya seni ini saat ini ke setiap postingan saudara yang sudah"
+" diterjemahkan."
 
 #: includes/Admin/ArtworkMediumSync.php:271
 msgid "Sync medium to translations"
@@ -146,8 +146,9 @@ msgstr "Sinkronkan medium dengan terjemahan"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:313
 #: includes/Admin/Dashboards/NewsletterDashboard.php:341
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:238
-#: includes/Admin/MediumProposals.php:273 includes/Admin/QueueController.php:31
-#: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
+#: includes/Admin/MediumProposals.php:273
+#: includes/Admin/QueueController.php:31 includes/Admin/QueueController.php:60
+#: includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:898
 #: includes/Admin/Settings.php:917
@@ -156,7 +157,8 @@ msgstr "Sinkronkan medium dengan terjemahan"
 msgid "You do not have permission to perform this action."
 msgstr "Anda tidak memiliki izin untuk melakukan tindakan ini."
 
-#. translators: %d: number of translated sibling posts the medium was pushed to
+#. translators: %d: number of translated sibling posts the medium was pushed
+#. to
 #: includes/Admin/ArtworkMediumSync.php:311
 #, php-format
 msgid "Medium pushed to %d translated sibling post(s)."
@@ -167,22 +169,23 @@ msgid ""
 "Push every primary-language artwork's current medium onto its translated "
 "siblings? This can take a moment on a large catalog."
 msgstr ""
-"Dorong medium saat ini dari setiap karya seni bahasa utama ke terjemahannya? "
-"Ini bisa memakan waktu sebentar pada katalog besar."
+"Dorong medium saat ini dari setiap karya seni bahasa utama ke terjemahannya?"
+" Ini bisa memakan waktu sebentar pada katalog besar."
 
 #: includes/Admin/ArtworkMediumSync.php:346
 msgid "Sync all medium assignments"
 msgstr "Sinkronkan semua penetapan medium"
 
-#. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
+#. translators: 1: number of primary-language artworks processed, 2: number of
+#. translated sibling posts a medium was pushed to
 #: includes/Admin/ArtworkMediumSync.php:388
 #, php-format
 msgid ""
 "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
 "%2$d sibling post(s)."
 msgstr ""
-"Sinkronisasi selesai: %1$d karya seni bahasa utama diproses, medium didorong "
-"ke %2$d postingan saudara."
+"Sinkronisasi selesai: %1$d karya seni bahasa utama diproses, medium didorong"
+" ke %2$d postingan saudara."
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -213,7 +216,8 @@ msgid "From"
 msgstr "Dari"
 
 #: includes/Admin/ContactMessagesPage.php:99
-#: includes/Admin/Dashboards/LogsTab.php:81 includes/Artist/ContactForm.php:157
+#: includes/Admin/Dashboards/LogsTab.php:81
+#: includes/Artist/ContactForm.php:157
 #: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:227
 #: includes/Core/Privacy.php:245 includes/Core/Privacy.php:385
 msgid "Message"
@@ -320,8 +324,8 @@ msgid ""
 "directly."
 msgstr ""
 "Pemungutan suara komunitas dinonaktifkan (Pengaturan → Komunitas → Aturan → "
-"\"Persetujuan admin saja\") — aplikasi menunggu di sini sampai Anda menerima "
-"atau menolaknya secara langsung."
+"\"Persetujuan admin saja\") — aplikasi menunggu di sini sampai Anda menerima"
+" atau menolaknya secara langsung."
 
 #. translators: %d: number of applications awaiting email confirmation
 #: includes/Admin/Dashboards/AdmissionDashboard.php:71
@@ -514,7 +518,8 @@ msgstr "Simpan"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:103
 msgid ""
-"Discard the cached translation and have the AI translate this language again?"
+"Discard the cached translation and have the AI translate this language "
+"again?"
 msgstr ""
 "Buang terjemahan yang di-cache dan biarkan AI menerjemahkan bahasa ini lagi?"
 
@@ -527,8 +532,8 @@ msgid ""
 "Discard every cached translation for the current preset title and have the "
 "AI translate all of them again?"
 msgstr ""
-"Buang semua terjemahan yang di-cache untuk judul preset saat ini dan biarkan "
-"AI menerjemahkan semuanya lagi?"
+"Buang semua terjemahan yang di-cache untuk judul preset saat ini dan biarkan"
+" AI menerjemahkan semuanya lagi?"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:122
 msgid "Clear All (Retranslate All)"
@@ -568,8 +573,8 @@ msgid ""
 "and (below) the footer card — built from whatever is currently saved on "
 "Settings → Branding."
 msgstr ""
-"Ini adalah contoh cangkang email bermerek — header, teks isi, sebuah tombol, "
-"dan (di bawah) kartu footer — yang dibuat dari apa pun yang saat ini "
+"Ini adalah contoh cangkang email bermerek — header, teks isi, sebuah tombol,"
+" dan (di bawah) kartu footer — yang dibuat dari apa pun yang saat ini "
 "tersimpan di Setelan → Branding."
 
 #: includes/Admin/Dashboards/BrandingTestForm.php:86
@@ -581,8 +586,8 @@ msgid ""
 "Didn't look right? Adjust the fields above and send another test — nothing "
 "here was recorded or sent to anyone but you."
 msgstr ""
-"Tidak terlihat benar? Sesuaikan bidang di atas dan kirim tes lainnya — tidak "
-"ada yang dicatat atau dikirim ke siapa pun selain Anda."
+"Tidak terlihat benar? Sesuaikan bidang di atas dan kirim tes lainnya — tidak"
+" ada yang dicatat atau dikirim ke siapa pun selain Anda."
 
 #. translators: %s: site name
 #: includes/Admin/Dashboards/BrandingTestForm.php:112
@@ -596,14 +601,15 @@ msgstr "Keterkiriman"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:46
 msgid ""
-"A diagnostic check only — nothing here changes how mail is sent. On ordinary "
-"hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn't "
-"match your site's own domain, or from a domain with no SPF/DMARC record at "
-"all, is increasingly likely to land in spam or be rejected outright by large "
-"mailbox providers. If any row below looks wrong, the most reliable fix is "
-"installing an SMTP-sending plugin (WP Mail SMTP, Post SMTP, FluentSMTP, and "
-"others all work) configured against a real transactional mail provider, and "
-"adding SPF/DMARC records for the domain you send from at your DNS host."
+"A diagnostic check only — nothing here changes how mail is sent. On ordinary"
+" hosting (PHP mail(), no SMTP plugin), mail sent from an address that "
+"doesn't match your site's own domain, or from a domain with no SPF/DMARC "
+"record at all, is increasingly likely to land in spam or be rejected "
+"outright by large mailbox providers. If any row below looks wrong, the most "
+"reliable fix is installing an SMTP-sending plugin (WP Mail SMTP, Post SMTP, "
+"FluentSMTP, and others all work) configured against a real transactional "
+"mail provider, and adding SPF/DMARC records for the domain you send from at "
+"your DNS host."
 msgstr ""
 "Hanya pemeriksaan diagnostik — tidak ada di sini yang mengubah cara email "
 "dikirim. Pada hosting biasa (PHP mail(), tanpa plugin SMTP), email yang "
@@ -661,15 +667,15 @@ msgstr ""
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:94
 msgid ""
-"DKIM is best-effort: there's no fixed location for a DKIM record the way SPF "
-"and DMARC have, so this only checks a handful of common provider selectors. "
-"\"Not found\" here does not mean DKIM isn't configured — only that it isn't "
-"under one of the names this check happens to try. If you already know your "
+"DKIM is best-effort: there's no fixed location for a DKIM record the way SPF"
+" and DMARC have, so this only checks a handful of common provider selectors."
+" \"Not found\" here does not mean DKIM isn't configured — only that it isn't"
+" under one of the names this check happens to try. If you already know your "
 "DKIM is set up correctly (your provider's dashboard confirmed it), trust "
 "that over this row."
 msgstr ""
-"DKIM bersifat best-effort: tidak ada lokasi tetap untuk rekaman DKIM seperti "
-"halnya SPF dan DMARC, jadi ini hanya memeriksa beberapa selector penyedia "
+"DKIM bersifat best-effort: tidak ada lokasi tetap untuk rekaman DKIM seperti"
+" halnya SPF dan DMARC, jadi ini hanya memeriksa beberapa selector penyedia "
 "yang umum. \"Tidak ditemukan\" di sini tidak berarti DKIM tidak "
 "dikonfigurasi — hanya berarti tidak berada di salah satu nama yang dicoba "
 "oleh pemeriksaan ini. Jika Anda sudah tahu DKIM Anda sudah disetel dengan "
@@ -682,10 +688,10 @@ msgstr "Kirim email uji yang sebenarnya ke:"
 
 #: includes/Admin/Dashboards/DeliverabilityCard.php:105
 msgid ""
-"Sends one plain-text email from the same community identity used for review/"
-"vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
-"arriving at all confirms a real deliverability problem regardless of what "
-"the checks above say."
+"Sends one plain-text email from the same community identity used for "
+"review/vote/vouch mail. Reaching your inbox is a good sign; landing in spam "
+"or not arriving at all confirms a real deliverability problem regardless of "
+"what the checks above say."
 msgstr ""
 "Mengirim satu email teks biasa dari identitas komunitas yang sama yang "
 "digunakan untuk email peninjauan/vote/vouch. Jika email sampai ke kotak "
@@ -742,8 +748,8 @@ msgstr "[TEST] Pemeriksaan keterkiriman dari %s"
 #: includes/Admin/Dashboards/DeliverabilityCard.php:201
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
-"Inbox page. If you're reading this in your inbox (not spam), the community/"
-"transactional From identity is deliverable to this address."
+"Inbox page. If you're reading this in your inbox (not spam), the "
+"community/transactional From identity is deliverable to this address."
 msgstr ""
 "Ini adalah tes keterkiriman satu kali dari halaman Agnosis Settings → Email "
 "Inbox Anda. Jika Anda membaca ini di kotak masuk (bukan spam), identitas "
@@ -852,7 +858,8 @@ msgstr ""
 "Alamat ini pernah memantul atau dilaporkan sebagai spam — email mungkin "
 "tidak lagi sampai ke artis ini."
 
-#. translators: %d: number of recorded bounces/complaints for this artist's address
+#. translators: %d: number of recorded bounces/complaints for this artist's
+#. address
 #: includes/Admin/Dashboards/MembersDashboard.php:102
 #, php-format
 msgid "⚠ %d bounce"
@@ -913,7 +920,8 @@ msgstr "Buka Voting"
 msgid "Newsletter Status"
 msgstr "Status Newsletter"
 
-#. translators: 1: confirmed public subscriber count, 2: configured comfort threshold
+#. translators: 1: confirmed public subscriber count, 2: configured comfort
+#. threshold
 #: includes/Admin/Dashboards/NewsletterDashboard.php:72
 #, php-format
 msgid ""
@@ -922,10 +930,11 @@ msgid ""
 "connect an email service provider (e.g. Brevo's free tier) for better "
 "deliverability at this size."
 msgstr ""
-"Anda memiliki %1$d pelanggan publik terkonfirmasi, di atas ambang kenyamanan "
-"yang dikonfigurasi sebesar %2$d. Pengiriman yang dihosting sendiri masih "
+"Anda memiliki %1$d pelanggan publik terkonfirmasi, di atas ambang kenyamanan"
+" yang dikonfigurasi sebesar %2$d. Pengiriman yang dihosting sendiri masih "
 "berfungsi, tetapi Anda mungkin ingin menghubungkan penyedia layanan email "
-"(mis. paket gratis Brevo) untuk keterkiriman yang lebih baik pada ukuran ini."
+"(mis. paket gratis Brevo) untuk keterkiriman yang lebih baik pada ukuran "
+"ini."
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:84
 #: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:309
@@ -978,7 +987,8 @@ msgstr "Kirim Sekarang"
 msgid "Public"
 msgstr "Publik"
 
-#. translators: 1: confirmed subscriber count, 2: pending confirmation count, 3: unsubscribed count, 4: bounced/suppressed count
+#. translators: 1: confirmed subscriber count, 2: pending confirmation count,
+#. 3: unsubscribed count, 4: bounced/suppressed count
 #: includes/Admin/Dashboards/NewsletterDashboard.php:127
 #, php-format
 msgid ""
@@ -987,7 +997,8 @@ msgstr ""
 "%1$d terkonfirmasi, %2$d menunggu konfirmasi, %3$d berhenti berlangganan, "
 "%4$d memantul"
 
-#. translators: %s: comma-separated "Language (count)" breakdown of confirmed subscribers
+#. translators: %s: comma-separated "Language (count)" breakdown of confirmed
+#. subscribers
 #: includes/Admin/Dashboards/NewsletterDashboard.php:141
 #, php-format
 msgid "By language: %s"
@@ -995,8 +1006,8 @@ msgstr "Berdasarkan bahasa: %s"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:165
 msgid ""
-"Add the \"Newsletter Signup\" block to any page to let visitors subscribe to "
-"the public newsletter. Artists are enrolled automatically and can "
+"Add the \"Newsletter Signup\" block to any page to let visitors subscribe to"
+" the public newsletter. Artists are enrolled automatically and can "
 "unsubscribe from any issue with one click."
 msgstr ""
 "Tambahkan blok \"Pendaftaran Newsletter\" ke halaman mana pun untuk "
@@ -1017,7 +1028,8 @@ msgstr "Tidak diketahui"
 msgid "None"
 msgstr "Tidak ada"
 
-#. translators: %d: number of recipients whose send permanently failed for the most recent issue
+#. translators: %d: number of recipients whose send permanently failed for the
+#. most recent issue
 #: includes/Admin/Dashboards/NewsletterDashboard.php:245
 #, php-format
 msgid "%d failed"
@@ -1145,11 +1157,11 @@ msgstr "Semua alasan"
 #: includes/Admin/InboxPage.php:571
 #, php-format
 msgid ""
-"%1$d message from an unregistered sender is hidden from this view. <a href="
-"\"%2$s\">View it</a>."
+"%1$d message from an unregistered sender is hidden from this view. <a "
+"href=\"%2$s\">View it</a>."
 msgid_plural ""
-"%1$d messages from unregistered senders are hidden from this view. <a href="
-"\"%2$s\">View them</a>."
+"%1$d messages from unregistered senders are hidden from this view. <a "
+"href=\"%2$s\">View them</a>."
 msgstr[0] ""
 "%1$d pesan dari pengirim yang tidak terdaftar disembunyikan dari tampilan "
 "ini. <a href=\"%2$s\">Lihat</a>."
@@ -1242,8 +1254,8 @@ msgstr "Semua bahasa (tanpa filter)"
 #: includes/Admin/LanguageAwareTermsListTable.php:101
 msgid ""
 "Create missing translations for every primary-language term, in every "
-"configured language? On a large vocabulary this can take more than one click "
-"— each run picks up where the last one stopped."
+"configured language? On a large vocabulary this can take more than one click"
+" — each run picks up where the last one stopped."
 msgstr ""
 "Buat terjemahan yang hilang untuk setiap istilah bahasa utama, di setiap "
 "bahasa yang dikonfigurasi? Pada kosakata yang besar, ini bisa memerlukan "
@@ -1293,7 +1305,8 @@ msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
 msgstr[0] ""
 
-#. translators: %d: number of submissions the rejected proposal was cleared from
+#. translators: %d: number of submissions the rejected proposal was cleared
+#. from
 #: includes/Admin/MediumProposals.php:362
 #, php-format
 msgid "Medium proposal rejected for %d submission."
@@ -1384,7 +1397,8 @@ msgstr "Tidak dapat menangguhkan artis — mereka mungkin აღარ lagi akti
 #: includes/Admin/Settings.php:165
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
-msgstr "Artis dihapus secara permanen. Akun dan semua kontennya telah dihapus."
+msgstr ""
+"Artis dihapus secara permanen. Akun dan semua kontennya telah dihapus."
 
 #: includes/Admin/Settings.php:166
 msgid "Could not delete the artist — please try again."
@@ -1424,8 +1438,8 @@ msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
 msgstr ""
-"Tidak dapat mengirim email tes — periksa alamat dan konfigurasi email keluar "
-"situs Anda."
+"Tidak dapat mengirim email tes — periksa alamat dan konfigurasi email keluar"
+" situs Anda."
 
 #: includes/Admin/Settings.php:173
 msgid "Invitation sent."
@@ -1530,7 +1544,8 @@ msgstr "Log"
 msgid "••••••••  (defined in wp-config.php)"
 msgstr ""
 
-#. translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in <code>
+#. translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in
+#. <code>
 #: includes/Admin/Settings.php:345
 #, php-format
 msgid ""
@@ -1585,13 +1600,13 @@ msgstr "Turnstile belum dikonfigurasi."
 
 #: includes/Admin/Settings.php:473
 msgid ""
-"Your Join application form is public — anyone can submit an application, and "
-"a submitted (and confirmed) application still emails every admitted artist "
+"Your Join application form is public — anyone can submit an application, and"
+" a submitted (and confirmed) application still emails every admitted artist "
 "and admin. Right now the only thing standing between that form and an "
 "automated bot is a fixed 5-submissions-per-minute-per-IP limit, which a "
 "distributed bot can work around entirely. Add a Cloudflare Turnstile site "
-"key and secret key above to require human verification on both the Join form "
-"and the Newsletter Subscribe form."
+"key and secret key above to require human verification on both the Join form"
+" and the Newsletter Subscribe form."
 msgstr ""
 "Formulir aplikasi Join Anda bersifat publik — siapa pun dapat mengirim "
 "aplikasi, dan aplikasi yang dikirim (dan dikonfirmasi) tetap akan mengirim "
@@ -1631,7 +1646,8 @@ msgstr "Kebijakan Pemrosesan & Privasi AI"
 msgid "A Privacy Policy page is set."
 msgstr "Halaman Kebijakan Privasi telah diset."
 
-#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#. translators: %s: comma-separated list of configured AI providers, e.g.
+#. "OpenAI, Anthropic"
 #: includes/Admin/Settings.php:535
 #, php-format
 msgid ""
@@ -1649,7 +1665,8 @@ msgstr ""
 msgid "No Privacy Policy page is set."
 msgstr "Belum ada halaman Kebijakan Privasi yang diset."
 
-#. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
+#. translators: %s: comma-separated list of configured AI providers, e.g.
+#. "OpenAI, Anthropic"
 #: includes/Admin/Settings.php:547
 #, php-format
 msgid ""
@@ -1737,10 +1754,10 @@ msgstr "Terjemahan yang di-cache"
 
 #: includes/Admin/Settings.php:659
 msgid ""
-"AI-translated tag/medium term names, cached so the same term always gets the "
-"same translated label instead of a fresh AI phrasing per post. Renaming a "
-"term already clears its own cached entry automatically; use the button below "
-"only if a cached translation itself is wrong."
+"AI-translated tag/medium term names, cached so the same term always gets the"
+" same translated label instead of a fresh AI phrasing per post. Renaming a "
+"term already clears its own cached entry automatically; use the button below"
+" only if a cached translation itself is wrong."
 msgstr ""
 "Nama istilah tag/medium yang diterjemahkan AI, di-cache agar istilah yang "
 "sama selalu mendapat label terjemahan yang sama, alih-alih frasa AI baru "
@@ -1841,13 +1858,13 @@ msgstr "Domain dasar"
 #: includes/Admin/SettingsFields.php:33
 msgid ""
 "Root domain for artist subdomains, e.g. agnosis.art. Each artist is "
-"reachable at nicename.{base_domain}. Requires a wildcard DNS record (*."
-"{base_domain}) pointing to this server. Leave blank to disable subdomain "
+"reachable at nicename.{base_domain}. Requires a wildcard DNS record "
+"(*.{base_domain}) pointing to this server. Leave blank to disable subdomain "
 "routing."
 msgstr ""
 "Domain induk untuk subdomain artis, mis. agnosis.art. Setiap artis dapat "
-"diakses di nicename.{base_domain}. Memerlukan catatan DNS wildcard (*."
-"{base_domain}) yang mengarah ke server ini. Biarkan kosong untuk "
+"diakses di nicename.{base_domain}. Memerlukan catatan DNS wildcard "
+"(*.{base_domain}) yang mengarah ke server ini. Biarkan kosong untuk "
 "menonaktifkan perutean subdomain."
 
 #: includes/Admin/SettingsFields.php:40
@@ -1856,14 +1873,14 @@ msgstr "Pencatatan debug"
 
 #: includes/Admin/SettingsFields.php:45
 msgid ""
-"Writes raw diagnostic dumps of the email intake pipeline (message structure, "
-"attachment MIME detection, media conversion, post creation) to a dedicated "
+"Writes raw diagnostic dumps of the email intake pipeline (message structure,"
+" attachment MIME detection, media conversion, post creation) to a dedicated "
 "debug directory — far more detail than the Logs tab keeps, for tracing "
-"exactly where a submission was rejected or lost. Turn off once you have what "
-"you need; files can accumulate quickly. Can also be forced from wp-config."
-"php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this toggle. "
-"See the Debug Files panel below for the directory location and a clear-files "
-"button."
+"exactly where a submission was rejected or lost. Turn off once you have what"
+" you need; files can accumulate quickly. Can also be forced from wp-"
+"config.php with `define( 'AGNOSIS_DEBUG', true );`, which overrides this "
+"toggle. See the Debug Files panel below for the directory location and a "
+"clear-files button."
 msgstr ""
 "Menulis dump diagnostik mentah dari pipeline penerimaan email (struktur "
 "pesan, deteksi MIME lampiran, konversi media, pembuatan pos) ke direktori "
@@ -1871,8 +1888,8 @@ msgstr ""
 "melacak dengan tepat di mana sebuah kiriman ditolak atau hilang. Matikan "
 "setelah Anda mendapatkan yang diperlukan; file dapat menumpuk dengan cepat. "
 "Juga dapat dipaksakan dari wp-config.php dengan `define( 'AGNOSIS_DEBUG', "
-"true );`, yang akan menggantikan toggle ini. Lihat panel File Debug di bawah "
-"untuk lokasi direktori dan tombol hapus file."
+"true );`, yang akan menggantikan toggle ini. Lihat panel File Debug di bawah"
+" untuk lokasi direktori dan tombol hapus file."
 
 #: includes/Admin/SettingsFields.php:50
 msgid "Debug file retention (days)"
@@ -1881,10 +1898,10 @@ msgstr "Retensi file debug (hari)"
 #: includes/Admin/SettingsFields.php:56
 msgid ""
 "Debug dumps older than this are permanently deleted by the daily cleanup — "
-"automatically, whether or not debug logging is currently turned on, so files "
-"left over from a past debug session don't linger indefinitely. A dump is a "
-"full raw copy of an artist's email, so this defaults shorter than the inbox/"
-"queue retention above. Default: 14 days."
+"automatically, whether or not debug logging is currently turned on, so files"
+" left over from a past debug session don't linger indefinitely. A dump is a "
+"full raw copy of an artist's email, so this defaults shorter than the "
+"inbox/queue retention above. Default: 14 days."
 msgstr ""
 "Dump debug yang lebih lama dari ini akan dihapus permanen oleh pembersihan "
 "harian — secara otomatis, baik pencatatan debug sedang aktif maupun tidak, "
@@ -1906,12 +1923,12 @@ msgid ""
 "language version of a biography page — not machine-translated per language. "
 "See \"Include artist's name in preset title\" below."
 msgstr ""
-"Jika diatur, halaman biografi setiap artis akan menggunakan judul persis ini "
-"alih-alih judul mereka sendiri, terlepas dari apa yang dikirimkan artis, "
+"Jika diatur, halaman biografi setiap artis akan menggunakan judul persis ini"
+" alih-alih judul mereka sendiri, terlepas dari apa yang dikirimkan artis, "
 "diedit pada formulir persetujuan, atau diubah kemudian pada halaman yang "
 "dipublikasikan. Biarkan kosong untuk tetap menggunakan judul milik masing-"
-"masing artis (default). Ditampilkan persis seperti yang diketik di sini pada "
-"setiap versi bahasa halaman biografi — tidak diterjemahkan otomatis per "
+"masing artis (default). Ditampilkan persis seperti yang diketik di sini pada"
+" setiap versi bahasa halaman biografi — tidak diterjemahkan otomatis per "
 "bahasa. Lihat \"Sertakan nama artis dalam judul preset\" di bawah."
 
 #: includes/Admin/SettingsFields.php:68
@@ -2024,9 +2041,9 @@ msgid ""
 "visible in most desktop mail clients. Distinct from the card background "
 "below."
 msgstr ""
-"Warna latar belakang yang mengelilingi kartu email — area \"letterbox\" yang "
-"terlihat di sebagian besar klien email desktop. Berbeda dari latar belakang "
-"kartu di bawah."
+"Warna latar belakang yang mengelilingi kartu email — area \"letterbox\" yang"
+" terlihat di sebagian besar klien email desktop. Berbeda dari latar belakang"
+" kartu di bawah."
 
 #: includes/Admin/SettingsFields.php:148
 msgid "Card background color"
@@ -2051,7 +2068,8 @@ msgid ""
 "Default color for body text — the main reading text of every outgoing HTML "
 "email."
 msgstr ""
-"Warna default untuk teks isi — teks baca utama dari setiap email HTML keluar."
+"Warna default untuk teks isi — teks baca utama dari setiap email HTML "
+"keluar."
 
 #: includes/Admin/SettingsFields.php:166
 msgid "Primary text size (px)"
@@ -2068,9 +2086,9 @@ msgstr "Warna teks sekunder"
 #: includes/Admin/SettingsFields.php:182
 msgid ""
 "Color for muted/secondary text — the footer tagline, work-address "
-"descriptions, and small helper links (unsubscribe, notification preferences, "
-"\"view online\"). Matches the plugin's original hardcoded footer color, kept "
-"as the default."
+"descriptions, and small helper links (unsubscribe, notification preferences,"
+" \"view online\"). Matches the plugin's original hardcoded footer color, "
+"kept as the default."
 msgstr ""
 "Warna untuk teks redup/sekunder — tagline footer, deskripsi alamat karya, "
 "dan tautan bantuan kecil (berhenti berlangganan, preferensi notifikasi, "
@@ -2086,8 +2104,8 @@ msgid ""
 "Font size for muted/secondary text — the footer tagline and smaller helper "
 "text below the main body copy. Default: 14."
 msgstr ""
-"Ukuran font untuk teks redup/sekunder — tagline footer dan teks bantuan yang "
-"lebih kecil di bawah isi utama. Default: 14."
+"Ukuran font untuk teks redup/sekunder — tagline footer dan teks bantuan yang"
+" lebih kecil di bawah isi utama. Default: 14."
 
 #: includes/Admin/SettingsFields.php:197
 msgid "Footer background color"
@@ -2097,8 +2115,8 @@ msgstr "Warna latar belakang footer"
 msgid ""
 "Background color of the footer strip at the bottom of every outgoing HTML "
 "email (the tagline, and — on emails that have one — the work-addresses card "
-"and unsubscribe/preferences link). Independent of the card background above, "
-"so the footer can be set off visually from the body if you like."
+"and unsubscribe/preferences link). Independent of the card background above,"
+" so the footer can be set off visually from the body if you like."
 msgstr ""
 "Warna latar belakang strip footer di bagian bawah setiap email HTML keluar "
 "(tagline, dan — pada email yang memilikinya — kartu alamat karya serta "
@@ -2156,8 +2174,8 @@ msgstr "Warna label footer"
 
 #: includes/Admin/SettingsFields.php:238
 msgid ""
-"Color of the bold address labels (\"Artwork:\", \"Biography:\", etc.) in the "
-"work-addresses reference card that appears in the footer of artist-facing "
+"Color of the bold address labels (\"Artwork:\", \"Biography:\", etc.) in the"
+" work-addresses reference card that appears in the footer of artist-facing "
 "notification emails."
 msgstr ""
 "Warna label alamat tebal (\"Karya:\", \"Biografi:\", dll.) pada kartu "
@@ -2173,8 +2191,8 @@ msgstr "Email dari: nama"
 
 #: includes/Admin/SettingsFields.php:260
 msgid ""
-"Name shown as the sender of admission, vote, welcome, departure, invitation, "
-"and submission-review emails. Leave blank to use the site name."
+"Name shown as the sender of admission, vote, welcome, departure, invitation,"
+" and submission-review emails. Leave blank to use the site name."
 msgstr ""
 "Nama yang ditampilkan sebagai pengirim untuk email penerimaan, pemungutan "
 "suara, sambutan, keberangkatan, undangan, dan tinjauan pengiriman. Biarkan "
@@ -2186,8 +2204,8 @@ msgstr "Email dari: alamat email"
 
 #: includes/Admin/SettingsFields.php:266
 msgid ""
-"Dedicated From: address for admission, vote, welcome, departure, invitation, "
-"and submission-review emails — e.g. hello@agnosis.art. This is not one of "
+"Dedicated From: address for admission, vote, welcome, departure, invitation,"
+" and submission-review emails — e.g. hello@agnosis.art. This is not one of "
 "the endpoint addresses below (submit@, bio@, community@, etc.) — those are "
 "where artists send mail in; this is who workflow mail appears to come from. "
 "Separate from the Settings → Newsletter sender, which only covers digest "
@@ -2219,7 +2237,8 @@ msgstr "Alamat pengiriman biografi"
 
 #: includes/Admin/SettingsFields.php:277
 msgid "Artists send biography updates to this address — e.g. bio@agnosis.art"
-msgstr "Artis mengirim pembaruan biografi ke alamat ini — mis. bio@agnosis.art"
+msgstr ""
+"Artis mengirim pembaruan biografi ke alamat ini — mis. bio@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:281
 msgid "Event submissions address"
@@ -2228,7 +2247,8 @@ msgstr "Alamat pengiriman acara"
 #: includes/Admin/SettingsFields.php:282
 msgid ""
 "Artists send event announcements to this address — e.g. event@agnosis.art"
-msgstr "Artis mengirim pengumuman acara ke alamat ini — mis. event@agnosis.art"
+msgstr ""
+"Artis mengirim pengumuman acara ke alamat ini — mis. event@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:286
 msgid "Replace artwork address"
@@ -2249,7 +2269,8 @@ msgstr "Alamat permintaan penghapusan"
 #: includes/Admin/SettingsFields.php:292
 msgid ""
 "Artist requests takedown of an existing artwork. Subject must match the "
-"title. Moves the post to draft pending admin review — e.g. remove@agnosis.art"
+"title. Moves the post to draft pending admin review — e.g. "
+"remove@agnosis.art"
 msgstr ""
 "Artis meminta penurunan tayang karya yang sudah ada. Subjek harus cocok "
 "dengan judul. Memindahkan kiriman ke draf menunggu peninjauan admin — mis. "
@@ -2268,8 +2289,8 @@ msgid ""
 "promote@agnosis.art"
 msgstr ""
 "Artis mengirim email ke sini (subjek = judul karya yang persis) untuk "
-"memilih karya mana yang mewakili mereka di galeri komunitas bersama di situs "
-"utama — bukan subdomain mereka sendiri, yang sudah menampilkan semua yang "
+"memilih karya mana yang mewakili mereka di galeri komunitas bersama di situs"
+" utama — bukan subdomain mereka sendiri, yang sudah menampilkan semua yang "
 "telah mereka publikasikan. Karya yang sebelumnya ditampilkan akan otomatis "
 "diturunkan — mis. promote@agnosis.art"
 
@@ -2294,26 +2315,20 @@ msgstr ""
 "untuk klien email yang tidak mendukung alias To: — mis. photo@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:306
-msgid "Pure address (no AI at all)"
-msgstr "Alamat murni (tanpa AI sama sekali)"
+msgid "Pure address (content untouched by AI)"
+msgstr ""
 
 #: includes/Admin/SettingsFields.php:307
 msgid ""
-"Strictest opt-out lane: nothing sent here is touched by AI — no enhancement, "
-"no vision description, no rewriting. The published post title, body, and "
-"translated-title subtitle are taken verbatim from the artist's own subject "
-"and message text; the attached file(s) are published exactly as sent. The "
-"quality-rejection gate is bypassed, same as Photo-only. Use the [Pure] "
-"subject indicator as a fallback for mail clients that do not support To: "
-"aliases — e.g. pure@agnosis.art"
+"Strictest opt-out lane: your words and image are never touched, enhanced, or"
+" rewritten by AI. The published post title, body, and translated-title "
+"subtitle are taken verbatim from the artist's own subject and message text; "
+"the attached file(s) are published exactly as sent. AI is only ever used to "
+"classify the medium and a few tags, so the post is still findable and "
+"doesn't ship untagged into the fediverse. The quality-rejection gate is "
+"bypassed, same as Photo-only. Use the [Pure] subject indicator as a fallback"
+" for mail clients that do not support To: aliases — e.g. pure@agnosis.art"
 msgstr ""
-"Jalur opt-out paling ketat: apa pun yang dikirim ke sini tidak disentuh AI — "
-"tidak ada peningkatan, tidak ada deskripsi visual, tidak ada penulisan "
-"ulang. Judul pos yang diterbitkan, isi, dan subjudul judul-terjemahan "
-"diambil apa adanya dari subjek dan teks pesan milik artis; file lampiran "
-"dipublikasikan persis seperti dikirim. Gerbang penolakan kualitas dilewati, "
-"sama seperti Photo-only. Gunakan indikator subjek [Pure] sebagai cadangan "
-"untuk klien email yang tidak mendukung alias To: — mis. pure@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:311
 msgid "Goodbye / self-removal address"
@@ -2322,12 +2337,12 @@ msgstr "Alamat selamat tinggal / penghapusan akun mandiri"
 #: includes/Admin/SettingsFields.php:312
 msgid ""
 "Artist emails here (any subject, no attachment needed) to request account "
-"deletion. A confirmation link is emailed back before anything is deleted — e."
-"g. goodbye@agnosis.art"
+"deletion. A confirmation link is emailed back before anything is deleted — "
+"e.g. goodbye@agnosis.art"
 msgstr ""
-"Artis mengirim email ke sini (subjek apa saja, tanpa lampiran) untuk meminta "
-"penghapusan akun. Tautan konfirmasi akan dikirim balik melalui email sebelum "
-"apa pun dihapus — mis. goodbye@agnosis.art"
+"Artis mengirim email ke sini (subjek apa saja, tanpa lampiran) untuk meminta"
+" penghapusan akun. Tautan konfirmasi akan dikirim balik melalui email "
+"sebelum apa pun dihapus — mis. goodbye@agnosis.art"
 
 #: includes/Admin/SettingsFields.php:316
 msgid "Community announcement address"
@@ -2376,14 +2391,14 @@ msgstr "Lewati validasi sertifikat SSL"
 #: includes/Admin/SettingsFields.php:348
 msgid ""
 "⚠ Use only as a temporary workaround when your mail server's certificate is "
-"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied "
-"to the mail daemon). Disable this once the mail server presents a valid "
+"not yet trusted (e.g. Plesk self-signed cert before Let's Encrypt is applied"
+" to the mail daemon). Disable this once the mail server presents a valid "
 "certificate."
 msgstr ""
-"⚠ Gunakan hanya sebagai solusi sementara ketika sertifikat server email Anda "
-"belum dipercaya (mis. sertifikat self-signed Plesk sebelum Let's Encrypt "
-"diterapkan ke daemon email). Nonaktifkan ini setelah server email menyajikan "
-"sertifikat yang valid."
+"⚠ Gunakan hanya sebagai solusi sementara ketika sertifikat server email Anda"
+" belum dipercaya (mis. sertifikat self-signed Plesk sebelum Let's Encrypt "
+"diterapkan ke daemon email). Nonaktifkan ini setelah server email menyajikan"
+" sertifikat yang valid."
 
 #: includes/Admin/SettingsFields.php:352
 msgid "IMAP username"
@@ -2406,17 +2421,18 @@ msgstr "Rahasia webhook"
 
 #: includes/Admin/SettingsFields.php:364
 msgid ""
-"HMAC secret shared with your webhook provider (Mailgun, SendGrid…). Used for "
-"both the inbound-mail endpoint (/wp-json/agnosis/v1/email/inbound) and the "
+"HMAC secret shared with your webhook provider (Mailgun, SendGrid…). Used for"
+" both the inbound-mail endpoint (/wp-json/agnosis/v1/email/inbound) and the "
 "bounce/complaint events endpoint (/wp-json/agnosis/v1/email/events) — point "
 "your provider's bounce/spam-complaint webhook at the latter to keep your "
 "subscriber and artist addresses clean."
 msgstr ""
 "Rahasia HMAC yang dibagikan dengan penyedia webhook Anda (Mailgun, "
-"SendGrid…). Digunakan untuk endpoint email masuk (/wp-json/agnosis/v1/email/"
-"inbound) dan endpoint peristiwa bounce/keluhan (/wp-json/agnosis/v1/email/"
-"events) — arahkan webhook bounce/spam-complaint penyedia Anda ke yang "
-"terakhir untuk menjaga alamat pelanggan dan artis tetap bersih."
+"SendGrid…). Digunakan untuk endpoint email masuk (/wp-"
+"json/agnosis/v1/email/inbound) dan endpoint peristiwa bounce/keluhan (/wp-"
+"json/agnosis/v1/email/events) — arahkan webhook bounce/spam-complaint "
+"penyedia Anda ke yang terakhir untuk menjaga alamat pelanggan dan artis "
+"tetap bersih."
 
 #: includes/Admin/SettingsFields.php:370
 msgid "Inbox retention (days)"
@@ -2425,12 +2441,12 @@ msgstr "Retensi inbox (hari)"
 #: includes/Admin/SettingsFields.php:376
 msgid ""
 "IMAP messages and processed/failed queue rows older than this are "
-"permanently deleted by the daily cleanup, whether read or unread. Default: 7 "
-"days."
+"permanently deleted by the daily cleanup, whether read or unread. Default: 7"
+" days."
 msgstr ""
 "IMAP messages and processed/failed queue rows older than this are "
-"permanently deleted by the daily cleanup, whether read or unread. Default: 7 "
-"days."
+"permanently deleted by the daily cleanup, whether read or unread. Default: 7"
+" days."
 
 #: includes/Admin/SettingsFields.php:380
 msgid "Contact message retention (days)"
@@ -2440,14 +2456,14 @@ msgstr "Retensi pesan kontak (hari)"
 msgid ""
 "Visitor-to-artist contact messages (sent or rejected) older than this are "
 "permanently deleted by the daily cleanup. The visitor's IP address is "
-"cleared independently after 30 days regardless of this setting, once it's no "
-"longer useful for abuse investigation. Default: 90 days."
+"cleared independently after 30 days regardless of this setting, once it's no"
+" longer useful for abuse investigation. Default: 90 days."
 msgstr ""
-"Pesan kontak pengunjung-ke-artis (yang dikirim atau ditolak) yang lebih lama "
-"dari ini akan dihapus permanen oleh pembersihan harian. Alamat IP pengunjung "
-"dihapus secara terpisah setelah 30 hari, terlepas dari pengaturan ini, "
-"setelah tidak lagi berguna untuk penyelidikan penyalahgunaan. Default: 90 "
-"hari."
+"Pesan kontak pengunjung-ke-artis (yang dikirim atau ditolak) yang lebih lama"
+" dari ini akan dihapus permanen oleh pembersihan harian. Alamat IP "
+"pengunjung dihapus secara terpisah setelah 30 hari, terlepas dari pengaturan"
+" ini, setelah tidak lagi berguna untuk penyelidikan penyalahgunaan. Default:"
+" 90 hari."
 
 #: includes/Admin/SettingsFields.php:392
 msgid "Per-sender hourly submission limit"
@@ -2455,8 +2471,8 @@ msgstr "Batas pengiriman per jam per pengirim"
 
 #: includes/Admin/SettingsFields.php:399
 msgid ""
-"Maximum submissions accepted from a single artist per hour, across both IMAP "
-"and webhook intake. Exceeding this limit silently drops the message (no "
+"Maximum submissions accepted from a single artist per hour, across both IMAP"
+" and webhook intake. Exceeding this limit silently drops the message (no "
 "retry from ESPs). Default: 5."
 msgstr ""
 "Jumlah maksimum kiriman yang diterima dari satu artis per jam, di seluruh "
@@ -2483,9 +2499,9 @@ msgstr "Jendela batas kontak per artis (jam)"
 
 #: includes/Admin/SettingsFields.php:422
 msgid ""
-"Time window, in hours, the per-artist contact limit above applies over. Also "
-"controls how long a visitor sees the \"already contacted\" notice instead of "
-"the form after messaging an artist. Default: 1 (one hour)."
+"Time window, in hours, the per-artist contact limit above applies over. Also"
+" controls how long a visitor sees the \"already contacted\" notice instead "
+"of the form after messaging an artist. Default: 1 (one hour)."
 msgstr ""
 "Jangka waktu, dalam jam, penerapan batas kontak per artis di atas. Juga "
 "mengatur berapa lama pengunjung melihat pemberitahuan \"sudah menghubungi\" "
@@ -2507,8 +2523,8 @@ msgstr ""
 "header Authentication-Results). Mencegah alamat From: yang dipalsukan. "
 "Memerlukan ESP Anda untuk menyertakan header Authentication-Results dan "
 "domain Anda memiliki record SPF/DKIM yang dikonfigurasi. Biarkan nonaktif "
-"jika Anda tidak yakin — email sah yang ditolak tidak akan diberi notifikasi. "
-"Default: nonaktif."
+"jika Anda tidak yakin — email sah yang ditolak tidak akan diberi notifikasi."
+" Default: nonaktif."
 
 #: includes/Admin/SettingsFields.php:436
 msgid "Description provider"
@@ -2568,12 +2584,12 @@ msgstr "Anthropic text model"
 
 #: includes/Admin/SettingsFields.php:475
 msgid ""
-"Cheap, fast model used for text-only tasks when Anthropic is the description "
-"provider — translating a submission into the site's primary language, and "
+"Cheap, fast model used for text-only tasks when Anthropic is the description"
+" provider — translating a submission into the site's primary language, and "
 "moderating contact-form messages. Does not need vision support."
 msgstr ""
-"Cheap, fast model used for text-only tasks when Anthropic is the description "
-"provider — translating a submission into the site's primary language, and "
+"Cheap, fast model used for text-only tasks when Anthropic is the description"
+" provider — translating a submission into the site's primary language, and "
 "moderating contact-form messages. Does not need vision support."
 
 #: includes/Admin/SettingsFields.php:493
@@ -2603,10 +2619,10 @@ msgid ""
 "AI for description — vision token cost scales with resolution, and a "
 "description task needs far fewer pixels than the original photo. Applies to "
 "artwork photo uploads, rasterised PDF pages, and video poster frames alike. "
-"Set to 0 to always send full-resolution images (uses more tokens, no quality "
-"difference for typical description tasks). Requires the Imagick PHP "
-"extension; images are sent at their original size regardless of this setting "
-"when it is unavailable. Default: 800."
+"Set to 0 to always send full-resolution images (uses more tokens, no quality"
+" difference for typical description tasks). Requires the Imagick PHP "
+"extension; images are sent at their original size regardless of this setting"
+" when it is unavailable. Default: 800."
 msgstr ""
 "Gambar diperkecil secara proporsional ke lebar ini sebelum dikirim ke AI "
 "untuk deskripsi — biaya token vision bergantung pada resolusi, dan tugas "
@@ -2615,8 +2631,8 @@ msgstr ""
 "poster video. Setel ke 0 untuk selalu mengirim gambar beresolusi penuh "
 "(menggunakan lebih banyak token, tanpa perbedaan kualitas untuk tugas "
 "deskripsi pada umumnya). Memerlukan ekstensi PHP Imagick; jika tidak "
-"tersedia, gambar dikirim dengan ukuran aslinya terlepas dari pengaturan ini. "
-"Default: 800."
+"tersedia, gambar dikirim dengan ukuran aslinya terlepas dari pengaturan ini."
+" Default: 800."
 
 #: includes/Admin/SettingsFields.php:516
 msgid "Enhancement provider"
@@ -2680,11 +2696,11 @@ msgstr "Gabungkan pembaruan biografi dengan AI"
 
 #: includes/Admin/SettingsFields.php:555
 msgid ""
-"When enabled, biography updates are merged with the existing biography using "
-"AI — new information is integrated rather than replacing everything. "
+"When enabled, biography updates are merged with the existing biography using"
+" AI — new information is integrated rather than replacing everything. "
 "Recommended: artists can send incremental updates (\"I just won an award\") "
-"without resubmitting their full bio. Disable to always replace the biography "
-"with the latest submission."
+"without resubmitting their full bio. Disable to always replace the biography"
+" with the latest submission."
 msgstr ""
 "Saat diaktifkan, pembaruan biografi digabungkan dengan biografi yang sudah "
 "ada menggunakan AI — informasi baru diintegrasikan, bukan mengganti "
@@ -2699,14 +2715,14 @@ msgstr "Ambang penolakan (skor kualitas)"
 #: includes/Admin/SettingsFields.php:569
 msgid ""
 "Photos scoring at or below this agnosis_vendor_value (1–10) are "
-"automatically rejected — the artist receives a friendly email explaining the "
-"issue and is invited to resubmit. Score 0 disables automatic rejection. Must "
-"be lower than the enhancement threshold. Default: 3."
+"automatically rejected — the artist receives a friendly email explaining the"
+" issue and is invited to resubmit. Score 0 disables automatic rejection. "
+"Must be lower than the enhancement threshold. Default: 3."
 msgstr ""
 "Foto dengan skor pada atau di bawah agnosis_vendor_value ini (1–10) akan "
 "ditolak secara otomatis — artis menerima email ramah yang menjelaskan "
-"masalahnya dan diundang untuk mengirim ulang. Skor 0 menonaktifkan penolakan "
-"otomatis. Harus lebih rendah daripada ambang peningkatan. Default: 3."
+"masalahnya dan diundang untuk mengirim ulang. Skor 0 menonaktifkan penolakan"
+" otomatis. Harus lebih rendah daripada ambang peningkatan. Default: 3."
 
 #: includes/Admin/SettingsFields.php:574
 msgid "Enhancement threshold (quality score)"
@@ -2721,8 +2737,8 @@ msgid ""
 msgstr ""
 "Foto dengan skor di bawah agnosis_vendor_value ini (1–10) akan ditingkatkan "
 "secara otomatis. Skor 10 = foto sempurna, 1 = tidak layak secara teknis. "
-"Default: 7 — hanya foto yang jelas bermasalah yang diproses. Atur ke 1 untuk "
-"menonaktifkan peningkatan otomatis sepenuhnya."
+"Default: 7 — hanya foto yang jelas bermasalah yang diproses. Atur ke 1 untuk"
+" menonaktifkan peningkatan otomatis sepenuhnya."
 
 #: includes/Admin/SettingsFields.php:588
 msgid "OpenAI API key"
@@ -2789,8 +2805,8 @@ msgstr "Gambaran galeri — item per halaman"
 #: includes/Admin/SettingsFields.php:642
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
-"proportionally across all artists; featured artworks are preferred. Default: "
-"12."
+"proportionally across all artists; featured artworks are preferred. Default:"
+" 12."
 msgstr ""
 "Berapa banyak kartu karya seni yang ditampilkan per halaman pada gambaran "
 "galeri. Kumpulan dibangun secara proporsional di seluruh artis; karya "
@@ -2828,8 +2844,8 @@ msgstr "Template prompt artis"
 
 #: includes/Admin/SettingsFields.php:676
 msgid ""
-"User message sent alongside the artwork image. Use {artist_prompt} where the "
-"artist's own description should appear."
+"User message sent alongside the artwork image. Use {artist_prompt} where the"
+" artist's own description should appear."
 msgstr ""
 "Pesan pengguna yang dikirim bersama gambar karya seni. Gunakan "
 "{artist_prompt} sebagai tempat teks deskripsi milik artis harus muncul."
@@ -2864,8 +2880,8 @@ msgstr "Batas kata cuplikan"
 
 #: includes/Admin/SettingsFields.php:706
 msgid ""
-"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
-"the system prompt."
+"Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in"
+" the system prompt."
 msgstr ""
 "Jumlah kata maksimum untuk cuplikan satu kalimat. Direferensikan sebagai "
 "{excerpt_words} dalam prompt sistem."
@@ -2876,8 +2892,8 @@ msgstr "Percayai semua artis yang diterima (lewati seluruh peninjauan tautan)"
 
 #: includes/Admin/SettingsFields.php:724
 msgid ""
-"Every artist here was already vouched in by the community — if that trust is "
-"enough for you, turn this on to embed any link an artist submits, "
+"Every artist here was already vouched in by the community — if that trust is"
+" enough for you, turn this on to embed any link an artist submits, "
 "immediately, with no allowlist check and no AI review at all (the settings "
 "below are skipped entirely while this is on). Off by default. Only enable "
 "this if you are comfortable that a bad actor who made it through admission "
@@ -2887,8 +2903,8 @@ msgstr ""
 "cukup bagi Anda, aktifkan ini untuk menyematkan tautan apa pun yang dikirim "
 "artis, seketika, tanpa pemeriksaan allowlist dan tanpa peninjauan AI sama "
 "sekali (pengaturan di bawah dilewati sepenuhnya saat ini aktif). Nonaktif "
-"secara default. Aktifkan hanya jika Anda nyaman bahwa aktor jahat yang lolos "
-"seleksi dapat menyematkan tautan ke apa pun."
+"secara default. Aktifkan hanya jika Anda nyaman bahwa aktor jahat yang lolos"
+" seleksi dapat menyematkan tautan ke apa pun."
 
 #: includes/Admin/SettingsFields.php:728
 msgid "Trusted embed platforms"
@@ -2901,8 +2917,8 @@ msgid ""
 "network request made to the link itself."
 msgstr ""
 "Satu hostname per baris. Tautan yang dikirim akan langsung menjadi embed "
-"kaya jika cocok dengan salah satu dari ini (atau subdomainnya) — tanpa perlu "
-"peninjauan AI, dan tanpa permintaan jaringan ke tautan itu sendiri."
+"kaya jika cocok dengan salah satu dari ini (atau subdomainnya) — tanpa perlu"
+" peninjauan AI, dan tanpa permintaan jaringan ke tautan itu sendiri."
 
 #: includes/Admin/SettingsFields.php:738
 msgid "Let artists submit other links too (AI-reviewed)"
@@ -2913,8 +2929,8 @@ msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
 "AI provider (Settings → AI Providers) against the categories below before "
-"deciding whether to embed it. If the AI cannot be reached, the request times "
-"out, or the page cannot be safely fetched, the link is not embedded — it "
+"deciding whether to embed it. If the AI cannot be reached, the request times"
+" out, or the page cannot be safely fetched, the link is not embedded — it "
 "fails safe. When disabled (the default), only the trusted platforms above "
 "are ever embedded."
 msgstr ""
@@ -2959,8 +2975,8 @@ msgstr "Kategori tambahan yang tidak diizinkan"
 
 #: includes/Admin/SettingsFields.php:779
 msgid ""
-"Optional — describe any other kind of content the AI should reject, in plain "
-"language (e.g. \"hate speech or violent extremist content\", \"phishing or "
+"Optional — describe any other kind of content the AI should reject, in plain"
+" language (e.g. \"hate speech or violent extremist content\", \"phishing or "
 "scam pages\"). Only takes effect when AI review (above) is enabled."
 msgstr ""
 "Opsional — jelaskan jenis konten lain yang harus ditolak AI, dalam bahasa "
@@ -2992,8 +3008,8 @@ msgstr "Kunci publik node"
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
-"Kunci publik RSA yang dihasilkan otomatis untuk node ini. Bagikan ini dengan "
-"node rekan."
+"Kunci publik RSA yang dihasilkan otomatis untuk node ini. Bagikan ini dengan"
+" node rekan."
 
 #: includes/Admin/SettingsFields.php:812
 msgid "Self-removal (goodbye) requests per sender per day"
@@ -3006,8 +3022,8 @@ msgid ""
 "to be requested once — this caps how many confirmation emails a spoofed or "
 "repeated From can be used to spam a real artist with. Default: 3."
 msgstr ""
-"Jumlah maksimum email konfirmasi penghapusan diri (\"selamat tinggal\") yang "
-"dapat dipicu oleh satu alamat pengirim per hari. Penghapusan diri yang sah "
+"Jumlah maksimum email konfirmasi penghapusan diri (\"selamat tinggal\") yang"
+" dapat dipicu oleh satu alamat pengirim per hari. Penghapusan diri yang sah "
 "hanya perlu diminta sekali — ini membatasi berapa banyak email konfirmasi "
 "yang dapat dipakai dari From yang dipalsukan atau berulang untuk membuat "
 "spam ke artis nyata. Bawaan: 3."
@@ -3033,21 +3049,21 @@ msgstr "Panjang maksimum siaran komunitas (karakter)"
 #: includes/Admin/SettingsFields.php:839
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
-"the sender instead of being broadcast — the sender is told to shorten it and "
-"resend. Measured in characters, not words, so it applies fairly across "
+"the sender instead of being broadcast — the sender is told to shorten it and"
+" resend. Measured in characters, not words, so it applies fairly across "
 "languages that don't use spaces between words (Chinese, Japanese, Thai, "
 "etc.). Every recipient's copy is translated individually, so this also caps "
 "how much a single message can cost in AI translation calls. Default: 2000. "
 "Hard maximum: 20000, regardless of this setting."
 msgstr ""
-"Pesan yang lebih panjang ke alamat pengumuman Komunitas akan dikembalikan ke "
-"pengirim, bukan disiarkan — pengirim diberi tahu untuk mempersingkat lalu "
+"Pesan yang lebih panjang ke alamat pengumuman Komunitas akan dikembalikan ke"
+" pengirim, bukan disiarkan — pengirim diberi tahu untuk mempersingkat lalu "
 "mengirim ulang. Diukur dalam karakter, bukan kata, sehingga berlaku adil di "
 "semua bahasa yang tidak menggunakan spasi antar kata (Tionghoa, Jepang, "
 "Thai, dll.). Salinan setiap penerima diterjemahkan secara individual, jadi "
 "ini juga membatasi seberapa besar biaya satu pesan dalam panggilan "
-"terjemahan AI. Bawaan: 2000. Maksimum keras: 20000, terlepas dari pengaturan "
-"ini."
+"terjemahan AI. Bawaan: 2000. Maksimum keras: 20000, terlepas dari pengaturan"
+" ini."
 
 #: includes/Admin/SettingsFields.php:870
 msgid "Admin approval only (disable community voting)"
@@ -3061,8 +3077,8 @@ msgid ""
 "Applications wait indefinitely for an admin decision rather than auto-"
 "rejecting when no one can vote. A community removal vote already open when "
 "this is turned on still runs to its normal conclusion; only starting a new "
-"one is blocked. Off by default — most communities want the existing vouching/"
-"vote system."
+"one is blocked. Off by default — most communities want the existing "
+"vouching/vote system."
 msgstr ""
 "Saat diaktifkan, artis tidak lagi dapat mendukung pendaftar baru masuk atau "
 "memilih untuk menghapus anggota — setiap keputusan penerimaan dan "
@@ -3080,8 +3096,8 @@ msgstr "Ambang suara penerimaan (%)"
 
 #: includes/Admin/SettingsFields.php:885
 msgid ""
-"Percentage of active artists that must vote yes for admission. Combined with "
-"the minimum floor below."
+"Percentage of active artists that must vote yes for admission. Combined with"
+" the minimum floor below."
 msgstr ""
 "Persentase artis aktif yang harus memilih ya untuk penerimaan. Digabungkan "
 "dengan batas minimum di bawah."
@@ -3116,17 +3132,17 @@ msgstr "Retensi lamaran yang terselesaikan (hari)"
 #: includes/Admin/SettingsFields.php:911
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
-"statement, and portfolio link are anonymized by the daily cleanup after this "
-"many days — the application record itself (status and dates) is kept for "
+"statement, and portfolio link are anonymized by the daily cleanup after this"
+" many days — the application record itself (status and dates) is kept for "
 "admission history. A banned artist's biography/statement/portfolio are "
-"anonymized on the same schedule, but their email is deliberately kept so the "
-"ban stays enforceable. Default: 180 days."
+"anonymized on the same schedule, but their email is deliberately kept so the"
+" ban stays enforceable. Default: 180 days."
 msgstr ""
 "Email, nama, biografi, pernyataan, dan tautan portofolio dari lamaran yang "
 "ditolak, ditarik, atau ditinggalkan dianonimkan oleh pembersihan harian "
 "setelah sekian hari — catatan lamaran itu sendiri (status dan tanggal) "
-"disimpan untuk riwayat penerimaan. Biografi/pernyataan/portofolio artis yang "
-"diblokir dianonimkan dengan jadwal yang sama, tetapi email mereka sengaja "
+"disimpan untuk riwayat penerimaan. Biografi/pernyataan/portofolio artis yang"
+" diblokir dianonimkan dengan jadwal yang sama, tetapi email mereka sengaja "
 "disimpan agar pemblokiran tetap dapat diberlakukan. Bawaan: 180 hari."
 
 #: includes/Admin/SettingsFields.php:915
@@ -3157,8 +3173,8 @@ msgid ""
 msgstr ""
 "Jumlah maksimum artis yang diterima. Saat penuh, lamaran baru masuk ke "
 "daftar tunggu alih-alih ditolak, dan slot yang kosong akan menerima orang "
-"berikutnya dalam antrean. Setel ke 0 untuk tanpa batas. Komunitas juga dapat "
-"memilih untuk mengubah ini."
+"berikutnya dalam antrean. Setel ke 0 untuk tanpa batas. Komunitas juga dapat"
+" memilih untuk mengubah ini."
 
 #: includes/Admin/SettingsFields.php:931
 msgid "Cap-change co-signers required"
@@ -3215,47 +3231,29 @@ msgstr "Pengantar undangan"
 
 #: includes/Admin/SettingsFields.php:971
 msgid ""
-"Agnosis is a small, self-hosted home for artists who'd rather make work than "
-"manage a platform. There's no algorithm deciding who sees your art, no "
-"portfolio site to maintain, and no account to configure — just your work, "
-"published and translated automatically for a global audience.\n"
+"Agnosis is a small, self-hosted home for artists who'd rather make work than manage a platform. There's no algorithm deciding who sees your art, no portfolio site to maintain, and no account to configure — just your work, published and translated automatically for a global audience.\n"
 "\n"
-"Being part of the community is simple: Fellow artists vouch for new "
-"applicants, and everyone keeps full ownership of what they publish; you can "
-"leave at any time and take your work with you.\n"
+"Being part of the community is simple: Fellow artists vouch for new applicants, and everyone keeps full ownership of what they publish; you can leave at any time and take your work with you.\n"
 "\n"
-"Once admitted, you submit new work by sending it as an email — no dashboard, "
-"no forms and you can update, promote or remove your artwork as well sending "
-"an email. You can find more information visiting the agnosis.art website."
+"Once admitted, you submit new work by sending it as an email — no dashboard, no forms and you can update, promote or remove your artwork as well sending an email. You can find more information visiting the agnosis.art website."
 msgstr ""
-"Agnosis adalah rumah kecil yang di-host sendiri untuk para artis yang lebih "
-"suka berkarya daripada mengelola platform. Tidak ada algoritme yang "
-"menentukan siapa yang melihat karya Anda, tidak ada situs portofolio yang "
-"harus dirawat, dan tidak ada akun yang perlu dikonfigurasi — hanya karya "
-"Anda, dipublikasikan dan diterjemahkan secara otomatis untuk audiens "
-"global.\n"
+"Agnosis adalah rumah kecil yang di-host sendiri untuk para artis yang lebih suka berkarya daripada mengelola platform. Tidak ada algoritme yang menentukan siapa yang melihat karya Anda, tidak ada situs portofolio yang harus dirawat, dan tidak ada akun yang perlu dikonfigurasi — hanya karya Anda, dipublikasikan dan diterjemahkan secara otomatis untuk audiens global.\n"
 "\n"
-"Menjadi bagian dari komunitas itu sederhana: Sesama artis memberi vouch "
-"untuk pelamar baru, dan setiap orang tetap memiliki sepenuhnya apa yang "
-"mereka publikasikan; Anda dapat pergi kapan saja dan membawa karya Anda "
-"bersama Anda.\n"
+"Menjadi bagian dari komunitas itu sederhana: Sesama artis memberi vouch untuk pelamar baru, dan setiap orang tetap memiliki sepenuhnya apa yang mereka publikasikan; Anda dapat pergi kapan saja dan membawa karya Anda bersama Anda.\n"
 "\n"
-"Setelah diterima, Anda mengirim karya baru dengan mengirimkannya sebagai "
-"email — tanpa dasbor, tanpa formulir dan Anda juga dapat memperbarui, "
-"mempromosikan, atau menghapus karya Anda dengan mengirim email. Anda dapat "
-"menemukan informasi lebih lanjut dengan mengunjungi situs web agnosis.art."
+"Setelah diterima, Anda mengirim karya baru dengan mengirimkannya sebagai email — tanpa dasbor, tanpa formulir dan Anda juga dapat memperbarui, mempromosikan, atau menghapus karya Anda dengan mengirim email. Anda dapat menemukan informasi lebih lanjut dengan mengunjungi situs web agnosis.art."
 
 #: includes/Admin/SettingsFields.php:976
 msgid ""
-"Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
-"\" link and site name follow automatically — no need to add either here). "
-"Two or three short paragraphs is plenty. Standing copy, not cleared after "
-"use like the newsletter intros above — translated automatically when an "
-"invitation is sent in a language other than the site's own."
+"Shown near the top of the \"Send Invitation\" email below (an \"Apply to "
+"join\" link and site name follow automatically — no need to add either "
+"here). Two or three short paragraphs is plenty. Standing copy, not cleared "
+"after use like the newsletter intros above — translated automatically when "
+"an invitation is sent in a language other than the site's own."
 msgstr ""
 "Ditampilkan di dekat bagian atas email \"Kirim Undangan\" di bawah (tautan "
-"\"Ajukan untuk bergabung\" dan nama situs akan muncul otomatis — tidak perlu "
-"menambahkan keduanya di sini). Dua atau tiga paragraf pendek sudah cukup. "
+"\"Ajukan untuk bergabung\" dan nama situs akan muncul otomatis — tidak perlu"
+" menambahkan keduanya di sini). Dua atau tiga paragraf pendek sudah cukup. "
 "Teks tetap, tidak dikosongkan setelah dipakai seperti pengantar buletin di "
 "atas — diterjemahkan otomatis saat undangan dikirim dalam bahasa selain "
 "bahasa situs itu sendiri.Persentase yang dipertahankan oleh node ini pada "
@@ -3269,8 +3267,8 @@ msgstr "Nama pengirim"
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
-"Nama yang ditampilkan sebagai pengirim email ringkasan. Biarkan kosong untuk "
-"menggunakan nama situs."
+"Nama yang ditampilkan sebagai pengirim email ringkasan. Biarkan kosong untuk"
+" menggunakan nama situs."
 
 #: includes/Admin/SettingsFields.php:1000
 msgid "Sender email address"
@@ -3285,8 +3283,8 @@ msgid ""
 "may be marked as spam."
 msgstr ""
 "Alamat From: khusus untuk kedua buletin, misalnya newsletter@agnosis.art — "
-"memisahkan email ringkasan dari email admin situs demi keterkiriman dan agar "
-"artis dapat memfilternya. Biarkan kosong untuk menggunakan email admin. "
+"memisahkan email ringkasan dari email admin situs demi keterkiriman dan agar"
+" artis dapat memfilternya. Biarkan kosong untuk menggunakan email admin. "
 "Harus berupa alamat yang valid dan dapat menerima kiriman di domain Anda "
 "(SPF/DKIM dikonfigurasi) atau pesan dapat ditandai sebagai spam."
 
@@ -3319,14 +3317,15 @@ msgstr ""
 "Berapa lama sebelum sebuah edisi jatuh tempo Agnosis mengusulkan intro yang "
 "dibuat AI. Hanya berlaku saat auto-draft (di atas) diaktifkan. Default: 24."
 
-#: includes/Admin/SettingsFields.php:1025 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1025
+#: includes/Newsletter/Scheduler.php:386
 msgid "Artist newsletter"
 msgstr "Buletin artis"
 
 #: includes/Admin/SettingsFields.php:1028
 msgid ""
-"Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
-"one click). Community digest: recent activity, new members, open votes."
+"Admitted artists are auto-enrolled (they can unsubscribe from any issue with"
+" one click). Community digest: recent activity, new members, open votes."
 msgstr ""
 "Artis yang diterima otomatis terdaftar (mereka dapat berhenti berlangganan "
 "dari edisi mana pun dengan satu klik). Ringkasan komunitas: aktivitas "
@@ -3351,19 +3350,20 @@ msgstr "Intro buletin artis"
 #: includes/Admin/SettingsFields.php:1046
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
-"automatically once that issue is queued. Leave blank to send the auto-digest "
-"with no intro. If left blank, Agnosis drafts one automatically from what's "
+"automatically once that issue is queued. Leave blank to send the auto-digest"
+" with no intro. If left blank, Agnosis drafts one automatically from what's "
 "new about a day before the issue sends, and emails you to review it first — "
 "write your own here any time to skip that."
 msgstr ""
 "Catatan opsional yang ditambahkan hanya pada edisi artis berikutnya — akan "
 "dihapus otomatis setelah edisi tersebut masuk antrean. Biarkan kosong untuk "
-"mengirim ringkasan otomatis tanpa intro. Jika dibiarkan kosong, Agnosis akan "
-"menyusun satu secara otomatis dari hal-hal baru sekitar satu hari sebelum "
+"mengirim ringkasan otomatis tanpa intro. Jika dibiarkan kosong, Agnosis akan"
+" menyusun satu secara otomatis dari hal-hal baru sekitar satu hari sebelum "
 "edisi dikirim, dan mengirim email kepada Anda untuk meninjaunya terlebih "
 "dahulu — tulis sendiri di sini kapan saja untuk melewati itu."
 
-#: includes/Admin/SettingsFields.php:1050 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1050
+#: includes/Newsletter/Scheduler.php:386
 msgid "Public newsletter"
 msgstr "Buletin publik"
 
@@ -3392,8 +3392,8 @@ msgstr "Pengantar buletin publik"
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
-"automatically from what's new about a day before the issue sends, and emails "
-"you to review it first — write your own here any time to skip that."
+"automatically from what's new about a day before the issue sends, and emails"
+" you to review it first — write your own here any time to skip that."
 msgstr ""
 "Catatan opsional yang hanya ditambahkan di awal edisi publik berikutnya — "
 "akan dihapus otomatis setelah edisi itu dijadwalkan. Jika dibiarkan kosong, "
@@ -3407,8 +3407,8 @@ msgstr "Ukuran batch pengiriman"
 
 #: includes/Admin/SettingsFields.php:1081
 msgid ""
-"Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
-"outbound mail; raise it for faster delivery on hosts with generous limits."
+"Recipients emailed per 5-minute cron tick. Lower this if your host throttles"
+" outbound mail; raise it for faster delivery on hosts with generous limits."
 msgstr ""
 "Penerima yang dikirimi email per tick cron 5 menit. Turunkan ini jika host "
 "Anda membatasi email keluar; naikkan untuk pengiriman lebih cepat pada host "
@@ -3421,8 +3421,8 @@ msgstr "Ambang kenyamanan self-hosting"
 #: includes/Admin/SettingsFields.php:1091
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
-"confirmed public subscribers pass it, this page shows a reminder to consider "
-"an email service provider (e.g. Brevo's free tier) instead."
+"confirmed public subscribers pass it, this page shows a reminder to consider"
+" an email service provider (e.g. Brevo's free tier) instead."
 msgstr ""
 "Hanya sebagai saran — pengiriman self-hosted tetap berfungsi di atas jumlah "
 "ini. Setelah pelanggan publik terkonfirmasi melampauinya, halaman ini "
@@ -3438,7 +3438,11 @@ msgstr "Sinkronkan terjemahan"
 msgid "Invalid taxonomy."
 msgstr "Taksonomi tidak valid."
 
-#. translators: 1: number of primary-language terms processed so far, 2: total number of eligible terms, 3: number of newly-created translated terms, 4: number of terms created as untranslated placeholders needing a hand edit, 5: number of languages that already had one, 6: number of translations that could not be created at all
+#. translators: 1: number of primary-language terms processed so far, 2: total
+#. number of eligible terms, 3: number of newly-created translated terms, 4:
+#. number of terms created as untranslated placeholders needing a hand edit,
+#. 5: number of languages that already had one, 6: number of translations that
+#. could not be created at all
 #: includes/Admin/TaxonomyLanguageFilter.php:470
 #, php-format
 msgid ""
@@ -3449,16 +3453,19 @@ msgid ""
 msgstr ""
 "%1$d dari %2$d istilah selesai (%3$d terjemahan dibuat, %4$d dibuat sebagai "
 "placeholder yang perlu diterjemahkan, %5$d sudah mutakhir, %6$d gagal) — "
-"proses ini kehabisan waktu sebelum mencapai semua istilah. Klik \"Sinkronkan "
-"semua terjemahan\" lagi untuk melanjutkan; proses akan melanjutkan dari "
+"proses ini kehabisan waktu sebelum mencapai semua istilah. Klik \"Sinkronkan"
+" semua terjemahan\" lagi untuk melanjutkan; proses akan melanjutkan dari "
 "titik terakhir ini."
 
-#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one, 5: number of translations that could not be created at all
+#. translators: 1: number of primary-language terms processed, 2: number of
+#. newly-created translated terms, 3: number of terms created as untranslated
+#. placeholders needing a hand edit, 4: number of languages that already had
+#. one, 5: number of translations that could not be created at all
 #: includes/Admin/TaxonomyLanguageFilter.php:486
 #, php-format
 msgid ""
-"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
-"created as placeholders needing translation, %4$d already up to date, %5$d "
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d"
+" created as placeholders needing translation, %4$d already up to date, %5$d "
 "failed outright — check the AI provider configuration and run it again for "
 "those."
 msgstr ""
@@ -3467,12 +3474,15 @@ msgstr ""
 "mutakhir, %5$d gagal total — periksa konfigurasi penyedia AI dan jalankan "
 "lagi untuk yang tersebut."
 
-#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of terms created as untranslated placeholders needing a hand edit, 4: number of languages that already had one
+#. translators: 1: number of primary-language terms processed, 2: number of
+#. newly-created translated terms, 3: number of terms created as untranslated
+#. placeholders needing a hand edit, 4: number of languages that already had
+#. one
 #: includes/Admin/TaxonomyLanguageFilter.php:496
 #, php-format
 msgid ""
-"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
-"created as untranslated placeholders (AI translation wasn't available for "
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d"
+" created as untranslated placeholders (AI translation wasn't available for "
 "these) — edit them in this list to add the correct name, %4$d already up to "
 "date."
 msgstr ""
@@ -3481,17 +3491,21 @@ msgstr ""
 "tidak tersedia untuk ini) — edit di daftar ini untuk menambahkan nama yang "
 "benar, %4$d sudah mutakhir."
 
-#. translators: 1: number of primary-language terms processed, 2: number of newly-created translated terms, 3: number of languages that already had one
+#. translators: 1: number of primary-language terms processed, 2: number of
+#. newly-created translated terms, 3: number of languages that already had one
 #: includes/Admin/TaxonomyLanguageFilter.php:505
 #, php-format
 msgid ""
-"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d "
-"already up to date."
+"Sync all complete: %1$d term(s) processed, %2$d translation(s) created, %3$d"
+" already up to date."
 msgstr ""
 "Sinkronisasi semua selesai: %1$d istilah diproses, %2$d terjemahan dibuat, "
 "%3$d sudah diperbarui."
 
-#. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one, 4: number of languages the translation could not be created for at all
+#. translators: 1: number of newly-created translated terms, 2: number of
+#. terms created as untranslated placeholders needing a hand edit, 3: number
+#. of languages that already had one, 4: number of languages the translation
+#. could not be created for at all
 #: includes/Admin/TaxonomyLanguageFilter.php:530
 #, php-format
 msgid ""
@@ -3500,23 +3514,26 @@ msgid ""
 "outright — check the AI provider configuration and try again."
 msgstr ""
 "Sinkronisasi selesai: %1$d terjemahan dibuat, %2$d dibuat sebagai "
-"placeholder yang perlu diterjemahkan, %3$d bahasa sudah mutakhir, %4$d gagal "
-"total — periksa konfigurasi penyedia AI dan coba lagi."
+"placeholder yang perlu diterjemahkan, %3$d bahasa sudah mutakhir, %4$d gagal"
+" total — periksa konfigurasi penyedia AI dan coba lagi."
 
-#. translators: 1: number of newly-created translated terms, 2: number of terms created as untranslated placeholders needing a hand edit, 3: number of languages that already had one
+#. translators: 1: number of newly-created translated terms, 2: number of
+#. terms created as untranslated placeholders needing a hand edit, 3: number
+#. of languages that already had one
 #: includes/Admin/TaxonomyLanguageFilter.php:539
 #, php-format
 msgid ""
 "Sync complete: %1$d translation(s) created, %2$d created as untranslated "
-"placeholders (AI translation wasn't available for these) — edit them in this "
-"list to add the correct name, %3$d language(s) already up to date."
+"placeholders (AI translation wasn't available for these) — edit them in this"
+" list to add the correct name, %3$d language(s) already up to date."
 msgstr ""
 "Sinkronisasi selesai: %1$d terjemahan dibuat, %2$d dibuat sebagai "
 "placeholder yang belum diterjemahkan (terjemahan AI tidak tersedia untuk "
 "ini) — edit di daftar ini untuk menambahkan nama yang benar, %3$d bahasa "
 "sudah mutakhir."
 
-#. translators: 1: number of newly-created translated terms, 2: number of languages that already had one
+#. translators: 1: number of newly-created translated terms, 2: number of
+#. languages that already had one
 #: includes/Admin/TaxonomyLanguageFilter.php:547
 #, php-format
 msgid ""
@@ -3549,7 +3566,8 @@ msgstr "Bio"
 msgid "Statement"
 msgstr "Pernyataan"
 
-#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
+#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character
+#. count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
@@ -3613,7 +3631,8 @@ msgstr "Mengonfirmasi aplikasi Anda…"
 #: includes/Artist/AdmissionConfirm.php:114
 msgid "Hang tight — we're opening your application for community review."
 msgstr ""
-"Tunggu sebentar — kami sedang membuka aplikasi Anda untuk ditinjau komunitas."
+"Tunggu sebentar — kami sedang membuka aplikasi Anda untuk ditinjau "
+"komunitas."
 
 #: includes/Artist/AdmissionConfirm.php:115
 #: includes/Artist/AdmissionNotification.php:404
@@ -3625,8 +3644,8 @@ msgid ""
 "This community is currently full, so your application has joined the "
 "waitlist — when a member leaves, the next person in line is welcomed in."
 msgstr ""
-"Komunitas ini saat ini penuh, jadi permohonan Anda telah masuk daftar tunggu "
-"— ketika seorang anggota keluar, orang berikutnya dalam antrean akan "
+"Komunitas ini saat ini penuh, jadi permohonan Anda telah masuk daftar tunggu"
+" — ketika seorang anggota keluar, orang berikutnya dalam antrean akan "
 "diterima."
 
 #: includes/Artist/AdmissionConfirm.php:154
@@ -3752,14 +3771,15 @@ msgid ""
 "There is no fixed deadline — we will let you know the outcome by email as "
 "soon as a decision is made."
 msgstr ""
-"Tidak ada tenggat waktu tetap — kami akan memberi tahu Anda hasilnya melalui "
-"email segera setelah keputusan dibuat."
+"Tidak ada tenggat waktu tetap — kami akan memberi tahu Anda hasilnya melalui"
+" email segera setelah keputusan dibuat."
 
 #. translators: %d: number of days
 #: includes/Artist/AdmissionNotification.php:461
 #, php-format
 msgid ""
-"The community has %d days to vote. We will let you know the outcome by email."
+"The community has %d days to vote. We will let you know the outcome by "
+"email."
 msgstr ""
 "Komunitas memiliki waktu %d hari untuk memberikan suara. Kami akan memberi "
 "tahu Anda hasilnya melalui email."
@@ -3777,8 +3797,8 @@ msgid ""
 "%s has applied to join. Community voting is disabled on this site, so this "
 "application needs your direct decision."
 msgstr ""
-"%s telah mendaftar untuk bergabung. Pemungutan suara komunitas dinonaktifkan "
-"di situs ini, jadi aplikasi ini memerlukan keputusan langsung dari Anda."
+"%s telah mendaftar untuk bergabung. Pemungutan suara komunitas dinonaktifkan"
+" di situs ini, jadi aplikasi ini memerlukan keputusan langsung dari Anda."
 
 #: includes/Artist/AdmissionNotification.php:519
 #: includes/Artist/AdmissionNotification.php:614
@@ -3796,7 +3816,8 @@ msgstr "Tinjau aplikasi"
 msgid "New application: %1$s wants to join %2$s"
 msgstr "Permohonan baru: %1$s ingin bergabung dengan %2$s"
 
-#. translators: 1: applicant display name, 2: community name, 3: number of days
+#. translators: 1: applicant display name, 2: community name, 3: number of
+#. days
 #: includes/Artist/AdmissionNotification.php:601
 #, php-format
 msgid "%1$s has applied to join %2$s. You have %3$d days to vote."
@@ -3931,16 +3952,14 @@ msgid ""
 "[Photo] — publish as-is, no AI enhancement (fallback for mail apps without "
 "To: aliases)"
 msgstr ""
-"[Foto] — terbitkan apa adanya, tanpa peningkatan AI (cadangan untuk aplikasi "
-"email tanpa alias To:)"
+"[Foto] — terbitkan apa adanya, tanpa peningkatan AI (cadangan untuk aplikasi"
+" email tanpa alias To:)"
 
 #: includes/Artist/AdmissionNotification.php:823
 msgid ""
-"[Pure] — publish exactly as sent, no AI at all (fallback for mail apps "
-"without To: aliases)"
+"[Pure] — publish exactly as sent, content untouched by AI (fallback for mail"
+" apps without To: aliases)"
 msgstr ""
-"[Pure] — terbitkan persis seperti yang dikirim, tanpa AI sama sekali "
-"(fallback untuk aplikasi email tanpa alias To:)"
 
 #: includes/Artist/AdmissionNotification.php:829
 msgid "To leave the network and delete your account:"
@@ -3956,8 +3975,8 @@ msgstr ""
 
 #: includes/Artist/AdmissionNotification.php:837
 msgid ""
-"No login is needed to work with Agnosis — everything above happens by email. "
-"If you'd also like to use the site's optional online features (like "
+"No login is needed to work with Agnosis — everything above happens by email."
+" If you'd also like to use the site's optional online features (like "
 "previewing a submission before it publishes), you can set up a password "
 "whenever you like using"
 msgstr ""
@@ -3999,8 +4018,8 @@ msgid "Photo-only — publish as-is, no AI enhancement"
 msgstr "Hanya foto — terbitkan apa adanya, tanpa peningkatan AI"
 
 #: includes/Artist/AdmissionNotification.php:869
-msgid "Pure — publish exactly as sent, no AI at all"
-msgstr "Pure — terbitkan persis seperti yang dikirim, tanpa AI sama sekali"
+msgid "Pure — publish exactly as sent, content untouched by AI"
+msgstr ""
 
 #. translators: %s: artist display name
 #: includes/Artist/ApplicationBiography.php:185
@@ -4008,7 +4027,8 @@ msgstr "Pure — terbitkan persis seperti yang dikirim, tanpa AI sama sekali"
 msgid "About %s"
 msgstr "Tentang %s"
 
-#. translators: 1: preset biography title (Settings → General); 2: artist's WordPress display name
+#. translators: 1: preset biography title (Settings → General); 2: artist's
+#. WordPress display name
 #: includes/Artist/BiographyTitle.php:183
 #, php-format
 msgid "%1$s — %2$s"
@@ -4022,7 +4042,8 @@ msgstr "[%s] Pesan komunitas Anda tidak terkirim — terlalu panjang"
 
 # translators: 1: character count of the sent message, 2: configured character
 # limit
-#. translators: 1: character count of the sent message, 2: configured character limit
+#. translators: 1: character count of the sent message, 2: configured
+#. character limit
 #: includes/Artist/CommunityBroadcast.php:188
 #, php-format
 msgid ""
@@ -4054,9 +4075,9 @@ msgid ""
 "found — this often happens when an email client sends an HTML-only message "
 "with no plain-text version included. It was not sent to anyone."
 msgstr ""
-"Pesan Anda kepada komunitas tidak memiliki subjek atau teks pesan yang dapat "
-"ditemukan — ini sering terjadi ketika klien email mengirim pesan hanya HTML "
-"tanpa versi teks biasa. Pesan tersebut tidak dikirim kepada siapa pun."
+"Pesan Anda kepada komunitas tidak memiliki subjek atau teks pesan yang dapat"
+" ditemukan — ini sering terjadi ketika klien email mengirim pesan hanya HTML"
+" tanpa versi teks biasa. Pesan tersebut tidak dikirim kepada siapa pun."
 
 #: includes/Artist/CommunityBroadcast.php:257
 msgid "Please try sending it again with plain text included."
@@ -4140,8 +4161,8 @@ msgstr "Batas ukuran komunitas diubah di %s"
 #: includes/Artist/CommunityCapNotification.php:136
 #, php-format
 msgid ""
-"The community voted to change the membership size cap to %1$s (proposal #"
-"%2$d). The new cap is now in effect."
+"The community voted to change the membership size cap to %1$s (proposal "
+"#%2$d). The new cap is now in effect."
 msgstr ""
 "Komunitas memilih untuk mengubah batas ukuran keanggotaan menjadi %1$s "
 "(usulan #%2$d). Batas baru kini berlaku."
@@ -4160,8 +4181,8 @@ msgid ""
 "A community vote to change the membership size cap (proposal #%d) closed "
 "without a majority. The cap is unchanged."
 msgstr ""
-"Pemungutan suara komunitas untuk mengubah batas ukuran keanggotaan (proposal "
-"#%d) ditutup tanpa mayoritas. Batasnya tidak berubah."
+"Pemungutan suara komunitas untuk mengubah batas ukuran keanggotaan (proposal"
+" #%d) ditutup tanpa mayoritas. Batasnya tidak berubah."
 
 #: includes/Artist/CommunityCapVote.php:76
 msgid "Only community members can do this."
@@ -4199,7 +4220,8 @@ msgstr "Pemungutan suara ini saat ini tidak terbuka."
 msgid "This artist can't be reached through this form right now."
 msgstr "Artis ini tidak dapat dijangkau melalui formulir ini saat ini."
 
-#: includes/Artist/ContactForm.php:261 includes/Artist/ContactFormBlock.php:186
+#: includes/Artist/ContactForm.php:261
+#: includes/Artist/ContactFormBlock.php:186
 msgid "Thanks — your message has been sent."
 msgstr "Terima kasih — pesan Anda telah terkirim."
 
@@ -4215,7 +4237,8 @@ msgstr ""
 msgid "Flagged by automatic content review."
 msgstr "Ditandai oleh peninjauan konten otomatis."
 
-#. translators: %s: visitor's name, or their email address if no name was given
+#. translators: %s: visitor's name, or their email address if no name was
+#. given
 #: includes/Artist/ContactForm.php:556
 #, php-format
 msgid "New message from %s via your Agnosis contact form"
@@ -4231,7 +4254,8 @@ msgstr "Dari: %s"
 msgid "(no name provided)"
 msgstr "(tidak ada nama yang diberikan)"
 
-#. translators: %s: visitor's own email address, for the artist to reply to directly.
+#. translators: %s: visitor's own email address, for the artist to reply to
+#. directly.
 #: includes/Artist/ContactForm.php:568
 #, php-format
 msgctxt "contact form reply-to email"
@@ -4301,7 +4325,8 @@ msgstr ""
 msgid "The title cannot be empty."
 msgstr "Judul tidak boleh kosong."
 
-#: includes/Artist/ContentEditor.php:347 includes/Artist/ContentEditor.php:1122
+#: includes/Artist/ContentEditor.php:347
+#: includes/Artist/ContentEditor.php:1122
 msgid "Saved — translations will update within a few minutes."
 msgstr "Tersimpan — terjemahan akan diperbarui dalam beberapa menit."
 
@@ -4322,7 +4347,8 @@ msgstr "File yang diunggah tidak dapat dibaca."
 msgid "Untitled"
 msgstr "Tanpa judul"
 
-#: includes/Artist/ContentEditor.php:450 includes/Artist/ContentEditor.php:1126
+#: includes/Artist/ContentEditor.php:450
+#: includes/Artist/ContentEditor.php:1126
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr "Foto diganti — yang asli disimpan dan dapat dipulihkan nanti."
 
@@ -4334,7 +4360,8 @@ msgstr "Tidak ada foto yang dapat dipulihkan."
 msgid "No earlier version of this photo was found."
 msgstr "Tidak ditemukan versi foto sebelumnya."
 
-#: includes/Artist/ContentEditor.php:602 includes/Artist/ContentEditor.php:1129
+#: includes/Artist/ContentEditor.php:602
+#: includes/Artist/ContentEditor.php:1129
 msgid "Restored the earlier photo."
 msgstr "Foto sebelumnya telah dipulihkan."
 
@@ -4414,8 +4441,8 @@ msgid ""
 "This confirmation link has already been used or is no longer valid. If you "
 "still want to leave, please request removal again from your account."
 msgstr ""
-"Tautan konfirmasi ini sudah digunakan atau აღარ valid. Jika Anda masih ingin "
-"keluar, silakan minta penghapusan lagi dari akun Anda."
+"Tautan konfirmasi ini sudah digunakan atau აღარ valid. Jika Anda masih ingin"
+" keluar, silakan minta penghapusan lagi dari akun Anda."
 
 #: includes/Artist/Departure.php:186
 #: includes/Publishing/SubmissionsPage.php:163
@@ -4468,8 +4495,8 @@ msgid ""
 "We received a request to remove your account and all your published work "
 "from %s."
 msgstr ""
-"Kami menerima permintaan untuk menghapus akun Anda dan semua karya yang Anda "
-"publikasikan dari %s."
+"Kami menerima permintaan untuk menghapus akun Anda dan semua karya yang Anda"
+" publikasikan dari %s."
 
 #: includes/Artist/DepartureNotification.php:105
 msgid ""
@@ -4488,8 +4515,8 @@ msgid ""
 "If you did not make this request, you can ignore this email — your account "
 "remains unchanged."
 msgstr ""
-"Jika Anda tidak melakukan permintaan ini, Anda dapat mengabaikan email ini — "
-"akun Anda tetap tidak berubah."
+"Jika Anda tidak melakukan permintaan ini, Anda dapat mengabaikan email ini —"
+" akun Anda tetap tidak berubah."
 
 #. translators: %s: site name
 #: includes/Artist/DepartureNotification.php:167
@@ -4521,8 +4548,8 @@ msgstr ""
 #: includes/Artist/DepartureNotification.php:226
 #, php-format
 msgid ""
-"This confirms that your account and everything you published on %s have been "
-"permanently deleted, as you requested."
+"This confirms that your account and everything you published on %s have been"
+" permanently deleted, as you requested."
 msgstr ""
 "Ini menegaskan bahwa akun Anda dan semua yang Anda publikasikan di %s telah "
 "dihapus secara permanen, sesuai permintaan Anda."
@@ -4642,8 +4669,8 @@ msgid ""
 "The artist's account and all published work have been permanently deleted "
 "from %s."
 msgstr ""
-"Akun artis dan semua karya yang dipublikasikan telah dihapus secara permanen "
-"dari %s."
+"Akun artis dan semua karya yang dipublikasikan telah dihapus secara permanen"
+" dari %s."
 
 #. translators: %s: site name
 #: includes/Artist/DepartureNotification.php:553
@@ -4653,8 +4680,8 @@ msgstr "Pemungutan suara penghapusan komunitas tidak disahkan di %s"
 
 #: includes/Artist/DepartureNotification.php:563
 msgid ""
-"The community removal vote has closed. The required majority was not reached "
-"and the artist's membership remains active."
+"The community removal vote has closed. The required majority was not reached"
+" and the artist's membership remains active."
 msgstr ""
 "Pemungutan suara penghapusan oleh komunitas telah ditutup. Mayoritas yang "
 "diperlukan tidak tercapai dan keanggotaan artis tetap aktif."
@@ -4665,9 +4692,11 @@ msgstr "Silakan masukkan alamat email yang valid."
 
 #: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:147
 msgid ""
-"wp_mail() reported a failure — check your site's outgoing mail configuration."
+"wp_mail() reported a failure — check your site's outgoing mail "
+"configuration."
 msgstr ""
-"wp_mail() melaporkan kegagalan — periksa konfigurasi email keluar situs Anda."
+"wp_mail() melaporkan kegagalan — periksa konfigurasi email keluar situs "
+"Anda."
 
 #. translators: %s: community name
 #: includes/Artist/Invitation.php:125
@@ -4787,8 +4816,8 @@ msgstr "Segera, satu email per aplikasi (default)."
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
-"Sekali sehari, satu ringkasan dari setiap aplikasi yang masih menunggu suara "
-"saya."
+"Sekali sehari, satu ringkasan dari setiap aplikasi yang masih menunggu suara"
+" saya."
 
 #: includes/Artist/NotificationPreferences.php:231
 msgid ""
@@ -5116,16 +5145,16 @@ msgid ""
 "Each has a %2$d-day voting window from when it was confirmed."
 msgstr ""
 "Berikut ringkasan harian Anda tentang aplikasi ke %1$s yang masih menunggu "
-"suara Anda. Masing-masing memiliki jendela pemungutan suara selama %2$d hari "
-"sejak dikonfirmasi."
+"suara Anda. Masing-masing memiliki jendela pemungutan suara selama %2$d hari"
+" sejak dikonfirmasi."
 
 #: includes/Artist/VoteDigest.php:203
 msgid ""
 "Prefer these one at a time again? You can switch back any time from your "
 "notification preferences link below."
 msgstr ""
-"Lebih suka yang satu per satu lagi? Anda bisa kembali kapan saja dari tautan "
-"preferensi notifikasi Anda di bawah."
+"Lebih suka yang satu per satu lagi? Anda bisa kembali kapan saja dari tautan"
+" preferensi notifikasi Anda di bawah."
 
 #: includes/Artist/VouchConfirm.php:157
 msgid "Vote in favor of this application?"
@@ -5174,11 +5203,11 @@ msgstr "mode perutean"
 
 #: includes/Compat/LinguaForge.php:3123
 msgid ""
-"This conflicts with Agnosis artist subdomains — both plugins would claim the "
-"same subdomain namespace."
+"This conflicts with Agnosis artist subdomains — both plugins would claim the"
+" same subdomain namespace."
 msgstr ""
-"Ini bertabrakan dengan subdomain artis Agnosis — kedua plugin akan mengklaim "
-"ruang nama subdomain yang sama."
+"Ini bertabrakan dengan subdomain artis Agnosis — kedua plugin akan mengklaim"
+" ruang nama subdomain yang sama."
 
 #: includes/Compat/LinguaForge.php:3124
 msgid "Artist subdomain routing is"
@@ -5214,11 +5243,11 @@ msgstr "Awalan jalur (subfolder)"
 
 #: includes/Compat/LinguaForge.php:3132
 msgid ""
-"This is the LinguaForge default and allows artist subdomains to coexist with "
-"language subfolders"
+"This is the LinguaForge default and allows artist subdomains to coexist with"
+" language subfolders"
 msgstr ""
-"Ini adalah default LinguaForge dan memungkinkan subdomain artis berdampingan "
-"dengan subfolder bahasa"
+"Ini adalah default LinguaForge dan memungkinkan subdomain artis berdampingan"
+" dengan subfolder bahasa"
 
 #: includes/Compat/LinguaForge.php:3137
 msgid "Agnosis — Artist Subdomain Routing is disabled"
@@ -5302,10 +5331,9 @@ msgstr "Murni"
 
 #: includes/Core/EmailFooter.php:99
 msgid ""
-"Publish exactly as sent — no AI at all, not even the title/description pass."
+"Publish exactly as sent — your words and image untouched by AI; only medium "
+"and tags are classified."
 msgstr ""
-"Publikasikan persis seperti yang dikirim — tanpa AI sama sekali, bahkan "
-"tanpa pemrosesan judul/deskripsi."
 
 #: includes/Core/EmailFooter.php:103
 msgid "Send a message to every other artist in the community."
@@ -5318,8 +5346,8 @@ msgid ""
 "yourself, no need to email us again."
 msgstr ""
 "Menemukan sesuatu yang perlu diperbaiki setelah publikasi? Masuk dan cari "
-"ikon pensil di halaman yang Anda publikasikan — Anda bisa memperbaiki judul, "
-"teks, atau foto sendiri, tidak perlu email kami lagi."
+"ikon pensil di halaman yang Anda publikasikan — Anda bisa memperbaiki judul,"
+" teks, atau foto sendiri, tidak perlu email kami lagi."
 
 #. translators: %s: notification preferences link
 #: includes/Core/EmailFooter.php:255
@@ -5470,8 +5498,8 @@ msgid ""
 "administrator."
 msgstr ""
 "Permohonan keanggotaan/akun Anda masih aktif. Untuk menghapus data ini, "
-"gunakan tautan \"leave the network\" dari email Agnosis mana pun, atau minta "
-"administrator."
+"gunakan tautan \"leave the network\" dari email Agnosis mana pun, atau minta"
+" administrator."
 
 #: includes/Core/Privacy.php:513
 msgid ""
@@ -5479,8 +5507,8 @@ msgid ""
 "address was kept on file — your account is currently banned, and it's the "
 "only way this site can continue to enforce that."
 msgstr ""
-"Biografi, pernyataan, dan tautan portofolio Anda telah dihapus. Alamat email "
-"Anda tetap disimpan — akun Anda saat ini diblokir, dan itulah satu-satunya "
+"Biografi, pernyataan, dan tautan portofolio Anda telah dihapus. Alamat email"
+" Anda tetap disimpan — akun Anda saat ini diblokir, dan itulah satu-satunya "
 "cara situs ini dapat terus menegakkan hal itu."
 
 #: includes/Core/Privacy.php:587 includes/Core/Privacy.php:659
@@ -5513,8 +5541,8 @@ msgid ""
 "actual configuration before publishing."
 msgstr ""
 "Agnosis adalah plugin penerbitan seni terfederasi. Berikut ini adalah titik "
-"awal untuk menjelaskan apa yang dikumpulkannya — tinjau dan sesuaikan dengan "
-"konfigurasi situs Anda yang sebenarnya sebelum memublikasikannya."
+"awal untuk menjelaskan apa yang dikumpulkannya — tinjau dan sesuaikan dengan"
+" konfigurasi situs Anda yang sebenarnya sebelum memublikasikannya."
 
 #: includes/Core/Privacy.php:709
 msgid "What personal data we collect and why"
@@ -5524,20 +5552,20 @@ msgstr "Data pribadi apa yang kami kumpulkan dan mengapa"
 msgid ""
 "When you apply to join, we store your email address, display name, "
 "biography, statement, and portfolio link to run the community vouching "
-"process. When you email us artwork, a biography, or an event, the content of "
-"that email (including your address) is stored while it is processed and "
+"process. When you email us artwork, a biography, or an event, the content of"
+" that email (including your address) is stored while it is processed and "
 "reviewed. When you subscribe to our newsletter or message an artist through "
 "their contact form, we store your email address (and, for contact messages, "
 "your IP address) to deliver that message or send you future issues."
 msgstr ""
 "Saat Anda mengajukan permohonan untuk bergabung, kami menyimpan alamat "
-"email, nama tampilan, biografi, pernyataan, dan tautan portofolio Anda untuk "
-"menjalankan proses dukungan komunitas. Saat Anda mengirimkan karya seni, "
-"biografi, atau acara melalui email kepada kami, isi email tersebut (termasuk "
-"alamat Anda) disimpan selama diproses dan ditinjau. Saat Anda berlangganan "
+"email, nama tampilan, biografi, pernyataan, dan tautan portofolio Anda untuk"
+" menjalankan proses dukungan komunitas. Saat Anda mengirimkan karya seni, "
+"biografi, atau acara melalui email kepada kami, isi email tersebut (termasuk"
+" alamat Anda) disimpan selama diproses dan ditinjau. Saat Anda berlangganan "
 "buletin kami atau mengirim pesan kepada seniman melalui formulir kontak "
-"mereka, kami menyimpan alamat email Anda (dan, untuk pesan kontak, alamat IP "
-"Anda) untuk mengirim pesan tersebut atau mengirim edisi berikutnya kepada "
+"mereka, kami menyimpan alamat email Anda (dan, untuk pesan kontak, alamat IP"
+" Anda) untuk mengirim pesan tersebut atau mengirim edisi berikutnya kepada "
 "Anda."
 
 #: includes/Core/Privacy.php:711
@@ -5549,16 +5577,16 @@ msgid ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
 "help write publication text and enhance images. If this site instead uses "
-"WordPress's own built-in AI Client (configured under Settings → Connectors), "
-"submitted content is sent to whichever AI service that connector points to "
+"WordPress's own built-in AI Client (configured under Settings → Connectors),"
+" submitted content is sent to whichever AI service that connector points to "
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
 "Fediverse) as part of this plugin's core federation feature."
 msgstr ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
 "help write publication text and enhance images. If this site instead uses "
-"WordPress's own built-in AI Client (configured under Settings → Connectors), "
-"submitted content is sent to whichever AI service that connector points to "
+"WordPress's own built-in AI Client (configured under Settings → Connectors),"
+" submitted content is sent to whichever AI service that connector points to "
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
 "Fediverse) as part of this plugin's core federation feature."
 
@@ -5594,8 +5622,8 @@ msgid ""
 "address on them is cleared sooner, after 30 days. Membership applications "
 "that are rejected, withdrawn, or leave the network are anonymized after 180 "
 "days. Raw submission emails are deleted from the processing queue after 7 "
-"days, and diagnostic copies kept only if this site's administrator has debug "
-"logging turned on are deleted after 14 days. This site's administrator can "
+"days, and diagnostic copies kept only if this site's administrator has debug"
+" logging turned on are deleted after 14 days. This site's administrator can "
 "adjust each of these periods under Settings. You can request a copy of, or "
 "the erasure of, the personal data described above at any time using this "
 "site's standard WordPress data request tools."
@@ -5604,8 +5632,8 @@ msgstr ""
 #: includes/Core/Privacy.php:756
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
-"Approved posts are published publicly and shared across the Fediverse — this "
-"cannot be fully undone later."
+"Approved posts are published publicly and shared across the Fediverse — this"
+" cannot be fully undone later."
 msgstr ""
 "Teks dan gambar yang dikirimkan dapat diproses oleh penyedia AI pihak "
 "ketiga. Postingan yang disetujui diterbitkan secara publik dan dibagikan ke "
@@ -5675,8 +5703,8 @@ msgstr ""
 
 #: includes/Core/Updater.php:345
 msgid ""
-"Agnosis update blocked: SHA-256 of the downloaded package does not match the "
-"manifest. The file may have been tampered with."
+"Agnosis update blocked: SHA-256 of the downloaded package does not match the"
+" manifest. The file may have been tampered with."
 msgstr ""
 "Pembaruan Agnosis diblokir: SHA-256 dari paket yang diunduh tidak cocok "
 "dengan manifes. File mungkin telah dirusak."
@@ -5831,7 +5859,8 @@ msgstr "Edisi sebelumnya dari newsletter %s."
 
 #: includes/Newsletter/Archive.php:180
 msgid "No issues have gone out yet — check back soon."
-msgstr "Belum ada edisi yang dikirim — tunggu sebentar dan periksa lagi nanti."
+msgstr ""
+"Belum ada edisi yang dikirim — tunggu sebentar dan periksa lagi nanti."
 
 #: includes/Newsletter/Archive.php:199
 msgid "← Newer"
@@ -5955,8 +5984,8 @@ msgstr "[%s] Newsletter"
 msgid ""
 "Get new artworks, artist admissions, and community updates in your inbox."
 msgstr ""
-"Dapatkan karya seni baru, penerimaan artis, dan pembaruan komunitas di kotak "
-"masuk Anda."
+"Dapatkan karya seni baru, penerimaan artis, dan pembaruan komunitas di kotak"
+" masuk Anda."
 
 #: includes/Newsletter/PopoverBlock.php:108
 msgid "Subscribe to the newsletter"
@@ -6092,8 +6121,8 @@ msgid ""
 "You will no longer receive the artist newsletter. You can re-subscribe any "
 "time from your submissions page."
 msgstr ""
-"Anda tidak akan lagi menerima buletin artis. Anda dapat berlangganan kembali "
-"kapan saja dari halaman pengiriman Anda."
+"Anda tidak akan lagi menerima buletin artis. Anda dapat berlangganan kembali"
+" kapan saja dari halaman pengiriman Anda."
 
 #: includes/Newsletter/SubscriptionConfirm.php:202
 msgid "Confirm your subscription?"
@@ -6147,8 +6176,8 @@ msgid ""
 "Automatic review found that page's content isn't allowed to be embedded on "
 "this site."
 msgstr ""
-"Peninjauan otomatis menemukan bahwa konten halaman itu tidak diizinkan untuk "
-"disematkan di situs ini."
+"Peninjauan otomatis menemukan bahwa konten halaman itu tidak diizinkan untuk"
+" disematkan di situs ini."
 
 #: includes/Publishing/GalleryOverview.php:171
 msgid "Gallery overview"
@@ -6160,11 +6189,11 @@ msgstr "Tampilkan karya seni ini di ikhtisar galeri"
 
 #: includes/Publishing/GalleryOverview.php:201
 msgid ""
-"Featured artworks are always chosen first when selecting one work per artist "
-"for the homepage overview."
+"Featured artworks are always chosen first when selecting one work per artist"
+" for the homepage overview."
 msgstr ""
-"Karya seni yang ditampilkan selalu dipilih terlebih dahulu saat memilih satu "
-"karya per artis untuk ikhtisar beranda."
+"Karya seni yang ditampilkan selalu dipilih terlebih dahulu saat memilih satu"
+" karya per artis untuk ikhtisar beranda."
 
 #. translators: %s: artwork or event title
 #: includes/Publishing/Notification.php:63
@@ -6257,8 +6286,8 @@ msgstr "\"%s\" sekarang menjadi karya seni unggulan Anda di ikhtisar galeri."
 
 #: includes/Publishing/Notification.php:397
 msgid ""
-"Any previously featured artwork has been unfeatured automatically — only one "
-"piece is featured at a time."
+"Any previously featured artwork has been unfeatured automatically — only one"
+" piece is featured at a time."
 msgstr ""
 "Karya seni yang sebelumnya ditampilkan telah otomatis dihapus dari "
 "tampilannya — hanya satu karya yang ditampilkan pada satu waktu."
@@ -6310,8 +6339,8 @@ msgstr "Ya, hapus %s ini"
 #: includes/Publishing/Notification.php:606
 #, php-format
 msgid ""
-"If you did not request this removal, simply ignore this email — your %s will "
-"remain published."
+"If you did not request this removal, simply ignore this email — your %s will"
+" remain published."
 msgstr ""
 "Jika Anda tidak meminta penghapusan ini, abaikan saja email ini — %s Anda "
 "akan tetap dipublikasikan."
@@ -6333,11 +6362,11 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:713
 msgid ""
-"If you did not request this removal, simply ignore this email — nothing will "
-"be removed unless you click one of the buttons above."
+"If you did not request this removal, simply ignore this email — nothing will"
+" be removed unless you click one of the buttons above."
 msgstr ""
-"Jika Anda tidak meminta penghapusan ini, cukup abaikan email ini — tidak ada "
-"yang akan dihapus kecuali Anda mengeklik salah satu tombol di atas."
+"Jika Anda tidak meminta penghapusan ini, cukup abaikan email ini — tidak ada"
+" yang akan dihapus kecuali Anda mengeklik salah satu tombol di atas."
 
 #: includes/Publishing/Notification.php:717
 msgid "These confirmation links expire in 7 days."
@@ -6349,8 +6378,8 @@ msgid ""
 "attachment) above the quoted part. Next time, starting a brand new email to "
 "the same address works best."
 msgstr ""
-"💡 Ini tampak seperti balasan atau penerusan — kami menemukan dan menggunakan "
-"teks Anda sendiri (atau lampiran) di atas bagian yang dikutip. Lain kali, "
+"💡 Ini tampak seperti balasan atau penerusan — kami menemukan dan menggunakan"
+" teks Anda sendiri (atau lampiran) di atas bagian yang dikutip. Lain kali, "
 "memulai email baru ke alamat yang sama adalah yang terbaik."
 
 #: includes/Publishing/Notification.php:808
@@ -6410,8 +6439,8 @@ msgstr ""
 #, php-format
 msgid ""
 "Its subject line didn't exactly match one of your existing titles. If you "
-"meant to update an existing event, \"%s\", resend your email with that exact "
-"title instead."
+"meant to update an existing event, \"%s\", resend your email with that exact"
+" title instead."
 msgstr ""
 "Baris subjeknya tidak persis cocok dengan salah satu judul Anda yang sudah "
 "ada. Jika Anda bermaksud memperbarui acara yang ada, \"%s\", kirim ulang "
@@ -6438,8 +6467,8 @@ msgid ""
 "Your submission has been processed. Here's what our AI curator came up with "
 "— take a look and let us know if it's ready to publish."
 msgstr ""
-"Kiriman Anda telah diproses. Ini hasil yang dibuat kurator AI kami — silakan "
-"lihat dan beri tahu kami apakah sudah siap dipublikasikan."
+"Kiriman Anda telah diproses. Ini hasil yang dibuat kurator AI kami — silakan"
+" lihat dan beri tahu kami apakah sudah siap dipublikasikan."
 
 #. translators: %s: the AI-generated site title in the site's primary language
 #: includes/Publishing/Notification.php:985
@@ -6470,15 +6499,16 @@ msgstr "Ingin mengubah judul, teks, atau tag sebelum dipublikasikan?"
 msgid "Open your submissions page →"
 msgstr "Buka halaman kiriman Anda →"
 
-#. translators: %d is the number of days the review link stays valid — configurable under Settings, Behavior tab
+#. translators: %d is the number of days the review link stays valid —
+#. configurable under Settings, Behavior tab
 #: includes/Publishing/Notification.php:1041
 #, php-format
 msgid ""
 "The Publish and Discard links above expire in %d day. Your submission stays "
 "as a draft until you decide."
 msgid_plural ""
-"The Publish and Discard links above expire in %d days. Your submission stays "
-"as a draft until you decide."
+"The Publish and Discard links above expire in %d days. Your submission stays"
+" as a draft until you decide."
 msgstr[0] ""
 "Tautan Publikasikan dan Buang di atas kedaluwarsa dalam %d hari. Kiriman "
 "Anda tetap menjadi draf sampai Anda memutuskan."
@@ -6507,8 +6537,8 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1256
 msgid ""
-"If this wasn't intentional, or you'd like to submit something new, just send "
-"another email any time — we'll pick it up automatically."
+"If this wasn't intentional, or you'd like to submit something new, just send"
+" another email any time — we'll pick it up automatically."
 msgstr ""
 
 #. translators: %s: site name
@@ -6519,11 +6549,11 @@ msgstr "[%s] Kami tidak menemukan foto di email Anda"
 
 #: includes/Publishing/Notification.php:1357
 msgid ""
-"We received your email, but couldn't process a usable photo, audio, or video "
-"file from it — so nothing was published. This can happen when an image is "
+"We received your email, but couldn't process a usable photo, audio, or video"
+" file from it — so nothing was published. This can happen when an image is "
 "pasted or inserted inline rather than added as a proper attachment, or when "
-"a file arrives in a format this server can't convert (for example, an iPhone "
-"photo saved in HEIC/HEIF format)."
+"a file arrives in a format this server can't convert (for example, an iPhone"
+" photo saved in HEIC/HEIF format)."
 msgstr ""
 "Kami menerima email Anda, tetapi tidak dapat memproses berkas foto, audio, "
 "atau video yang dapat digunakan darinya — jadi tidak ada yang "
@@ -6549,22 +6579,22 @@ msgstr ""
 #: includes/Publishing/Notification.php:1364
 msgid ""
 "If your photo was taken on an iPhone, try switching Settings → Camera → "
-"Formats to \"Most Compatible\" before taking or sending it, or use \"Options"
-"\" in Mail to send it as a JPEG."
+"Formats to \"Most Compatible\" before taking or sending it, or use "
+"\"Options\" in Mail to send it as a JPEG."
 msgstr ""
-"Jika foto Anda diambil dengan iPhone, coba ubah Pengaturan → Kamera → Format "
-"ke \"Paling Kompatibel\" sebelum mengambil atau mengirimnya, atau gunakan "
+"Jika foto Anda diambil dengan iPhone, coba ubah Pengaturan → Kamera → Format"
+" ke \"Paling Kompatibel\" sebelum mengambil atau mengirimnya, atau gunakan "
 "\"Opsi\" di Mail untuk mengirimnya sebagai JPEG."
 
 #: includes/Publishing/Notification.php:1365
 msgid ""
-"Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3, "
-"WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
+"Supported formats: JPEG, PNG, WebP, GIF, TIFF, or HEIC/HEIF for images; MP3,"
+" WAV, M4A, OGG, or FLAC for audio; MP4, MOV, AVI, WebM, OGG, or MPEG for "
 "video."
 msgstr ""
 "Format yang didukung: JPEG, PNG, WebP, GIF, TIFF, atau HEIC/HEIF untuk "
-"gambar; MP3, WAV, M4A, OGG, atau FLAC untuk audio; MP4, MOV, AVI, WebM, OGG, "
-"atau MPEG untuk video."
+"gambar; MP3, WAV, M4A, OGG, atau FLAC untuk audio; MP4, MOV, AVI, WebM, OGG,"
+" atau MPEG untuk video."
 
 #: includes/Publishing/Notification.php:1370
 msgid ""
@@ -6610,8 +6640,8 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1471
 msgid ""
-"Make sure the body only contains your own, original text and attachment — no "
-"quoted or forwarded content from an earlier message."
+"Make sure the body only contains your own, original text and attachment — no"
+" quoted or forwarded content from an earlier message."
 msgstr ""
 "Pastikan isi hanya memuat teks asli Anda sendiri dan lampiran — tidak ada "
 "konten yang dikutip atau diteruskan dari pesan sebelumnya."
@@ -6626,8 +6656,9 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1517
 msgid ""
-"The photo is too dark to show your artwork clearly. Try photographing near a "
-"large window in daylight, or use a soft lamp aimed at the work from the side."
+"The photo is too dark to show your artwork clearly. Try photographing near a"
+" large window in daylight, or use a soft lamp aimed at the work from the "
+"side."
 msgstr ""
 "Foto terlalu gelap sehingga karya seni Anda tidak terlihat jelas. Cobalah "
 "memotret di dekat jendela besar pada siang hari, atau gunakan lampu lembut "
@@ -6644,8 +6675,9 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1519
 msgid ""
-"The photo is overexposed (too bright / washed out). Avoid direct sunlight or "
-"flash pointed straight at the artwork — diffuse or indirect light works best."
+"The photo is overexposed (too bright / washed out). Avoid direct sunlight or"
+" flash pointed straight at the artwork — diffuse or indirect light works "
+"best."
 msgstr ""
 "Foto terlalu terang/terpancar berlebih (wash out). Hindari sinar matahari "
 "langsung atau lampu kilat yang diarahkan lurus ke karya seni — cahaya difus "
@@ -6662,7 +6694,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1521
 msgid ""
 "There is glare or a bright reflection on the artwork. Tilt the canvas "
-"slightly or photograph at an angle to eliminate reflections from the surface."
+"slightly or photograph at an angle to eliminate reflections from the "
+"surface."
 msgstr ""
 "Ada silau atau pantulan terang pada karya seni. Miringkan kanvas sedikit "
 "atau ambil foto dari sudut untuk menghilangkan pantulan dari permukaan."
@@ -6730,8 +6763,8 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1531
 msgid ""
-"The image is pixelated. Shoot from closer or use a higher resolution setting "
-"on your camera."
+"The image is pixelated. Shoot from closer or use a higher resolution setting"
+" on your camera."
 msgstr ""
 "Gambar tampak berpiksel. Ambil dari jarak yang lebih dekat atau gunakan "
 "pengaturan resolusi yang lebih tinggi pada kamera Anda."
@@ -6767,8 +6800,8 @@ msgid ""
 "Part of the artwork appears to be cropped out of the frame. Step back and "
 "make sure the entire work is visible before shooting."
 msgstr ""
-"Sebagian karya tampak terpotong dari bingkai. Mundurlah dan pastikan seluruh "
-"karya terlihat sebelum memotret."
+"Sebagian karya tampak terpotong dari bingkai. Mundurlah dan pastikan seluruh"
+" karya terlihat sebelum memotret."
 
 #: includes/Publishing/Notification.php:1539
 msgid ""
@@ -6797,8 +6830,8 @@ msgstr ""
 #: includes/Publishing/Notification.php:1591
 msgid ""
 "We received your submission, but unfortunately the photo quality is too low "
-"for us to show your artwork clearly. We didn't publish it — but please don't "
-"be discouraged! A simple retake is usually all it takes."
+"for us to show your artwork clearly. We didn't publish it — but please don't"
+" be discouraged! A simple retake is usually all it takes."
 msgstr ""
 "Kami telah menerima kiriman Anda, tetapi sayangnya kualitas fotonya terlalu "
 "rendah bagi kami untuk menampilkan karya Anda dengan jelas. Kami tidak "
@@ -6820,8 +6853,8 @@ msgid ""
 "The overall photo quality was too low for our AI to process the artwork "
 "clearly."
 msgstr ""
-"Kualitas foto secara keseluruhan terlalu rendah bagi AI kami untuk memproses "
-"karya dengan jelas."
+"Kualitas foto secara keseluruhan terlalu rendah bagi AI kami untuk memproses"
+" karya dengan jelas."
 
 #: includes/Publishing/Notification.php:1619
 msgid "💡 Quick tips for a great artwork photo"
@@ -6832,8 +6865,8 @@ msgid ""
 "Use natural light — position the artwork near a window on a cloudy day for "
 "even, soft light."
 msgstr ""
-"Gunakan cahaya alami — posisikan karya dekat jendela pada hari berawan untuk "
-"mendapatkan cahaya yang lembut dan merata."
+"Gunakan cahaya alami — posisikan karya dekat jendela pada hari berawan untuk"
+" mendapatkan cahaya yang lembut dan merata."
 
 #: includes/Publishing/Notification.php:1622
 msgid ""
@@ -6853,16 +6886,16 @@ msgstr ""
 
 #: includes/Publishing/Notification.php:1624
 msgid ""
-"Hold still — tap the artwork on your screen to focus, then press the shutter "
-"gently or use a self-timer."
+"Hold still — tap the artwork on your screen to focus, then press the shutter"
+" gently or use a self-timer."
 msgstr ""
 "Tetap stabil — ketuk karya di layar untuk fokus, lalu tekan rana dengan "
 "lembut atau gunakan timer otomatis."
 
 #: includes/Publishing/Notification.php:1629
 msgid ""
-"Once you have a clearer photo, just email it to the same address as before — "
-"we'll pick it up automatically."
+"Once you have a clearer photo, just email it to the same address as before —"
+" we'll pick it up automatically."
 msgstr ""
 "Setelah Anda memiliki foto yang lebih jelas, cukup kirimkan ke alamat email "
 "yang sama seperti sebelumnya — kami akan memprosesnya secara otomatis."
@@ -7013,8 +7046,8 @@ msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
-"Judul dan teks lengkap tidak boleh kosong. Isi kembali, atau gunakan \"Buang"
-"\" dari email asli."
+"Judul dan teks lengkap tidak boleh kosong. Isi kembali, atau gunakan "
+"\"Buang\" dari email asli."
 
 #: includes/Publishing/ReviewConfirm.php:408
 msgid ""
@@ -7028,7 +7061,8 @@ msgstr ""
 msgid "Portfolio link"
 msgstr "Tautan portofolio"
 
-#. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
+#. translators: %d is the field number (1-3) — each field is otherwise
+#. identical, no platform is required.
 #: includes/Publishing/ReviewConfirm.php:785
 #, php-format
 msgid "Social link %d (optional)"
@@ -7150,7 +7184,8 @@ msgid "Invalid review token."
 msgstr "Token peninjauan tidak valid."
 
 #: includes/Publishing/ReviewEndpoints.php:978
-msgid "This review link has expired. Please log in to manage your submissions."
+msgid ""
+"This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "Tautan peninjauan ini telah kedaluwarsa. Silakan masuk untuk mengelola "
 "kiriman Anda."
@@ -7302,9 +7337,9 @@ msgid ""
 "too high or low next to the artist name once Icon size is changed from the "
 "default."
 msgstr ""
-"Tautan yang hanya berupa ikon tidak memiliki baseline teks sendiri — gunakan "
-"ini jika posisinya terlalu tinggi atau rendah di samping nama artis setelah "
-"Ukuran ikon diubah dari bawaan."
+"Tautan yang hanya berupa ikon tidak memiliki baseline teks sendiri — gunakan"
+" ini jika posisinya terlalu tinggi atau rendah di samping nama artis setelah"
+" Ukuran ikon diubah dari bawaan."
 
 #: blocks/artist-breadcrumb/editor.js:164
 msgid "Icon color"
@@ -7391,8 +7426,8 @@ msgid ""
 "language on file."
 msgstr ""
 "Bahasa asli artis sebagai kode dua huruf, dengan nama bahasa itu sendiri "
-"ditampilkan saat diarahkan. Disembunyikan otomatis jika artis tidak memiliki "
-"bahasa asli yang tercatat."
+"ditampilkan saat diarahkan. Disembunyikan otomatis jika artis tidak memiliki"
+" bahasa asli yang tercatat."
 
 #: blocks/contact-form/editor.js:28
 msgid "Artist Contact Form"
@@ -7429,12 +7464,12 @@ msgstr "Bergabung dengan Agnosis"
 
 #: blocks/join/editor.js:40
 msgid ""
-"Public application form for new artists. Submits name, email, bio, portfolio "
-"URL and a personal statement to the community for review. Content is "
+"Public application form for new artists. Submits name, email, bio, portfolio"
+" URL and a personal statement to the community for review. Content is "
 "rendered live on the frontend."
 msgstr ""
-"Formulir aplikasi publik untuk artis baru. Mengirimkan nama, email, bio, URL "
-"portofolio, dan pernyataan pribadi untuk ditinjau oleh komunitas. Konten "
+"Formulir aplikasi publik untuk artis baru. Mengirimkan nama, email, bio, URL"
+" portofolio, dan pernyataan pribadi untuk ditinjau oleh komunitas. Konten "
 "dirender langsung di frontend."
 
 #: blocks/join/editor.js:45
@@ -7471,8 +7506,8 @@ msgstr "Ikon pemicu"
 
 #: blocks/newsletter-popover/editor.js:82
 msgid ""
-"Pick something that won’t blend in with icons already sitting next to it (e."
-"g. Social Share)."
+"Pick something that won’t blend in with icons already sitting next to it "
+"(e.g. Social Share)."
 msgstr ""
 "Pilih sesuatu yang tidak akan menyatu dengan ikon yang sudah berada di "
 "sebelahnya (misalnya, Social Share)."
@@ -7484,11 +7519,11 @@ msgstr "Pendaftaran Newsletter"
 #: blocks/newsletter-signup/editor.js:36
 msgid ""
 "Email signup form for the public newsletter. A confirmation email is sent "
-"before anyone is added to the send list (double opt-in). Content is rendered "
-"live on the frontend."
+"before anyone is added to the send list (double opt-in). Content is rendered"
+" live on the frontend."
 msgstr ""
-"Formulir pendaftaran email untuk newsletter publik. Email konfirmasi dikirim "
-"sebelum siapa pun ditambahkan ke daftar pengiriman (double opt-in). Konten "
+"Formulir pendaftaran email untuk newsletter publik. Email konfirmasi dikirim"
+" sebelum siapa pun ditambahkan ke daftar pengiriman (double opt-in). Konten "
 "dirender langsung di frontend."
 
 #: blocks/artist-breadcrumb/block.json
@@ -7499,8 +7534,8 @@ msgstr "Breadcrumb Artis"
 #: blocks/artist-breadcrumb/block.json
 msgctxt "block description"
 msgid ""
-"Small line identifying the artist whose subdomain is currently being viewed. "
-"Renders nothing on the main Agnosis site."
+"Small line identifying the artist whose subdomain is currently being viewed."
+" Renders nothing on the main Agnosis site."
 msgstr ""
 "Baris kecil yang mengidentifikasi artis yang subdomain-nya sedang dilihat. "
 "Tidak menampilkan apa pun di situs utama Agnosis."
@@ -7554,8 +7589,8 @@ msgstr "Hak Cipta Karya"
 msgctxt "block description"
 msgid ""
 "Renders a © {year} {artist name} copyright notice for an agnosis_artwork "
-"post — the year comes from the artwork's own publish date, the name from its "
-"author. Renders nothing off an artwork post."
+"post — the year comes from the artwork's own publish date, the name from its"
+" author. Renders nothing off an artwork post."
 msgstr ""
 "Menampilkan pemberitahuan hak cipta © {year} {artist name} untuk posting "
 "agnosis_artwork — tahun diambil dari tanggal publikasi karya itu sendiri, "
@@ -7594,8 +7629,8 @@ msgid ""
 msgstr ""
 "Satu tautan hanya ikon (Biografi, Acara, atau popover Kontak) ke/tentang "
 "artis saat ini, atau lencana Bahasa teks biasa yang menampilkan bahasa asli "
-"mereka sebagai kode dua huruf. Tidak menampilkan apa pun jika tidak ada yang "
-"bisa ditampilkan (belum ada biografi/acara, artis mematikan kontak, atau "
+"mereka sebagai kode dua huruf. Tidak menampilkan apa pun jika tidak ada yang"
+" bisa ditampilkan (belum ada biografi/acara, artis mematikan kontak, atau "
 "tidak ada bahasa asli yang disetel), atau jika berada di subdomain artis."
 
 #: blocks/breadcrumb-icon-link/block.json
@@ -7693,8 +7728,8 @@ msgid ""
 "Submits to the admission REST endpoint. Place this on your /join/ page."
 msgstr ""
 "Formulir aplikasi publik untuk artis yang ingin bergabung dengan jaringan "
-"Agnosis. Dikirim ke endpoint REST penerimaan. Letakkan ini di halaman /join/ "
-"Anda."
+"Agnosis. Dikirim ke endpoint REST penerimaan. Letakkan ini di halaman /join/"
+" Anda."
 
 #: blocks/join/block.json
 msgctxt "block keyword"
@@ -7800,12 +7835,11 @@ msgid "review"
 msgstr "tinjau"
 
 #~ msgid ""
-#~ "Retention varies by data type; see this site's administrator for "
-#~ "specifics. You can request a copy of, or the erasure of, the personal "
-#~ "data described above at any time using this site's standard WordPress "
-#~ "data request tools."
+#~ "Retention varies by data type; see this site's administrator for specifics. "
+#~ "You can request a copy of, or the erasure of, the personal data described "
+#~ "above at any time using this site's standard WordPress data request tools."
 #~ msgstr ""
 #~ "Masa penyimpanan bervariasi حسب jenis data; lihat administrator situs ini "
-#~ "untuk rinciannya. Anda dapat meminta salinan, atau penghapusan, data "
-#~ "pribadi yang dijelaskan di atas kapan saja menggunakan alat permintaan "
-#~ "data standar WordPress di situs ini."
+#~ "untuk rinciannya. Anda dapat meminta salinan, atau penghapusan, data pribadi"
+#~ " yang dijelaskan di atas kapan saja menggunakan alat permintaan data standar"
+#~ " WordPress di situs ini."

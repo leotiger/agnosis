@@ -24,6 +24,16 @@
 #      misleading leftover from a previous one.
 #   2. Set to the freshly-built zip's real sha256sum once the build succeeds.
 #
+# 5b fix (fourteenth audit, 2026-07-21): the manifest's $sha256_note — a
+# single human-readable status line — is rewritten at both of those same two
+# steps, via write_manifest_note() below. Before this, the surrounding prose
+# explaining $sha256's state was hand-written at version-bump time and never
+# re-synced once a real build actually ran, so the manifest could (and did)
+# end up with a genuine digest sitting next to a comment insisting no build
+# had happened yet — a self-contradiction no amount of trusting $sha256's own
+# clear-then-fill correctness could catch, since that prose was never this
+# script's responsibility until now.
+#
 # The manifest's $version / $download_url / $last_updated and the changelog
 # HTML block are NOT touched here — those are still updated by hand as part
 # of the version bump, same as always.
@@ -73,7 +83,30 @@ clear_manifest_sha() {
     rm -f "$MANIFEST.bak"
     echo "--> Cleared \$sha256 in $(basename "$MANIFEST")"
 }
+
+# --- Keep $sha256_note in sync with $sha256 at every step it changes --------
+# 5b fix: a single script-owned status line, so the manifest never again says
+# "pending"/"cleared" in stale hand-written prose while $sha256 itself already
+# disagrees. Same [$] bracket-expression reasoning as clear_manifest_sha()
+# above for matching the literal dollar sign reliably in `sed -E`. $1 becomes
+# the new PHP single-quoted string's contents verbatim — callers must keep it
+# free of both `'` (would close the PHP string early) and `/` (the sed
+# delimiter used here).
+write_manifest_note() {
+    local note="$1"
+    if [ ! -f "$MANIFEST" ]; then
+        return
+    fi
+    if ! grep -qE "^[[:space:]]*[$]sha256_note[[:space:]]*=" "$MANIFEST"; then
+        echo "WARNING: could not find a \$sha256_note assignment in $(basename "$MANIFEST") — skipping note update." >&2
+        return
+    fi
+    sed -i.bak -E "s/^([[:space:]]*[$]sha256_note[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;)/\1'${note}'\2/" "$MANIFEST"
+    rm -f "$MANIFEST.bak"
+}
+
 clear_manifest_sha
+write_manifest_note "Build started $(date -u +%Y-%m-%dT%H:%M:%SZ) by build-zip.sh for v${VERSION} — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails."
 
 # Install / refresh production Composer dependencies so vendor/ is current.
 echo "--> Running composer install --no-dev --optimize-autoloader"
@@ -138,6 +171,7 @@ write_manifest_sha() {
     echo "✓ Wrote sha256 into $(basename "$MANIFEST")"
 }
 write_manifest_sha
+write_manifest_note "Verified — sha256 written by build-zip.sh on $(date -u +%Y-%m-%d) for ${ZIP_NAME}."
 
 echo ""
 echo "  Contents preview:"

@@ -399,17 +399,24 @@ class LinguaForge {
 		}
 		add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 
-		// Preserve embedded other-language text through LF's own fan-out
-		// translation pass (2026-07-21) — the same problem SubmissionTranslator's
-		// PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION already fixes for Agnosis's
-		// own pre-publish translation, but LF's separate pass (fanning a published
-		// artwork/biography/event out to the site's other configured languages)
-		// hits it too: a Latin original quoted alongside the artist's own Catalan
-		// translation of it was getting the Latin itself translated, collapsing a
-		// deliberate two-language juxtaposition. LF 2.6.6 added the
-		// linguaforge_translation_extra_instruction filter specifically for this
-		// slot — version-gated the same way supply_translated_meta() is above,
-		// since the filter doesn't exist at all on an older LF install.
+		// Feed SubmissionTranslator's own translation-style instructions through
+		// LF's separate fan-out translation pass (fanning a published
+		// artwork/biography/event out to the site's other configured languages),
+		// so they hold there exactly as they already hold for Agnosis's own
+		// pre-publish translation:
+		//   - Embedded other-language text (2026-07-21) — a Latin original quoted
+		//     alongside the artist's own Catalan translation of it was getting the
+		//     Latin itself translated, collapsing a deliberate two-language
+		//     juxtaposition.
+		//   - Gender-neutral phrasing (F-2, fourteenth audit, added here
+		//     2026-07-21 — the instruction itself existed in SubmissionTranslator
+		//     since 2026-07-19 but was never forwarded to LF) — a generic
+		//     professional noun with no gender in the source (e.g. "artist")
+		//     defaulting to a specific gender in German/French/Spanish/etc.
+		// LF 2.6.6 added the linguaforge_translation_extra_instruction filter
+		// specifically for this slot — version-gated the same way
+		// supply_translated_meta() is above, since the filter doesn't exist at
+		// all on an older LF install.
 		if (
 			defined( 'LINGUAFORGE_VERSION' )
 			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.6', '>=' )
@@ -2841,19 +2848,38 @@ class LinguaForge {
 
 	/**
 	 * Appends SubmissionTranslator's own "leave embedded other-language text
-	 * untranslated" instruction to LF's `linguaforge_translation_extra_instruction`
-	 * filter (LF 2.6.6+), so a quotation or epigraph an artist deliberately left
-	 * in a different language (e.g. a Latin original alongside their own
-	 * translation of it) survives LF's fan-out translation pass exactly as it
-	 * already survives Agnosis's own pre-publish translation — see the shared
-	 * constant's own docblock for the full incident this fixes.
+	 * untranslated" AND "prefer gender-neutral phrasing" instructions to LF's
+	 * `linguaforge_translation_extra_instruction` filter (LF 2.6.6+), so both
+	 * survive LF's fan-out translation pass exactly as they already survive
+	 * Agnosis's own pre-publish translation — see each shared constant's own
+	 * docblock for the full incident it fixes (embedded-language: a Latin
+	 * quotation getting translated along with its surrounding Catalan text;
+	 * gender-neutral: a preset biography title defaulting to a gendered
+	 * German translation with nothing in the prompt asking for otherwise).
+	 *
+	 * F-2 (fourteenth audit, 2026-07-21): GENDER_NEUTRAL_INSTRUCTION was added
+	 * to all three of SubmissionTranslator's own prompt paths on 2026-07-19,
+	 * but this method — Agnosis's only bridge into LF's separate translation
+	 * pass — never forwarded it, so every LF-side translation (fan-out AND
+	 * native sync/retranslate) silently lost the gender-neutrality rule; an LF
+	 * retranslation of a biography could regress to exactly the masculine-
+	 * default phrasing the original fix was meant to prevent. Method name is
+	 * unchanged despite now carrying two unrelated instructions rather than
+	 * one — a third would make almost any name go stale anyway, and every
+	 * caller (the constructor's `add_filter()`, this class's own tests) keys
+	 * off this exact name already.
+	 *
+	 * PLAIN_STRING_VALUES_INSTRUCTION is deliberately NOT forwarded here — it
+	 * governs Agnosis's own JSON-envelope response format (a hygiene rule for
+	 * prompts SubmissionTranslator itself parses), which has nothing to do
+	 * with however LF's own translation pass shapes its own response.
 	 *
 	 * Applies unconditionally to every Agnosis post LF translates (not scoped by
-	 * post type or post ID) — the underlying problem (a source text legitimately
-	 * mixing languages on purpose) isn't specific to artwork vs. biography vs.
-	 * event, and appending a fixed sentence to whatever instruction (if any)
-	 * another plugin already supplied via this same filter is always additive,
-	 * never destructive of it.
+	 * post type or post ID) — the underlying problems (a source text legitimately
+	 * mixing languages on purpose; a generic professional noun with no gender
+	 * given) aren't specific to artwork vs. biography vs. event, and appending
+	 * fixed sentences to whatever instruction (if any) another plugin already
+	 * supplied via this same filter is always additive, never destructive of it.
 	 *
 	 * @param string $instruction Existing extra instruction (usually '').
 	 * @param int    $post_id     Source post being translated (unused — instruction is post-type-agnostic).
@@ -2862,7 +2888,11 @@ class LinguaForge {
 	public function preserve_embedded_other_language_text( string $instruction, int $post_id ): string {
 		unset( $post_id );
 
-		return trim( $instruction . ' ' . SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION );
+		return trim(
+			$instruction
+			. ' ' . SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION
+			. ' ' . SubmissionTranslator::GENDER_NEUTRAL_INSTRUCTION
+		);
 	}
 
 	/**

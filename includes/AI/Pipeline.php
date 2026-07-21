@@ -194,17 +194,23 @@ class Pipeline {
 				'title'                => $subject,
 				'excerpt'              => $excerpt,
 				'body'                 => $content,
-				'tags'                 => [],
-				'alt_text'             => $subject,
 				// 2026-07-21: pure@ makes zero AI calls here by design (see this
-				// method's own docblock), so no medium is ever known at this
-				// point — left as a placeholder for shape-consistency with every
-				// other lane's result array. PostCreator::handle() fills this in
-				// afterward, per attachment, via classify_medium_from_image()/
-				// classify_medium_from_text() below — the one deliberate,
+				// method's own docblock), so neither medium nor tags is ever
+				// known at this point — both left as placeholders for
+				// shape-consistency with every other lane's result array.
+				// PostCreator::handle() fills both in afterward, per attachment,
+				// from the SAME classify_medium_from_image()/
+				// classify_medium_from_text() call below — the one deliberate,
 				// narrowly-scoped exception to "pure@ makes zero AI calls",
 				// added because medium-term assignment had otherwise silently
-				// never worked for this lane at all.
+				// never worked for this lane at all, and tags being permanently
+				// empty meant a pure@ post shipped undiscoverable/untagged into
+				// the fediverse. No second API call: classify_medium_from_image()
+				// already runs the full describe() vision call, which returns
+				// tags alongside medium; classify_medium_from_text() asks for
+				// both in the one JSON response it was already making.
+				'tags'                 => [],
+				'alt_text'             => $subject,
 				'medium'               => '',
 				'description_ok'       => true,
 				'error'                => '',
@@ -220,27 +226,33 @@ class Pipeline {
 	}
 
 	/**
-	 * Classify only the medium of a pure@ submission's real attached photo.
+	 * Classify only the medium and tags of a pure@ submission's real attached
+	 * photo — the AI never touches the artist's own words or image; this is
+	 * purely a classification pass so the post is findable (medium-term
+	 * assignment, tag-based discovery/amplification into the fediverse).
 	 *
 	 * process_raw() deliberately makes zero AI calls (see its own docblock),
 	 * which meant medium-term auto-assignment silently never worked for ANY
 	 * pure@ submission — 'medium' was never even a key in its result array
-	 * until this fix. There is no cheaper "classify only" vision endpoint on
-	 * any provider, so this reuses the same full describe() vision call
-	 * process_single() uses; only ->medium is ever read from the result —
-	 * the title/excerpt/body/tags/alt_text describe() also generates are
-	 * discarded, since pure@'s whole point is publishing the artist's own
-	 * words and photo verbatim, unchanged by AI (see process_raw()'s
-	 * docblock again).
+	 * until this fix, and 'tags' was a permanent empty array, so pure@ posts
+	 * shipped tagless into the fediverse. There is no cheaper "classify only"
+	 * vision endpoint on any provider, so this reuses the same full describe()
+	 * vision call process_single() uses — it was already generating tags
+	 * alongside medium, so reading both back out costs no extra API call.
+	 * title/excerpt/body/alt_text are still discarded: pure@'s whole point
+	 * remains publishing the artist's own words and photo verbatim, unchanged
+	 * by AI (see process_raw()'s docblock again) — only medium and tags are
+	 * ever taken from this call's result.
 	 *
 	 * @param array<string, mixed> $submission Parsed email submission — for
 	 *                                          artist context + native
 	 *                                          language resolution, same
 	 *                                          inputs process() itself uses.
+	 * @return array{medium: string, tags: array<string>}
 	 */
-	public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): string {
+	public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): array {
 		if ( '' === trim( $image_data ) ) {
-			return '';
+			return [ 'medium' => '', 'tags' => [] ];
 		}
 
 		$artist_context = $this->build_artist_context( $submission );
@@ -248,49 +260,65 @@ class Pipeline {
 
 		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_context, $native_lang );
 
-		return $description->success ? sanitize_text_field( $description->medium ) : '';
+		if ( ! $description->success ) {
+			return [ 'medium' => '', 'tags' => [] ];
+		}
+
+		return [
+			'medium' => sanitize_text_field( $description->medium ),
+			'tags'   => array_map( 'sanitize_text_field', $description->tags ),
+		];
 	}
 
 	/**
-	 * Classify only the medium of a pure@ text-only submission — the
+	 * Classify only the medium and tags of a pure@ text-only submission — the
 	 * TextPosterGenerator synthetic-poster case, where there is no real
-	 * photo to run classify_medium_from_image() against. Same motivation as
-	 * that method — see its docblock — but via a lightweight chat() call
-	 * instead, since there's no image at all here.
+	 * photo to run classify_medium_from_image() against. Same motivation and
+	 * same "classification only, content untouched" scope as that method —
+	 * see its docblock — but via a lightweight chat() call instead, since
+	 * there's no image at all here. Asking for tags in the same JSON response
+	 * as medium costs no extra API call, same reasoning as the image branch.
 	 *
 	 * Truncates to 300 words before sending: distinguishing "this reads like
 	 * a poem" from "this reads like an essay" doesn't need the artist's full
 	 * text, and keeps this call cheap — same reasoning PostCreator's other
 	 * chat()-based classification calls (fuzzy title matching) already rely
 	 * on for their own truncation.
+	 *
+	 * @return array{medium: string, tags: array<string>}
 	 */
-	public function classify_medium_from_text( string $text ): string {
+	public function classify_medium_from_text( string $text ): array {
+		$empty  = [ 'medium' => '', 'tags' => [] ];
 		$sample = trim( $text );
 		if ( '' === $sample ) {
-			return '';
+			return $empty;
 		}
 
 		$sample = wp_trim_words( $sample, 300, '' );
 
-		$prompt = "Classify the medium of the following piece of writing submitted to an art platform.\n\n"
+		$prompt = "Classify the following piece of writing submitted to an art platform.\n\n"
 			. "Text:\n---\n{$sample}\n---\n\n"
-			. 'Respond with a JSON object: { "medium": "<pick exactly one from: '
-			. implode( ' | ', PromptConfig::medium_terms() )
-			. '>" }, or { "medium": "" } if none fit. Return ONLY the JSON object. No markdown fences. No preamble.';
+			. "Produce a JSON object with these keys:\n"
+			. '- "medium":   Pick exactly one from: ' . implode( ' | ', PromptConfig::medium_terms() ) . ", or \"\" if none fit.\n"
+			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n\n"
+			. 'Return ONLY the JSON object. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
 		if ( empty( $response ) ) {
-			return '';
+			return $empty;
 		}
 
 		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
 		$json     = json_decode( $json_str, true );
 
 		if ( ! is_array( $json ) ) {
-			return '';
+			return $empty;
 		}
 
-		return sanitize_text_field( (string) ( $json['medium'] ?? '' ) );
+		return [
+			'medium' => sanitize_text_field( (string) ( $json['medium'] ?? '' ) ),
+			'tags'   => array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
+		];
 	}
 
 	/**

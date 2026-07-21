@@ -8,9 +8,11 @@
  * manifest as JSON with no-cache headers so every request fetches live data
  * regardless of server-side or CDN caching.
  *
- * On every release: update $version, $download_url, $last_updated, $sha256,
- * and prepend the new entry to $sections['changelog']. Nothing else needs
- * changing.
+ * On every release: update $version, $download_url, $last_updated, and
+ * prepend the new entry to $sections['changelog']. $sha256/$sha256_note are
+ * a machine-managed pair — see their own comment below; a hand version-bump
+ * only needs to reset both to their "not built yet" defaults, never write
+ * real values into either by hand.
  *
  * MANIFEST_URL in agnosis/includes/Core/Updater.php must point to:
  * https://agnosis.art/wp-json/agnosis/v1/update
@@ -42,29 +44,35 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.44';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.44/agnosis-0.9.44.zip';
+	$version      = '0.9.45';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.45/agnosis-0.9.45.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
-	// SHA-256 of the release ZIP — dev/bin/build-zip.sh now fills this in
-	// automatically at the end of a successful build (cleared to '' at the
-	// start of every run, so a failed/superseded build never leaves a stale
-	// digest here). Empty string = verification skipped (safe default for a
-	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.44.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.44 GitHub release,
-	// then deploy this manifest.
+	// SHA-256 of the release ZIP, plus a one-line human-readable status note —
+	// both fields are exclusively maintained by dev/bin/build-zip.sh, never by
+	// hand. The script clears both to their "not built" defaults at the START
+	// of every run (so a failed or superseded build never leaves a stale
+	// digest behind — empty $sha256 = verification skipped, a safe documented
+	// default; a stale one would silently BREAK update verification instead,
+	// since WordPress would hash the newly-downloaded zip and compare it
+	// against a digest belonging to a DIFFERENT zip, which can never match),
+	// then writes the freshly-built zip's real digest once the build succeeds.
 	//
-	// Cleared 2026-07-21: the previous value here was the real sha256 for the
-	// 0.9.43 build — now stale against this version bump to 0.9.44 (a
-	// different zip, a different hash). Left in place it would silently break
-	// update verification: WordPress would hash the newly-downloaded 0.9.44
-	// zip and compare it against the OLD 0.9.43 zip's digest, which can never
-	// match. Per this file's own documented invariant (below) and
-	// build-zip.sh's clear_manifest_sha(), a stale digest is worse than an
-	// empty one — empty just skips verification; stale actively fails it.
-	$sha256 = '4cb2ad368dfeaf7a840ff6e774fe9813608eef95ee76dd7bc11a6382a5574f3e';
+	// $sha256_note exists specifically so this file can never again say
+	// "pending"/"cleared" in hand-written prose while $sha256 itself already
+	// disagrees — exactly the self-contradiction fourteenth-audit finding 5b
+	// caught (a filled digest sitting next to a comment insisting no build had
+	// happened yet, because that comment was hand-written at version-bump time
+	// and never re-synced once a real build actually ran days later). Now
+	// there is only one thing to say, and only the script says it.
+	//
+	// Hand version-bumps still must reset BOTH fields to the values below —
+	// build-zip.sh only runs at build time, not at version-bump time, so it
+	// can't do that part for you. Never write a real digest or a "verified"
+	// note into either field by hand.
+	$sha256      = '';
+	$sha256_note = 'Not yet built for this version — dev/bin/build-zip.sh has not run since the version bump.';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -76,16 +84,21 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
-		'<h4>0.9.44</h4>' .
+		'<h4>0.9.45</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> Medium taxonomy term auto-assignment (the &#8220;Poetry&#8221;/&#8220;Photography&#8221;/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission &#8212; the AI&#8217;s own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the &#8220;pure@&#8221; (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.</li>' .
-			'<li><strong>Fixed:</strong> An AI-proposed medium that doesn&#8217;t match your site&#8217;s configured vocabulary is no longer silently discarded. A new review queue on Artwork &#8594; Mediums shows each pending proposal, which submission(s) it&#8217;s for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.</li>' .
+			'<li><strong>Changed:</strong> Six places describing the &#8220;Pure&#8221; email lane said AI never touches it &#8220;at all&#8221; &#8212; no longer accurate now that a classification call runs to categorize the piece. Reworded to the real promise: your words and photo are never touched or rewritten by AI, which is only ever used to classify the medium and a few tags so your post stays findable.</li>' .
+			'<li><strong>Changed:</strong> The in-site Artist Guide now has a section explaining the Pure lane directly &#8212; it wasn&#8217;t documented there before.</li>' .
+			'<li><strong>Fixed:</strong> A submission sent to the Pure address published with no tags at all, since the classification step computed a medium but silently dropped the tags from the very same AI response. Both are now kept, with no extra AI call needed.</li>' .
+			'<li><strong>Fixed:</strong> A gender-neutral phrasing rule for AI translation (added 0.9.39, to stop things like &#8220;artist&#8221; defaulting to a gendered word in German/French/Spanish) was applied to Agnosis&#8217;s own translations but never passed through to Lingua Forge&#8217;s own translation pass &#8212; so an LF-retranslated biography or artwork could regress to a gendered default. Both AI translation instructions now travel together.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.43</h4>' .
+		'<h4>0.9.44</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> Manually discarding a draft submission from the review screen sent a completely wrong &#8220;photo quality too low&#8221; email &#8212; for every post type, every reason, with or without a real photo involved (e.g. a discarded text-only poem got a &#8220;retake your photo&#8221; bounce). It now sends a plain, honest &#8220;your submission wasn&#8217;t published&#8221; message instead; the photo-quality email is reserved for the real, automatic AI quality-gate rejection it was built for.</li>' .
-			'<li><strong>Fixed:</strong> Line breaks could still be lost from a published post even after the 0.9.42 fix, because that fix only covered draft creation &#8212; not the actual review-and-publish flow every submission is approved through, or the native-language translation/sibling-post paths. All of these now preserve the artist&#8217;s own line breaks consistently.</li>' .
+			'<li><strong>Added:</strong> A new Settings &#8594; AI Providers option (Max AI response tokens) lets you raise the AI response length ceiling for translation and other chat-based AI tasks, instead of a fixed limit &#8212; useful if you&#8217;re translating long text into several configured languages.</li>' .
+			'<li><strong>Fixed:</strong> On a site with several configured languages, the artist&#8217;s own artwork/event title in the last-configured language would silently never get auto-translated. AI translation calls now correctly size their response budget for however many languages are configured.</li>' .
+			'<li><strong>Fixed:</strong> Two small input-handling hardening improvements to the medium-proposal review screen (Artwork &#8594; Mediums), found by WordPress.org&#8217;s Plugin Check tool.</li>' .
+			'<li><strong>Fixed:</strong> Medium taxonomy term auto-assignment (the &#8220;Poetry&#8221;/&#8220;Photography&#8221;/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission &#8212; the AI&#8217;s own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the &#8220;pure@&#8221; (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.</li>' .
+			'<li><strong>Fixed:</strong> An AI-proposed medium that doesn&#8217;t match your site&#8217;s configured vocabulary is no longer silently discarded. A new review queue on Artwork &#8594; Mediums shows each pending proposal, which submission(s) it&#8217;s for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 
