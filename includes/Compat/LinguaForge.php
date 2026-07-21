@@ -398,6 +398,24 @@ class LinguaForge {
 		}
 		add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 
+		// Preserve embedded other-language text through LF's own fan-out
+		// translation pass (2026-07-21) — the same problem SubmissionTranslator's
+		// PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION already fixes for Agnosis's
+		// own pre-publish translation, but LF's separate pass (fanning a published
+		// artwork/biography/event out to the site's other configured languages)
+		// hits it too: a Latin original quoted alongside the artist's own Catalan
+		// translation of it was getting the Latin itself translated, collapsing a
+		// deliberate two-language juxtaposition. LF 2.6.6 added the
+		// linguaforge_translation_extra_instruction filter specifically for this
+		// slot — version-gated the same way supply_translated_meta() is above,
+		// since the filter doesn't exist at all on an older LF install.
+		if (
+			defined( 'LINGUAFORGE_VERSION' )
+			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.6', '>=' )
+		) {
+			add_filter( 'linguaforge_translation_extra_instruction', [ $this, 'preserve_embedded_other_language_text' ], 10, 2 );
+		}
+
 		// Tag / medium translation (2026-07-08). Unlike the meta-propagation
 		// above, this is NOT forked by LF version: LF 2.4.0's born-with filter
 		// (linguaforge_translated_post_meta) fires before the translated post is
@@ -2813,6 +2831,32 @@ class LinguaForge {
 		}
 
 		return $payload;
+	}
+
+	/**
+	 * Appends SubmissionTranslator's own "leave embedded other-language text
+	 * untranslated" instruction to LF's `linguaforge_translation_extra_instruction`
+	 * filter (LF 2.6.6+), so a quotation or epigraph an artist deliberately left
+	 * in a different language (e.g. a Latin original alongside their own
+	 * translation of it) survives LF's fan-out translation pass exactly as it
+	 * already survives Agnosis's own pre-publish translation — see the shared
+	 * constant's own docblock for the full incident this fixes.
+	 *
+	 * Applies unconditionally to every Agnosis post LF translates (not scoped by
+	 * post type or post ID) — the underlying problem (a source text legitimately
+	 * mixing languages on purpose) isn't specific to artwork vs. biography vs.
+	 * event, and appending a fixed sentence to whatever instruction (if any)
+	 * another plugin already supplied via this same filter is always additive,
+	 * never destructive of it.
+	 *
+	 * @param string $instruction Existing extra instruction (usually '').
+	 * @param int    $post_id     Source post being translated (unused — instruction is post-type-agnostic).
+	 * @return string
+	 */
+	public function preserve_embedded_other_language_text( string $instruction, int $post_id ): string {
+		unset( $post_id );
+
+		return trim( $instruction . ' ' . SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION );
 	}
 
 	/**

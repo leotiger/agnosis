@@ -39,6 +39,11 @@
  *                               non-Agnosis source posts; hooked on
  *                               linguaforge_translation_complete only when
  *                               LINGUAFORGE_VERSION >= 2.6.1 (concern #8)
+ *   preserve_embedded_other_language_text() — appends SubmissionTranslator's
+ *                               shared PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION
+ *                               constant onto LF's own linguaforge_translation_extra_instruction
+ *                               filter, additive to any existing value; hooked
+ *                               only when LINGUAFORGE_VERSION >= 2.6.6
  *
  * @package Agnosis\Tests\Integration\Compat
  */
@@ -48,6 +53,7 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Compat;
 
 use Agnosis\AI\CallCounter;
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
@@ -581,6 +587,57 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 			has_action( 'linguaforge_translation_complete', [ $lf, 'sync_translated_template' ] ),
 			'sync_translated_template() must not be registered while LINGUAFORGE_VERSION is below 2.6.1.'
 		);
+	}
+
+	// ── preserve_embedded_other_language_text(): LF's own translation pass ────
+	// (LF >= 2.6.6 only — see Compat\LinguaForge's constructor comment for the
+	// Naevius/Latin-quotation incident this closes on LF's side, mirroring
+	// SubmissionTranslator's own pre-publish fix from the same day.)
+
+	/**
+	 * Same caveat as test_sync_translated_template_is_not_hooked_below_2_6_1():
+	 * LINGUAFORGE_VERSION is fixed at '1.0.0-test' for this whole test process,
+	 * always below 2.6.6, so this can only prove the gate's negative case —
+	 * that the hook is NOT registered below 2.6.6, guarding against ever
+	 * hooking this unconditionally (which would fire the filter on any
+	 * pre-2.6.6 LF install that doesn't read it at all — harmless there in
+	 * practice, since LF simply never calls apply_filters() for a filter it
+	 * doesn't know about, but the version gate documents the real minimum
+	 * regardless).
+	 */
+	public function test_preserve_embedded_other_language_text_is_not_hooked_below_2_6_6(): void {
+		$lf = new LinguaForge();
+
+		$this->assertFalse(
+			has_action( 'linguaforge_translation_extra_instruction', [ $lf, 'preserve_embedded_other_language_text' ] ),
+			'preserve_embedded_other_language_text() must not be registered while LINGUAFORGE_VERSION is below 2.6.6.'
+		);
+	}
+
+	/**
+	 * The callback itself, called directly (as the hook-registration tests
+	 * above can't exercise it while the fixed test-process LF version stays
+	 * below 2.6.6). Confirms it appends the exact same instruction text
+	 * SubmissionTranslator uses for Agnosis's own pre-publish translation —
+	 * the whole point of sharing one public constant instead of maintaining
+	 * two copies of the same sentence.
+	 */
+	public function test_preserve_embedded_other_language_text_appends_shared_instruction(): void {
+		$result = ( new LinguaForge() )->preserve_embedded_other_language_text( '', $this->artwork_id );
+
+		$this->assertSame( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
+	}
+
+	/**
+	 * Additive, not destructive: another plugin's own extra instruction
+	 * (supplied earlier on the same filter, at a lower priority) must survive
+	 * alongside this one, not be overwritten by it.
+	 */
+	public function test_preserve_embedded_other_language_text_is_additive_to_existing_instruction(): void {
+		$result = ( new LinguaForge() )->preserve_embedded_other_language_text( 'Some other instruction.', $this->artwork_id );
+
+		$this->assertStringContainsString( 'Some other instruction.', $result );
+		$this->assertStringContainsString( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
 	}
 
 	// ── set_language_meta(): primary-language alignment (§2d residual) ─────────

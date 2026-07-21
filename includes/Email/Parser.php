@@ -159,16 +159,33 @@ class Parser {
 		// fetchBody(false) message, from an empty raw body string — so
 		// getStructure() is NEVER null here; a first attempt at this fix
 		// guarded on `null === getStructure()` and consequently never
-		// actually re-fetched anything (confirmed via the body-fetch
-		// diagnostic below logging "structure null before=no" — i.e.
-		// already non-null, just empty, before parseBody() was ever
-		// attempted). The real signal that the body was never fetched is a
-		// Structure with zero parts: even a plain single-part email always
-		// produces at least one Part once real content has been parsed
-		// (Structure::find_parts()'s non-multipart branch), so zero parts
-		// only happens when the raw body behind it was empty.
-		$structure = $message->getStructure();
-		$needs_fetch = ( null === $structure || empty( $structure->parts ) );
+		// actually re-fetched anything.
+		//
+		// A second attempt (2026-07-14) switched to `empty( $structure->parts )`
+		// on the theory that a Structure only ever gets a Part once real
+		// content has been parsed. Live evidence (2026-07-21) proved that
+		// theory wrong for exactly one case: a genuinely single-part,
+		// plain-text-only email (no multipart wrapper — the shape every
+		// pure@ text-only submission takes) already reports exactly ONE part
+		// straight from `fetchBody(false)`'s header-only fetch — Content-Type
+		// alone is enough for webklex to declare the top-level Part — with
+		// that part's own `content` still empty because the body itself was
+		// never fetched. `empty( $structure->parts )` read that as "already
+		// populated" and skipped parseBody() entirely, so getTextBody()
+		// always returned '' for this exact shape: a text-only submission
+		// with no attachment, which is precisely bio@/pure@/event@'s whole
+		// reason to exist (§446's "poetry is art too" exemption never even
+		// got a chance to run, because there was never any text to check).
+		// A multipart message doesn't have this problem — its sub-parts
+		// genuinely can't be known before the MIME boundaries in the real
+		// body are parsed, so `empty( $structure->parts )` was never wrong
+		// for photo/audio/video submissions, only for the no-attachment case.
+		//
+		// The real signal is whether any part's own `content` is non-empty —
+		// that can only be true once the body was actually fetched, whether
+		// the message is single- or multi-part.
+		$structure   = $message->getStructure();
+		$needs_fetch = ! self::structure_has_fetched_content( $structure );
 		$parse_body_threw = null;
 
 		if ( $needs_fetch ) {
@@ -492,6 +509,36 @@ class Parser {
 	}
 
 	/**
+	 * Whether $structure holds genuinely fetched body content, rather than
+	 * just header-derived part declarations.
+	 *
+	 * `Query::populate()` builds a Structure even for a `fetchBody(false)`
+	 * (headers-only) message — for a single-part message specifically, that
+	 * Structure already has exactly one Part (webklex can declare it from
+	 * the top-level Content-Type header alone), but that part's `content`
+	 * is still empty because the body was never fetched. Checking
+	 * `count($structure->parts)` alone can't distinguish "body fetched, one
+	 * part" from "body never fetched, one part declared from headers" — only
+	 * checking whether any part actually carries content can. See
+	 * parse_imap_message()'s own docblock for the live bug this fixes (every
+	 * single-part, text-only submission — i.e. any bio@/pure@/event@ email
+	 * with no attachment — silently got an empty body).
+	 *
+	 * @param object|null $structure Whatever Message::getStructure() returned.
+	 */
+	private static function structure_has_fetched_content( ?object $structure ): bool {
+		if ( null === $structure || empty( $structure->parts ) ) {
+			return false;
+		}
+		foreach ( $structure->parts as $part ) {
+			if ( '' !== (string) ( $part->content ?? '' ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Parse a webklex IMAP Message for its subject + plain-text body only —
 	 * no attachment handling, no artist resolution.
 	 *
@@ -506,8 +553,12 @@ class Parser {
 	 * @return array{subject: string, body: string}
 	 */
 	public function parse_broadcast_body( Message $message ): array {
+		// Same fetch-detection fix as parse_imap_message() (2026-07-21) — see
+		// that method's own docblock for why `empty( $structure->parts )`
+		// alone isn't a reliable "body already fetched" signal for a
+		// single-part message.
 		$structure   = $message->getStructure();
-		$needs_fetch = ( null === $structure || empty( $structure->parts ) );
+		$needs_fetch = ! self::structure_has_fetched_content( $structure );
 
 		if ( $needs_fetch ) {
 			try {

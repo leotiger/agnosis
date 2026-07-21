@@ -124,6 +124,46 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 if ( ! function_exists( 'wp_kses_post' ) ) {
     function wp_kses_post( string $data ): string { return strip_tags( $data, '<p><a><strong><em><ul><ol><li><br>' ); }
 }
+if ( ! function_exists( 'wpautop' ) ) {
+    // Simplified stand-in for WP core's real wp-includes/formatting.php::wpautop()
+    // — added 2026-07-21 when PostCreator::build_post_content() started calling it
+    // directly on the biography/event artist-text path (previously only
+    // AI\Pipeline::process_raw() called it, which has its own namespace stubs).
+    // Handles the two shapes this plugin's inputs actually take: plain multi-line
+    // text (wrap each blank-line-separated paragraph in <p>, turn remaining single
+    // newlines into <br />) and already block-wrapped HTML from wp_kses_post()
+    // (left as-is, not double-wrapped). Not a full reimplementation of every edge
+    // case in core's version (nested <pre>, <option>/<object> collapsing, etc.),
+    // which nothing in this plugin's inputs exercises.
+    function wpautop( string $text, bool $br = true ): string {
+        if ( '' === trim( $text ) ) {
+            return '';
+        }
+
+        $text       = str_replace( array( "\r\n", "\r" ), "\n", $text );
+        $paragraphs = preg_split( '/\n\s*\n/', trim( $text ), -1, PREG_SPLIT_NO_EMPTY );
+        $out        = '';
+
+        foreach ( (array) $paragraphs as $paragraph ) {
+            $paragraph = trim( (string) $paragraph, "\n" );
+            if ( '' === $paragraph ) {
+                continue;
+            }
+            // Already block-level HTML (e.g. wp_kses_post()'d content that already
+            // carries its own <p>/<ul>/... markup) — leave it alone, don't double-wrap.
+            if ( 1 === preg_match( '/^\s*<(p|ul|ol|li|div|blockquote|h[1-6])[\s>]/i', $paragraph ) ) {
+                $out .= $paragraph . "\n";
+                continue;
+            }
+            if ( $br ) {
+                $paragraph = (string) preg_replace( '/\n/', "<br />\n", $paragraph );
+            }
+            $out .= '<p>' . $paragraph . "</p>\n";
+        }
+
+        return $out;
+    }
+}
 if ( ! function_exists( 'get_option' ) ) {
     function get_option( string $key, $default = false ) { return $default; }
 }

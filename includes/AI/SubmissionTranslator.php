@@ -76,6 +76,36 @@ class SubmissionTranslator {
 		'Each value in that JSON object must be a single plain string — never a '
 		. 'nested object, an array, or a list of alternative phrasings or options.';
 
+	/**
+	 * Appended to every JSON-envelope translation prompt below, alongside
+	 * GENDER_NEUTRAL_INSTRUCTION and PLAIN_STRING_VALUES_INSTRUCTION — added
+	 * 2026-07-21 after a live report: a submission quoting a Latin original
+	 * (Naevius) followed by the artist's own Catalan translation of it came
+	 * back with the Latin itself translated too, collapsing a deliberate
+	 * two-language juxtaposition (source quotation + the artist's own
+	 * rendering of it) into a single language. Nothing in the prompt
+	 * previously told the model that a submission can legitimately contain
+	 * more than one language on purpose — left unguided, "translate this to
+	 * {target}" reads as an instruction to translate everything, including a
+	 * quotation the artist deliberately left in its original language.
+	 *
+	 * `public` (not `private`) since 2026-07-21 — this exact wording is also
+	 * fed to Lingua Forge's own, separate translation pass (the one that fans
+	 * a published artwork out to the site's other configured languages) via
+	 * its `linguaforge_translation_extra_instruction` filter (LF 2.6.6+; see
+	 * Compat\LinguaForge::preserve_embedded_other_language_text()). Both
+	 * translation passes hit the identical embedded-quotation problem, so
+	 * both read from this single constant rather than risking the two
+	 * copies drifting apart.
+	 */
+	public const PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION =
+		'The source text may deliberately contain passages in a language other than '
+		. 'its own dominant language — e.g. a quotation, epigraph, or title given in '
+		. 'its original language, possibly alongside the artist\'s own translation of '
+		. 'it. Leave any such other-language passage exactly as written, untranslated, '
+		. 'in the output. Only translate the surrounding text that is in the source\'s '
+		. 'own dominant language.';
+
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
 	// -------------------------------------------------------------------------
@@ -294,6 +324,7 @@ class SubmissionTranslator {
 		$prompt = "Translate the sections below to {$target_name}.\n"
 			. "If a section is already in {$target_name}, include it in the output unchanged.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. self::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
 			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
@@ -394,6 +425,7 @@ class SubmissionTranslator {
 
 		$prompt = "Translate the text below into EACH of these languages: {$lang_list}.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. self::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION . "\n"
 			. "Return ONLY a JSON object whose keys are exactly these language codes: {$json_keys}, and whose values are the translated text for that language.\n"
 			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
 			. "No markdown fences. No preamble. No explanation.\n\n"
@@ -582,6 +614,7 @@ class SubmissionTranslator {
 		$prompt = "Translate the sections below to {$target_language_name}.\n"
 			. "If a section is already in {$target_language_name}, include it in the output unchanged.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. self::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION . "\n"
 			. ( '' !== $context ? trim( $context ) . "\n" : '' )
 			. "Return ONLY a JSON object with these keys: {$json_keys}.\n"
 			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"

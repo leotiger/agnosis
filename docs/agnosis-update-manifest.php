@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.41';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.41/agnosis-0.9.41.zip';
+	$version      = '0.9.42';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.42/agnosis-0.9.42.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,10 +52,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.41.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.41 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.42.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.42 GitHub release,
 	// then deploy this manifest.
-	$sha256 = '20118d6ce4fa14273a96600b11f6e6ef305e482eb12b32c80f98e9e67a804b99';
+	$sha256 = '55edac8a93aefd132d6cf19f57dd7f60c503e8707f6def5f42db4f4b8f9ba142';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -67,16 +67,18 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.42</h4>' .
+		'<ul>' .
+			'<li><strong>Added:</strong> Translation passes &#8212; Agnosis&#8217;s own pre-publish pass and Lingua Forge&#8217;s (2.6.6+) multi-language fan-out pass &#8212; now leave embedded other-language text (a quotation, epigraph, or title deliberately given in its original language) untranslated, instead of flattening it into the target language along with everything else.</li>' .
+			'<li><strong>Fixed:</strong> A text-only submission (&#8220;pure@&#8221; &#8212; poetry, an essay, no photo/audio/video) with valid content was wrongly rejected as having no usable attachment. Pure-lane submissions never required one; the real cause was an email-parsing bug that skipped fetching the message body under certain conditions.</li>' .
+			'<li><strong>Fixed:</strong> The poster image generated for a text-only submission now fills the frame with the artist&#8217;s own body text (preserving their line breaks), instead of stopping after the title.</li>' .
+			'<li><strong>Fixed:</strong> A published post&#8217;s line breaks could silently disappear the first time it was opened in the block editor. Post content is now written as valid native block markup from the moment it&#8217;s created, so there&#8217;s nothing left for the editor to reinterpret.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.41</h4>' .
 		'<ul>' .
 			'<li><strong>Changed:</strong> Replaced the planned &#8220;Commerce&#8221; revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings &#8594; Commerce is renamed Settings &#8594; Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace &#8212; art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn&#8217;t change how any existing site behaves.</li>' .
 			'<li><strong>Fixed:</strong> The &#8220;Mediums&#8221; checklist on the Artworks Quick Edit panel (and the artwork edit screen) no longer mixes every language&#8217;s translation of every medium into one list &#8212; it now shows only the mediums for that artwork&#8217;s own language (Quick Edit follows the list&#8217;s own language filter; the edit screen follows that specific artwork). Previously all of them appeared together (e.g. seven different-language versions of &#8220;Watercolor&#8221; at once), which also made it possible to accidentally assign a wrong-language medium to an artwork. (A first attempt at this fix shipped earlier the same day and didn&#8217;t actually work &#8212; this is the corrected version.)</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.40</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names &#8212; nothing changes if you don&#8217;t use them.</li>' .
-			'<li><strong>Fixed:</strong> Repository housekeeping &#8212; a large (90 MB) local test-coverage report had been accidentally tracked in the plugin&#8217;s source repository. It&#8217;s now excluded going forward. No functional or behavioral change to how the plugin runs on your site.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

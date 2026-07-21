@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.41
+Stable tag: 0.9.42
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,13 +83,15 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.42 =
+* Added: Translation passes — Agnosis's own pre-publish pass and Lingua Forge's (2.6.6+) multi-language fan-out pass — now leave embedded other-language text (a quotation, epigraph, or title deliberately given in its original language) untranslated, instead of flattening it into the target language along with everything else.
+* Fixed: A text-only submission ("pure@" — poetry, an essay, no photo/audio/video) with valid content was wrongly rejected as having no usable attachment. Pure-lane submissions never required one; the real cause was an email-parsing bug that skipped fetching the message body under certain conditions.
+* Fixed: The poster image generated for a text-only submission now fills the frame with the artist's own body text (preserving their line breaks), instead of stopping after the title.
+* Fixed: A published post's line breaks could silently disappear the first time it was opened in the block editor. Post content is now written as valid native block markup from the moment it's created, so there's nothing left for the editor to reinterpret.
+
 = 0.9.41 =
 * Changed: Replaced the planned "Commerce" revenue layer (visitor donations and art sales with a configurable platform fee) with a simpler plan: a no-fee way for visitors to support an artist directly. Settings → Commerce is renamed Settings → Donations, and its old fee-percentage field (never actually used) is gone. Agnosis is not a marketplace — art sales and checkout are left to dedicated plugins. Nothing was ever live here before, so this doesn't change how any existing site behaves.
 * Fixed: The "Mediums" checklist on the Artworks Quick Edit panel (and the artwork edit screen) no longer mixes every language's translation of every medium into one list — it now shows only the mediums for that artwork's own language (Quick Edit follows the list's own language filter; the edit screen follows that specific artwork). Previously all of them appeared together (e.g. seven different-language versions of "Watercolor" at once), which also made it possible to accidentally assign a wrong-language medium to an artwork. (A first attempt at this fix shipped earlier the same day and didn't actually work — this is the corrected version.)
-
-= 0.9.40 =
-* Added: The OpenAI/Anthropic API keys, the webhook secret, and both Cloudflare Turnstile keys can now optionally be set as wp-config.php constants instead of through the Settings page, for site owners who prefer keeping secrets out of the database. See the README for the constant names — nothing changes if you don't use them.
-* Fixed: Repository housekeeping — a large (90 MB) local test-coverage report had been accidentally tracked in the plugin's source repository. It's now excluded going forward. No functional or behavioral change to how the plugin runs on your site.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

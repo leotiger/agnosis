@@ -241,10 +241,16 @@ class PostCreatorExternalLinkEmbedTest extends \WP_UnitTestCase {
 	}
 
 	public function test_no_links_leaves_content_unchanged(): void {
+		// Exact-match expectation updated 2026-07-21 for the wp:paragraph block-wrap
+		// fix (build_post_content() now wraps every <p> in explicit block-comment
+		// markers so Gutenberg's block-recovery can't mangle line breaks on first
+		// open — see PostCreator::paragraphs_to_blocks()). No embed link means
+		// nothing is appended after the body, so the body itself, now block-wrapped,
+		// is still the entire, unchanged content.
 		$primary = [ 'body' => '<p>AI-written description.</p>' ];
 		$content = $this->call_build_post_content( $primary, [], 'agnosis_artwork', 'No links in this message.' );
 
-		$this->assertSame( '<p>AI-written description.</p>', $content );
+		$this->assertSame( "<!-- wp:paragraph -->\n<p>AI-written description.</p>\n<!-- /wp:paragraph -->", $content );
 	}
 
 	// -------------------------------------------------------------------------

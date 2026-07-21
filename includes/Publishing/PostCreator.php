@@ -399,11 +399,14 @@ class PostCreator {
 			// this method (binary loading below, Pipeline::process_raw(),
 			// merge_gallery()) treats it exactly like a normally-submitted photo.
 			if ( $pure && empty( $submission['attachments'] ) ) {
-				$poster_source = '' !== trim( (string) ( $submission['description'] ?? '' ) )
-					? (string) $submission['description']
-					: (string) $submission['subject'];
-
-				$poster_blob = TextPosterGenerator::generate( (string) $submission['subject'], $poster_source );
+				// 2026-07-21: TextPosterGenerator now resolves subject-vs-body
+				// priority itself (title-first, body-excerpt fallback — see
+				// its own extract_lines() docblock) — no need to pre-resolve
+				// a single $poster_source here any more.
+				$poster_blob = TextPosterGenerator::generate(
+					(string) $submission['subject'],
+					(string) ( $submission['description'] ?? '' )
+				);
 
 				if ( null !== $poster_blob ) {
 					$submission['attachments'][] = [
@@ -2266,9 +2269,38 @@ class PostCreator {
 		// description body is only appropriate for artwork — where the image *is*
 		// the work. For bio/event, the image is supplementary (portrait, venue
 		// photo, map) and describing it is not useful as page content.
+		//
+		// wpautop() added to the bio/event path 2026-07-21 — previously this
+		// branch ran the artist's raw text through wp_kses_post() alone, with
+		// no paragraph/line-break structure added at all (no <p>, no <br>),
+		// so a multi-line statement rendered as one run-on line with the
+		// artist's own line breaks silently collapsed by the browser. Safe to
+		// apply even when $artist_text already carries basic HTML (e.g.
+		// AI\Pipeline::merge_biography()'s <p>/<em>/<strong> output) —
+		// wpautop() is the same idempotent pass WordPress's own `the_content`
+		// filter already applies to every classic post on every page load,
+		// regardless of whether the stored content already has <p> tags.
 		$body = in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true )
-			? wp_kses_post( $artist_text )
+			? wpautop( wp_kses_post( $artist_text ) )
 			: ( $primary['body'] ?? '' );
+
+		// Wrap each paragraph in explicit Gutenberg block-comment markers
+		// (2026-07-21) — both branches above hand back raw, unwrapped classic
+		// HTML (bare <p>/<br> tags, no <!-- wp:paragraph --> markers). On
+		// agnosis-theme, a pure FSE block theme with no classic-editor
+		// fallback, that orphaned HTML is invisible to Gutenberg's block
+		// parser: the first time such a post is opened in the block editor,
+		// its auto-recovery logic adopts the lone <p>...</p> as a genuine
+		// wp:paragraph block by reconstructing it from its own rich-text
+		// model rather than preserving the original markup byte-for-byte —
+		// and that reconstruction doesn't round-trip a manually-inserted
+		// <br /> the way a real Shift+Enter break would, silently collapsing
+		// every line break in the post (confirmed live: a poem's 5 lines
+		// became one run-on sentence after the post was opened once in the
+		// editor). Emitting real wp:paragraph blocks from creation means
+		// there's nothing left for the editor to "recover" — the content is
+		// already valid, native block markup the moment the post is made.
+		$body = $this->paragraphs_to_blocks( $body );
 
 		$embed_blocks = $this->build_external_link_embeds( $artist_text );
 
@@ -2323,6 +2355,36 @@ class PostCreator {
 		}
 
 		return $media_blocks . $image_block . $body . $embed_blocks;
+	}
+
+	/**
+	 * Wrap each top-level <p>...</p> paragraph produced by wpautop() in
+	 * explicit Gutenberg block-comment markers, so the stored post_content is
+	 * valid native block markup from the moment the post is created — see the
+	 * long comment in build_post_content() (2026-07-21) for why this matters
+	 * on a block-only FSE theme: without it, Gutenberg's block-recovery logic
+	 * silently drops manually-inserted <br /> line breaks the first time the
+	 * post is opened in the editor.
+	 *
+	 * Only wraps <p> tags at all — any markup wpautop() left outside of a <p>
+	 * (rare, but possible with malformed input) passes through untouched
+	 * rather than being dropped.
+	 *
+	 * @param string $html wpautop()-processed HTML (bare <p>/<br> tags, no block comments).
+	 * @return string Same content with each <p>...</p> wrapped in a wp:paragraph block.
+	 */
+	private function paragraphs_to_blocks( string $html ): string {
+		if ( '' === trim( $html ) ) {
+			return $html;
+		}
+
+		return (string) preg_replace_callback(
+			'#<p([^>]*)>(.*?)</p>#s',
+			static function ( array $matches ): string {
+				return "<!-- wp:paragraph -->\n<p{$matches[1]}>{$matches[2]}</p>\n<!-- /wp:paragraph -->";
+			},
+			$html
+		);
 	}
 
 	/**

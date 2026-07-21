@@ -118,7 +118,7 @@ class TextPosterGeneratorTest extends TestCase {
 	public function test_extract_lines_preserves_the_artists_own_line_breaks(): void {
 		$lines = $this->extract_lines( 'A Poem', "Roses are red\nViolets are blue" );
 
-		$this->assertSame( [ 'Roses are red', 'Violets are blue' ], $lines, 'A poem\'s own line structure is part of the work, not just filler to be word-wrapped away.' );
+		$this->assertSame( [ 'A Poem', 'Roses are red', 'Violets are blue' ], $lines, 'A poem\'s own line structure is part of the work, not just filler to be word-wrapped away — and the title still leads as the poster\'s first line (2026-07-21 design: title leads, body fills the rest edge-to-edge).' );
 	}
 
 	public function test_extract_lines_trims_each_line(): void {
@@ -139,10 +139,10 @@ class TextPosterGeneratorTest extends TestCase {
 		$this->assertSame( [ 'My Title' ], $lines );
 	}
 
-	public function test_extract_lines_prefers_body_over_subject_when_both_present(): void {
+	public function test_extract_lines_leads_with_subject_then_fills_with_body_when_both_present(): void {
 		$lines = $this->extract_lines( 'A Poem', 'The body is what matters.' );
 
-		$this->assertSame( [ 'The body is what matters.' ], $lines, 'Subject is only a title-only-submission fallback — the poem\'s own words take priority.' );
+		$this->assertSame( [ 'A Poem', 'The body is what matters.' ], $lines, 'Title leads as the poster\'s first line when present, then the body\'s own lines fill the rest — not a body-only or title-only choice (2026-07-21 design, confirmed after an earlier title-only poster under-filled the edge-to-edge canvas).' );
 	}
 
 	public function test_extract_lines_returns_empty_when_subject_and_text_are_both_blank(): void {
