@@ -19,7 +19,7 @@ Agnosis was designed for one shape — an open artist collective that vouches it
 
 ## How it works
 
-1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `replace@`, `remove@`, and `goodbye@`
+1. **Receive** — artist emails to a dedicated address (IMAP or webhook); separate endpoints for `submit@`, `bio@`, `event@`, `photo@`, `pure@`, `replace@`, `remove@`, `promote@`, `community@`, and `goodbye@` — each with a `[Indicator]` subject-line fallback for mail clients that don't support To: aliases
 2. **Enhance** — images with low photo quality scores are corrected via AI (OpenAI); good photographs are left untouched
 3. **Describe** — title, description, tags, and medium category are written by AI (Claude / GPT-4o Vision)
 4. **Review** — artist receives an email with a preview; one click to publish, edit, or discard
@@ -28,7 +28,8 @@ Agnosis was designed for one shape — an open artist collective that vouches it
 
 ## Features
 
-- **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, removal, and account departure (`goodbye@`)
+- **Email-to-post** — IMAP polling or webhook push (Mailgun, SendGrid, Postmark); dedicated addresses for artwork, biography, events, replacement, removal, and account departure (`goodbye@`), plus `promote@` (pick which artwork represents the artist in the shared community gallery) and `community@` (broadcast a message to every other active community member)
+- **AI opt-out lanes** — `photo@` skips AI enhancement and the quality-rejection gate for photographers whose image is the artwork itself, but still runs AI description/tagging; `pure@` goes further — nothing is touched by AI at all, title/body/alt text are published verbatim from the artist's own words, and a poster is auto-generated from the text when there's no attached photo
 - **Zero-login workflow** — submitting, editing, and removing work all happen by email; no WordPress account is required. A login is optional, only needed for the online submissions-preview dashboard, and is set up via WordPress's own self-service password recovery whenever an artist wants it
 - **AI pipeline** — pluggable provider interface; OpenAI, Anthropic, and WordPress's own built-in AI Client (WP 7.0+, Settings → Connectors, no API key stored by Agnosis) out of the box — the WordPress AI Client covers description/text generation only, not image enhancement
 - **HEIC/HEIF support** — the default photo format on modern iPhones is accepted at intake and converted to JPEG before AI processing, instead of being silently dropped; degrades gracefully when the server's ImageMagick build can't decode it
