@@ -306,7 +306,7 @@ class PostCreatorPromotionIntegrationTest extends \WP_UnitTestCase {
 			public function process( array $submission, bool $skip_enhancement = false ): array {
 				return [];
 			}
-			public function chat( string $prompt ): string {
+			public function chat( string $prompt, int $min_tokens = 0 ): string {
 				return (string) $this->post_id;
 			}
 		};

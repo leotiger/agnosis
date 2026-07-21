@@ -18,6 +18,7 @@ use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
 use Agnosis\Admin\ArtworkMediumSync;
+use Agnosis\Admin\MediumProposals;
 use Agnosis\Admin\TaxonomyLanguageFilter;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
@@ -162,6 +163,17 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_sync_term',      $taxonomy_language_filter, 'handle_sync_term' );
 			$this->loader->add_action( 'admin_post_agnosis_sync_all_terms', $taxonomy_language_filter, 'handle_sync_all_terms' );
 			$this->loader->add_action( 'admin_notices',            $taxonomy_language_filter, 'maybe_render_sync_notice' );
+
+			// Medium-PROPOSAL review queue (distinct from both of the above:
+			// those manage terms/assignments that already exist; this surfaces
+			// AI-proposed medium values that DIDN'T match the live vocabulary at
+			// classification time — see Admin\MediumProposals's own docblock)
+			// — a notice/table on the same Artwork → Mediums screen, with
+			// Approve/Reject admin-post actions.
+			$medium_proposals = new MediumProposals();
+			$this->loader->add_action( 'admin_notices',                          $medium_proposals, 'maybe_render_notice' );
+			$this->loader->add_action( 'admin_post_agnosis_approve_medium_proposal', $medium_proposals, 'handle_approve' );
+			$this->loader->add_action( 'admin_post_agnosis_reject_medium_proposal',  $medium_proposals, 'handle_reject' );
 
 			// On-demand medium-ASSIGNMENT sync (distinct from the TERM sync
 			// above: that ensures a translated medium term exists at all,

@@ -249,7 +249,7 @@ class OpenAI implements ProviderInterface {
 		return true;
 	}
 
-	public function chat( string $prompt ): string {
+	public function chat( string $prompt, int $min_tokens = 0 ): string {
 		if ( empty( $this->api_key ) ) {
 			return '';
 		}
@@ -269,9 +269,31 @@ class OpenAI implements ProviderInterface {
 			// multiplier leaves room for language expansion (some target
 			// languages render longer than the English source) plus the JSON
 			// envelope's own key/quote/brace overhead. Floored at the old
-			// 1024 (a short reply never needed more) and capped at 8192
-			// against a runaway prompt.
-			'max_tokens' => max( 1024, min( 8192, (int) ceil( strlen( $prompt ) / 4 * 1.5 ) ) ),
+			// 1024 (a short reply never needed more).
+			//
+			// 2026-07-21: that prompt-length heuristic alone is blind to
+			// translate_to_languages()'s shape — one call whose OUTPUT fans
+			// out into a full translated copy per target language, while the
+			// PROMPT barely grows with the language count. $min_tokens (see
+			// ProviderInterface::chat()'s own docblock for the full incident)
+			// lets that caller raise the estimate to match; every other
+			// caller passes 0 and gets byte-for-byte the same sizing as
+			// before.
+			//
+			// The ceiling itself (was a hardcoded 8192) is now
+			// agnosis_ai_max_response_tokens (Settings → AI Providers,
+			// default 8192) — a site translating long text into several
+			// languages at once can need more room than a fixed literal
+			// allows, and that used to mean a code change to raise. Both the
+			// prompt-length estimate and $min_tokens share this same
+			// site-configurable ceiling.
+			'max_tokens' => max(
+				1024,
+				min(
+					max( 1024, (int) get_option( 'agnosis_ai_max_response_tokens', 8192 ) ),
+					max( (int) ceil( strlen( $prompt ) / 4 * 1.5 ), $min_tokens )
+				)
+			),
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],

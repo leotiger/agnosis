@@ -42,8 +42,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.43';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.43/agnosis-0.9.43.zip';
+	$version      = '0.9.44';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.44/agnosis-0.9.44.zip';
 	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
@@ -52,19 +52,19 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// start of every run, so a failed/superseded build never leaves a stale
 	// digest here). Empty string = verification skipped (safe default for a
 	// manifest between builds).
-	// TODO(release): pending the built agnosis-0.9.43.zip — run
-	// dev/bin/build-zip.sh, upload the result to the v0.9.43 GitHub release,
+	// TODO(release): pending the built agnosis-0.9.44.zip — run
+	// dev/bin/build-zip.sh, upload the result to the v0.9.44 GitHub release,
 	// then deploy this manifest.
 	//
-	// Cleared 2026-07-21: the value here (55edac8a...) was the real sha256 for
-	// the 0.9.42 build — now stale against this version bump to 0.9.43 (a
+	// Cleared 2026-07-21: the previous value here was the real sha256 for the
+	// 0.9.43 build — now stale against this version bump to 0.9.44 (a
 	// different zip, a different hash). Left in place it would silently break
-	// update verification: WordPress would hash the newly-downloaded 0.9.43
-	// zip and compare it against the OLD 0.9.42 zip's digest, which can never
+	// update verification: WordPress would hash the newly-downloaded 0.9.44
+	// zip and compare it against the OLD 0.9.43 zip's digest, which can never
 	// match. Per this file's own documented invariant (below) and
 	// build-zip.sh's clear_manifest_sha(), a stale digest is worse than an
 	// empty one — empty just skips verification; stale actively fails it.
-	$sha256 = '77c773fa07138b1484116a35f47b723b9cbf1744f8990f01400852dab24eb599';
+	$sha256 = '4cb2ad368dfeaf7a840ff6e774fe9813608eef95ee76dd7bc11a6382a5574f3e';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -76,18 +76,16 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.44</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> Medium taxonomy term auto-assignment (the &#8220;Poetry&#8221;/&#8220;Photography&#8221;/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission &#8212; the AI&#8217;s own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the &#8220;pure@&#8221; (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.</li>' .
+			'<li><strong>Fixed:</strong> An AI-proposed medium that doesn&#8217;t match your site&#8217;s configured vocabulary is no longer silently discarded. A new review queue on Artwork &#8594; Mediums shows each pending proposal, which submission(s) it&#8217;s for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.43</h4>' .
 		'<ul>' .
 			'<li><strong>Fixed:</strong> Manually discarding a draft submission from the review screen sent a completely wrong &#8220;photo quality too low&#8221; email &#8212; for every post type, every reason, with or without a real photo involved (e.g. a discarded text-only poem got a &#8220;retake your photo&#8221; bounce). It now sends a plain, honest &#8220;your submission wasn&#8217;t published&#8221; message instead; the photo-quality email is reserved for the real, automatic AI quality-gate rejection it was built for.</li>' .
 			'<li><strong>Fixed:</strong> Line breaks could still be lost from a published post even after the 0.9.42 fix, because that fix only covered draft creation &#8212; not the actual review-and-publish flow every submission is approved through, or the native-language translation/sibling-post paths. All of these now preserve the artist&#8217;s own line breaks consistently.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.42</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> Translation passes &#8212; Agnosis&#8217;s own pre-publish pass and Lingua Forge&#8217;s (2.6.6+) multi-language fan-out pass &#8212; now leave embedded other-language text (a quotation, epigraph, or title deliberately given in its original language) untranslated, instead of flattening it into the target language along with everything else.</li>' .
-			'<li><strong>Fixed:</strong> A text-only submission (&#8220;pure@&#8221; &#8212; poetry, an essay, no photo/audio/video) with valid content was wrongly rejected as having no usable attachment. Pure-lane submissions never required one; the real cause was an email-parsing bug that skipped fetching the message body under certain conditions.</li>' .
-			'<li><strong>Fixed:</strong> The poster image generated for a text-only submission now fills the frame with the artist&#8217;s own body text (preserving their line breaks), instead of stopping after the title.</li>' .
-			'<li><strong>Fixed:</strong> A published post&#8217;s line breaks could silently disappear the first time it was opened in the block editor. Post content is now written as valid native block markup from the moment it&#8217;s created, so there&#8217;s nothing left for the editor to reinterpret.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

@@ -140,13 +140,33 @@ class WordPressAI implements ProviderInterface {
 		return false;
 	}
 
-	public function chat( string $prompt ): string {
+	public function chat( string $prompt, int $min_tokens = 0 ): string {
 		// WordPress AI Client text generation path.
 		if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
 			return '';
 		}
 		try {
 			$builder = call_user_func( 'wp_ai_client_prompt', $prompt );
+			// 2026-07-21: unlike OpenAI/Anthropic's chat(), this provider set
+			// no explicit token budget at all here (only describe() did, via
+			// using_max_tokens( 1024 ) above) — it ran on whatever the AI
+			// Client's own default happened to be. That's the same failure
+			// mode as the other two providers' flat-1024 predecessor: fine
+			// for a short single reply, not enough once the caller (e.g.
+			// SubmissionTranslator::translate_to_languages()) needs one JSON
+			// response containing a full translated copy per target
+			// language. Only set an explicit floor when a caller actually
+			// asks for one — see ProviderInterface::chat()'s docblock — so
+			// every other call site keeps relying on the Client's own
+			// default, unchanged.
+			if ( $min_tokens > 0 ) {
+				// Ceiling (was a hardcoded 16384) is now the same
+				// agnosis_ai_max_response_tokens site setting OpenAI/Anthropic
+				// share — see their chat()'s own comment for the full
+				// rationale.
+				$ceiling = max( 1024, (int) get_option( 'agnosis_ai_max_response_tokens', 8192 ) );
+				$builder->using_max_tokens( min( $ceiling, max( 1024, $min_tokens ) ) );
+			}
 			if ( ! $builder->is_supported_for_text_generation() ) {
 				return '';
 			}

@@ -124,6 +124,18 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 if ( ! function_exists( 'wp_kses_post' ) ) {
     function wp_kses_post( string $data ): string { return strip_tags( $data, '<p><a><strong><em><ul><ol><li><br>' ); }
 }
+if ( ! function_exists( 'taxonomy_exists' ) ) {
+    // Added 2026-07-21 when process_audio_single()/describe_video_from_context()/
+    // classify_medium_from_text() started calling PromptConfig::medium_terms()
+    // to build their AI prompts — that method calls taxonomy_exists('agnosis_medium')
+    // before deciding whether to query the live vocabulary or fall back to its
+    // own CANONICAL_MEDIUMS seed list. Plain Unit tests (this bootstrap) never
+    // load real WordPress, so there is no real taxonomy to check — always
+    // returning false routes medium_terms() straight to its already-designed
+    // CANONICAL_MEDIUMS fallback, exactly the behavior these tests want (no
+    // real agnosis_medium taxonomy exists in this process either way).
+    function taxonomy_exists( string $taxonomy ): bool { return false; }
+}
 if ( ! function_exists( 'wpautop' ) ) {
     // Simplified stand-in for WP core's real wp-includes/formatting.php::wpautop()
     // — added 2026-07-21 when PostCreator::build_post_content() started calling it

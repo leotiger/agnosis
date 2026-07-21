@@ -131,7 +131,9 @@ class PostCreatorMediumTermTest extends \WP_UnitTestCase {
 	public function test_skips_medium_not_in_live_vocabulary(): void {
 		// Live vocabulary is whatever's actually in the taxonomy — with none
 		// seeded, medium_terms() falls back to CANONICAL_MEDIUMS, so an AI
-		// value outside even that list is a hallucination and gets dropped.
+		// value outside even that list doesn't get an automatic term
+		// assignment. 2026-07-21: it's no longer silently discarded either —
+		// see test_records_proposal_for_medium_not_in_live_vocabulary() below.
 		$post_id = $this->make_artwork();
 
 		$this->write_post_meta( $post_id, [ 'medium' => 'Interpretive Dance' ] );
@@ -161,5 +163,73 @@ class PostCreatorMediumTermTest extends \WP_UnitTestCase {
 		$this->write_post_meta( $post_id, [ 'medium' => '' ] );
 
 		$this->assertSame( [], wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Medium-proposal recording (2026-07-21)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Regression test for the 2026-07-21 fix: a non-matching medium used to
+	 * be silently discarded here — the AI's answer simply vanished with no
+	 * record it ever happened. It's now recorded as a reviewable proposal
+	 * (Admin\MediumProposals surfaces these on the Artwork → Mediums screen).
+	 */
+	public function test_records_proposal_for_medium_not_in_live_vocabulary(): void {
+		$post_id = $this->make_artwork();
+
+		$this->write_post_meta( $post_id, [ 'medium' => 'Interpretive Dance' ] );
+
+		$this->assertSame( 'Interpretive Dance', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+	}
+
+	public function test_no_proposal_recorded_when_medium_matches_live_vocabulary(): void {
+		wp_insert_term( 'Oil Painting', 'agnosis_medium' );
+		$post_id = $this->make_artwork();
+
+		$this->write_post_meta( $post_id, [ 'medium' => 'Oil Painting' ] );
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+	}
+
+	public function test_no_proposal_recorded_for_empty_medium(): void {
+		$post_id = $this->make_artwork();
+
+		$this->write_post_meta( $post_id, [ 'medium' => '' ] );
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+	}
+
+	public function test_no_proposal_recorded_for_non_artwork_post_type(): void {
+		$post_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_biography',
+			'post_status' => 'publish',
+			'post_author' => $this->artist_id,
+			'post_title'  => 'Test Biography',
+		] );
+
+		$this->write_post_meta( $post_id, [ 'medium' => 'Interpretive Dance' ], 'agnosis_biography' );
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+	}
+
+	/**
+	 * A stale proposal from an earlier pass (e.g. a reprocess) must not
+	 * linger once a later pass over the same post successfully matches the
+	 * live vocabulary instead.
+	 */
+	public function test_stale_proposal_cleared_when_a_later_medium_matches(): void {
+		wp_insert_term( 'Oil Painting', 'agnosis_medium' );
+		$post_id = $this->make_artwork();
+
+		$this->write_post_meta( $post_id, [ 'medium' => 'Interpretive Dance' ] );
+		$this->assertSame( 'Interpretive Dance', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+
+		$this->write_post_meta( $post_id, [ 'medium' => 'Oil Painting' ] );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+		$this->assertSame(
+			[ 'Oil Painting' ],
+			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
 	}
 }

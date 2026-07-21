@@ -111,7 +111,7 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 				return $results;
 			}
 
-			public function chat( string $prompt ): string {
+			public function chat( string $prompt, int $min_tokens = 0 ): string {
 				return '';
 			}
 		};
@@ -191,7 +191,7 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 				return $results;
 			}
 
-			public function chat( string $prompt ): string {
+			public function chat( string $prompt, int $min_tokens = 0 ): string {
 				return '';
 			}
 		};
@@ -395,7 +395,7 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 				return [];
 			}
 
-			public function chat( string $prompt ): string {
+			public function chat( string $prompt, int $min_tokens = 0 ): string {
 				return '';
 			}
 		} );

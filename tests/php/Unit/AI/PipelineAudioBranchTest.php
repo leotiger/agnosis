@@ -152,6 +152,57 @@ class PipelineAudioBranchTest extends TestCase {
 		$this->assertSame( 'binary', $result['enhanced_data'] );
 	}
 
+	/**
+	 * Regression test for the 2026-07-21 fix: process_audio_single()'s result
+	 * array never included the AI-detected medium at all, even though the
+	 * chat() prompt has always asked for one — see valid_json_response()'s
+	 * 'medium' => 'sound' fixture, unused by any assertion until now. The
+	 * prompt itself also used to invent its own vocabulary ("sound", "music",
+	 * "spoken word"...) that never matched the live agnosis_medium taxonomy,
+	 * so even a well-formed answer would have been silently dropped by
+	 * PostCreator's hallucination guard downstream. This test only covers the
+	 * missing-array-key half of that bug (unit-level, no live taxonomy here);
+	 * the vocabulary half is covered by asserting the prompt text below.
+	 */
+	public function test_result_carries_medium_field(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'supports_audio' )->willReturn( false );
+		$provider->method( 'chat' )->willReturn( $this->valid_json_response() );
+
+		$result = $this->call_audio_single(
+			$this->make_pipeline( $provider ),
+			'binary', 'audio/mpeg', 'track.mp3', 'Artist context.'
+		);
+
+		$this->assertArrayHasKey( 'medium', $result, "process_audio_single()'s result must include the AI-detected medium, not silently drop it." );
+		$this->assertSame( 'sound', $result['medium'] );
+	}
+
+	/**
+	 * Regression test for the other half of the same 2026-07-21 fix: the
+	 * chat() prompt must ask against the live agnosis_medium vocabulary
+	 * (PromptConfig::medium_terms(), which falls back to CANONICAL_MEDIUMS
+	 * when the taxonomy is unregistered — the case here, since this is a
+	 * plain-unit test with no WordPress taxonomy loaded), not a bespoke,
+	 * non-matching list invented just for audio.
+	 */
+	public function test_chat_prompt_uses_live_medium_vocabulary_not_invented_terms(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'supports_audio' )->willReturn( false );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'Oil Painting' ),
+				$this->logicalNot( $this->stringContains( 'field recording' ) )
+			) )
+			->willReturn( $this->valid_json_response() );
+
+		$this->call_audio_single(
+			$this->make_pipeline( $provider ),
+			'binary', 'audio/mpeg', 'track.mp3', 'Artist context.'
+		);
+	}
+
 	public function test_strips_markdown_fences_from_chat_response(): void {
 		$provider = $this->createMock( ProviderInterface::class );
 		$provider->method( 'supports_audio' )->willReturn( false );

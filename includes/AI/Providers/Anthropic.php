@@ -221,7 +221,7 @@ class Anthropic implements ProviderInterface {
 		return false;
 	}
 
-	public function chat( string $prompt ): string {
+	public function chat( string $prompt, int $min_tokens = 0 ): string {
 		if ( empty( $this->api_key ) ) {
 			return '';
 		}
@@ -234,7 +234,21 @@ class Anthropic implements ProviderInterface {
 			// responses (a long biography body) mid-object, so the parse
 			// failed and the caller silently fell back to untranslated text
 			// on a call that was still billed in full.
-			'max_tokens' => max( 1024, min( 8192, (int) ceil( strlen( $prompt ) / 4 * 1.5 ) ) ),
+			//
+			// 2026-07-21: $min_tokens raises the estimate for callers whose
+			// output fans out into several independent copies (one per
+			// target language) rather than scaling with prompt length, and
+			// the ceiling (was a hardcoded 8192) is now the
+			// agnosis_ai_max_response_tokens site setting — see
+			// ProviderInterface::chat()'s docblock and OpenAI::chat()'s own
+			// comment for the full incident.
+			'max_tokens' => max(
+				1024,
+				min(
+					max( 1024, (int) get_option( 'agnosis_ai_max_response_tokens', 8192 ) ),
+					max( (int) ceil( strlen( $prompt ) / 4 * 1.5 ), $min_tokens )
+				)
+			),
 			'messages'   => [
 				[ 'role' => 'user', 'content' => $prompt ],
 			],

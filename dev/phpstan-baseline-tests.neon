@@ -231,6 +231,21 @@ parameters:
 			path: ../tests/php/Integration/Admin/LanguageAwareTermsListTableTest.php
 
 		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\MediumProposalsTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
+
+		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
@@ -2476,6 +2491,46 @@ parameters:
 			path: ../tests/php/Integration/Publishing/PostCreatorReplaceAndRemoveEventsTest.php
 
 		-
+			message: "#^Access to an undefined property object\\:\\:\\$image_classify_called\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$text_classify_arg\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$text_classify_called\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$pipeline of class Agnosis\\\\Publishing\\\\PostCreator constructor expects Agnosis\\\\AI\\\\Pipeline\\|null, object given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PureLaneMediumClassificationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
+
+		-
 			message: "#^Access to an undefined property object\\:\\:\\$process_called\\.$#"
 			count: 3
 			path: ../tests/php/Integration/Publishing/PureLaneTest.php
@@ -2709,6 +2764,11 @@ parameters:
 			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\AI\\\\PipelineTest\\:\\:make_submission\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/php/Unit/AI/PipelineTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Unit\\\\AI\\\\PipelineVideoBranchTest\\:\\:valid_video_context_json_response\\(\\) should return string but returns string\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Unit/AI/PipelineVideoBranchTest.php
 
 		-
 			message: "#^Function Agnosis\\\\AI\\\\exec\\(\\) has parameter \\$output with no value type specified in iterable type array\\.$#"

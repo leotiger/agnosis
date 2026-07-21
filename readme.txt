@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.43
+Stable tag: 0.9.44
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -83,15 +83,13 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.44 =
+* Fixed: Medium taxonomy term auto-assignment (the "Poetry"/"Photography"/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission — the AI's own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the "pure@" (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.
+* Fixed: An AI-proposed medium that doesn't match your site's configured vocabulary is no longer silently discarded. A new review queue on Artwork → Mediums shows each pending proposal, which submission(s) it's for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.
+
 = 0.9.43 =
 * Fixed: Manually discarding a draft submission from the review screen sent a completely wrong "photo quality too low" email — for every post type, every reason, with or without a real photo involved (e.g. a discarded text-only poem got a "retake your photo" bounce). It now sends a plain, honest "your submission wasn't published" message instead; the photo-quality email is reserved for the real, automatic AI quality-gate rejection it was built for.
 * Fixed: Line breaks could still be lost from a published post even after the 0.9.42 fix, because that fix only covered draft creation — not the actual review-and-publish flow every submission is approved through, or the native-language translation/sibling-post paths. All of these now preserve the artist's own line breaks consistently.
-
-= 0.9.42 =
-* Added: Translation passes — Agnosis's own pre-publish pass and Lingua Forge's (2.6.6+) multi-language fan-out pass — now leave embedded other-language text (a quotation, epigraph, or title deliberately given in its original language) untranslated, instead of flattening it into the target language along with everything else.
-* Fixed: A text-only submission ("pure@" — poetry, an essay, no photo/audio/video) with valid content was wrongly rejected as having no usable attachment. Pure-lane submissions never required one; the real cause was an email-parsing bug that skipped fetching the message body under certain conditions.
-* Fixed: The poster image generated for a text-only submission now fills the frame with the artist's own body text (preserving their line breaks), instead of stopping after the title.
-* Fixed: A published post's line breaks could silently disappear the first time it was opened in the block editor. Post content is now written as valid native block markup from the moment it's created, so there's nothing left for the editor to reinterpret.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

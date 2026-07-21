@@ -352,10 +352,19 @@ class ReviewEndpoints {
 				update_post_meta( $post_id, '_agnosis_native_body', $translated['native_body'] );
 				update_post_meta( $post_id, '_agnosis_native_tags', wp_json_encode( $translated['native_tags'] ) );
 
-				if ( $source instanceof \WP_Post && 'agnosis_artwork' === $source->post_type
-					&& '' !== $translated['medium'] && in_array( $translated['medium'], PromptConfig::medium_terms(), true )
-				) {
-					wp_set_object_terms( $post_id, $translated['medium'], 'agnosis_medium' );
+				if ( $source instanceof \WP_Post && 'agnosis_artwork' === $source->post_type && '' !== $translated['medium'] ) {
+					// 2026-07-21: same silent-drop bug PostCreator::write_post_meta()
+					// had, and the same fix — a translated medium that doesn't match
+					// the live vocabulary is now recorded as a reviewable proposal
+					// (Admin\MediumProposals) instead of doing nothing. Clear any
+					// stale proposal from an earlier finalize_publish() pass first,
+					// same reasoning as write_post_meta()'s own reset.
+					delete_post_meta( $post_id, '_agnosis_medium_proposal' );
+					if ( in_array( $translated['medium'], PromptConfig::medium_terms(), true ) ) {
+						wp_set_object_terms( $post_id, $translated['medium'], 'agnosis_medium' );
+					} else {
+						update_post_meta( $post_id, '_agnosis_medium_proposal', $translated['medium'] );
+					}
 				}
 
 				if ( ! empty( $translated['tags'] ) ) {
@@ -593,10 +602,15 @@ class ReviewEndpoints {
 			update_post_meta( $pending_for, '_agnosis_native_body', $translated['native_body'] );
 			update_post_meta( $pending_for, '_agnosis_native_tags', wp_json_encode( $translated['native_tags'] ) );
 
-			if ( 'agnosis_artwork' === $target->post_type
-				&& '' !== $translated['medium'] && in_array( $translated['medium'], PromptConfig::medium_terms(), true )
-			) {
-				wp_set_object_terms( $pending_for, $translated['medium'], 'agnosis_medium' );
+			if ( 'agnosis_artwork' === $target->post_type && '' !== $translated['medium'] ) {
+				// 2026-07-21: same fix as the direct-publish branch above — see
+				// that comment for the full explanation.
+				delete_post_meta( $pending_for, '_agnosis_medium_proposal' );
+				if ( in_array( $translated['medium'], PromptConfig::medium_terms(), true ) ) {
+					wp_set_object_terms( $pending_for, $translated['medium'], 'agnosis_medium' );
+				} else {
+					update_post_meta( $pending_for, '_agnosis_medium_proposal', $translated['medium'] );
+				}
 			}
 		}
 

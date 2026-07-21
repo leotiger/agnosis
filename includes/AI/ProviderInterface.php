@@ -88,9 +88,36 @@ interface ProviderInterface {
 	 * audio description that does not require image input. Implementations should
 	 * use the cheapest/fastest model available (gpt-4o-mini, claude-haiku-4-5, etc.).
 	 *
-	 * Returns an empty string on failure — callers must treat '' as "no answer".
+	 * @param string $prompt
+	 * @param int    $min_tokens Optional floor for the response token budget,
+	 *                           above whatever the implementation's own
+	 *                           prompt-length-based sizing would otherwise
+	 *                           produce. 0 (default) leaves that sizing
+	 *                           untouched — every existing call site is
+	 *                           unaffected.
+	 *
+	 *                           Added 2026-07-21: SubmissionTranslator::
+	 *                           translate_to_languages() asks for ONE JSON
+	 *                           object containing a full translated copy of
+	 *                           the text per target language, in one chat()
+	 *                           call. Every implementation's own budget
+	 *                           formula sizes off the PROMPT's length, which
+	 *                           barely grows with the number of target
+	 *                           languages (just a few extra language codes in
+	 *                           a list) even though the OUTPUT needs a full
+	 *                           translation per language — on a site with
+	 *                           several configured languages this silently
+	 *                           truncated the response mid-JSON, and because
+	 *                           the model writes keys in the same stable
+	 *                           order every time, it was always the SAME
+	 *                           (last-requested) language that came up
+	 *                           short and got silently dropped. $min_tokens
+	 *                           lets a caller that knows its output fans out
+	 *                           across N independent copies raise the floor
+	 *                           accordingly, without changing sizing for
+	 *                           every other single-output call site.
 	 */
-	public function chat( string $prompt ): string;
+	public function chat( string $prompt, int $min_tokens = 0 ): string;
 
 	/**
 	 * Transcribe audio binary to plain text using a speech-to-text model.

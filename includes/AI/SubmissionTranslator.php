@@ -431,7 +431,28 @@ class SubmissionTranslator {
 			. "No markdown fences. No preamble. No explanation.\n\n"
 			. "TEXT:\n{$text}";
 
-		$response = $this->provider->chat( $prompt );
+		// 2026-07-21: the providers' own chat() budget sizes off the PROMPT's
+		// length (see ProviderInterface::chat()'s docblock) — fine for
+		// call_translate()/translate_fields(), where prompt and output are
+		// roughly proportional (one text, one target language), but wrong
+		// here: this prompt barely grows with the number of target
+		// languages (just a few extra codes in a list), while the response
+		// has to contain a FULL translated copy of $text per language, all
+		// in one JSON object. Left unaddressed, the response ran out of
+		// budget mid-JSON on sites with several configured languages — and
+		// because the model writes keys in the same stable order every
+		// call, it was always the SAME (last-requested) language that came
+		// up short and got silently dropped (see the per-key "missing from
+		// the model's response" warning below). $min_tokens estimates one
+		// text-sized translation per language (same ~4 chars/token, 1.5x
+		// expansion allowance as the providers' own single-language
+		// formula) plus a flat per-key JSON overhead, so the floor actually
+		// scales with the number of languages requested instead of just the
+		// prompt's own length.
+		$per_language_tokens = (int) ceil( strlen( $text ) / 4 * 1.5 ) + 20; // 20 = JSON key/quote/comma overhead per entry.
+		$min_tokens          = 100 + ( count( $names ) * $per_language_tokens );
+
+		$response = $this->provider->chat( $prompt, $min_tokens );
 
 		if ( '' === trim( $response ) ) {
 			return [];

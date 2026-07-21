@@ -196,6 +196,16 @@ class Pipeline {
 				'body'                 => $content,
 				'tags'                 => [],
 				'alt_text'             => $subject,
+				// 2026-07-21: pure@ makes zero AI calls here by design (see this
+				// method's own docblock), so no medium is ever known at this
+				// point — left as a placeholder for shape-consistency with every
+				// other lane's result array. PostCreator::handle() fills this in
+				// afterward, per attachment, via classify_medium_from_image()/
+				// classify_medium_from_text() below — the one deliberate,
+				// narrowly-scoped exception to "pure@ makes zero AI calls",
+				// added because medium-term assignment had otherwise silently
+				// never worked for this lane at all.
+				'medium'               => '',
 				'description_ok'       => true,
 				'error'                => '',
 				'photo_quality_score'  => 0,
@@ -207,6 +217,80 @@ class Pipeline {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Classify only the medium of a pure@ submission's real attached photo.
+	 *
+	 * process_raw() deliberately makes zero AI calls (see its own docblock),
+	 * which meant medium-term auto-assignment silently never worked for ANY
+	 * pure@ submission — 'medium' was never even a key in its result array
+	 * until this fix. There is no cheaper "classify only" vision endpoint on
+	 * any provider, so this reuses the same full describe() vision call
+	 * process_single() uses; only ->medium is ever read from the result —
+	 * the title/excerpt/body/tags/alt_text describe() also generates are
+	 * discarded, since pure@'s whole point is publishing the artist's own
+	 * words and photo verbatim, unchanged by AI (see process_raw()'s
+	 * docblock again).
+	 *
+	 * @param array<string, mixed> $submission Parsed email submission — for
+	 *                                          artist context + native
+	 *                                          language resolution, same
+	 *                                          inputs process() itself uses.
+	 */
+	public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): string {
+		if ( '' === trim( $image_data ) ) {
+			return '';
+		}
+
+		$artist_context = $this->build_artist_context( $submission );
+		$native_lang    = $this->resolve_native_lang_code( $submission );
+
+		$description = $this->description_provider->describe( $image_data, $mime_type, $artist_context, $native_lang );
+
+		return $description->success ? sanitize_text_field( $description->medium ) : '';
+	}
+
+	/**
+	 * Classify only the medium of a pure@ text-only submission — the
+	 * TextPosterGenerator synthetic-poster case, where there is no real
+	 * photo to run classify_medium_from_image() against. Same motivation as
+	 * that method — see its docblock — but via a lightweight chat() call
+	 * instead, since there's no image at all here.
+	 *
+	 * Truncates to 300 words before sending: distinguishing "this reads like
+	 * a poem" from "this reads like an essay" doesn't need the artist's full
+	 * text, and keeps this call cheap — same reasoning PostCreator's other
+	 * chat()-based classification calls (fuzzy title matching) already rely
+	 * on for their own truncation.
+	 */
+	public function classify_medium_from_text( string $text ): string {
+		$sample = trim( $text );
+		if ( '' === $sample ) {
+			return '';
+		}
+
+		$sample = wp_trim_words( $sample, 300, '' );
+
+		$prompt = "Classify the medium of the following piece of writing submitted to an art platform.\n\n"
+			. "Text:\n---\n{$sample}\n---\n\n"
+			. 'Respond with a JSON object: { "medium": "<pick exactly one from: '
+			. implode( ' | ', PromptConfig::medium_terms() )
+			. '>" }, or { "medium": "" } if none fit. Return ONLY the JSON object. No markdown fences. No preamble.';
+
+		$response = $this->description_provider->chat( $prompt );
+		if ( empty( $response ) ) {
+			return '';
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$json     = json_decode( $json_str, true );
+
+		if ( ! is_array( $json ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( (string) ( $json['medium'] ?? '' ) );
 	}
 
 	/**
@@ -375,6 +459,17 @@ class Pipeline {
 			'body'                 => $description->body,
 			'tags'                 => $description->tags,
 			'alt_text'             => $description->alt_text,
+			// 2026-07-21 fix: $description->medium was computed correctly (describe()
+			// prompts for it against the live agnosis_medium vocabulary, and the
+			// provider parses it out of the AI's JSON response) but was never
+			// actually included in this return array — so PostCreator::
+			// write_post_meta() never received it, and automatic medium-term
+			// assignment silently never happened for ANY image-based artwork/photo@
+			// submission, regardless of what the AI actually returned. Reported
+			// live: every published artwork's medium had to be hand-assigned,
+			// with nothing in the logs pointing at why the AI's answer never
+			// took effect.
+			'medium'               => $description->medium,
 			'description_ok'       => $description->success,
 			'error'                => $description->error,
 			'photo_quality_score'  => $quality_score,
@@ -439,7 +534,16 @@ class Pipeline {
 			. "- \"body\":     Two or three paragraphs of editorial description (string, may contain basic HTML).\n"
 			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n"
 			. "- \"alt_text\": A brief accessible description of what the audio conveys (string).\n"
-			. "- \"medium\":   One of: \"sound\", \"music\", \"spoken word\", \"field recording\", \"performance\", or \"\" if unclear.\n\n"
+			// 2026-07-21 fix: this used to hardcode its own vocabulary
+			// ("sound", "music", "spoken word"...) that never matched any term
+			// in the live agnosis_medium taxonomy (whose seed list is visual-art
+			// terms like "Oil Painting", "Photography"), and — independently —
+			// this method's return array never even read $json['medium'] back
+			// out, so an audio submission's medium silently never reached
+			// PostCreator either way. Now asks against the same live vocabulary
+			// every other branch uses, matching the "Pick exactly one from:
+			// {medium_list}" convention in PromptConfig's main describe() prompt.
+			. '- "medium":   Pick exactly one from: ' . implode( ' | ', PromptConfig::medium_terms() ) . ", or \"\" if none fit.\n\n"
 			. 'Return ONLY the JSON object. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
@@ -472,6 +576,10 @@ class Pipeline {
 			'body'                 => wp_kses_post( $json['body']            ?? '' ),
 			'tags'                 => array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
 			'alt_text'             => sanitize_text_field( $json['alt_text'] ?? '' ),
+			// 2026-07-21 fix: previously absent entirely — see the prompt-building
+			// comment above for why this was never assigned despite the AI being
+			// asked for a medium value all along.
+			'medium'               => sanitize_text_field( $json['medium'] ?? '' ),
 			'description_ok'       => true,
 			'error'                => '',
 			'photo_quality_score'  => 0, // not applicable for audio
@@ -565,6 +673,13 @@ class Pipeline {
 					'body'                 => $description->body,
 					'tags'                 => $description->tags,
 					'alt_text'             => $description->alt_text,
+					// Same 2026-07-21 fix as process_single() above — this branch
+					// calls the same describe() against the same live medium
+					// vocabulary (it's a real vision call on the poster frame, not
+					// the bespoke text-only chat() prompt describe_video_from_context()
+					// uses below), so $description->medium is a real, valid term;
+					// it just never made it into this return array either.
+					'medium'               => $description->medium,
 					'description_ok'       => true,
 					'error'                => '',
 					'photo_quality_score'  => 0,
@@ -612,7 +727,11 @@ class Pipeline {
 			. "- \"body\":     Two or three paragraphs of editorial description (string, may contain basic HTML).\n"
 			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n"
 			. "- \"alt_text\": A brief accessible description of what the video shows or conveys, based only on the context given (string).\n"
-			. "- \"medium\":   One of: \"video\", \"animation\", \"video art\", \"performance\", \"documentary\", or \"\" if unclear.\n\n"
+			// 2026-07-21 fix: same issue as process_audio_single()'s prompt —
+			// see that method's comment for the full explanation. This text-only
+			// fallback branch had its own invented, non-matching vocabulary and
+			// never read $json['medium'] back into its result array either.
+			. '- "medium":   Pick exactly one from: ' . implode( ' | ', PromptConfig::medium_terms() ) . ", or \"\" if none fit.\n\n"
 			. 'Return ONLY the JSON object. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
@@ -647,6 +766,9 @@ class Pipeline {
 			'body'                 => wp_kses_post( $json['body']            ?? '' ),
 			'tags'                 => array_map( 'sanitize_text_field', (array) ( $json['tags'] ?? [] ) ),
 			'alt_text'             => sanitize_text_field( $json['alt_text'] ?? '' ),
+			// 2026-07-21 fix: previously absent entirely — see the prompt-building
+			// comment above.
+			'medium'               => sanitize_text_field( $json['medium'] ?? '' ),
 			'description_ok'       => true,
 			'error'                => '',
 			'photo_quality_score'  => 0,
@@ -791,9 +913,12 @@ class Pipeline {
 	 *
 	 * Used for lightweight classification (e.g. duplicate detection) that does
 	 * not require image input. Returns '' on failure.
+	 *
+	 * @param string $prompt
+	 * @param int    $min_tokens See ProviderInterface::chat()'s own docblock.
 	 */
-	public function chat( string $prompt ): string {
-		return $this->description_provider->chat( $prompt );
+	public function chat( string $prompt, int $min_tokens = 0 ): string {
+		return $this->description_provider->chat( $prompt, $min_tokens );
 	}
 
 	/**

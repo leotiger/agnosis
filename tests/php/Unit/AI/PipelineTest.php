@@ -71,6 +71,7 @@ class PipelineTest extends TestCase {
 					alt_text:            'A mocked artwork image.',
 					success:             true,
 					photo_quality_score: 5, // Below default threshold (7) and above 0 — triggers enhancement.
+					medium:              'Oil Painting',
 				)
 				: DescriptionResult::failure( 'Mocked provider error.' )
 		);
@@ -120,6 +121,26 @@ class PipelineTest extends TestCase {
 		$this->assertSame( [ 'art', 'mock' ], $results[0]['tags'] );
 		$this->assertSame( 'A mocked artwork image.', $results[0]['alt_text'] );
 		$this->assertTrue( $results[0]['description_ok'] );
+	}
+
+	/**
+	 * Regression test for the 2026-07-21 fix: process_single() computed
+	 * $description->medium correctly (describe() prompts for it against the
+	 * live agnosis_medium vocabulary, and the provider parses it out of the
+	 * AI's JSON response) but never actually included it in the array this
+	 * method returns — so PostCreator::write_post_meta() never received it,
+	 * and automatic medium-term assignment silently never happened for ANY
+	 * image-based artwork/photo@ submission, regardless of what the AI
+	 * actually returned. Reported live: every published artwork's medium had
+	 * to be hand-assigned.
+	 */
+	public function test_process_result_carries_medium_field(): void {
+		$pipeline = $this->make_pipeline( $this->make_description_mock() );
+
+		$results = $pipeline->process( $this->make_submission() );
+
+		$this->assertArrayHasKey( 'medium', $results[0], 'process_single()\'s result must include the AI-detected medium, not silently drop it.' );
+		$this->assertSame( 'Oil Painting', $results[0]['medium'] );
 	}
 
 	public function test_process_uses_original_image_when_no_enhancement_provider(): void {

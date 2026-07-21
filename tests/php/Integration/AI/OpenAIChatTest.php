@@ -123,6 +123,44 @@ class OpenAIChatTest extends \WP_UnitTestCase {
 		$this->assertSame( 8192, $this->sent_max_tokens( $captured ) );
 	}
 
+	/**
+	 * 2026-07-21: the 8192 ceiling above is only the DEFAULT — a site
+	 * translating long text into several configured languages at once can
+	 * need more room than that fixed number allows (see
+	 * SubmissionTranslator::translate_to_languages()'s own docblock).
+	 * agnosis_ai_max_response_tokens (Settings → AI Providers) makes the
+	 * ceiling itself a site-level setting instead of a hardcoded literal.
+	 */
+	public function test_max_tokens_respects_a_higher_configured_ceiling(): void {
+		update_option( 'agnosis_ai_max_response_tokens', 20000 );
+
+		$very_long_prompt = str_repeat( 'Lorem ipsum dolor sit amet. ', 5000 );
+		$captured         = null;
+		$this->mock_http_capturing( $captured );
+
+		$this->make_provider()->chat( $very_long_prompt );
+
+		$this->assertSame( 20000, $this->sent_max_tokens( $captured ), 'A site-configured ceiling above the old hardcoded 8192 must actually raise the sent max_tokens.' );
+	}
+
+	/**
+	 * The 1024 floor is a hard safety net enforced by chat() itself, not
+	 * just the Settings-page sanitize callback — this covers a stored value
+	 * that reaches get_option() below 1024 by any means (a raw DB write, a
+	 * value written before the option existed, etc.), not just the normal
+	 * admin-form path.
+	 */
+	public function test_max_tokens_ceiling_setting_never_drops_below_the_1024_floor(): void {
+		update_option( 'agnosis_ai_max_response_tokens', 10 );
+
+		$captured = null;
+		$this->mock_http_capturing( $captured );
+
+		$this->make_provider()->chat( 'Translate to Spanish.' );
+
+		$this->assertSame( 1024, $this->sent_max_tokens( $captured ), 'chat() must defend its own 1024 floor even if the stored option value is nonsensically low.' );
+	}
+
 	// audit §5c
 	public function test_chat_uses_the_default_text_model_when_none_configured(): void {
 		$captured = null;

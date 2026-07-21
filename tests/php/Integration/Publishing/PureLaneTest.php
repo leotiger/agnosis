@@ -1,13 +1,14 @@
 <?php
 /**
- * Integration tests for the pure@ (zero-AI) intake lane.
+ * Integration tests for the pure@ (near-zero-AI) intake lane.
  *
  * Covers:
  *   - pure@ address routing resolves to agnosis_artwork with photo_only = true
  *     AND pure = true.
  *   - [Pure] subject indicator resolves the same way.
  *   - Pipeline::process_raw() is called instead of Pipeline::process() — no
- *     describe()/enhance()/translate() call ever happens.
+ *     describe()/enhance()/translate() call happens as part of the AI
+ *     pipeline proper.
  *   - Quality rejection gate is skipped, same as photo@.
  *   - The published post's title/body/excerpt/alt text/translated-title are
  *     taken verbatim from the artist's own subject/description — never an
@@ -17,6 +18,16 @@
  *   - replace@ reuses the 'pure' strategy for a resend to an artwork
  *     originally created via pure@, even though replace@ itself never sets
  *     agnosis_email_pure.
+ *
+ * 2026-07-21: pure@ is no longer LITERALLY zero AI calls. process_raw()
+ * itself still makes none — but PostCreator::handle() now makes exactly one
+ * classification-only call afterward (Pipeline::classify_medium_from_image()
+ * or classify_medium_from_text()) so medium-term auto-assignment, which
+ * previously never worked at all for this lane, now does. See
+ * PureLaneMediumClassificationTest for coverage of that specific wiring —
+ * this file's own make_spy_pipeline() stubs both classification methods to
+ * a safe no-op ('') so the rest of these tests (which predate that change and
+ * aren't about it) aren't coupled to it.
  *
  * @package Agnosis\Tests\Integration\Publishing
  */
@@ -112,7 +123,18 @@ class PureLaneTest extends \WP_UnitTestCase {
 	/**
 	 * A Pipeline stub whose process() would prove the AI path ran (it must
 	 * NOT be called for pure@) and whose process_raw() delegates to the real
-	 * implementation so the actual zero-AI result shape is exercised.
+	 * implementation so the actual (near-)zero-AI result shape is exercised.
+	 *
+	 * classify_medium_from_image()/classify_medium_from_text() are stubbed to
+	 * a safe '' no-op, same reasoning as the never-constructed
+	 * description_provider property below: the real implementations call
+	 * $this->description_provider->describe()/chat() directly, and this
+	 * stub's no-op __construct() never runs Pipeline's real constructor (so
+	 * that private, non-nullable property is never initialized) — calling
+	 * either real classify_*() method here would fatal with an "accessed
+	 * before initialization" error, not a clean "no AI happened" result.
+	 * PureLaneMediumClassificationTest covers the real classification wiring
+	 * with its own dedicated stubs instead.
 	 */
 	private function make_spy_pipeline(): object {
 		return new class() extends Pipeline {
@@ -131,7 +153,15 @@ class PureLaneTest extends \WP_UnitTestCase {
 				return parent::process_raw( $submission );
 			}
 
-			public function chat( string $prompt ): string {
+			public function chat( string $prompt, int $min_tokens = 0 ): string {
+				return '';
+			}
+
+			public function classify_medium_from_image( array $submission, string $image_data, string $mime_type ): string {
+				return '';
+			}
+
+			public function classify_medium_from_text( string $text ): string {
 				return '';
 			}
 		};
@@ -149,7 +179,7 @@ class PureLaneTest extends \WP_UnitTestCase {
 		$creator->handle( $queue_id );
 
 		$this->assertTrue( $pipeline->process_raw_called, 'pure@ must route through Pipeline::process_raw().' );
-		$this->assertFalse( $pipeline->process_called, 'pure@ must never call Pipeline::process() — no AI at all.' );
+		$this->assertFalse( $pipeline->process_called, 'pure@ must never call Pipeline::process() — no full AI description/enhancement pipeline, even though a separate medium-classification-only call now happens (see PureLaneMediumClassificationTest).' );
 	}
 
 	public function test_pure_address_skips_quality_rejection(): void {

@@ -474,6 +474,31 @@ class SettingsFields {
 				'default' => 'claude-haiku-4-5-20251001',
 				'desc'    => __( 'Cheap, fast model used for text-only tasks when Anthropic is the description provider — translating a submission into the site\'s primary language, and moderating contact-form messages. Does not need vision support.', 'agnosis' ),
 			],
+			// 2026-07-21: chat()'s own max_tokens sizing (see each provider's
+			// docblock) already scales with prompt length and, for
+			// SubmissionTranslator::translate_to_languages(), with the
+			// number of target languages too — but both still clamp to a
+			// hardcoded ceiling. A site translating long text (long
+			// biographies/descriptions) into several configured languages
+			// can genuinely need more than the old fixed 8192 to avoid a
+			// response truncating mid-JSON — previously that meant a code
+			// change and a new release just to raise a number. This makes
+			// the ceiling itself a site-level lever instead. Output tokens
+			// are billed as used, not reserved, so raising this costs
+			// nothing when the extra room isn't needed; the provider's own
+			// account/model limits still apply on top of whatever is set
+			// here.
+			'agnosis_ai_max_response_tokens' => [
+				'tab'      => 'ai',
+				'label'    => __( 'Max AI response tokens (chat/translation)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 8192,
+				'min'      => 1024,
+				'step'     => 256,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1024, min( 65536, (int) $v ) ),
+				'desc'     => __( 'Ceiling for chat/translation AI responses (submission translation, medium classification, contact-message moderation, and similar text-only tasks — not artwork description or image enhancement). Each call still sizes its request below this ceiling based on the text involved, so raising it only matters when responses are being cut off — most often long text (a lengthy biography or description) translated into several configured languages at once, which needs one full translated copy per language in a single reply. Your AI provider\'s own account or model limits still apply on top of this. Default: 8192.', 'agnosis' ),
+			],
 			'agnosis_ai_vision_max_width_px' => [
 				'tab'      => 'ai',
 				'label'    => __( 'Vision image max width (px)', 'agnosis' ),

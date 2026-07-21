@@ -398,6 +398,13 @@ class PostCreator {
 			// — same shape Parser itself would have produced — so the rest of
 			// this method (binary loading below, Pipeline::process_raw(),
 			// merge_gallery()) treats it exactly like a normally-submitted photo.
+			//
+			// $had_original_attachment is captured BEFORE this injection can add
+			// a fake attachment — the pure@ medium-classification wiring further
+			// below needs to know whether the artist sent a REAL photo, not
+			// whether $submission['attachments'] merely ends up non-empty.
+			$had_original_attachment = ! empty( $submission['attachments'] );
+
 			if ( $pure && empty( $submission['attachments'] ) ) {
 				// 2026-07-21: TextPosterGenerator now resolves subject-vs-body
 				// priority itself (title-first, body-excerpt fallback — see
@@ -484,7 +491,11 @@ class PostCreator {
 						'Queue #%d: running AI pipeline on %d attachment(s)%s.',
 						$queue_id,
 						$attach_count,
-						$pure ? ' (pure — no AI at all)' : ( $photo_only ? ' (photo-only — enhancement skipped)' : '' )
+						// 2026-07-21: "no AI at all" is no longer quite true — see the
+						// medium-classification block just below, the one deliberate,
+						// narrowly-scoped exception (process_raw()'s own docblock still
+						// documents why zero AI calls is otherwise the design for this lane).
+						$pure ? ' (pure — no AI beyond medium classification)' : ( $photo_only ? ' (photo-only — enhancement skipped)' : '' )
 					),
 					'publisher'
 				);
@@ -501,6 +512,36 @@ class PostCreator {
 						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ?: ( $r['alt_text'] ?? '' ) ), 'publisher' );
 					} else {
 						Logger::warning( sprintf( 'Queue #%d: attachment %d description failed — %s', $queue_id, $i + 1, $r['error'] ?? 'unknown' ), 'publisher' );
+					}
+				}
+
+				// ---- pure@ medium classification (2026-07-21) -----------------------
+				// process_raw() above makes zero OTHER AI calls by design (see its own
+				// docblock) — medium-term auto-assignment had silently never worked at
+				// all for this lane as a direct result, since 'medium' was never even a
+				// key in its result array before this fix. write_post_meta() only ever
+				// reads $primary['medium'] (see primary_result()), so classifying just
+				// the first result is sufficient — there is no gallery-wide medium to
+				// resolve here the way tags are merged across images.
+				//
+				// Vision-based classification only when the artist attached a REAL
+				// photo ($had_original_attachment, captured above BEFORE the
+				// synthetic-poster injection could add a fake one) AND that first
+				// attachment actually adapted to an image (not, say, a PDF or an
+				// audio/video file sent to a pure@ address) — describe() requires
+				// real image binary. Every other case (no attachment at all — the
+				// TextPosterGenerator synthetic-poster path — or a non-image real
+				// attachment) falls back to classifying the artist's own submitted
+				// text instead of silently leaving medium unclassified.
+				if ( $pure && ! empty( $results ) ) {
+					$medium = ( $had_original_attachment && 'image' === ( $results[0]['media_type'] ?? '' ) )
+						? $this->pipeline->classify_medium_from_image( $submission, $results[0]['original_data'], $results[0]['mime_type'] )
+						: $this->pipeline->classify_medium_from_text( (string) ( $submission['description'] ?? '' ) ?: (string) $submission['subject'] );
+
+					$results[0]['medium'] = $medium;
+
+					if ( '' !== $medium ) {
+						Logger::info( sprintf( 'Queue #%d: pure@ submission classified as medium "%s".', $queue_id, $medium ), 'publisher' );
 					}
 				}
 
@@ -2542,8 +2583,9 @@ class PostCreator {
 		// resolved_system_prompt() calls), so this guard has to accept whatever
 		// it was actually offered. This still exists to prevent AI hallucinations
 		// (a term the AI invents that isn't in the live list either) from creating
-		// rogue taxonomy terms. Empty or unrecognised values are silently skipped;
-		// the admin can assign manually from the edit screen.
+		// rogue taxonomy terms automatically. A non-empty value that doesn't
+		// match is now recorded as a reviewable proposal (2026-07-21) rather than
+		// silently discarded — see the elseif branch below.
 		if ( 'agnosis_artwork' === $post_type ) {
 			$medium = trim( $primary['medium'] ?? '' );
 
@@ -2564,8 +2606,27 @@ class PostCreator {
 				update_post_meta( $post_id, '_agnosis_native_medium', $medium );
 			}
 
+			// Clear any stale proposal from an earlier pass over this same post
+			// (e.g. a reprocess) before possibly re-recording a fresh one below —
+			// a post must never carry a proposal for a medium it no longer
+			// actually has pending.
+			delete_post_meta( $post_id, '_agnosis_medium_proposal' );
+
 			if ( $medium && in_array( $medium, PromptConfig::medium_terms(), true ) ) {
 				wp_set_object_terms( $post_id, $medium, 'agnosis_medium' );
+			} elseif ( $medium ) {
+				// 2026-07-21 fix: this used to be a silent no-op — the AI's
+				// answer simply vanished, with nothing telling the admin a
+				// classification even happened, let alone what it returned.
+				// Every classification path (describe(), audio, video, and the
+				// new pure@ classify_medium_from_image()/classify_medium_from_text())
+				// funnels through this one method, so recording the proposal
+				// here covers all of them uniformly. Admin\MediumProposals
+				// surfaces distinct pending proposals (grouped by value, with a
+				// post count) on the Artwork → Mediums admin screen, with
+				// Approve (create/reuse the term, assign it, clear this meta)
+				// and Reject (clear this meta only) actions.
+				update_post_meta( $post_id, '_agnosis_medium_proposal', $medium );
 			}
 		}
 

@@ -680,6 +680,63 @@ class SubmissionTranslatorTest extends TestCase {
 		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr', 'de' ] );
 	}
 
+	/**
+	 * 2026-07-21 regression: the site's LAST configured language would come
+	 * back missing from every translate_to_languages() call, every time —
+	 * root cause was the provider's own chat() budget sizing off the
+	 * PROMPT's length alone (barely affected by target-language count),
+	 * while the response has to contain one full translated copy of the
+	 * text per language, all in one JSON object. Once the budget ran out
+	 * mid-JSON, whichever key the model was still writing — always the
+	 * same, stably-ordered last language — came up short and was silently
+	 * dropped by the "missing from the model's response" guard a few lines
+	 * below.
+	 *
+	 * Fix: translate_to_languages() now passes an explicit $min_tokens
+	 * floor as chat()'s second argument, scaled by the number of target
+	 * languages (see its own inline comment for the exact formula). This
+	 * locks that formula down: 3 target languages ('es', 'fr', 'de') and a
+	 * 5-character text must produce min_tokens = 100 + 3 * ( ceil(5/4*1.5)
+	 * + 20 ) = 100 + 3 * 22 = 166.
+	 */
+	public function test_translate_to_languages_passes_a_min_tokens_floor_scaled_by_language_count(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->anything(), $this->identicalTo( 166 ) )
+			->willReturn( '{"es":"Hola","fr":"Bonjour","de":"Hallo"}' );
+
+		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr', 'de' ] );
+	}
+
+	/**
+	 * Same regression as above, from the other direction: more target
+	 * languages must raise the floor further still, not leave it flat —
+	 * otherwise a site with, say, ten configured languages would hit
+	 * exactly the same truncation this fix exists to prevent.
+	 */
+	public function test_translate_to_languages_min_tokens_floor_increases_with_more_target_languages(): void {
+		// resolve_language_name() only recognises codes in linguaforge_languages()
+		// (see SubmissionTranslator::language_names()) — extend the default
+		// 4-code stub list so 'it'/'pt' actually resolve instead of being
+		// silently dropped as unknown, which would otherwise leave this test
+		// exercising the same 3 languages as the test above and defeat the
+		// point of it.
+		self::$linguaforge_languages = [ 'en', 'es', 'de', 'fr', 'it', 'pt' ];
+		self::$linguaforge_labels    = [
+			'en' => 'English', 'es' => 'Spanish', 'de' => 'German',
+			'fr' => 'French', 'it' => 'Italian', 'pt' => 'Portuguese',
+		];
+
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->anything(), $this->greaterThan( 166 ) )
+			->willReturn( '{"es":"Hola","fr":"Bonjour","de":"Hallo","it":"Ciao","pt":"Ola"}' );
+
+		$this->make_translator( $provider )->translate_to_languages( 'Hello', [ 'es', 'fr', 'de', 'it', 'pt' ] );
+	}
+
 	public function test_translate_to_languages_returns_a_translation_for_every_valid_target_code(): void {
 		$provider = $this->createMock( ProviderInterface::class );
 		$provider->method( 'chat' )->willReturn( '{"es":"Hola","fr":"Bonjour","de":"Hallo"}' );
