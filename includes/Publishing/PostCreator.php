@@ -1984,8 +1984,16 @@ class PostCreator {
 		// an empty gallery and wipe the existing photo on approval, and an
 		// artwork resend that appends a photo would lose the previously
 		// published ones the same way.
-		$gallery      = $this->merge_gallery( $existing_id ?: $stage_for, $results, $post_type, $is_synthetic_poster );
-		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '' );
+		$gallery = $this->merge_gallery( $existing_id ?: $stage_for, $results, $post_type, $is_synthetic_poster );
+
+		// Accessibility (2026-07-22) — same resolution build_post_content()'s
+		// own docblock describes: prefer the artist's own submitted title
+		// (identical to what post_title itself resolves to, a few lines
+		// below) over the AI's per-image title, so an image's fallback alt
+		// text matches what the post is actually titled rather than an
+		// internal AI artifact the artist never saw.
+		$fallback_alt = '' !== $original_title ? $original_title : (string) ( $primary['title'] ?? '' );
+		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '', $fallback_alt );
 
 		// merge_gallery() just populated $this->last_dropped_poster_ids with
 		// any earlier poster attachment(s) it dropped in favor of the fresh
@@ -2352,6 +2360,26 @@ class PostCreator {
 			}
 
 			if ( ! empty( $existing_gallery ) ) {
+				// 2026-07-22: exclude anything that's ALSO in $new_gallery before
+				// computing what's safe to hard-delete — live incident: resending
+				// byte-for-byte identical text (a deliberate two-endpoint test,
+				// same title/body sent to replace@ then pure@) makes
+				// TextPosterGenerator render an IDENTICAL PNG, so the hash-dedupe
+				// loop above (`isset( $existing_hash_map[ $hash ] )`) reuses the
+				// EXISTING attachment id into $new_gallery instead of uploading a
+				// fresh one. Without this exclusion, that same id then also
+				// passed the tagged-poster filter below and was recorded as
+				// "dropped" — the caller (create_post()) went on to hard-delete
+				// (`wp_delete_attachment( $id, true )`, file included) the exact
+				// attachment $gallery's own return value (built from
+				// $existing_gallery + $new_gallery further down) still points
+				// at, leaving a post whose own '_agnosis_gallery_ids'/wp:image
+				// block referenced a file that no longer existed on disk —
+				// confirmed live: the file was completely absent from
+				// wp-content/uploads, not merely mis-served. array_diff() first,
+				// so a poster genuinely being reused (kept) is never also
+				// considered stale.
+				//
 				// Only ids that actually check out as a poster (tagged, or the
 				// legacy filename heuristic in is_text_poster_attachment()) are
 				// safe to hard-delete outright — see this method's own docblock.
@@ -2359,7 +2387,7 @@ class PostCreator {
 				// itself is cleared unconditionally, right below) but its
 				// attachment is left alone rather than risk deleting a real photo.
 				$this->last_dropped_poster_ids = array_values( array_filter(
-					$existing_gallery,
+					array_diff( $existing_gallery, $new_gallery ),
 					[ self::class, 'is_text_poster_attachment' ]
 				) );
 				$existing_gallery = [];
@@ -2484,12 +2512,16 @@ class PostCreator {
 	 * the artist's raw message (see build_external_link_embeds()), for when the
 	 * actual file was too large to email and the artist points to it elsewhere.
 	 *
-	 * @param array<string, mixed> $primary     Primary AI result.
-	 * @param int[]                $gallery     Ordered attachment IDs.
-	 * @param string               $artist_text Raw submitted email body (also scanned for embeddable links).
+	 * @param array<string, mixed> $primary      Primary AI result.
+	 * @param int[]                $gallery      Ordered attachment IDs.
+	 * @param string               $artist_text  Raw submitted email body (also scanned for embeddable links).
+	 * @param string               $fallback_alt Alt text fallback for any image with none of its own —
+	 *                                            see build_image_block()'s own docblock. Callers pass the
+	 *                                            artwork's own title (same value post_title itself resolves
+	 *                                            to), per the 2026-07-22 accessibility fix.
 	 * @return string Serialised Gutenberg block markup.
 	 */
-	private function build_post_content( array $primary, array $gallery, string $post_type = 'agnosis_artwork', string $artist_text = '' ): string {
+	private function build_post_content( array $primary, array $gallery, string $post_type = 'agnosis_artwork', string $artist_text = '', string $fallback_alt = '' ): string {
 		// For biography and event posts, the body is the artist's own written
 		// statement (already AI-polished if that setting is on). The AI image
 		// description body is only appropriate for artwork — where the image *is*
@@ -2575,9 +2607,9 @@ class PostCreator {
 
 		$image_block = '';
 		if ( count( $image_ids ) > 1 ) {
-			$image_block = $this->build_gallery_block( $image_ids ) . "\n\n";
+			$image_block = $this->build_gallery_block( $image_ids, $fallback_alt ) . "\n\n";
 		} elseif ( count( $image_ids ) === 1 && ! $skip_solo_image ) {
-			$image_block = $this->build_image_block( $image_ids[0] ) . "\n\n";
+			$image_block = $this->build_image_block( $image_ids[0], $fallback_alt ) . "\n\n";
 		}
 
 		return $media_blocks . $image_block . $body . $embed_blocks;
@@ -3005,10 +3037,13 @@ class PostCreator {
 	/**
 	 * Build a Gutenberg gallery block containing multiple images.
 	 *
-	 * @param array<int, int> $ids Attachment post IDs.
+	 * @param array<int, int> $ids          Attachment post IDs.
+	 * @param string          $fallback_alt Alt text to fall back to for any
+	 *                                      image with nothing of its own — see
+	 *                                      build_image_block()'s own docblock.
 	 * @return string Block markup string.
 	 */
-	private function build_gallery_block( array $ids ): string {
+	private function build_gallery_block( array $ids, string $fallback_alt = '' ): string {
 		$json = wp_json_encode( [
 			'ids'           => $ids,
 			'columns'       => 2,
@@ -3017,7 +3052,7 @@ class PostCreator {
 		] ) ?: '{}';
 		$imgs = '';
 		foreach ( $ids as $id ) {
-			$imgs .= $this->build_image_block( $id );
+			$imgs .= $this->build_image_block( $id, $fallback_alt );
 		}
 		return '<!-- wp:gallery ' . $json . ' --><figure class="wp-block-gallery">' . $imgs . '</figure><!-- /wp:gallery -->';
 	}
@@ -3028,18 +3063,41 @@ class PostCreator {
 	 * Uses the agnosis-artwork registered size so WP serves the correctly
 	 * scaled variant and generates responsive srcset automatically.
 	 *
-	 * @param int $id Attachment post ID.
+	 * Accessibility (2026-07-22): this hand-built `<img>` tag never carried an
+	 * `alt` attribute at all, regardless of whatever `_wp_attachment_image_alt`
+	 * postmeta the attachment actually had — `upload_media()` has stored a
+	 * real AI-generated description (or, for pure@'s zero-AI lane, the
+	 * artist's own subject line — see `Pipeline::process_raw()`) on that meta
+	 * key since well before this fix, but nothing here ever read it back out
+	 * onto the actual published page. Every published artwork/biography/event
+	 * image was screen-reader-inaccessible as a direct result — confirmed live
+	 * against a published post's own raw block markup, which showed a bare
+	 * `<img src="...">` with no `alt` at all. Falls back to $fallback_alt (the
+	 * artwork's own title, passed in by build_post_content()) when the
+	 * attachment has no stored alt text of its own — e.g. a ContentEditor
+	 * photo swap that predates this fix, or an attachment whose description
+	 * call failed. A still-empty result (no stored alt AND no title) renders
+	 * `alt=""` — valid, WCAG-compliant markup for a decorative image, and the
+	 * correct behavior for that edge case rather than omitting the attribute.
+	 *
+	 * @param int    $id           Attachment post ID.
+	 * @param string $fallback_alt Alt text to use when the attachment has none
+	 *                             of its own.
 	 * @return string Block markup string.
 	 */
-	private function build_image_block( int $id ): string {
+	private function build_image_block( int $id, string $fallback_alt = '' ): string {
 		$src_data = wp_get_attachment_image_src( $id, 'agnosis-artwork' );
 		$src      = esc_url( $src_data ? $src_data[0] : ( wp_get_attachment_url( $id ) ?: '' ) );
-		$attr     = wp_json_encode( [
+		$alt      = trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+		if ( '' === $alt ) {
+			$alt = trim( $fallback_alt );
+		}
+		$attr = wp_json_encode( [
 			'id'       => $id,
 			'sizeSlug' => 'agnosis-artwork',
 			'lightbox' => [ 'enabled' => true ],
 		] ) ?: '{}';
-		return '<!-- wp:image ' . $attr . ' --><figure class="wp-block-image size-agnosis-artwork"><img src="' . $src . '" /></figure><!-- /wp:image -->';
+		return '<!-- wp:image ' . $attr . ' --><figure class="wp-block-image size-agnosis-artwork"><img src="' . $src . '" alt="' . esc_attr( $alt ) . '" /></figure><!-- /wp:image -->';
 	}
 
 	/**

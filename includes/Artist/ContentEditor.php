@@ -435,7 +435,14 @@ class ContentEditor {
 			$poster_blob,
 			'image/png',
 			'pure-poster-' . uniqid() . '.png',
-			'', // Same as PostCreator's own poster upload — alt text is not meaningful for a text-rendering placeholder.
+			// Accessibility (2026-07-22): matches PostCreator::handle()'s own
+			// poster upload, which already stores the artist's subject/title
+			// as alt text via Pipeline::process_raw() — the earlier "not
+			// meaningful for a placeholder" reasoning here was wrong: the
+			// poster's whole content IS the title/text, so the post's own
+			// title describes it exactly as well as it describes any other
+			// artwork image.
+			$post->post_title ?: __( 'Untitled', 'agnosis' ),
 			$post->post_title ?: __( 'Untitled', 'agnosis' ),
 			md5( $poster_blob )
 		);
@@ -634,7 +641,12 @@ class ContentEditor {
 			$binary,
 			$mime,
 			sanitize_file_name( (string) ( $file['name'] ?? 'photo' ) ),
-			'', // Alt text is out of Phase 2 scope — the artist can add it in a future pass.
+			// Accessibility (2026-07-22): previously left blank ("out of Phase
+			// 2 scope") — falls back to the post's own title, same as every
+			// other image upload path, rather than shipping with no alt text
+			// at all. An artist can still refine it later; this is a
+			// reasonable default, not a final answer.
+			$post->post_title ?: __( 'Untitled', 'agnosis' ),
 			$post->post_title ?: __( 'Untitled', 'agnosis' ),
 			md5( $binary )
 		);

@@ -83,6 +83,17 @@
  *     sibling, when one applies) is approved — the pair together cover both
  *     "content that never gets AI-translated" and "content that does."
  *
+ *  10. TRANSLATION QUALITY FLOOR — `force_quality_translation_model()` forces
+ *      LF's 'quality' AI tier and a lower temperature for every Agnosis CPT's
+ *      fan-out translation via `linguaforge_translation_worker_config`,
+ *      regardless of the site-wide Translation Limits tier setting — added
+ *      2026-07-22 alongside a hardened `preserve_embedded_other_language_text()`
+ *      instruction, both aimed at the same reliability gap: an embedded
+ *      other-language passage (e.g. a Latin quotation) surviving LF's own
+ *      translation pass depends on the model actually noticing and holding to
+ *      an instruction, which a stronger model at a lower temperature does more
+ *      reliably than a cheaper/faster one at LF's own default settings.
+ *
  * Since 0.9.22, agnosis.php declares `Requires Plugins: lingua-forge` —
  * WordPress itself now refuses to install or activate Agnosis at all until
  * Lingua Forge is installed and active (and, symmetrically, refuses to let an
@@ -422,6 +433,21 @@ class LinguaForge {
 			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.6', '>=' )
 		) {
 			add_filter( 'linguaforge_translation_extra_instruction', [ $this, 'preserve_embedded_other_language_text' ], 10, 2 );
+		}
+
+		// Force the 'quality' AI tier (and a lower, more literal-following
+		// temperature) for every Agnosis CPT's full-page fan-out translation,
+		// regardless of whichever tier Settings -> Lingua Forge -> Translation
+		// Limits is currently set to site-wide (LF defaults to 'quality'
+		// already, per Config::translation_tier()'s own docblock, but an
+		// admin may have switched it to 'light' for cost/speed reasons that
+		// have nothing to do with Agnosis's own content) — see
+		// force_quality_translation_model()'s own docblock for the full
+		// reasoning. Gated on the WorkerConfig class existing at all: this
+		// filter (and the class it's typed against) is part of LF's AI
+		// module, which may not be loaded on every request/LF build.
+		if ( class_exists( '\LinguaForge\AI\Providers\WorkerConfig' ) && class_exists( '\LinguaForge\AI\Core\Config' ) ) {
+			add_filter( 'linguaforge_translation_worker_config', [ $this, 'force_quality_translation_model' ], 10, 3 );
 		}
 
 		// Tag / medium translation (2026-07-08). Unlike the meta-propagation
@@ -2892,6 +2918,77 @@ class LinguaForge {
 			$instruction
 			. ' ' . SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION
 			. ' ' . SubmissionTranslator::GENDER_NEUTRAL_INSTRUCTION
+		);
+	}
+
+	/**
+	 * Force LF's 'quality' AI tier — and a lower, more literal-following
+	 * temperature — for every Agnosis CPT's full-page fan-out translation,
+	 * regardless of the site-wide `linguaforge_translation_tier` setting.
+	 *
+	 * 2026-07-22, alongside the embedded-other-language wording hardening in
+	 * preserve_embedded_other_language_text()'s own instruction text: an
+	 * instruction is only as good as the model's ability to actually notice
+	 * and hold to it. `Config::translation_tier()` already defaults full-page
+	 * translation to the 'quality' tier (Sonnet/GPT-4o/Gemini Pro, not the
+	 * cheaper Haiku/mini/Flash-Lite 'light' tier) — but that's a SITE-WIDE
+	 * default an admin can switch to 'light' for cost or speed reasons that
+	 * have nothing to do with Agnosis's own content specifically. Since this
+	 * fan-out is where every artwork/biography/event's translated pages
+	 * actually come from, and it only runs once per approval (not once per
+	 * visitor), this forces the quality tier and a lower temperature for
+	 * Agnosis posts unconditionally — deliberately NOT reading or respecting
+	 * the site's own tier setting for this narrow case, the same reasoning
+	 * that split SubmissionTranslator's own translation model out from its
+	 * classification model (see that class's `from_settings()` docblock).
+	 *
+	 * Uses LF's OWN `Config::model('quality')` rather than a model string
+	 * Agnosis picks itself — Agnosis has no reliable way to know which
+	 * provider (Anthropic/OpenAI/Gemini/wp-ai-client) LF is actually
+	 * configured to call (`Config::provider()`, a site-wide LF setting this
+	 * filter cannot override — only the model/tokens/temperature WITHIN
+	 * whichever provider is already active). Hardcoding a model string here
+	 * (e.g. "claude-sonnet-5") would silently break translation entirely on
+	 * a site configured for a different provider; `Config::model('quality')`
+	 * already resolves the correct string for whichever provider is active,
+	 * including any site-specific override an admin saved in
+	 * Settings -> Lingua Forge -> Models.
+	 *
+	 * Temperature is lowered to 0.2 (LF's own default sits higher — see
+	 * `WorkerConfig`'s own constructor default of 0.4, and the "legal_doc"
+	 * example in LF's integration-api.md showing 0.1 for precision-critical
+	 * content) rather than left at whatever the untouched $config carried: a
+	 * lower temperature makes a model less likely to "improve," normalize,
+	 * or otherwise drift from an instruction like "leave this passage
+	 * exactly as written" — the same failure mode the wording hardening
+	 * targets from the prompt side. 0.2, not 0.1: this is creative/poetic
+	 * text as often as not, and 0.1 (tuned for legal/compliance precision)
+	 * risks flattening natural phrasing more than this narrower fix needs.
+	 *
+	 * `$config` is immutable (WorkerConfig's properties are all `readonly`),
+	 * so this returns a NEW instance — max_tokens and response_schema are
+	 * carried over UNCHANGED from whatever LF's own translator already
+	 * decided for this specific call; only model and temperature are
+	 * overridden. Scoped to Agnosis CPTs only, same as every other LF
+	 * integration point in this class — a no-op return for anything else.
+	 *
+	 * @param \LinguaForge\AI\Providers\WorkerConfig $config  LF's own worker config for this call.
+	 * @param int                                     $post_id Source (primary-language) post ID.
+	 * @param array<string, mixed>                    $params  Original request parameters (unused — this override is post-type-scoped only, not per-language or per-param).
+	 * @return \LinguaForge\AI\Providers\WorkerConfig
+	 */
+	public function force_quality_translation_model( \LinguaForge\AI\Providers\WorkerConfig $config, int $post_id, array $params ): \LinguaForge\AI\Providers\WorkerConfig {
+		unset( $params );
+
+		if ( ! in_array( get_post_type( $post_id ), self::AGNOSIS_POST_TYPES, true ) ) {
+			return $config;
+		}
+
+		return new \LinguaForge\AI\Providers\WorkerConfig(
+			model:           \LinguaForge\AI\Core\Config::model( 'quality' ),
+			max_tokens:      $config->max_tokens,
+			temperature:     0.2,
+			response_schema: $config->response_schema,
 		);
 	}
 

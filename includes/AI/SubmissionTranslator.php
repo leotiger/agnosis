@@ -107,14 +107,50 @@ class SubmissionTranslator {
 	 * both read from this single constant rather than risking the two
 	 * copies drifting apart. GENDER_NEUTRAL_INSTRUCTION above joined this
 	 * constant as `public` for the exact same reason, same day (F-2).
+	 *
+	 * Hardened 2026-07-22 after the SAME live "Naevius" submission surfaced a
+	 * second time, on a resend: the original wording above (still true, kept
+	 * below) named only "a quotation" as the example — reasonable for one
+	 * isolated embedded phrase, but this specific poem alternates a Latin
+	 * couplet with the artist's own Catalan rendering of it stanza by stanza,
+	 * not a single quote sitting apart from the rest. Left implicit, a model
+	 * reads "leave other-language passages alone" as applying to something
+	 * clearly quote-shaped and can still fold a same-length alternating
+	 * passage into the general "translate this" instruction. The wording now
+	 * names that exact shape explicitly, uses imperative "MUST" rather than
+	 * a soft "leave... exactly as written", and explicitly rules out
+	 * "shortness" or "embeddedness" as a reason to translate anyway — the
+	 * two properties that make an alternating-couplet poem look, at a
+	 * glance, more like "part of the same text" than a quotation does.
+	 *
+	 * This same day, a separate "detect the foreign spans first, swap them
+	 * for placeholder tokens, translate, then restore" structural mechanism
+	 * was tried and reverted: it required its OWN extra AI call per
+	 * protected field (a `detect_embedded_other_language_spans()` call per
+	 * excerpt/body), which silently broke the exactly-one-AI-call-per-
+	 * approval invariant translate_fields() itself exists to guarantee (see
+	 * ReviewEndpoints::translate_native_content_to_primary()'s own comment on
+	 * that invariant) — caught by three failing integration tests asserting
+	 * exact AI-call counts. This instruction, plus
+	 * Compat\LinguaForge::force_quality_translation_model()'s quality-tier/
+	 * lower-temperature override for the SAME single call, are therefore the
+	 * whole of the mitigation for both Agnosis's own native→primary
+	 * translation call and Lingua Forge's separate fan-out pass — no
+	 * structural placeholder mechanism, by design, so the one-call guarantee
+	 * always holds.
 	 */
 	public const PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION =
-		'The source text may deliberately contain passages in a language other than '
-		. 'its own dominant language — e.g. a quotation, epigraph, or title given in '
-		. 'its original language, possibly alongside the artist\'s own translation of '
-		. 'it. Leave any such other-language passage exactly as written, untranslated, '
-		. 'in the output. Only translate the surrounding text that is in the source\'s '
-		. 'own dominant language.';
+		'The source text may deliberately mix more than one language on purpose — for '
+		. 'example, a poem or passage that alternates an original-language line, '
+		. 'couplet, or stanza with the author\'s own translation or rendering of it '
+		. 'directly below or beside it, not just a single set-apart quotation, epigraph, '
+		. 'or title. You MUST leave every such other-language passage EXACTLY as written '
+		. 'in the output — identical spelling, punctuation, capitalization, and line '
+		. 'breaks, character for character — even when it is short, or sits between or '
+		. 'alongside passages you ARE translating. Never translate, normalize, correct, '
+		. 'or paraphrase a passage just because it is brief or embedded within a longer '
+		. 'text. Only translate passages that are actually written in the source\'s own '
+		. 'dominant language.';
 
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
@@ -507,6 +543,23 @@ class SubmissionTranslator {
 	 *
 	 * Returns null when no API key is configured so callers can skip translation
 	 * gracefully. Uses the same provider option read by Pipeline.
+	 *
+	 * 2026-07-22: reads a dedicated `*_translation_model` option, separate
+	 * from `*_text_model` (still used by Pipeline's own chat() calls —
+	 * medium/tag classification, contact-message moderation). Before this,
+	 * both shared the SAME option, meaning the model producing every
+	 * artwork's actual published primary-language text (this class's whole
+	 * job — native→primary translation at approval) was pinned to whatever
+	 * cheap/fast model an operator picked for one-word medium classification.
+	 * Live incident: a Latin quotation embedded in a Catalan poem got
+	 * translated along with its surrounding text on gpt-4o-mini/claude-haiku
+	 * — a subtler instruction-following failure a stronger model is
+	 * materially less likely to make, on top of translation quality
+	 * generally. Defaults intentionally step up from the classification
+	 * defaults (gpt-4o / claude-sonnet-5 vs. gpt-4o-mini / claude-haiku) —
+	 * translation is a one-AI-call-per-approval cost, not a per-email one,
+	 * so the higher per-call cost is far less consequential here than it
+	 * would be applied uniformly to every classification call too.
 	 */
 	public static function from_settings(): ?self {
 		$config   = PromptConfig::from_options();
@@ -525,7 +578,7 @@ class SubmissionTranslator {
 				// chat() ignored whatever model was configured entirely and
 				// used a hardcoded literal instead.
 				$model      = (string) get_option( 'agnosis_anthropic_model', 'claude-opus-4-8' );
-				$text_model = (string) get_option( 'agnosis_anthropic_text_model', 'claude-haiku-4-5-20251001' );
+				$text_model = (string) get_option( 'agnosis_anthropic_translation_model', 'claude-sonnet-5' );
 				return new self( new Anthropic( $key, $config, $model, $text_model ) );
 
 			case 'wp_ai':
@@ -539,7 +592,7 @@ class SubmissionTranslator {
 				}
 				// Same as the Anthropic branch above — $model is inert here.
 				$model      = (string) get_option( 'agnosis_openai_description_model', 'gpt-4o' );
-				$text_model = (string) get_option( 'agnosis_openai_text_model', 'gpt-4o-mini' );
+				$text_model = (string) get_option( 'agnosis_openai_translation_model', 'gpt-4o' );
 				return new self( new OpenAI( $key, $config, $model, text_model: $text_model ) );
 		}
 	}

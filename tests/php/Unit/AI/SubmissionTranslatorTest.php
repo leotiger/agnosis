@@ -364,46 +364,81 @@ class SubmissionTranslatorTest extends TestCase {
 		return $text_model_property->getValue( $provider );
 	}
 
-	public function test_from_settings_passes_the_configured_openai_text_model_to_the_provider(): void {
+	// 2026-07-22: SubmissionTranslator::from_settings() now reads the
+	// dedicated *_translation_model options (see that method's own
+	// docblock) rather than the *_text_model ones — this class's whole job
+	// is native-language-to-primary translation, the highest-stakes AI call
+	// the plugin makes, and pinning it to the same cheap/fast model picked
+	// for one-word medium classification was the live incident that split
+	// the two settings apart. Defaults step up accordingly (gpt-4o /
+	// claude-sonnet-5, vs. the classification defaults' gpt-4o-mini /
+	// claude-haiku).
+
+	public function test_from_settings_passes_the_configured_openai_translation_model_to_the_provider(): void {
 		self::$options = [
-			'agnosis_ai_provider'        => 'openai',
-			'agnosis_openai_api_key'     => 'sk-test-key',
-			'agnosis_openai_text_model'  => 'gpt-5-nano',
+			'agnosis_ai_provider'               => 'openai',
+			'agnosis_openai_api_key'            => 'sk-test-key',
+			'agnosis_openai_translation_model'  => 'gpt-5-nano',
 		];
 
 		$translator = SubmissionTranslator::from_settings();
 		$this->assertSame( 'gpt-5-nano', $this->wrapped_provider_text_model( $translator ) );
 	}
 
-	public function test_from_settings_defaults_the_openai_text_model_when_unconfigured(): void {
+	public function test_from_settings_defaults_the_openai_translation_model_when_unconfigured(): void {
 		self::$options = [
 			'agnosis_ai_provider'    => 'openai',
 			'agnosis_openai_api_key' => 'sk-test-key',
 		];
 
 		$translator = SubmissionTranslator::from_settings();
-		$this->assertSame( 'gpt-4o-mini', $this->wrapped_provider_text_model( $translator ) );
+		$this->assertSame( 'gpt-4o', $this->wrapped_provider_text_model( $translator ) );
 	}
 
-	public function test_from_settings_passes_the_configured_anthropic_text_model_to_the_provider(): void {
+	public function test_from_settings_ignores_the_openai_classification_text_model(): void {
+		// The classification-only setting must NOT leak into translation —
+		// that's the exact coupling this split was meant to remove.
 		self::$options = [
-			'agnosis_ai_provider'          => 'anthropic',
-			'agnosis_anthropic_api_key'    => 'sk-ant-test-key',
-			'agnosis_anthropic_text_model' => 'claude-haiku-5',
+			'agnosis_ai_provider'       => 'openai',
+			'agnosis_openai_api_key'    => 'sk-test-key',
+			'agnosis_openai_text_model' => 'gpt-4o-mini',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'gpt-4o', $this->wrapped_provider_text_model( $translator ) );
+	}
+
+	public function test_from_settings_passes_the_configured_anthropic_translation_model_to_the_provider(): void {
+		self::$options = [
+			'agnosis_ai_provider'                 => 'anthropic',
+			'agnosis_anthropic_api_key'           => 'sk-ant-test-key',
+			'agnosis_anthropic_translation_model' => 'claude-haiku-5',
 		];
 
 		$translator = SubmissionTranslator::from_settings();
 		$this->assertSame( 'claude-haiku-5', $this->wrapped_provider_text_model( $translator ) );
 	}
 
-	public function test_from_settings_defaults_the_anthropic_text_model_when_unconfigured(): void {
+	public function test_from_settings_defaults_the_anthropic_translation_model_when_unconfigured(): void {
 		self::$options = [
 			'agnosis_ai_provider'       => 'anthropic',
 			'agnosis_anthropic_api_key' => 'sk-ant-test-key',
 		];
 
 		$translator = SubmissionTranslator::from_settings();
-		$this->assertSame( 'claude-haiku-4-5-20251001', $this->wrapped_provider_text_model( $translator ) );
+		$this->assertSame( 'claude-sonnet-5', $this->wrapped_provider_text_model( $translator ) );
+	}
+
+	public function test_from_settings_ignores_the_anthropic_classification_text_model(): void {
+		// Same coupling check as the OpenAI branch above.
+		self::$options = [
+			'agnosis_ai_provider'          => 'anthropic',
+			'agnosis_anthropic_api_key'    => 'sk-ant-test-key',
+			'agnosis_anthropic_text_model' => 'claude-haiku-4-5-20251001',
+		];
+
+		$translator = SubmissionTranslator::from_settings();
+		$this->assertSame( 'claude-sonnet-5', $this->wrapped_provider_text_model( $translator ) );
 	}
 
 	// -------------------------------------------------------------------------

@@ -455,24 +455,58 @@ class SettingsFields {
 				'default' => 'claude-opus-4-8',
 				'desc'    => __( 'Model used for artwork description when Anthropic is the description provider. Must support vision input.', 'agnosis' ),
 			],
-			// Audit §5c: cheap/fast text-only model used for translation and
-			// contact-message moderation (Pipeline::chat()/classify_text(),
-			// SubmissionTranslator) — previously a hardcoded literal with no
-			// operator lever at all, unlike the vision models just above.
-			// Deliberately a SEPARATE option from the vision model: this one
-			// is picked for speed/cost on plain-text tasks, not vision
-			// capability, and the two may reasonably diverge.
+			// Audit §5c: cheap/fast text-only model used for classification and
+			// contact-message moderation (Pipeline::chat()/classify_text()) —
+			// previously a hardcoded literal with no operator lever at all,
+			// unlike the vision models just above. Deliberately a SEPARATE
+			// option from the vision model: this one is picked for
+			// speed/cost on plain-text tasks, not vision capability, and the
+			// two may reasonably diverge.
+			//
+			// 2026-07-22: no longer used for translation — split out into
+			// its own 'agnosis_openai_translation_model'/
+			// 'agnosis_anthropic_translation_model' pair below, so a site
+			// can keep this one cheap for the many small classification
+			// calls without also pinning the much higher-stakes
+			// native-language-to-primary translation (SubmissionTranslator)
+			// to the same budget model. See that setting's own description
+			// for the incident that prompted the split.
 			'agnosis_openai_text_model' => [
 				'tab'     => 'ai',
 				'label'   => __( 'OpenAI text model', 'agnosis' ),
 				'default' => 'gpt-4o-mini',
-				'desc'    => __( 'Cheap, fast model used for text-only tasks when OpenAI is the description provider — translating a submission into the site\'s primary language, and moderating contact-form messages. Does not need vision support.', 'agnosis' ),
+				'desc'    => __( 'Cheap, fast model used for classification tasks when OpenAI is the description provider — medium/tag classification for text-only (pure@) submissions, and moderating contact-form messages. Does not need vision support. For the model used to translate submissions into the site\'s primary language, see "OpenAI translation model" below.', 'agnosis' ),
 			],
 			'agnosis_anthropic_text_model' => [
 				'tab'     => 'ai',
 				'label'   => __( 'Anthropic text model', 'agnosis' ),
 				'default' => 'claude-haiku-4-5-20251001',
-				'desc'    => __( 'Cheap, fast model used for text-only tasks when Anthropic is the description provider — translating a submission into the site\'s primary language, and moderating contact-form messages. Does not need vision support.', 'agnosis' ),
+				'desc'    => __( 'Cheap, fast model used for classification tasks when Anthropic is the description provider — medium/tag classification for text-only (pure@) submissions, and moderating contact-form messages. Does not need vision support. For the model used to translate submissions into the site\'s primary language, see "Anthropic translation model" below.', 'agnosis' ),
+			],
+			// 2026-07-22: split out from the shared text model above after a
+			// live incident — a Latin quotation embedded in a Catalan poem
+			// got translated along with its surrounding text during
+			// native-language-to-primary translation (the one AI call that
+			// produces every artwork/biography/event's actual published
+			// primary-language text, SubmissionTranslator::
+			// translate_native_content_to_primary()). That call was running
+			// on whatever cheap/fast model was picked for one-word medium
+			// classification above — reasonable for classification, but this
+			// is the highest-stakes AI call the plugin makes: it happens
+			// once per approval (not once per email), so a stronger, pricier
+			// model here costs far less overall than applying it to every
+			// classification call too. Defaults step up accordingly.
+			'agnosis_openai_translation_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'OpenAI translation model', 'agnosis' ),
+				'default' => 'gpt-4o',
+				'desc'    => __( 'Model used when OpenAI is the AI provider for translating a submission into the site\'s primary language, and for the embedded-other-language detection pass that protects deliberately foreign-language passages (e.g. a quotation given in its original language) from being translated along with the surrounding text. This is the model that produces every artwork/biography/event\'s actual published primary-language text — worth a stronger model than the cheap classification one above. Does not need vision support.', 'agnosis' ),
+			],
+			'agnosis_anthropic_translation_model' => [
+				'tab'     => 'ai',
+				'label'   => __( 'Anthropic translation model', 'agnosis' ),
+				'default' => 'claude-sonnet-5',
+				'desc'    => __( 'Model used when Anthropic is the AI provider for translating a submission into the site\'s primary language, and for the embedded-other-language detection pass that protects deliberately foreign-language passages (e.g. a quotation given in its original language) from being translated along with the surrounding text. This is the model that produces every artwork/biography/event\'s actual published primary-language text — worth a stronger model than the cheap classification one above. Does not need vision support.', 'agnosis' ),
 			],
 			// 2026-07-21: chat()'s own max_tokens sizing (see each provider's
 			// docblock) already scales with prompt length and, for

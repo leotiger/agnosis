@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.46
+Stable tag: 0.9.47
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,20 +91,20 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.47 =
+* Fixed: A deliberately embedded other-language passage — e.g. a Latin quotation inside a Catalan poem — could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge's own translation to your other configured languages also now uses a stronger AI model for this specific case.
+* Fixed: A text-only submission's poster could end up completely broken after being resent to a different address with unchanged content — the resend's dedupe logic could reuse the existing poster's id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.
+* Fixed: Published images never had alt text in the actual page markup, even when a real description was already stored for them — an accessibility gap affecting every artwork/biography/event image. Now included, falling back to the artwork's own title when nothing more specific is available.
+* Changed: Translating a submission into your site's primary language now uses its own, separate AI model setting (Settings → AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.
+
 = 0.9.46 =
 * Fixed: A text-only submission's (poetry, essays) auto-generated placeholder image used to pile up a new copy in the gallery every time you corrected and resent it, instead of replacing the outdated one — and the old, uncorrected version could still show as the featured image. Now only the latest one is kept.
 * Fixed: Correcting a typo on a text-only post through the on-site editor didn't update its placeholder image at all before — the corrected text and the image could disagree indefinitely. The image is now regenerated to match.
-
-= 0.9.45 =
-* Changed: Six places describing the "Pure" email lane said AI never touches it "at all" — no longer accurate now that a classification call runs to categorize the piece. Reworded to the real promise: your words and photo are never touched or rewritten by AI, which is only ever used to classify the medium and a few tags so your post stays findable.
-* Changed: The in-site Artist Guide now has a section explaining the Pure lane directly — it wasn't documented there before.
-* Fixed: A submission sent to the Pure address published with no tags at all, since the classification step computed a medium but silently dropped the tags from the very same AI response. Both are now kept, with no extra AI call needed.
-* Fixed: A gender-neutral phrasing rule for AI translation (added 0.9.39, to stop things like "artist" defaulting to a gendered word in German/French/Spanish) was applied to Agnosis's own translations but never passed through to Lingua Forge's own translation pass — so an LF-retranslated biography or artwork could regress to a gendered default. Both AI translation instructions now travel together.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.46 =
-Fixes text-only (pure@) submissions accumulating duplicate placeholder images on each correction. Existing entries self-heal automatically the next time they're updated — no manual cleanup needed.
+= 0.9.47 =
+Fixes a deliberately embedded other-language passage (e.g. a quotation) getting mistranslated along with its surrounding text, a text-only submission's poster occasionally breaking entirely after a resend to a different address, and missing alt text on published images. Also splits out a separate, stronger AI model setting for translation.
 

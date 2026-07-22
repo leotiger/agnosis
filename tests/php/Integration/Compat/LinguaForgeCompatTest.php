@@ -48,6 +48,17 @@
  *                               linguaforge_translation_extra_instruction
  *                               filter, additive to any existing value; hooked
  *                               only when LINGUAFORGE_VERSION >= 2.6.6
+ *   force_quality_translation_model() — overrides LF's own worker config to
+ *                               force the 'quality' AI tier and a 0.2
+ *                               temperature for every Agnosis CPT's fan-out
+ *                               translation, hooked on LF's
+ *                               linguaforge_translation_worker_config filter
+ *                               only when WorkerConfig/Config both exist
+ *                               (added 2026-07-22 alongside the hardened
+ *                               preserve_embedded_other_language_text()
+ *                               instruction, same reliability goal); carries
+ *                               max_tokens/response_schema over unchanged,
+ *                               no-ops for any non-Agnosis post type
  *
  * @package Agnosis\Tests\Integration\Compat
  */
@@ -66,6 +77,14 @@ use Agnosis\Tests\Integration\Support\FakeLinguaForge;
 // LF constants and global function stubs live in a separate file to satisfy
 // Universal.Files.SeparateFunctionsFromOO (no function declarations alongside OO).
 require_once __DIR__ . '/Stubs/lf_global_stubs.php';
+
+// WorkerConfig/Config class stubs for force_quality_translation_model() below
+// — kept out of lf_global_stubs.php for the same phpcs rule, in the other
+// direction (those files are classes-only; lf_global_stubs.php is
+// functions-only). Split into two files, one namespace/class each, per
+// Universal.Namespaces.OneDeclarationPerFile / Generic.Files.OneObjectStructurePerFile.
+require_once __DIR__ . '/Stubs/lf_worker_config_stub.php';
+require_once __DIR__ . '/Stubs/lf_ai_core_config_stub.php';
 
 // Shared fake WordPress AI Client stub (Providers\WordPressAI needs no API
 // key) — used only by the build_title_translations() "with a configured
@@ -652,6 +671,66 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'Some other instruction.', $result );
 		$this->assertStringContainsString( SubmissionTranslator::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION, $result );
 		$this->assertStringContainsString( SubmissionTranslator::GENDER_NEUTRAL_INSTRUCTION, $result );
+	}
+
+	// ── force_quality_translation_model(): LF's own translation quality floor ──
+	// (hooked on linguaforge_translation_worker_config only once both
+	// LinguaForge\AI\Providers\WorkerConfig and LinguaForge\AI\Core\Config
+	// exist — see Stubs/lf_worker_config_stub.php and
+	// Stubs/lf_ai_core_config_stub.php, both required at the top of this
+	// file, so that gate is satisfied for every test below.)
+
+	/**
+	 * The class_exists() gate itself: registered as soon as both WorkerConfig
+	 * and Config are defined, unlike preserve_embedded_other_language_text()'s
+	 * LINGUAFORGE_VERSION gate above — this filter has no minimum-version
+	 * requirement in LF's own HOOKS.md, only a class-presence one.
+	 */
+	public function test_force_quality_translation_model_is_hooked_once_worker_classes_exist(): void {
+		$lf = new LinguaForge();
+
+		$this->assertNotFalse(
+			has_action( 'linguaforge_translation_worker_config', [ $lf, 'force_quality_translation_model' ] ),
+			'force_quality_translation_model() must be registered once WorkerConfig and Config both exist.'
+		);
+	}
+
+	/**
+	 * The main behavior: for an Agnosis CPT, model is forced to LF's own
+	 * Config::model('quality') and temperature to 0.2, regardless of what the
+	 * incoming $config already carried for either — while max_tokens and
+	 * response_schema are carried over from the incoming $config UNCHANGED,
+	 * since only model/temperature are this method's concern.
+	 */
+	public function test_force_quality_translation_model_overrides_model_and_temperature_for_agnosis_post_types(): void {
+		\LinguaForge\AI\Core\Config::$quality_model = 'stub-quality-model';
+
+		$schema  = [ 'type' => 'object' ];
+		$config  = new \LinguaForge\AI\Providers\WorkerConfig(
+			model:           'some-light-model',
+			max_tokens:      2048,
+			temperature:     0.9,
+			response_schema: $schema,
+		);
+		$result = ( new LinguaForge() )->force_quality_translation_model( $config, $this->artwork_id, [] );
+
+		$this->assertSame( 'stub-quality-model', $result->model );
+		$this->assertSame( 0.2, $result->temperature );
+		$this->assertSame( 2048, $result->max_tokens );
+		$this->assertSame( $schema, $result->response_schema );
+	}
+
+	/**
+	 * Pure no-op for anything that isn't one of Agnosis's own CPTs — the
+	 * exact same $config instance comes back untouched, not just an
+	 * equal-by-value copy.
+	 */
+	public function test_force_quality_translation_model_is_a_noop_for_non_agnosis_post_types(): void {
+		$page_config = new \LinguaForge\AI\Providers\WorkerConfig( model: 'some-light-model' );
+
+		$result = ( new LinguaForge() )->force_quality_translation_model( $page_config, $this->page_id, [] );
+
+		$this->assertSame( $page_config, $result );
 	}
 
 	// ── set_language_meta(): primary-language alignment (§2d residual) ─────────
