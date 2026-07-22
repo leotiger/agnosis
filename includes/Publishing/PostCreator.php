@@ -2208,24 +2208,38 @@ class PostCreator {
 	 * actually an array before trusting its contents, rather than blindly
 	 * casting whatever get_post_meta() returned.
 	 *
-	 * Synthetic-poster replacement (2026-07-22): a TextPosterGenerator poster
-	 * (see that class, and PostCreator::handle()'s pure@-no-attachment
-	 * branch) is regenerated fresh from the artist's CURRENT title/text on
-	 * every pure@ resend — so a typo-correcting resend already produces a
-	 * corrected poster. But it's a different PNG (different MD5) from
-	 * whatever poster came before, so the ordinary hash-based dedupe above
-	 * never recognizes it as "the same image, resent" — without this branch
-	 * it would just accumulate as an ever-growing gallery of increasingly
-	 * stale posters, with pick_thumbnail_id() and the corrected post_content
-	 * potentially still showing an OLD one. A poster carries
-	 * '_agnosis_is_text_poster' (set below, right after upload) precisely so
-	 * this method can tell "the artist's own submitted photo" (kept,
-	 * accumulated normally) apart from "a machine-made stand-in for a
-	 * missing one" (replaced, same one-image-at-a-time rule as the
-	 * agnosis_biography branch below, just scoped to the single poster
-	 * rather than the whole gallery). Dropped ids are recorded in
-	 * $last_dropped_poster_ids for create_post() to actually delete — see
-	 * that property's own docblock for why deletion can't just happen here.
+	 * Synthetic-poster replacement (2026-07-22, corrected same day): a
+	 * TextPosterGenerator poster (see that class, and PostCreator::handle()'s
+	 * pure@-no-attachment branch) is regenerated fresh from the artist's
+	 * CURRENT title/text on every pure@ resend — so a typo-correcting resend
+	 * already produces a corrected poster. But it's a different PNG
+	 * (different MD5) from whatever poster came before, so the ordinary
+	 * hash-based dedupe above never recognizes it as "the same image,
+	 * resent" — without this branch it would just accumulate as an
+	 * ever-growing gallery of increasingly stale posters.
+	 *
+	 * First cut of this fix filtered $existing_gallery down to only the ids
+	 * carrying '_agnosis_is_text_poster' and dropped just those — reported
+	 * live as still broken: the OLD poster and the newly-corrected one both
+	 * kept showing. Root cause: that meta is set the moment a poster is
+	 * uploaded, so it only ever exists on a poster uploaded AFTER this fix
+	 * shipped — any poster already sitting in a gallery from before is
+	 * untagged and was silently kept, defeating the whole branch for every
+	 * post that already had one. Regenerating a poster means "replace
+	 * whatever image was here with one matching the artist's current
+	 * words," full stop — so the replacement below is now unconditional
+	 * (the entire existing gallery is discarded, not just tagged entries),
+	 * matching the agnosis_biography branch's own unconditional
+	 * one-image-at-a-time rule below rather than trying to out-guess which
+	 * old entries "count". Whether a dropped id is actually deleted (vs. just
+	 * removed from the gallery/display) is the one place the tag still
+	 * matters — see is_text_poster_attachment()'s own docblock — since an
+	 * untagged dropped id could in principle be a real photo from an earlier
+	 * pure@ submission that DID include one, and deleting that outright
+	 * would be destructive in a way an orphaned Media Library row is not.
+	 * Dropped ids are recorded in $last_dropped_poster_ids for create_post()
+	 * to actually delete — see that property's own docblock for why deletion
+	 * can't just happen here.
 	 *
 	 * @param int                              $existing_id Post ID to merge into, or 0 for new.
 	 * @param array<int, array<string, mixed>> $results     AI pipeline results, one per attachment.
@@ -2337,14 +2351,18 @@ class PostCreator {
 				update_post_meta( $poster_id, '_agnosis_is_text_poster', '1' );
 			}
 
-			$old_posters = array_values( array_filter(
-				$existing_gallery,
-				static fn( int $id ): bool => (bool) get_post_meta( $id, '_agnosis_is_text_poster', true )
-			) );
-
-			if ( ! empty( $old_posters ) ) {
-				$existing_gallery = array_values( array_diff( $existing_gallery, $old_posters ) );
-				$this->last_dropped_poster_ids = $old_posters;
+			if ( ! empty( $existing_gallery ) ) {
+				// Only ids that actually check out as a poster (tagged, or the
+				// legacy filename heuristic in is_text_poster_attachment()) are
+				// safe to hard-delete outright — see this method's own docblock.
+				// Anything else dropped here still stops displaying (the gallery
+				// itself is cleared unconditionally, right below) but its
+				// attachment is left alone rather than risk deleting a real photo.
+				$this->last_dropped_poster_ids = array_values( array_filter(
+					$existing_gallery,
+					[ self::class, 'is_text_poster_attachment' ]
+				) );
+				$existing_gallery = [];
 			}
 		}
 
@@ -2364,6 +2382,44 @@ class PostCreator {
 		}
 
 		return array_values( array_unique( array_merge( $existing_gallery, $new_gallery ) ) );
+	}
+
+	/**
+	 * Whether an attachment is a TextPosterGenerator-generated poster rather
+	 * than a real artist photo.
+	 *
+	 * Checks '_agnosis_is_text_poster' first — set on every poster uploaded
+	 * since the 2026-07-22 fix (both here in merge_gallery() and in
+	 * Artist\ContentEditor::maybe_regenerate_text_poster()). Falls back to a
+	 * filename heuristic (the attached file's basename starting with
+	 * "pure-poster-", the exact prefix PostCreator::handle() gives the
+	 * synthetic attachment before it's ever uploaded) for a poster that
+	 * predates that meta existing at all — without this fallback, every
+	 * poster created before the fix shipped would never be recognized as
+	 * one, which is exactly what made the first cut of the fix still show
+	 * both an old and a corrected poster side by side. Backfills the meta
+	 * once a legacy match is found, so every check after the first is the
+	 * fast, tag-based one — the same self-heal shape agnosis_biography's own
+	 * gallery cap already uses.
+	 *
+	 * Public so Artist\ContentEditor's on-site poster regeneration can reuse
+	 * the exact same detection instead of duplicating it (same "reuse
+	 * existing primitives" reasoning as upload_media() being made public).
+	 *
+	 * @param int $attachment_id
+	 */
+	public static function is_text_poster_attachment( int $attachment_id ): bool {
+		if ( (bool) get_post_meta( $attachment_id, '_agnosis_is_text_poster', true ) ) {
+			return true;
+		}
+
+		$attached_file = (string) get_post_meta( $attachment_id, '_wp_attached_file', true );
+		if ( '' !== $attached_file && str_starts_with( wp_basename( $attached_file ), 'pure-poster-' ) ) {
+			update_post_meta( $attachment_id, '_agnosis_is_text_poster', '1' );
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

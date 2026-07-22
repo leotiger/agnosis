@@ -404,11 +404,15 @@ class ContentEditor {
 			return;
 		}
 
+		// PostCreator::is_text_poster_attachment() (not a raw meta check) —
+		// it also recognizes a poster that predates the '_agnosis_is_text_poster'
+		// tag existing at all via a filename fallback, backfilling the tag once
+		// found. A raw meta-only check here would silently never trigger for
+		// any pure@ post whose poster was generated before that meta shipped,
+		// the same gap that first surfaced in merge_gallery() (see that
+		// method's own docblock for the live-reported bug this closes).
 		$gallery        = array_map( 'intval', (array) get_post_meta( $post_id, '_agnosis_gallery_ids', true ) );
-		$old_poster_ids = array_values( array_filter(
-			$gallery,
-			static fn( int $id ): bool => (bool) get_post_meta( $id, '_agnosis_is_text_poster', true )
-		) );
+		$old_poster_ids = array_values( array_filter( $gallery, [ PostCreator::class, 'is_text_poster_attachment' ] ) );
 
 		if ( empty( $old_poster_ids ) ) {
 			return;

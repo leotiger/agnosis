@@ -2,7 +2,7 @@
 Contributors: agnosis
 Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
-Tested up to: 7.0.2
+Tested up to: 7.0
 Requires PHP: 8.2
 Stable tag: 0.9.46
 License: GPLv2 or later
@@ -81,6 +81,14 @@ At minimum one API key. OpenAI alone covers both description and enhancement. Cl
 = Does this work with Mastodon? =
 Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users can follow `@agnosis@yoursite.com` and see new artworks in their feed.
 
+== Screenshots ==
+
+1. The Agnosis Settings screen, where you configure your email inbox, AI provider keys, and community rules.
+2. A published artwork post, showing the AI-generated title, description, and tags alongside the artist's photo.
+3. Front-end correction: an artist editing their own published title and text directly on the page, no re-submission needed.
+4. The in-site Artist Guide, walking new members through the email-driven submission workflow in plain language.
+5. A biography page showing an artist's portfolio link and social icons.
+
 == Changelog ==
 
 = 0.9.46 =
@@ -94,4 +102,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: A gender-neutral phrasing rule for AI translation (added 0.9.39, to stop things like "artist" defaulting to a gendered word in German/French/Spanish) was applied to Agnosis's own translations but never passed through to Lingua Forge's own translation pass — so an LF-retranslated biography or artwork could regress to a gendered default. Both AI translation instructions now travel together.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
+
+== Upgrade Notice ==
+
+= 0.9.46 =
+Fixes text-only (pure@) submissions accumulating duplicate placeholder images on each correction. Existing entries self-heal automatically the next time they're updated — no manual cleanup needed.
 

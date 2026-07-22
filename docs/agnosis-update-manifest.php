@@ -46,7 +46,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 
 	$version      = '0.9.46';
 	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.46/agnosis-0.9.46.zip';
-	$tested       = '7.0.2';
+	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
 	// the date this version's zip was actually built — all three fields are
@@ -88,7 +88,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// below — build-zip.sh only runs at build time, not at version-bump time,
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
-	$sha256       = 'c807a530f844d7590aca0f1b01ca7bc6771d7417d9d94bf0f0d8d27b10a08f30'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256       = 'dd50840f28fbeea44f33343f6b1307f68485b0c529799c89924706019dd75af3'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
 	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.46.zip.';
 	$last_updated = '2026-07-22';
 
