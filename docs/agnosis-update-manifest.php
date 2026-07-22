@@ -71,7 +71,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// build-zip.sh only runs at build time, not at version-bump time, so it
 	// can't do that part for you. Never write a real digest or a "verified"
 	// note into either field by hand.
-	$sha256      = 'e69639219ea1a1d83a3cb81359ffcdd9e00757f348f6208f24ef204ae5d9be6a';
+	$sha256      = '3d64b529c91b7494310432c6652ca8a6596a44e820848a12414cfe49a0c5259f';
 	$sha256_note = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.45.zip.';
 
 	// Two most recent releases only — do not accumulate history here; it
