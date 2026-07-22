@@ -22,11 +22,14 @@
  * not run automatically on every version bump.
  *
  * Three providers supported via --provider=anthropic|openai|gemini
- * (default: anthropic). Each needs its own API key — either export the
- * matching environment variable before running, or leave it unset and
- * this script prompts for it interactively (input hidden, used for that
- * run only, never written to any file in this repo or persisted
- * anywhere by the script itself):
+ * (default: anthropic). If --provider= isn't passed and STDIN is an
+ * interactive terminal, the script first asks which provider to use
+ * (Enter for Anthropic); non-interactive runs (CI, a pipe) skip straight
+ * to Anthropic with no prompt. Each provider needs its own API key —
+ * either export the matching environment variable before running, or
+ * leave it unset and this script prompts for it interactively too (input
+ * hidden, used for that run only, never written to any file in this repo
+ * or persisted anywhere by the script itself):
  *   anthropic → ANTHROPIC_API_KEY  (https://console.anthropic.com/)
  *   openai    → OPENAI_API_KEY     (https://platform.openai.com/api-keys)
  *   gemini    → GEMINI_API_KEY     (https://aistudio.google.com/apikey)
@@ -94,13 +97,14 @@ const PROVIDERS = [
     ],
 ];
 
-$onlyLocale = null;
-$dryRun     = false;
-$limit      = null;
-$batchSize  = 40;
-$provider   = 'anthropic';
-$model      = null; // resolved to PROVIDERS[$provider]['model'] below if not set explicitly.
-$timeBudget = null; // seconds; null = unlimited (see --time-budget below)
+$onlyLocale       = null;
+$dryRun           = false;
+$limit            = null;
+$batchSize        = 40;
+$provider         = 'anthropic';
+$providerExplicit = false; // true once --provider= is seen; suppresses the interactive picker below
+$model            = null; // resolved to PROVIDERS[$provider]['model'] below if not set explicitly.
+$timeBudget       = null; // seconds; null = unlimited (see --time-budget below)
 
 foreach (array_slice($argv, 1) as $arg) {
     if ($arg === '--dry-run') {
@@ -113,6 +117,7 @@ foreach (array_slice($argv, 1) as $arg) {
         $batchSize = max(1, (int) substr($arg, strlen('--batch-size=')));
     } elseif (str_starts_with($arg, '--provider=')) {
         $provider = substr($arg, strlen('--provider='));
+        $providerExplicit = true;
     } elseif (str_starts_with($arg, '--model=')) {
         $model = substr($arg, strlen('--model='));
     } elseif (str_starts_with($arg, '--time-budget=')) {
@@ -124,6 +129,34 @@ foreach (array_slice($argv, 1) as $arg) {
         fwrite(STDERR, "Unknown argument: {$arg}\n");
         exit(1);
     }
+}
+
+/**
+ * Interactively ask which provider to use, when --provider= wasn't passed
+ * on the command line. Returns $default unchanged (never prompting) if
+ * STDIN isn't an interactive TTY — e.g. CI, a pipe, or a non-interactive
+ * shell — same non-hanging fallback as prompt_for_api_key() below — or
+ * if the reply is empty (plain Enter) or unrecognized.
+ */
+function prompt_for_provider(string $default): string
+{
+    if (function_exists('posix_isatty') && !posix_isatty(STDIN)) {
+        return $default;
+    }
+
+    fwrite(STDOUT, "Which AI provider? [1] Anthropic  [2] OpenAI  [3] Gemini (Enter for Anthropic): ");
+    $answer = strtolower(trim((string) fgets(STDIN)));
+
+    return match ($answer) {
+        '', '1', 'anthropic' => 'anthropic',
+        '2', 'openai'        => 'openai',
+        '3', 'gemini'        => 'gemini',
+        default              => $default,
+    };
+}
+
+if (!$providerExplicit) {
+    $provider = prompt_for_provider($provider);
 }
 
 if (!isset(PROVIDERS[$provider])) {
