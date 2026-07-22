@@ -202,6 +202,28 @@ class PostCreator {
 	private array $pending_merge_miss_suggestion = [];
 
 	/**
+	 * Poster attachment IDs dropped from the gallery by the CURRENT
+	 * merge_gallery() call — reset at the start of that method, read by
+	 * create_post() right after, so the caller can clean them up.
+	 *
+	 * A TextPosterGenerator poster is a machine-made stand-in for a missing
+	 * photo, regenerated from the artist's current words on every pure@
+	 * resend (see merge_gallery()'s own docblock) — unlike a real photo,
+	 * there is nothing to preserve about an outdated one, so once a fresh
+	 * poster replaces it in the gallery the old attachment is just an
+	 * orphan. Whether it's actually safe to delete right away depends on
+	 * whether this merge_gallery() call is building a true staging draft
+	 * (create_post()'s $stage_for) — a not-yet-approved staged update must
+	 * NOT touch the still-live post's current poster, so create_post()
+	 * instead stashes this array as '_agnosis_stale_poster_ids' meta on the
+	 * staging draft, for ReviewEndpoints::finalize_publish() to delete only
+	 * once the live post's own gallery has actually been overwritten.
+	 *
+	 * @var int[]
+	 */
+	private array $last_dropped_poster_ids = [];
+
+	/**
 	 * Inject or auto-create the AI pipeline (and, from it, the embed policy).
 	 *
 	 * Accepts optional collaborators so tests can pass lightweight stubs
@@ -405,6 +427,15 @@ class PostCreator {
 			// whether $submission['attachments'] merely ends up non-empty.
 			$had_original_attachment = ! empty( $submission['attachments'] );
 
+			// Set when this row actually injects a TextPosterGenerator poster
+			// below — threaded through create_post()/merge_gallery() so a
+			// resend that regenerates the poster from corrected text REPLACES
+			// the earlier poster in the gallery instead of accumulating
+			// alongside it (each one is a stand-in for the artist's current
+			// words, never a distinct photo of its own). See merge_gallery()'s
+			// own docblock and $last_dropped_poster_ids above.
+			$is_synthetic_poster = false;
+
 			if ( $pure && empty( $submission['attachments'] ) ) {
 				// 2026-07-21: TextPosterGenerator now resolves subject-vs-body
 				// priority itself (title-first, body-excerpt fallback — see
@@ -421,6 +452,7 @@ class PostCreator {
 						'mime'     => 'image/png',
 						'data'     => $poster_blob,
 					];
+					$is_synthetic_poster = true;
 					Logger::info( sprintf( 'Queue #%d: pure@ submission had no photo — generated a text-poster image from the artist\'s own words.', $queue_id ), 'publisher' );
 				} else {
 					Logger::warning( sprintf( 'Queue #%d: pure@ submission had no photo and poster generation failed (Imagick/font unavailable, or an error) — publishing text-only.', $queue_id ), 'publisher' );
@@ -805,7 +837,7 @@ class PostCreator {
 			}
 
 			$intake_endpoint = $pure ? self::ENDPOINT_PURE : ( $photo_only ? self::ENDPOINT_PHOTO : self::ENDPOINT_ARTWORK );
-			$post_id         = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title, $intake_endpoint );
+			$post_id         = $this->create_post( $submission, $results, (int) $row->artist_id, $queue_id, $merge_into, $post_type, $original_title, $intake_endpoint, $is_synthetic_poster );
 
 			if ( is_wp_error( $post_id ) ) {
 				throw new \RuntimeException( $post_id->get_error_message() );
@@ -1877,10 +1909,15 @@ class PostCreator {
 	 * @param string                           $intake_endpoint  Which address created this submission (ENDPOINT_* const) —
 	 *                                                           written once to _agnosis_intake_endpoint on agnosis_artwork
 	 *                                                           posts only, never overwritten on a later update/replace.
+	 * @param bool                             $is_synthetic_poster Whether $results' single attachment is a
+	 *                                                           TextPosterGenerator poster rather than a real
+	 *                                                           artist photo — threaded into merge_gallery() so
+	 *                                                           it replaces any earlier poster instead of piling
+	 *                                                           up alongside it (see that method's docblock).
 	 * @return int|\WP_Error Post ID on success (the staging draft's ID, when
 	 *                       one was created — NOT the live post's), WP_Error on failure.
 	 */
-	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '', string $intake_endpoint = self::ENDPOINT_ARTWORK ): int|\WP_Error {
+	private function create_post( array $submission, array $results, int $artist_id, int $queue_id = 0, int $merge_into_post = 0, string $post_type = 'agnosis_artwork', string $original_title = '', string $intake_endpoint = self::ENDPOINT_ARTWORK, bool $is_synthetic_poster = false ): int|\WP_Error {
 		// ---- Idempotency guard ------------------------------------------------
 		// Priority: explicit merge target (singleton/duplicate) > same queue row > new post.
 		$existing_id = $merge_into_post;
@@ -1947,8 +1984,14 @@ class PostCreator {
 		// an empty gallery and wipe the existing photo on approval, and an
 		// artwork resend that appends a photo would lose the previously
 		// published ones the same way.
-		$gallery      = $this->merge_gallery( $existing_id ?: $stage_for, $results, $post_type );
+		$gallery      = $this->merge_gallery( $existing_id ?: $stage_for, $results, $post_type, $is_synthetic_poster );
 		$post_content = $this->build_post_content( $primary, $gallery, $post_type, $submission['description'] ?? '' );
+
+		// merge_gallery() just populated $this->last_dropped_poster_ids with
+		// any earlier poster attachment(s) it dropped in favor of the fresh
+		// one above — capture it now, read-immediately, same convention
+		// $last_dropped_links/$pending_merge_miss_suggestion already use.
+		$dropped_poster_ids = $this->last_dropped_poster_ids;
 
 		// Keep the existing review token when updating so artist links stay valid.
 		// New tokens are 32 bytes of CSPRNG — no reconstruction possible.
@@ -2094,6 +2137,29 @@ class PostCreator {
 			);
 		}
 
+		// Orphaned poster cleanup — see the last_dropped_poster_ids property's
+		// own docblock for the full reasoning. Direct write (not staged): the
+		// gallery was just written straight onto the post inserted or updated
+		// above, whether that's a brand-new post or an existing not-yet-approved
+		// draft, so nothing anywhere still displays the dropped poster and it's
+		// safe to delete right away. Staged update: the live post still shows
+		// its current poster until this draft is approved, so the ids are
+		// stashed instead, for ReviewEndpoints::finalize_publish() to delete
+		// only once it has actually overwritten the live post's own gallery.
+		if ( ! empty( $dropped_poster_ids ) ) {
+			if ( $stage_for ) {
+				update_post_meta( $post_id, '_agnosis_stale_poster_ids', wp_json_encode( $dropped_poster_ids ) );
+			} else {
+				foreach ( $dropped_poster_ids as $stale_id ) {
+					wp_delete_attachment( $stale_id, true );
+				}
+				Logger::info(
+					sprintf( 'Queue #%d: deleted %d superseded text-poster attachment(s) on post #%d.', $queue_id, count( $dropped_poster_ids ), $post_id ),
+					'publisher'
+				);
+			}
+		}
+
 		// Persist the artist's original submitted title (pre-translation) once.
 		// Subsequent updates (resends, singleton merges) leave this value intact so
 		// the artist's creative intent is never lost or overwritten by a later AI pass.
@@ -2142,12 +2208,36 @@ class PostCreator {
 	 * actually an array before trusting its contents, rather than blindly
 	 * casting whatever get_post_meta() returned.
 	 *
+	 * Synthetic-poster replacement (2026-07-22): a TextPosterGenerator poster
+	 * (see that class, and PostCreator::handle()'s pure@-no-attachment
+	 * branch) is regenerated fresh from the artist's CURRENT title/text on
+	 * every pure@ resend — so a typo-correcting resend already produces a
+	 * corrected poster. But it's a different PNG (different MD5) from
+	 * whatever poster came before, so the ordinary hash-based dedupe above
+	 * never recognizes it as "the same image, resent" — without this branch
+	 * it would just accumulate as an ever-growing gallery of increasingly
+	 * stale posters, with pick_thumbnail_id() and the corrected post_content
+	 * potentially still showing an OLD one. A poster carries
+	 * '_agnosis_is_text_poster' (set below, right after upload) precisely so
+	 * this method can tell "the artist's own submitted photo" (kept,
+	 * accumulated normally) apart from "a machine-made stand-in for a
+	 * missing one" (replaced, same one-image-at-a-time rule as the
+	 * agnosis_biography branch below, just scoped to the single poster
+	 * rather than the whole gallery). Dropped ids are recorded in
+	 * $last_dropped_poster_ids for create_post() to actually delete — see
+	 * that property's own docblock for why deletion can't just happen here.
+	 *
 	 * @param int                              $existing_id Post ID to merge into, or 0 for new.
 	 * @param array<int, array<string, mixed>> $results     AI pipeline results, one per attachment.
 	 * @param string                           $post_type   CPT slug — only agnosis_biography caps at one image.
+	 * @param bool                             $is_synthetic_poster Whether $results is the single
+	 *                                                      TextPosterGenerator poster generated for a
+	 *                                                      pure@ submission with no real attachment.
 	 * @return int[] Ordered, deduplicated attachment IDs.
 	 */
-	private function merge_gallery( int $existing_id, array $results, string $post_type = 'agnosis_artwork' ): array {
+	private function merge_gallery( int $existing_id, array $results, string $post_type = 'agnosis_artwork', bool $is_synthetic_poster = false ): array {
+		$this->last_dropped_poster_ids = [];
+
 		$existing_hash_map = [];
 		$existing_gallery  = [];
 
@@ -2233,6 +2323,28 @@ class PostCreator {
 					update_post_meta( $orig_id,          '_agnosis_is_original',             '1' );
 					update_post_meta( $attachment_id,    '_agnosis_original_attachment_id',  $orig_id );
 				}
+			}
+		}
+
+		// Synthetic-poster replacement — see this method's own docblock above.
+		// Only ever applies to agnosis_artwork (pure@ is the only submission
+		// shape that sets $is_synthetic_poster, and pure@ always routes to
+		// agnosis_artwork — see resolve_post_type()), so this runs safely
+		// ahead of the agnosis_biography branch below without needing its
+		// own post_type guard.
+		if ( $is_synthetic_poster && ! empty( $new_gallery ) ) {
+			foreach ( $new_gallery as $poster_id ) {
+				update_post_meta( $poster_id, '_agnosis_is_text_poster', '1' );
+			}
+
+			$old_posters = array_values( array_filter(
+				$existing_gallery,
+				static fn( int $id ): bool => (bool) get_post_meta( $id, '_agnosis_is_text_poster', true )
+			) );
+
+			if ( ! empty( $old_posters ) ) {
+				$existing_gallery = array_values( array_diff( $existing_gallery, $old_posters ) );
+				$this->last_dropped_poster_ids = $old_posters;
 			}
 		}
 

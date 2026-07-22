@@ -58,6 +58,7 @@ use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Publishing\PostCreator;
+use Agnosis\Publishing\TextPosterGenerator;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -340,6 +341,18 @@ class ContentEditor {
 			}
 		}
 
+		// A pure@ text-only submission's only "photo" can be a
+		// TextPosterGenerator poster rendered from the artist's own words
+		// (see that class, and PostCreator::handle()'s pure@-no-attachment
+		// branch) — correcting a typo in the title/content here would
+		// otherwise leave that poster (and the featured image/gallery it
+		// feeds) silently showing the OLD, uncorrected text forever, since
+		// this endpoint never touched either before this fix. Run AFTER the
+		// translation fan-out above so every language sibling this creates
+		// already exists and gets the same regenerated poster + rewritten
+		// embedded image reference, not just the post actually edited here.
+		$this->maybe_regenerate_text_poster( $post_id, $field );
+
 		return new WP_REST_Response(
 			[
 				'status'  => 'saved',
@@ -348,6 +361,210 @@ class ContentEditor {
 			],
 			200
 		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Text-poster regeneration (2026-07-22)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Regenerate a pure@ post's TextPosterGenerator poster after a title/content
+	 * edit made through this endpoint, so a typo correction here doesn't leave
+	 * the featured image, gallery, AND the image still embedded in the post's
+	 * own body all silently showing the OLD, uncorrected text forever.
+	 *
+	 * No-ops entirely unless the post is an agnosis_artwork submitted via
+	 * pure@ (`_agnosis_intake_endpoint`) AND its current gallery actually
+	 * holds a poster — i.e. a pure@ submission that shipped with a real
+	 * photo instead (see PostCreator::handle()'s `$had_original_attachment`
+	 * gate) is never touched here; there's no machine-made stand-in to
+	 * regenerate, and this method must never invent one over an artist's
+	 * real photo.
+	 *
+	 * Runs against every language version of the post (resolve_language_targets()
+	 * — same language-neutral treatment swap_photo_everywhere() gives a Phase 2
+	 * photo replacement) because the poster is a shared attachment: each
+	 * sibling's own post_content independently embeds it too.
+	 *
+	 * @param int    $post_id Post just saved by save_text().
+	 * @param string $field   Which field was just written — only 'title' and
+	 *                        'content' can change what the poster should say.
+	 */
+	private function maybe_regenerate_text_poster( int $post_id, string $field ): void {
+		if ( ! in_array( $field, [ 'title', 'content' ], true ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post || 'agnosis_artwork' !== $post->post_type ) {
+			return;
+		}
+
+		if ( 'pure' !== (string) get_post_meta( $post_id, '_agnosis_intake_endpoint', true ) ) {
+			return;
+		}
+
+		$gallery        = array_map( 'intval', (array) get_post_meta( $post_id, '_agnosis_gallery_ids', true ) );
+		$old_poster_ids = array_values( array_filter(
+			$gallery,
+			static fn( int $id ): bool => (bool) get_post_meta( $id, '_agnosis_is_text_poster', true )
+		) );
+
+		if ( empty( $old_poster_ids ) ) {
+			return;
+		}
+
+		$poster_blob = TextPosterGenerator::generate(
+			(string) $post->post_title,
+			$this->html_to_plain_text( (string) $post->post_content )
+		);
+
+		if ( null === $poster_blob ) {
+			Logger::warning(
+				sprintf( 'Content edit: post #%d — text-poster regeneration failed (Imagick/font unavailable, or an error); the earlier poster is left in place.', $post_id ),
+				'content-editor'
+			);
+			return;
+		}
+
+		$new_id = ( new PostCreator() )->upload_media(
+			$poster_blob,
+			'image/png',
+			'pure-poster-' . uniqid() . '.png',
+			'', // Same as PostCreator's own poster upload — alt text is not meaningful for a text-rendering placeholder.
+			$post->post_title ?: __( 'Untitled', 'agnosis' ),
+			md5( $poster_blob )
+		);
+
+		if ( is_wp_error( $new_id ) ) {
+			Logger::error(
+				sprintf( 'Content edit: post #%d — text-poster re-upload failed: %s', $post_id, $new_id->get_error_message() ),
+				'content-editor'
+			);
+			return;
+		}
+
+		update_post_meta( $new_id, '_agnosis_is_text_poster', '1' );
+
+		foreach ( $this->resolve_language_targets( $post_id ) as $target_id ) {
+			$this->swap_poster_on_post( $target_id, $old_poster_ids, (int) $new_id );
+		}
+
+		// Safe to delete outright, unlike Phase 2's real-photo replacement
+		// (which keeps the old one for "restore original photo"): a
+		// generated poster is never the artist's own work, there is nothing
+		// to restore, and by this point no post's gallery or post_content —
+		// primary or any language sibling — references these ids any more.
+		foreach ( $old_poster_ids as $old_id ) {
+			wp_delete_attachment( $old_id, true );
+		}
+
+		Logger::info(
+			sprintf( 'Content edit: post #%d — text-poster regenerated (attachment #%d replaces %s) after a "%s" edit.', $post_id, $new_id, implode( ', ', array_map( static fn( int $id ) => '#' . $id, $old_poster_ids ) ), $field ),
+			'content-editor'
+		);
+	}
+
+	/**
+	 * Swap every occurrence of any $old_ids poster off a single post: its
+	 * gallery meta, its featured image (when it's currently one of $old_ids,
+	 * or unset), and — unlike Phase 2's swap_photo_on_post(), which only ever
+	 * touches meta — the actual <img>/wp-image-{id} markup already baked into
+	 * this post's OWN post_content. A poster isn't just a gallery entry: it's
+	 * also literally embedded in the body by PostCreator::build_post_content(),
+	 * and the front-end's in-place content editor round-trips that same
+	 * rendered markup verbatim on every save (see frontend.js — the 'content'
+	 * field submits `region.innerHTML`, the whole rendered the_content()
+	 * output) — so leaving the body's own copy unswapped would still show the
+	 * reader the old, pre-correction poster even after the featured image and
+	 * gallery meta are fixed.
+	 *
+	 * Handles more than one $old_ids entry so this also self-heals a post
+	 * whose gallery already accumulated several stale posters before this fix
+	 * existed, the same way merge_gallery()'s biography/poster branches do.
+	 *
+	 * @param int[] $old_ids Poster attachment IDs to remove/replace.
+	 */
+	private function swap_poster_on_post( int $post_id, array $old_ids, int $new_id ): void {
+		$gallery = array_map( 'intval', (array) get_post_meta( $post_id, '_agnosis_gallery_ids', true ) );
+		$gallery = array_values( array_diff( $gallery, $old_ids ) );
+		if ( ! in_array( $new_id, $gallery, true ) ) {
+			$gallery[] = $new_id;
+		}
+		update_post_meta( $post_id, '_agnosis_gallery_ids', $gallery );
+
+		$current_thumbnail = (int) get_post_thumbnail_id( $post_id );
+		if ( ! $current_thumbnail || in_array( $current_thumbnail, $old_ids, true ) ) {
+			set_post_thumbnail( $post_id, $new_id );
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof WP_Post ) {
+			return;
+		}
+
+		$patched = $this->swap_poster_references_in_html( $post->post_content, $old_ids, $new_id );
+		if ( $patched !== $post->post_content ) {
+			wp_update_post( [ 'ID' => $post_id, 'post_content' => $patched ], true );
+		}
+	}
+
+	/**
+	 * Replace every reference to $old_ids inside a block of rendered HTML
+	 * with the equivalent reference to $new_id — the base filename (shared
+	 * by the plain `src`, every srcset-generated size variant, since
+	 * WordPress always suffixes those onto the SAME base name, and any
+	 * caption/figure wrapper) plus the `wp-image-{id}` class WordPress's
+	 * image block always emits. One string swap per old id, no need to
+	 * enumerate registered image sizes individually.
+	 *
+	 * @param int[] $old_ids
+	 */
+	private function swap_poster_references_in_html( string $html, array $old_ids, int $new_id ): string {
+		$new_url = wp_get_attachment_url( $new_id );
+		if ( ! $new_url ) {
+			return $html;
+		}
+		$new_basename = pathinfo( (string) wp_parse_url( $new_url, PHP_URL_PATH ), PATHINFO_FILENAME );
+		if ( '' === $new_basename ) {
+			return $html;
+		}
+
+		foreach ( $old_ids as $old_id ) {
+			$old_url = wp_get_attachment_url( $old_id );
+			if ( ! $old_url ) {
+				continue;
+			}
+			$old_basename = pathinfo( (string) wp_parse_url( $old_url, PHP_URL_PATH ), PATHINFO_FILENAME );
+			if ( '' === $old_basename ) {
+				continue;
+			}
+
+			$html = str_replace( $old_basename, $new_basename, $html );
+			$html = str_replace( 'wp-image-' . $old_id, 'wp-image-' . $new_id, $html );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Best-effort HTML-to-plain-text conversion for feeding a post's current
+	 * body back into TextPosterGenerator::generate() — mirrors
+	 * Email\Parser::html_body_to_text()'s own approach (block-level closing
+	 * tags become line breaks BEFORE stripping tags, since wp_strip_all_tags()
+	 * has no concept of block structure and would otherwise run every
+	 * paragraph/line together with no separator at all) rather than
+	 * duplicating that private method across namespaces.
+	 */
+	private function html_to_plain_text( string $html ): string {
+		$html = (string) preg_replace( '/<!--[^>]*-->/', '', $html ); // Gutenberg block comments carry no visible text.
+		$html = (string) preg_replace( '#</(p|div)>#i', "\n\n", $html );
+		$html = (string) preg_replace( '#<br\s*/?>|</(h[1-6]|li|tr)>#i', "\n", $html );
+
+		$text = wp_strip_all_tags( $html );
+		$text = html_entity_decode( $text, ENT_QUOTES, 'UTF-8' );
+		$text = (string) preg_replace( '/[ \t]+\n/', "\n", $text );
+		return (string) preg_replace( '/\n{3,}/', "\n\n", $text );
 	}
 
 	// -------------------------------------------------------------------------
@@ -513,18 +730,7 @@ class ContentEditor {
 	 * language-neutral, synchronous shape as swap_photo_everywhere().
 	 */
 	private function set_sensitive_everywhere( WP_Post $post, bool $value ): void {
-		$targets = [ $post->ID ];
-
-		if ( LinguaForge::is_active() && function_exists( 'linguaforge_get_translations' ) ) {
-			foreach ( linguaforge_get_translations( $post->ID ) as $sibling_id ) {
-				$sibling_id = (int) $sibling_id;
-				if ( $sibling_id && ! in_array( $sibling_id, $targets, true ) ) {
-					$targets[] = $sibling_id;
-				}
-			}
-		}
-
-		foreach ( $targets as $target_id ) {
+		foreach ( $this->resolve_language_targets( $post->ID ) as $target_id ) {
 			if ( $value ) {
 				update_post_meta( $target_id, '_agnosis_sensitive', '1' );
 			} else {
@@ -645,10 +851,26 @@ class ContentEditor {
 	 * returns every member, not just "translations of the primary").
 	 */
 	private function swap_photo_everywhere( WP_Post $post, int $old_id, int $new_id ): void {
-		$targets = [ $post->ID ];
+		foreach ( $this->resolve_language_targets( $post->ID ) as $target_id ) {
+			$this->swap_photo_on_post( $target_id, $old_id, $new_id );
+		}
+	}
+
+	/**
+	 * Resolve every language version of a post — itself plus, when Lingua
+	 * Forge is active, every sibling `linguaforge_get_translations()`
+	 * returns. Shared by every "apply this language-neutral change to every
+	 * copy of the post" operation (swap_photo_everywhere() above,
+	 * maybe_regenerate_text_poster() below, set_sensitive_everywhere()) so
+	 * the target-resolution logic lives in exactly one place.
+	 *
+	 * @return int[] Post IDs, always including $post_id itself, deduplicated.
+	 */
+	private function resolve_language_targets( int $post_id ): array {
+		$targets = [ $post_id ];
 
 		if ( LinguaForge::is_active() && function_exists( 'linguaforge_get_translations' ) ) {
-			foreach ( linguaforge_get_translations( $post->ID ) as $sibling_id ) {
+			foreach ( linguaforge_get_translations( $post_id ) as $sibling_id ) {
 				$sibling_id = (int) $sibling_id;
 				if ( $sibling_id && ! in_array( $sibling_id, $targets, true ) ) {
 					$targets[] = $sibling_id;
@@ -656,9 +878,7 @@ class ContentEditor {
 			}
 		}
 
-		foreach ( $targets as $target_id ) {
-			$this->swap_photo_on_post( $target_id, $old_id, $new_id );
-		}
+		return $targets;
 	}
 
 	/** Swap the replaced attachment for the new one on a single post. */

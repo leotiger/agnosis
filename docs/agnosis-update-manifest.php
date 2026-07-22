@@ -44,9 +44,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.45';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.45/agnosis-0.9.45.zip';
-	$tested       = '7.0';
+	$version      = '0.9.46';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.46/agnosis-0.9.46.zip';
+	$tested       = '7.0.2';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
 	// the date this version's zip was actually built — all three fields are
@@ -88,9 +88,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// below — build-zip.sh only runs at build time, not at version-bump time,
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
-	$sha256       = '3d64b529c91b7494310432c6652ca8a6596a44e820848a12414cfe49a0c5259f';
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.45.zip.';
-	$last_updated = ''; // Not yet set — will be filled the next time build-zip.sh runs with this new capability.
+	$sha256       = 'c807a530f844d7590aca0f1b01ca7bc6771d7417d9d94bf0f0d8d27b10a08f30'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.46.zip.';
+	$last_updated = '2026-07-22';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -102,21 +102,18 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.46</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> A text-only submission&#8217;s (poetry, essays) auto-generated placeholder image used to pile up a new copy in the gallery every time you corrected and resent it, instead of replacing the outdated one &#8212; and the old, uncorrected version could still show as the featured image. Now only the latest one is kept.</li>' .
+			'<li><strong>Fixed:</strong> Correcting a typo on a text-only post through the on-site editor didn&#8217;t update its placeholder image at all before &#8212; the corrected text and the image could disagree indefinitely. The image is now regenerated to match.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.45</h4>' .
 		'<ul>' .
 			'<li><strong>Changed:</strong> Six places describing the &#8220;Pure&#8221; email lane said AI never touches it &#8220;at all&#8221; &#8212; no longer accurate now that a classification call runs to categorize the piece. Reworded to the real promise: your words and photo are never touched or rewritten by AI, which is only ever used to classify the medium and a few tags so your post stays findable.</li>' .
 			'<li><strong>Changed:</strong> The in-site Artist Guide now has a section explaining the Pure lane directly &#8212; it wasn&#8217;t documented there before.</li>' .
 			'<li><strong>Fixed:</strong> A submission sent to the Pure address published with no tags at all, since the classification step computed a medium but silently dropped the tags from the very same AI response. Both are now kept, with no extra AI call needed.</li>' .
 			'<li><strong>Fixed:</strong> A gender-neutral phrasing rule for AI translation (added 0.9.39, to stop things like &#8220;artist&#8221; defaulting to a gendered word in German/French/Spanish) was applied to Agnosis&#8217;s own translations but never passed through to Lingua Forge&#8217;s own translation pass &#8212; so an LF-retranslated biography or artwork could regress to a gendered default. Both AI translation instructions now travel together.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.44</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> A new Settings &#8594; AI Providers option (Max AI response tokens) lets you raise the AI response length ceiling for translation and other chat-based AI tasks, instead of a fixed limit &#8212; useful if you&#8217;re translating long text into several configured languages.</li>' .
-			'<li><strong>Fixed:</strong> On a site with several configured languages, the artist&#8217;s own artwork/event title in the last-configured language would silently never get auto-translated. AI translation calls now correctly size their response budget for however many languages are configured.</li>' .
-			'<li><strong>Fixed:</strong> Two small input-handling hardening improvements to the medium-proposal review screen (Artwork &#8594; Mediums), found by WordPress.org&#8217;s Plugin Check tool.</li>' .
-			'<li><strong>Fixed:</strong> Medium taxonomy term auto-assignment (the &#8220;Poetry&#8221;/&#8220;Photography&#8221;/etc. filter tabs) had silently never worked for any AI-described artwork or photo submission &#8212; the AI&#8217;s own answer was computed correctly but never actually reached the post. Also fixed: the audio and video-fallback description branches were classifying against the wrong vocabulary and not carrying the result through either, and the &#8220;pure@&#8221; (zero-AI) lane now runs one narrowly-scoped classification call so its submissions get a medium too.</li>' .
-			'<li><strong>Fixed:</strong> An AI-proposed medium that doesn&#8217;t match your site&#8217;s configured vocabulary is no longer silently discarded. A new review queue on Artwork &#8594; Mediums shows each pending proposal, which submission(s) it&#8217;s for, and lets you Approve (creates/reuses the term and assigns it) or Reject it.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

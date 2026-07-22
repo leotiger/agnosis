@@ -637,6 +637,22 @@ class ReviewEndpoints {
 			PostCreator::mark( $queue_id_for_target, 'published', '', $pending_for );
 		}
 
+		// Delete any text-poster attachment(s) PostCreator::create_post()
+		// superseded while building this staging draft (see
+		// PostCreator::$last_dropped_poster_ids' own docblock) — it stashed
+		// them as '_agnosis_stale_poster_ids' rather than deleting them
+		// immediately, since $pending_for (the live post) was still showing
+		// its OLD poster until the '_agnosis_gallery_ids' copy above actually
+		// replaced it. Read BEFORE wp_delete_post() below removes this
+		// draft's own postmeta, same "read off the staging draft before it's
+		// gone" ordering as the queue-row repoint just above.
+		$stale_poster_ids = json_decode( (string) get_post_meta( $post_id, '_agnosis_stale_poster_ids', true ), true );
+		if ( is_array( $stale_poster_ids ) ) {
+			foreach ( $stale_poster_ids as $stale_id ) {
+				wp_delete_attachment( (int) $stale_id, true );
+			}
+		}
+
 		// Staging post was never meant to be kept — delete outright (skip
 		// trash); its own postmeta (including the review token) goes with it.
 		wp_delete_post( $post_id, true );
