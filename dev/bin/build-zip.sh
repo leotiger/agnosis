@@ -34,9 +34,22 @@
 # clear-then-fill correctness could catch, since that prose was never this
 # script's responsibility until now.
 #
-# The manifest's $version / $download_url / $last_updated and the changelog
-# HTML block are NOT touched here — those are still updated by hand as part
-# of the version bump, same as always.
+# $last_updated, added 2026-07-22: this script already knows today's date
+# (it was already in $sha256_note's own text) and the documented release
+# process builds the zip immediately before shipping it — so there was no
+# real reason to keep this one a separate hand-set-at-ship-time field.
+# write_manifest_last_updated() below sets it to today's date once the build
+# succeeds, same trigger point as $sha256/$sha256_note. Unlike $sha256 it is
+# NOT cleared at the start of a run — a failed/interrupted build should leave
+# the previous successful build's date in place, not blank it, since there's
+# no "silently wrong" risk for a plain display date the way there is for a
+# digest. If a real gap ever opens between building and actually shipping,
+# re-running this script right before uploading refreshes the date, same as
+# it refreshes $sha256 for a changed zip.
+#
+# The manifest's $version / $download_url and the changelog HTML block are
+# NOT touched here — those are still updated by hand as part of the version
+# bump, same as always.
 #
 # Output: ../agnosis-deploy/agnosis-<version>.zip  (or [output-dir]/agnosis-<version>.zip)
 
@@ -173,6 +186,33 @@ write_manifest_sha() {
 write_manifest_sha
 write_manifest_note "Verified — sha256 written by build-zip.sh on $(date -u +%Y-%m-%d) for ${ZIP_NAME}."
 
+# --- Write today's date into $last_updated -----------------------------------
+# Added 2026-07-22, questioned directly rather than left as a manual TODO —
+# see the header comment above and the manifest's own comment on $last_updated
+# for the reasoning. Not cleared at the start of a run, unlike $sha256/
+# $sha256_note — see the header comment above for why.
+write_manifest_last_updated() {
+    if [ ! -f "$MANIFEST" ]; then
+        return
+    fi
+    if ! grep -qE "^[[:space:]]*[$]last_updated[[:space:]]*=" "$MANIFEST"; then
+        echo "WARNING: could not find a \$last_updated assignment in $(basename "$MANIFEST") — set it manually." >&2
+        return
+    fi
+    local today
+    today=$(date -u +%Y-%m-%d)
+    # Same [$] bracket-expression reasoning as clear_manifest_sha() above —
+    # matches the literal dollar sign reliably in `sed -E`. The trailing
+    # `[[:space:]]*(//.*)?;` tail also swallows any inline `// comment` after
+    # the semicolon (e.g. "Not yet set — will be filled...") so it doesn't
+    # linger, now-inaccurate, next to a freshly-written real date.
+    sed -i.bak -E "s/^([[:space:]]*[$]last_updated[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;).*/\1'${today}'\2/" "$MANIFEST"
+    rm -f "$MANIFEST.bak"
+    echo "--> Last updated: $today"
+    echo "✓ Wrote last_updated into $(basename "$MANIFEST")"
+}
+write_manifest_last_updated
+
 echo ""
 echo "  Contents preview:"
 unzip -l "$ZIP_PATH" | awk 'NR>3 && NR<=33'
@@ -180,5 +220,5 @@ unzip -l "$ZIP_PATH" | awk 'NR>3 && NR<=33'
 echo ""
 echo "Remaining manual steps:"
 echo "  1. Upload $ZIP_NAME to the v$VERSION GitHub release."
-echo "  2. Confirm \$version / \$download_url / \$last_updated in $(basename "$MANIFEST") match this release."
+echo "  2. Confirm \$version / \$download_url in $(basename "$MANIFEST") match this release (\$sha256/\$sha256_note/\$last_updated are already written above)."
 echo "  3. Deploy $(basename "$MANIFEST") to wp-content/mu-plugins/ on agnosis.art."

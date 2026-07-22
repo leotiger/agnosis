@@ -8,11 +8,11 @@
  * manifest as JSON with no-cache headers so every request fetches live data
  * regardless of server-side or CDN caching.
  *
- * On every release: update $version, $download_url, $last_updated, and
- * prepend the new entry to $sections['changelog']. $sha256/$sha256_note are
- * a machine-managed pair — see their own comment below; a hand version-bump
- * only needs to reset both to their "not built yet" defaults, never write
- * real values into either by hand.
+ * On every release: update $version, $download_url, and prepend the new
+ * entry to $sections['changelog']. $sha256/$sha256_note/$last_updated are a
+ * machine-managed trio — see their own comment below; a hand version-bump
+ * only needs to reset all three to their "not built yet" defaults, never
+ * write real values into any of them by hand.
  *
  * MANIFEST_URL in agnosis/includes/Core/Updater.php must point to:
  * https://agnosis.art/wp-json/agnosis/v1/update
@@ -46,18 +46,23 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 
 	$version      = '0.9.45';
 	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.45/agnosis-0.9.45.zip';
-	$last_updated = ''; // TODO(release): fill in once this version actually ships (YYYY-MM-DD).
 	$tested       = '7.0';
 
-	// SHA-256 of the release ZIP, plus a one-line human-readable status note —
-	// both fields are exclusively maintained by dev/bin/build-zip.sh, never by
-	// hand. The script clears both to their "not built" defaults at the START
-	// of every run (so a failed or superseded build never leaves a stale
-	// digest behind — empty $sha256 = verification skipped, a safe documented
-	// default; a stale one would silently BREAK update verification instead,
-	// since WordPress would hash the newly-downloaded zip and compare it
-	// against a digest belonging to a DIFFERENT zip, which can never match),
-	// then writes the freshly-built zip's real digest once the build succeeds.
+	// SHA-256 of the release ZIP, a one-line human-readable status note, and
+	// the date this version's zip was actually built — all three fields are
+	// exclusively maintained by dev/bin/build-zip.sh, never by hand. The
+	// script clears $sha256/$sha256_note to their "not built" defaults at the
+	// START of every run (so a failed or superseded build never leaves a
+	// stale digest behind — empty $sha256 = verification skipped, a safe
+	// documented default; a stale one would silently BREAK update
+	// verification instead, since WordPress would hash the newly-downloaded
+	// zip and compare it against a digest belonging to a DIFFERENT zip, which
+	// can never match), then writes all three real values once the build
+	// succeeds. $last_updated is intentionally NOT cleared at the start the
+	// way $sha256 is — there's no "unsafe stale value" risk for a plain
+	// display date the way there is for a digest silently mismatching, so a
+	// failed build simply leaves the previous successful build's date in
+	// place rather than blanking it.
 	//
 	// $sha256_note exists specifically so this file can never again say
 	// "pending"/"cleared" in hand-written prose while $sha256 itself already
@@ -67,12 +72,25 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// and never re-synced once a real build actually ran days later). Now
 	// there is only one thing to say, and only the script says it.
 	//
-	// Hand version-bumps still must reset BOTH fields to the values below —
-	// build-zip.sh only runs at build time, not at version-bump time, so it
-	// can't do that part for you. Never write a real digest or a "verified"
-	// note into either field by hand.
-	$sha256      = '3d64b529c91b7494310432c6652ca8a6596a44e820848a12414cfe49a0c5259f';
-	$sha256_note = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.45.zip.';
+	// $last_updated used to be a separate hand-set-at-ship-time field (per its
+	// own now-removed TODO comment) — questioned directly: since build-zip.sh
+	// already knows today's date (it's already in $sha256_note's own text),
+	// there was no real reason to keep this one manual when the documented
+	// release process (CONTRIBUTING.md) already builds the zip immediately
+	// before shipping it. The date recorded is "when this zip was last built
+	// locally," used as a stand-in for "when this version shipped" — accurate
+	// for the intended same-session build-then-ship workflow; if a real gap
+	// ever opens up between building and actually uploading/deploying, just
+	// re-run build-zip.sh right before uploading to refresh the date, the
+	// same way you'd re-run it to refresh $sha256 for a changed zip.
+	//
+	// Hand version-bumps still must reset all three fields to the values
+	// below — build-zip.sh only runs at build time, not at version-bump time,
+	// so it can't do that part for you. Never write a real digest, a
+	// "verified" note, or a real date into any of them by hand.
+	$sha256       = '3d64b529c91b7494310432c6652ca8a6596a44e820848a12414cfe49a0c5259f';
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-22 for agnosis-0.9.45.zip.';
+	$last_updated = ''; // Not yet set — will be filled the next time build-zip.sh runs with this new capability.
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
