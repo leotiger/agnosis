@@ -83,3 +83,9 @@ Write to us in whatever language you are comfortable with. Your words are publis
 ## Your own space
 
 Every admitted artist gets their own address on the web showing only their published work. Visit `/my-submissions` any time to check the status of everything you've sent — sign in there directly, with no dashboard to learn.
+
+## Limitations
+
+Generating an artwork description with AI can produce content that doesn't fully meet your expectations. For this reason, it helps to include a few descriptive details of your own when you send your work — the more you give AI to work with, the better the result.
+
+The same applies to translation, in a different way. AI still isn't capable of translation quality on par with a human — it's getting closer, but gender and grammatical nuance are often where it falls short. This is why we supply your own native language to the AI, which, especially for the pure address, helps produce the version closest to, or exactly as worded by, you as the artist or author.
