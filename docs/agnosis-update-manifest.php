@@ -88,9 +88,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// below — build-zip.sh only runs at build time, not at version-bump time,
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
-	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Build started 2026-07-22T18:36:26Z by build-zip.sh for v0.9.47 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
-	$last_updated = '2026-07-22';
+	$sha256       = '13a805fe6163b8a78ac3e06b703348740735d374c9c52a66aa85201418f374f7'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-23 for agnosis-0.9.47.zip.';
+	$last_updated = '2026-07-23';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -107,6 +107,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 			'<li><strong>Fixed:</strong> A deliberately embedded other-language passage &#8212; e.g. a Latin quotation inside a Catalan poem &#8212; could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge&#8217;s own translation to your other configured languages also now uses a stronger AI model for this specific case.</li>' .
 			'<li><strong>Fixed:</strong> A text-only submission&#8217;s poster could end up completely broken after being resent to a different address with unchanged content &#8212; the resend&#8217;s dedupe logic could reuse the existing poster&#8217;s id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.</li>' .
 			'<li><strong>Fixed:</strong> Published images never had alt text in the actual page markup, even when a real description was already stored for them &#8212; an accessibility gap affecting every artwork/biography/event image. Now included, falling back to the artwork&#8217;s own title when nothing more specific is available.</li>' .
+			'<li><strong>Fixed:</strong> A native-language artist&#8217;s own medium category could show up in the wrong language on their native-language sibling post (e.g. the English word &#8220;Poetry&#8221; instead of its own language&#8217;s equivalent). Now reuses the same translate-once-and-cache mechanism every other configured language already gets, instead of copying the primary-language word directly.</li>' .
+			'<li><strong>Fixed:</strong> Translating a submission into your site&#8217;s primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) &#8212; occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.</li>' .
 			'<li><strong>Changed:</strong> Translating a submission into your site&#8217;s primary language now uses its own, separate AI model setting (Settings &#8594; AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .

@@ -1742,7 +1742,17 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Un resumen final, tal como lo escribió el artista.' );
 		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo final, editado por el artista.' );
 		update_post_meta( $this->artwork_id, '_agnosis_native_tags', wp_json_encode( [ 'Paisaje', 'Costero' ] ) );
-		update_post_meta( $this->artwork_id, '_agnosis_native_medium', 'Óleo' );
+
+		// 2026-07-23: medium is no longer copied from `_agnosis_native_medium`
+		// directly (that value is actually PRIMARY-language, per
+		// sync_native_sibling()'s own docblock — medium classification is
+		// always constrained to the site's fixed vocabulary regardless of the
+		// artist's language, unlike excerpt/body/tags). It's now synced via
+		// sync_taxonomy() from whatever real `agnosis_medium` term the
+		// PRIMARY post already carries — exactly mirroring finalize_publish()'s
+		// real ordering, where the primary post's own term is assigned before
+		// sync_native_sibling() ever runs.
+		wp_set_object_terms( $this->artwork_id, 'Oil Painting', 'agnosis_medium' );
 
 		LinguaForge::sync_native_sibling( $this->artwork_id );
 
@@ -1775,10 +1785,20 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 			wp_get_post_terms( $sibling->ID, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
 			'Native tags must be assigned directly from _agnosis_native_tags, not re-derived from any translated set.'
 		);
+		// No AI provider is configured anywhere in this test file — the same
+		// graceful "no provider available" fallback every OTHER trid-synced
+		// language gets (sync_taxonomy()'s own translated_term_name() returns
+		// the SOURCE name unchanged, so the SOURCE term itself is reused
+		// rather than a translated one created) applies here too, so the
+		// sibling ends up carrying the identical 'Oil Painting' term as the
+		// primary post — not a translated Spanish term, since none can be
+		// produced without a configured provider. This still proves the real
+		// claim: the assignment goes through sync_taxonomy()'s trid path (not
+		// a raw meta copy), and stays a zero-AI-call operation either way.
 		$this->assertSame(
-			[ 'Óleo' ],
+			[ 'Oil Painting' ],
 			wp_get_post_terms( $sibling->ID, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
-			'Native medium must be assigned directly from _agnosis_native_medium.'
+			'Native medium must be synced via sync_taxonomy(), falling back to the primary post\'s own term when no AI provider is configured to translate it.'
 		);
 	}
 

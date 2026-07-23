@@ -832,7 +832,12 @@ class ReviewEndpoints {
 				. implode( ' | ', $existing_primary_tags );
 		}
 
-		$translated = $translator->translate_fields( $fields, $primary_lang, $field_instructions );
+		// $native_lang passed through explicitly (2026-07-23) — see
+		// translate_fields()'s own docblock for why: without it, the model
+		// has no signal for which language is actually "the source's own
+		// dominant language" when more than one is present in the text (e.g.
+		// a Latin quotation inside a Catalan poem), and can guess backward.
+		$translated = $translator->translate_fields( $fields, $primary_lang, $field_instructions, $native_lang );
 		if ( empty( $translated ) ) {
 			Logger::warning(
 				sprintf( 'translate_native_content_to_primary(#%d): native→primary translation failed — publishing native-language content unchanged.', $source->ID ),

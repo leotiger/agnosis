@@ -95,6 +95,8 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: A deliberately embedded other-language passage — e.g. a Latin quotation inside a Catalan poem — could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge's own translation to your other configured languages also now uses a stronger AI model for this specific case.
 * Fixed: A text-only submission's poster could end up completely broken after being resent to a different address with unchanged content — the resend's dedupe logic could reuse the existing poster's id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.
 * Fixed: Published images never had alt text in the actual page markup, even when a real description was already stored for them — an accessibility gap affecting every artwork/biography/event image. Now included, falling back to the artwork's own title when nothing more specific is available.
+* Fixed: A native-language artist's own medium category could show up in the wrong language on their native-language sibling post (e.g. the English word "Poetry" instead of its own language's equivalent). Now reuses the same translate-once-and-cache mechanism every other configured language already gets, instead of copying the primary-language word directly.
+* Fixed: Translating a submission into your site's primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) — occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.
 * Changed: Translating a submission into your site's primary language now uses its own, separate AI model setting (Settings → AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.
 
 = 0.9.46 =
@@ -106,5 +108,5 @@ For the complete version history, see CHANGELOG.md in the plugin's source reposi
 == Upgrade Notice ==
 
 = 0.9.47 =
-Fixes a deliberately embedded other-language passage (e.g. a quotation) getting mistranslated along with its surrounding text, a text-only submission's poster occasionally breaking entirely after a resend to a different address, and missing alt text on published images. Also splits out a separate, stronger AI model setting for translation.
+Fixes a deliberately embedded other-language passage (e.g. a quotation) getting mistranslated along with its surrounding text, a text-only submission's poster occasionally breaking entirely after a resend to a different address, missing alt text on published images, and a native-language artist's medium category showing up in the wrong language on their own sibling post. Also splits out a separate, stronger AI model setting for translation.
 

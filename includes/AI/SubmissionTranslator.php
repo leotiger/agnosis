@@ -338,11 +338,20 @@ class SubmissionTranslator {
 	 *                                                   into that field's own
 	 *                                                   section. Optional —
 	 *                                                   most callers pass nothing.
+	 * @param string                $source_lang_code   ISO 639-1 code of the
+	 *                                                   text's OWN dominant
+	 *                                                   language, when the
+	 *                                                   caller already knows
+	 *                                                   it (e.g. the artist's
+	 *                                                   declared native
+	 *                                                   language). Optional —
+	 *                                                   see below for why it
+	 *                                                   matters.
 	 * @return array<string, string> Field name => translated text, only for
 	 *                               fields that were non-empty AND present in
 	 *                               the AI's response.
 	 */
-	public function translate_fields( array $fields, string $target_code, array $field_instructions = [] ): array {
+	public function translate_fields( array $fields, string $target_code, array $field_instructions = [], string $source_lang_code = '' ): array {
 		$fields = array_filter( $fields, static fn( $v ) => '' !== trim( (string) $v ) );
 		if ( empty( $fields ) ) {
 			return [];
@@ -367,7 +376,45 @@ class SubmissionTranslator {
 
 		$json_keys = implode( ', ', array_map( static fn( $k ) => '"' . $k . '"', array_keys( $fields ) ) );
 
-		$prompt = "Translate the sections below to {$target_name}.\n"
+		// Naming the SOURCE language explicitly (2026-07-23) — live incident:
+		// a submission alternating a Latin quotation with the artist's own
+		// Catalan rendering of it came back with the assignment REVERSED —
+		// the Latin translated, the Catalan left untouched — the exact
+		// opposite of what PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION asks
+		// for. That instruction only says "leave passages NOT in the source's
+		// own dominant language untouched" — without ever being told what
+		// that dominant language actually IS, the model has nothing but the
+		// text itself to guess from, and a classical-language quotation
+		// followed by a modern-language rendering is genuinely ambiguous
+		// which way round that reads. Lingua Forge's OWN fan-out translation
+		// doesn't share this gap — stating "translate FROM X TO Y" is
+		// intrinsic to what LF's translation call already does, on top of
+		// this exact same shared instruction — which is why the German
+		// fan-out got this right the same day Agnosis's own call didn't.
+		//
+		// Phrased as one concrete, actionable rule keyed to the actual
+		// language pair — "translate text written in X to Y; leave anything
+		// NOT written in X exactly as written" — rather than naming source
+		// and target as two separate facts the model has to connect itself.
+		// This also correctly subsumes the "already in {$target_name}"
+		// case below without contradiction: text that's neither X nor Y
+		// (a third embedded language) or already Y both fall under "not
+		// written in X," so both stay untouched under the same one rule.
+		//
+		// Only built when the caller actually knows the source language
+		// (ReviewEndpoints::translate_native_content_to_primary() does, from
+		// `_agnosis_native_lang`); other callers (e.g. ContactForm's
+		// visitor-message translation) have no equivalent signal to offer, so
+		// the prompt falls back to the older, target-only phrasing for them.
+		$source_name = '' !== $source_lang_code ? $this->resolve_language_name( $source_lang_code ) : null;
+
+		$translation_directive = null !== $source_name
+			? "Translate text written in {$source_name} to {$target_name}. Do not translate any text that "
+				. "is not written in {$source_name} — leave it EXACTLY as written, character for character.\n"
+				. "The source text below is written primarily in {$source_name}.\n"
+			: "Translate the sections below to {$target_name}.\n";
+
+		$prompt = $translation_directive
 			. "If a section is already in {$target_name}, include it in the output unchanged.\n"
 			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
 			. self::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION . "\n"

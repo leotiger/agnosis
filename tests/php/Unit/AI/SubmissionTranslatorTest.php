@@ -605,6 +605,48 @@ class SubmissionTranslatorTest extends TestCase {
 		);
 	}
 
+	/**
+	 * 2026-07-23: without a fourth $source_lang_code argument, translate_fields()
+	 * only ever names the TARGET language — a live incident (a Latin quotation
+	 * embedded in a Catalan poem) showed the model can pick the wrong one of
+	 * two co-present languages to preserve when it's never told which one is
+	 * actually "the source's own dominant language." When the caller supplies
+	 * $source_lang_code, the prompt now states one concrete, actionable rule —
+	 * "translate text written in X to Y; leave anything not written in X
+	 * exactly as written" — instead of two disconnected facts.
+	 */
+	public function test_translate_fields_states_source_language_directive_when_given(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'Translate text written in German to Spanish' ),
+				$this->stringContains( 'source text below is written primarily in German' )
+			) )
+			->willReturn( '{"title":"Titulo"}' );
+
+		$this->make_translator( $provider )->translate_fields(
+			[ 'title' => 'Title' ],
+			'es',
+			[],
+			'de'
+		);
+	}
+
+	/** Fallback stays target-only when the caller has no source-language signal to offer. */
+	public function test_translate_fields_omits_source_language_directive_when_not_given(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'Translate the sections below to Spanish' ),
+				$this->logicalNot( $this->stringContains( 'Translate text written in' ) )
+			) )
+			->willReturn( '{"title":"Titulo"}' );
+
+		$this->make_translator( $provider )->translate_fields( [ 'title' => 'Title' ], 'es' );
+	}
+
 	public function test_translate_fields_omits_blank_fields_from_the_prompt_and_result(): void {
 		$provider = $this->createMock( ProviderInterface::class );
 		$provider->expects( $this->once() )

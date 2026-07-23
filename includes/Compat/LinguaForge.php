@@ -934,21 +934,42 @@ class LinguaForge {
 			self::$suppress_native_sibling_term_sync = false;
 		}
 
-		// Assign the already-native tags/medium directly — no AI call, and no
-		// re-derivation from the (primary-language) $translated['tags']/
-		// ['medium'] this whole redesign exists precisely to avoid spending a
-		// second translation pass on.
+		// Assign the already-native tags directly — no AI call, and no
+		// re-derivation from the (primary-language) $translated['tags'] this
+		// whole redesign exists precisely to avoid spending a second
+		// translation pass on. Tags are genuinely native: the AI translates
+		// the artist's own native-language tags at intake, free-form, so
+		// there's a real native-language value here worth copying as-is.
 		$native_tags_json = (string) get_post_meta( $primary_post_id, '_agnosis_native_tags', true );
 		$native_tags      = $native_tags_json ? (array) json_decode( $native_tags_json, true ) : [];
 		if ( ! empty( $native_tags ) ) {
 			wp_set_post_tags( $sibling_id, $native_tags );
 		}
 
+		// Medium is NOT genuinely native the way tags/excerpt/body are —
+		// classification is always constrained to the site's fixed, PRIMARY-
+		// language controlled vocabulary (PromptConfig::medium_terms()), so
+		// `_agnosis_native_medium` actually holds a primary-language value
+		// (e.g. "Poetry") from the moment it's first classified, regardless
+		// of the artist's own language. A raw copy here used to paste that
+		// English word directly onto the native sibling's own term — visibly
+		// wrong on a live Catalan post (showing "Poetry" instead of
+		// "Poesia"), and it also skipped flag_newly_created_terms_by_post_language()
+		// entirely (that only fires when a NEW term is actually created via
+		// the trid path below), so the site's medium filter never even
+		// recognised a Catalan bucket existed for this term at all.
+		//
+		// Fixed 2026-07-23 by reusing sync_taxonomy() — the SAME trid-based
+		// lookup-or-translate-once mechanism every OTHER Lingua Forge fan-out
+		// language already gets (see that method's own docblock). No separate
+		// detection call: the very first time this specific (term, language)
+		// pair is needed it spends one AI call and caches/links the result
+		// (get_or_create_term_trid()/find_term_by_trid()/translated_term_name());
+		// every subsequent native-language post reusing the same medium reuses
+		// the cached, trid-linked term for free, identical to how "Dichtung"
+		// only ever gets translated once for German.
 		if ( 'agnosis_artwork' === $source->post_type ) {
-			$native_medium = (string) get_post_meta( $primary_post_id, '_agnosis_native_medium', true );
-			if ( '' !== $native_medium ) {
-				wp_set_object_terms( $sibling_id, $native_medium, 'agnosis_medium' );
-			}
+			self::sync_taxonomy( $primary_post_id, $sibling_id, 'agnosis_medium', $native_lang );
 		}
 	}
 
@@ -1319,10 +1340,10 @@ class LinguaForge {
 			return;
 		}
 
-		$this->sync_taxonomy( $source_id, $translated_id, 'post_tag', $target_lang );
+		self::sync_taxonomy( $source_id, $translated_id, 'post_tag', $target_lang );
 
 		if ( 'agnosis_artwork' === $post_type ) {
-			$this->sync_taxonomy( $source_id, $translated_id, 'agnosis_medium', $target_lang );
+			self::sync_taxonomy( $source_id, $translated_id, 'agnosis_medium', $target_lang );
 		}
 	}
 
@@ -1337,7 +1358,7 @@ class LinguaForge {
 	 * @param int $term_id Term ID to resolve/assign a trid for.
 	 * @return string The term's trid (existing or newly assigned).
 	 */
-	private function get_or_create_term_trid( int $term_id ): string {
+	private static function get_or_create_term_trid( int $term_id ): string {
 		$trid = get_term_meta( $term_id, self::TERM_TRID_META, true );
 		if ( is_string( $trid ) && '' !== $trid ) {
 			return $trid;
@@ -1364,7 +1385,7 @@ class LinguaForge {
 	 * @return \WP_Term|null The matching term, or null if this trid has no
 	 *                        $lang translation yet.
 	 */
-	private function find_term_by_trid( string $trid, string $taxonomy, string $lang ): ?\WP_Term {
+	private static function find_term_by_trid( string $trid, string $taxonomy, string $lang ): ?\WP_Term {
 		$terms = get_terms(
 			[
 				'taxonomy'   => $taxonomy,
@@ -1545,7 +1566,7 @@ class LinguaForge {
 			}
 
 			if ( $native_id > 0 ) {
-				$trid = $this->get_or_create_term_trid( $term_id );
+				$trid = self::get_or_create_term_trid( $term_id );
 				add_term_meta( $native_id, self::TERM_TRID_META, $trid, true );
 			}
 
@@ -1668,10 +1689,10 @@ class LinguaForge {
 		}
 
 		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
-		$trid         = $this->get_or_create_term_trid( $term_id );
+		$trid         = self::get_or_create_term_trid( $term_id );
 
 		foreach ( $this->get_target_languages( $primary_lang ) as $lang ) {
-			$existing = $this->find_term_by_trid( $trid, $taxonomy, $lang );
+			$existing = self::find_term_by_trid( $trid, $taxonomy, $lang );
 			if ( $existing instanceof \WP_Term ) {
 				$result['skipped'][] = $lang;
 				continue;
@@ -1689,7 +1710,7 @@ class LinguaForge {
 			// own docblock) — so an operator can find and hand-correct it
 			// directly in the Tags/Mediums screen instead of the slot simply
 			// not existing.
-			$translated_name  = $this->translated_term_name( $term->name, $taxonomy, $lang );
+			$translated_name  = self::translated_term_name( $term->name, $taxonomy, $lang );
 			$ai_translated_ok = $translated_name !== $term->name;
 
 			$created_id = $ai_translated_ok
@@ -2261,7 +2282,7 @@ class LinguaForge {
 			if ( $sibling_id === $post_id || 0 === $sibling_id ) {
 				continue;
 			}
-			$this->sync_taxonomy( $post_id, $sibling_id, 'agnosis_medium', (string) $lang );
+			self::sync_taxonomy( $post_id, $sibling_id, 'agnosis_medium', (string) $lang );
 			++$synced;
 		}
 
@@ -2444,7 +2465,7 @@ class LinguaForge {
 	 * @param string $taxonomy      Taxonomy to sync — 'post_tag' or 'agnosis_medium'.
 	 * @param string $target_lang   Language code being synced to.
 	 */
-	private function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
+	private static function sync_taxonomy( int $source_id, int $translated_id, string $taxonomy, string $target_lang ): void {
 		$terms = wp_get_post_terms( $source_id, $taxonomy, [ 'fields' => 'all' ] );
 
 		if ( is_wp_error( $terms ) ) {
@@ -2463,15 +2484,15 @@ class LinguaForge {
 				continue;
 			}
 
-			$trid     = $this->get_or_create_term_trid( $term->term_id );
-			$existing = $this->find_term_by_trid( $trid, $taxonomy, $target_lang );
+			$trid     = self::get_or_create_term_trid( $term->term_id );
+			$existing = self::find_term_by_trid( $trid, $taxonomy, $target_lang );
 
 			if ( $existing instanceof \WP_Term ) {
 				$assign[] = $existing->term_id;
 				continue;
 			}
 
-			$translated_name = $this->translated_term_name( $term->name, $taxonomy, $target_lang );
+			$translated_name = self::translated_term_name( $term->name, $taxonomy, $target_lang );
 			if ( $translated_name === $term->name ) {
 				// No AI provider configured, or the translation call failed —
 				// fall back to assigning the SOURCE term itself rather than
@@ -2481,7 +2502,7 @@ class LinguaForge {
 			}
 
 			if ( is_numeric( $translated_name ) ) {
-				[ $created_id, $was_new ] = $this->resolve_numeric_term_name( $translated_name, $taxonomy );
+				[ $created_id, $was_new ] = self::resolve_numeric_term_name( $translated_name, $taxonomy );
 				if ( 0 === $created_id ) {
 					continue; // Nothing resolvable — drop rather than pass the ambiguous numeric string through.
 				}
@@ -2493,7 +2514,7 @@ class LinguaForge {
 					// call. One more trid lookup catches that; otherwise
 					// fall back to the source term rather than dropping the
 					// assignment entirely.
-					$existing = $this->find_term_by_trid( $trid, $taxonomy, $target_lang );
+					$existing = self::find_term_by_trid( $trid, $taxonomy, $target_lang );
 					$assign[] = $existing instanceof \WP_Term ? $existing->term_id : $term->term_id;
 					continue;
 				}
@@ -2540,7 +2561,7 @@ class LinguaForge {
 	 * @return array{0: int, 1: bool} [term_id (0 if genuinely unresolvable), whether
 	 *                                 this call just created the term].
 	 */
-	private function resolve_numeric_term_name( string $name, string $taxonomy ): array {
+	private static function resolve_numeric_term_name( string $name, string $taxonomy ): array {
 		$existing = get_term_by( 'name', $name, $taxonomy );
 		if ( $existing instanceof \WP_Term ) {
 			return [ $existing->term_id, false ];
@@ -2612,7 +2633,7 @@ class LinguaForge {
 	 * treats the two identically for its own `failed` count, so this doesn't
 	 * introduce a new ambiguity, only extends the existing one to the cache.
 	 */
-	private function translated_term_name( string $name, string $taxonomy, string $target_lang ): string {
+	private static function translated_term_name( string $name, string $taxonomy, string $target_lang ): string {
 		$cache = get_option( self::TERM_TRANSLATIONS_OPTION, [] );
 
 		$cached = $cache[ $taxonomy ][ $name ][ $target_lang ] ?? '';
