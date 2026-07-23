@@ -1966,6 +1966,46 @@ parameters:
 			path: ../tests/php/Integration/Network/SubdomainNavigationContactIconTest.php
 
 		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\SubdomainNavigationLanguageBadgeTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$original_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$url of function esc_url expects string, string\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/SubdomainNavigationLanguageBadgeTest.php
+
+		-
 			message: "#^Parameter \\#1 \\$user_id of static method Agnosis\\\\Network\\\\SubdomainRouter\\:\\:url_for_artist\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 3
 			path: ../tests/php/Integration/Network/SubdomainRouterIntegrationTest.php

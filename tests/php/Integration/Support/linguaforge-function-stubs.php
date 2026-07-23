@@ -59,3 +59,19 @@ if ( ! function_exists( 'linguaforge_mark_translation_synced' ) ) {
 		FakeLinguaForge::$marked_synced[] = $post_id;
 	}
 }
+
+// Added for SubdomainNavigation::native_language_url() coverage (2026-07-23)
+// — the language breadcrumb badge's link target. Same guard/precedence
+// convention as every stub above.
+
+if ( ! function_exists( 'linguaforge_is_valid_lang' ) ) {
+	function linguaforge_is_valid_lang( string $lang ): bool {
+		return in_array( $lang, FakeLinguaForge::$valid_langs, true );
+	}
+}
+
+if ( ! function_exists( 'linguaforge_lsflr_translate_current_url' ) ) {
+	function linguaforge_lsflr_translate_current_url( string $target_lang, ?int $post_id = null ): string {
+		return FakeLinguaForge::$lsflr_translated_url;
+	}
+}

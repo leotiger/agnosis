@@ -551,11 +551,11 @@ class SettingsFields {
 				'input'   => 'select',
 				'options' => [
 					'auto'   => __( 'Auto (OpenAI if key is set)', 'agnosis' ),
-					'openai' => 'OpenAI (gpt-image-1)',
+					'openai' => 'OpenAI',
 					'none'   => __( 'Disabled — use original image', 'agnosis' ),
 				],
 				'default' => 'auto',
-				'desc'    => __( 'Enhances the artwork image before publishing. Uses OpenAI gpt-image-1. Set to Disabled to skip enhancement and publish the original.', 'agnosis' ),
+				'desc'    => __( 'Enhances the artwork image before publishing, using the OpenAI image model set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip enhancement and publish the original.', 'agnosis' ),
 			],
 			'agnosis_openai_image_model' => [
 				'tab'     => 'ai',

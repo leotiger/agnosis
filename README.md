@@ -172,7 +172,7 @@ composer coverage
 # → coverage/combined/summary.txt
 ```
 
-Combined unit + integration coverage is around 70% as of 2026-07-20 — re-run `composer coverage` locally for the current, exact figure rather than trusting this line as it ages.
+Combined unit + integration coverage is 69.15% (13,341 / 19,292 statements) as of 2026-07-23 — re-run `composer coverage` locally for the current, exact figure rather than trusting this line as it ages.
 
 Coverage is collected with pcov and merged from unit + integration Clover XMLs via `phpunit/phpcov`. `composer coverage` needs pcov in **two** places:
 

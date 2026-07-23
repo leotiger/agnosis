@@ -506,9 +506,21 @@ class SubdomainNavigation {
 	 * Build the language breadcrumb badge: the artist's native language as a
 	 * plain two-letter ISO 639-1 code (e.g. "ES"), with the language's own
 	 * native name — its endonym, e.g. "Español", "Deutsch", "日本語" — as the
-	 * hover tooltip and screen-reader label. Unlike the biography/events/
-	 * contact variants, this renders no `<a href>`/`<button>` at all — there's
-	 * nowhere for it to link to, it's purely informational.
+	 * hover tooltip and screen-reader label.
+	 *
+	 * Links to the native-language equivalent of whatever the visitor is
+	 * CURRENTLY looking at, when one can be resolved (2026-07-23) — a visitor
+	 * reading an artwork, biography, or the artist's gallery in German can
+	 * follow this badge straight to the Catalan version of that SAME page,
+	 * rather than only ever seeing which language the artist writes in with
+	 * no way to actually go look at it. See native_language_url()'s own
+	 * docblock for exactly how the target is resolved for a single post
+	 * versus an archive/gallery page. Renders a plain, unlinked `<span>` —
+	 * the original, purely-informational behavior — whenever no such target
+	 * can be resolved: Lingua Forge inactive, the artist's language isn't
+	 * one of the site's configured/routed languages, the visitor is already
+	 * viewing that language, or (for a single post) no sibling exists yet in
+	 * the artist's own language for that specific piece.
 	 *
 	 * The native name comes from `SubmissionTranslator::language_names()`,
 	 * which is sourced from Lingua Forge's `linguaforge_language_label()` —
@@ -558,8 +570,95 @@ class SubdomainNavigation {
 		}
 
 		$wrapper_attributes = get_block_wrapper_attributes( $extra_attributes );
+		$url                = $this->native_language_url( $code );
 
-		return sprintf( '<span %1$s>%2$s</span>', $wrapper_attributes, esc_html( strtoupper( $code ) ) );
+		if ( '' === $url ) {
+			return sprintf( '<span %1$s>%2$s</span>', $wrapper_attributes, esc_html( strtoupper( $code ) ) );
+		}
+
+		/* translators: %s: language native name, e.g. "Català" */
+		$label = '' !== $native_name ? sprintf( __( 'View this in %s', 'agnosis' ), $native_name ) : '';
+
+		return sprintf(
+			'<a %1$s href="%2$s"%3$s>%4$s</a>',
+			$wrapper_attributes,
+			esc_url( $url ),
+			'' !== $label ? ' aria-label="' . esc_attr( $label ) . '"' : '',
+			esc_html( strtoupper( $code ) )
+		);
+	}
+
+	/**
+	 * Resolve where the language badge should link to: the native-language
+	 * equivalent of whatever the visitor is CURRENTLY looking at, in the
+	 * artist's own language `$code`. Returns '' — meaning "render a plain,
+	 * unlinked badge" — whenever no such equivalent can be resolved:
+	 *
+	 *   - Lingua Forge isn't active, or `$code` isn't one of the site's own
+	 *     configured/routed languages (linguaforge_is_valid_lang()) — an
+	 *     artist's account-locale badge can legitimately show a language the
+	 *     site itself was never set up to route (e.g. a language later
+	 *     dropped from Settings → Lingua Forge → Languages).
+	 *   - The visitor is already viewing that exact language — linking a
+	 *     badge to the page it's already sitting on is never useful.
+	 *   - On a SINGLE artwork/biography/event: no sibling exists yet in the
+	 *     artist's own language for that specific piece (not every post is
+	 *     guaranteed a translation into every configured language the moment
+	 *     it publishes), or one exists but isn't published yet.
+	 *
+	 * Singular vs. non-singular (an archive/gallery page, or the artist's
+	 * own subdomain home) resolve differently:
+	 *
+	 *   - Singular: the CURRENT post's own translation siblings
+	 *     (`linguaforge_get_translations()`) are checked for one in `$code`;
+	 *     its own `get_permalink()` is used directly when found and
+	 *     published — no need to route this through Lingua Forge's URL
+	 *     rewriter at all, since the translated post's real permalink IS
+	 *     the answer.
+	 *   - Non-singular: there's no single "post" to resolve a sibling for —
+	 *     the badge should point at the SAME archive/gallery/home URL, just
+	 *     in `$code`. `linguaforge_lsflr_translate_current_url()` (Lingua
+	 *     Forge's own language-switcher URL builder, same one its front-end
+	 *     switcher widget uses) already knows how to rewrite the current
+	 *     URL's language segment correctly for either routing mode (path
+	 *     prefix or per-language subdomain) — reused here rather than
+	 *     re-implementing that path-rewriting logic a second time.
+	 */
+	private function native_language_url( string $code ): string {
+		if ( ! function_exists( 'linguaforge_lsflr_translate_current_url' )
+			|| ! function_exists( 'linguaforge_is_valid_lang' )
+			|| ! linguaforge_is_valid_lang( $code )
+		) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+		$current_lang = ( defined( 'LF_LANG' ) && LF_LANG ) ? LF_LANG : ( function_exists( 'linguaforge_source_language' ) ? linguaforge_source_language() : '' );
+		if ( $current_lang === $code ) {
+			return ''; // Already viewing this exact language — nothing to link to.
+		}
+
+		if ( is_singular() ) {
+			$current = get_queried_object();
+			if ( ! $current instanceof \WP_Post || ! function_exists( 'linguaforge_get_translations' ) ) {
+				return '';
+			}
+
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+			$translations  = linguaforge_get_translations( $current->ID );
+			$translated_id = (int) ( $translations[ $code ] ?? 0 );
+			if ( $translated_id <= 0 ) {
+				return ''; // No sibling in the artist's own language for THIS piece yet.
+			}
+
+			$translated = get_post( $translated_id );
+			return ( $translated instanceof \WP_Post && 'publish' === $translated->post_status )
+				? (string) get_permalink( $translated_id )
+				: '';
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- Lingua Forge's public API; prefix belongs to that plugin.
+		return linguaforge_lsflr_translate_current_url( $code );
 	}
 
 	/**

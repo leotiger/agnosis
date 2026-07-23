@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.47
+Stable tag: 0.9.48
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -45,7 +45,7 @@ One Agnosis install is one community — a deployment with several departments o
 
 * Email-to-post: IMAP + webhook support, for artwork, biographies, and events
 * Image, sound, and video submissions (HEIC/PDF normalization, video poster-frame extraction)
-* AI image enhancement (OpenAI gpt-image-1)
+* AI image enhancement (OpenAI gpt-image-1 or gpt-image-2, configurable)
 * AI artwork description (Claude, GPT-4o Vision)
 * Front-end correction: artists can edit their own published title, text, or photos afterward, no re-submission needed
 * Visitor contact form: message an artist directly from their page, spam-limited per IP/sender and per artist
@@ -91,6 +91,13 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.48 =
+* Fixed: Native-language-to-primary translation could still leave the wrong text untranslated — a poem mixing an original-language quotation with the artist's own rendering could come back with BOTH left untouched, instead of just the quotation. The AI instruction now states clearly which part must stay untouched and which must still be translated.
+* Added: A new "Limitations" section in the in-site Artist Guide explains that AI-written descriptions work best with some descriptive detail from the artist, and that AI translation still falls short of human quality on gender and grammatical nuance — which is why every translated page indicates the artist's own native language for comparison.
+* Added: The breadcrumb icon/badge block (biography, events, contact, language) now supports Font Family and Font Weight in the block editor, alongside the existing Font Size.
+* Added: The artist breadcrumb's language badge now links to the native-language version of whatever you're looking at — an artwork, a biography, or the gallery itself — instead of just naming the artist's own language with nowhere to go.
+* Changed: The Enhancement provider setting no longer implies gpt-image-1 is the only supported image model — OpenAI's newer gpt-image-2 already works with the existing model field, and the settings copy now says so.
+
 = 0.9.47 =
 * Fixed: A deliberately embedded other-language passage — e.g. a Latin quotation inside a Catalan poem — could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge's own translation to your other configured languages also now uses a stronger AI model for this specific case.
 * Fixed: A text-only submission's poster could end up completely broken after being resent to a different address with unchanged content — the resend's dedupe logic could reuse the existing poster's id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.
@@ -99,14 +106,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: Translating a submission into your site's primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) — occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.
 * Changed: Translating a submission into your site's primary language now uses its own, separate AI model setting (Settings → AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.
 
-= 0.9.46 =
-* Fixed: A text-only submission's (poetry, essays) auto-generated placeholder image used to pile up a new copy in the gallery every time you corrected and resent it, instead of replacing the outdated one — and the old, uncorrected version could still show as the featured image. Now only the latest one is kept.
-* Fixed: Correcting a typo on a text-only post through the on-site editor didn't update its placeholder image at all before — the corrected text and the image could disagree indefinitely. The image is now regenerated to match.
-
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.47 =
-Fixes embedded-quotation mistranslation, a poster-breaking bug on resend, missing image alt text, and a native-language artist's medium category showing in the wrong language. Adds a separate AI model setting for translation.
+= 0.9.48 =
+Fixes translated pages sometimes leaving native text untranslated, links the language badge to the native-language version of the page, adds an AI-limitations note to the Artist Guide, and reflects gpt-image-2 support in settings.
 

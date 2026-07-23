@@ -1,6 +1,9 @@
 <?php
 /**
- * OpenAI provider — description (GPT-4o Vision) + enhancement (gpt-image-1).
+ * OpenAI provider — description (GPT-4o Vision) + enhancement (gpt-image-1,
+ * gpt-image-2 — operator-configurable via 'agnosis_openai_image_model';
+ * gpt-image-2 added 2026-07-23, same /v1/images/edits endpoint and request
+ * shape as gpt-image-1, no code change needed to support it).
  *
  * @package Agnosis\AI\Providers
  */

@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.47';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.47/agnosis-0.9.47.zip';
+	$version      = '0.9.48';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.48/agnosis-0.9.48.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -88,8 +88,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// below — build-zip.sh only runs at build time, not at version-bump time,
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
-	$sha256       = '5ee9a243b63cb97a7ee0a2ec59aad1726335a8a8536dfed13bb6e054ec584b41'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-23 for agnosis-0.9.47.zip.';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Build started 2026-07-23T17:52:33Z by build-zip.sh for v0.9.48 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
 	$last_updated = '2026-07-23';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -102,6 +102,15 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.48</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> Native-language-to-primary translation could still leave the wrong text untranslated &#8212; a poem mixing an original-language quotation with the artist&#8217;s own rendering could come back with BOTH left untouched, instead of just the quotation. The AI instruction now states clearly which part must stay untouched and which must still be translated.</li>' .
+			'<li><strong>Added:</strong> A new &#8220;Limitations&#8221; section in the in-site Artist Guide explains that AI-written descriptions work best with some descriptive detail from the artist, and that AI translation still falls short of human quality on gender and grammatical nuance &#8212; which is why every translated page indicates the artist&#8217;s own native language for comparison.</li>' .
+			'<li><strong>Added:</strong> The breadcrumb icon/badge block (biography, events, contact, language) now supports Font Family and Font Weight in the block editor, alongside the existing Font Size.</li>' .
+			'<li><strong>Added:</strong> The artist breadcrumb&#8217;s language badge now links to the native-language version of whatever you&#8217;re looking at &#8212; an artwork, a biography, or the gallery itself &#8212; instead of just naming the artist&#8217;s own language with nowhere to go.</li>' .
+			'<li><strong>Changed:</strong> The Enhancement provider setting no longer implies gpt-image-1 is the only supported image model &#8212; OpenAI&#8217;s newer gpt-image-2 already works with the existing model field, and the settings copy now says so.</li>' .
+		'</ul>' .
+		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
 		'<h4>0.9.47</h4>' .
 		'<ul>' .
 			'<li><strong>Fixed:</strong> A deliberately embedded other-language passage &#8212; e.g. a Latin quotation inside a Catalan poem &#8212; could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge&#8217;s own translation to your other configured languages also now uses a stronger AI model for this specific case.</li>' .
@@ -110,12 +119,6 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 			'<li><strong>Fixed:</strong> A native-language artist&#8217;s own medium category could show up in the wrong language on their native-language sibling post (e.g. the English word &#8220;Poetry&#8221; instead of its own language&#8217;s equivalent). Now reuses the same translate-once-and-cache mechanism every other configured language already gets, instead of copying the primary-language word directly.</li>' .
 			'<li><strong>Fixed:</strong> Translating a submission into your site&#8217;s primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) &#8212; occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.</li>' .
 			'<li><strong>Changed:</strong> Translating a submission into your site&#8217;s primary language now uses its own, separate AI model setting (Settings &#8594; AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.</li>' .
-		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.46</h4>' .
-		'<ul>' .
-			'<li><strong>Fixed:</strong> A text-only submission&#8217;s (poetry, essays) auto-generated placeholder image used to pile up a new copy in the gallery every time you corrected and resent it, instead of replacing the outdated one &#8212; and the old, uncorrected version could still show as the featured image. Now only the latest one is kept.</li>' .
-			'<li><strong>Fixed:</strong> Correcting a typo on a text-only post through the on-site editor didn&#8217;t update its placeholder image at all before &#8212; the corrected text and the image could disagree indefinitely. The image is now regenerated to match.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

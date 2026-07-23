@@ -53,13 +53,37 @@ class FakeLinguaForge {
 	/** Post IDs passed to linguaforge_mark_translation_synced(), in call order. */
 	public static array $marked_synced = [];
 
+	/**
+	 * Mirrors linguaforge_is_valid_lang(): the site's configured/routed
+	 * language codes. Added for
+	 * SubdomainNavigation::native_language_url() coverage (2026-07-23) — an
+	 * artist's account-locale badge can legitimately name a language the
+	 * site was never set up to route (or later dropped), which that method
+	 * treats as "nothing to link to."
+	 *
+	 * @var string[]
+	 */
+	public static array $valid_langs = [];
+
+	/**
+	 * Mirrors linguaforge_lsflr_translate_current_url(): the URL to return
+	 * for the non-singular (archive/gallery/home) case. Real Lingua Forge
+	 * rewrites the actual current request URL's language segment; this
+	 * fake just returns whatever the test sets, since exercising the real
+	 * path-rewriting logic isn't this file's own concern — that's Lingua
+	 * Forge's, covered in its own test suite.
+	 */
+	public static string $lsflr_translated_url = '';
+
 	/** Call from setUp()/tearDown() so state never bleeds between tests. */
 	public static function reset(): void {
-		self::$source_language   = 'en';
-		self::$translations      = [];
-		self::$trids             = [];
-		self::$cache_cleared_for = [];
-		self::$marked_synced     = [];
+		self::$source_language      = 'en';
+		self::$translations         = [];
+		self::$trids                = [];
+		self::$cache_cleared_for    = [];
+		self::$marked_synced        = [];
+		self::$valid_langs          = [];
+		self::$lsflr_translated_url = '';
 	}
 
 	/** Convenience for tests: record post $translated_id as $lang's translation of $original_id. */
