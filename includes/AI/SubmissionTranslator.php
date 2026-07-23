@@ -138,19 +138,44 @@ class SubmissionTranslator {
 	 * translation call and Lingua Forge's separate fan-out pass — no
 	 * structural placeholder mechanism, by design, so the one-call guarantee
 	 * always holds.
+	 *
+	 * Re-hardened 2026-07-23 — the SAME Naevius poem, a third time: after the
+	 * 2026-07-22 wording above and the 2026-07-23 explicit-source-language fix
+	 * (translate_fields()'s own $source_lang_code param), the native→primary
+	 * translation stopped translating the Catalan half ENTIRELY — both the
+	 * Latin quotation and the artist's own Catalan rendering came back
+	 * untouched. Root cause: the 2026-07-22 wording described the alternating
+	 * pattern as "an original-language line ... with the author's own
+	 * translation or rendering of it" and then said to leave "every such
+	 * other-language passage" untouched — grammatically ambiguous about
+	 * whether "such other-language passage" meant only the first half (the
+	 * genuinely foreign quotation) or the whole alternating pair, and a model
+	 * reading it the second way would preserve the artist's own native-
+	 * language rendering right along with the quotation it's translating
+	 * FROM — silently defeating $source_lang_code's whole point. The wording
+	 * below now says explicitly, twice, that only the passage NOT in the
+	 * source's own dominant language is preserved, and that the passage which
+	 * IS in that language must still be translated even while sitting beside
+	 * an untranslated one. Left as a single shared instruction (still `public`,
+	 * still fed to Lingua Forge's fan-out too) rather than two variants,
+	 * since the disambiguation is correct for both callers, not just this one.
 	 */
 	public const PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION =
 		'The source text may deliberately mix more than one language on purpose — for '
-		. 'example, a poem or passage that alternates an original-language line, '
-		. 'couplet, or stanza with the author\'s own translation or rendering of it '
-		. 'directly below or beside it, not just a single set-apart quotation, epigraph, '
-		. 'or title. You MUST leave every such other-language passage EXACTLY as written '
-		. 'in the output — identical spelling, punctuation, capitalization, and line '
-		. 'breaks, character for character — even when it is short, or sits between or '
+		. 'example, a poem or passage that alternates a line, couplet, or stanza written '
+		. 'in a DIFFERENT (foreign or classical) language with the author\'s own line, '
+		. 'couplet, or stanza written in the source\'s own dominant language, not just a '
+		. 'single set-apart quotation, epigraph, or title. Only the passages that are '
+		. 'NOT written in the source\'s own dominant language must be left EXACTLY as '
+		. 'written in the output — identical spelling, punctuation, capitalization, and '
+		. 'line breaks, character for character — even when short, or sitting between or '
 		. 'alongside passages you ARE translating. Never translate, normalize, correct, '
-		. 'or paraphrase a passage just because it is brief or embedded within a longer '
-		. 'text. Only translate passages that are actually written in the source\'s own '
-		. 'dominant language.';
+		. 'or paraphrase THOSE foreign-language passages just because they are brief or '
+		. 'embedded within a longer text. Passages that ARE written in the source\'s own '
+		. 'dominant language must still be translated normally, even when they sit '
+		. 'directly next to or alternate with an untranslated foreign-language passage — '
+		. 'being part of that alternating pattern is never itself a reason to leave a '
+		. 'passage untranslated.';
 
 	public function __construct( private readonly ProviderInterface $provider ) {}
 
@@ -424,6 +449,27 @@ class SubmissionTranslator {
 			. trim( $sections );
 
 		$response = $this->provider->chat( $prompt );
+
+		// Debug trace for the native→primary call specifically (2026-07-23,
+		// added after two prior wording fixes to this same live "Naevius"
+		// case each turned out to be wrong on the next real submission) —
+		// gated on $source_lang_code so ContactForm's and other callers'
+		// routine translations don't get logged too. Visible in Settings →
+		// Logs without WP_DEBUG_LOG; remove once the embedded-language
+		// preservation behavior has been confirmed correct on a real
+		// multi-language submission.
+		if ( '' !== $source_lang_code ) {
+			Logger::info(
+				sprintf(
+					"SubmissionTranslator::translate_fields debug (native→primary, %s→%s):\n--- PROMPT ---\n%s\n--- RAW RESPONSE ---\n%s",
+					$source_lang_code,
+					$target_code,
+					$prompt,
+					$response
+				),
+				'pipeline'
+			);
+		}
 
 		if ( '' === trim( $response ) ) {
 			return [];

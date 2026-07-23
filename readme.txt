@@ -108,5 +108,5 @@ For the complete version history, see CHANGELOG.md in the plugin's source reposi
 == Upgrade Notice ==
 
 = 0.9.47 =
-Fixes a deliberately embedded other-language passage (e.g. a quotation) getting mistranslated along with its surrounding text, a text-only submission's poster occasionally breaking entirely after a resend to a different address, missing alt text on published images, and a native-language artist's medium category showing up in the wrong language on their own sibling post. Also splits out a separate, stronger AI model setting for translation.
+Fixes embedded-quotation mistranslation, a poster-breaking bug on resend, missing image alt text, and a native-language artist's medium category showing in the wrong language. Adds a separate AI model setting for translation.
 
