@@ -28,12 +28,13 @@
 			"padding": true
 		},
 		"color": {
-			"text": true
+			"text": true,
+			"background": false
 		},
 		"typography": {
 			"fontSize": true,
-			"fontFamily": true,
-			"fontWeight": true
+			"__experimentalFontFamily": true,
+			"__experimentalFontWeight": true
 		}
 	},
 	"example": {}

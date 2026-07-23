@@ -89,7 +89,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
 	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Build started 2026-07-23T17:52:33Z by build-zip.sh for v0.9.48 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
+	$sha256_note  = 'Build started 2026-07-23T19:44:14Z by build-zip.sh for v0.9.48 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
 	$last_updated = '2026-07-23';
 
 	// Two most recent releases only — do not accumulate history here; it
