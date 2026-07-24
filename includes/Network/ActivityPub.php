@@ -519,6 +519,13 @@ class ActivityPub {
 				return $this->handle_follow( $body );
 			case 'Like':
 			case 'Announce':
+				// Interaction-surface roadmap, Phase 1 (2026-07-24): this used
+				// to only fire an unlistened do_action() and discard the
+				// activity — see record_interaction()'s own docblock for what
+				// actually happens now. do_action() is kept alongside the new
+				// persistence so any future listener (e.g. a notification)
+				// still has a hook to attach to.
+				$this->record_interaction( $body, strtolower( $type ) );
 				do_action( 'agnosis_activity_received', $body );
 				return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 			case 'Undo':
@@ -582,6 +589,93 @@ class ActivityPub {
 			'totalItems' => count( $actor_ids ),
 			'orderedItems' => $actor_ids,
 		], 200, [ 'Content-Type' => 'application/activity+json' ] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Interaction counts — on-site display (interaction-surface roadmap,
+	// Phase 1, 2026-07-24)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Register the agnosis/interaction-counts dynamic block.
+	 *
+	 * block.json lives in blocks/interaction-counts/ relative to the plugin
+	 * root — same directory-registration shape as agnosis/artwork-copyright
+	 * (Artist\Profile::register_blocks()), chosen over a bare
+	 * register_block_type() call so an admin gets real Color/Typography
+	 * Inspector controls for what is otherwise a plain server-rendered string.
+	 */
+	public function register_interaction_counts_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/interaction-counts',
+			[ 'render_callback' => [ $this, 'render_interaction_counts' ] ]
+		);
+	}
+
+	/**
+	 * Render callback for the agnosis/interaction-counts block.
+	 *
+	 * Ulises's design intent (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md
+	 * §3/§5): likes shown inline, small, never competing visually with the
+	 * artwork; boosts counted AND displayed independently from likes, not
+	 * combined into one number. Renders nothing — not an empty element — on a
+	 * non-artwork post, or when an artwork genuinely has zero of both (same
+	 * "empty string takes no space" convention every other bare-registered
+	 * block in this plugin already follows, e.g.
+	 * Artist\Profile::render_event_location()), so a brand-new artwork's page
+	 * doesn't show a permanent "♥ 0 · ⟲ 0" fixture.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 * @return string HTML output or empty string when not applicable.
+	 */
+	public function render_interaction_counts( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+			return '';
+		}
+
+		$counts = $this->interaction_counts( $post_id );
+		if ( 0 === $counts['like'] && 0 === $counts['announce'] ) {
+			return '';
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-interaction-counts' ] );
+
+		$parts = [];
+		if ( $counts['like'] > 0 ) {
+			$parts[] = sprintf(
+				'<span class="agnosis-interaction-counts__likes">%s</span>',
+				esc_html(
+					sprintf(
+						/* translators: %d: number of likes. */
+						_n( '♥ %d like', '♥ %d likes', $counts['like'], 'agnosis' ),
+						$counts['like']
+					)
+				)
+			);
+		}
+		if ( $counts['announce'] > 0 ) {
+			$parts[] = sprintf(
+				'<span class="agnosis-interaction-counts__boosts">%s</span>',
+				esc_html(
+					sprintf(
+						/* translators: %d: number of boosts. */
+						_n( '⟲ %d boost', '⟲ %d boosts', $counts['announce'], 'agnosis' ),
+						$counts['announce']
+					)
+				)
+			);
+		}
+
+		return sprintf(
+			'<p %s>%s</p>',
+			$wrapper_attributes,
+			implode( ' · ', $parts )
+		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1221,6 +1315,17 @@ class ActivityPub {
 			$note['tag'] = $hashtags;
 		}
 
+		// Interaction-surface roadmap, Phase 1 (2026-07-24) — cosmetic parity
+		// item 5: a remote server that fetched this Note directly (rather
+		// than relying on its own locally-computed count) has something to
+		// show. Not required for Likes/Announces to actually work — Mastodon
+		// computes its own count independently of what's reported here — so
+		// this is deliberately best-effort and never blocks building the Note
+		// if interaction_counts() finds nothing (0/0 on a brand-new artwork).
+		$counts              = $this->interaction_counts( $post->ID );
+		$note['likesCount']  = $counts['like'];
+		$note['sharesCount'] = $counts['announce'];
+
 		if ( $this->is_post_sensitive( $post->ID ) ) {
 			$note['sensitive'] = true;
 			$note['summary']   = __( 'Sensitive content', 'agnosis' );
@@ -1426,6 +1531,230 @@ class ActivityPub {
 		return null;
 	}
 
+	/**
+	 * Resolve a Like/Announce/Undo activity's `object` URL back to a local
+	 * artwork post id — the mirror image of resolve_local_owner() (which
+	 * resolves an ACTOR url) and of object_id_for() (which builds this same
+	 * permalink FROM a post going the other direction).
+	 *
+	 * Interaction-surface roadmap, Phase 1 (2026-07-24). Tries core's own
+	 * url_to_postid() first — it reverses whatever rewrite rules are in
+	 * effect for the 'art' permalink structure, so this doesn't need to
+	 * duplicate that logic under pretty permalinks.
+	 *
+	 * **Real bug, caught by a real PHPUnit run (2026-07-24) — not just a test
+	 * artifact.** url_to_postid() unconditionally returns 0 whenever
+	 * `$wp_rewrite->wp_rewrite_rules()` is empty (its own "not using rewrite
+	 * rules... out of options" early return) — i.e. under PLAIN permalinks,
+	 * where no rewrite rules exist at all, only its hardcoded `p=`/`page_id=`/
+	 * `attachment_id=` numeric-query fallback works. `get_post_permalink()`
+	 * (what get_permalink()/object_id_for() actually call for this non-
+	 * builtin CPT) falls back, under plain permalinks, to
+	 * `add_query_arg( $post_type->query_var, $post->post_name, '' )` — i.e.
+	 * `?agnosis_artwork=<slug>`, keyed by the CPT's own query var and the
+	 * post's SLUG, not `p=<id>` — a shape url_to_postid() was never going to
+	 * resolve. A remote Like/Announce/Undo sent back against exactly the
+	 * permalink Agnosis itself published therefore silently failed to
+	 * resolve on any site running plain permalinks, with inbox() still
+	 * returning 200 (verify_inbox_signature() and the rest of inbox()'s own
+	 * error handling never surfaces this — it just looks identical to "not
+	 * ours to count"). Caught because the test suite defaults to plain
+	 * permalinks and asserted the actual row got written, not just that
+	 * inbox() didn't error.
+	 *
+	 * Fix: when url_to_postid() comes back empty, parse the URL's own query
+	 * string for the agnosis_artwork query var directly and resolve that
+	 * slug via get_page_by_path() (the standard core idiom for "resolve a
+	 * post by slug for a given post type," despite the page-flavored name —
+	 * used the same way regardless of post type elsewhere in core). This
+	 * mirrors the outbound direction's own dual-mode correctness
+	 * (test_note_id_equals_permalink_under_plain_permalinks() /
+	 * ..._under_pretty_permalinks() already hold post_to_note() to both
+	 * permalink modes) — the reverse direction needed the same rigor and
+	 * didn't have it.
+	 *
+	 * Returns 0 (never a WP_Error/exception) for anything that isn't
+	 * recognizably a local agnosis_artwork post — a Like on some other local
+	 * page, or a URL that resolves to nothing at all — so callers can treat
+	 * "not ours to count" as a plain, silent no-op.
+	 *
+	 * @param string $object_url The activity's `object` field (a permalink).
+	 * @return int Post ID, or 0 if it doesn't resolve to a local artwork.
+	 */
+	private function resolve_local_post_id( string $object_url ): int {
+		if ( '' === $object_url ) {
+			return 0;
+		}
+
+		$post_id = url_to_postid( $object_url );
+
+		if ( $post_id <= 0 ) {
+			$query = (string) wp_parse_url( $object_url, PHP_URL_QUERY );
+			wp_parse_str( $query, $query_vars );
+			// wp_parse_str() types each value as string|array (parse_str()'s own
+			// PHP semantics allow "foo[]=1&foo[]=2" to produce an array) — a
+			// blind (string) cast on an array both fails PHPStan (invalid cast)
+			// and would be wrong at runtime too (PHP casts an array to the
+			// literal string "Array", not an error, so get_page_by_path()
+			// would silently look up a bogus "Array" slug instead of treating
+			// this as the no-slug case it actually is). is_string() guards both.
+			$raw_slug = $query_vars['agnosis_artwork'] ?? '';
+			$slug     = is_string( $raw_slug ) ? $raw_slug : '';
+
+			if ( '' !== $slug ) {
+				$post    = get_page_by_path( $slug, OBJECT, 'agnosis_artwork' );
+				$post_id = $post instanceof \WP_Post ? (int) $post->ID : 0;
+			}
+		}
+
+		if ( $post_id <= 0 ) {
+			return 0;
+		}
+
+		return 'agnosis_artwork' === get_post_type( $post_id ) ? $post_id : 0;
+	}
+
+	/**
+	 * Persist an inbound Like/Announce (interaction-surface roadmap, Phase 1,
+	 * 2026-07-24). Before this, inbox() acknowledged both activity types with
+	 * a 200 and discarded them — see the class docblock history and
+	 * COMPETITIVE-ANALYSIS.md §3b for why this was a deliberately deferred gap
+	 * through fifteen audits, not an oversight.
+	 *
+	 * Ulises's answer on boosts (agnosis-audit/INTERACTION-SURFACE-
+	 * ROADMAP.md §5): counted and displayed independently from likes, not
+	 * combined into one number — hence a plain `activity_type` column rather
+	 * than folding Announce into the same bucket as Like.
+	 *
+	 * Deliberately silent (no error response) when the activity doesn't
+	 * resolve to a local artwork or carries no actor — a Like/Announce for
+	 * something Agnosis doesn't recognize, or a malformed delivery, is simply
+	 * not counted; inbox() already returns 200 regardless, matching how every
+	 * other "not applicable here" activity in this class is handled (e.g. the
+	 * `Move` case).
+	 *
+	 * Upserts by the table's own (post_id, activity_type, actor_id) unique
+	 * key via $wpdb->replace() — same idempotent-on-redelivery pattern
+	 * handle_follow() already uses for agnosis_followers, so a re-delivered
+	 * or re-Liked activity refreshes received_at rather than double-counting.
+	 * No artist-level or rate-limit gate here — Ulises's answer (§5): likes
+	 * and boosts are always allowed, no approval workflow, no restriction.
+	 *
+	 * @param array<string, mixed> $body Raw activity payload.
+	 * @param string                $type 'like' or 'announce'.
+	 */
+	private function record_interaction( array $body, string $type ): void {
+		$object = $body['object'] ?? '';
+		if ( is_array( $object ) ) {
+			$object_url = is_string( $object['id'] ?? null ) ? $object['id'] : '';
+		} else {
+			$object_url = is_string( $object ) ? $object : '';
+		}
+
+		$post_id = $this->resolve_local_post_id( $object_url );
+		if ( ! $post_id ) {
+			return;
+		}
+
+		$actor_id = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		if ( '' === $actor_id ) {
+			return;
+		}
+
+		$activity_id = is_string( $body['id'] ?? null ) ? $body['id'] : null;
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->replace() parameterizes every value; small, per-artwork-scale table.
+		$wpdb->replace(
+			$wpdb->prefix . 'agnosis_interactions',
+			[
+				'post_id'       => $post_id,
+				'activity_type' => $type,
+				'actor_id'      => $actor_id,
+				'object_id'     => $activity_id,
+			],
+			[ '%d', '%s', '%s', '%s' ]
+		);
+	}
+
+	/**
+	 * Delete a previously-recorded Like/Announce on Undo (interaction-surface
+	 * roadmap, Phase 1). Mirrors handle_undo()'s existing Undo{Follow}
+	 * handling — same "read the nested activity's own object" shape, since
+	 * AS2's Undo{Like}/Undo{Announce} wraps the original activity in `object`
+	 * rather than naming the target directly the way Undo{Follow} does.
+	 *
+	 * Without this, a like/boost count could only ever grow — see the
+	 * roadmap doc's §2 assessment for why this was called out as a gap the
+	 * moment Phase 1 started persisting anything at all.
+	 *
+	 * @param array<string, mixed> $body Undo activity payload.
+	 * @param string                $type 'like' or 'announce' (the nested
+	 *                                    object's own AS2 type, lowercased).
+	 */
+	private function undo_interaction( array $body, string $type ): void {
+		$inner = $body['object'] ?? [];
+		if ( ! is_array( $inner ) ) {
+			return;
+		}
+
+		$inner_object = $inner['object'] ?? '';
+		$object_url   = is_array( $inner_object )
+			? ( is_string( $inner_object['id'] ?? null ) ? $inner_object['id'] : '' )
+			: ( is_string( $inner_object ) ? $inner_object : '' );
+
+		$post_id = $this->resolve_local_post_id( $object_url );
+		if ( ! $post_id ) {
+			return;
+		}
+
+		// The outer Undo's own `actor` is who's undoing — matches AS2 (an
+		// Undo must be signed by the same actor as the activity it undoes),
+		// same assumption resolve_inbox_signature()'s actor-binding check
+		// already enforces before inbox() is ever reached.
+		$actor_id = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		if ( '' === $actor_id ) {
+			return;
+		}
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->delete() parameterizes every value; small, per-artwork-scale table.
+		$wpdb->delete(
+			$wpdb->prefix . 'agnosis_interactions',
+			[ 'post_id' => $post_id, 'activity_type' => $type, 'actor_id' => $actor_id ],
+			[ '%d', '%s', '%s' ]
+		);
+	}
+
+	/**
+	 * Like/boost counts for one artwork (interaction-surface roadmap, Phase
+	 * 1). Used both by the on-site agnosis/interaction-counts display block
+	 * and by post_to_note()'s outbound likesCount/sharesCount.
+	 *
+	 * @param int $post_id Artwork post id.
+	 * @return array{like: int, announce: int}
+	 */
+	public function interaction_counts( int $post_id ): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only aggregate over a small, per-artwork-scale table; $post_id is an int cast, not user input reaching SQL directly.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT activity_type, COUNT(*) AS c FROM {$wpdb->prefix}agnosis_interactions WHERE post_id = %d GROUP BY activity_type",
+				$post_id
+			)
+		);
+
+		$counts = [ 'like' => 0, 'announce' => 0 ];
+		foreach ( (array) $rows as $row ) {
+			if ( isset( $counts[ $row->activity_type ] ) ) {
+				$counts[ $row->activity_type ] = (int) $row->c;
+			}
+		}
+
+		return $counts;
+	}
+
 	/** @param array<string, mixed> $body */
 	private function handle_follow( array $body ): WP_REST_Response {
 		global $wpdb;
@@ -1470,8 +1799,10 @@ class ActivityPub {
 
 	/** @param array<string, mixed> $body */
 	private function handle_undo( array $body ): WP_REST_Response {
-		$object = $body['object'] ?? [];
-		if ( ( $object['type'] ?? '' ) === 'Follow' ) {
+		$object      = $body['object'] ?? [];
+		$object_type = $object['type'] ?? '';
+
+		if ( 'Follow' === $object_type ) {
 			global $wpdb;
 
 			$follower_id = $body['actor'] ?? '';
@@ -1484,7 +1815,12 @@ class ActivityPub {
 				[ 'owner_type' => $owner['type'], 'owner_id' => $owner['id'], 'actor_id' => $follower_id ],
 				[ '%s', '%d', '%s' ]
 			);
+		} elseif ( 'Like' === $object_type || 'Announce' === $object_type ) {
+			// Interaction-surface roadmap, Phase 1 (2026-07-24) — see
+			// undo_interaction()'s own docblock.
+			$this->undo_interaction( $body, strtolower( $object_type ) );
 		}
+
 		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 	}
 

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.50
+Stable tag: 0.9.51
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,6 +91,9 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.51 =
+* Added: Artworks now show how many times they've been liked and boosted (reshared) across the fediverse — a small, independent count of each below the artwork itself, not a separate page. No setup needed; boosts and likes are always counted, with nothing for artists or admins to approve.
+
 = 0.9.50 =
 * Fixed: The contact, join, and newsletter-signup forms' success/error messages weren't announced to screen readers after submitting — sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.
 * Fixed: A handful of translations (Arabic, Russian, Catalan, and 12 other languages) had a plural form come out wrong — a missing number placeholder, or two forms accidentally merged into one — so some notification/count text could show up wrong or blank in those languages. All are corrected now.
@@ -102,13 +105,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).
 * Fixed: An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).
 
-= 0.9.49 =
-* Removed: The temporary debug trace added in 0.9.48 (native-language-to-primary translation) logged full submission text and its translation to Settings → Logs. A real multi-language submission has since confirmed the underlying translation fix holds, so the trace is removed — no submission content is logged anymore.
-
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.50 =
-Contact/join/newsletter-signup form notices are now announced to screen readers; no visual change.
+= 0.9.51 =
+New database table for like/boost counts is created automatically on upgrade; no action needed.
 

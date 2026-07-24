@@ -828,6 +828,32 @@ class Activator {
 			KEY              idx_status_next (status, next_attempt_at)
 		) $charset_collate;";
 
+		// Federation interaction surface (interaction-surface roadmap, Phase 1,
+		// 2026-07-24) — Like/Announce were previously received and immediately
+		// discarded (ActivityPub::inbox() only fired an unlistened do_action).
+		// activity_type is deliberately just 'like'/'announce', not also
+		// 'reply' — replies are Phase 2 and land as ordinary WP comments, not
+		// rows here. actor_id is the remote actor's AS2 URL (same identity
+		// agnosis_followers.actor_id already keys on); object_id is the
+		// activity's own `id`, kept for future replay-debugging even though
+		// the (post_id, activity_type, actor_id) unique key — not object_id —
+		// is what actually de-duplicates a re-delivered or re-Liked activity.
+		// No owner_type/owner_id columns (unlike agnosis_followers/
+		// agnosis_ap_delivery_queue): a Like/Announce always targets one
+		// specific artwork post, never a node- or artist-level actor, so
+		// post_id alone is the correct scope.
+		$sql_interactions = "CREATE TABLE {$wpdb->prefix}agnosis_interactions (
+			id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			post_id        BIGINT UNSIGNED NOT NULL,
+			activity_type  ENUM('like','announce') NOT NULL,
+			actor_id       VARCHAR(512)    NOT NULL,
+			object_id      VARCHAR(512)    DEFAULT NULL,
+			received_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY    (id),
+			UNIQUE KEY     uq_post_type_actor (post_id, activity_type, actor_id),
+			KEY            idx_post_type (post_id, activity_type)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
@@ -845,6 +871,7 @@ class Activator {
 		dbDelta( $sql_contact_messages );
 		dbDelta( $sql_followers );
 		dbDelta( $sql_ap_delivery_queue );
+		dbDelta( $sql_interactions );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}

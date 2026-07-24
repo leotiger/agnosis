@@ -36,7 +36,7 @@ parameters:
 			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
 
 		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicDescribeTest\\:\\:make_anthropic_body\\(\\) has parameter \\$content_json with no value type specified in iterable type array\\.$#"
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\AI\\\\AnthropicDescribeTest\\:\\:make_anthropic_body\\(\\) has parameter \\$input with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/php/Integration/AI/AnthropicDescribeTest.php
 
@@ -1772,7 +1772,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
-			count: 17
+			count: 20
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1837,7 +1837,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
-			count: 8
+			count: 18
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1866,8 +1866,28 @@ parameters:
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Network\\\\ActivityPub\\:\\:interaction_counts\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:note_for\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 10
+			count: 12
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:render_interaction_counts_via_block\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:seed_interaction\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 13
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:stored_interaction_row_count\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 6
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1898,6 +1918,16 @@ parameters:
 		-
 			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
 			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$object_url of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:like_request\\(\\) expects string, string\\|false given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$object_url of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:undo_like_request\\(\\) expects string, string\\|false given\\.$#"
+			count: 2
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-

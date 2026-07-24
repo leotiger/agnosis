@@ -1156,6 +1156,37 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		delete_option( 'linguaforge_primary_language' );
 	}
 
+	/**
+	 * 2026-07-24 fix. Before this, `$primary_lang` was read via a bare
+	 * `get_option( 'linguaforge_primary_language', '' )` with no further
+	 * fallback — unlike SubmissionTranslator::resolve_target_language(),
+	 * which has always fallen back to the site locale when that option
+	 * isn't explicitly saved. An unset option made this whole method
+	 * silently inert (every newly-created term looked like "primary
+	 * language unknown" and got skipped), reproducing the exact
+	 * 127-Catalan-tags incident this method exists to prevent, on any site
+	 * (or test environment — this is what caught it) relying on the site
+	 * locale default instead of explicitly configuring the option.
+	 */
+	public function test_flag_newly_created_terms_by_post_language_falls_back_to_site_locale_when_option_unset(): void {
+		// No linguaforge_primary_language set — WP test env locale defaults
+		// to en_US → 'en', same as SubmissionTranslator::resolve_target_language()'s
+		// own site-locale fallback.
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+
+		new LinguaForge();
+
+		wp_set_post_tags( $this->artwork_id, [ 'Acantilado Sin Opcion' ], false );
+
+		$term = get_term_by( 'name', 'Acantilado Sin Opcion', 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$this->assertSame(
+			'es',
+			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'With no linguaforge_primary_language option set, this method must still resolve a primary language via the site locale fallback and flag accordingly — not silently skip flagging.'
+		);
+	}
+
 	// ── resolve_primary_tags(): approval-time native→primary tag dedup ───────
 	// (2026-07-19) The single choke point where every submission's tags,
 	// regardless of the artist's native language, get reconciled against ONE
@@ -1260,6 +1291,126 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	public function test_resolve_primary_tags_skips_blank_names(): void {
 		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ '', '   ' ] );
 		$this->assertSame( [], $result );
+	}
+
+	/**
+	 * 2026-07-24 incident regression test. translate_fields() drops the
+	 * 'tags' field entirely when the AI's response isn't a plain string
+	 * (see that method's own docblock), and the caller
+	 * (ReviewEndpoints::translate_native_content_to_primary()) used to fall
+	 * back to the UNTRANSLATED native names — which, passed into this
+	 * method as if they were "the resolved primary tags," collided with the
+	 * exact native term they came from. The old collision fallback trusted
+	 * any name match unconditionally and reused that native (flagged) term
+	 * id directly — silently re-assigning the artist's own native-language
+	 * tag onto the primary post disguised as "resolved," and explaining why
+	 * it never once showed up under Admin\TaxonomyLanguageFilter's "Primary
+	 * language" view.
+	 */
+	public function test_resolve_primary_tags_does_not_reuse_an_already_flagged_native_term_on_collision(): void {
+		$native = wp_insert_term( 'Escultura', 'post_tag' );
+		$this->assertIsArray( $native );
+		$native_id = (int) $native['term_id'];
+		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'ca', true ); // As flag_newly_created_terms_by_post_language() would have stamped it at intake.
+
+		// Simulates the untranslated-native-name fallback: the "translated"
+		// name passed in is actually the SAME text as the native term above,
+		// which is exactly what happens when translate_fields() drops the
+		// tags field and the caller falls back to $native_tags.
+		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ 'Escultura' ] );
+
+		$this->assertSame(
+			[],
+			$result,
+			'A name collision with an already-flagged (native-language) term must never be treated as a resolved primary tag — that term is not primary vocabulary, it\'s the untranslated source.'
+		);
+		$this->assertSame(
+			'ca',
+			get_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'The native term itself must be left exactly as it was — untouched, still flagged.'
+		);
+	}
+
+	public function test_resolve_primary_tags_collision_with_an_unflagged_term_is_still_reused(): void {
+		// Sanity check for the fix above: the new guard only rejects a
+		// collision when the existing term is FLAGGED. An already-existing,
+		// unflagged (genuinely primary) term with the same name resolves via
+		// the ordinary exact-match map lookup (existing_primary_tag_map()),
+		// same as test_resolve_primary_tags_matches_an_existing_primary_tag_by_exact_name_and_links_the_trid
+		// above — pinned here specifically to confirm the new guard hasn't
+		// regressed that path.
+		$existing = wp_insert_term( 'Bodegón', 'post_tag' );
+		$this->assertIsArray( $existing );
+		$existing_id = (int) $existing['term_id'];
+
+		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ 'Bodegón' ] );
+
+		$this->assertSame( [ $existing_id ], $result );
+	}
+
+	/**
+	 * assign_resolved_primary_tags() must suppress
+	 * flag_newly_created_terms_by_post_language() for the duration of its own
+	 * wp_set_object_terms() call — otherwise a BRAND NEW primary term
+	 * (resolve_primary_tags() found no existing match) gets immediately
+	 * flagged as native the moment it's created, since the post's own
+	 * '_agnosis_native_lang' postmeta is still (correctly) the artist's
+	 * original language at this point in ReviewEndpoints::finalize_publish().
+	 * This was the second, independent half of the 2026-07-24 incident —
+	 * see this method's own docblock.
+	 */
+	public function test_assign_resolved_primary_tags_does_not_flag_a_brand_new_term_as_native(): void {
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'ca' );
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		$lf = new LinguaForge();
+
+		$new_term = wp_insert_term( 'Brand New Resolved Tag', 'post_tag' );
+		$this->assertIsArray( $new_term );
+		$term_id = (int) $new_term['term_id'];
+
+		$lf->assign_resolved_primary_tags( $this->artwork_id, [ $term_id ] );
+
+		$this->assertSame(
+			[ 'Brand New Resolved Tag' ],
+			wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+		$this->assertSame(
+			'',
+			get_term_meta( $term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'A term assigned through assign_resolved_primary_tags() must never be flagged as native, regardless of the post\'s own declared language.'
+		);
+
+		delete_option( 'linguaforge_primary_language' );
+	}
+
+	public function test_assign_resolved_primary_tags_leaves_flagging_active_for_a_later_unrelated_call(): void {
+		// The suppression flag must be scoped to exactly the one
+		// wp_set_object_terms() call it wraps — not left permanently on for
+		// the rest of the request.
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'ca' );
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		$lf = new LinguaForge();
+
+		$resolved_term = wp_insert_term( 'Resolved Tag', 'post_tag' );
+		$this->assertIsArray( $resolved_term );
+		$lf->assign_resolved_primary_tags( $this->artwork_id, [ (int) $resolved_term['term_id'] ] );
+
+		// A later, ordinary wp_set_post_tags() call on the SAME post (as
+		// finalize_tags()'s own native-fallback branch would make) must
+		// still get its brand-new term flagged normally.
+		wp_set_post_tags( $this->artwork_id, [ 'Genuinely Native Tag' ], true );
+
+		$native_term = get_term_by( 'name', 'Genuinely Native Tag', 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $native_term );
+		$this->assertSame(
+			'ca',
+			get_term_meta( $native_term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'Suppression must not leak past the one call it wraps.'
+		);
+
+		delete_option( 'linguaforge_primary_language' );
 	}
 
 	// ── G-2: AI-call instrumentation ──────────────────────────────────────────

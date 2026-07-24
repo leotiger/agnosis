@@ -541,7 +541,12 @@ class PostCreator {
 						// audit §4c) always has title === '' — its alt text is
 						// the one AI-generated string it actually carries, so
 						// log that instead of an empty pair of quotes.
-						Logger::info( sprintf( 'Queue #%d: attachment %d described — "%s".', $queue_id, $i + 1, $r['title'] ?: ( $r['alt_text'] ?? '' ) ), 'publisher' );
+						Logger::info( sprintf(
+							'Queue #%d: attachment %d described — "%s".',
+							$queue_id,
+							$i + 1,
+							$r['title'] ?: ( $r['alt_text'] ?? '' )
+						), 'publisher' );
 					} else {
 						Logger::warning( sprintf( 'Queue #%d: attachment %d description failed — %s', $queue_id, $i + 1, $r['error'] ?? 'unknown' ), 'publisher' );
 					}
@@ -1353,6 +1358,12 @@ class PostCreator {
 				continue;
 			}
 			$post     = get_post( $pid );
+			// 2026-07-24: a candidate that's still an unapproved draft no
+			// longer has any real post_tag terms attached at all (see
+			// write_post_meta()'s own docblock for the tagging-timing
+			// redesign this is the accepted cost of) — this simply comes
+			// back empty for that case now, same as it always has for a
+			// candidate the AI never tagged in the first place.
 			$raw_tags = wp_get_post_tags( $pid, [ 'fields' => 'names' ] );
 			$ptags    = implode( ', ', is_array( $raw_tags ) ? $raw_tags : [] );
 			$candidates[ $pid ] = sprintf( 'Post #%d: "%s" — tags: %s', $pid, $post ? $post->post_title : '', $ptags );
@@ -2538,9 +2549,24 @@ class PostCreator {
 		// wpautop() is the same idempotent pass WordPress's own `the_content`
 		// filter already applies to every classic post on every page load,
 		// regardless of whether the stored content already has <p> tags.
-		$body = in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true )
+		// 2026-07-24 fix: artwork used to fall straight to '' whenever the AI
+		// description failed or came back with an empty body (reported live:
+		// an Anthropic parsing failure — see Anthropic.php's class docblock
+		// for the full incident — shipped a real submission to the review
+		// page with a populated title, since $post_data['post_title'] falls
+		// back to the artist's own submitted subject line regardless of AI
+		// success, but a completely blank "Full text"). Biography/event
+		// already had this exact fallback; artwork alone had none at all.
+		// Falling back to the artist's own raw submitted text — the same
+		// wpautop()+wp_kses_post() treatment bio/event get — means a
+		// provider outage or parse failure ships the artist's own words
+		// instead of nothing, and the reviewer/artist can still edit before
+		// publishing either way.
+		$has_ai_body = '' !== trim( wp_strip_all_tags( (string) ( $primary['body'] ?? '' ) ) );
+
+		$body = ( in_array( $post_type, [ 'agnosis_biography', 'agnosis_event' ], true ) || ! $has_ai_body )
 			? wpautop( wp_kses_post( $artist_text ) )
-			: ( $primary['body'] ?? '' );
+			: (string) ( $primary['body'] ?? '' );
 
 		// Wrap each paragraph in explicit Gutenberg block-comment markers
 		// (2026-07-21) — both branches above hand back raw, unwrapped classic
@@ -2787,9 +2813,47 @@ class PostCreator {
 			set_post_thumbnail( $post_id, $this->pick_thumbnail_id( $gallery ) );
 		}
 
-		// Tags.
+		// Tags — 2026-07-24 redesign (root-caused after Ulises flagged the Tags
+		// admin screen as "completely buggy": no primary-language tags ever
+		// existed, trid links broken, a published post still showing raw
+		// native-language tags on its own primary-language listing). This
+		// used to call wp_set_post_tags() right here, at intake, attaching the
+		// artist's own native-language words as real post_tag terms on the
+		// draft. ReviewEndpoints::finalize_publish() was then supposed to
+		// REPLACE them with resolved primary-language terms once translated —
+		// but that replacement had two independent bugs: (1) when translating
+		// the tag bundle specifically failed, its own fallback silently
+		// substituted the untranslated native names back in, and
+		// Compat\LinguaForge::resolve_primary_tags()'s collision handling
+		// then reused the SAME already-flagged native term as if it were "the
+		// resolved primary tag" — no genuine primary term was ever created;
+		// (2) flag_newly_created_terms_by_post_language() fires on every
+		// wp_set_object_terms() call, including finalize_publish()'s own
+		// resolution step, and this post's `_agnosis_native_lang` postmeta is
+		// still (correctly) the artist's original language at that point —
+		// so a BRAND NEW, correctly-resolved primary term got immediately
+		// flagged as native anyway, the moment it was created.
+		//
+		// Ulises's own framing cuts through both: "shouldn't we tag once we
+		// provide the primary language version?" Tagging exactly once, only
+		// once the final (published) language is actually known — see
+		// ReviewEndpoints::finalize_tags() — removes both failure modes at
+		// the root instead of patching either symptom. Nothing here writes to
+		// the real post_tag taxonomy any more; the native-language names are
+		// simply cached so finalize_tags() has them to work with later.
+		//
+		// Trade-off accepted: find_duplicate_post()'s fuzzy-match step reads
+		// OTHER recent same-artist posts' real wp_get_post_tags() as a
+		// signal — for two still-pending (not yet approved) drafts by the
+		// same artist, that signal is now weaker (nothing attached yet on
+		// either side). Title/subject/image-hash matching there are
+		// unaffected, and a false negative there just means both drafts
+		// surface for separate manual review rather than being auto-merged —
+		// a minor, accepted cost.
 		if ( ! empty( $all_tags ) ) {
-			wp_set_post_tags( $post_id, $all_tags );
+			update_post_meta( $post_id, '_agnosis_native_tags', wp_json_encode( array_values( array_unique( $all_tags ) ) ) );
+		} else {
+			delete_post_meta( $post_id, '_agnosis_native_tags' );
 		}
 
 		// Medium taxonomy term — only for artwork posts.

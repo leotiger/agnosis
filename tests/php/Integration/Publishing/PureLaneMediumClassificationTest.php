@@ -215,13 +215,17 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 		);
 		// 2026-07-21 (F-1): tags now come from the SAME classification call as
 		// medium — no second API call — so a pure@ post is no longer published
-		// tagless/undiscoverable. wp_get_post_terms() does not preserve
-		// insertion order (it comes back alphabetical, not classification
-		// order — caught live: 'black-and-white' before 'portrait'), so this
-		// must compare content, not position.
+		// tagless/undiscoverable. 2026-07-24: PostCreator::handle() only ever
+		// creates a DRAFT (finalize_publish()/approval never runs in this
+		// test), and tags are no longer attached to the real post_tag
+		// taxonomy at intake at all — they're cached as '_agnosis_native_tags'
+		// postmeta instead (see write_post_meta()'s own docblock), for
+		// ReviewEndpoints::finalize_tags() to assign for real once the post is
+		// actually approved. json_decode() order matches insertion here
+		// (unlike wp_get_post_terms(), which came back alphabetical).
 		$this->assertEqualsCanonicalizing(
 			[ 'portrait', 'black-and-white' ],
-			wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
+			(array) json_decode( (string) get_post_meta( $post_id, '_agnosis_native_tags', true ), true )
 		);
 	}
 
@@ -252,11 +256,12 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
 		// 2026-07-21 (F-1): same one-call classification also supplies tags for
-		// the text-only (synthetic-poster) branch. Order-independent for the
-		// same reason as the image-attachment test above.
+		// the text-only (synthetic-poster) branch. 2026-07-24: same postmeta
+		// cache check as the image-attachment test above — see that test's
+		// comment for why.
 		$this->assertEqualsCanonicalizing(
 			[ 'nature', 'rhyme' ],
-			wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
+			(array) json_decode( (string) get_post_meta( $post_id, '_agnosis_native_tags', true ), true )
 		);
 	}
 

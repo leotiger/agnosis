@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/interaction-counts",
+	"version": "0.9.51",
+	"title": "Interaction Counts",
+	"category": "agnosis",
+	"icon": "heart",
+	"description": "Renders how many times this artwork has been liked and boosted across the fediverse — two small, independent counts. Renders nothing on an artwork with no interactions yet, or off an agnosis_artwork post.",
+	"keywords": [ "like", "likes", "boost", "boosts", "announce", "federation", "activitypub", "agnosis" ],
+	"textdomain": "agnosis",
+	"usesContext": [ "postId" ],
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": false
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}

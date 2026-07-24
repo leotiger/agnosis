@@ -460,6 +460,9 @@ class Plugin {
 
 		$activitypub = new ActivityPub();
 		$this->loader->add_action( 'rest_api_init',          $activitypub, 'register_routes' );
+		// Interaction-surface roadmap, Phase 1 (2026-07-24): agnosis/interaction-counts,
+		// the on-site like/boost count display — see ActivityPub::register_interaction_counts_block().
+		$this->loader->add_action( 'init',                   $activitypub, 'register_interaction_counts_block' );
 		$this->loader->add_action( 'agnosis_post_published', $activitypub, 'broadcast', 10, 1 );
 		// Audit §3c: artwork object ids must dereference to ActivityStreams
 		// JSON — content-negotiate on the artwork permalink itself.

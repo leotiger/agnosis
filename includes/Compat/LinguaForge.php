@@ -1552,10 +1552,31 @@ class LinguaForge {
 			} else {
 				$created = wp_insert_term( $name, $taxonomy );
 				if ( is_wp_error( $created ) ) {
-					// Most likely a genuine race — another request created
-					// the same tag between the query above and this call.
+					// A collision here is NOT always the genuine race it looks
+					// like — the exact-name lookup above only ever searches
+					// the PRIMARY (unflagged) bucket, so wp_insert_term()
+					// colliding means a term with this exact name exists
+					// SOMEWHERE, but says nothing about which bucket it's in.
+					// 2026-07-24 incident: when translate_fields() fails to
+					// translate the tag bundle, the caller's own fallback
+					// passes the untranslated NATIVE name straight into
+					// $translated_names — which collides here with the very
+					// native term it came from (already flagged
+					// TRANSLATED_TERM_META at intake). Reusing that term_id
+					// unconditionally, as this used to, assigned the artist's
+					// own native-language term directly onto the primary post
+					// disguised as "the resolved primary tag" — no genuine
+					// primary term was ever created, and the native term
+					// stayed just as flagged as before, so it never showed up
+					// under the "Primary language" filter either. Only trust
+					// the collision as a real match when the existing term is
+					// itself genuinely unflagged/primary; otherwise this name
+					// was never actually translated, and the caller should
+					// treat it the same as any other unresolvable tag.
 					$existing = get_term_by( 'name', $name, $taxonomy );
-					$term_id  = $existing instanceof \WP_Term ? $existing->term_id : 0;
+					$term_id  = ( $existing instanceof \WP_Term && ! get_term_meta( $existing->term_id, self::TRANSLATED_TERM_META, true ) )
+						? $existing->term_id
+						: 0;
 				} else {
 					$term_id = (int) $created['term_id'];
 				}
@@ -1574,6 +1595,55 @@ class LinguaForge {
 		}
 
 		return array_values( array_unique( $assign ) );
+	}
+
+	/**
+	 * Guard flag for assign_resolved_primary_tags() below — a static, not an
+	 * instance property, because the object that registers
+	 * flag_newly_created_terms_by_post_language() (the singleton `new
+	 * LinguaForge()` constructed once at Plugin::register_services() boot
+	 * time) is never the same instance a call site later constructs to reach
+	 * this method (e.g. ReviewEndpoints' `( new LinguaForge() )->...`).
+	 * remove_action()/add_action() match callables by object identity, so
+	 * unhooking through a different instance would silently no-op — a static
+	 * flag the hook itself checks works regardless of which instance is
+	 * "the one actually registered."
+	 *
+	 * @var boolean
+	 */
+	private static bool $suppress_native_flagging = false;
+
+	/**
+	 * Assigns already-resolved PRIMARY-language `post_tag` term IDs
+	 * (resolve_primary_tags()'s return value) to a post, WITHOUT letting
+	 * flag_newly_created_terms_by_post_language() mis-flag any brand-new one
+	 * of them as native-language.
+	 *
+	 * That hook exists to catch a term auto-created as a side effect of
+	 * tagging a post in the artist's own native language — correct when the
+	 * wp_set_object_terms() call in progress IS that original native-language
+	 * tagging. It is NOT correct here: resolve_primary_tags() has already
+	 * done the actual language reconciliation, and every term ID it returns
+	 * (freshly created or reused) is meant to join the PRIMARY vocabulary —
+	 * even though the post's own `_agnosis_native_lang` postmeta still
+	 * (correctly) reflects the artist's original language at this exact
+	 * point in ReviewEndpoints::finalize_publish(). Without this guard, any
+	 * brand-new resolved tag (no existing primary term happened to match)
+	 * got immediately flagged as native by the very same hook meant to keep
+	 * it OUT of that bucket in the first place — part of the 2026-07-24
+	 * incident PostCreator::write_post_meta()'s own docblock describes.
+	 *
+	 * @param int   $post_id  Post to tag — always the live, PRIMARY-language post.
+	 * @param int[] $term_ids Resolved post_tag term IDs from resolve_primary_tags().
+	 */
+	public function assign_resolved_primary_tags( int $post_id, array $term_ids ): void {
+		if ( empty( $term_ids ) ) {
+			return;
+		}
+
+		self::$suppress_native_flagging = true;
+		wp_set_object_terms( $post_id, $term_ids, 'post_tag' );
+		self::$suppress_native_flagging = false;
 	}
 
 	/**
@@ -2157,6 +2227,17 @@ class LinguaForge {
 		// request (e.g. a bulk-import script processing many posts).
 		self::$newly_created_term_ids = array_values( array_diff( self::$newly_created_term_ids, $matched ) );
 
+		// See assign_resolved_primary_tags()'s own docblock — set while (and
+		// only while) that method's own wp_set_object_terms() call for
+		// already-reconciled PRIMARY-language term IDs is in flight. The
+		// consumption above still needs to happen either way (these ids are
+		// spoken for either way — flagged as native here, or correctly left
+		// unflagged/primary by this suppression), just not the flagging
+		// itself.
+		if ( self::$suppress_native_flagging ) {
+			return;
+		}
+
 		// sanitize_key() on both sides — not just defensiveness: this is the
 		// exact comparison a casing/whitespace mismatch between the two
 		// would silently defeat, which is precisely the class of bug this
@@ -2181,9 +2262,26 @@ class LinguaForge {
 		// post type this hook fires for that never goes through it).
 		$native_lang  = sanitize_key( (string) get_post_meta( $object_id, '_agnosis_native_lang', true ) );
 		$post_lang    = '' !== $native_lang ? $native_lang : sanitize_key( (string) get_post_meta( $object_id, '_lf_lang', true ) );
-		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
 
-		if ( '' === $post_lang || '' === $primary_lang || $post_lang === $primary_lang ) {
+		// 2026-07-24 fix: same fallback chain as
+		// SubmissionTranslator::resolve_target_language() — a bare
+		// `get_option( 'linguaforge_primary_language', '' )` with no further
+		// fallback left this hook completely inert on any site (or test
+		// environment) where that option was never explicitly saved, even
+		// though the rest of the pipeline has always treated "unset" as
+		// "fall back to the site's own locale," never as "primary language
+		// unknown." A silently-inert flagging hook reproduces precisely the
+		// 127-Catalan-tags incident this whole method exists to prevent —
+		// every non-primary-language artist's newly-created tags landing
+		// unflagged in the "primary" bucket again, just via a different,
+		// newer gap.
+		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		if ( '' === $primary_lang ) {
+			$primary_lang = sanitize_key( substr( get_locale(), 0, 2 ) );
+		}
+		$primary_lang = $primary_lang ?: 'en';
+
+		if ( '' === $post_lang || $post_lang === $primary_lang ) {
 			return; // Primary-language post (or language unknown) — these newly-created terms genuinely ARE the primary vocabulary.
 		}
 

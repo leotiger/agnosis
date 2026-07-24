@@ -63,8 +63,23 @@ class PostContentBuildTest extends TestCase {
 		$this->assertStringNotContainsString( 'Artist wrote this.', $result );
 	}
 
-	public function test_artwork_with_no_ai_body_returns_empty(): void {
+	public function test_artwork_with_no_ai_body_falls_back_to_artist_text(): void {
+		// 2026-07-24 fix: artwork used to return '' outright whenever the AI
+		// description failed/came back empty — a real submission then shipped
+		// with a blank "Full text" on the review page, even though the artist's
+		// own words were right there in the email. Biography/event already
+		// fell back to the artist's own text in this situation; artwork alone
+		// didn't. Now it does too, same wpautop()+wp_kses_post() treatment.
 		$result = $this->build( [], [], 'agnosis_artwork', 'Artist note.' );
+
+		$this->assertStringContainsString( 'Artist note.', $result );
+	}
+
+	public function test_artwork_with_no_ai_body_and_no_artist_text_returns_empty(): void {
+		// Nothing to fall back to either way — genuinely nothing was submitted
+		// for this attachment/description, so an empty body is still correct.
+		$result = $this->build( [], [], 'agnosis_artwork', '' );
+
 		$this->assertSame( '', $result );
 	}
 

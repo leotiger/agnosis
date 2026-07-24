@@ -1,20 +1,30 @@
 <?php
 /**
- * Integration tests — Anthropic::describe() JSON parsing.
+ * Integration tests — Anthropic::describe() response handling.
  *
  * All HTTP calls are intercepted via the pre_http_request filter so no real
  * network requests are made. Tests exercise the full path from wp_remote_post()
  * to DescriptionResult, covering:
  *
- *   - Full happy-path JSON → all DescriptionResult fields populated
+ *   - Full happy-path tool_use response → all DescriptionResult fields populated
  *   - Photo quality score and issues extraction
  *   - Score clamping to [0, 10]
  *   - Empty API key → immediate failure
  *   - WP_Error network failure → failure result
  *   - Non-200 HTTP response → failure result
- *   - 200 response but missing content[0].text path → failure result
- *   - Inner text not valid JSON → failure result
+ *   - 200 response but empty content[] → failure result
+ *   - Response with no matching tool_use block → failure result
  *   - enhance() always returns failure (Anthropic does not support enhancement)
+ *
+ * 2026-07-24: describe()/describe_secondary() were rewritten to use forced
+ * tool use (function calling) instead of asking Claude to hand-write JSON
+ * inside a text block — see Anthropic.php's class docblock for the full
+ * incident (a live claude-sonnet-5 submission came back with every AI field
+ * empty; the same class of bug as dev/bin/translate-missing.php's own
+ * documented Claude escaping failure). make_anthropic_body() below now
+ * builds a `tool_use` content block (an already-decoded `input` array,
+ * exactly what the real Messages API hands back for a forced tool call)
+ * rather than a `text` block containing a JSON string.
  *
  * @package Agnosis\Tests\Integration\AI
  */
@@ -127,13 +137,20 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		return (string) base64_decode( (string) $b64, true );
 	}
 
-	/** Build an Anthropic messages response where content[0].text is the given JSON. */
-	private function make_anthropic_body( array $content_json ): string {
+	/**
+	 * Build an Anthropic messages response whose content[] is a single
+	 * `tool_use` block carrying $input as its already-decoded `input` —
+	 * the real API's shape for a forced tool call. Defaults to the primary
+	 * describe() tool name; describe_secondary() tests pass its own name.
+	 */
+	private function make_anthropic_body( array $input, string $tool_name = 'submit_artwork_description' ): string {
 		return (string) wp_json_encode( [
 			'content' => [
 				[
-					'type' => 'text',
-					'text' => wp_json_encode( $content_json ),
+					'type'  => 'tool_use',
+					'id'    => 'toolu_test123',
+					'name'  => $tool_name,
+					'input' => $input,
 				],
 			],
 		] );
@@ -168,7 +185,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'Anthropic API error', $result->error );
 	}
 
-	public function test_missing_content_path_returns_failure(): void {
+	public function test_empty_content_array_returns_failure(): void {
 		$this->mock_http( 200, (string) wp_json_encode( [ 'content' => [] ] ) );
 
 		$result = $this->make_provider()->describe( 'imagedata', 'image/jpeg', '' );
@@ -177,7 +194,10 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'Anthropic API error', $result->error );
 	}
 
-	public function test_inner_text_non_json_returns_failure(): void {
+	public function test_plain_text_reply_instead_of_tool_call_returns_failure(): void {
+		// The model replied with ordinary prose instead of calling the forced
+		// submit_artwork_description tool — extract_tool_input() finds no
+		// tool_use block at all, same failure as truly malformed output.
 		$this->mock_http( 200, (string) wp_json_encode( [
 			'content' => [
 				[ 'type' => 'text', 'text' => 'Sorry, I cannot help with that.' ],
@@ -188,6 +208,61 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 
 		$this->assertFalse( $result->success );
 		$this->assertStringContainsString( 'non-JSON', $result->error );
+	}
+
+	public function test_tool_use_block_with_wrong_name_returns_failure(): void {
+		// A tool_use block IS present, but not the one we asked for — must
+		// not be mistaken for a valid response.
+		$this->mock_http( 200, $this->make_anthropic_body( [ 'foo' => 'bar' ], 'some_other_tool' ) );
+
+		$result = $this->make_provider()->describe( 'imagedata', 'image/jpeg', '' );
+
+		$this->assertFalse( $result->success );
+		$this->assertStringContainsString( 'non-JSON', $result->error );
+	}
+
+	public function test_embedded_quotes_and_newlines_in_body_survive_intact(): void {
+		// 2026-07-24 regression: the whole reason describe() moved to tool
+		// use. A raw-text JSON approach depended on Claude perfectly
+		// backslash-escaping every embedded quote/newline in the body itself
+		// — a real failure mode documented in dev/bin/translate-missing.php's
+		// call_anthropic(). Tool use hands back an already-decoded array, so
+		// a body containing literal quotes and line breaks must survive
+		// completely untouched, with no escaping to get wrong.
+		$tricky_body = "She calls it \"the quiet hour.\"\nTwo figures share a glance that says everything.";
+		$content     = [
+			'title' => 'T', 'excerpt' => 'E', 'body' => $tricky_body,
+			'tags'  => [], 'alt_text' => 'A', 'medium' => 'Photography',
+		];
+		$this->mock_http( 200, $this->make_anthropic_body( $content ) );
+
+		$result = $this->make_provider()->describe( 'imagedata', 'image/jpeg', '' );
+
+		$this->assertTrue( $result->success );
+		$this->assertSame( wp_kses_post( $tricky_body ), $result->body );
+	}
+
+	public function test_describe_sends_forced_tool_use_matching_the_description_schema(): void {
+		$captured = null;
+		$this->mock_http_capturing(
+			200,
+			$this->make_anthropic_body( [ 'title' => 'T', 'excerpt' => 'E', 'body' => 'B', 'tags' => [], 'alt_text' => 'A', 'medium' => '' ] ),
+			$captured
+		);
+
+		$this->make_provider()->describe( 'imagedata', 'image/jpeg', '' );
+
+		$payload = json_decode( (string) $captured['body'], true );
+		$this->assertSame( 'submit_artwork_description', $payload['tools'][0]['name'] ?? null );
+		$this->assertSame(
+			[ 'type' => 'tool', 'name' => 'submit_artwork_description' ],
+			$payload['tool_choice'] ?? null
+		);
+		$schema_props = $payload['tools'][0]['input_schema']['properties'] ?? [];
+		foreach ( [ 'title', 'excerpt', 'body', 'tags', 'alt_text', 'medium', 'photo_quality' ] as $field ) {
+			$this->assertArrayHasKey( $field, $schema_props, "Schema must declare a '{$field}' property." );
+		}
+		$this->assertSame( 2500, $payload['max_tokens'] ?? null, '2026-07-24: raised from 1500 — see Anthropic.php class docblock.' );
 	}
 
 	public function test_full_happy_path_populates_all_fields(): void {
@@ -400,7 +475,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'Anthropic API error', $result->error );
 	}
 
-	public function test_describe_secondary_inner_text_non_json_returns_failure(): void {
+	public function test_describe_secondary_plain_text_reply_instead_of_tool_call_returns_failure(): void {
 		$this->mock_http( 200, (string) wp_json_encode( [
 			'content' => [ [ 'type' => 'text', 'text' => 'Sorry, I cannot help with that.' ] ],
 		] ) );
@@ -417,7 +492,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 			'tags'          => [ 'seascape', 'dawn' ],
 			'photo_quality' => [ 'score' => 8, 'issues' => [] ],
 		];
-		$this->mock_http( 200, $this->make_anthropic_body( $content ) );
+		$this->mock_http( 200, $this->make_anthropic_body( $content, 'submit_secondary_image_description' ) );
 
 		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
 
@@ -435,7 +510,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 	public function test_describe_secondary_quality_score_clamped_to_bounds(): void {
 		$this->mock_http( 200, $this->make_anthropic_body( [
 			'alt_text' => 'A', 'tags' => [], 'photo_quality' => [ 'score' => 100, 'issues' => [] ],
-		] ) );
+		], 'submit_secondary_image_description' ) );
 
 		$result = $this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
 
@@ -446,7 +521,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$captured = null;
 		$this->mock_http_capturing(
 			200,
-			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ], 'submit_secondary_image_description' ),
 			$captured
 		);
 
@@ -454,7 +529,12 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 
 		$payload = json_decode( (string) $captured['body'], true );
 		$this->assertSame( PromptConfig::secondary_system_prompt(), $payload['system'] ?? '' );
-		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (1500).' );
+		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (2500).' );
+		$this->assertSame( 'submit_secondary_image_description', $payload['tools'][0]['name'] ?? null );
+		$this->assertSame(
+			[ 'type' => 'tool', 'name' => 'submit_secondary_image_description' ],
+			$payload['tool_choice'] ?? null
+		);
 	}
 
 	public function test_describe_secondary_sends_no_artist_context_user_message(): void {
@@ -464,7 +544,7 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$captured = null;
 		$this->mock_http_capturing(
 			200,
-			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ] ),
+			$this->make_anthropic_body( [ 'alt_text' => 'A', 'tags' => [] ], 'submit_secondary_image_description' ),
 			$captured
 		);
 

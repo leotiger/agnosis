@@ -100,7 +100,13 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		] );
 		update_post_meta( $this->post_id, '_agnosis_native_lang', 'es' );
 		update_post_meta( $this->post_id, '_agnosis_native_medium', 'Óleo' );
-		wp_set_post_tags( $this->post_id, [ 'Paisaje', 'Costero' ] );
+		// 2026-07-24 redesign: PostCreator::write_post_meta() no longer
+		// attaches native tags to the real post_tag taxonomy at intake at
+		// all — it caches the names as postmeta instead, which
+		// ReviewEndpoints::finalize_tags() reads at approval time (see that
+		// method's own docblock). Simulate exactly that cache, not a real
+		// taxonomy assignment.
+		update_post_meta( $this->post_id, '_agnosis_native_tags', wp_json_encode( [ 'Paisaje', 'Costero' ] ) );
 
 		update_post_meta( $this->post_id, '_agnosis_review_token', self::VALID_TOKEN );
 		update_post_meta( $this->post_id, '_agnosis_review_expiry', time() + 86400 * 7 );
@@ -253,6 +259,84 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 			wp_get_post_terms( $this->post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
 			'A hallucinated medium term must be silently dropped, not assigned.'
 		);
+	}
+
+	// -------------------------------------------------------------------------
+	// Tag finalization (2026-07-24 redesign) — ReviewEndpoints::finalize_tags()
+	// is now the ONE place a post's real post_tag terms are ever assigned; see
+	// its own docblock, and PostCreator::write_post_meta()'s, for the
+	// data-integrity incident this closes (no tags ever reachable under
+	// Admin\TaxonomyLanguageFilter's "Primary language" view; a published
+	// post still showing its own raw native-language tags on its own
+	// primary-language listing).
+	// -------------------------------------------------------------------------
+
+	public function test_approve_assigns_resolved_primary_tags_for_a_cross_language_draft(): void {
+		// Uses the class default fixture — TRANSLATED_RESPONSE's 'tags' entry is "Landscape | Coastal".
+		$this->approve();
+
+		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
+		$this->assertIsArray( $assigned );
+		$this->assertEqualsCanonicalizing(
+			[ 'Landscape', 'Coastal' ],
+			wp_list_pluck( $assigned, 'name' ),
+			'A successfully translated tag bundle must be assigned to the published post as real, resolved primary tags.'
+		);
+		foreach ( $assigned as $term ) {
+			$this->assertSame(
+				'',
+				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+				sprintf( 'Genuinely resolved primary tag "%s" must NOT be flagged as native-language — see LinguaForge::assign_resolved_primary_tags().', $term->name )
+			);
+		}
+	}
+
+	public function test_approve_of_same_language_draft_assigns_native_tags_directly(): void {
+		// Artist's own language already matches the site's primary — no
+		// translation happens at all (see test_approve_of_same_language_draft_makes_zero_ai_calls
+		// above), but the tags cached at intake are still this post's real,
+		// final ones — they ARE the primary vocabulary already.
+		update_post_meta( $this->post_id, '_agnosis_native_lang', 'en' );
+
+		$this->approve();
+
+		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
+		$this->assertIsArray( $assigned );
+		$this->assertEqualsCanonicalizing( [ 'Paisaje', 'Costero' ], wp_list_pluck( $assigned, 'name' ) );
+		foreach ( $assigned as $term ) {
+			$this->assertSame(
+				'',
+				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+				'A same-language artist\'s tags are already primary-language and must never be flagged as native.'
+			);
+		}
+	}
+
+	public function test_approve_falls_back_to_flagged_native_tags_when_tag_translation_fails(): void {
+		// The AI's response is missing 'tags' entirely — translate_fields()
+		// drops a field it can't parse as a plain string rather than failing
+		// the whole batch (see that method's own docblock), so
+		// translate_native_content_to_primary() falls back to the untranslated
+		// native names. finalize_tags() must publish those directly rather
+		// than nothing — but correctly flagged as native-language, not
+		// silently masquerading as resolved primary tags (the exact
+		// 2026-07-24 incident this redesign closes).
+		$response = self::TRANSLATED_RESPONSE;
+		unset( $response['tags'] );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( $response );
+
+		$this->approve();
+
+		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
+		$this->assertIsArray( $assigned );
+		$this->assertEqualsCanonicalizing( [ 'Paisaje', 'Costero' ], wp_list_pluck( $assigned, 'name' ) );
+		foreach ( $assigned as $term ) {
+			$this->assertSame(
+				'es',
+				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+				sprintf( 'Untranslated native-language fallback tag "%s" must be flagged non-primary, not left indistinguishable from a genuine primary tag.', $term->name )
+			);
+		}
 	}
 
 	// -------------------------------------------------------------------------

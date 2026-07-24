@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.50';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.50/agnosis-0.9.50.zip';
+	$version      = '0.9.51';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.51/agnosis-0.9.51.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -97,9 +97,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = 'ee9414f214048bbeb6546eb4a41eac929581e0f61b18c850a4f6874c009d8182'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-24 for agnosis-0.9.50.zip.';
-	$last_updated = '2026-07-24';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Build started 2026-07-24T17:46:36Z by build-zip.sh for v0.9.51 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
+	$last_updated = '';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -111,6 +111,10 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.51</h4>' .
+		'<ul>' .
+			'<li><strong>Added:</strong> Artworks now show how many times they&#8217;ve been liked and boosted (reshared) across the fediverse &#8212; a small, independent count of each below the artwork itself, not a separate page. Boosts and likes are always counted, with nothing for artists or admins to approve.</li>' .
+		'</ul>' .
 		'<h4>0.9.50</h4>' .
 		'<ul>' .
 			'<li><strong>Fixed:</strong> The contact, join, and newsletter-signup forms&#8217; success/error messages weren&#8217;t announced to screen readers after submitting &#8212; sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.</li>' .
@@ -122,10 +126,6 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 			'<li><strong>Hardened:</strong> Internal cleanup that removes a superseded auto-generated placeholder image now double-checks it&#8217;s actually a placeholder before deleting it &#8212; extra protection against ever deleting a real photo by mistake (no known instance of this happening).</li>' .
 			'<li><strong>Fixed:</strong> A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).</li>' .
 			'<li><strong>Fixed:</strong> An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).</li>' .
-		'</ul>' .
-		'<h4>0.9.49</h4>' .
-		'<ul>' .
-			'<li><strong>Removed:</strong> The temporary debug trace added in 0.9.48 (native-language-to-primary translation) logged full submission text and its translation to Settings &#8594; Logs. A real multi-language submission has since confirmed the underlying translation fix holds, so the trace is removed &#8212; no submission content is logged anymore.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

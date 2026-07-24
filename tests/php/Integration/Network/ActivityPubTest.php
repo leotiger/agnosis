@@ -74,6 +74,29 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 	protected function tearDown(): void {
 		unset( $_SERVER['HTTP_ACCEPT'] );
+
+		// 2026-07-24 fix: several tests in this class (test_note_id_equals_
+		// permalink_under_pretty_permalinks, test_inbox_like_resolves_the_
+		// artwork_under_pretty_permalinks, and their plain-permalink siblings)
+		// call set_permalink_structure() to exercise both permalink modes.
+		// $wp_rewrite's in-memory rewrite-rules cache is NOT covered by
+		// WP_UnitTestCase's per-test DB transaction rollback — the
+		// 'permalink_structure' OPTION correctly reverts, but the separate,
+		// already-compiled rewrite rules living on the $wp_rewrite object do
+		// not automatically resync to match, so a later test's get_permalink()
+		// call can silently build a URL that matches NEITHER the current
+		// option value nor a coherent rewrite state. This is exactly what made
+		// test_inbox_like_persists_an_interaction_row and four siblings fail
+		// with "0 rows written" on a real run — each individually-innocuous
+		// test was actually running against inherited, inconsistent permalink
+		// state left behind by an EARLIER pretty-permalink test elsewhere in
+		// this same (2000+ line) class, despite passing in isolation. Always
+		// resetting to the suite's real default (plain) and re-registering the
+		// CPT here means every test in this class now starts from the same
+		// known-good baseline, regardless of what ran immediately before it.
+		$this->set_permalink_structure( '' );
+		( new \Agnosis\Artist\Profile() )->register_post_type();
+
 		parent::tearDown();
 	}
 
@@ -1982,5 +2005,260 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertSame( [ 'activitypub' ], $data['protocols'] );
 		$this->assertGreaterThanOrEqual( 2, $data['usage']['users']['total'], 'Must count at least the two artists created for this test.' );
 		$this->assertGreaterThanOrEqual( 2, $data['usage']['localPosts'], 'Must count only published artworks, but at least the two published in this test.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Interaction-surface roadmap, Phase 1 (2026-07-24) — Like/Announce
+	// persistence, Undo, counts, outbound Note fields, and the
+	// agnosis/interaction-counts display block.
+	// -------------------------------------------------------------------------
+
+	/** Directly seed one row in agnosis_interactions — the interaction-table equivalent of seed_follower(). */
+	private function seed_interaction( int $post_id, string $type, string $actor_id, ?string $object_id = null ): void {
+		global $wpdb;
+		$wpdb->replace(
+			$wpdb->prefix . 'agnosis_interactions',
+			[ 'post_id' => $post_id, 'activity_type' => $type, 'actor_id' => $actor_id, 'object_id' => $object_id ],
+			[ '%d', '%s', '%s', '%s' ]
+		);
+	}
+
+	/** Row count actually stored for one (post, type, actor) triple — used to assert idempotency/removal directly against the table. */
+	private function stored_interaction_row_count( int $post_id, string $type, string $actor_id ): int {
+		global $wpdb;
+		return (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_interactions WHERE post_id = %d AND activity_type = %s AND actor_id = %s",
+			$post_id,
+			$type,
+			$actor_id
+		) );
+	}
+
+	private function like_request( string $type, string $actor, string $object_url ): \WP_REST_Request {
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [ 'type' => $type, 'actor' => $actor, 'object' => $object_url ] ) );
+		return $request;
+	}
+
+	public function test_inbox_like_persists_an_interaction_row(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$response = ( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, get_permalink( $post_id ) ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertSame( 1, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ) );
+	}
+
+	public function test_inbox_announce_persists_independently_from_like(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$url     = get_permalink( $post_id );
+
+		( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, $url ) );
+		( new ActivityPub() )->inbox( $this->like_request( 'Announce', self::REMOTE_ACTOR_URL, $url ) );
+
+		$counts = ( new ActivityPub() )->interaction_counts( $post_id );
+		$this->assertSame( [ 'like' => 1, 'announce' => 1 ], $counts, 'A Like and an Announce from the same actor on the same post must be counted independently, not combined or deduplicated against each other.' );
+	}
+
+	public function test_inbox_redelivered_like_does_not_double_count(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$request = $this->like_request( 'Like', self::REMOTE_ACTOR_URL, get_permalink( $post_id ) );
+
+		( new ActivityPub() )->inbox( $request );
+		( new ActivityPub() )->inbox( $request ); // Same activity delivered twice — a real fediverse retry scenario.
+
+		$this->assertSame( 1, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ), 'A re-delivered (or re-Liked) activity from the same actor must upsert, not insert a second row.' );
+	}
+
+	public function test_inbox_like_on_unrecognized_object_is_a_silent_noop(): void {
+		$response = ( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, 'https://example.com/not-a-local-post' ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'], 'inbox() must still 200 even when the Like target is not recognized — never error back to the remote server.' );
+
+		global $wpdb;
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_interactions" );
+		$this->assertSame( 0, $total, 'Nothing should be persisted for an object url that does not resolve to a local artwork.' );
+	}
+
+	public function test_inbox_like_on_non_artwork_post_is_a_silent_noop(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'post', 'post_status' => 'publish' ] );
+
+		( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, get_permalink( $post_id ) ) );
+
+		$this->assertSame( 0, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ), 'Only agnosis_artwork posts are in scope for interaction counts.' );
+	}
+
+	private function undo_like_request( string $type, string $actor, string $object_url ): \WP_REST_Request {
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Undo',
+			'actor'  => $actor,
+			'object' => [ 'type' => $type, 'actor' => $actor, 'object' => $object_url ],
+		] ) );
+		return $request;
+	}
+
+	public function test_undo_like_removes_the_stored_interaction(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$url     = get_permalink( $post_id );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+
+		$response = ( new ActivityPub() )->inbox( $this->undo_like_request( 'Like', self::REMOTE_ACTOR_URL, $url ) );
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+		$this->assertSame( 0, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ), 'Undo{Like} must remove the row — otherwise a like count could only ever grow.' );
+	}
+
+	public function test_undo_announce_removes_only_the_announce_row_not_the_like(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$url     = get_permalink( $post_id );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+		$this->seed_interaction( $post_id, 'announce', self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox( $this->undo_like_request( 'Announce', self::REMOTE_ACTOR_URL, $url ) );
+
+		$this->assertSame( [ 'like' => 1, 'announce' => 0 ], ( new ActivityPub() )->interaction_counts( $post_id ), 'Undo{Announce} must not touch the same actor\'s separate Like on the same post.' );
+	}
+
+	public function test_interaction_counts_is_zero_for_a_post_with_no_interactions(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$this->assertSame( [ 'like' => 0, 'announce' => 0 ], ( new ActivityPub() )->interaction_counts( $post_id ) );
+	}
+
+	public function test_interaction_counts_only_counts_the_requested_post(): void {
+		$post_a = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$post_b = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->seed_interaction( $post_a, 'like', self::REMOTE_ACTOR_URL );
+		$this->seed_interaction( $post_b, 'like', self::OTHER_ACTOR_URL );
+
+		$this->assertSame( [ 'like' => 1, 'announce' => 0 ], ( new ActivityPub() )->interaction_counts( $post_a ) );
+	}
+
+	public function test_note_reports_likes_count_and_shares_count(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+		$this->seed_interaction( $post_id, 'like', self::OTHER_ACTOR_URL );
+		$this->seed_interaction( $post_id, 'announce', self::REMOTE_ACTOR_URL );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertSame( 2, $note['likesCount'] );
+		$this->assertSame( 1, $note['sharesCount'] );
+	}
+
+	public function test_note_reports_zero_counts_for_a_fresh_artwork(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertSame( 0, $note['likesCount'] );
+		$this->assertSame( 0, $note['sharesCount'] );
+	}
+
+	/**
+	 * Dispatch agnosis/interaction-counts through WP's REAL WP_Block
+	 * rendering — same fix, same reason, as
+	 * Network\SubdomainNavigationContactIconTest::render_via_block_dispatch():
+	 * render_interaction_counts() calls get_block_wrapper_attributes(), which
+	 * reads core's WP_Block_Supports::$block_to_render internally. That's
+	 * only ever populated by a genuine WP_Block::render() call — calling the
+	 * render_callback directly with a mocked \WP_Block (the pattern every
+	 * OTHER block test in this codebase safely uses, since none of those
+	 * touch get_block_wrapper_attributes()) leaves it unset and trips a
+	 * "Trying to access array offset on null" error deep in WP core (caught
+	 * by a real PHPUnit run, 2026-07-24). Unlike breadcrumb-icon-link,
+	 * this block also declares `usesContext: ["postId"]` — supplied via
+	 * WP_Block's own constructor `$available_context` param (the global
+	 * render_block() wrapper function doesn't expose that, so a direct
+	 * `new \WP_Block(...)` is used here instead of render_block()).
+	 */
+	private function render_interaction_counts_via_block( int $post_id ): string {
+		if ( ! \WP_Block_Type_Registry::get_instance()->is_registered( 'agnosis/interaction-counts' ) ) {
+			( new ActivityPub() )->register_interaction_counts_block();
+		}
+
+		$block = new \WP_Block(
+			[
+				'blockName'    => 'agnosis/interaction-counts',
+				'attrs'        => [],
+				'innerBlocks'  => [],
+				'innerHTML'    => '',
+				'innerContent' => [],
+			],
+			[ 'postId' => $post_id ]
+		);
+
+		return $block->render();
+	}
+
+	public function test_render_interaction_counts_renders_nothing_with_no_interactions(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$html = $this->render_interaction_counts_via_block( $post_id );
+
+		$this->assertSame( '', $html, 'A brand-new artwork with zero likes/boosts must render nothing — no permanent "0" fixture.' );
+	}
+
+	public function test_render_interaction_counts_renders_nothing_off_an_artwork_post(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'post', 'post_status' => 'publish' ] );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+
+		$html = $this->render_interaction_counts_via_block( $post_id );
+
+		$this->assertSame( '', $html );
+	}
+
+	public function test_render_interaction_counts_shows_both_counts_independently(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+		$this->seed_interaction( $post_id, 'like', self::OTHER_ACTOR_URL );
+		$this->seed_interaction( $post_id, 'announce', self::REMOTE_ACTOR_URL );
+
+		$html = $this->render_interaction_counts_via_block( $post_id );
+
+		$this->assertStringContainsString( 'agnosis-interaction-counts', $html );
+		$this->assertStringContainsString( '2', $html, 'The like count (2) must appear.' );
+		$this->assertStringContainsString( '1', $html, 'The boost count (1) must appear, independently of the like count.' );
+	}
+
+	public function test_render_interaction_counts_shows_only_likes_when_there_are_no_boosts(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
+
+		$html = $this->render_interaction_counts_via_block( $post_id );
+
+		$this->assertStringContainsString( 'agnosis-interaction-counts__likes', $html );
+		$this->assertStringNotContainsString( 'agnosis-interaction-counts__boosts', $html, 'With zero boosts, only the likes span should render — no "0 boosts" clutter.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Regression coverage for the plain-permalinks bug caught by a real
+	// PHPUnit run (2026-07-24) — see resolve_local_post_id()'s own docblock.
+	// -------------------------------------------------------------------------
+
+	public function test_inbox_like_resolves_the_artwork_under_plain_permalinks(): void {
+		$this->set_permalink_structure( '' );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->assertStringContainsString( 'agnosis_artwork=', (string) get_permalink( $post_id ), 'Precondition: this test must actually be exercising the plain-permalink, query-var-keyed permalink shape.' );
+
+		( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ) ) );
+
+		$this->assertSame( 1, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ), 'A Like against the exact permalink Agnosis itself publishes must resolve under plain permalinks, not just pretty ones.' );
+	}
+
+	public function test_inbox_like_resolves_the_artwork_under_pretty_permalinks(): void {
+		$this->set_permalink_structure( '/%postname%/' );
+		// Same re-registration this file's own test_note_id_equals_permalink_under_pretty_permalinks()
+		// already requires — see that test's comment for why.
+		( new \Agnosis\Artist\Profile() )->register_post_type();
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->assertStringContainsString( '/art/', (string) get_permalink( $post_id ), 'Precondition: this test must actually be exercising the artwork CPT rewrite slug.' );
+
+		( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ) ) );
+
+		$this->assertSame( 1, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ) );
 	}
 }

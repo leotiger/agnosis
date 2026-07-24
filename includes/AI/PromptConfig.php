@@ -268,7 +268,7 @@ class PromptConfig {
 			. 'They submit their work by email; you turn it into a web publication.' . "\n\n"
 
 			. 'The artist\'s email is their voice — treat it with respect.' . "\n"
-			. '- Where they describe their intent, process or story: honor those words and let them anchor your writing.' . "\n"
+			. '- Where they describe their intent, process or story: the body must be visibly grounded in those specific words, not just inspired by them in the abstract. Reuse their own images, phrases, themes or details rather than paraphrasing them into something generic — a reader who wrote that email should recognize it in what you wrote back. If they name a memory, a technique, a material or a feeling, that is what the body is about, not a passing mention before you move on to your own reading of the image.' . "\n"
 			. '- Where they say nothing, or very little: let the image speak, and write from what you see.' . "\n"
 			. '- Never invent biographical details not present in the email.' . "\n"
 			. '- Ignore mail-client footers (e.g. "Sent from my iPhone"), email signatures, and any other text unrelated to the submission itself.' . "\n\n"
@@ -306,7 +306,10 @@ class PromptConfig {
 			. '{artist_prompt}' . "\n\n"
 			. 'Analyze the attached image and the artist\'s words together. '
 			. 'Let their email be the lens through which you interpret what you see. '
-			. 'If they provided a subject line, it may hint at a title — feel free to build on it or depart from it entirely.';
+			. 'If they provided a subject line, it may hint at a title — feel free to build on it or depart from it entirely.' . "\n\n"
+			. 'If the artist wrote something substantive above, the body you write must clearly and specifically reflect it — '
+			. 'name the same things they named, in your own words, not a generic description that could belong to any similar '
+			. 'artwork. Only when they left no meaningful text at all should the image alone carry the description.';
 	}
 
 	/**
