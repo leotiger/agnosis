@@ -1,25 +1,29 @@
 #!/usr/bin/env php
 <?php
 /**
- * translate-missing.php — AI-translate every empty string in
- * languages/agnosis-*.po directly, replacing the manual Loco Translate
- * pass this project relied on until now.
+ * translate-theme-missing.php — AI-translate every empty string in the
+ * sibling agnosis-theme repo's languages/agnosis-theme-*.po files
+ * directly. Theme-scoped twin of this repo's own translate-missing.php
+ * (T-3, fifteenth audit — the theme's brand-new i18n catalog needs the
+ * same on-demand AI-fill tooling the plugin already has, rather than a
+ * second manual Loco Translate workflow).
  *
- * Why this exists: the Loco Translate workflow (download from a live
- * instance, edit in its UI, no repo trace of what changed or why) is
- * slow, manual, and — per AUDIT-0.9.44.md §5d — its editor UI doesn't
- * even surface plural-form fields past the first couple for locales
- * needing more than two categories, which is what dev/bin/fill-loco-gaps.php
- * was built to clean up after. This script removes the dependency on
- * Loco Translate entirely: it finds every empty msgstr/msgstr[N] across
- * every locale — ordinary untranslated strings AND plural-slot gaps in
- * one pass — and fills them by calling an AI provider with a prompt
- * that knows what Agnosis actually is, so translations land in the
- * right register instead of a generic machine-translation guess.
+ * Lives here, not in agnosis-theme/, for the same reason make-theme-pot.sh
+ * and build-theme-zip.sh do: the theme repo deliberately carries no build
+ * tooling of its own (see its own README.md), and this repo's dev/
+ * environment is already where both products' release tooling lives
+ * side by side.
  *
- * This is a narrow, ON-DEMAND tool (composer translate-missing), same
- * spirit as fill-loco-gaps.php — not wired into make-pot.sh/compile-pos.sh,
- * not run automatically on every version bump.
+ * Finds every empty msgstr/msgstr[N] across every theme locale —
+ * ordinary untranslated strings AND plural-slot gaps in one pass — and
+ * fills them by calling an AI provider with a prompt that knows what the
+ * Agnosis Theme actually is (a companion FSE block theme, not the plugin
+ * itself), so translations land in the right register.
+ *
+ * This is a narrow, ON-DEMAND tool (composer translate-theme-missing),
+ * same spirit as the plugin's own translate-missing.php — not wired into
+ * make-theme-pot.sh/compile-theme-pos.sh, not run automatically on every
+ * version bump.
  *
  * Three providers supported via --provider=anthropic|openai|gemini
  * (default: anthropic). If --provider= isn't passed and STDIN is an
@@ -41,13 +45,13 @@
  * non-anthropic default is used unconfirmed; pass --model=NAME to pin
  * an exact, currently-correct one.
  *
- * Writes AI translations DIRECTLY into the .po files (by design — see
- * AUDIT-0.9.44.md §5d annotation for the trade-off discussion) — and
+ * Writes AI translations DIRECTLY into the .po files (same trade-off
+ * discussed for the plugin's own tool — see AUDIT-0.9.44.md §5d) — and
  * saves after EVERY batch, not just once a whole locale finishes, so an
  * interrupted run (Ctrl-C, a crash, or an external wrapper killing the
  * process on its own timeout) keeps whatever was already translated.
- * Every write is also appended to dev/translate-missing.log for a fast
- * post-hoc skim; nothing here claims professional/native-speaker
+ * Every write is also appended to dev/translate-theme-missing.log for a
+ * fast post-hoc skim; nothing here claims professional/native-speaker
  * accuracy — same caveat as every AI-drafted string this project has
  * shipped so far.
  *
@@ -59,25 +63,25 @@
  * exactly where the previous run left off.
  *
  * Usage (from dev/):
- *   php bin/translate-missing.php                    # all locales, all gaps, Anthropic Haiku
- *   php bin/translate-missing.php --dry-run           # call the API, print results, write nothing
- *   php bin/translate-missing.php --locale=ar         # scope to one locale
- *   php bin/translate-missing.php --limit=10          # cap items translated (testing/cost control)
- *   php bin/translate-missing.php --batch-size=40      # MAX items per API call (default 40) — a
+ *   php bin/translate-theme-missing.php                    # all locales, all gaps, Anthropic Haiku
+ *   php bin/translate-theme-missing.php --dry-run           # call the API, print results, write nothing
+ *   php bin/translate-theme-missing.php --locale=ar         # scope to one locale
+ *   php bin/translate-theme-missing.php --limit=10          # cap items translated (testing/cost control)
+ *   php bin/translate-theme-missing.php --batch-size=40      # MAX items per API call (default 40) — a
  *                                                       # batch may still be split smaller than this
  *                                                       # if its items' combined content is long
  *                                                       # enough to need it (see MAX_CHARS_PER_CHUNK)
- *   php bin/translate-missing.php --provider=openai --model=gpt-4o-mini   # use OpenAI instead
- *   php bin/translate-missing.php --provider=gemini --model=gemini-2.0-flash  # use Gemini instead
- *   php bin/translate-missing.php --time-budget=270   # stop cleanly under a 300s wrapper timeout; re-run to resume
+ *   php bin/translate-theme-missing.php --provider=openai --model=gpt-4o-mini   # use OpenAI instead
+ *   php bin/translate-theme-missing.php --provider=gemini --model=gemini-2.0-flash  # use Gemini instead
+ *   php bin/translate-theme-missing.php --time-budget=270   # stop cleanly under a 300s wrapper timeout; re-run to resume
  * ---------------------------------------------------------------------------
  */
 
 declare(strict_types=1);
 
 $devDir  = dirname(__DIR__);
-$langDir = $devDir . '/../languages';
-$logFile = $devDir . '/translate-missing.log';
+$langDir = $devDir . '/../../agnosis-theme/languages';
+$logFile = $devDir . '/translate-theme-missing.log';
 
 const PROVIDERS = [
     'anthropic' => [
@@ -133,7 +137,7 @@ foreach (array_slice($argv, 1) as $arg) {
     } elseif (str_starts_with($arg, '--time-budget=')) {
         $timeBudget = max(1, (int) substr($arg, strlen('--time-budget=')));
     } elseif ($arg === '--help' || $arg === '-h') {
-        fwrite(STDOUT, "Usage: php bin/translate-missing.php [--dry-run] [--locale=xx] [--limit=N] [--batch-size=N] [--provider=anthropic|openai|gemini] [--model=NAME] [--time-budget=SECONDS]\n");
+        fwrite(STDOUT, "Usage: php bin/translate-theme-missing.php [--dry-run] [--locale=xx] [--limit=N] [--batch-size=N] [--provider=anthropic|openai|gemini] [--model=NAME] [--time-budget=SECONDS]\n");
         exit(0);
     } else {
         fwrite(STDERR, "Unknown argument: {$arg}\n");
@@ -247,16 +251,12 @@ const LOCALE_NAMES = [
 ];
 
 const DOMAIN_PROMPT = <<<'PROMPT'
-You are translating UI strings for Agnosis, a WordPress plugin ("Blooming out of oblivion") that lets independent artists publish by email. An artist emails their artwork plus a short description; the plugin receives it, an AI classifies/describes/enhances it as configured, and auto-publishes a gallery post — federated to the Fediverse (Mastodon, Pixelfed, etc.) via ActivityPub, no central server (rhizome network model). Key vocabulary you will see in these strings and should translate consistently:
+You are translating UI strings for Agnosis Theme, a WordPress Full Site Editing block theme built specifically for the Agnosis plugin ("Blooming out of oblivion") — a plugin that lets independent artists publish by email and auto-publishes each submission as a gallery post, federated to the Fediverse via ActivityPub. The theme itself is thin: most of what a visitor sees is content and blocks the plugin provides, so the theme's OWN translatable strings are just a handful of front-end UI messages plus its self-hosted-update mechanism. Key vocabulary you will see in these strings and should translate consistently:
 - "artist" — the person submitting work
 - "artwork" / "submission" — a piece being published
-- "medium" — the artwork's category/technique (e.g. Watercolor, Photography) — a taxonomy term, not a metaphor
-- "admission" — the community-vouching process for a new artist to join a node
-- "pure@" (a literal email-address lane name) — the publishing lane where content is never touched by AI, only classified
 - "gallery" — the published collection of artworks on a node
-- "digest" — a periodic summary email
-- "bounce" — a failed email delivery
-- these strings are WordPress admin-dashboard and notification-email UI text — keep the register plain, direct, and functional, matching ordinary WordPress plugin UI copy, not marketing language
+- these strings are front-end, visitor-facing UI text (404 page, search-with-no-results, empty archive states, an update-checker settings string) — keep the register plain, direct, and functional, matching ordinary WordPress theme UI copy, not marketing language
+- some entries (a plain "·" separator character, the theme/author name/URL) are deliberately left untranslated in the reference English — if a source string is punctuation-only or a proper name/URL with nothing to translate, return it unchanged
 
 Translation rules, no exceptions:
 1. Preserve every placeholder EXACTLY as given: %s, %d, %1$s, %2$d, etc. Never translate, drop, or reorder them unless the target language's grammar requires reordering — if so, convert to explicit positional form (%1$s, %2$s, ...) consistently.
@@ -264,7 +264,7 @@ Translation rules, no exceptions:
 3. Prefer gender-neutral phrasing where the target language allows it naturally, rather than defaulting to a masculine or feminine form — this mirrors an explicit house style already used elsewhere in this plugin's own AI translation prompts.
 4. Where a "reference" (already-translated sibling text in the same language) is given for a plural entry, match its exact register, terminology choices, and grammatical pattern — extend it correctly to the requested plural category, using standard grammatical agreement for that language and count range.
 5. Where no reference is given, translate naturally for a native speaker of the target locale; this is a first pass, not a final professional translation, so prioritize correctness and natural phrasing over cleverness.
-6. Some items include an "existing_translation" and "missing_placeholders" — these are NOT empty strings, they're translations that already read naturally but are missing a required placeholder (most often because the target language's plural/dual/paucal form doesn't grammatically need to state the number, e.g. Arabic dual "عملين" already means "two submissions" without literally saying "two"). FIX the existing translation by inserting the listed missing placeholder(s) — every gettext-compiled build still needs the placeholder literally present so a runtime substitution has somewhere to go. Keep the existing phrasing/register; don't retranslate from scratch unless the existing text is otherwise wrong.
+6. Some items include an "existing_translation" and "missing_placeholders" — these are NOT empty strings, they're translations that already read naturally but are missing a required placeholder (most often because the target language's plural form doesn't grammatically need to state the number). FIX the existing translation by inserting the listed missing placeholder(s) — keep the existing phrasing/register; don't retranslate from scratch unless the existing text is otherwise wrong.
 
 You will be given a JSON array of items to translate, each with a stable "id". Respond with ONLY a single raw JSON object mapping each id to its translated string — no markdown fences, no commentary, no extra keys, no omitted ids.
 PROMPT;
@@ -324,6 +324,7 @@ function translator_comment(array $lines, int $msgidLine): ?string
  * ['fuzzy', 'php-format']. Used to scope the format-placeholder check
  * (below) to entries gettext itself considers format strings, rather than
  * flagging any translation that happens to contain a literal "%s"/"%d".
+ * Same helper as the plugin's own translate-missing.php.
  */
 function entry_flags(array $lines, int $msgidLine): array
 {
@@ -343,24 +344,10 @@ function entry_flags(array $lines, int $msgidLine): array
 }
 
 /**
- * Extract every printf-style placeholder from a string: %s, %d, %1$s,
- * %2$d, etc. Returns a plain (non-unique) list — duplicates matter, since
- * a translation genuinely needs to repeat a placeholder as many times as
- * the source does.
- */
-function extract_placeholders(string $s): array
-{
-    preg_match_all('/%(?:\d+\$)?[sdfeEgGxXou]/', $s, $m);
-    return $m[0];
-}
-
-/**
  * Compare a translation's placeholders against the source's expected set
  * (already-sorted list). Returns the sorted list of placeholders the
- * translation is missing (multiset difference — one occurrence removed
- * per match found), or [] if nothing is missing. Doesn't flag *extra*
- * placeholders — in practice (I-2, fifteenth audit) the observed failure
- * mode is always a dropped placeholder, never an added one.
+ * translation is missing (multiset difference), or [] if nothing is
+ * missing. Same helper as the plugin's own translate-missing.php.
  */
 function missing_placeholders(array $expectedSorted, string $translated): array
 {
@@ -423,21 +410,17 @@ function parse_entries(array $lines): array
                     $rawParts      = [$sm[2]];
                     $m2++;
 
-                    // Ritual-row fix (fifteenth audit, 2026-07-24): the old
-                    // version stopped this whole while() the instant it hit a
-                    // line not starting with "msgstr[" — which is exactly
-                    // what a wrapped slot's OWN continuation line looks like.
-                    // So a wrapped msgstr[0] (e.g. a long Arabic singular
-                    // form) didn't just get flagged; it silently truncated
-                    // parsing of every slot after it, meaning msgstr[2..5]
-                    // were never even discovered, let alone considered for
-                    // translation — the actual root cause behind the ar/
-                    // ru_RU plural-gap entries surviving every prior run.
-                    // Now every continuation line belonging to THIS slot is
-                    // consumed (and its content concatenated, same as
-                    // msgid/msgid_plural above) before looking for the next
-                    // msgstr[N] line, so scanning always reaches every slot
-                    // regardless of which ones happen to be wrapped.
+                    // Ritual-row fix (fifteenth audit, 2026-07-24 — ported
+                    // from translate-missing.php): the old version stopped
+                    // this whole while() the instant it hit a line not
+                    // starting with "msgstr[", which is exactly what a
+                    // wrapped slot's OWN continuation line looks like — so a
+                    // wrapped msgstr[0] silently truncated parsing of every
+                    // slot after it, meaning later slots were never even
+                    // discovered, let alone considered for translation. Every
+                    // continuation line belonging to THIS slot is now
+                    // consumed (and concatenated, same as msgid/msgid_plural
+                    // above) before looking for the next msgstr[N] line.
                     $slotMultilineWarning = false;
                     while ($m2 < $n
                         && preg_match('/^"(.*)"\s*$/', $lines[$m2], $cm)
@@ -456,13 +439,6 @@ function parse_entries(array $lines): array
                         'line'              => $slotStartLine,
                         'text'              => po_unescape($rawInner),
                         'empty'             => $rawInner === '',
-                        // A wrapped slot is still never selected for
-                        // translation (see the per-slot check below) — this
-                        // flag is what enforces that — but its 'text'/'empty'
-                        // are now reconstructed correctly too, so a sibling
-                        // slot's reference-translation context (see
-                        // $siblings below) isn't wrongly built from a
-                        // truncated "" instead of the slot's real content.
                         'multiline_warning' => $slotMultilineWarning,
                     ];
                 }
@@ -472,9 +448,6 @@ function parse_entries(array $lines): array
                     'msgid'             => $msgid,
                     'msgid_plural'      => $msgidPlural,
                     'slots'             => $slots,
-                    // Aggregate (any slot wrapped), kept for anything that
-                    // inspects entries generically — the work-list loop below
-                    // now checks each slot's OWN flag instead of this one.
                     'multiline_warning' => $anySlotMultilineWarning,
                     'start_line'        => $msgidStart,
                     'comment'           => translator_comment($lines, $msgidStart),
@@ -742,6 +715,19 @@ function call_gemini(string $apiKey, string $model, string $system, array $items
  * (handles nested arrays like reference_translations_other_slots, the
  * sibling-plural-slot map on plural entries).
  */
+/**
+ * Extract every printf-style placeholder from a string: %s, %d, %1$s,
+ * %2$d, etc. — same helper as the plugin's own translate-missing.php, used
+ * here only for the excess-placeholder defensive guard below (this script
+ * doesn't carry that file's fuller I-2 already-translated-but-broken
+ * detection, since the theme catalog has no plural entries today).
+ */
+function extract_placeholders(string $s): array
+{
+    preg_match_all('/%(?:\d+\$)?[sdfeEgGxXou]/', $s, $m);
+    return $m[0];
+}
+
 function payload_char_length($value): int
 {
     if (is_string($value)) {
@@ -839,17 +825,17 @@ function call_ai(string $provider, string $apiKey, string $model, string $system
 // ---------------------------------------------------------------------
 // Build the work list: every empty single/plural slot, per locale.
 // ---------------------------------------------------------------------
-$poFiles = glob($langDir . '/agnosis-*.po');
+$poFiles = glob($langDir . '/agnosis-theme-*.po');
 sort($poFiles);
 if ($poFiles === [] || $poFiles === false) {
-    fwrite(STDERR, "No languages/agnosis-*.po files found.\n");
+    fwrite(STDERR, "No languages/agnosis-theme-*.po files found.\n");
     exit(1);
 }
 
 $work = []; // locale => ['path'=>, 'lines'=>, 'items'=>[ [id, prompt-payload, apply-info] ]]
 
 foreach ($poFiles as $poPath) {
-    $locale = preg_replace('/^agnosis-|\.po$/', '', basename($poPath));
+    $locale = preg_replace('/^agnosis-theme-|\.po$/', '', basename($poPath));
     if ($onlyLocale !== null && $locale !== $onlyLocale) {
         continue;
     }
@@ -873,13 +859,14 @@ foreach ($poFiles as $poPath) {
                 continue; // never touched — same policy as fill-loco-gaps.php
             }
 
-            // I-2 (fifteenth audit): an already-translated php-format entry
-            // can still be broken — a translator dropped a required %d/%s
-            // — and that's just as much "needs this tool's attention" as an
-            // empty msgstr, even though it isn't empty. Re-include it, but
-            // carry the existing (broken) translation + exactly which
-            // placeholder(s) are missing, so the model FIXES it in place
-            // instead of discarding a translation that's otherwise fine.
+            // I-2 parity (fifteenth audit, ported from the plugin's own
+            // translate-missing.php): an already-translated php-format
+            // entry can still be broken — a translator dropped a required
+            // %d/%s — and that's just as much "needs this tool's
+            // attention" as an empty msgstr. Re-include it, but carry the
+            // existing (broken) translation + exactly which placeholder(s)
+            // are missing, so the model FIXES it in place instead of
+            // discarding a translation that's otherwise fine.
             $expected = $isPhpFormat ? extract_placeholders($entry['msgid']) : [];
             sort($expected);
             $missing = [];
@@ -973,7 +960,7 @@ $totalFixes = array_sum(array_map(
     fn($w) => count(array_filter($w['items'], fn($it) => isset($it['payload']['existing_translation']))),
     $work
 ));
-$fixNote = $totalFixes > 0 ? " ({$totalFixes} of those are existing translations missing a required placeholder — I-2 style — not truly empty)" : "";
+$fixNote = $totalFixes > 0 ? " ({$totalFixes} of those are existing translations missing a required placeholder — not truly empty)" : "";
 fwrite(STDERR, "{$totalItems} missing/broken string(s){$fixNote} across " . count($work) . " locale(s), via {$providerConfig['label']} ({$model})" . ($dryRun ? " (dry run)" : "") . ".\n");
 
 $logLines = [];
@@ -1036,30 +1023,20 @@ foreach ($work as $locale => $w) {
             $translated = $result[$id];
 
             // Defense in depth: a real translated UI string will essentially
-            // never itself be valid, structured JSON. Observed in production
-            // (fifteenth-audit I-2 follow-up): for a single-item batch, a
-            // provider's model echoed the item's own request payload back as
-            // its "translation" instead of answering — is_string()/non-empty
-            // above both pass (it's a long non-empty string), so that
-            // garbage got written straight into 12 locales' .po files before
-            // this check existed. Reject anything that decodes as a JSON
-            // array/object rather than trusting it's prose.
-            $looksLikeEchoedJson = is_array(json_decode($translated, true));
-            if ($looksLikeEchoedJson) {
+            // never itself be valid, structured JSON — see the plugin's own
+            // translate-missing.php for the production incident that added
+            // this check (a provider's model echoed a single-item batch's
+            // own request payload back as its "translation").
+            if (is_array(json_decode($translated, true))) {
                 fwrite(STDERR, "  [{$locale}] response for {$id} looks like echoed JSON, not a translation — skipped: " . mb_substr($translated, 0, 120) . "\n");
                 continue;
             }
 
-            // Second defense in depth, same incident family: a single-item
-            // batch can also come back with MULTIPLE plural forms joined
-            // into one answer (e.g. "%d tramesa|%d trameses" — the singular
-            // AND plural forms concatenated with a separator) instead of the
-            // one distinct string each "id" was asked for. This corrupted
-            // ca/en_US/nl_NL/pt_PT in an even earlier run than the echoed-
-            // JSON incident above, predating any validation at all. A real
-            // single-slot translation never legitimately needs MORE
-            // occurrences of a placeholder than the source itself has, so
-            // reject anything that does rather than trust it.
+            // Second defense in depth — see the plugin's own
+            // translate-missing.php for the production incident (multiple
+            // plural forms joined into one answer, e.g. "%d form1|%d
+            // form2") that added this check: reject anything with more
+            // placeholder occurrences than the source itself has.
             $expectedPlaceholders = $it['expected_placeholders'] ?? [];
             if ($expectedPlaceholders !== [] && count(extract_placeholders($translated)) > count($expectedPlaceholders)) {
                 fwrite(STDERR, "  [{$locale}] response for {$id} has more placeholders than expected — looks like multiple forms joined into one, not a single translation — skipped: " . mb_substr($translated, 0, 120) . "\n");

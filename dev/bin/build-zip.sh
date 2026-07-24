@@ -51,6 +51,17 @@
 # NOT touched here — those are still updated by hand as part of the version
 # bump, same as always.
 #
+# 6a fix (fifteenth audit, 2026-07-24): $sha256's OWN inline `// comment` —
+# distinct from the separate $sha256_note field 5b fixed above — used to
+# only ever be hand-written at version-bump time (e.g. "Not yet built —
+# dev/bin/build-zip.sh computes this at release time.") and was never
+# touched by clear_manifest_sha()/write_manifest_sha() below, which only
+# ever replaced the quoted value between them. So the very same
+# self-contradiction 5b closed for $sha256_note could still happen one line
+# up: a real, verified digest sitting right next to a comment insisting no
+# build had ever run. Both functions now rewrite that inline comment too,
+# each time they rewrite the value next to it.
+#
 # Output: ../agnosis-deploy/agnosis-<version>.zip  (or [output-dir]/agnosis-<version>.zip)
 
 set -euo pipefail
@@ -92,7 +103,19 @@ clear_manifest_sha() {
     # `grep -E` above but silently failed to match in `sed -E`, so the
     # substitution never fired at all despite sed exiting 0). [$] matches a
     # literal '$' unambiguously in both grep and sed, GNU and BSD alike.
-    sed -i.bak -E "s/^([[:space:]]*[$]sha256[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;)/\1''\2/" "$MANIFEST"
+    #
+    # 6a fix (fifteenth audit, 2026-07-24): the trailing `.*` swallows
+    # whatever inline `// comment` currently sits after the semicolon
+    # (write_manifest_sha() below may have replaced it with a "Verified"
+    # comment on a previous run) and the replacement puts the canonical
+    # "not yet built" comment back — same reasoning as write_manifest_last_
+    # updated()'s existing tail-swallow, extended to $sha256's OWN inline
+    # comment (distinct from $sha256_note) so it can't survive, contradicting
+    # a value it no longer describes, past a single clear/build cycle. Note
+    # the `|` delimiter here instead of `/` — the comment text itself
+    # contains `/` (dev/bin/build-zip.sh), which would otherwise need
+    # escaping against the usual `/` delimiter.
+    sed -i.bak -E "s|^([[:space:]]*[$]sha256[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;).*|\1''\2 // Not yet built — dev/bin/build-zip.sh computes this at release time.|" "$MANIFEST"
     rm -f "$MANIFEST.bak"
     echo "--> Cleared \$sha256 in $(basename "$MANIFEST")"
 }
@@ -178,7 +201,12 @@ write_manifest_sha() {
         digest=$(sha256sum "$ZIP_PATH" | awk '{print $1}')
     fi
     # See the [$] note in clear_manifest_sha() above — same reasoning applies here.
-    sed -i.bak -E "s/^([[:space:]]*[$]sha256[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;)/\1'${digest}'\2/" "$MANIFEST"
+    # 6a fix: same trailing-comment rewrite as clear_manifest_sha() above, in
+    # the other direction — the "Not yet built" comment is replaced with one
+    # that actually matches a freshly-verified digest, rather than surviving
+    # untouched next to it. Points at $sha256_note instead of repeating its
+    # date/version text a second time in a second place.
+    sed -i.bak -E "s|^([[:space:]]*[$]sha256[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;).*|\1'${digest}'\2 // Verified — see \$sha256_note above for build date/version.|" "$MANIFEST"
     rm -f "$MANIFEST.bak"
     echo "--> SHA-256: $digest"
     echo "✓ Wrote sha256 into $(basename "$MANIFEST")"

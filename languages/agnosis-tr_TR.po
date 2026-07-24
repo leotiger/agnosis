@@ -1279,7 +1279,7 @@ msgstr "(başlıksız)"
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d gönderim"
-msgstr[1] "gönderimler"
+msgstr[1] "%d gönderimler"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -2578,7 +2578,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "OpenAI sınıflandırma sağlayıcısı olduğunda sınıflandırma görevleri için kullanılan ucuz, hızlı model — yalnızca metin (pure@) sunumları için orta/etiket sınıflandırması ve iletişim formu mesajlarının moderasyonu. Görü desteğine ihtiyaç yoktur. Sunumları sitenin birincil diline çevirmek için kullanılan model için aşağıda \"OpenAI çeviri modeli\" bölümüne bakınız."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2591,11 +2591,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Anthropic sınıflandırma sağlayıcısı olduğunda sınıflandırma görevleri için kullanılan ucuz, hızlı model — yalnızca metin (pure@) sunumları için orta/etiket sınıflandırması ve iletişim formu mesajlarının moderasyonu. Görü desteğine ihtiyaç yoktur. Sunumları sitenin birincil diline çevirmek için kullanılan model için aşağıda \"Anthropic çeviri modeli\" bölümüne bakınız."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI çeviri modeli"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2606,11 +2606,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "OpenAI yapay zeka sağlayıcısı olduğunda bir sunumu sitenin birincil diline çevirmek ve kasıtlı olarak yabancı dilde yazılan metinleri (örneğin orijinal dilinde verilen bir alıntı) çevreleyen metinle birlikte çevrilmesini önleyen gömülü diğer dil algılama geçişi için kullanılan model. Bu, her sanat eseri/biyografi/olayın gerçekten yayınlanan birincil dil metnini oluşturan modeldir — yukarıdaki ucuz sınıflandırma modelinden daha güçlü bir modele değer verir. Görü desteğine ihtiyaç yoktur."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic çeviri modeli"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2621,7 +2621,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Anthropic yapay zeka sağlayıcısı olduğunda bir sunumu sitenin birincil diline çevirmek ve kasıtlı olarak yabancı dilde yazılan metinleri (örneğin orijinal dilinde verilen bir alıntı) çevreleyen metinle birlikte çevrilmesini önleyen gömülü diğer dil algılama geçişi için kullanılan model. Bu, her sanat eseri/biyografi/olayın gerçekten yayınlanan birincil dil metnini oluşturan modeldir — yukarıdaki ucuz sınıflandırma modelinden daha güçlü bir modele değer verir. Görü desteğine ihtiyaç yoktur."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2692,7 +2692,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "Aşağıda ayarlanan OpenAI görüntü modeli kullanılarak yayınlanmadan önce sanat eserinin görüntüsünü iyileştirir (örneğin gpt-image-1, gpt-image-2). Iyileştirmeyi atlamak ve orijinalini yayınlamak için Devre Dışı olarak ayarlayınız."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5885,7 +5885,7 @@ msgstr "İletişime geçin"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "Bunu %s dilinde görüntüleyin"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

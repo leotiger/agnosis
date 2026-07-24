@@ -646,10 +646,27 @@ class ReviewEndpoints {
 		// replaced it. Read BEFORE wp_delete_post() below removes this
 		// draft's own postmeta, same "read off the staging draft before it's
 		// gone" ordering as the queue-row repoint just above.
+		// N-2 (fifteenth audit, hardening): re-verify each id is actually a
+		// generated text-poster attachment — not just trust the stashed meta —
+		// before the hard delete below. '_agnosis_stale_poster_ids' is written
+		// once at drafting time (PostCreator::$last_dropped_poster_ids) and
+		// only ever read back here, so nothing should currently invalidate it
+		// between those two points; this guard exists purely as defense in
+		// depth against a future bug (a stale/reused id, or a code path that
+		// writes this meta incorrectly) turning into a silent, unrecoverable
+		// deletion of a real artist attachment rather than a loud, logged skip.
 		$stale_poster_ids = json_decode( (string) get_post_meta( $post_id, '_agnosis_stale_poster_ids', true ), true );
 		if ( is_array( $stale_poster_ids ) ) {
 			foreach ( $stale_poster_ids as $stale_id ) {
-				wp_delete_attachment( (int) $stale_id, true );
+				$stale_id = (int) $stale_id;
+				if ( ! PostCreator::is_text_poster_attachment( $stale_id ) ) {
+					Logger::warning(
+						sprintf( 'finalize_publish(#%d): #%d in _agnosis_stale_poster_ids no longer looks like a text-poster attachment — skipped hard-delete, left in place.', $post_id, $stale_id ),
+						'review'
+					);
+					continue;
+				}
+				wp_delete_attachment( $stale_id, true );
 			}
 		}
 

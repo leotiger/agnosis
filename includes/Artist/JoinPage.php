@@ -62,7 +62,7 @@ class JoinPage {
 		?>
 		<div class="agnosis-join" id="agnosis-join">
 
-			<div id="agnosis-join-notice" class="agnosis-join__notice" hidden></div>
+			<div id="agnosis-join-notice" class="agnosis-join__notice" role="status" hidden></div>
 
 			<form class="agnosis-join__form" id="agnosis-join-form" novalidate>
 

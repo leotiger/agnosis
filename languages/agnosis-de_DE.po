@@ -1294,7 +1294,7 @@ msgstr "(kein Titel)"
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d Einreichung"
-msgstr[1] "Einreichungen"
+msgstr[1] "%d Einreichungen"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -2633,7 +2633,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "Billiges, schnelles Modell für Klassifizierungsaufgaben, wenn OpenAI der Beschreibungsanbieter ist – Medium-/Tag-Klassifizierung für reinen Text (pure@) und Moderation von Kontaktformular-Nachrichten. Benötigt keine Vision-Unterstützung. Für das Modell, das Einreichungen in die primäre Sprache der Website übersetzt, siehe \"OpenAI-Übersetzungsmodell\" unten."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2646,11 +2646,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Billiges, schnelles Modell für Klassifizierungsaufgaben, wenn Anthropic der Beschreibungsanbieter ist – Medium-/Tag-Klassifizierung für reinen Text (pure@) und Moderation von Kontaktformular-Nachrichten. Benötigt keine Vision-Unterstützung. Für das Modell, das Einreichungen in die primäre Sprache der Website übersetzt, siehe \"Anthropic-Übersetzungsmodell\" unten."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI-Übersetzungsmodell"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2661,11 +2661,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Modell, das verwendet wird, wenn OpenAI der KI-Anbieter für die Übersetzung einer Einreichung in die primäre Sprache der Website ist, und für den Erkennungspass für eingebettete Fremdsprachen, der absichtlich fremdsprachige Passagen (z. B. ein Zitat in seiner Originalsprache) vor einer Übersetzung zusammen mit dem umgebenden Text schützt. Dies ist das Modell, das den tatsächlich veröffentlichten Text in Primärsprache für jedes Kunstwerk/jede Biografie/jedes Event erzeugt – ein stärkeres Modell als das oben beschriebene billige Klassifizierungsmodell ist gerechtfertigt. Benötigt keine Vision-Unterstützung."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic-Übersetzungsmodell"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2676,7 +2676,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Modell, das verwendet wird, wenn Anthropic der KI-Anbieter für die Übersetzung einer Einreichung in die primäre Sprache der Website ist, und für den Erkennungspass für eingebettete Fremdsprachen, der absichtlich fremdsprachige Passagen (z. B. ein Zitat in seiner Originalsprache) vor einer Übersetzung zusammen mit dem umgebenden Text schützt. Dies ist das Modell, das den tatsächlich veröffentlichten Text in Primärsprache für jedes Kunstwerk/jede Biografie/jedes Event erzeugt – ein stärkeres Modell als das oben beschriebene billige Klassifizierungsmodell ist gerechtfertigt. Benötigt keine Vision-Unterstützung."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2747,7 +2747,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "Verbessert das Kunstwerkbild vor der Veröffentlichung, wobei das unten eingestellte OpenAI-Bildmodell verwendet wird (z. B. gpt-image-1, gpt-image-2). Auf \"Deaktiviert\" setzen, um die Verbesserung zu überspringen und das Original zu veröffentlichen."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -6008,7 +6008,7 @@ msgstr "Kontakt aufnehmen"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "In %s anzeigen"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

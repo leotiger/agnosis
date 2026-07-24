@@ -1275,7 +1275,7 @@ msgstr "(کوئی عنوان نہیں)"
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d گذارش"
-msgstr[1] "گذارشات"
+msgstr[1] "%d گذارشات"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -2563,7 +2563,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "درجہ بندی کے کاموں کے لیے سستا، تیز ماڈل جب OpenAI وضاحت فراہم کننے والا ہو — صرف متن والی (pure@) رسائیوں کے لیے درمیانی/ٹیگ درجہ بندی، اور رابطہ فارم کے پیغامات میں اعتدال پسندی۔ بصری معاونت کی ضرورت نہیں۔ رسائیوں کو سائٹ کی بنیادی زبان میں ترجمہ کرنے کے لیے استعمال ہونے والے ماڈل کے لیے، نیچے \"OpenAI ترجمہ ماڈل\" دیکھیں۔"
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2576,11 +2576,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "درجہ بندی کے کاموں کے لیے سستا، تیز ماڈل جب Anthropic وضاحت فراہم کننے والا ہو — صرف متن والی (pure@) رسائیوں کے لیے درمیانی/ٹیگ درجہ بندی، اور رابطہ فارم کے پیغامات میں اعتدال پسندی۔ بصری معاونت کی ضرورت نہیں۔ رسائیوں کو سائٹ کی بنیادی زبان میں ترجمہ کرنے کے لیے استعمال ہونے والے ماڈل کے لیے، نیچے \"Anthropic ترجمہ ماڈل\" دیکھیں۔"
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI ترجمہ ماڈل"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2591,11 +2591,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "ماڈل استعمال ہوتا ہے جب OpenAI رسائی کو سائٹ کی بنیادی زبان میں ترجمہ کرنے کے لیے AI فراہم کنے والا ہو، اور embedded دوسری زبان کی شناخت کے پاس میں جو ارادی طور پر غیر ملکی زبان کی فقرات (مثال کے طور پر اصل زبان میں دیا گیا حوالہ) کو اردگرد متن کے ساتھ ترجمہ ہونے سے محفوظ رکھتا ہے۔ یہ وہ ماڈل ہے جو ہر فن پارے/سوانح حیات/واقعے کا اصل شائع شدہ بنیادی زبان کا متن تیار کرتا ہے — سستے درجہ بندی والے ماڈل سے زیادہ مضبوط ماڈل کے قابل ہے۔ بصری معاونت کی ضرورت نہیں۔"
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic ترجمہ ماڈل"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2606,7 +2606,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "ماڈل استعمال ہوتا ہے جب Anthropic رسائی کو سائٹ کی بنیادی زبان میں ترجمہ کرنے کے لیے AI فراہم کنے والا ہو، اور embedded دوسری زبان کی شناخت کے پاس میں جو ارادی طور پر غیر ملکی زبان کی فقرات (مثال کے طور پر اصل زبان میں دیا گیا حوالہ) کو اردگرد متن کے ساتھ ترجمہ ہونے سے محفوظ رکھتا ہے۔ یہ وہ ماڈل ہے جو ہر فن پارے/سوانح حیات/واقعے کا اصل شائع شدہ بنیادی زبان کا متن تیار کرتا ہے — سستے درجہ بندی والے ماڈل سے زیادہ مضبوط ماڈل کے قابل ہے۔ بصری معاونت کی ضرورت نہیں۔"
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2674,7 +2674,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "شائع کرنے سے پہلے فن پارے کی تصویر کو بہتر بناتا ہے، نیچے سیٹ شدہ OpenAI تصویر ماڈل استعمال کرتے ہوئے (مثال کے طور پر gpt-image-1, gpt-image-2)۔ بہتری کو چھوڑنے اور اصل کو شائع کرنے کے لیے Disabled پر سیٹ کریں۔"
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5852,7 +5852,7 @@ msgstr "رابطہ کریں"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "اسے %s میں دیکھیں"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

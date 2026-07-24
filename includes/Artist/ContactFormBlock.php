@@ -94,7 +94,7 @@ class ContactFormBlock {
 		?>
 		<div class="agnosis-contact-form">
 
-			<div class="agnosis-contact-form__notice" hidden></div>
+			<div class="agnosis-contact-form__notice" role="status" hidden></div>
 
 			<form class="agnosis-contact-form__form" novalidate>
 				<div class="agnosis-contact-form__field">

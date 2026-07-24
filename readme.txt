@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.48
+Stable tag: 0.9.50
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,25 +91,24 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
-= 0.9.48 =
-* Fixed: Native-language-to-primary translation could still leave the wrong text untranslated — a poem mixing an original-language quotation with the artist's own rendering could come back with BOTH left untouched, instead of just the quotation. The AI instruction now states clearly which part must stay untouched and which must still be translated.
-* Added: A new "Limitations" section in the in-site Artist Guide explains that AI-written descriptions work best with some descriptive detail from the artist, and that AI translation still falls short of human quality on gender and grammatical nuance — which is why every translated page indicates the artist's own native language for comparison.
-* Added: The breadcrumb icon/badge block (biography, events, contact, language) now supports Font Family and Font Weight in the block editor, alongside the existing Font Size.
-* Added: The artist breadcrumb's language badge now links to the native-language version of whatever you're looking at — an artwork, a biography, or the gallery itself — instead of just naming the artist's own language with nowhere to go.
-* Changed: The Enhancement provider setting no longer implies gpt-image-1 is the only supported image model — OpenAI's newer gpt-image-2 already works with the existing model field, and the settings copy now says so.
+= 0.9.50 =
+* Fixed: The contact, join, and newsletter-signup forms' success/error messages weren't announced to screen readers after submitting — sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.
+* Fixed: A handful of translations (Arabic, Russian, Catalan, and 12 other languages) had a plural form come out wrong — a missing number placeholder, or two forms accidentally merged into one — so some notification/count text could show up wrong or blank in those languages. All are corrected now.
+* Fixed: Internal dev tooling used to keep translations up to date (`translate-missing`) had a few bugs that could cause a translation batch to fail silently, or in some cases write garbled text into a translation file — fixed, plus two safeguards added so those specific failures can't happen again.
+* Added: The Agnosis Theme's translation catalog now has the same AI-fill and compile tooling the plugin already had (dev-only, no user-facing change).
+* Fixed: Six admin-dashboard inputs (invite/test-send email fields, a ban-until date, a title translation field) relied on placeholder text only, so screen readers had no accessible name for them. Each now has a proper (visually-hidden) label.
+* Fixed: The newsletter digest's artwork thumbnail had no alt text, so a screen reader had nothing to announce for that link. Now uses the artwork's title.
+* Hardened: Internal cleanup that removes a superseded auto-generated placeholder image now double-checks it's actually a placeholder before deleting it — extra protection against ever deleting a real photo by mistake (no known instance of this happening).
+* Fixed: A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).
+* Fixed: An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).
 
-= 0.9.47 =
-* Fixed: A deliberately embedded other-language passage — e.g. a Latin quotation inside a Catalan poem — could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge's own translation to your other configured languages also now uses a stronger AI model for this specific case.
-* Fixed: A text-only submission's poster could end up completely broken after being resent to a different address with unchanged content — the resend's dedupe logic could reuse the existing poster's id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.
-* Fixed: Published images never had alt text in the actual page markup, even when a real description was already stored for them — an accessibility gap affecting every artwork/biography/event image. Now included, falling back to the artwork's own title when nothing more specific is available.
-* Fixed: A native-language artist's own medium category could show up in the wrong language on their native-language sibling post (e.g. the English word "Poetry" instead of its own language's equivalent). Now reuses the same translate-once-and-cache mechanism every other configured language already gets, instead of copying the primary-language word directly.
-* Fixed: Translating a submission into your site's primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) — occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.
-* Changed: Translating a submission into your site's primary language now uses its own, separate AI model setting (Settings → AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.
+= 0.9.49 =
+* Removed: The temporary debug trace added in 0.9.48 (native-language-to-primary translation) logged full submission text and its translation to Settings → Logs. A real multi-language submission has since confirmed the underlying translation fix holds, so the trace is removed — no submission content is logged anymore.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.48 =
-Fixes translated pages sometimes leaving native text untranslated, links the language badge to the native-language version of the page, adds an AI-limitations note to the Artist Guide, and reflects gpt-image-2 support in settings.
+= 0.9.50 =
+Contact/join/newsletter-signup form notices are now announced to screen readers; no visual change.
 

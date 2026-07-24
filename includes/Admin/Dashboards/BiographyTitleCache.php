@@ -91,7 +91,16 @@ class BiographyTitleCache {
 									<input type="hidden" name="action" value="agnosis_save_biography_title_translation">
 									<input type="hidden" name="lang" value="<?php echo esc_attr( $code ); ?>">
 									<?php wp_nonce_field( 'agnosis_biography_title_cache_' . $code, 'agnosis_nonce' ); ?>
-									<input type="text" name="translation" value="<?php echo esc_attr( $current ); ?>"
+									<label class="screen-reader-text" for="agnosis-bio-title-translation-<?php echo esc_attr( $code ); ?>">
+										<?php
+										printf(
+											/* translators: %s: language name this translation row is for */
+											esc_html__( 'Biography title translation (%s)', 'agnosis' ),
+											esc_html( $label )
+										);
+										?>
+									</label>
+									<input type="text" id="agnosis-bio-title-translation-<?php echo esc_attr( $code ); ?>" name="translation" value="<?php echo esc_attr( $current ); ?>"
 										placeholder="<?php esc_attr_e( 'Not yet translated — leave blank to let AI translate automatically', 'agnosis' ); ?>"
 										style="width:100%;max-width:420px">
 									<?php submit_button( __( 'Save', 'agnosis' ), 'small', 'submit', false ); ?>

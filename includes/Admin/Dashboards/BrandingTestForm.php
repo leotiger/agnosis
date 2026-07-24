@@ -47,7 +47,8 @@ class BrandingTestForm {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.4rem;align-items:center">
 				<input type="hidden" name="action" value="agnosis_send_branding_test">
 				<?php wp_nonce_field( 'agnosis_send_branding_test' ); ?>
-				<input type="email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
+				<label class="screen-reader-text" for="agnosis-branding-test-email"><?php esc_html_e( 'Send test email to this address', 'agnosis' ); ?></label>
+				<input type="email" id="agnosis-branding-test-email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
 				<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
 			</form>
 		</div>

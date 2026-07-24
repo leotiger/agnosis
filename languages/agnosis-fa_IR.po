@@ -1266,7 +1266,7 @@ msgstr "(بدون عنوان)"
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d ارسال"
-msgstr[1] "ارسال‌ها"
+msgstr[1] "%d ارسال‌ها"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -2552,7 +2552,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که OpenAI تامین‌کننده توضیح است — طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های فرم تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به زبان اصلی سایت استفاده می‌شود، «مدل ترجمه OpenAI» را در زیر ببینید."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2565,11 +2565,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که Anthropic تامین‌کننده توضیح است — طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های فرم تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به زبان اصلی سایت استفاده می‌شود، «مدل ترجمه Anthropic» را در زیر ببینید."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "مدل ترجمه OpenAI"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2580,11 +2580,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "مدلی که هنگامی که OpenAI تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "مدل ترجمه Anthropic"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2595,7 +2595,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "مدلی که هنگامی که Anthropic تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2663,7 +2663,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "تصویر اثر هنری را قبل از انتشار بهبود می‌دهد، با استفاده از مدل تصویری OpenAI تنظیم‌شده در زیر (به عنوان مثال gpt-image-1، gpt-image-2). برای رد کردن بهبود و انتشار اصل، روی غیرفعال تنظیم کنید."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5828,7 +5828,7 @@ msgstr "تماس بگیرید"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "این را در %s مشاهده کنید"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

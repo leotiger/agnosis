@@ -42,7 +42,8 @@ class InvitationCard {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:.8rem">
 				<input type="hidden" name="action" value="agnosis_send_invitation">
 				<?php wp_nonce_field( 'agnosis_send_invitation' ); ?>
-				<input type="email" name="invitation_email" placeholder="<?php esc_attr_e( 'artist@example.com', 'agnosis' ); ?>" required class="regular-text" style="width:16rem">
+				<label class="screen-reader-text" for="agnosis-invitation-email"><?php esc_html_e( 'Email address to invite', 'agnosis' ); ?></label>
+				<input type="email" id="agnosis-invitation-email" name="invitation_email" placeholder="<?php esc_attr_e( 'artist@example.com', 'agnosis' ); ?>" required class="regular-text" style="width:16rem">
 				<select name="invitation_language">
 					<?php foreach ( $languages as $code => $label ) : ?>
 						<option value="<?php echo esc_attr( (string) $code ); ?>"><?php echo esc_html( $label ); ?></option>
@@ -54,7 +55,8 @@ class InvitationCard {
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap">
 				<input type="hidden" name="action" value="agnosis_send_invitation_test">
 				<?php wp_nonce_field( 'agnosis_send_invitation_test' ); ?>
-				<input type="email" name="invitation_test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="regular-text" style="width:16rem">
+				<label class="screen-reader-text" for="agnosis-invitation-test-email"><?php esc_html_e( 'Send test invitation to this email address', 'agnosis' ); ?></label>
+				<input type="email" id="agnosis-invitation-test-email" name="invitation_test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="regular-text" style="width:16rem">
 				<select name="invitation_language">
 					<?php foreach ( $languages as $code => $label ) : ?>
 						<option value="<?php echo esc_attr( (string) $code ); ?>"><?php echo esc_html( $label ); ?></option>

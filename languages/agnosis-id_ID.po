@@ -2571,7 +2571,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "Model murah dan cepat untuk tugas klasifikasi saat OpenAI adalah penyedia deskripsi — klasifikasi medium/tag untuk pengiriman teks saja (pure@), dan moderasi pesan formulir kontak. Tidak memerlukan dukungan visi. Untuk model yang digunakan menerjemahkan pengiriman ke bahasa utama situs, lihat \"Model penerjemah OpenAI\" di bawah."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2584,11 +2584,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Model murah dan cepat untuk tugas klasifikasi saat Anthropic adalah penyedia deskripsi — klasifikasi medium/tag untuk pengiriman teks saja (pure@), dan moderasi pesan formulir kontak. Tidak memerlukan dukungan visi. Untuk model yang digunakan menerjemahkan pengiriman ke bahasa utama situs, lihat \"Model penerjemah Anthropic\" di bawah."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "Model penerjemah OpenAI"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2599,11 +2599,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Model yang digunakan saat OpenAI adalah penyedia AI untuk menerjemahkan pengiriman ke bahasa utama situs, dan untuk lintasan deteksi bahasa-lain tertanam yang melindungi bagian bahasa asing yang disengaja (misalnya kutipan dalam bahasa aslinya) agar tidak diterjemahkan bersama dengan teks sekitarnya. Ini adalah model yang menghasilkan teks bahasa utama yang benar-benar diterbitkan untuk setiap karya seni/biografi/acara — layak model yang lebih kuat daripada model klasifikasi murah di atas. Tidak memerlukan dukungan visi."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Model penerjemah Anthropic"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2614,7 +2614,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Model yang digunakan saat Anthropic adalah penyedia AI untuk menerjemahkan pengiriman ke bahasa utama situs, dan untuk lintasan deteksi bahasa-lain tertanam yang melindungi bagian bahasa asing yang disengaja (misalnya kutipan dalam bahasa aslinya) agar tidak diterjemahkan bersama dengan teks sekitarnya. Ini adalah model yang menghasilkan teks bahasa utama yang benar-benar diterbitkan untuk setiap karya seni/biografi/acara — layak model yang lebih kuat daripada model klasifikasi murah di atas. Tidak memerlukan dukungan visi."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2684,7 +2684,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "Meningkatkan gambar karya seni sebelum publikasi, menggunakan model gambar OpenAI yang ditetapkan di bawah (misalnya gpt-image-1, gpt-image-2). Setel ke Dinonaktifkan untuk melewati peningkatan dan menerbitkan yang asli."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5884,7 +5884,7 @@ msgstr "Hubungi"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "Lihat ini dalam %s"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

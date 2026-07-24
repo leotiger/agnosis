@@ -1266,8 +1266,8 @@ msgstr "(no title)"
 #, php-format
 msgid "%d submission"
 msgid_plural "%d submissions"
-msgstr[0] "%d submission|%d submissions"
-msgstr[1] "submissions"
+msgstr[0] "%d submission"
+msgstr[1] "%d submissions"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -1284,24 +1284,16 @@ msgstr ""
 #, php-format
 msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
-msgstr[0] ""
-"Medium proposal approved and assigned to %d submission.|Medium proposal "
-"approved and assigned to %d submissions."
-msgstr[1] ""
-"Medium proposal approved and assigned to %d submission.|Medium proposal "
-"approved and assigned to %d submissions."
+msgstr[0] "Medium proposal approved and assigned to %d submission."
+msgstr[1] "Medium proposal approved and assigned to %d submissions."
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
 #: includes/Admin/MediumProposals.php:362
 #, php-format
 msgid "Medium proposal rejected for %d submission."
 msgid_plural "Medium proposal rejected for %d submissions."
-msgstr[0] ""
-"Medium proposal rejected for %d submission.|Medium proposal rejected for %d "
-"submissions."
-msgstr[1] ""
-"Medium proposal rejected for %d submission.|Medium proposal rejected for %d "
-"submissions."
+msgstr[0] "Medium proposal rejected for %d submission."
+msgstr[1] "Medium proposal rejected for %d submissions."
 
 #. translators: %s: the underlying WP_Error message from wp_insert_term()
 #: includes/Admin/MediumProposals.php:374
@@ -2551,7 +2543,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "Cheap, fast model used for classification tasks when OpenAI is the description provider — medium/tag classification for text-only (pure@) submissions, and moderating contact-form messages. Does not need vision support. For the model used to translate submissions into the site's primary language, see \"OpenAI translation model\" below."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2564,11 +2556,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Cheap, fast model used for classification tasks when Anthropic is the description provider — medium/tag classification for text-only (pure@) submissions, and moderating contact-form messages. Does not need vision support. For the model used to translate submissions into the site's primary language, see \"Anthropic translation model\" below."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI translation model"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2579,11 +2571,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Model used when OpenAI is the AI provider for translating a submission into the site's primary language, and for the embedded-other-language detection pass that protects deliberately foreign-language passages (e.g. a quotation given in its original language) from being translated along with the surrounding text. This is the model that produces every artwork/biography/event's actual published primary-language text — worth a stronger model than the cheap classification one above. Does not need vision support."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic translation model"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2594,7 +2586,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Model used when Anthropic is the AI provider for translating a submission into the site's primary language, and for the embedded-other-language detection pass that protects deliberately foreign-language passages (e.g. a quotation given in its original language) from being translated along with the surrounding text. This is the model that produces every artwork/biography/event's actual published primary-language text — worth a stronger model than the cheap classification one above. Does not need vision support."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2663,7 +2655,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "Enhances the artwork image before publishing, using the OpenAI image model set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip enhancement and publish the original."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5807,7 +5799,7 @@ msgstr "Get in touch"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "View this in %s"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

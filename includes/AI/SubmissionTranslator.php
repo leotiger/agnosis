@@ -450,27 +450,6 @@ class SubmissionTranslator {
 
 		$response = $this->provider->chat( $prompt );
 
-		// Debug trace for the native→primary call specifically (2026-07-23,
-		// added after two prior wording fixes to this same live "Naevius"
-		// case each turned out to be wrong on the next real submission) —
-		// gated on $source_lang_code so ContactForm's and other callers'
-		// routine translations don't get logged too. Visible in Settings →
-		// Logs without WP_DEBUG_LOG; remove once the embedded-language
-		// preservation behavior has been confirmed correct on a real
-		// multi-language submission.
-		if ( '' !== $source_lang_code ) {
-			Logger::info(
-				sprintf(
-					"SubmissionTranslator::translate_fields debug (native→primary, %s→%s):\n--- PROMPT ---\n%s\n--- RAW RESPONSE ---\n%s",
-					$source_lang_code,
-					$target_code,
-					$prompt,
-					$response
-				),
-				'pipeline'
-			);
-		}
-
 		if ( '' === trim( $response ) ) {
 			return [];
 		}

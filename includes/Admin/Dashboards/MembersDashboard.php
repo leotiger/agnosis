@@ -135,7 +135,8 @@ class MembersDashboard {
 										  onsubmit="return this.querySelector('[name=banned_until]').value !== '' || confirm('<?php echo esc_js( __( 'Leave the date blank to ban indefinitely. Continue?', 'agnosis' ) ); ?>')">
 										<input type="hidden" name="action" value="agnosis_ban_artist">
 										<input type="hidden" name="application_id" value="<?php echo esc_attr( (string) $app_id ); ?>">
-										<input type="date" name="banned_until" style="font-size:12px;padding:2px 4px"
+										<label class="screen-reader-text" for="agnosis-banned-until-<?php echo esc_attr( (string) $app_id ); ?>"><?php esc_html_e( 'Banned until (leave blank to ban indefinitely)', 'agnosis' ); ?></label>
+										<input type="date" id="agnosis-banned-until-<?php echo esc_attr( (string) $app_id ); ?>" name="banned_until" style="font-size:12px;padding:2px 4px"
 											   min="<?php echo esc_attr( gmdate( 'Y-m-d', strtotime( '+1 day' ) ) ); ?>"
 											   title="<?php esc_attr_e( 'Leave blank to ban indefinitely', 'agnosis' ); ?>">
 										<?php wp_nonce_field( 'agnosis_ban_' . $app_id, 'agnosis_nonce' ); ?>

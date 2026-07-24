@@ -266,7 +266,8 @@ class NewsletterDashboard {
 			<input type="hidden" name="action" value="agnosis_send_newsletter_test">
 			<input type="hidden" name="newsletter_type" value="<?php echo esc_attr( $type ); ?>">
 			<?php wp_nonce_field( 'agnosis_send_newsletter_test_' . $type ); ?>
-			<input type="email" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
+			<label class="screen-reader-text" for="agnosis-newsletter-test-email-<?php echo esc_attr( $type ); ?>"><?php esc_html_e( 'Send test newsletter to this email address', 'agnosis' ); ?></label>
+			<input type="email" id="agnosis-newsletter-test-email-<?php echo esc_attr( $type ); ?>" name="test_email" value="<?php echo esc_attr( $current_user->user_email ); ?>" required class="small-text" style="width:14rem">
 			<?php submit_button( __( 'Send Test', 'agnosis' ), 'secondary small', 'submit', false ); ?>
 		</form>
 		<?php

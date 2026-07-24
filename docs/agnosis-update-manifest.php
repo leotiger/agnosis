@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.48';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.48/agnosis-0.9.48.zip';
+	$version      = '0.9.50';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.50/agnosis-0.9.50.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -88,9 +88,18 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// below — build-zip.sh only runs at build time, not at version-bump time,
 	// so it can't do that part for you. Never write a real digest, a
 	// "verified" note, or a real date into any of them by hand.
-	$sha256       = 'c553d7d3d027fd2692cf5783689b6aa7c5391a78bc236536e43b71db46d4c529'; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-23 for agnosis-0.9.48.zip.';
-	$last_updated = '2026-07-23';
+	//
+	// 6a fix (fifteenth audit, 2026-07-24): $sha256's own trailing inline
+	// `// comment` (distinct from $sha256_note above) is ALSO now rewritten
+	// by build-zip.sh at both the clear and the write step — same self-
+	// contradiction 5b closed for $sha256_note (a verified digest sitting
+	// next to prose insisting no build had happened) could otherwise recur
+	// one line up, since the two comments are separate pieces of text. Hand-
+	// editing $sha256 is therefore the same as hand-editing $sha256_note:
+	// don't — the trailing comment is part of what build-zip.sh owns now.
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Pending — not yet built by build-zip.sh.';
+	$last_updated = ''; // Not yet built — dev/bin/build-zip.sh writes today's date at release time.
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -102,23 +111,21 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
-		'<h4>0.9.48</h4>' .
+		'<h4>0.9.50</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> Native-language-to-primary translation could still leave the wrong text untranslated &#8212; a poem mixing an original-language quotation with the artist&#8217;s own rendering could come back with BOTH left untouched, instead of just the quotation. The AI instruction now states clearly which part must stay untouched and which must still be translated.</li>' .
-			'<li><strong>Added:</strong> A new &#8220;Limitations&#8221; section in the in-site Artist Guide explains that AI-written descriptions work best with some descriptive detail from the artist, and that AI translation still falls short of human quality on gender and grammatical nuance &#8212; which is why every translated page indicates the artist&#8217;s own native language for comparison.</li>' .
-			'<li><strong>Added:</strong> The breadcrumb icon/badge block (biography, events, contact, language) now supports Font Family and Font Weight in the block editor, alongside the existing Font Size.</li>' .
-			'<li><strong>Added:</strong> The artist breadcrumb&#8217;s language badge now links to the native-language version of whatever you&#8217;re looking at &#8212; an artwork, a biography, or the gallery itself &#8212; instead of just naming the artist&#8217;s own language with nowhere to go.</li>' .
-			'<li><strong>Changed:</strong> The Enhancement provider setting no longer implies gpt-image-1 is the only supported image model &#8212; OpenAI&#8217;s newer gpt-image-2 already works with the existing model field, and the settings copy now says so.</li>' .
+			'<li><strong>Fixed:</strong> The contact, join, and newsletter-signup forms&#8217; success/error messages weren&#8217;t announced to screen readers after submitting &#8212; sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.</li>' .
+			'<li><strong>Fixed:</strong> A handful of translations (Arabic, Russian, Catalan, and 12 other languages) had a plural form come out wrong &#8212; a missing number placeholder, or two forms accidentally merged into one &#8212; so some notification/count text could show up wrong or blank in those languages. All are corrected now.</li>' .
+			'<li><strong>Fixed:</strong> Internal dev tooling used to keep translations up to date (<code>translate-missing</code>) had a few bugs that could cause a translation batch to fail silently, or in some cases write garbled text into a translation file &#8212; fixed, plus two safeguards added so those specific failures can&#8217;t happen again.</li>' .
+			'<li><strong>Added:</strong> The Agnosis Theme&#8217;s translation catalog now has the same AI-fill and compile tooling the plugin already had (dev-only, no user-facing change).</li>' .
+			'<li><strong>Fixed:</strong> Six admin-dashboard inputs (invite/test-send email fields, a ban-until date, a title translation field) relied on placeholder text only, so screen readers had no accessible name for them. Each now has a proper label.</li>' .
+			'<li><strong>Fixed:</strong> The newsletter digest&#8217;s artwork thumbnail had no alt text, so a screen reader had nothing to announce for that link. Now uses the artwork&#8217;s title.</li>' .
+			'<li><strong>Hardened:</strong> Internal cleanup that removes a superseded auto-generated placeholder image now double-checks it&#8217;s actually a placeholder before deleting it &#8212; extra protection against ever deleting a real photo by mistake (no known instance of this happening).</li>' .
+			'<li><strong>Fixed:</strong> A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).</li>' .
+			'<li><strong>Fixed:</strong> An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).</li>' .
 		'</ul>' .
-		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>' .
-		'<h4>0.9.47</h4>' .
+		'<h4>0.9.49</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> A deliberately embedded other-language passage &#8212; e.g. a Latin quotation inside a Catalan poem &#8212; could get translated right along with its surrounding text, and from there spread (already wrong) to every other configured language. A more precise instruction now tells the AI to leave it untouched. Lingua Forge&#8217;s own translation to your other configured languages also now uses a stronger AI model for this specific case.</li>' .
-			'<li><strong>Fixed:</strong> A text-only submission&#8217;s poster could end up completely broken after being resent to a different address with unchanged content &#8212; the resend&#8217;s dedupe logic could reuse the existing poster&#8217;s id while a related cleanup step simultaneously deleted it. Poster ids kept for the new gallery are no longer eligible for that cleanup.</li>' .
-			'<li><strong>Fixed:</strong> Published images never had alt text in the actual page markup, even when a real description was already stored for them &#8212; an accessibility gap affecting every artwork/biography/event image. Now included, falling back to the artwork&#8217;s own title when nothing more specific is available.</li>' .
-			'<li><strong>Fixed:</strong> A native-language artist&#8217;s own medium category could show up in the wrong language on their native-language sibling post (e.g. the English word &#8220;Poetry&#8221; instead of its own language&#8217;s equivalent). Now reuses the same translate-once-and-cache mechanism every other configured language already gets, instead of copying the primary-language word directly.</li>' .
-			'<li><strong>Fixed:</strong> Translating a submission into your site&#8217;s primary language could pick the wrong one of two languages to preserve versus translate when a submission deliberately mixed two languages (e.g. a quotation in a third language) &#8212; occasionally translating the part that should stay untouched while leaving the part that needed translating unchanged. The AI is now told explicitly which language the submission itself is written in, not just which language to translate it into.</li>' .
-			'<li><strong>Changed:</strong> Translating a submission into your site&#8217;s primary language now uses its own, separate AI model setting (Settings &#8594; AI Providers), independent from the cheap/fast model used for medium classification and contact-message moderation.</li>' .
+			'<li><strong>Removed:</strong> The temporary debug trace added in 0.9.48 (native-language-to-primary translation) logged full submission text and its translation to Settings &#8594; Logs. A real multi-language submission has since confirmed the underlying translation fix holds, so the trace is removed &#8212; no submission content is logged anymore.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

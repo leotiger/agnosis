@@ -2543,7 +2543,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "OpenAIが説明プロバイダーの場合の分類タスク用の安価で高速なモデル — テキストのみ（pure@）の投稿の媒体/タグ分類、およびコンタクトフォームメッセージのモード。ビジョンサポートは不要です。投稿をサイトの主言語に翻訳するために使用されるモデルについては、下記の「OpenAI翻訳モデル」を参照してください。"
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2556,11 +2556,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Anthropicが説明プロバイダーの場合の分類タスク用の安価で高速なモデル — テキストのみ（pure@）の投稿の媒体/タグ分類、およびコンタクトフォームメッセージのモード。ビジョンサポートは不要です。投稿をサイトの主言語に翻訳するために使用されるモデルについては、下記の「Anthropic翻訳モデル」を参照してください。"
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI翻訳モデル"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2571,11 +2571,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "OpenAIがAIプロバイダーの場合に、投稿をサイトの主言語に翻訳するためのモデル、および意図的に外国語で書かれた部分（例：元の言語で引用された引用文）を周辺のテキストと一緒に翻訳されないように保護する組み込み他言語検出パスのモデル。このモデルが全ての作品/経歴/イベントの実際に公開される主言語テキストを生成します — 上記の安価な分類モデルより強力なモデルの価値があります。ビジョンサポートは不要です。"
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic翻訳モデル"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2586,7 +2586,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Anthropicがプロバイダーの場合に、投稿をサイトの主言語に翻訳するためのモデル、および意図的に外国語で書かれた部分（例：元の言語で引用された引用文）を周辺のテキストと一緒に翻訳されないように保護する組み込み他言語検出パスのモデル。このモデルが全ての作品/経歴/イベントの実際に公開される主言語テキストを生成します — 上記の安価な分類モデルより強力なモデルの価値があります。ビジョンサポートは不要です。"
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2653,7 +2653,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "公開前に作品画像を拡張します。下記で設定されたOpenAI画像モデルを使用します（例：gpt-image-1、gpt-image-2）。「無効」に設定すると、拡張をスキップして元の画像を公開します。"
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5793,7 +5793,7 @@ msgstr "連絡を取る"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "%s で表示"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

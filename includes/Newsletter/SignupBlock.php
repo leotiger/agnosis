@@ -50,7 +50,7 @@ class SignupBlock {
 		?>
 		<div class="agnosis-newsletter-signup">
 
-			<div class="agnosis-newsletter-signup__notice" hidden></div>
+			<div class="agnosis-newsletter-signup__notice" role="status" hidden></div>
 
 			<form class="agnosis-newsletter-signup__form" novalidate>
 				<div class="agnosis-newsletter-signup__field">

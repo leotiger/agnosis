@@ -2401,7 +2401,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "用于分类任务的便宜快速模型，当OpenAI作为描述提供者时使用——仅限文本的(pure@)提交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交翻译为网站主要语言的模型，请参见下面的“OpenAI翻译模型”。"
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2414,11 +2414,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "用于分类任务的便宜快速模型，当Anthropic作为描述提供者时使用——仅限文本的(pure@)提交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交翻译为网站主要语言的模型，请参见下面的“Anthropic翻译模型”。"
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "OpenAI翻译模型"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2429,11 +2429,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "当OpenAI是翻译提交为网站主要语言的AI提供者时使用的模型，还用于嵌入的外语检测过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻译。这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜分类模型更值得使用更强的模型。无需视觉支持。"
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Anthropic翻译模型"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2444,7 +2444,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "当Anthropic是翻译提交为网站主要语言的AI提供者时使用的模型，且用于嵌入的外语检测过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻译。这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜分类模型更值得使用更强的模型。无需视觉支持。"
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2506,7 +2506,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "在发布前增强艺术作品图像，使用下面的OpenAI图像模型集（例如gpt-image-1，gpt-image-2）。设置为禁用以跳过增强并发布原始图像。"
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5478,7 +5478,7 @@ msgstr "取得联系"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "在%s中查看此内容"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."

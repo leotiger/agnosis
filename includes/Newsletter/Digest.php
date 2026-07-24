@@ -254,7 +254,7 @@ class Digest {
 			$html .= '<tr>';
 			if ( $thumb ) {
 				$html .= '<td style="width:80px;padding-right:16px;vertical-align:top;">'
-					. '<a href="' . esc_url( $permalink ) . '"><img src="' . esc_url( $thumb ) . '" width="72" style="display:block;border-radius:4px;max-width:72px;height:auto;"></a>'
+					. '<a href="' . esc_url( $permalink ) . '"><img src="' . esc_url( $thumb ) . '" alt="' . esc_attr( $title ) . '" width="72" style="display:block;border-radius:4px;max-width:72px;height:auto;"></a>'
 					. '</td>';
 			}
 			$html .= '<td style="vertical-align:top;">'

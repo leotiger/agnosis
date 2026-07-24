@@ -70,9 +70,12 @@
             "@coverage:merge"
         ],
         "make-pot":    "bash bin/make-pot.sh",
+        "make-theme-pot": "bash bin/make-theme-pot.sh",
         "compile-pos": "bash bin/compile-pos.sh",
+        "compile-theme-pos": "bash bin/compile-theme-pos.sh",
         "fill-loco-gaps": "php bin/fill-loco-gaps.php",
         "translate-missing": "php bin/translate-missing.php",
+        "translate-theme-missing": "php bin/translate-theme-missing.php",
         "build-zip": [
             "Composer\\Config::disableProcessTimeout",
             "bash bin/build-zip.sh"
@@ -99,9 +102,12 @@
         "coverage:merge":   "Merge unit and integration Clover XMLs into coverage/combined/. Run after coverage:run.",
         "coverage":         "Full coverage pipeline: coverage:run → coverage:merge. Reports land in coverage/unit/, coverage/integration/, coverage/combined/.",
         "make-pot":         "Extract source strings and merge into .po files.",
+        "make-theme-pot":  "Same as make-pot, scoped to the sibling agnosis-theme repo's own languages/agnosis-theme.pot + .po files.",
         "compile-pos":      "Compile .po files into .mo binaries and .l10n.php caches.",
+        "compile-theme-pos": "Same as compile-pos, scoped to the sibling agnosis-theme repo's own languages/agnosis-theme-*.po files.",
         "fill-loco-gaps":   "On-demand (not per-version): scan for plural entries Loco Translate left partially translated (AUDIT-0.9.44.md §5d) and print a JSON report; pass -- --apply=FILE.json to write provided translations into empty slots only.",
         "translate-missing": "On-demand (not per-version): AI-translate every empty string across all 18 locales in one pass, replacing the manual Loco Translate workflow. Anthropic (default, Haiku), OpenAI, or Gemini via --provider=anthropic|openai|gemini. Needs that provider's API key — set ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY or leave it unset to be prompted (hidden input, used for that run only). Writes directly to .po; see dev/translate-missing.log. Flags: --dry-run, --locale=xx, --limit=N, --batch-size=N, --provider=NAME, --model=NAME.",
+        "translate-theme-missing": "Same as translate-missing, scoped to the sibling agnosis-theme repo's own languages/agnosis-theme-*.po files. Same flags, same API-key handling, see dev/translate-theme-missing.log.",
         "build-zip":        "Package the plugin into a distributable zip via rsync + .distignore (includes uncommitted changes).",
         "build-theme-zip":  "Package the Agnosis Theme into a distributable zip, output to agnosis-deploy/.",
         "qa":               "Local pre-deploy gate: lint → analyse → unit tests → js/css lint."

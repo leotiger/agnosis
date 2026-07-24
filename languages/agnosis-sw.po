@@ -1287,7 +1287,7 @@ msgstr "(hakuna kichwa)"
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d wasilisho"
-msgstr[1] "mawasilisho"
+msgstr[1] "%d mawasilisho"
 
 #: includes/Admin/MediumProposals.php:134
 msgid "Approve"
@@ -2611,7 +2611,7 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr ""
+msgstr "Modeli rahisi na haraka inayotumiwa kwa kazi za uainishaji wakati OpenAI ndiyo mtoa huduma wa maelezo — uainishaji wa kati/lebo kwa mawasilisho ya maandishi tu (pure@), na kusimamia ujumbe wa fomu ya mawasiliano. Haihitaji msaada wa macho. Kwa modeli inayotumiwa kutafsiri mawasilisho katika lugha kuu ya tovuti, tazama \"Modeli wa tafsiri wa OpenAI\" hapa chini."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2624,11 +2624,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr ""
+msgstr "Modeli rahisi na haraka inayotumiwa kwa kazi za uainishaji wakati Anthropic ndiyo mtoa huduma wa maelezo — uainishaji wa kati/lebo kwa mawasilisho ya maandishi tu (pure@), na kusimamia ujumbe wa fomu ya mawasiliano. Haihitaji msaada wa macho. Kwa modeli inayotumiwa kutafsiri mawasilisho katika lugha kuu ya tovuti, tazama \"Modeli wa tafsiri wa Anthropic\" hapa chini."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
-msgstr ""
+msgstr "Modeli wa tafsiri wa OpenAI"
 
 #: includes/Admin/SettingsFields.php:503
 msgid ""
@@ -2639,11 +2639,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Modeli inayotumiwa wakati OpenAI ndiyo mtoa huduma wa AI kwa kutafsiri wasilisho katika lugha kuu ya tovuti, na kwa njia ya ugunduzi wa lugha nyingine iliyoingia inayolinda sehemu zilizokusudiwa kuwa kigeni (k.m. nukuu iliyotolewa katika lugha yake asili) kutokatafsiriwa pamoja na maandishi yayotuzunguka. Huu ndio modeli unaozalisha maandishi ya kawaida yaliyochapishwa ya kila sanaa/wasifu/tukio — inastahili modeli yenye nguvu zaidi kuliko ile rahisi ya uainishaji hapo juu. Haihitaji msaada wa macho."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
-msgstr ""
+msgstr "Modeli wa tafsiri wa Anthropic"
 
 #: includes/Admin/SettingsFields.php:509
 msgid ""
@@ -2654,7 +2654,7 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr ""
+msgstr "Modeli inayotumiwa wakati Anthropic ndiyo mtoa huduma wa AI kwa kutafsiri wasilisho katika lugha kuu ya tovuti, na kwa njia ya ugunduzi wa lugha nyingine iliyoingia inayolinda sehemu zilizokusudiwa kuwa kigeni (k.m. nukuu iliyotolewa katika lugha yake asili) kutokatafsiriwa pamoja na maandishi yayotuzunguka. Huu ndio modeli unaozalisha maandishi ya kawaida yaliyochapishwa ya kila sanaa/wasifu/tukio — inastahili modeli yenye nguvu zaidi kuliko ile rahisi ya uainishaji hapo juu. Haihitaji msaada wa macho."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2724,7 +2724,7 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr ""
+msgstr "Inaboresha picha ya sanaa kabla ya kuchapisha, ikitumia modeli ya picha ya OpenAI iliyowekwa hapa chini (k.m. gpt-image-1, gpt-image-2). Weka kuwa Fungwa ili kuruka uboreshaji na kuchapisha asili."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -5923,7 +5923,7 @@ msgstr "Wasiliana nasi"
 #: includes/Network/SubdomainNavigation.php:580
 #, php-format
 msgid "View this in %s"
-msgstr ""
+msgstr "Angalia hii katika %s"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."
