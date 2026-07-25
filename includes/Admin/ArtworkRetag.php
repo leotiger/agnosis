@@ -141,12 +141,12 @@ class ArtworkRetag {
 			return;
 		}
 
-		$success = '1' === (string) wp_unslash( $_GET['agnosis_retag_success'] );
+		$success = 1 === absint( wp_unslash( $_GET['agnosis_retag_success'] ) );
 
 		if ( $success ) {
-			$matched  = isset( $_GET['agnosis_retag_matched'] ) ? (int) wp_unslash( $_GET['agnosis_retag_matched'] ) : 0;
-			$proposed = isset( $_GET['agnosis_retag_proposed'] ) ? (int) wp_unslash( $_GET['agnosis_retag_proposed'] ) : 0;
-			$gated    = isset( $_GET['agnosis_retag_gated'] ) ? (int) wp_unslash( $_GET['agnosis_retag_gated'] ) : 0;
+			$matched  = isset( $_GET['agnosis_retag_matched'] ) ? absint( wp_unslash( $_GET['agnosis_retag_matched'] ) ) : 0;
+			$proposed = isset( $_GET['agnosis_retag_proposed'] ) ? absint( wp_unslash( $_GET['agnosis_retag_proposed'] ) ) : 0;
+			$gated    = isset( $_GET['agnosis_retag_gated'] ) ? absint( wp_unslash( $_GET['agnosis_retag_gated'] ) ) : 0;
 			// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 			$message = sprintf(
