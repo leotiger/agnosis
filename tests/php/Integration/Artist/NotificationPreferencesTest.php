@@ -53,8 +53,8 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 	}
 
 	protected function tearDown(): void {
-		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'], $_GET['contact_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'], $_POST['contact_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'], $_GET['contact_optout'], $_GET['replies_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'], $_POST['contact_optout'], $_POST['replies_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'] );
 		parent::tearDown();
 	}
@@ -286,6 +286,47 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		}
 
 		$this->assertSame( '', get_user_meta( $artist, '_agnosis_contact_optout', true ) );
+	}
+
+	// Interaction-surface roadmap, Phase 2 (2026-07-25) — same on/off shape as
+	// contact_optout above, on by default (no meta row = receiving replies).
+	public function test_post_saves_replies_optout(): void {
+		$artist = $this->create_artist( 'save-replies-optout@example.com' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_prefs']    = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']           = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']            = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']        = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['replies_optout']   = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->prefs->handle();
+			$this->fail( 'Expected the saved page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+		}
+
+		$this->assertSame( '1', get_user_meta( $artist, '_agnosis_replies_optout', true ) );
+	}
+
+	public function test_post_omitting_replies_optout_clears_it(): void {
+		$artist = $this->create_artist( 'clear-replies-optout@example.com' );
+		update_user_meta( $artist, '_agnosis_replies_optout', '1' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_prefs']    = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']           = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']            = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']        = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// replies_optout deliberately absent — an unchecked checkbox submits nothing.
+
+		try {
+			$this->prefs->handle();
+		} catch ( DieCapture $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- expected: handle() always wp_die()s on a successful save, nothing to assert on the exception itself here.
+		}
+
+		$this->assertSame( '', get_user_meta( $artist, '_agnosis_replies_optout', true ) );
 	}
 
 	public function test_post_omitting_mute_broadcasts_clears_the_mute(): void {

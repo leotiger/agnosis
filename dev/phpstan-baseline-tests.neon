@@ -882,7 +882,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_status\\(\\)\\.$#"
-			count: 8
+			count: 13
 			path: ../tests/php/Integration/Artist/ContentEditorTest.php
 
 		-
@@ -947,7 +947,7 @@ parameters:
 
 		-
 			message: "#^Part \\$post_id \\(int\\|WP_Error\\) of encapsed string cannot be cast to string\\.$#"
-			count: 1
+			count: 2
 			path: ../tests/php/Integration/Artist/ContentEditorTest.php
 
 		-
@@ -1917,7 +1917,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
-			count: 21
+			count: 23
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1987,7 +1987,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
-			count: 26
+			count: 37
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2002,7 +2002,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
-			count: 4
+			count: 5
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2021,6 +2021,16 @@ parameters:
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Network\\\\ActivityPub\\:\\:reply_count\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:first_reply_comment_id\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:note_for\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 20
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
@@ -2028,6 +2038,11 @@ parameters:
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:render_interaction_counts_via_block\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 4
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:reply_comments\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 5
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2053,6 +2068,11 @@ parameters:
 		-
 			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
 			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 2
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2083,6 +2103,11 @@ parameters:
 		-
 			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Part \\$post_id \\(int\\|WP_Error\\) of encapsed string cannot be cast to string\\.$#"
+			count: 1
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-

@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.54';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.54/agnosis-0.9.54.zip';
+	$version      = '0.9.55';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.55/agnosis-0.9.55.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -97,9 +97,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '0e4255feb93f585179dc03bef53d2ee9a7dbc0871700caadc441850b4b590bee'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-25 for agnosis-0.9.54.zip.';
-	$last_updated = '2026-07-25';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Build started 2026-07-25T20:42:44Z by build-zip.sh for v0.9.55 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
+	$last_updated = 'Not yet built — dev/bin/build-zip.sh will set this at release time.';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -111,17 +111,19 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.55</h4>' .
+		'<ul>' .
+			'<li><strong>Added:</strong> Artworks can now receive replies from the Fediverse. A reply is always held until the artist approves or rejects it (one click from an email, no login needed) and is automatically translated into the artist&#8217;s own language. Artists can turn replies off for one piece, or for all their work, at any time; a &#8220;N replies&#8221; button opens them in an overlay without cluttering the artwork page. A new Settings &#8594; Network limit caps how many replies one fediverse account can leave per hour (default: 2).</li>' .
+			'<li><strong>Changed:</strong> The federation settings added in 0.9.54 (&#8220;Federate which languages&#8221;, &#8220;Federation tag-wait timeout&#8221;) moved from Settings &#8594; Behavior to Settings &#8594; Network, alongside the existing ActivityPub and node identity fields. No behavior change.</li>' .
+			'<li><strong>Fixed:</strong> A read-only redirect notice on the artwork editor now sanitizes its parameters the way WordPress expects (flagged by Plugin Check; no real-world impact).</li>' .
+		'</ul>' .
 		'<h4>0.9.54</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> Tags redesign completed. Tag and medium-category translations into other languages now happen automatically and propagate to already-translated posts on their own. A new one-click &#8220;Re-tag&#8221; button on each artwork (and an optional bulk backfill script) can (re-)generate tags for posts that don&#8217;t have them yet. Renaming or deleting a tag/medium term now correctly updates or removes its translations too, and the proposal-review expiry setting is now shared between tags and medium categories.</li>' .
 			'<li><strong>Added:</strong> Federated posts now carry proper language metadata, so followers using Mastodon&#8217;s per-account language filter see them correctly.</li>' .
 				'<li><strong>Added:</strong> A translated-language version of an artwork is now correctly reachable and kept up to date over ActivityPub &#8212; editing or removing it now federates properly, instead of only the original-language post doing so.</li>' .
 				'<li><strong>Added:</strong> An artwork now federates to the Fediverse once its tags and medium category are actually settled, so it arrives with real hashtags instead of none; a genuinely new tag/medium proposal briefly delays federation until reviewed (or a configurable timeout passes).</li>' .
-				'<li><strong>Added:</strong> A new &#8220;Federate which languages&#8221; setting (Settings &#8594; Behavior) can turn on sending each artwork&#8217;s translated versions to the Fediverse too, one post per language &#8212; off by default, so nothing changes unless you opt in. Every federated post now also links its other available languages.</li>' .
-		'</ul>' .
-		'<h4>0.9.53</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> Tags are back, rebuilt from scratch. New submissions once again get AI-proposed tags in the site&#8217;s main language, reusing an existing tag when one already fits instead of creating a near-duplicate. A brand-new tag name now waits for an admin&#8217;s Approve/Reject on the Tags screen rather than being created automatically; an unreviewed proposal is auto-rejected after 7 days (configurable).</li>' .
+				'<li><strong>Added:</strong> A new &#8220;Federate which languages&#8221; setting (Settings &#8594; Network) can turn on sending each artwork&#8217;s translated versions to the Fediverse too, one post per language &#8212; off by default, so nothing changes unless you opt in. Every federated post now also links its other available languages.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

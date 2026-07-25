@@ -494,6 +494,7 @@ class Activator {
 		'agnosis_drain_translation_queue',
 		'agnosis_drain_rename_queue',
 		'agnosis_federation_tag_wait_sweep',
+		'agnosis_drain_reply_translation_queue',
 		// Single events — each scheduled with per-call arguments (a queue id,
 		// a translation dispatch payload), so clearing them needs
 		// wp_unschedule_hook() below, not wp_clear_scheduled_hook( $hook ):
@@ -1366,6 +1367,14 @@ class Activator {
 		// just above.
 		if ( ! wp_next_scheduled( 'agnosis_drain_rename_queue' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_rename_queue' );
+		}
+		// Federated-reply translation queue drain (interaction-surface
+		// roadmap, Phase 2) — same 5-minute tick, same no-op-when-empty
+		// convention (ActivityPub::drain_reply_translation_queue() returns
+		// immediately when no comment currently carries the pending-
+		// translation meta).
+		if ( ! wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_reply_translation_queue' );
 		}
 		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be

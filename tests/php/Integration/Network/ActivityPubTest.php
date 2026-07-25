@@ -52,9 +52,16 @@ namespace Agnosis\Tests\Integration\Network;
 
 use Agnosis\Core\Logger;
 use Agnosis\Network\ActivityPub;
+use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
 use Agnosis\Tests\Integration\Support\FakeLinguaForge;
 
 require_once __DIR__ . '/../Compat/Stubs/lf_global_stubs.php';
+// Interaction-surface roadmap, Phase 2 — drain_reply_translation_queue()'s
+// own test reaches Providers\WordPressAI via SubmissionTranslator::from_settings(),
+// same wp_ai fake-provider stub CommunityBroadcastLanguageGroupingTest/
+// LinguaForgeCompatTest already use.
+require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
+require_once __DIR__ . '/../AI/Stubs/wp_ai_provider_namespace_stubs.php';
 
 class ActivityPubTest extends \WP_UnitTestCase {
 
@@ -2451,5 +2458,272 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		( new ActivityPub() )->inbox( $this->like_request( 'Like', self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ) ) );
 
 		$this->assertSame( 1, $this->stored_interaction_row_count( $post_id, 'like', self::REMOTE_ACTOR_URL ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// Federated replies (interaction-surface roadmap, Phase 2, 2026-07-25)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Build a `Create{Note, inReplyTo}` inbox request. $note_id defaults to a
+	 * fresh uniqid() per call so idempotency tests can opt into a SHARED id
+	 * across two calls while every other test gets independent activities.
+	 */
+	private function create_reply_request( string $actor, string $in_reply_to, string $content, ?string $note_id = null ): \WP_REST_Request {
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Create',
+			'actor'  => $actor,
+			'object' => [
+				'type'       => 'Note',
+				'id'         => $note_id ?? ( $actor . '/statuses/' . uniqid() ),
+				'inReplyTo'  => $in_reply_to,
+				'content'    => $content,
+				'published'  => gmdate( 'c' ),
+			],
+		] ) );
+		return $request;
+	}
+
+	/**
+	 * Returns the federated-reply comments on $post_id, PHPStan-safely —
+	 * get_comments() is stubbed as array<int,WP_Comment>|int by WP core's own
+	 * stubs (the union covers its 'count' => true calling shape, which this
+	 * helper never uses), so every raw call site in this file would otherwise
+	 * need its own new (non-baselined) suppression. One typed helper avoids
+	 * that entirely.
+	 *
+	 * @return \WP_Comment[]
+	 */
+	private function reply_comments( int $post_id ): array {
+		$comments = get_comments( [ 'post_id' => $post_id, 'type' => ActivityPub::REPLY_COMMENT_TYPE, 'status' => 'any' ] );
+		if ( ! is_array( $comments ) ) {
+			return [];
+		}
+		return array_values( array_filter( $comments, static fn( $comment ) => $comment instanceof \WP_Comment ) );
+	}
+
+	/** Returns the comment_ID of the first (only, in these tests) federated-reply comment on $post_id. */
+	private function first_reply_comment_id( int $post_id ): int {
+		$comments = $this->reply_comments( $post_id );
+		$this->assertNotEmpty( $comments, 'Expected at least one federated-reply comment on post ' . $post_id );
+		return (int) $comments[0]->comment_ID;
+	}
+
+	/** Mocks a GET to $actor_url returning a bare Person actor document (no name/url) — enough for fetch_remote_actor_profile() to fall back to the actor URL itself. */
+	private function mock_actor_profile_fetch( string $actor_url, string $name = '', string $profile_url = '' ): void {
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) use ( $actor_url, $name, $profile_url ) {
+				if ( strpos( $url, $actor_url ) === false ) {
+					return $preempt;
+				}
+				$body = [ 'type' => 'Person', 'id' => $actor_url ];
+				if ( '' !== $name ) {
+					$body['name'] = $name;
+				}
+				if ( '' !== $profile_url ) {
+					$body['url'] = $profile_url;
+				}
+				return [
+					'response' => [ 'code' => 200, 'message' => 'OK' ],
+					'headers'  => [],
+					'body'     => (string) wp_json_encode( $body ),
+					'cookies'  => [],
+					'filename' => '',
+				];
+			},
+			10,
+			3
+		);
+	}
+
+	public function test_inbox_create_reply_is_held_for_moderation(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL, 'Remote Fan' );
+
+		$response = ( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), '<p>Lovely piece!</p>' )
+		);
+
+		$this->assertSame( 'accepted', $response->get_data()['status'] );
+
+		$comments = $this->reply_comments( $post_id );
+		$this->assertCount( 1, $comments, 'A valid Create{Note} reply must insert exactly one comment.' );
+		$this->assertSame( '0', $comments[0]->comment_approved, 'A federated reply must always be held for moderation — never auto-published.' );
+		$this->assertSame( 'Remote Fan', $comments[0]->comment_author );
+		$this->assertStringContainsString( 'Lovely piece!', $comments[0]->comment_content );
+	}
+
+	public function test_inbox_create_reply_redelivery_is_idempotent(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		$request = $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello', 'https://mastodon.example/statuses/fixed-id' );
+
+		( new ActivityPub() )->inbox( $request );
+		( new ActivityPub() )->inbox( $request ); // Re-delivered — a real fediverse retry scenario.
+
+		$comments = $this->reply_comments( $post_id );
+		$this->assertCount( 1, $comments, 'A re-delivered Create must not insert a second comment.' );
+	}
+
+	public function test_inbox_create_reply_declined_when_post_has_replies_disabled(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		update_post_meta( $post_id, ActivityPub::REPLIES_DISABLED_META, '1' );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello' )
+		);
+
+		$this->assertCount( 0, $this->reply_comments( $post_id ), 'A per-artwork replies-disabled flag must decline the reply outright, not hold it.' );
+	}
+
+	public function test_inbox_create_reply_declined_when_author_opted_out_account_wide(): void {
+		$author_id = self::factory()->user->create();
+		$post_id   = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
+		update_user_meta( $author_id, '_agnosis_replies_optout', '1' );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello' )
+		);
+
+		$this->assertCount( 0, $this->reply_comments( $post_id ), 'An account-wide replies opt-out must decline the reply outright, not hold it.' );
+	}
+
+	public function test_inbox_create_reply_rate_limited_after_configured_max(): void {
+		update_option( 'agnosis_ap_reply_per_actor_limit', 1 );
+		update_option( 'agnosis_ap_reply_per_actor_limit_window_hours', 1 );
+
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'First' ) );
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Second — over the limit' ) );
+
+		$comments = $this->reply_comments( $post_id );
+		$this->assertCount( 1, $comments, 'A second reply from the same actor beyond the configured per-actor limit must be declined.' );
+
+		delete_option( 'agnosis_ap_reply_per_actor_limit' );
+		delete_option( 'agnosis_ap_reply_per_actor_limit_window_hours' );
+	}
+
+	public function test_inbox_create_reply_ignored_when_in_reply_to_is_not_a_local_artwork(): void {
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		$response = ( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, 'https://elsewhere.example/some-post', 'Hello' )
+		);
+
+		$this->assertSame( 'ignored', $response->get_data()['status'] );
+		$this->assertSame( 0, ( new ActivityPub() )->reply_count( 0 ), 'Nothing should ever be stored against post id 0.' );
+	}
+
+	public function test_handle_delete_of_reply_trashes_matching_comment_when_actor_matches(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello', 'https://mastodon.example/statuses/to-delete' )
+		);
+		$comment_id = $this->first_reply_comment_id( $post_id );
+
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Delete',
+			'actor'  => self::REMOTE_ACTOR_URL,
+			'object' => 'https://mastodon.example/statuses/to-delete',
+		] ) );
+		( new ActivityPub() )->inbox( $request );
+
+		$this->assertSame( 'trash', wp_get_comment_status( $comment_id ), 'A Delete{object: <note-id>} signed by the SAME actor that authored the reply must trash the matching comment.' );
+	}
+
+	public function test_handle_delete_of_reply_does_not_trash_when_actor_mismatched(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello', 'https://mastodon.example/statuses/protected' )
+		);
+		$comment_id = $this->first_reply_comment_id( $post_id );
+
+		// A DIFFERENT actor claims to delete it — must be ignored, since an
+		// Undo/Delete must be signed by the same actor as the reply it targets.
+		$request = new \WP_REST_Request( 'POST', '/agnosis/v1/activitypub/inbox' );
+		$request->set_header( 'Content-Type', 'application/activity+json' );
+		$request->set_body( (string) wp_json_encode( [
+			'type'   => 'Delete',
+			'actor'  => self::OTHER_ACTOR_URL,
+			'object' => 'https://mastodon.example/statuses/protected',
+		] ) );
+		( new ActivityPub() )->inbox( $request );
+
+		$this->assertNotSame( 'trash', wp_get_comment_status( $comment_id ), 'A Delete signed by a DIFFERENT actor than the reply\'s own author must not trash it.' );
+	}
+
+	public function test_reply_count_only_counts_approved_replies(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Held one' ) );
+		$this->assertSame( 0, ( new ActivityPub() )->reply_count( $post_id ), 'A freshly-inserted (held) reply must not count until approved.' );
+
+		$comment_id = $this->first_reply_comment_id( $post_id );
+		wp_set_comment_status( $comment_id, 'approve' );
+
+		$this->assertSame( 1, ( new ActivityPub() )->reply_count( $post_id ) );
+	}
+
+	public function test_get_replies_falls_back_to_original_content_until_translated(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL, 'Remote Fan', 'https://mastodon.example/@remoteartist' );
+
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Original text' ) );
+		$comment_id = $this->first_reply_comment_id( $post_id );
+		wp_set_comment_status( $comment_id, 'approve' );
+
+		$request = new \WP_REST_Request( 'GET', "/agnosis/v1/content/{$post_id}/replies" );
+		$request->set_param( 'id', $post_id );
+		$data = ( new ActivityPub() )->get_replies( $request )->get_data();
+
+		$this->assertSame( 1, $data['count'] );
+		$this->assertStringContainsString( 'Original text', $data['replies'][0]['content'], 'Before translation resolves, the original content must be returned, not an empty string.' );
+		$this->assertSame( 'Remote Fan', $data['replies'][0]['author'] );
+		$this->assertSame( 'https://mastodon.example/@remoteartist', $data['replies'][0]['url'] );
+
+		update_comment_meta( $comment_id, '_agnosis_reply_translated_content', 'Texto traducido' );
+		$data = ( new ActivityPub() )->get_replies( $request )->get_data();
+		$this->assertSame( 'Texto traducido', $data['replies'][0]['content'], 'Once translated, get_replies() must prefer the translation over the untouched original.' );
+	}
+
+	public function test_drain_reply_translation_queue_translates_pending_and_clears_flag(): void {
+		$author_id = self::factory()->user->create();
+		update_user_meta( $author_id, 'locale', 'es_ES' );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello there' ) );
+		$comment_id = $this->first_reply_comment_id( $post_id );
+
+		$this->assertSame( '1', get_comment_meta( $comment_id, '_agnosis_reply_pending_translation', true ), 'Precondition: a freshly-inserted reply must be queued for translation.' );
+
+		( new ActivityPub() )->drain_reply_translation_queue();
+
+		$translated = get_comment_meta( $comment_id, '_agnosis_reply_translated_content', true );
+		$this->assertStringContainsString( 'Hello there', $translated, 'The fake wp_ai provider echoes the original body back inside its deterministic translation — must still be present.' );
+		$this->assertSame( '', get_comment_meta( $comment_id, '_agnosis_reply_pending_translation', true ), 'The pending-translation flag must be cleared once resolved.' );
+		// comment_content itself (the untouched original) must survive — "never
+		// discard the source" (roadmap §4 Phase 2 step 8).
+		$this->assertStringContainsString( 'Hello there', get_comment( $comment_id )->comment_content );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
 	}
 }

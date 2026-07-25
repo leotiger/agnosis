@@ -1,0 +1,118 @@
+/* Agnosis Reply Overlay block — frontend styles.
+ *
+ * Interaction-surface roadmap, Phase 2 (2026-07-25). Self-contained, same
+ * principle as blocks/newsletter-popover/frontend.css: any theme dropping in
+ * agnosis/reply-overlay gets full styling for free, no cross-block CSS
+ * dependency on newsletter-popover's own stylesheet even though the shared
+ * `.lf-icon-btn`/`.lf-popover-close` classes are intentionally reused by name
+ * for a consistent icon-button language across the site.
+ */
+
+.agnosis-reply-overlay__trigger {
+	display: inline-block;
+	background: transparent;
+	border: 1px solid var(--wp--preset--color--tertiary, currentColor);
+	border-radius: 999px;
+	padding: 0.4em 1em;
+	font: inherit;
+	font-size: 0.9em;
+	color: var(--wp--preset--color--foreground, currentColor);
+	cursor: pointer;
+	opacity: 0.75;
+	transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.agnosis-reply-overlay__trigger:hover {
+	opacity: 1;
+	border-color: var(--wp--preset--color--foreground, currentColor);
+}
+
+/* Shared icon-button treatment for the panel's close button — same shape as
+ * blocks/newsletter-popover/frontend.css's own .lf-icon-btn, duplicated
+ * rather than imported (see file docblock above). */
+.lf-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 3rem;
+	height: 3rem;
+	padding: 0;
+	border: 1px solid var(--wp--preset--color--tertiary, currentColor);
+	background: transparent;
+	color: var(--wp--preset--color--foreground, currentColor);
+	cursor: pointer;
+	opacity: 0.6;
+	transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.lf-icon-btn:hover {
+	opacity: 1;
+	border-color: var(--wp--preset--color--foreground, currentColor);
+}
+
+/* Popover panel — native Popover API (popover="auto" written directly in the
+ * block's own markup), no JavaScript needed for open/close/backdrop/escape.
+ * Full-viewport takeover, same reasoning as newsletter-popover's own panel:
+ * a small card anchored to the trigger risks landing off-screen since the
+ * trigger can sit anywhere in an artwork's layout. */
+.agnosis-reply-overlay__panel {
+	position: fixed;
+	inset: 0;
+	margin: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	overflow-y: auto;
+	border: none;
+	background: var(--wp--preset--color--background, #fff);
+	color: var(--wp--preset--color--foreground, #111);
+}
+
+.agnosis-reply-overlay__inner {
+	max-width: 40rem;
+	margin: 0 auto;
+	padding: var(--wp--preset--spacing--60, 3rem) var(--wp--preset--spacing--50, 2rem);
+}
+
+.lf-popover-close {
+	position: fixed;
+	top: var(--wp--preset--spacing--40, 1.5rem);
+	right: var(--wp--preset--spacing--40, 1.5rem);
+}
+
+.agnosis-reply-overlay__item {
+	margin: 0 0 var(--wp--preset--spacing--50, 2rem);
+	padding-bottom: var(--wp--preset--spacing--40, 1.5rem);
+	border-bottom: 1px solid var(--wp--preset--color--tertiary, #e0e0e0);
+}
+
+.agnosis-reply-overlay__item:last-child {
+	border-bottom: none;
+}
+
+.agnosis-reply-overlay__author {
+	display: block;
+	font-weight: 700;
+	margin: 0 0 0.25em;
+}
+
+.agnosis-reply-overlay__author a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.agnosis-reply-overlay__date {
+	display: block;
+	font-size: 0.8em;
+	opacity: 0.6;
+	margin: 0 0 0.75em;
+}
+
+.agnosis-reply-overlay__content {
+	line-height: 1.6;
+}
+
+.agnosis-reply-overlay__status {
+	opacity: 0.7;
+}

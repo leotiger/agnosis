@@ -87,8 +87,10 @@ declare(strict_types=1);
 namespace Agnosis\Network;
 
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
+use Agnosis\Core\RateLimiter;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_User;
@@ -97,6 +99,58 @@ use WP_Error;
 class ActivityPub {
 
 	private const CONTEXT = 'https://www.w3.org/ns/activitystreams';
+
+	/**
+	 * Interaction-surface roadmap, Phase 2 (2026-07-25) — federated replies.
+	 *
+	 * A `Create{Note, inReplyTo: <artwork-url>}` from a remote fediverse
+	 * account becomes an ordinary WP comment, tagged with this comment_type
+	 * so it can be styled/queried distinctly from any future native on-site
+	 * commenting. Held for moderation (`comment_approved = 0`) unconditionally
+	 * — Ulises: "we should never allow auto-publish... artists in charge of
+	 * what's published in the context of their work" — there is no settings
+	 * toggle to relax this, unlike the roadmap doc's own tentative "a settings
+	 * toggle can relax this later" suggestion, which his answer supersedes.
+	 * `handle_reply_moderation()` below is how an artist actually approves or
+	 * rejects one, since the `agnosis_artist` role carries no WP
+	 * `moderate_comments` capability (confirmed against Admission.php — the
+	 * role is a bare marker, no capabilities attached) and was never meant to;
+	 * granting it broadly would let an artist moderate every comment
+	 * site-wide, not just their own.
+	 */
+	// wp_comments.comment_type is varchar(20) in WP core's own schema
+	// (wp-admin/includes/schema.php) — 'agnosis_federated_reply' (23 chars)
+	// silently overflowed it under the test DB's strict SQL mode, making
+	// every single wp_insert_comment() call here fail at the $wpdb->insert()
+	// level and return false, which is what actually caused every Phase 2
+	// reply test to see 'ignored' instead of 'accepted' (root-caused via a
+	// temporary error_log()/STDERR diagnostic in handle_create_reply(),
+	// 2026-07-25 — see that method's git history for the diagnostic itself).
+	public const REPLY_COMMENT_TYPE = 'agnosis_ap_reply';
+
+	/** Comment meta: the Note's own AS2 id — idempotent redelivery + the anchor Delete{object} matches against. */
+	private const REPLY_ACTIVITY_ID_META = '_agnosis_reply_activity_id';
+
+	/** Comment meta: the replying actor's URL — ownership check before honoring a Delete-of-reply. */
+	private const REPLY_ACTOR_META = '_agnosis_reply_actor';
+
+	/** Comment meta: queue flag drained by drain_reply_translation_queue(); cleared once translated. */
+	private const REPLY_PENDING_TRANSLATION_META = '_agnosis_reply_pending_translation';
+
+	/**
+	 * Comment meta: the artist's-language translation, once resolved.
+	 * comment_content itself always stays the untouched original — "never
+	 * discard the source" (roadmap §4 Phase 2 step 8) — so a caller (the
+	 * replies REST endpoint) reads this meta first and falls back to
+	 * comment_content only while translation is still pending.
+	 */
+	private const REPLY_TRANSLATED_CONTENT_META = '_agnosis_reply_translated_content';
+
+	/** Post meta: per-artwork override turning replies off for this one piece (Artist\ContentEditor). */
+	public const REPLIES_DISABLED_META = '_agnosis_replies_disabled';
+
+	/** Wall-clock budget for one drain_reply_translation_queue() cron tick — same reasoning/value as Compat\LinguaForge's own term-translation queue budget. */
+	private const REPLY_TRANSLATION_TIME_BUDGET_SECONDS = 15;
 
 	/**
 	 * Maximum tombstone-registry entries. Oldest are pruned beyond this —
@@ -148,6 +202,13 @@ class ActivityPub {
 		register_rest_route( 'agnosis/v1', '/activitypub/followers',                         array_merge( $args, [ 'methods' => 'GET', 'callback' => [ $this, 'followers' ] ] ) );
 		register_rest_route( 'agnosis/v1', '/activitypub/actor/(?P<artist_id>\d+)/followers', array_merge( $args, [ 'methods' => 'GET', 'callback' => [ $this, 'followers' ] ] ) );
 		register_rest_route( 'agnosis/v1', '/activitypub/nodeinfo',                          array_merge( $args, [ 'methods' => 'GET', 'callback' => [ $this, 'nodeinfo'  ] ] ) );
+
+		// Interaction-surface roadmap, Phase 2 — public, unauthenticated read
+		// of one artwork's APPROVED federated replies, for the front-end
+		// agnosis/reply-overlay block's own fetch (get_replies()). Lives here
+		// (not Artist\ContentEditor) since replies are entirely this class's
+		// domain — ingestion, moderation, and now reading them back.
+		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/replies', array_merge( $args, [ 'methods' => 'GET', 'callback' => [ $this, 'get_replies' ] ] ) );
 
 		// Every actor's inbox — the node's own, and each artist's own —
 		// shares the same callback pair: resolve_local_owner() determines the
@@ -552,6 +613,11 @@ class ActivityPub {
 				return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 			case 'Undo':
 				return $this->handle_undo( $body );
+			case 'Create':
+				// Interaction-surface roadmap, Phase 2 (2026-07-25): a remote
+				// reply to a federated artwork. See handle_create_reply()'s
+				// own docblock for the full gating order.
+				return $this->handle_create_reply( $body );
 			case 'Delete':
 				return $this->handle_delete( $body );
 			case 'Move':
@@ -1878,6 +1944,514 @@ class ActivityPub {
 		return $counts;
 	}
 
+	/**
+	 * Approved federated-reply count for one artwork — backs the
+	 * agnosis/reply-overlay trigger button (render_reply_overlay()). Only
+	 * `comment_approved = 1` rows count: an artist who hasn't reviewed a held
+	 * reply yet, or rejected one, must never be visible to the public even as
+	 * a bare number ("N replies" implies N readable replies).
+	 */
+	public function reply_count( int $post_id ): int {
+		return (int) get_comments( [
+			'post_id' => $post_id,
+			'type'    => self::REPLY_COMMENT_TYPE,
+			'status'  => 'approve',
+			'count'   => true,
+		] );
+	}
+
+	/**
+	 * Public, unauthenticated read of one artwork's approved replies — feeds
+	 * the agnosis/reply-overlay block's own fetch, not a general-purpose
+	 * comments API. Returns the artist's-language translation once
+	 * drain_reply_translation_queue() has resolved it, falling back to the
+	 * untouched original while translation is still pending (never blocks on
+	 * it — this is a live, cacheable GET, not the place to run an AI call).
+	 */
+	public function get_replies( WP_REST_Request $request ): WP_REST_Response {
+		$post_id = (int) $request->get_param( 'id' );
+
+		$comments = get_comments( [
+			'post_id' => $post_id,
+			'type'    => self::REPLY_COMMENT_TYPE,
+			'status'  => 'approve',
+			'orderby' => 'comment_date_gmt',
+			'order'   => 'ASC',
+		] );
+
+		$replies = [];
+		// get_comments() only ever returns an int when 'count' => true is
+		// passed (not the case here) — this guard is for PHPStan's generic
+		// stub, not a real runtime branch, same reasoning as every other
+		// get_comments() call site in this class.
+		foreach ( is_array( $comments ) ? $comments : [] as $comment ) {
+			if ( ! $comment instanceof \WP_Comment ) {
+				continue;
+			}
+			$translated = get_comment_meta( (int) $comment->comment_ID, self::REPLY_TRANSLATED_CONTENT_META, true );
+
+			$replies[] = [
+				'author'  => $comment->comment_author,
+				'url'     => $comment->comment_author_url,
+				'content' => '' !== (string) $translated ? (string) $translated : $comment->comment_content,
+				'date'    => mysql2date( 'c', $comment->comment_date_gmt, false ),
+			];
+		}
+
+		return new WP_REST_Response( [ 'count' => count( $replies ), 'replies' => $replies ], 200 );
+	}
+
+	/**
+	 * Register the agnosis/reply-overlay dynamic block — a "N replies"
+	 * trigger that opens a native-Popover-API panel (same mechanism as
+	 * Newsletter\PopoverBlock's subscribe popover; no bespoke modal JS/CSS
+	 * invented for this) fetching get_replies() once opened.
+	 */
+	public function register_reply_overlay_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/reply-overlay',
+			[ 'render_callback' => [ $this, 'render_reply_overlay' ] ]
+		);
+	}
+
+	/**
+	 * Render callback for agnosis/reply-overlay. Renders nothing — not an
+	 * empty element, same convention render_interaction_counts() already
+	 * follows — on a non-artwork post or an artwork with zero APPROVED
+	 * replies: a held-but-unreviewed reply must never tease its own existence
+	 * to the public via an otherwise-empty trigger button.
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 */
+	public function render_reply_overlay( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+			return '';
+		}
+
+		$count = $this->reply_count( $post_id );
+		if ( 0 === $count ) {
+			return '';
+		}
+
+		wp_enqueue_style( 'agnosis-reply-overlay', \AGNOSIS_URL . 'blocks/reply-overlay/frontend.css', [], \AGNOSIS_VERSION );
+		wp_enqueue_script( 'agnosis-reply-overlay', \AGNOSIS_URL . 'blocks/reply-overlay/frontend.js', [], \AGNOSIS_VERSION, [ 'in_footer' => true ] );
+		wp_localize_script( 'agnosis-reply-overlay', 'agnosisReplyOverlay', [
+			'apiUrl' => rest_url( 'agnosis/v1/content/' . $post_id . '/replies' ),
+			'i18n'   => [
+				'loading' => __( 'Loading replies…', 'agnosis' ),
+				'error'   => __( 'Could not load replies.', 'agnosis' ),
+			],
+		] );
+
+		$panel_id           = 'agnosis-reply-overlay-' . $post_id;
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-reply-overlay' ] );
+
+		ob_start();
+		?>
+		<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() output is already escaped. ?>>
+			<button
+				type="button"
+				class="agnosis-reply-overlay__trigger"
+				popovertarget="<?php echo esc_attr( $panel_id ); ?>"
+				popovertargetaction="show"
+			>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %d: number of replies. */
+						_n( '%d reply', '%d replies', $count, 'agnosis' ),
+						$count
+					)
+				);
+				?>
+			</button>
+
+			<div id="<?php echo esc_attr( $panel_id ); ?>" class="agnosis-reply-overlay__panel" popover="auto" data-agnosis-reply-list data-agnosis-post-id="<?php echo esc_attr( (string) $post_id ); ?>">
+				<button
+					type="button"
+					class="lf-icon-btn lf-popover-close"
+					popovertarget="<?php echo esc_attr( $panel_id ); ?>"
+					popovertargetaction="hide"
+					aria-label="<?php esc_attr_e( 'Close', 'agnosis' ); ?>"
+				>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+						<path d="M4 4l16 16M20 4 4 20"></path>
+					</svg>
+				</button>
+				<div class="agnosis-reply-overlay__inner"></div>
+			</div>
+		</div>
+		<?php
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * WP-Cron drain for the reply-translation queue —
+	 * `agnosis_drain_reply_translation_queue`, `every_five_minutes` (mirrors
+	 * Compat\LinguaForge::drain_translation_queue()'s own shape: walk every
+	 * row still flagged pending, time-budgeted, resumable). Translation
+	 * happens here, off the signed inbox() request path (roadmap §4 Phase 2
+	 * step 8) — inbox() already returned 200 the moment the comment was
+	 * inserted; this only ever refines what get_replies() later returns.
+	 *
+	 * Target language: the artist's own declared locale
+	 * (SubmissionTranslator::resolve_artist_lang()) falling back to the
+	 * site's own resolve_target_language() chain when the artist has none —
+	 * same fallback order already used for submissions. Ulises confirmed
+	 * every real Agnosis artist has a declared language via their profile, so
+	 * this is a defensive fallback, not an expected real-world path.
+	 */
+	public function drain_reply_translation_queue(): void {
+		$deadline = microtime( true ) + self::REPLY_TRANSLATION_TIME_BUDGET_SECONDS;
+
+		$comments = get_comments( [
+			'type'     => self::REPLY_COMMENT_TYPE,
+			'status'   => 'any',
+			'meta_key' => self::REPLY_PENDING_TRANSLATION_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- cron-only path, bounded by the queue's own (small, self-draining) size.
+		] );
+
+		// get_comments() only ever returns an int when 'count' => true is
+		// passed (not the case here) — the is_array() check is for PHPStan's
+		// generic stub, not a real runtime branch.
+		if ( ! is_array( $comments ) || empty( $comments ) ) {
+			return;
+		}
+
+		$translator = SubmissionTranslator::from_settings();
+		if ( null === $translator ) {
+			return;
+		}
+
+		foreach ( $comments as $comment ) {
+			if ( microtime( true ) >= $deadline ) {
+				break;
+			}
+			if ( ! $comment instanceof \WP_Comment ) {
+				continue;
+			}
+
+			$post_id = (int) $comment->comment_post_ID;
+			$target  = SubmissionTranslator::resolve_artist_lang( (int) get_post_field( 'post_author', $post_id ) );
+			if ( '' === $target ) {
+				$target = SubmissionTranslator::resolve_target_language();
+			}
+
+			$translated = $translator->translate_text( $comment->comment_content, $target );
+
+			update_comment_meta( (int) $comment->comment_ID, self::REPLY_TRANSLATED_CONTENT_META, $translated );
+			delete_comment_meta( (int) $comment->comment_ID, self::REPLY_PENDING_TRANSLATION_META );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Federated replies (interaction-surface roadmap, Phase 2, 2026-07-25)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Ingest a remote `Create{Note, inReplyTo: <artwork-url>}` as a held WP
+	 * comment. Every gate below returns the same `{"status":"ignored"}`/200 —
+	 * matching every other "not accepted" branch already in inbox() (e.g. the
+	 * `Move` case) — a remote server never needs to know WHY a reply wasn't
+	 * kept, and a 2xx means it won't retry.
+	 *
+	 * Gating order (cheapest/most-certain-to-reject first):
+	 *   1. Shape check — must be a real Note with a resolvable inReplyTo.
+	 *   2. Idempotent redelivery — already-stored activity id is a no-op accept.
+	 *   3. Artist-level gate (roadmap §4 step 5) — per-post
+	 *      `_agnosis_replies_disabled` (Artist\ContentEditor) or account-wide
+	 *      `_agnosis_replies_optout` (Artist\NotificationPreferences) declines
+	 *      outright, not held-for-moderation — same "don't offer what nobody
+	 *      will honor" precedent as Artist\ContactForm::contactable_artist().
+	 *   4. Per-actor rate gate (roadmap §4 step 6) — `Core\RateLimiter`, same
+	 *      method the contact form and email intake already use, keyed on the
+	 *      actor URL instead of an email address.
+	 *   5. Insert, held (`comment_approved = 0`) — see REPLY_COMMENT_TYPE's
+	 *      own docblock for why this is unconditional.
+	 *
+	 * Translation is deliberately NOT done here — inbox() is a live,
+	 * signature-verified webhook a remote server expects a fast ack from;
+	 * see drain_reply_translation_queue()'s own docblock for the async leg.
+	 *
+	 * @param array<string, mixed> $body Create activity payload.
+	 */
+	private function handle_create_reply( array $body ): WP_REST_Response {
+		$ignored = new WP_REST_Response( [ 'status' => 'ignored', 'type' => 'Create' ], 200 );
+
+		$object = $body['object'] ?? [];
+		if ( ! is_array( $object ) || 'Note' !== ( $object['type'] ?? '' ) ) {
+			return $ignored;
+		}
+
+		$in_reply_to = is_string( $object['inReplyTo'] ?? null ) ? $object['inReplyTo'] : '';
+		$post_id     = $this->resolve_local_post_id( $in_reply_to );
+		if ( ! $post_id ) {
+			return $ignored;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post ) {
+			return $ignored;
+		}
+
+		$actor_url = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		if ( '' === $actor_url ) {
+			return $ignored;
+		}
+
+		// The NOTE's own AS2 id (not the wrapping Create's) — a future
+		// Delete{object: <note-id>} names this same value, per AS2/Mastodon
+		// convention (mirrors how object_id_for() is the Note id every other
+		// activity type here keys off).
+		$activity_id = is_string( $object['id'] ?? null ) ? $object['id'] : '';
+		if ( '' === $activity_id ) {
+			return $ignored;
+		}
+
+		// Idempotent redelivery — a re-sent Create must not insert a second
+		// comment (same "replay must upsert, not duplicate" discipline as
+		// record_interaction()'s Like/Announce handling above).
+		$already_stored = get_comments( [
+			'post_id'    => $post_id,
+			'meta_key'   => self::REPLY_ACTIVITY_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one-off idempotency check per inbound reply, not a listing query.
+			'meta_value' => $activity_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'number'     => 1,
+			'count'      => true,
+		] );
+		if ( $already_stored > 0 ) {
+			return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
+		}
+
+		if ( '1' === (string) get_post_meta( $post_id, self::REPLIES_DISABLED_META, true ) ) {
+			return $ignored;
+		}
+		if ( '1' === (string) get_user_meta( (int) $post->post_author, '_agnosis_replies_optout', true ) ) {
+			return $ignored;
+		}
+
+		$limit         = max( 1, (int) get_option( 'agnosis_ap_reply_per_actor_limit', 2 ) );
+		$window_hours  = max( 1, (int) get_option( 'agnosis_ap_reply_per_actor_limit_window_hours', 1 ) );
+		if ( is_wp_error( RateLimiter::check_sender( 'ap_reply', $actor_url, $limit, $window_hours * HOUR_IN_SECONDS ) ) ) {
+			return $ignored;
+		}
+
+		$content = is_string( $object['content'] ?? null ) ? $object['content'] : '';
+		$content = trim( wp_kses( $content, [
+			'p'      => [],
+			'br'     => [],
+			'span'   => [],
+			'a'      => [ 'href' => true, 'rel' => true ],
+		] ) );
+		if ( '' === $content ) {
+			return $ignored;
+		}
+
+		$profile   = $this->fetch_remote_actor_profile( $actor_url );
+		$published = is_string( $object['published'] ?? null ) ? strtotime( $object['published'] ) : false;
+		$date_gmt  = false !== $published ? gmdate( 'Y-m-d H:i:s', $published ) : current_time( 'mysql', true );
+
+		$comment_id = wp_insert_comment( [
+			'comment_post_ID'    => $post_id,
+			'comment_author'     => '' !== $profile['name'] ? $profile['name'] : $actor_url,
+			'comment_author_url' => $profile['url'],
+			'comment_content'    => $content,
+			'comment_type'       => self::REPLY_COMMENT_TYPE,
+			'comment_approved'   => 0,
+			'comment_agent'      => 'ActivityPub',
+			'comment_date_gmt'   => $date_gmt,
+			'comment_date'       => get_date_from_gmt( $date_gmt ),
+		] );
+
+		if ( ! $comment_id ) {
+			return $ignored;
+		}
+
+		update_comment_meta( $comment_id, self::REPLY_ACTIVITY_ID_META, $activity_id );
+		update_comment_meta( $comment_id, self::REPLY_ACTOR_META, $actor_url );
+		update_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META, '1' );
+
+		$this->notify_artist_of_reply( $post, $comment_id, $content );
+
+		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
+	}
+
+	/**
+	 * Fetch a remote actor's display name + profile URL for use as a
+	 * federated reply's comment_author/comment_author_url. Mirrors
+	 * resolve_inbox()'s own wp_safe_remote_get() shape (same peer-supplied-URL
+	 * safety reasoning, audit §3b) but reads `name`/`preferredUsername`/`url`
+	 * instead of `inbox`. Cached an hour per actor (transient) so a repeat
+	 * replier doesn't cost a live fetch on every single reply.
+	 *
+	 * @return array{name: string, url: string}
+	 */
+	private function fetch_remote_actor_profile( string $actor_url ): array {
+		$cache_key = 'agnosis_ap_actor_' . md5( $actor_url );
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) && isset( $cached['name'], $cached['url'] ) ) {
+			return $cached;
+		}
+
+		$profile = [ 'name' => '', 'url' => $actor_url ];
+
+		$response = wp_safe_remote_get( $actor_url, [
+			'headers' => [ 'Accept' => 'application/activity+json' ],
+			'timeout' => 10,
+		] );
+
+		if ( ! is_wp_error( $response ) ) {
+			$data = json_decode( wp_remote_retrieve_body( $response ), true );
+			if ( is_array( $data ) ) {
+				$name = is_string( $data['name'] ?? null )
+					? $data['name']
+					: ( is_string( $data['preferredUsername'] ?? null ) ? $data['preferredUsername'] : '' );
+				$profile = [
+					'name' => $name,
+					'url'  => is_string( $data['url'] ?? null ) ? $data['url'] : $actor_url,
+				];
+			}
+		}
+
+		set_transient( $cache_key, $profile, HOUR_IN_SECONDS );
+
+		return $profile;
+	}
+
+	/**
+	 * Email the artwork's own artist that a reply arrived and is awaiting
+	 * their approval — the `agnosis_artist` role has no `moderate_comments`
+	 * capability (see REPLY_COMMENT_TYPE's own docblock), so wp-admin's
+	 * ordinary "comment held for moderation" notice (wp_notify_moderator(),
+	 * which mails the site admin, not the post author) would never reach
+	 * them at all. Includes a one-click Approve/Reject pair
+	 * (handle_reply_moderation()) — the same stateless, emailed-HMAC-link
+	 * pattern already used throughout this plugin (VouchConfirm,
+	 * AdmissionConfirm) for an artist to act without a WP login — plus the
+	 * existing NotificationPreferences link so "opt out of reply
+	 * notifications" is reachable from every single email, not just the first
+	 * (Ulises: "on by default and possible to opt-out on... every reply").
+	 */
+	private function notify_artist_of_reply( \WP_Post $post, int $comment_id, string $content ): void {
+		$author_id = (int) $post->post_author;
+		$author    = get_userdata( $author_id );
+		if ( ! $author || '' === $author->user_email ) {
+			return;
+		}
+
+		$locale = (string) get_user_meta( $author_id, 'locale', true );
+		if ( '' !== $locale ) {
+			switch_to_locale( $locale );
+		}
+
+		$excerpt = wp_strip_all_tags( $content );
+		if ( mb_strlen( $excerpt ) > 300 ) {
+			$excerpt = mb_substr( $excerpt, 0, 300 ) . '…';
+		}
+
+		$subject = sprintf(
+			/* translators: %s: artwork title. */
+			__( 'New reply on "%s"', 'agnosis' ),
+			$post->post_title
+		);
+
+		$message = sprintf(
+			/* translators: 1: reply excerpt, 2: approve link, 3: reject link, 4: notification-preferences link. */
+			__(
+				"Someone replied to your artwork from the Fediverse:\n\n\"%1\$s\"\n\nIt's being held until you approve or reject it:\n\nApprove: %2\$s\nReject: %3\$s\n\nDon't want reply notifications? Manage that here: %4\$s",
+				'agnosis'
+			),
+			$excerpt,
+			self::reply_moderation_url( $comment_id, 'approve' ),
+			self::reply_moderation_url( $comment_id, 'reject' ),
+			NotificationPreferences::prefs_url( $author_id )
+		);
+
+		wp_mail( $author->user_email, $subject, $message );
+
+		if ( '' !== $locale ) {
+			restore_current_locale();
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Reply moderation — one-click emailed action (no WP login required)
+	// -------------------------------------------------------------------------
+
+	/** Build the stateless one-click moderation URL for one comment + action. */
+	private static function reply_moderation_url( int $comment_id, string $action ): string {
+		return add_query_arg(
+			[
+				'agnosis_reply' => $comment_id,
+				'action'        => $action,
+				'token'         => self::reply_moderation_token( $comment_id, $action ),
+			],
+			home_url( '/' )
+		);
+	}
+
+	private static function reply_moderation_token( int $comment_id, string $action ): string {
+		return hash_hmac( 'sha256', "{$comment_id}|{$action}|reply_moderate", wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Register the template_redirect handler for the moderation link above.
+	 * Called from Core\Plugin, same as every other stateless-token flow.
+	 */
+	public function register_reply_moderation_handler(): void {
+		add_action( 'template_redirect', [ $this, 'handle_reply_moderation' ] );
+	}
+
+	/**
+	 * Handle a click on the Approve/Reject link from notify_artist_of_reply().
+	 * No WP nonce — this is an unauthenticated email-link recipient with no
+	 * WP session; the HMAC token plays the nonce's role, same as
+	 * NotificationPreferences/VouchConfirm/AdmissionConfirm.
+	 */
+	public function handle_reply_moderation(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- see docblock above: the HMAC token is this flow's nonce equivalent.
+		if ( ! isset( $_GET['agnosis_reply'] ) ) {
+			return;
+		}
+
+		$comment_id = absint( wp_unslash( $_GET['agnosis_reply'] ) );
+		$action     = sanitize_key( wp_unslash( $_GET['action'] ?? '' ) );
+		$token      = sanitize_text_field( wp_unslash( $_GET['token'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		if ( ! $comment_id || ! in_array( $action, [ 'approve', 'reject' ], true ) || '' === $token
+			|| ! hash_equals( self::reply_moderation_token( $comment_id, $action ), $token )
+		) {
+			wp_die(
+				esc_html__( 'This link is invalid or has already expired.', 'agnosis' ),
+				esc_html__( 'Link error', 'agnosis' ),
+				[ 'response' => 400 ]
+			);
+		}
+
+		$comment = get_comment( $comment_id );
+		if ( ! $comment || self::REPLY_COMMENT_TYPE !== $comment->comment_type ) {
+			wp_die(
+				esc_html__( 'This reply no longer exists.', 'agnosis' ),
+				esc_html__( 'Link error', 'agnosis' ),
+				[ 'response' => 404 ]
+			);
+		}
+
+		if ( 'approve' === $action ) {
+			wp_set_comment_status( $comment_id, 'approve' );
+			$message = __( 'Reply approved — it now appears on your artwork.', 'agnosis' );
+		} else {
+			wp_trash_comment( $comment_id );
+			$message = __( 'Reply rejected — it will not be shown.', 'agnosis' );
+		}
+
+		wp_die( esc_html( $message ), esc_html__( 'Reply moderated', 'agnosis' ), [ 'response' => 200 ] );
+	}
+
 	/** @param array<string, mixed> $body */
 	private function handle_follow( array $body ): WP_REST_Response {
 		global $wpdb;
@@ -1992,9 +2566,57 @@ class ActivityPub {
 				[ 'actor_id' => $actor ],
 				[ '%s' ]
 			);
+		} else {
+			// Not a self-account-delete — check whether it's a remote actor
+			// deleting one of their own previously-stored federated replies
+			// (interaction-surface roadmap, Phase 2 step 4).
+			$this->maybe_delete_reply( $body );
 		}
 
 		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
+	}
+
+	/**
+	 * Trash the WP comment matching a `Delete{object: <note-id>}` when that
+	 * note-id was one we stored via handle_create_reply(). Ownership is
+	 * checked against the SAME actor URL that authored the reply
+	 * (REPLY_ACTOR_META) — an Undo/Delete must be signed by the same actor
+	 * as the activity it undoes, same assumption verify_inbox_signature()'s
+	 * actor-binding already enforces before inbox() is ever reached, and the
+	 * exact discipline undo_interaction() already applies to Like/Announce.
+	 *
+	 * @param array<string, mixed> $body Delete activity payload.
+	 */
+	private function maybe_delete_reply( array $body ): void {
+		$object    = $body['object'] ?? '';
+		$object_id = is_array( $object ) ? (string) ( $object['id'] ?? '' ) : (string) $object;
+		if ( '' === $object_id ) {
+			return;
+		}
+
+		$actor_url = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		if ( '' === $actor_url ) {
+			return;
+		}
+
+		$comments = get_comments( [
+			'meta_key'   => self::REPLY_ACTIVITY_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one-off lookup per inbound Delete, not a listing query.
+			'meta_value' => $object_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'type'       => self::REPLY_COMMENT_TYPE,
+			'number'     => 1,
+			'status'     => 'any',
+		] );
+		if ( ! is_array( $comments ) || empty( $comments ) || ! ( $comments[0] instanceof \WP_Comment ) ) {
+			return;
+		}
+
+		$comment      = $comments[0];
+		$stored_actor = get_comment_meta( (int) $comment->comment_ID, self::REPLY_ACTOR_META, true );
+		if ( $stored_actor !== $actor_url ) {
+			return;
+		}
+
+		wp_trash_comment( (int) $comment->comment_ID );
 	}
 
 	/**

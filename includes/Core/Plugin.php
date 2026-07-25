@@ -512,6 +512,14 @@ class Plugin {
 		// Interaction-surface roadmap, Phase 1 (2026-07-24): agnosis/interaction-counts,
 		// the on-site like/boost count display — see ActivityPub::register_interaction_counts_block().
 		$this->loader->add_action( 'init',                   $activitypub, 'register_interaction_counts_block' );
+		// Interaction-surface roadmap, Phase 2 (2026-07-25): federated replies.
+		// agnosis/reply-overlay (the "N replies" popover trigger) and the
+		// stateless one-click Approve/Reject email-link handler — see
+		// ActivityPub::register_reply_overlay_block()/register_reply_moderation_handler()'s
+		// own docblocks. The translation-queue drain is wired further below,
+		// alongside FederationSettlement's own cron wiring.
+		$this->loader->add_action( 'init',                   $activitypub, 'register_reply_overlay_block' );
+		$activitypub->register_reply_moderation_handler();
 		// TAG-REDESIGN.md F3 (§6c): broadcast() (the Create) no longer fires
 		// directly on 'agnosis_post_published' (that action still fires for
 		// EVERY publish, but now only drives Lingua Forge's own language-meta/
@@ -542,6 +550,10 @@ class Plugin {
 		// (every_five_minutes — the same interval Inbox::register_interval()
 		// already registers on every request).
 		$this->loader->add_action( 'agnosis_ap_retry_deliveries', $activitypub, 'process_delivery_retry_queue' );
+		// Interaction-surface roadmap, Phase 2 — async reply-translation drain
+		// (ActivityPub::drain_reply_translation_queue()'s own docblock covers
+		// why this runs off the signed inbox() request path).
+		$this->loader->add_action( 'agnosis_drain_reply_translation_queue', $activitypub, 'drain_reply_translation_queue' );
 
 		// Federation settlement (TAG-REDESIGN.md F3, §6c) — the tag-settled
 		// state machine that decides WHEN a post is ready to fire

@@ -705,41 +705,6 @@ class SettingsFields {
 				'desc'     => __( 'How long an AI-proposed tag or medium category can sit unreviewed on the Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same effect as clicking Reject). Default: 7.', 'agnosis' ),
 			],
 
-			// --- BEHAVIOUR: Federation ---
-			// TAG-REDESIGN.md F4 (§6b) — the rollout valve for sibling-language
-			// federation. Every language sibling is already dereferenceable
-			// once it exists (F2) and correctly tag-settled (F3) — this
-			// setting controls only whether a sibling's own Create is
-			// actively PUSHED to followers, independent of any of that.
-			// Default `primary-only` reproduces the pre-F2/F3/F4 follower
-			// experience exactly (plus F1's language metadata): one post per
-			// artwork, in whatever language the artist submitted in.
-			'agnosis_federate_languages' => [
-				'tab'     => 'behavior',
-				'label'   => __( 'Federate which languages', 'agnosis' ),
-				'input'   => 'select',
-				'options' => [
-					'primary-only' => __( 'Primary language only (default)', 'agnosis' ),
-					'all'          => __( 'All active languages', 'agnosis' ),
-				],
-				'default' => 'primary-only',
-				'desc'    => __( 'Whether a language sibling\'s Note is actively pushed to followers once it\'s tag-settled and ready. "Primary language only" sends one Fediverse post per artwork, same as before multi-language federation existed. "All active languages" sends one post PER LANGUAGE — a follower who hasn\'t set a language filter on their own account will see every language version of every artwork. Switching to "All active languages" only affects artworks that settle from that point forward; it never retroactively re-sends anything already published.', 'agnosis' ),
-			],
-			// TAG-REDESIGN.md F3 (§6c) — the safety valve on the tag-settled
-			// federation trigger. Most submissions settle (and federate)
-			// immediately at approval; this only matters for one that proposed
-			// a genuinely new tag/medium and is waiting on an admin.
-			'agnosis_federation_tag_wait' => [
-				'tab'      => 'behavior',
-				'label'    => __( 'Federation tag-wait timeout (hours)', 'agnosis' ),
-				'input'    => 'number',
-				'default'  => 24,
-				'min'      => 1,
-				'type'     => 'integer',
-				'sanitize' => fn( $v ) => max( 1, (int) $v ),
-				'desc'     => __( 'A published artwork with a new tag or medium category awaiting admin review normally federates to the Fediverse only once that proposal is resolved (so its hashtags are correct from the start). If it waits longer than this, it federates anyway with whatever tags it currently has — a later approval still updates the federated post. Default: 24.', 'agnosis' ),
-			],
-
 			// --- BEHAVIOUR: AI prompts ---
 			'agnosis_prompt_system' => [
 				'tab'         => 'behavior',
@@ -886,6 +851,64 @@ class SettingsFields {
 				'label' => __( 'Node public key', 'agnosis' ),
 				'input' => 'readonly',
 				'desc'  => __( 'Auto-generated RSA public key for this node. Share this with peer nodes.', 'agnosis' ),
+			],
+			// TAG-REDESIGN.md F4 (§6b) — the rollout valve for sibling-language
+			// federation. Every language sibling is already dereferenceable
+			// once it exists (F2) and correctly tag-settled (F3) — this
+			// setting controls only whether a sibling's own Create is
+			// actively PUSHED to followers, independent of any of that.
+			// Default `primary-only` reproduces the pre-F2/F3/F4 follower
+			// experience exactly (plus F1's language metadata): one post per
+			// artwork, in whatever language the artist submitted in.
+			'agnosis_federate_languages' => [
+				'tab'     => 'network',
+				'label'   => __( 'Federate which languages', 'agnosis' ),
+				'input'   => 'select',
+				'options' => [
+					'primary-only' => __( 'Primary language only (default)', 'agnosis' ),
+					'all'          => __( 'All active languages', 'agnosis' ),
+				],
+				'default' => 'primary-only',
+				'desc'    => __( 'Whether a language sibling\'s Note is actively pushed to followers once it\'s tag-settled and ready. "Primary language only" sends one Fediverse post per artwork, same as before multi-language federation existed. "All active languages" sends one post PER LANGUAGE — a follower who hasn\'t set a language filter on their own account will see every language version of every artwork. Switching to "All active languages" only affects artworks that settle from that point forward; it never retroactively re-sends anything already published.', 'agnosis' ),
+			],
+			// TAG-REDESIGN.md F3 (§6c) — the safety valve on the tag-settled
+			// federation trigger. Most submissions settle (and federate)
+			// immediately at approval; this only matters for one that proposed
+			// a genuinely new tag/medium and is waiting on an admin.
+			'agnosis_federation_tag_wait' => [
+				'tab'      => 'network',
+				'label'    => __( 'Federation tag-wait timeout (hours)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 24,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'A published artwork with a new tag or medium category awaiting admin review normally federates to the Fediverse only once that proposal is resolved (so its hashtags are correct from the start). If it waits longer than this, it federates anyway with whatever tags it currently has — a later approval still updates the federated post. Default: 24.', 'agnosis' ),
+			],
+			// Interaction-surface roadmap, Phase 2 (§4 step 6) — per-actor daily
+			// cap on incoming federated replies. Same shape/convention as
+			// agnosis_contact_artist_limit/_window_hours below (Core\RateLimiter::
+			// check_sender()), keyed on the remote actor URL instead of an email
+			// address. Default 2/hour is Ulises's own call, not a technical one.
+			'agnosis_ap_reply_per_actor_limit' => [
+				'tab'      => 'network',
+				'label'    => __( 'Federated reply limit (per actor)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 2,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum number of federated replies a single remote fediverse account can leave across all your artworks per window (below). A reply beyond this limit is silently declined — the remote server still gets an ordinary accepted response, not an error. Default: 2.', 'agnosis' ),
+			],
+			'agnosis_ap_reply_per_actor_limit_window_hours' => [
+				'tab'      => 'network',
+				'label'    => __( 'Federated reply limit window (hours)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 1,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Length of the window the reply limit above applies to. Default: 1 (i.e. 2 replies per hour per actor).', 'agnosis' ),
 			],
 			// --- COMMUNITY ---
 			// Note: the outbound "From:" identity for workflow mail used to live

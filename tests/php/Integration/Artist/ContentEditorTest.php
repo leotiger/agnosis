@@ -765,6 +765,60 @@ class ContentEditorTest extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Per-artwork replies-disabled flag (interaction-surface roadmap, Phase 2)
+	// -------------------------------------------------------------------------
+
+	public function test_replies_disabled_flag_can_be_set_and_cleared(): void {
+		$post_id = $this->create_artwork( $this->artist_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/replies-disabled", [ 'value' => true ], $this->artist_id );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', get_post_meta( $post_id, '_agnosis_replies_disabled', true ) );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/replies-disabled", [ 'value' => false ], $this->artist_id );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_replies_disabled', true ), 'Clearing the flag must delete the meta row, not store a falsy string.' );
+	}
+
+	public function test_replies_disabled_flag_wrong_author_rejected(): void {
+		$post_id = $this->create_artwork( $this->artist_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/replies-disabled", [ 'value' => true ], $this->other_artist_id );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_replies_disabled', true ) );
+	}
+
+	public function test_replies_disabled_flag_rejected_on_non_artwork_post_types(): void {
+		$post_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_biography',
+			'post_author' => $this->artist_id,
+			'post_status' => 'publish',
+		] );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$post_id}/replies-disabled", [ 'value' => true ], $this->artist_id );
+
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	public function test_replies_disabled_flag_propagates_to_translated_sibling(): void {
+		FakeLinguaForge::$source_language = 'en';
+		$this->set_artist_locale( $this->artist_id, 'es_ES' );
+
+		$spanish_id = $this->create_artwork( $this->artist_id, 'publish', [ '_lf_lang' => 'es' ] );
+		$primary_id = $this->create_artwork( $this->artist_id, 'publish', [ '_lf_lang' => 'en' ] );
+
+		FakeLinguaForge::link( $spanish_id, 'en', $primary_id );
+		FakeLinguaForge::link( $spanish_id, 'es', $spanish_id );
+
+		$response = $this->rest_post( "/agnosis/v1/content/{$spanish_id}/replies-disabled", [ 'value' => true ], $this->artist_id );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '1', get_post_meta( $spanish_id, '_agnosis_replies_disabled', true ) );
+		$this->assertSame( '1', get_post_meta( $primary_id, '_agnosis_replies_disabled', true ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Test-local helpers
 	// -------------------------------------------------------------------------
 

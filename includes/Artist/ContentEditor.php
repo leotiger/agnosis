@@ -57,6 +57,7 @@ use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
+use Agnosis\Network\ActivityPub;
 use Agnosis\Publishing\PostCreator;
 use Agnosis\Publishing\TextPosterGenerator;
 use WP_Error;
@@ -217,6 +218,27 @@ class ContentEditor {
 		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/sensitive', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'save_sensitive' ],
+			'permission_callback' => [ $this, 'check_permission' ],
+			'args'                => [
+				'id'    => [
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				],
+				'value' => [
+					'type'     => 'boolean',
+					'required' => true,
+				],
+			],
+		] );
+
+		// Interaction-surface roadmap, Phase 2 (§4 step 5) — per-artwork
+		// override turning federated replies off for this one piece. Same
+		// shape as /sensitive above (a same-class boolean toggle, same
+		// resolve_language_targets() propagation) — see save_replies_disabled().
+		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/replies-disabled', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'save_replies_disabled' ],
 			'permission_callback' => [ $this, 'check_permission' ],
 			'args'                => [
 				'id'    => [
@@ -751,6 +773,76 @@ class ContentEditor {
 				update_post_meta( $target_id, '_agnosis_sensitive', '1' );
 			} else {
 				delete_post_meta( $target_id, '_agnosis_sensitive' );
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Callback — per-artwork reply toggle (interaction-surface roadmap, Phase 2)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Let an artist turn federated replies off for one specific artwork —
+	 * ActivityPub::handle_create_reply() declines outright (not held for
+	 * moderation) whenever this is set. Same shape as save_sensitive():
+	 * artwork-only, boolean, propagated to every language sibling.
+	 *
+	 * No REST-reachable "read current value" endpoint exists yet — same
+	 * REST-reachable-but-no-on-page-affordance state save_sensitive() itself
+	 * has had since it shipped; a checkbox in the front-end editor UI is a
+	 * fast-follow, not part of this pass.
+	 */
+	public function save_replies_disabled( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$post_id = (int) $request->get_param( 'id' );
+
+		$auth = $this->check_access( $request, $post_id );
+		if ( is_wp_error( $auth ) ) {
+			return $auth;
+		}
+
+		$post = get_post( $post_id );
+		if ( 'agnosis_artwork' !== $post->post_type ) {
+			return new WP_Error(
+				'agnosis_invalid_field',
+				__( 'This field cannot be edited here.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$value = (bool) $request->get_param( 'value' );
+		$this->set_replies_disabled_everywhere( $post, $value );
+
+		Logger::info(
+			sprintf(
+				'Content edit: post #%d (%s) replies-disabled flag set to %s by user #%d.',
+				$post_id,
+				$post->post_type,
+				$value ? 'true' : 'false',
+				get_current_user_id()
+			),
+			'content-editor'
+		);
+
+		return new WP_REST_Response(
+			[
+				'status'           => 'saved',
+				'post_id'          => $post_id,
+				'replies_disabled' => $value,
+			],
+			200
+		);
+	}
+
+	/**
+	 * Copy the replies-disabled flag to every language version of the post —
+	 * same language-neutral, synchronous shape as set_sensitive_everywhere().
+	 */
+	private function set_replies_disabled_everywhere( WP_Post $post, bool $value ): void {
+		foreach ( $this->resolve_language_targets( $post->ID ) as $target_id ) {
+			if ( $value ) {
+				update_post_meta( $target_id, ActivityPub::REPLIES_DISABLED_META, '1' );
+			} else {
+				delete_post_meta( $target_id, ActivityPub::REPLIES_DISABLED_META );
 			}
 		}
 	}

@@ -153,6 +153,7 @@ class NotificationPreferences {
 		$mute_broadcasts = ! empty( $source['mute_broadcasts'] );
 		$vote_mode       = sanitize_key( wp_unslash( $source['vote_mode'] ?? 'instant' ) );
 		$contact_optout  = ! empty( $source['contact_optout'] );
+		$replies_optout  = ! empty( $source['replies_optout'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
 		if ( ! in_array( $vote_mode, self::VOTE_MODES, true ) ) {
@@ -180,7 +181,18 @@ class NotificationPreferences {
 			delete_user_meta( $artist_id, '_agnosis_contact_optout' );
 		}
 
-		$this->render_saved( $mute_broadcasts, $vote_mode, $contact_optout );
+		// Interaction-surface roadmap, Phase 2 (§4 step 5) — account-wide
+		// master switch for federated replies, on by default (Ulises: "on by
+		// default and possible to opt-out on... every reply") — same
+		// NOT-EXISTS-or-not-'1' convention as every other optout meta here,
+		// checked directly by ActivityPub::handle_create_reply().
+		if ( $replies_optout ) {
+			update_user_meta( $artist_id, '_agnosis_replies_optout', '1' );
+		} else {
+			delete_user_meta( $artist_id, '_agnosis_replies_optout' );
+		}
+
+		$this->render_saved( $mute_broadcasts, $vote_mode, $contact_optout, $replies_optout );
 	}
 
 	// -------------------------------------------------------------------------
@@ -191,6 +203,10 @@ class NotificationPreferences {
 		$muted          = '1' === get_user_meta( $artist_id, '_agnosis_broadcast_optout', true );
 		$vote_mode      = 'digest' === get_user_meta( $artist_id, '_agnosis_vote_email_mode', true ) ? 'digest' : 'instant';
 		$contact_opted_out = '1' === get_user_meta( $artist_id, '_agnosis_contact_optout', true );
+		// Interaction-surface roadmap, Phase 2 — on by default (no meta row
+		// means "receiving replies"), same NOT-EXISTS-or-not-'1' convention as
+		// every other optout meta on this page.
+		$replies_opted_out = '1' === get_user_meta( $artist_id, '_agnosis_replies_optout', true );
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:60px auto;font-family:Georgia,serif;color:#222;padding:0 20px;">'
@@ -213,7 +229,10 @@ class NotificationPreferences {
 			. '<label style="display:block;margin:0 0 24px;font-size:17px;line-height:1.5;">'
 			. '<input type="checkbox" name="contact_optout" value="1" %12$s style="margin-right:8px;">%13$s'
 			. '</label>'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%14$s</button>'
+			. '<label style="display:block;margin:0 0 24px;font-size:17px;line-height:1.5;">'
+			. '<input type="checkbox" name="replies_optout" value="1" %14$s style="margin-right:8px;">%15$s'
+			. '</label>'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%16$s</button>'
 			. '</form>'
 			. '</div>',
 			esc_html__( 'Notification preferences', 'agnosis' ),
@@ -229,6 +248,8 @@ class NotificationPreferences {
 			esc_html__( 'Once a day, a single digest of every application still awaiting my vote.', 'agnosis' ),
 			checked( $contact_opted_out, true, false ),
 			esc_html__( "Turn off the contact form on my page — visitors won't be able to message me.", 'agnosis' ),
+			checked( $replies_opted_out, true, false ),
+			esc_html__( "Turn off federated replies on my artworks entirely — no new reply will be accepted from the Fediverse (this doesn't affect replies already showing).", 'agnosis' ),
 			esc_html__( 'Save preferences', 'agnosis' )
 		);
 
@@ -239,7 +260,7 @@ class NotificationPreferences {
 	// Result pages (POST)
 	// -------------------------------------------------------------------------
 
-	private function render_saved( bool $muted, string $vote_mode, bool $contact_opted_out = false ): void {
+	private function render_saved( bool $muted, string $vote_mode, bool $contact_opted_out = false, bool $replies_opted_out = false ): void {
 		$lines = [
 			$muted
 				? __( 'Community broadcasts are now muted.', 'agnosis' )
@@ -250,6 +271,9 @@ class NotificationPreferences {
 			$contact_opted_out
 				? __( 'The contact form on your page is now turned off.', 'agnosis' )
 				: __( 'Visitors can still reach you through the contact form on your page.', 'agnosis' ),
+			$replies_opted_out
+				? __( 'Federated replies on your artworks are now turned off.', 'agnosis' )
+				: __( "You'll continue to receive federated replies (and their notification emails) on your artworks.", 'agnosis' ),
 		];
 
 		$this->render_page( __( 'Preferences saved', 'agnosis' ), implode( ' ', $lines ), false );
