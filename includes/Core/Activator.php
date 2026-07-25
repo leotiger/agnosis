@@ -248,6 +248,13 @@ class Activator {
 		// confusing rows in wp_options.
 		self::migrate_mail_from_option();
 
+		// Migrate the tag-only agnosis_tag_proposal_ttl option onto the
+		// shared agnosis_proposal_ttl (TAG-REDESIGN.md T5(b) — the sweep now
+		// covers both Admin\TagProposals and Admin\MediumProposals on the
+		// same schedule). Same copy-then-remove idiom as migrate_mail_from_option()
+		// just above.
+		self::migrate_tag_proposal_ttl_option();
+
 		// Repair any agnosis_biography title left as the literal word "Array"
 		// by the pre-0.9.22 SubmissionTranslator::call_translate() bug, and
 		// purge any "Array" value already sitting in that class's own
@@ -350,6 +357,28 @@ class Activator {
 		// again, so the 8 default terms never appeared even though this method
 		// (and the version-aware maybe_upgrade() gate itself) has been sitting
 		// right here the whole time.
+		//
+		// Fatal discovered 2026-07-24 (wp-env, first maybe_upgrade() run after
+		// this call was added): seed_medium_terms() called register_taxonomy()
+		// with no 'rewrite' override, which defaults to true — WP_Taxonomy::
+		// add_rewrite_rules() then calls add_rewrite_tag() on the global
+		// $wp_rewrite, which — per the comment right above — does not exist yet
+		// on plugins_loaded either. The first fix deferred the whole method to
+		// init (same as create_managed_pages()), but that was broader than the
+		// actual problem needed and had its own cost: ActivatorTest's own
+		// test_maybe_upgrade_seeds_medium_terms() calls maybe_upgrade()
+		// directly mid-test, well after WP's real 'init' has already fired for
+		// that request — an add_action( 'init', ... ) registered at that point
+		// never runs, so the terms silently never got seeded under test either.
+		// Fixed instead at the actual root: seed_medium_terms()'s own
+		// register_taxonomy() call now passes 'rewrite' => false, so it never
+		// touches $wp_rewrite at all — safe to call synchronously here, on
+		// plugins_loaded, on activation, or from a test, with no deferral
+		// needed. Profile::register_taxonomy() re-registers the taxonomy fully
+		// (real labels, 'rewrite' => ['slug' => 'medium']) on the next 'init'
+		// regardless, which simply overwrites this bare-bones early
+		// registration — nothing is lost by registering it minimally here
+		// first.
 		self::create_tables();
 
 		// Audit §3h (per-artist actors): agnosis_followers' uniqueness moved
@@ -460,6 +489,11 @@ class Activator {
 		'agnosis_prepare_newsletters',
 		'agnosis_send_newsletter_queue',
 		'agnosis_ap_retry_deliveries',
+		'agnosis_tag_proposal_ttl_sweep',
+		'agnosis_medium_proposal_ttl_sweep',
+		'agnosis_drain_translation_queue',
+		'agnosis_drain_rename_queue',
+		'agnosis_federation_tag_wait_sweep',
 		// Single events — each scheduled with per-call arguments (a queue id,
 		// a translation dispatch payload), so clearing them needs
 		// wp_unschedule_hook() below, not wp_clear_scheduled_hook( $hook ):
@@ -904,6 +938,27 @@ class Activator {
 	}
 
 	/**
+	 * One-time migration (TAG-REDESIGN.md T5(b), 2026-07-25):
+	 * agnosis_tag_proposal_ttl → agnosis_proposal_ttl, once the sweep it
+	 * feeds (Admin\TagProposals::sweep_expired()) started also being shared
+	 * by Admin\MediumProposals::sweep_expired(). Same idempotent copy-then-
+	 * remove idiom as migrate_mail_from_option() above: only copies a value
+	 * across when the new option isn't already set (never clobbers an admin's
+	 * post-migration change), and the old option is gone after the first run.
+	 */
+	private static function migrate_tag_proposal_ttl_option(): void {
+		if ( false === get_option( 'agnosis_tag_proposal_ttl', false ) ) {
+			return; // Old option doesn't exist — nothing to migrate.
+		}
+
+		if ( false === get_option( 'agnosis_proposal_ttl', false ) ) {
+			update_option( 'agnosis_proposal_ttl', get_option( 'agnosis_tag_proposal_ttl', 7 ) );
+		}
+
+		delete_option( 'agnosis_tag_proposal_ttl' );
+	}
+
+	/**
 	 * One-time migration (audit §3g note iii): copy any existing
 	 * agnosis_ap_followers option data into the new agnosis_followers table,
 	 * then delete the option. Idempotent — once the option is gone (either
@@ -1018,14 +1073,25 @@ class Activator {
 	 * list at runtime (PromptConfig::medium_terms()), not this constant.
 	 *
 	 * Idempotent — uses wp_insert_term() which is a no-op when the slug already
-	 * exists. Safe to call on every activation or upgrade.
+	 * exists. Safe to call on every activation or upgrade, synchronously —
+	 * both maybe_upgrade() (plugins_loaded) and activate() call this directly.
+	 *
+	 * 'rewrite' => false on the early registration below (2026-07-25 fix,
+	 * see maybe_upgrade()'s own comment for the incident this replaced):
+	 * registering with rewrite rules enabled touches the global $wp_rewrite,
+	 * which doesn't exist yet on plugins_loaded — the exact fatal this
+	 * avoids at the root instead of deferring the whole method to init.
+	 * Profile::register_taxonomy() re-registers 'agnosis_medium' fully (real
+	 * labels, 'rewrite' => ['slug' => 'medium']) on the next 'init' anyway,
+	 * so this early registration only ever needs to be complete enough for
+	 * wp_insert_term() below to work.
 	 */
 	private static function seed_medium_terms(): void {
 		// The taxonomy must be registered before we can insert terms. On activation
 		// the CPT/taxonomy registration hooks have not fired yet, so we register
 		// directly here rather than depending on the 'init' hook being fired first.
 		if ( ! taxonomy_exists( 'agnosis_medium' ) ) {
-			register_taxonomy( 'agnosis_medium', [ 'agnosis_artwork' ] );
+			register_taxonomy( 'agnosis_medium', [ 'agnosis_artwork' ], [ 'rewrite' => false ] );
 		}
 
 		foreach ( \Agnosis\AI\PromptConfig::CANONICAL_MEDIUMS as $name ) {
@@ -1284,6 +1350,22 @@ class Activator {
 		// SELECT, since a row's next_attempt_at is usually well in the future.
 		if ( ! wp_next_scheduled( 'agnosis_ap_retry_deliveries' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_ap_retry_deliveries' );
+		}
+		// Term auto-translation queue drain (TAG-REDESIGN.md T3(b)) — same
+		// 5-minute tick; a no-op the vast majority of ticks (no term
+		// currently carries LinguaForge::TERM_PENDING_TRANSLATION_META),
+		// scheduled unconditionally like every other recurring cron here
+		// regardless of whether Lingua Forge itself is active/configured yet
+		// (LinguaForge::drain_translation_queue() no-ops internally when it
+		// isn't — same convention as agnosis_ap_retry_deliveries above).
+		if ( ! wp_next_scheduled( 'agnosis_drain_translation_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_translation_queue' );
+		}
+		// Rename-retranslation queue drain (TAG-REDESIGN.md T5(c)) — same
+		// interval/no-op-when-inactive convention as the translation queue
+		// just above.
+		if ( ! wp_next_scheduled( 'agnosis_drain_rename_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_rename_queue' );
 		}
 		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be

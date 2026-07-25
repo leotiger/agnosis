@@ -15,17 +15,18 @@
  * on load order relative to LinguaForgeCompatTest.php.
  *
  * No AI provider is configured in the test environment, so
- * translated_term_name() always falls back to the original name UNLESS a
- * translation is pre-seeded into the `agnosis_term_translations` cache —
- * the same technique LinguaForgeCompatTest's own trid tests already use.
- * Since 2026-07-19 that fallback no longer means "create nothing" — it means
- * a real, trid-linked PLACEHOLDER term is created instead (the source name,
- * verbatim, tagged TERM_NEEDS_TRANSLATION_META and given a visible
- * "needs translation" description) — see insert_fallback_translated_term()'s
- * own docblock for the live report (German 9/10, Italian 8/10, Portuguese
- * 6/10 permanently missing) this change responds to. `failed` is now
- * reserved for a genuine DB-level insert failure, not "the AI couldn't
- * translate this."
+ * translated_term_name() always reports `ok: false` (a failure) UNLESS a
+ * translation is pre-seeded into the `agnosis_term_translations` cache — the
+ * same technique LinguaForgeCompatTest's own trid tests already use, and
+ * still safe post-T3(a): a cache hit is always reconstructed as `ok: true`
+ * (see that method's own docblock). Since 2026-07-19 an `ok: false` result no
+ * longer means "create nothing" — it means a real, trid-linked PLACEHOLDER
+ * term is created instead (the source name, verbatim, tagged
+ * TERM_NEEDS_TRANSLATION_META and given a visible "needs translation"
+ * description) — see `insert_or_reuse_translated_term()`'s own docblock for
+ * the live report (German 9/10, Italian 8/10, Portuguese 6/10 permanently
+ * missing) this change responds to. `failed` is now reserved for a genuine
+ * DB-level insert failure, not "the AI couldn't translate this."
  *
  * Coverage:
  *   sync_term_across_languages()
@@ -48,39 +49,45 @@
  *       across every primary term
  *     - excludes already-translated terms from the primary set
  *     - all-zero result when the taxonomy has no primary terms
- *   insert_translated_term() (private — the §2b homograph fix, corrected
- *   again 2026-07-19 for the same-trid/cross-language case above; exercised
- *   via Reflection, same pattern SettingsTermTranslationCacheTest already
- *   uses for a private method) — the "same trid, lost a race" branch
+ *   insert_or_reuse_translated_term() (private — TAG-REDESIGN.md T3(a),
+ *   replacing the old insert_translated_term()/insert_fallback_translated_term()
+ *   pair and their name-derived-slug collision-retry machinery entirely;
+ *   exercised via Reflection, same pattern SettingsTermTranslationCacheTest
+ *   already uses for a private method). Under T3(a)'s deterministic MACHINE
+ *   slug (`lf-{lang}-{trid fragment}` for post_tag, `{name}-{lang}` for
+ *   agnosis_medium — never derived from a colliding term's own name), a
+ *   same-NAME collision with an unrelated term is no longer reachable at
+ *   all (WP only rejects a duplicate name when no explicit, differing slug
+ *   is supplied — verified against the WP 6.9 core checkout,
+ *   `taxonomy.php:2543-2571`). The "same trid, lost a race" branch
  *   specifically can't be reached through the public method without genuine
  *   concurrency (find_term_by_trid()'s own earlier lookup would short-circuit
  *   to "skipped" first in any single-threaded call), so it's verified
  *   directly:
- *     - clean insert
+ *     - clean insert for both taxonomies, with each one's own slug shape
  *     - a non-`term_exists` WP_Error passes through as failure (null)
  *     - a `term_exists` collision where the existing term already carries
  *       THIS trid AND this exact language resolves to that existing term (a
  *       lost race, not a failure)
- *     - a `term_exists` collision where the existing term carries THIS trid
- *       but a DIFFERENT language already linked to it retries with a
- *       language-suffixed slug rather than reusing (and corrupting) the
- *       other language's term — the 2026-07-19 fix
- *     - a `term_exists` collision where the existing term IS the primary
- *       term itself (same trid, no TRANSLATED_TERM_META at all) also retries
- *       with a suffixed slug, rather than tagging the primary term as its
- *       own translation
- *     - a `term_exists` collision where the existing term carries a
- *       different trid (or none) retries with a language-suffixed slug
+ *     - a `term_exists` collision against an UNRELATED term that happens to
+ *       already occupy this exact machine slug: for `agnosis_medium`
+ *       (readable slug), retries once with the trid fragment appended and
+ *       succeeds with a distinct slug — the one still-necessary case
+ *       carried forward from the old collision machinery (a real
+ *       double-homograph, two different concepts translating to the same
+ *       readable slug in the same language); for `post_tag` (already fully
+ *       opaque, trid fragment already baked in — `force_trid_suffix` is a
+ *       no-op there by construction) the identical retry collides again and
+ *       resolves to null, since an unrelated term already sitting on a
+ *       `post_tag` machine slug can only mean a genuine (if astronomically
+ *       unlikely) trid-fragment collision, not a real disambiguation case
  *     - a collision where even the suffixed-slug retry fails resolves to null
- *   insert_fallback_translated_term() (private — the 2026-07-19 fix;
- *   exercised via Reflection, same pattern as above):
- *     - always creates a distinctly-slugged placeholder, even though the
- *       source name collides with the primary term itself (which carries
- *       THIS SAME trid) — the one case insert_translated_term()'s own
- *       "lost race" resolution would wrongly short-circuit to reusing the
- *       primary term's own ID, corrupting the primary vocabulary
- *     - sets the visible "needs translation" description
- *     - a non-`term_exists`/genuine insert failure resolves to null
+ *     - `is_fallback` sets the visible "needs translation" description; a
+ *       fallback insert whose NAME happens to equal the primary term's own
+ *       name (an untranslated placeholder reusing the source verbatim)
+ *       creates cleanly on the first attempt regardless — the machine slug
+ *       was never derived from that name in the first place, so this can no
+ *       longer even reach the primary term's own slug
  *
  * Deliberately NOT covered: sync_all_terms_across_languages()'s time-bounded
  * `timed_out` branch (SYNC_ALL_TIME_BUDGET_SECONDS, audit §2a) — it's a real
@@ -383,47 +390,76 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// insert_translated_term() — the actual §2b fix, via Reflection.
+	// insert_or_reuse_translated_term() — TAG-REDESIGN.md T3(a), via Reflection.
 	// -------------------------------------------------------------------------
 
-	private function insert_translated_term( string $name, string $taxonomy, string $trid, string $lang ): ?int {
-		$method = new \ReflectionMethod( LinguaForge::class, 'insert_translated_term' );
+	private function insert_or_reuse_translated_term( string $name, string $taxonomy, string $trid, string $lang, bool $is_fallback = false ): ?int {
+		$method = new \ReflectionMethod( LinguaForge::class, 'insert_or_reuse_translated_term' );
 		$method->setAccessible( true );
 		/** @var int|null $result */
-		$result = $method->invoke( new LinguaForge(), $name, $taxonomy, $trid, $lang );
+		$result = $method->invoke( new LinguaForge(), $name, $taxonomy, $trid, $lang, $is_fallback );
 		return $result;
 	}
 
-	public function test_insert_translated_term_clean_insert(): void {
-		$id = $this->insert_translated_term( 'Landschaft', 'post_tag', wp_generate_uuid4(), 'de' );
-
-		$this->assertIsInt( $id );
-		$this->assertSame( 'Landschaft', get_term( $id, 'post_tag' )->name );
+	/** Mirrors the private machine_slug_for_translation() exactly, for asserting the expected slug directly. */
+	private function expected_machine_slug( string $name, string $taxonomy, string $trid, string $lang, bool $force_trid_suffix = false ): string {
+		$trid_fragment = substr( str_replace( '-', '', $trid ), 0, 8 );
+		if ( 'post_tag' === $taxonomy ) {
+			return 'lf-' . $lang . '-' . $trid_fragment;
+		}
+		$readable = sanitize_title( $name . '-' . $lang );
+		return $force_trid_suffix ? $readable . '-' . $trid_fragment : $readable;
 	}
 
-	public function test_insert_translated_term_returns_null_on_a_non_collision_error(): void {
+	public function test_insert_or_reuse_clean_insert_for_post_tag_uses_the_opaque_slug(): void {
+		$trid = wp_generate_uuid4();
+		$id   = $this->insert_or_reuse_translated_term( 'Landschaft', 'post_tag', $trid, 'de' );
+
+		$this->assertIsInt( $id );
+		$term = get_term( $id, 'post_tag' );
+		$this->assertSame( 'Landschaft', $term->name );
+		$this->assertSame( $this->expected_machine_slug( 'Landschaft', 'post_tag', $trid, 'de' ), $term->slug );
+	}
+
+	public function test_insert_or_reuse_clean_insert_for_medium_uses_the_readable_slug(): void {
+		$trid = wp_generate_uuid4();
+		$id   = $this->insert_or_reuse_translated_term( 'Ölgemälde', 'agnosis_medium', $trid, 'de' );
+
+		$this->assertIsInt( $id );
+		$term = get_term( $id, 'agnosis_medium' );
+		$this->assertSame( 'Ölgemälde', $term->name );
+		$this->assertSame( $this->expected_machine_slug( 'Ölgemälde', 'agnosis_medium', $trid, 'de' ), $term->slug );
+	}
+
+	public function test_insert_or_reuse_returns_null_on_a_non_collision_error(): void {
 		$force_failure = static fn () => new \WP_Error( 'db_insert_error', 'Simulated failure for this test.' );
 		add_filter( 'pre_insert_term', $force_failure );
 
-		$id = $this->insert_translated_term( 'Whatever', 'post_tag', wp_generate_uuid4(), 'de' );
+		$id = $this->insert_or_reuse_translated_term( 'Whatever', 'post_tag', wp_generate_uuid4(), 'de' );
 
 		remove_filter( 'pre_insert_term', $force_failure );
 
 		$this->assertNull( $id );
 	}
 
-	public function test_insert_translated_term_resolves_a_same_trid_collision_as_a_lost_race(): void {
-		$trid        = wp_generate_uuid4();
-		$existing_id = $this->insert_term( 'Fotografie' );
+	public function test_insert_or_reuse_resolves_a_same_trid_same_lang_collision_as_a_lost_race(): void {
+		// A genuine concurrent race: a parallel request already landed THIS
+		// exact (trid, lang) term in the narrow window before this call —
+		// the one case still preserved from the old collision machinery.
+		$trid          = wp_generate_uuid4();
+		$expected_slug = $this->expected_machine_slug( 'Fotografie', 'post_tag', $trid, 'de' );
+		$existing      = wp_insert_term( 'Fotografie', 'post_tag', [ 'slug' => $expected_slug ] );
+		$this->assertIsArray( $existing );
+		$existing_id = (int) $existing['term_id'];
 		add_term_meta( $existing_id, LinguaForge::TERM_TRID_META, $trid, true );
 		add_term_meta( $existing_id, LinguaForge::TRANSLATED_TERM_META, 'de', true );
 
-		$id = $this->insert_translated_term( 'Fotografie', 'post_tag', $trid, 'de' );
+		$id = $this->insert_or_reuse_translated_term( 'Fotografie', 'post_tag', $trid, 'de' );
 
 		$this->assertSame(
 			$existing_id,
 			$id,
-			'A collision against a term already carrying THIS trid must resolve to that same term, not a new insert.'
+			'A collision against a term already carrying THIS trid AND this exact language must resolve to that same term, not a new insert.'
 		);
 		$this->assertCount(
 			1,
@@ -432,58 +468,83 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		);
 	}
 
-	public function test_insert_translated_term_suffixes_the_slug_on_a_same_trid_collision_with_a_different_language(): void {
-		// The actual live bug (2026-07-19, reported the same day as the fix):
-		// two DIFFERENT languages in the SAME trid group translate to the
-		// same (or accent-equivalent) word — e.g. "Arte Digital" is literally
-		// identical in Spanish and Portuguese, "Fotografía"/"Fotografia"
-		// differ only by an accent. Before this fix, ANY same-trid collision
-		// was treated as a safe "lost race" and resolved to the FIRST
-		// language's own term — reused for the second language too, which
-		// then failed to actually link (add_term_meta's $unique=true silently
-		// no-ops when the term already carries a DIFFERENT value for that
-		// key), leaving the second language with no term at all despite the
-		// caller believing it succeeded.
-		$trid    = wp_generate_uuid4();
-		$de_id   = $this->insert_translated_term( 'Fotografie', 'post_tag', $trid, 'de' );
-		$this->assertIsInt( $de_id );
-		add_term_meta( $de_id, LinguaForge::TRANSLATED_TERM_META, 'de', true );
-		add_term_meta( $de_id, LinguaForge::TERM_TRID_META, $trid, true );
+	public function test_insert_or_reuse_never_treats_a_different_language_on_the_same_trid_as_a_race(): void {
+		// A term already occupies this exact slug, carries THIS trid, but a
+		// DIFFERENT language — must never be silently reused (and corrupted)
+		// for this call's language.
+		$trid          = wp_generate_uuid4();
+		$expected_slug = $this->expected_machine_slug( 'Fotografie', 'post_tag', $trid, 'de' );
+		$existing      = wp_insert_term( 'Fotografie', 'post_tag', [ 'slug' => $expected_slug ] );
+		$this->assertIsArray( $existing );
+		$existing_id = (int) $existing['term_id'];
+		add_term_meta( $existing_id, LinguaForge::TERM_TRID_META, $trid, true );
+		add_term_meta( $existing_id, LinguaForge::TRANSLATED_TERM_META, 'nl', true ); // Different language.
 
-		$nl_id = $this->insert_translated_term( 'Fotografie', 'post_tag', $trid, 'nl' );
+		// post_tag's slug already bakes in $lang, so a genuine different-
+		// language collision on the SAME predicted slug can't occur through
+		// normal use — this directly forces the scenario to confirm the
+		// reuse guard itself checks language, not just trid. The identical
+		// retry (force_trid_suffix is a no-op for post_tag) collides again,
+		// so this resolves to null rather than a corrupting reuse.
+		$id = $this->insert_or_reuse_translated_term( 'Fotografie', 'post_tag', $trid, 'de' );
 
-		$this->assertIsInt( $nl_id );
-		$this->assertNotSame( $de_id, $nl_id, 'Two different languages in the same trid group must never share one term.' );
-		$this->assertSame( 'Fotografie', get_term( $nl_id, 'post_tag' )->name );
-		$this->assertNotSame(
-			get_term( $de_id, 'post_tag' )->slug,
-			get_term( $nl_id, 'post_tag' )->slug,
-			'The second language must get its own disambiguated slug, not collide again.'
-		);
-		$this->assertCount(
-			2,
-			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Fotografie', 'hide_empty' => false ] ),
-			'Both languages must end up with their own real term.'
+		$this->assertNull( $id, 'Must never reuse a same-trid term linked to a DIFFERENT language, even when it occupies the predicted slug.' );
+		$this->assertSame(
+			'nl',
+			get_term_meta( $existing_id, LinguaForge::TRANSLATED_TERM_META, true ),
+			'The pre-existing Dutch-linked term must be completely untouched.'
 		);
 	}
 
-	public function test_insert_translated_term_suffixes_the_slug_on_a_collision_with_the_primary_term_itself(): void {
+	public function test_insert_or_reuse_medium_retries_with_trid_suffix_on_an_unrelated_readable_slug_collision(): void {
+		// The one still-necessary retry case for agnosis_medium's readable
+		// slug: a genuine double-homograph — two different concepts
+		// translating to the same readable {name}-{lang} slug.
+		$colliding = wp_insert_term( 'Escultura', 'agnosis_medium', [ 'slug' => 'escultura-de' ] );
+		$this->assertIsArray( $colliding );
+		$colliding_id = (int) $colliding['term_id'];
+		// No trid at all — an unrelated, admin-curated term.
+
+		$trid = wp_generate_uuid4();
+		$id   = $this->insert_or_reuse_translated_term( 'Escultura', 'agnosis_medium', $trid, 'de' );
+
+		$this->assertIsInt( $id );
+		$this->assertNotSame( $colliding_id, $id, 'Must never claim the pre-existing, differently-linked term.' );
+		$term = get_term( $id, 'agnosis_medium' );
+		$this->assertSame( 'Escultura', $term->name );
+		$this->assertSame(
+			$this->expected_machine_slug( 'Escultura', 'agnosis_medium', $trid, 'de', true ),
+			$term->slug,
+			'The retry must append the trid fragment to disambiguate, not collide again.'
+		);
+	}
+
+	public function test_insert_or_reuse_medium_returns_null_when_even_the_suffixed_slug_collides(): void {
+		$trid = wp_generate_uuid4();
+		wp_insert_term( 'Escultura', 'agnosis_medium', [ 'slug' => 'escultura-de' ] );
+		// Pre-occupy the exact suffixed slug the retry will attempt too.
+		wp_insert_term( 'Escultura (retry)', 'agnosis_medium', [ 'slug' => $this->expected_machine_slug( 'Escultura', 'agnosis_medium', $trid, 'de', true ) ] );
+
+		$id = $this->insert_or_reuse_translated_term( 'Escultura', 'agnosis_medium', $trid, 'de' );
+
+		$this->assertNull( $id );
+	}
+
+	public function test_insert_or_reuse_never_collides_with_the_primary_terms_own_name(): void {
 		// AI can legitimately "translate" a word to something byte-identical
 		// to the primary term's own name (not unusual between closely
-		// related languages, or for a term that's a proper noun/loanword).
-		// The colliding term here is the PRIMARY term itself — which never
-		// carries TRANSLATED_TERM_META — so before this fix it was
-		// indistinguishable from a genuine lost race and got reused,
-		// silently tagging the primary term as its own translation
-		// (PromptConfig::medium_terms() would then wrongly exclude it from
-		// the AI's controlled vocabulary from that point on).
+		// related languages, or a proper noun/loanword). Under the old
+		// name-derived-slug scheme this required special "lost race"
+		// disambiguation; under T3(a)'s machine slug it's not reachable at
+		// all — the new term's slug was never derived from this name, so it
+		// can't land on the primary term's own (name-derived) slug.
 		$trid       = wp_generate_uuid4();
-		$primary_id = $this->insert_term( 'Escultura' );
+		$primary_id = $this->insert_term( 'Escultura', 'agnosis_medium' );
 		add_term_meta( $primary_id, LinguaForge::TERM_TRID_META, $trid, true );
 		// Deliberately no TRANSLATED_TERM_META — that absence is exactly
 		// what marks a term as primary throughout this class.
 
-		$created_id = $this->insert_translated_term( 'Escultura', 'post_tag', $trid, 'de' );
+		$created_id = $this->insert_or_reuse_translated_term( 'Escultura', 'agnosis_medium', $trid, 'de' );
 
 		$this->assertIsInt( $created_id );
 		$this->assertNotSame( $primary_id, $created_id, "Must never reuse the primary term's own ID." );
@@ -494,72 +555,39 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		);
 		$this->assertCount(
 			2,
-			get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Escultura', 'hide_empty' => false ] ),
-			'The primary term plus one newly created (suffixed-slug) translation term.'
+			get_terms( [ 'taxonomy' => 'agnosis_medium', 'name' => 'Escultura', 'hide_empty' => false ] ),
+			'The primary term plus one newly created, distinctly-slugged translation term.'
 		);
 	}
 
-	public function test_insert_translated_term_suffixes_the_slug_on_a_different_trid_collision(): void {
-		$colliding_id = $this->insert_term( 'Fotografie' );
-		// No trid at all on the colliding term — an admin-curated primary term.
-
-		$id = $this->insert_translated_term( 'Fotografie', 'post_tag', wp_generate_uuid4(), 'de' );
+	public function test_insert_or_reuse_fallback_sets_a_visible_needs_translation_note(): void {
+		$id = $this->insert_or_reuse_translated_term( 'Sculpture', 'agnosis_medium', wp_generate_uuid4(), 'de', true );
 
 		$this->assertIsInt( $id );
-		$this->assertNotSame( $colliding_id, $id, 'Must never claim the pre-existing, differently-linked term.' );
-		$this->assertSame( 'Fotografie', get_term( $id, 'post_tag' )->name );
-		$this->assertNotSame(
-			get_term( $colliding_id, 'post_tag' )->slug,
-			get_term( $id, 'post_tag' )->slug,
-			'The retry must use a disambiguating slug, not collide again.'
-		);
+		$this->assertNotSame( '', get_term( $id, 'agnosis_medium' )->description, 'A placeholder must carry a human-readable note explaining it needs translation.' );
 	}
 
-	public function test_insert_translated_term_returns_null_when_even_the_suffixed_slug_collides(): void {
-		$this->insert_term( 'Fotografie' );
-		// Pre-occupy the exact disambiguating slug the retry will attempt.
-		wp_insert_term( 'Fotografie (de)', 'post_tag', [ 'slug' => 'fotografie-de' ] );
+	public function test_insert_or_reuse_non_fallback_sets_no_description(): void {
+		$id = $this->insert_or_reuse_translated_term( 'Sculpture', 'agnosis_medium', wp_generate_uuid4(), 'de', false );
 
-		$id = $this->insert_translated_term( 'Fotografie', 'post_tag', wp_generate_uuid4(), 'de' );
-
-		$this->assertNull( $id );
+		$this->assertIsInt( $id );
+		$this->assertSame( '', get_term( $id, 'agnosis_medium' )->description );
 	}
 
-	// -------------------------------------------------------------------------
-	// insert_fallback_translated_term() — the 2026-07-19 fix, via Reflection.
-	// -------------------------------------------------------------------------
-
-	private function insert_fallback_translated_term( string $name, string $taxonomy, string $trid, string $lang ): ?int {
-		$method = new \ReflectionMethod( LinguaForge::class, 'insert_fallback_translated_term' );
-		$method->setAccessible( true );
-		/** @var int|null $result */
-		$result = $method->invoke( new LinguaForge(), $name, $taxonomy, $trid, $lang );
-		return $result;
-	}
-
-	public function test_insert_fallback_translated_term_creates_a_distinctly_slugged_placeholder_even_though_the_source_name_collides_with_the_primary_term_itself(): void {
-		// The exact case insert_translated_term()'s own collision handling
-		// would resolve WRONGLY: the primary term carries this same trid
-		// (get_or_create_term_trid() assigns/stores it there too), so a
-		// plain wp_insert_term() attempt colliding with it would look
-		// EXACTLY like insert_translated_term()'s "same trid, lost a race"
-		// case and resolve to the primary term's own ID — corrupting the
-		// primary vocabulary by tagging it as its own translation. This
-		// method must never attempt the plain insert in the first place.
-		$trid        = wp_generate_uuid4();
-		$primary_id  = $this->insert_term( 'Mixed Media', 'agnosis_medium' );
+	public function test_insert_or_reuse_fallback_creates_cleanly_even_when_the_name_equals_the_primary_terms_own_name(): void {
+		// The one case insert_fallback_translated_term() used to need extra
+		// care for: a fallback placeholder reuses the primary term's own
+		// name verbatim, on the SAME trid. No longer a special case — the
+		// machine slug was never derived from that name either way.
+		$trid       = wp_generate_uuid4();
+		$primary_id = $this->insert_term( 'Mixed Media', 'agnosis_medium' );
 		add_term_meta( $primary_id, LinguaForge::TERM_TRID_META, $trid, true );
 
-		$id = $this->insert_fallback_translated_term( 'Mixed Media', 'agnosis_medium', $trid, 'de' );
+		$id = $this->insert_or_reuse_translated_term( 'Mixed Media', 'agnosis_medium', $trid, 'de', true );
 
 		$this->assertIsInt( $id );
-		$this->assertNotSame( $primary_id, $id, 'Must never reuse the primary term\'s own ID.' );
+		$this->assertNotSame( $primary_id, $id, "Must never reuse the primary term's own ID." );
 		$this->assertSame( 'Mixed Media', get_term( $id, 'agnosis_medium' )->name, 'The placeholder reuses the source name verbatim.' );
-		$this->assertNotSame(
-			get_term( $primary_id, 'agnosis_medium' )->slug,
-			get_term( $id, 'agnosis_medium' )->slug,
-			'The placeholder must use a disambiguated slug, not collide with the primary term.'
-		);
 		$this->assertSame(
 			$trid,
 			get_term_meta( $primary_id, LinguaForge::TERM_TRID_META, true ),
@@ -567,18 +595,11 @@ class LinguaForgeTermSyncTest extends \WP_UnitTestCase {
 		);
 	}
 
-	public function test_insert_fallback_translated_term_sets_a_visible_needs_translation_note(): void {
-		$id = $this->insert_fallback_translated_term( 'Sculpture', 'agnosis_medium', wp_generate_uuid4(), 'de' );
-
-		$this->assertIsInt( $id );
-		$this->assertNotSame( '', get_term( $id, 'agnosis_medium' )->description, 'A placeholder must carry a human-readable note explaining it needs translation.' );
-	}
-
-	public function test_insert_fallback_translated_term_returns_null_on_a_genuine_insert_failure(): void {
+	public function test_insert_or_reuse_returns_null_on_a_genuine_fallback_insert_failure(): void {
 		$force_failure = static fn () => new \WP_Error( 'db_insert_error', 'Simulated failure for this test.' );
 		add_filter( 'pre_insert_term', $force_failure );
 
-		$id = $this->insert_fallback_translated_term( 'Whatever', 'agnosis_medium', wp_generate_uuid4(), 'de' );
+		$id = $this->insert_or_reuse_translated_term( 'Whatever', 'agnosis_medium', wp_generate_uuid4(), 'de', true );
 
 		remove_filter( 'pre_insert_term', $force_failure );
 

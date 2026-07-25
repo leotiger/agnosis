@@ -296,11 +296,24 @@ class Pipeline {
 
 		$sample = wp_trim_words( $sample, 300, '' );
 
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): tags this pure@ text-only
+		// classification proposes must name the primary language explicitly,
+		// same reasoning and same existing-tags dedup nudge as describe()'s
+		// own prompt (PromptConfig::resolved_system_prompt()'s docblock) —
+		// this is the "pure@ classification" call site TAG-REDESIGN.md §2's
+		// acquisition section names alongside describe()/describe_secondary().
+		$primary_language = SubmissionTranslator::primary_language_name();
+		$existing_tags    = PromptConfig::existing_tags();
+		$existing_tags_line = ! empty( $existing_tags )
+			? '- Existing tags already approved for this site — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags ) . "\n"
+			: '';
+
 		$prompt = "Classify the following piece of writing submitted to an art platform.\n\n"
 			. "Text:\n---\n{$sample}\n---\n\n"
 			. "Produce a JSON object with these keys:\n"
 			. '- "medium":   Pick exactly one from: ' . implode( ' | ', PromptConfig::medium_terms() ) . ", or \"\" if none fit.\n"
-			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n\n"
+			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings, specifically in {$primary_language}, even if the text above is in a different language.\n"
+			. $existing_tags_line . "\n"
 			. 'Return ONLY the JSON object. No markdown fences. No preamble.';
 
 		$response = $this->description_provider->chat( $prompt );
@@ -393,10 +406,11 @@ class Pipeline {
 	 * submission — the raw code resolve_native_language_name() itself
 	 * resolves to a display name for the reply-language directive.
 	 * Separated out so process() can also thread the CODE (not the display
-	 * name) down to describe()/describe_secondary() for
-	 * PromptConfig::existing_tags_for_language() — added alongside the
-	 * tag-dedup rework, since neither of those calls needed the artist's
-	 * language before this.
+	 * name) down to describe()/describe_secondary() — added alongside the
+	 * original tag-dedup rework for the (since-removed, T0 — see
+	 * TAG-REDESIGN.md) per-language existing-tags prompt injection, and
+	 * currently unconsumed by either call until T1's primary-language
+	 * replacement lands.
 	 *
 	 * @param array<string, mixed> $submission Parsed email submission.
 	 */
@@ -418,9 +432,9 @@ class Pipeline {
 	 *                       DescriptionResult fields this method reads.
 	 * @param string $native_lang The artist's own declared language code —
 	 *                            threaded through to describe()/
-	 *                            describe_secondary() for the existing-tags
-	 *                            prompt injection (PromptConfig::
-	 *                            existing_tags_for_language()).
+	 *                            describe_secondary(); currently unconsumed
+	 *                            by either (T0 — TAG-REDESIGN.md; see
+	 *                            resolve_native_lang_code()'s own docblock).
 	 * @return array<string, mixed>
 	 */
 	private function process_single(
@@ -560,6 +574,17 @@ class Pipeline {
 			. "- \"title\":    Short, evocative title for the work (string).\n"
 			. "- \"excerpt\":  One-sentence teaser (string).\n"
 			. "- \"body\":     Two or three paragraphs of editorial description (string, may contain basic HTML).\n"
+			// TAG-REDESIGN.md T1 names describe()/describe_secondary()/pure@
+			// classification explicitly as the prompts to update with primary-
+			// language naming + the existing-tags nudge (§2's "intake ...
+			// propose tags" line) — this audio branch's own hardcoded prompt
+			// isn't one of those three, so it's deliberately left as-is here
+			// rather than silently extending T1's named scope. Same latent gap
+			// as before this phase: an audio submission's tags come out in
+			// whatever language build_artist_context()'s directive (or the
+			// transcript itself) implies, not explicitly the site's primary
+			// language. Flagged, not fixed — a candidate for a follow-up pass
+			// once T1's three named call sites are proven out.
 			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n"
 			. "- \"alt_text\": A brief accessible description of what the audio conveys (string).\n"
 			// 2026-07-21 fix: this used to hardcode its own vocabulary
@@ -753,6 +778,10 @@ class Pipeline {
 			. "- \"title\":    Short, evocative title for the work (string).\n"
 			. "- \"excerpt\":  One-sentence teaser (string).\n"
 			. "- \"body\":     Two or three paragraphs of editorial description (string, may contain basic HTML).\n"
+			// TAG-REDESIGN.md T1 scope note — same as process_audio_single()'s
+			// own prompt: this text-only video fallback isn't one of the three
+			// call sites T1 names explicitly, so it's left as-is rather than
+			// silently extended. Same latent gap, flagged not fixed.
 			. "- \"tags\":     3–6 descriptive tags as an array of lowercase strings.\n"
 			. "- \"alt_text\": A brief accessible description of what the video shows or conveys, based only on the context given (string).\n"
 			// 2026-07-21 fix: same issue as process_audio_single()'s prompt —

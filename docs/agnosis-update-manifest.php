@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.51';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.51/agnosis-0.9.51.zip';
+	$version      = '0.9.54';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.54/agnosis-0.9.54.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -98,7 +98,7 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
 	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Build started 2026-07-24T17:46:36Z by build-zip.sh for v0.9.51 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
+	$sha256_note  = 'Not yet built — dev/bin/build-zip.sh computes this at release time.';
 	$last_updated = '';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -111,21 +111,17 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
-		'<h4>0.9.51</h4>' .
+		'<h4>0.9.54</h4>' .
 		'<ul>' .
-			'<li><strong>Added:</strong> Artworks now show how many times they&#8217;ve been liked and boosted (reshared) across the fediverse &#8212; a small, independent count of each below the artwork itself, not a separate page. Boosts and likes are always counted, with nothing for artists or admins to approve.</li>' .
+			'<li><strong>Added:</strong> Tags redesign completed. Tag and medium-category translations into other languages now happen automatically and propagate to already-translated posts on their own. A new one-click &#8220;Re-tag&#8221; button on each artwork (and an optional bulk backfill script) can (re-)generate tags for posts that don&#8217;t have them yet. Renaming or deleting a tag/medium term now correctly updates or removes its translations too, and the proposal-review expiry setting is now shared between tags and medium categories.</li>' .
+			'<li><strong>Added:</strong> Federated posts now carry proper language metadata, so followers using Mastodon&#8217;s per-account language filter see them correctly.</li>' .
+				'<li><strong>Added:</strong> A translated-language version of an artwork is now correctly reachable and kept up to date over ActivityPub &#8212; editing or removing it now federates properly, instead of only the original-language post doing so.</li>' .
+				'<li><strong>Added:</strong> An artwork now federates to the Fediverse once its tags and medium category are actually settled, so it arrives with real hashtags instead of none; a genuinely new tag/medium proposal briefly delays federation until reviewed (or a configurable timeout passes).</li>' .
+				'<li><strong>Added:</strong> A new &#8220;Federate which languages&#8221; setting (Settings &#8594; Behavior) can turn on sending each artwork&#8217;s translated versions to the Fediverse too, one post per language &#8212; off by default, so nothing changes unless you opt in. Every federated post now also links its other available languages.</li>' .
 		'</ul>' .
-		'<h4>0.9.50</h4>' .
+		'<h4>0.9.53</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> The contact, join, and newsletter-signup forms&#8217; success/error messages weren&#8217;t announced to screen readers after submitting &#8212; sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.</li>' .
-			'<li><strong>Fixed:</strong> A handful of translations (Arabic, Russian, Catalan, and 12 other languages) had a plural form come out wrong &#8212; a missing number placeholder, or two forms accidentally merged into one &#8212; so some notification/count text could show up wrong or blank in those languages. All are corrected now.</li>' .
-			'<li><strong>Fixed:</strong> Internal dev tooling used to keep translations up to date (<code>translate-missing</code>) had a few bugs that could cause a translation batch to fail silently, or in some cases write garbled text into a translation file &#8212; fixed, plus two safeguards added so those specific failures can&#8217;t happen again.</li>' .
-			'<li><strong>Added:</strong> The Agnosis Theme&#8217;s translation catalog now has the same AI-fill and compile tooling the plugin already had (dev-only, no user-facing change).</li>' .
-			'<li><strong>Fixed:</strong> Six admin-dashboard inputs (invite/test-send email fields, a ban-until date, a title translation field) relied on placeholder text only, so screen readers had no accessible name for them. Each now has a proper label.</li>' .
-			'<li><strong>Fixed:</strong> The newsletter digest&#8217;s artwork thumbnail had no alt text, so a screen reader had nothing to announce for that link. Now uses the artwork&#8217;s title.</li>' .
-			'<li><strong>Hardened:</strong> Internal cleanup that removes a superseded auto-generated placeholder image now double-checks it&#8217;s actually a placeholder before deleting it &#8212; extra protection against ever deleting a real photo by mistake (no known instance of this happening).</li>' .
-			'<li><strong>Fixed:</strong> A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).</li>' .
-			'<li><strong>Fixed:</strong> An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).</li>' .
+			'<li><strong>Added:</strong> Tags are back, rebuilt from scratch. New submissions once again get AI-proposed tags in the site&#8217;s main language, reusing an existing tag when one already fits instead of creating a near-duplicate. A brand-new tag name now waits for an admin&#8217;s Approve/Reject on the Tags screen rather than being created automatically; an unreviewed proposal is auto-rejected after 7 days (configurable).</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

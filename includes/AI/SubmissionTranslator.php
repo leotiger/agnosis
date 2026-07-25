@@ -236,7 +236,7 @@ class SubmissionTranslator {
 	 * @return array<string, mixed>             Submission with translated text.
 	 */
 	public function translate( array $submission ): array {
-		$target_code = $this->resolve_target_language();
+		$target_code = self::resolve_target_language();
 		$target_name = $this->resolve_language_name( $target_code );
 
 		if ( null === $target_name ) {
@@ -319,6 +319,88 @@ class SubmissionTranslator {
 		// under the 'description' key.
 		$translated = $this->call_translate( '', $content, $target_name, $context );
 		return $translated['description'] ?? $content;
+	}
+
+	/**
+	 * Translate a short controlled-vocabulary LABEL (a `post_tag`/`agnosis_medium`
+	 * term name, never a sentence) to $target_code, with a STRUCTURED response
+	 * distinguishing a genuine loanword from a failed call — TAG-REDESIGN.md
+	 * T3(b), closing §8 gap 2 of that document's soundness review.
+	 *
+	 * `translate_text()` (above) can't answer this question: it returns a bare
+	 * string, and `$translated === $content` is ambiguous between "the AI
+	 * genuinely confirmed the correct translation is the same word" (a real
+	 * loanword — "Collage" staying "Collage" in German) and "the call failed
+	 * and the original was echoed back as the safe fallback" — the exact
+	 * conflation `Compat\LinguaForge::translated_term_name()` used to make
+	 * before this method existed, which meant a genuine loanword was
+	 * permanently flagged `TERM_NEEDS_TRANSLATION_META` with no way to tell it
+	 * apart from a real outage. This is a NEW method rather than a change to
+	 * `translate_text()`'s own return contract deliberately — that method has
+	 * several other callers (`Artist\ContentEditor`, `Artist\BiographyTitle`,
+	 * `Artist\CommunityBroadcast`, `Artist\Invitation`, `Newsletter\Scheduler`)
+	 * that all depend on its plain-string shape; changing it would ripple far
+	 * beyond term translation.
+	 *
+	 * @param string $name        The primary term's own name.
+	 * @param string $target_code ISO 639-1 code.
+	 * @param string $context     Optional extra framing, same convention as
+	 *                            `translate_text()`'s own `$context` param.
+	 * @return array{translation: string, same_as_source: bool, ok: bool}
+	 *         `ok` is false ONLY for a genuine call/parse failure (empty
+	 *         response, non-JSON, missing/non-string `translation` key,
+	 *         translation itself blank after trimming) — never for a
+	 *         confirmed loanword, which returns `ok: true, same_as_source:
+	 *         true`. Callers must branch on `ok`, not on whether `translation`
+	 *         happens to equal `$name`.
+	 */
+	public function translate_term_name( string $name, string $target_code, string $context = '' ): array {
+		$failure = [ 'translation' => $name, 'same_as_source' => false, 'ok' => false ];
+
+		$name = trim( $name );
+		if ( '' === $name ) {
+			return $failure;
+		}
+
+		$target_name = $this->resolve_language_name( $target_code );
+		if ( null === $target_name ) {
+			Logger::warning(
+				sprintf( 'SubmissionTranslator::translate_term_name: unknown target language code "%s" — skipping.', $target_code ),
+				'pipeline'
+			);
+			return $failure;
+		}
+
+		$prompt = "Translate the following short controlled-vocabulary label to {$target_name}. It is a single word or short phrase, never a full sentence.\n"
+			. ( '' !== $context ? trim( $context ) . "\n" : '' )
+			. "If the correct {$target_name} term for this concept is genuinely the SAME WORD as the source — a loanword or vocabulary shared between the two languages (e.g. \"Collage\" staying \"Collage\" in German) — return it unchanged and set \"same_as_source\" to true. Only set \"same_as_source\" to false when you produced a genuinely different translated word.\n"
+			. 'Return ONLY a JSON object with these two keys: "translation" (string), "same_as_source" (true or false).' . "\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. "Label: {$name}";
+
+		$response = $this->provider->chat( $prompt );
+		if ( '' === trim( $response ) ) {
+			return $failure;
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded ) || ! isset( $decoded['translation'] ) || ! is_string( $decoded['translation'] ) ) {
+			$this->log_json_decode_failure( 'translate_term_name', $json_str, $target_code, "label \"{$name}\"" );
+			return $failure;
+		}
+
+		$translation = trim( $decoded['translation'] );
+		if ( '' === $translation ) {
+			return $failure;
+		}
+
+		return [
+			'translation'    => $translation,
+			'same_as_source' => (bool) ( $decoded['same_as_source'] ?? false ),
+			'ok'              => true,
+		];
 	}
 
 	/**
@@ -706,8 +788,17 @@ class SubmissionTranslator {
 	 *   1. `linguaforge_primary_language` option (Lingua Forge primary language).
 	 *   2. First two characters of `get_locale()` (WP site language).
 	 *   3. `'en'` as ultimate fallback.
+	 *
+	 * `static` since 2026-07-25 (TAG-REDESIGN.md T1) — this never read `$this`
+	 * (no dependency on the wrapped provider), so primary_language_name()
+	 * below and any other caller that only needs the resolved CODE (or, via
+	 * that method, its display name) no longer need to construct a full
+	 * SubmissionTranslator instance just to call it. Existing `$translator->
+	 * resolve_target_language()` call sites (ReviewEndpoints, this class's
+	 * own translate(), the test suite) are unaffected — PHP permits calling a
+	 * static method through an instance reference with no warning.
 	 */
-	public function resolve_target_language(): string {
+	public static function resolve_target_language(): string {
 		// 1. Lingua Forge primary language setting.
 		$lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
 
@@ -720,6 +811,31 @@ class SubmissionTranslator {
 
 		// 3. Hard fallback.
 		return $lang ?: 'en';
+	}
+
+	/**
+	 * Human-readable name of the site's primary language — resolve_target_language()
+	 * plus a language_names() lookup, exposed standalone so a caller that only
+	 * wants the DISPLAY NAME (not a translation call) doesn't need a
+	 * ProviderInterface instance to construct a full SubmissionTranslator just
+	 * to read it. Added for TAG-REDESIGN.md T1: PromptConfig::
+	 * resolved_system_prompt()/secondary_system_prompt() use this to name the
+	 * primary language explicitly in the tags instruction — the same "name
+	 * the language explicitly rather than let the model guess" precedent
+	 * Pipeline::resolve_native_language_name() already established for the
+	 * artist's OWN language, mirrored here for the SITE's primary language.
+	 *
+	 * Falls back to the resolved code itself, uppercased, when the code isn't
+	 * one language_names() recognises (Lingua Forge inactive or not
+	 * configured for it) — every caller here needs SOME usable label to put
+	 * in a prompt, unlike resolve_language_name()'s "return null, let the
+	 * caller skip that section" convention, which exists for callers that
+	 * CAN skip (there is no sensible "don't tell the AI what the primary
+	 * language is" case for a tags instruction that always fires).
+	 */
+	public static function primary_language_name(): string {
+		$code = self::resolve_target_language();
+		return self::language_names()[ $code ] ?? strtoupper( $code );
 	}
 
 	/**

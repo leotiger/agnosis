@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-23T17:42+00:00\n"
+"POT-Creation-Date: 2026-07-25T16:53+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:58+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Persian\n"
@@ -98,69 +98,85 @@ msgstr "قبلی"
 msgid "Next"
 msgstr "بعدی"
 
-#: includes/Admin/ArtworkMediumSync.php:233
+#: includes/Admin/ArtworkMediumSync.php:240
 msgid "Medium translations"
 msgstr "ترجمه‌های مدیوم"
 
-#: includes/Admin/ArtworkMediumSync.php:246
+#: includes/Admin/ArtworkMediumSync.php:253
 msgid "Requires Lingua Forge."
 msgstr "به Lingua Forge نیاز دارد."
 
-#: includes/Admin/ArtworkMediumSync.php:254
+#: includes/Admin/ArtworkMediumSync.php:261
 msgid ""
-"This artwork's medium is translated from its primary-language original — "
-"nothing to sync from here."
-msgstr ""
-"مدیوم این اثر هنری از نسخهٔ اصلی به زبان اصلی ترجمه شده است — چیزی برای "
-"همگام‌سازی از اینجا وجود ندارد."
+"This artwork's medium/tags are translated from its primary-language original "
+"— nothing to sync from here."
+msgstr "این رسانه/برچسب‌های اثر هنری از نسخه اصلی به زبان اصلی آن ترجمه شده‌اند — هیچ چیزی برای همگام‌سازی از اینجا وجود ندارد."
 
-#: includes/Admin/ArtworkMediumSync.php:269
+#: includes/Admin/ArtworkMediumSync.php:289
 msgid ""
 "Push this artwork's current medium onto every already-translated sibling "
 "post."
 msgstr "مدیوم فعلی این اثر هنری را به هر نسخهٔ خواهر ترجمه‌شده ارسال کنید."
 
-#: includes/Admin/ArtworkMediumSync.php:271
+#: includes/Admin/ArtworkMediumSync.php:291
 msgid "Sync medium to translations"
 msgstr "همگام‌سازی مدیوم با ترجمه‌ها"
 
-#: includes/Admin/ArtworkMediumSync.php:282
-#: includes/Admin/ArtworkMediumSync.php:354
+#: includes/Admin/ArtworkMediumSync.php:293
+msgid ""
+"Push this artwork's current tags onto every already-translated sibling post."
+msgstr "برچسب‌های فعلی این اثر هنری را به هر پست هم‌خواهر ترجمه شده اضافه کن."
+
+#: includes/Admin/ArtworkMediumSync.php:295
+msgid "Sync tags to translations"
+msgstr "برچسب‌ها را به ترجمه‌ها همگام‌سازی کن"
+
+#: includes/Admin/ArtworkMediumSync.php:306
+#: includes/Admin/ArtworkMediumSync.php:355
+#: includes/Admin/ArtworkMediumSync.php:439
+#: includes/Admin/ArtworkMediumSync.php:495 includes/Admin/ArtworkRetag.php:107
 #: includes/Admin/ContactMessagesPage.php:159
 #: includes/Admin/Dashboards/AdmissionDashboard.php:182
 #: includes/Admin/Dashboards/AdmissionDashboard.php:211
-#: includes/Admin/Dashboards/BiographyTitleCache.php:161
-#: includes/Admin/Dashboards/BiographyTitleCache.php:177
-#: includes/Admin/Dashboards/BiographyTitleCache.php:190
-#: includes/Admin/Dashboards/BrandingTestForm.php:69
+#: includes/Admin/Dashboards/BiographyTitleCache.php:170
+#: includes/Admin/Dashboards/BiographyTitleCache.php:186
+#: includes/Admin/Dashboards/BiographyTitleCache.php:199
+#: includes/Admin/Dashboards/BrandingTestForm.php:70
 #: includes/Admin/Dashboards/DeliverabilityCard.php:187
-#: includes/Admin/Dashboards/InvitationCard.php:76
-#: includes/Admin/Dashboards/InvitationCard.php:103
+#: includes/Admin/Dashboards/InvitationCard.php:78
+#: includes/Admin/Dashboards/InvitationCard.php:105
 #: includes/Admin/Dashboards/LogsTab.php:131
-#: includes/Admin/Dashboards/MembersDashboard.php:184
-#: includes/Admin/Dashboards/MembersDashboard.php:216
-#: includes/Admin/Dashboards/MembersDashboard.php:243
-#: includes/Admin/Dashboards/NewsletterDashboard.php:284
-#: includes/Admin/Dashboards/NewsletterDashboard.php:313
-#: includes/Admin/Dashboards/NewsletterDashboard.php:341
-#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:238
-#: includes/Admin/MediumProposals.php:273 includes/Admin/QueueController.php:31
+#: includes/Admin/Dashboards/MembersDashboard.php:185
+#: includes/Admin/Dashboards/MembersDashboard.php:217
+#: includes/Admin/Dashboards/MembersDashboard.php:244
+#: includes/Admin/Dashboards/NewsletterDashboard.php:285
+#: includes/Admin/Dashboards/NewsletterDashboard.php:314
+#: includes/Admin/Dashboards/NewsletterDashboard.php:342
+#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
+#: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:898
-#: includes/Admin/Settings.php:917
+#: includes/Admin/Settings.php:917 includes/Admin/TagProposals.php:238
+#: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
 msgid "You do not have permission to perform this action."
 msgstr "شما اجازهٔ انجام این عمل را ندارید."
 
 #. translators: %d: number of translated sibling posts the medium was pushed to
-#: includes/Admin/ArtworkMediumSync.php:311
+#: includes/Admin/ArtworkMediumSync.php:335
 #, php-format
 msgid "Medium pushed to %d translated sibling post(s)."
 msgstr "مدیوم به %d پست خواهر ترجمه‌شده ارسال شد."
 
-#: includes/Admin/ArtworkMediumSync.php:345
+#. translators: %d: number of translated sibling posts the tags were pushed to
+#: includes/Admin/ArtworkMediumSync.php:384
+#, php-format
+msgid "Tags pushed to %d translated sibling post(s)."
+msgstr "برچسب‌ها به %d پست هم‌خواهر ترجمه شده اضافه شد."
+
+#: includes/Admin/ArtworkMediumSync.php:425
 msgid ""
 "Push every primary-language artwork's current medium onto its translated "
 "siblings? This can take a moment on a large catalog."
@@ -168,12 +184,22 @@ msgstr ""
 "مدیوم فعلی هر اثر هنری به زبان اصلی به نسخه‌های ترجمه‌شدهٔ آن ارسال شود؟ این "
 "کار ممکن است در یک کاتالوگ بزرگ کمی طول بکشد."
 
-#: includes/Admin/ArtworkMediumSync.php:346
+#: includes/Admin/ArtworkMediumSync.php:426
 msgid "Sync all medium assignments"
 msgstr "همگام‌سازی همه تخصیص‌های مدیوم"
 
+#: includes/Admin/ArtworkMediumSync.php:430
+msgid ""
+"Push every primary-language artwork's current tags onto its translated "
+"siblings? This can take a moment on a large catalog."
+msgstr "آیا برچسب‌های فعلی اثر هنری به زبان اصلی را به خواهران ترجمه شده‌اش منتقل کنیم؟ این ممکن است در یک کاتالوگ بزرگ مدتی طول بکشد."
+
+#: includes/Admin/ArtworkMediumSync.php:431
+msgid "Sync all tag assignments"
+msgstr "تمام تخصیص‌های برچسب را همگام‌سازی کن"
+
 #. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
-#: includes/Admin/ArtworkMediumSync.php:388
+#: includes/Admin/ArtworkMediumSync.php:473
 #, php-format
 msgid ""
 "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
@@ -181,6 +207,85 @@ msgid ""
 msgstr ""
 "همگام‌سازی کامل شد: %1$d اثر هنری به زبان اصلی پردازش شد، مدیوم به %2$d پست "
 "خواهر ارسال شد."
+
+#. translators: 1: number of primary-language posts processed, 2: number of translated sibling posts tags were pushed to
+#: includes/Admin/ArtworkMediumSync.php:529
+#, php-format
+msgid ""
+"Sync complete: %1$d primary-language post(s) processed, tags pushed to %2$d "
+"sibling post(s)."
+msgstr "همگام‌سازی کامل شد: %1$d پست(های) به زبان اصلی پردازش شد، برچسب‌ها به %2$d پست خواهر منتقل شد."
+
+#: includes/Admin/ArtworkRetag.php:52
+msgid "Re-tag"
+msgstr "برچسب‌گذاری مجدد"
+
+#: includes/Admin/ArtworkRetag.php:65
+msgid "Available once this artwork is published."
+msgstr "پس از این که این اثر هنری منتشر شود، در دسترس خواهد بود."
+
+#: includes/Admin/ArtworkRetag.php:75
+msgid ""
+"This artwork's tags are derived from its primary-language original — nothing "
+"to re-tag from here."
+msgstr "برچسب‌های این اثر هنری از نسخه اصلی به زبان اصلی آن مشتق شده‌اند — هیچ چیزی برای برچسب‌گذاری مجدد از اینجا وجود ندارد."
+
+#: includes/Admin/ArtworkRetag.php:90
+msgid ""
+"Re-run tag detection for this artwork from its current title, excerpt, and "
+"content."
+msgstr "تشخیص برچسب را برای این اثر هنری از عنوان، چکیده و محتوای فعلی آن دوباره اجرا کن."
+
+#: includes/Admin/ArtworkRetag.php:95
+msgid ""
+"Re-run tag detection for this artwork? Any pending tag proposals for it will "
+"be replaced, and matched tags are re-assigned immediately."
+msgstr "آیا تشخیص برچسب را برای این اثر هنری دوباره اجرا کنیم؟ هر پیشنهاد برچسب معلق برای آن جایگزین خواهد شد و برچسب‌های مطابقت داده شده فوراً تخصیص داده می‌شوند."
+
+#: includes/Admin/ArtworkRetag.php:96
+msgid "Re-tag this artwork"
+msgstr "برچسب‌گذاری مجدد این اثر هنری"
+
+#. translators: 1: existing tags matched and assigned, 2: new tag proposals raised, 3: candidates gated out or trimmed
+#: includes/Admin/ArtworkRetag.php:154
+#, php-format
+msgid ""
+"Re-tag complete: %1$d tag(s) matched and assigned, %2$d new proposal(s) "
+"raised, %3$d candidate(s) gated out."
+msgstr "برچسب‌گذاری مجدد کامل شد: %1$d برچسب(ها) مطابقت داده شده و اختصاص داده شدند، %2$d پیشنهاد(های) جدید مطرح شد، %3$d نامزد(ها) حذف شدند."
+
+#: includes/Admin/ArtworkRetag.php:174
+msgid "Re-tag failed: this post no longer exists."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: این پست دیگر وجود ندارد."
+
+#: includes/Admin/ArtworkRetag.php:176
+msgid "Re-tag failed: this post type does not support tags."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: این نوع پست از برچسب‌ها پشتیبانی نمی‌کند."
+
+#: includes/Admin/ArtworkRetag.php:178
+msgid "Re-tag failed: this artwork is not published yet."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: این اثر هنری هنوز منتشر نشده است."
+
+#: includes/Admin/ArtworkRetag.php:180
+msgid ""
+"Re-tag failed: this artwork's tags are derived from its primary-language "
+"original."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: برچسب‌های این اثر هنری از نسخه اصلی به زبان اصلی آن مشتق شده‌اند."
+
+#: includes/Admin/ArtworkRetag.php:182
+msgid ""
+"Re-tag failed: the AI tag detection call did not return a usable response. "
+"Try again in a moment."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: تماس تشخیص برچسب AI پاسخی قابل استفاده برنگرداند. لطفاً مجدداً امتحان کنید."
+
+#: includes/Admin/ArtworkRetag.php:184
+msgid ""
+"Re-tag failed: the AI call succeeded but proposed no tags for this content."
+msgstr "برچسب‌گذاری مجدد ناموفق بود: تماس AI موفق بود اما برچسبی برای این محتوا پیشنهاد نکرد."
+
+#: includes/Admin/ArtworkRetag.php:186
+msgid "Re-tag failed for an unknown reason."
+msgstr "برچسب‌گذاری مجدد به دلایل ناشناخته ناموفق بود."
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -234,7 +339,8 @@ msgstr "دریافت‌شده"
 #: includes/Admin/ContactMessagesPage.php:102
 #: includes/Admin/Dashboards/AdmissionDashboard.php:105
 #: includes/Admin/Dashboards/MembersDashboard.php:58
-#: includes/Admin/InboxPage.php:170 includes/Admin/MediumProposals.php:80
+#: includes/Admin/InboxPage.php:170 includes/Admin/MediumProposals.php:105
+#: includes/Admin/TagProposals.php:90
 msgid "Actions"
 msgstr "اقدامات"
 
@@ -286,7 +392,7 @@ msgid "Delete this message?"
 msgstr "این پیام حذف شود؟"
 
 #: includes/Admin/ContactMessagesPage.php:322
-#: includes/Admin/Dashboards/MembersDashboard.php:152
+#: includes/Admin/Dashboards/MembersDashboard.php:153
 #: includes/Admin/InboxPage.php:789
 msgid "Delete"
 msgstr "حذف"
@@ -379,7 +485,7 @@ msgid "Admit"
 msgstr "پذیرش"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
-#: includes/Admin/MediumProposals.php:142
+#: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
 msgid "Reject"
 msgstr "رد"
 
@@ -499,26 +605,32 @@ msgstr "زبان"
 msgid "Cached translation"
 msgstr "ترجمهٔ ذخیره‌شده"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:95
+#. translators: %s: language name this translation row is for
+#: includes/Admin/Dashboards/BiographyTitleCache.php:98
+#, php-format
+msgid "Biography title translation (%s)"
+msgstr "ترجمه عنوان بیوگرافی (%s)"
+
+#: includes/Admin/Dashboards/BiographyTitleCache.php:104
 msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr "هنوز ترجمه نشده — خالی بگذارید تا هوش مصنوعی به‌صورت خودکار ترجمه کند"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:97
+#: includes/Admin/Dashboards/BiographyTitleCache.php:106
 #: includes/Artist/ContentEditor.php:1355
 msgid "Save"
 msgstr "ذخیره"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:103
+#: includes/Admin/Dashboards/BiographyTitleCache.php:112
 msgid ""
 "Discard the cached translation and have the AI translate this language again?"
 msgstr ""
 "ترجمهٔ ذخیره‌شده کنار گذاشته شود و هوش مصنوعی دوباره این زبان را ترجمه کند؟"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:107
+#: includes/Admin/Dashboards/BiographyTitleCache.php:116
 msgid "↻ Retranslate"
 msgstr "↻ ترجمهٔ مجدد"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:117
+#: includes/Admin/Dashboards/BiographyTitleCache.php:126
 msgid ""
 "Discard every cached translation for the current preset title and have the "
 "AI translate all of them again?"
@@ -526,7 +638,7 @@ msgstr ""
 "همهٔ ترجمه‌های ذخیره‌شده برای عنوان از پیش‌تنظیم‌شدهٔ فعلی کنار گذاشته شوند و هوش "
 "مصنوعی همهٔ آن‌ها را دوباره ترجمه کند؟"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:122
+#: includes/Admin/Dashboards/BiographyTitleCache.php:131
 msgid "Clear All (Retranslate All)"
 msgstr "پاک کردن همه (ترجمهٔ مجدد همه)"
 
@@ -547,18 +659,22 @@ msgstr ""
 "می‌خواهید آزمون مطابق آن باشد، ابتدا ذخیره کنید و سپس یک نمونه برای خودتان "
 "بفرستید (با تنظیمات فعلی ذخیره‌شده در بالا)."
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:51
+#: includes/Admin/Dashboards/BrandingTestForm.php:50
+msgid "Send test email to this address"
+msgstr "ارسال ایمیل آزمایشی به این آدرس"
+
+#: includes/Admin/Dashboards/BrandingTestForm.php:52
 #: includes/Admin/Dashboards/DeliverabilityCard.php:102
-#: includes/Admin/Dashboards/InvitationCard.php:63
-#: includes/Admin/Dashboards/NewsletterDashboard.php:270
+#: includes/Admin/Dashboards/InvitationCard.php:65
+#: includes/Admin/Dashboards/NewsletterDashboard.php:271
 msgid "Send Test"
 msgstr "ارسال آزمایش"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:77
+#: includes/Admin/Dashboards/BrandingTestForm.php:78
 msgid "Branding preview"
 msgstr "پیش‌نمایش برندسازی"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:82
+#: includes/Admin/Dashboards/BrandingTestForm.php:83
 msgid ""
 "This is a sample of the branded email shell — header, body text, a button, "
 "and (below) the footer card — built from whatever is currently saved on "
@@ -568,11 +684,11 @@ msgstr ""
 "پایین) کارت پابرگ — که بر اساس هر چیزی که در Settings → Branding ذخیره شده "
 "ساخته شده است."
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:86
+#: includes/Admin/Dashboards/BrandingTestForm.php:87
 msgid "Sample button"
 msgstr "دکمهٔ نمونه"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:90
+#: includes/Admin/Dashboards/BrandingTestForm.php:91
 msgid ""
 "Didn't look right? Adjust the fields above and send another test — nothing "
 "here was recorded or sent to anyone but you."
@@ -581,7 +697,7 @@ msgstr ""
 "هیچ‌چیزی از اینجا ثبت یا برای کسی جز شما ارسال نشده است."
 
 #. translators: %s: site name
-#: includes/Admin/Dashboards/BrandingTestForm.php:112
+#: includes/Admin/Dashboards/BrandingTestForm.php:113
 #, php-format
 msgid "[TEST] Branding preview from %s"
 msgstr "[TEST] پیش‌نمایش برندینگ از %s"
@@ -755,12 +871,20 @@ msgstr ""
 "زمان‌بندی نمی‌شود — این کار فوراً به نشانی زیر ارسال می‌شود."
 
 #: includes/Admin/Dashboards/InvitationCard.php:45
+msgid "Email address to invite"
+msgstr "آدرس ایمیل برای دعوت"
+
+#: includes/Admin/Dashboards/InvitationCard.php:46
 msgid "artist@example.com"
 msgstr "artist@example.com"
 
-#: includes/Admin/Dashboards/InvitationCard.php:51
+#: includes/Admin/Dashboards/InvitationCard.php:52
 msgid "Send Invitation"
 msgstr "ارسال دعوت‌نامه"
+
+#: includes/Admin/Dashboards/InvitationCard.php:58
+msgid "Send test invitation to this email address"
+msgstr "ارسال دعوت‌نامه آزمایشی به این آدرس ایمیل"
 
 #: includes/Admin/Dashboards/LogsTab.php:51
 msgid "Pipeline Logs"
@@ -876,28 +1000,32 @@ msgstr "📬 حالت خلاصه رأی"
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "برای ممنوع‌کردن نامحدود، تاریخ را خالی بگذارید. ادامه می‌دهید؟"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:140
+#: includes/Admin/Dashboards/MembersDashboard.php:138
+msgid "Banned until (leave blank to ban indefinitely)"
+msgstr "ممنوع تا (برای ممنوعیت دائمی خالی بگذارید)"
+
+#: includes/Admin/Dashboards/MembersDashboard.php:141
 msgid "Leave blank to ban indefinitely"
 msgstr "برای ممنوع‌کردن نامحدود، خالی بگذارید"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:142
+#: includes/Admin/Dashboards/MembersDashboard.php:143
 msgid "Suspend"
 msgstr "تعلیق"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:148
+#: includes/Admin/Dashboards/MembersDashboard.php:149
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr ""
 "این هنرمند و تمام محتوایش برای همیشه حذف شود؟ این کار قابل بازگشت نیست."
 
-#: includes/Admin/Dashboards/MembersDashboard.php:158
+#: includes/Admin/Dashboards/MembersDashboard.php:159
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr ""
 "برای این هنرمند یک رأی‌گیری حذف در انجمن باز شود؟ همه اعضا ایمیل دریافت "
 "خواهند کرد."
 
-#: includes/Admin/Dashboards/MembersDashboard.php:162
+#: includes/Admin/Dashboards/MembersDashboard.php:163
 msgid "Open Vote"
 msgstr "باز کردن رأی‌گیری"
 
@@ -998,7 +1126,7 @@ msgid "Never"
 msgstr "هرگز"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:208
-#: includes/Publishing/PostCreator.php:1035
+#: includes/Publishing/PostCreator.php:1044
 msgid "Unknown"
 msgstr "نامشخص"
 
@@ -1017,6 +1145,10 @@ msgstr[1] "%d ناموفق"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:251
 msgid "Retry Failed"
 msgstr "تلاش مجدد برای ناموفق‌ها"
+
+#: includes/Admin/Dashboards/NewsletterDashboard.php:269
+msgid "Send test newsletter to this email address"
+msgstr "ارسال خبرنامه آزمایشی به این آدرس ایمیل"
 
 #: includes/Admin/Deliverability.php:445
 msgid "Mail from (workflow)"
@@ -1157,12 +1289,12 @@ msgstr "بازپردازش اجباری"
 msgid "Process All Pending"
 msgstr "پردازش همهٔ موارد در انتظار"
 
-#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1053
+#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1062
 msgid "Goodbye"
 msgstr "خداحافظ"
 
 #: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:307
-#: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1054
+#: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "جامعه"
 
@@ -1244,42 +1376,42 @@ msgstr ""
 msgid "Sync all translations"
 msgstr "همگام‌سازی همه ترجمه‌ها"
 
-#: includes/Admin/MediumProposals.php:76
+#: includes/Admin/MediumProposals.php:101
 msgid "AI-proposed medium categories awaiting review"
 msgstr "دسته‌بندی‌های mediumی که پیشنهاد شده‌اند و در انتظار بررسی"
 
-#: includes/Admin/MediumProposals.php:78
+#: includes/Admin/MediumProposals.php:103
 msgid "Proposed medium"
 msgstr "Mediumی پیشنهادی"
 
-#: includes/Admin/MediumProposals.php:79
+#: includes/Admin/MediumProposals.php:104 includes/Admin/TagProposals.php:89
 msgid "Submissions"
 msgstr "ارسال‌ها"
 
-#: includes/Admin/MediumProposals.php:110
+#: includes/Admin/MediumProposals.php:135 includes/Admin/TagProposals.php:115
 msgid "(no title)"
 msgstr "(بدون عنوان)"
 
 #. translators: %d: number of submissions carrying this exact proposal
-#: includes/Admin/MediumProposals.php:123
+#: includes/Admin/MediumProposals.php:148 includes/Admin/TagProposals.php:128
 #, php-format
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d ارسال"
 msgstr[1] "%d ارسال‌ها"
 
-#: includes/Admin/MediumProposals.php:134
+#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
 msgid "Approve"
 msgstr "تأیید"
 
-#: includes/Admin/MediumProposals.php:141
+#: includes/Admin/MediumProposals.php:166
 msgid ""
 "Reject this proposal for all matching submissions? This cannot be undone."
 msgstr ""
 "این پیشنهاد را برای تمام ارسال‌های مطابق رد کنید؟ این کار قابل برگشت نیست."
 
 #. translators: %d: number of submissions the approved medium was assigned to
-#: includes/Admin/MediumProposals.php:349
+#: includes/Admin/MediumProposals.php:469
 #, php-format
 msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
@@ -1287,7 +1419,7 @@ msgstr[0] "پیشنهاد رسانه تأیید شده و برای %d ارسال
 msgstr[1] "پیشنهاد رسانه تأیید شده و برای %d ارسال اختصاص داده شد."
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/MediumProposals.php:362
+#: includes/Admin/MediumProposals.php:482
 #, php-format
 msgid "Medium proposal rejected for %d submission."
 msgid_plural "Medium proposal rejected for %d submissions."
@@ -1295,7 +1427,7 @@ msgstr[0] "پیشنهاد رسانه برای %d ارسال رد شد."
 msgstr[1] "پیشنهاد رسانه برای %d ارسال رد شد."
 
 #. translators: %s: the underlying WP_Error message from wp_insert_term()
-#: includes/Admin/MediumProposals.php:374
+#: includes/Admin/MediumProposals.php:494 includes/Admin/TagProposals.php:478
 #, php-format
 msgid "Could not approve this proposal: %s"
 msgstr "نمی‌توان این پیشنهاد را تأیید کرد: %s"
@@ -1554,7 +1686,7 @@ msgid "Select Image"
 msgstr "انتخاب تصویر"
 
 #: includes/Admin/Settings.php:413 includes/Core/EmailFooter.php:85
-#: includes/Publishing/PostCreator.php:1051
+#: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "حذف"
 
@@ -2552,7 +2684,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr "مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که OpenAI تامین‌کننده توضیح است — طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های فرم تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به زبان اصلی سایت استفاده می‌شود، «مدل ترجمه OpenAI» را در زیر ببینید."
+msgstr ""
+"مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که OpenAI تامین‌کننده توضیح است — "
+"طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های فرم "
+"تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به زبان "
+"اصلی سایت استفاده می‌شود، «مدل ترجمه OpenAI» را در زیر ببینید."
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2565,7 +2701,11 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr "مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که Anthropic تامین‌کننده توضیح است — طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های فرم تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به زبان اصلی سایت استفاده می‌شود، «مدل ترجمه Anthropic» را در زیر ببینید."
+msgstr ""
+"مدل ارزان و سریع برای وظایف طبقه‌بندی هنگامی که Anthropic تامین‌کننده توضیح "
+"است — طبقه‌بندی رسانه/برچسب برای ارسال‌های متن‌فقط (pure@)، و مدیریت پیام‌های "
+"فرم تماس. نیاز به پشتیبانی بینایی ندارد. برای مدلی که برای ترجمه ارسال‌ها به "
+"زبان اصلی سایت استفاده می‌شود، «مدل ترجمه Anthropic» را در زیر ببینید."
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
@@ -2580,7 +2720,13 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr "مدلی که هنگامی که OpenAI تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
+msgstr ""
+"مدلی که هنگامی که OpenAI تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به "
+"زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که "
+"بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان "
+"با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر "
+"هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی "
+"ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
@@ -2595,7 +2741,13 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr "مدلی که هنگامی که Anthropic تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
+msgstr ""
+"مدلی که هنگامی که Anthropic تامین‌کننده هوش مصنوعی است برای ترجمه یک ارسال به "
+"زبان اصلی سایت استفاده می‌شود، و برای مرحله تشخیص زبان تعبیه‌شده‌ی دیگری که "
+"بخش‌های زبان خارجی عمدی (مثلاً نقل‌قول‌ی در زبان اصلی خود) را از ترجمه‌ی همزمان "
+"با متن اطراف محافظت می‌کند. این مدلی است که متن اصلی منتشرشده‌ی واقعی هر اثر "
+"هنری/بیوگرافی/رویداد را تولید می‌کند — ارزش یک مدل قوی‌تر از مدل طبقه‌بندی "
+"ارزان بالا را دارد. نیاز به پشتیبانی بینایی ندارد."
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2663,7 +2815,10 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr "تصویر اثر هنری را قبل از انتشار بهبود می‌دهد، با استفاده از مدل تصویری OpenAI تنظیم‌شده در زیر (به عنوان مثال gpt-image-1، gpt-image-2). برای رد کردن بهبود و انتشار اصل، روی غیرفعال تنظیم کنید."
+msgstr ""
+"تصویر اثر هنری را قبل از انتشار بهبود می‌دهد، با استفاده از مدل تصویری OpenAI "
+"تنظیم‌شده در زیر (به عنوان مثال gpt-image-1، gpt-image-2). برای رد کردن بهبود "
+"و انتشار اصل، روی غیرفعال تنظیم کنید."
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -2837,11 +2992,59 @@ msgstr ""
 "این مورد به‌طور یکسان برای پیش‌نویس‌های اثر هنری، بیوگرافی و رویداد اعمال "
 "می‌شود. پیش‌فرض: ۷."
 
-#: includes/Admin/SettingsFields.php:694
+#: includes/Admin/SettingsFields.php:699
+msgid "Tag / medium proposal expiry (days)"
+msgstr "انقضای پیشنهاد برچسب / رسانه (روز)"
+
+#: includes/Admin/SettingsFields.php:705
+msgid ""
+"How long an AI-proposed tag or medium category can sit unreviewed on the "
+"Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same "
+"effect as clicking Reject). Default: 7."
+msgstr "چند روز یک برچسب یا دسته رسانه‌ای پیشنهادی AI می‌تواند بدون بررسی بر روی صفحه برچسب‌ها / اثر هنری → رسانه‌ها باقی بماند قبل از اینکه یک نظارت روزانه آن را به طور خودکار رد کند (همان اثر کلیک بر روی رد). پیش‌فرض: 7."
+
+#: includes/Admin/SettingsFields.php:719
+msgid "Federate which languages"
+msgstr "زبان‌هایی که باید فدراسیون شوند"
+
+#: includes/Admin/SettingsFields.php:722
+msgid "Primary language only (default)"
+msgstr "تنها زبان اصلی (پیش‌فرض)"
+
+#: includes/Admin/SettingsFields.php:723
+msgid "All active languages"
+msgstr "تمام زبان‌های فعال"
+
+#: includes/Admin/SettingsFields.php:726
+msgid ""
+"Whether a language sibling's Note is actively pushed to followers once it's "
+"tag-settled and ready. \"Primary language only\" sends one Fediverse post "
+"per artwork, same as before multi-language federation existed. \"All active "
+"languages\" sends one post PER LANGUAGE — a follower who hasn't set a "
+"language filter on their own account will see every language version of "
+"every artwork. Switching to \"All active languages\" only affects artworks "
+"that settle from that point forward; it never retroactively re-sends "
+"anything already published."
+msgstr "آیا یادداشت یک زبان خواهر زمانی که برچسب‌گذاری شده و آماده است به فالوورها ارسال می‌شود یا نه. \"فقط زبان اصلی\" یک پست فدیویرس برای هر اثر هنری ارسال می‌کند، همان‌طور که قبل از وجود فدراسیون چند زبانه بود. \"تمام زبان‌های فعال\" یک پست برای هر زبان ارسال می‌کند — فالووری که فیلتر زبان را در حساب خود تنظیم نکرده باشد، هر نسخه زبان هر اثر هنری را خواهد دید. تغییر به \"تمام زبان‌های فعال\" تنها بر اثرهای هنری که از آن نقطه به بعد برچسب‌گذاری می‌شوند تأثیر می‌گذارد؛ هرگز به‌طور بازگشتی چیزی که قبلاً منتشر شده است را مجدداً ارسال نمی‌کند."
+
+#: includes/Admin/SettingsFields.php:734
+msgid "Federation tag-wait timeout (hours)"
+msgstr "زمان انتظار برچسب فدراسیون (ساعت)"
+
+#: includes/Admin/SettingsFields.php:740
+msgid ""
+"A published artwork with a new tag or medium category awaiting admin review "
+"normally federates to the Fediverse only once that proposal is resolved (so "
+"its hashtags are correct from the start). If it waits longer than this, it "
+"federates anyway with whatever tags it currently has — a later approval "
+"still updates the federated post. Default: 24."
+msgstr "یک اثر هنری منتشر شده که دارای برچسب یا دسته‌بندی جدیدی است و منتظر بررسی مدیر می‌باشد، معمولاً فقط زمانی به فدیویرس فدراسیون می‌شود که آن پیشنهاد حل شود (تا هشتگ‌هایش از ابتدا درست باشند). اگر بیشتر از این منتظر بماند، آن را با هر برچسبی که در حال حاضر دارد فدراسیون می‌کند — تأیید بعدی هنوز پست فدراسیون شده را به‌روزرسانی می‌کند. پیش‌فرض: ۲۴."
+
+#: includes/Admin/SettingsFields.php:746
 msgid "System prompt"
 msgstr "پرامپت سیستم"
 
-#: includes/Admin/SettingsFields.php:700
+#: includes/Admin/SettingsFields.php:752
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -2850,11 +3053,11 @@ msgstr ""
 "{excerpt_words} به‌عنوان توکن استفاده کنید — این‌ها با مقادیر زیر جایگزین "
 "می‌شوند."
 
-#: includes/Admin/SettingsFields.php:704
+#: includes/Admin/SettingsFields.php:756
 msgid "Artist prompt template"
 msgstr "قالب پرامپت هنرمند"
 
-#: includes/Admin/SettingsFields.php:710
+#: includes/Admin/SettingsFields.php:762
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -2862,11 +3065,11 @@ msgstr ""
 "پیام کاربر که همراه با تصویر اثر هنری ارسال می‌شود. از {artist_prompt} "
 "استفاده کنید، جایی که توضیح خود هنرمند باید نمایش داده شود."
 
-#: includes/Admin/SettingsFields.php:714
+#: includes/Admin/SettingsFields.php:766
 msgid "Enhancement instructions"
 msgstr "دستورالعمل‌های بهبود"
 
-#: includes/Admin/SettingsFields.php:720
+#: includes/Admin/SettingsFields.php:772
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -2874,11 +3077,11 @@ msgstr ""
 "دستورالعمل‌هایی که به ارائه‌دهندهٔ بهبود تصویر داده می‌شود. توضیح اثر هنری "
 "تولیدشده توسط هوش مصنوعی به‌صورت خودکار به‌عنوان زمینه افزوده می‌شود."
 
-#: includes/Admin/SettingsFields.php:724
+#: includes/Admin/SettingsFields.php:776
 msgid "Number of tags"
 msgstr "تعداد برچسب‌ها"
 
-#: includes/Admin/SettingsFields.php:730
+#: includes/Admin/SettingsFields.php:782
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -2886,11 +3089,11 @@ msgstr ""
 "هوش مصنوعی برای هر اثر هنری چند برچسب تولید کند. در پرامپت سیستم به‌صورت "
 "{tag_count} ارجاع داده می‌شود."
 
-#: includes/Admin/SettingsFields.php:734
+#: includes/Admin/SettingsFields.php:786
 msgid "Excerpt word limit"
 msgstr "سقف تعداد واژهٔ گزیده"
 
-#: includes/Admin/SettingsFields.php:740
+#: includes/Admin/SettingsFields.php:792
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -2898,12 +3101,12 @@ msgstr ""
 "حداکثر واژه‌ها برای گزیدهٔ یک‌جمله‌ای. در پرامپت سیستم به‌صورت {excerpt_words} "
 "ارجاع داده می‌شود."
 
-#: includes/Admin/SettingsFields.php:753
+#: includes/Admin/SettingsFields.php:805
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr ""
 "همهٔ هنرمندان پذیرفته‌شده را مورد اعتماد بدان (بازبینی لینک را کاملاً رد کن)"
 
-#: includes/Admin/SettingsFields.php:758
+#: includes/Admin/SettingsFields.php:810
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -2920,11 +3123,11 @@ msgstr ""
 "هستید که یک عامل بد که از مرحلهٔ پذیرش عبور کرده، بتواند لینکی به هر چیزی "
 "embed کند."
 
-#: includes/Admin/SettingsFields.php:762
+#: includes/Admin/SettingsFields.php:814
 msgid "Trusted embed platforms"
 msgstr "سکوهای embed مورد اعتماد"
 
-#: includes/Admin/SettingsFields.php:768
+#: includes/Admin/SettingsFields.php:820
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -2934,12 +3137,12 @@ msgstr ""
 "زیردامنه‌های آن‌ها) مطابقت داشته باشد، فوراً به یک embed غنی تبدیل می‌شود — بدون "
 "نیاز به بازبینی هوش مصنوعی و بدون هیچ درخواست شبکه‌ای به خودِ لینک."
 
-#: includes/Admin/SettingsFields.php:772
+#: includes/Admin/SettingsFields.php:824
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr ""
 "به هنرمندان اجازه بده لینک‌های دیگر هم ارسال کنند (با بازبینی هوش مصنوعی)"
 
-#: includes/Admin/SettingsFields.php:777
+#: includes/Admin/SettingsFields.php:829
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -2957,19 +3160,19 @@ msgstr ""
 "نمی‌شود — با حالت امن رد می‌شود. وقتی غیرفعال باشد (پیش‌فرض)، فقط سکوهای مورد "
 "اعتماد بالا هرگز embed می‌شوند."
 
-#: includes/Admin/SettingsFields.php:781
+#: includes/Admin/SettingsFields.php:833
 msgid "Block pornographic / sexually explicit content"
 msgstr "محتوای پورنوگرافیک / صریح جنسی را مسدود کن"
 
-#: includes/Admin/SettingsFields.php:786 includes/Admin/SettingsFields.php:804
+#: includes/Admin/SettingsFields.php:838 includes/Admin/SettingsFields.php:856
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "فقط وقتی اثر می‌کند که بازبینی هوش مصنوعی (بالا) فعال باشد."
 
-#: includes/Admin/SettingsFields.php:790
+#: includes/Admin/SettingsFields.php:842
 msgid "Block primarily commercial / promotional sites"
 msgstr "سایت‌های عمدتاً تجاری / تبلیغاتی را مسدود کن"
 
-#: includes/Admin/SettingsFields.php:795
+#: includes/Admin/SettingsFields.php:847
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -2979,15 +3182,15 @@ msgstr ""
 "لینکی از سوی هنرمند به فروشگاهی که چاپ آثار خودش را می‌فروشد رایج است و ذاتاً "
 "نامطلوب نیست. فقط وقتی بازبینی هوش مصنوعی (بالا) فعال باشد اثر می‌کند."
 
-#: includes/Admin/SettingsFields.php:799
+#: includes/Admin/SettingsFields.php:851
 msgid "Block gambling / betting sites"
 msgstr "سایت‌های قمار / شرط‌بندی را مسدود کن"
 
-#: includes/Admin/SettingsFields.php:808
+#: includes/Admin/SettingsFields.php:860
 msgid "Additional disallowed categories"
 msgstr "دسته‌های اضافیِ غیرمجاز"
 
-#: includes/Admin/SettingsFields.php:813
+#: includes/Admin/SettingsFields.php:865
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -2997,38 +3200,38 @@ msgstr ""
 "توضیح دهید (مثلاً \"نفرت‌پراکنی یا محتوای افراطی خشونت‌گرا\"، \"صفحات فیشینگ یا "
 "کلاهبرداری\"). فقط وقتی بازبینی هوش مصنوعی (بالا) فعال باشد اثر می‌کند."
 
-#: includes/Admin/SettingsFields.php:819
+#: includes/Admin/SettingsFields.php:871
 msgid "Node label"
 msgstr "برچسب گره"
 
-#: includes/Admin/SettingsFields.php:820
+#: includes/Admin/SettingsFields.php:872
 msgid "How this node introduces itself to the network."
 msgstr "این گره چگونه خودش را به شبکه معرفی می‌کند."
 
-#: includes/Admin/SettingsFields.php:825
+#: includes/Admin/SettingsFields.php:877
 msgid "Enable ActivityPub federation"
 msgstr "فدراسیون ActivityPub را فعال کنید"
 
-#: includes/Admin/SettingsFields.php:829
+#: includes/Admin/SettingsFields.php:881
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "آثار هنری جدید را به Mastodon، Pixelfed و فدراورس منتشر کنید."
 
-#: includes/Admin/SettingsFields.php:834
+#: includes/Admin/SettingsFields.php:886
 msgid "Node public key"
 msgstr "کلید عمومی نود"
 
-#: includes/Admin/SettingsFields.php:836
+#: includes/Admin/SettingsFields.php:888
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "کلید عمومی RSA تولیدشدهٔ خودکار برای این نود. آن را با نودهای همتا به اشتراک "
 "بگذارید."
 
-#: includes/Admin/SettingsFields.php:846
+#: includes/Admin/SettingsFields.php:898
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "درخواست‌های حذف خودکار (خداحافظی) به‌ازای هر فرستنده در روز"
 
-#: includes/Admin/SettingsFields.php:852
+#: includes/Admin/SettingsFields.php:904
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3040,11 +3243,11 @@ msgstr ""
 "این مقدار مشخص می‌کند که یک From جعل‌شده یا تکراری چند بار می‌تواند برای "
 "اسپم‌کردن یک هنرمند واقعی استفاده شود. پیش‌فرض: ۳."
 
-#: includes/Admin/SettingsFields.php:856
+#: includes/Admin/SettingsFields.php:908
 msgid "Community broadcasts per artist per day"
 msgstr "پخش‌های اجتماعی به‌ازای هر هنرمند در روز"
 
-#: includes/Admin/SettingsFields.php:862
+#: includes/Admin/SettingsFields.php:914
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3054,11 +3257,11 @@ msgstr ""
 "(تنظیمات → ایمیل) ارسال کند. از پر شدن صندوق ورودی سایر اعضا توسط یک نفر "
 "جلوگیری می‌کند. پیش‌فرض: ۳."
 
-#: includes/Admin/SettingsFields.php:866
+#: includes/Admin/SettingsFields.php:918
 msgid "Community broadcast max length (characters)"
 msgstr "حداکثر طول پخش اجتماعی (کاراکتر)"
 
-#: includes/Admin/SettingsFields.php:873
+#: includes/Admin/SettingsFields.php:925
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3076,11 +3279,11 @@ msgstr ""
 "هزینهٔ هر پیام در فراخوانی‌های ترجمهٔ هوش مصنوعی را محدود می‌کند. پیش‌فرض: ۲۰۰۰. "
 "حداکثر سخت: ۲۰۰۰۰، صرف‌نظر از این تنظیم."
 
-#: includes/Admin/SettingsFields.php:904
+#: includes/Admin/SettingsFields.php:956
 msgid "Admin approval only (disable community voting)"
 msgstr "فقط تأیید مدیر (غیرفعال کردن رأی‌گیری انجمن)"
 
-#: includes/Admin/SettingsFields.php:909
+#: includes/Admin/SettingsFields.php:961
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3100,11 +3303,11 @@ msgstr ""
 "مسدود می‌شود. به‌طور پیش‌فرض خاموش است — بیشتر انجمن‌ها همان سیستم موجودِ "
 "اعتباردهی/رأی‌گیری را می‌خواهند."
 
-#: includes/Admin/SettingsFields.php:914
+#: includes/Admin/SettingsFields.php:966
 msgid "Admission vote threshold (%)"
 msgstr "آستانهٔ رأی پذیرش (%)"
 
-#: includes/Admin/SettingsFields.php:919
+#: includes/Admin/SettingsFields.php:971
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3112,20 +3315,20 @@ msgstr ""
 "درصد هنرمندان فعال که باید برای پذیرش رأی موافق بدهند. همراه با کف حداقلی "
 "زیر."
 
-#: includes/Admin/SettingsFields.php:923
+#: includes/Admin/SettingsFields.php:975
 msgid "Admission minimum votes"
 msgstr "حداقل رأی پذیرش"
 
-#: includes/Admin/SettingsFields.php:927
+#: includes/Admin/SettingsFields.php:979
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr "حداقل مطلق رأی مثبت موردنیاز، صرف‌نظر از درصد بالا."
 
-#: includes/Admin/SettingsFields.php:931
+#: includes/Admin/SettingsFields.php:983
 msgid "Voting window (days)"
 msgstr "بازهٔ رأی‌گیری (روز)"
 
-#: includes/Admin/SettingsFields.php:935
+#: includes/Admin/SettingsFields.php:987
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3133,11 +3336,11 @@ msgstr ""
 "تعداد روزهایی که یک درخواست باز می‌ماند. اگر آستانه در این بازه به دست نیاید، "
 "درخواست رد می‌شود."
 
-#: includes/Admin/SettingsFields.php:939
+#: includes/Admin/SettingsFields.php:991
 msgid "Resolved application retention (days)"
 msgstr "مدت نگه‌داری درخواست‌های نهایی‌شده (روز)"
 
-#: includes/Admin/SettingsFields.php:945
+#: includes/Admin/SettingsFields.php:997
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3152,11 +3355,11 @@ msgstr ""
 "بیانیه/پیوند نمونه‌کارِ یک هنرمندِ مسدودشده با همان برنامه ناشناس می‌شوند، اما "
 "ایمیل او عمداً نگه داشته می‌شود تا ممنوعیت قابل اجرا بماند. پیش‌فرض: ۱۸۰ روز."
 
-#: includes/Admin/SettingsFields.php:949
+#: includes/Admin/SettingsFields.php:1001
 msgid "After applying, send artists to"
 msgstr "پس از درخواست، هنرمندان را به اینجا بفرستید"
 
-#: includes/Admin/SettingsFields.php:953
+#: includes/Admin/SettingsFields.php:1005
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3168,11 +3371,11 @@ msgstr ""
 "اینکه فقط یک پیام تأیید درون‌خطی ببیند. برای نگه‌داشتن فقط پیام درون‌خطی، "
 "«None» را بگذارید."
 
-#: includes/Admin/SettingsFields.php:957
+#: includes/Admin/SettingsFields.php:1009
 msgid "Community size cap"
 msgstr "سقف اندازهٔ جامعه"
 
-#: includes/Admin/SettingsFields.php:961
+#: includes/Admin/SettingsFields.php:1013
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3182,11 +3385,11 @@ msgstr ""
 "وارد فهرست انتظار می‌شوند و با آزاد شدن یک جای خالی، نفر بعدی پذیرفته می‌شود. "
 "برای بدون سقف، ۰ بگذارید. جامعه همچنین می‌تواند برای تغییر این مقدار رأی بدهد."
 
-#: includes/Admin/SettingsFields.php:965
+#: includes/Admin/SettingsFields.php:1017
 msgid "Cap-change co-signers required"
 msgstr "تعداد هم‌امضاکنندگان لازم برای تغییر سقف"
 
-#: includes/Admin/SettingsFields.php:969
+#: includes/Admin/SettingsFields.php:1021
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3194,11 +3397,11 @@ msgstr ""
 "برای اینکه یک پیشنهاد تغییر سقف اندازهٔ جامعه به رأی‌گیری کامل جامعه باز شود، "
 "چند هنرمند باید آن را هم‌امضا کنند."
 
-#: includes/Admin/SettingsFields.php:973
+#: includes/Admin/SettingsFields.php:1025
 msgid "Cap-change vote window (days)"
 msgstr "بازهٔ رأی‌گیری تغییر سقف (روز)"
 
-#: includes/Admin/SettingsFields.php:977
+#: includes/Admin/SettingsFields.php:1029
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3206,11 +3409,11 @@ msgstr ""
 "تعداد روزهایی که رأی‌گیری تغییر سقف جامعه باز می‌ماند. اکثریت قاطع هنرمندان "
 "فعال که رأی موافق بدهند، سقف جدید را تصویب می‌کند."
 
-#: includes/Admin/SettingsFields.php:981
+#: includes/Admin/SettingsFields.php:1033
 msgid "Removal nominations required"
 msgstr "نامزدهای لازم برای حذف"
 
-#: includes/Admin/SettingsFields.php:987
+#: includes/Admin/SettingsFields.php:1039
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3218,11 +3421,11 @@ msgstr ""
 "تعداد نامزدی‌های هنرمندان که قبل از باز شدن رأی‌گیری حذف جامعه لازم است. "
 "مدیران می‌توانند از این آستانه عبور کنند."
 
-#: includes/Admin/SettingsFields.php:991
+#: includes/Admin/SettingsFields.php:1043
 msgid "Removal vote window (days)"
 msgstr "بازهٔ رأی‌گیری حذف (روز)"
 
-#: includes/Admin/SettingsFields.php:997
+#: includes/Admin/SettingsFields.php:1049
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3230,11 +3433,11 @@ msgstr ""
 "تعداد روزهایی که رأی‌گیری حذف جامعه باز می‌ماند. برای پیش‌برد حذف، اکثریت "
 "(>۵۰٪) هنرمندان فعال باید رأی موافق بدهند."
 
-#: includes/Admin/SettingsFields.php:1001
+#: includes/Admin/SettingsFields.php:1053
 msgid "Invitation intro"
 msgstr "مقدمهٔ دعوت"
 
-#: includes/Admin/SettingsFields.php:1005
+#: includes/Admin/SettingsFields.php:1057
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3264,7 +3467,7 @@ msgstr ""
 "تبلیغ یا حذف کنید. برای اطلاعات بیشتر می‌توانید به وب‌سایت agnosis.art مراجعه "
 "کنید."
 
-#: includes/Admin/SettingsFields.php:1010
+#: includes/Admin/SettingsFields.php:1062
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3279,22 +3482,22 @@ msgstr ""
 "زبانی غیر از زبان خود سایت، به‌صورت خودکار ترجمه می‌شود.درصدی که این نود از "
 "کمک‌های مالی و فروش آثار نگه می‌دارد. هنرمندان هیچ هزینهٔ اولیه‌ای نمی‌پردازند."
 
-#: includes/Admin/SettingsFields.php:1029
+#: includes/Admin/SettingsFields.php:1081
 msgid "Sender name"
 msgstr "نام فرستنده"
 
-#: includes/Admin/SettingsFields.php:1030
+#: includes/Admin/SettingsFields.php:1082
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "نامی که به‌عنوان فرستندهٔ ایمیل‌های خلاصه نمایش داده می‌شود. برای استفاده از نام "
 "سایت، خالی بگذارید."
 
-#: includes/Admin/SettingsFields.php:1034
+#: includes/Admin/SettingsFields.php:1086
 msgid "Sender email address"
 msgstr "نشانی ایمیل فرستنده"
 
-#: includes/Admin/SettingsFields.php:1036
+#: includes/Admin/SettingsFields.php:1088
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3308,11 +3511,11 @@ msgstr ""
 "باید یک آدرس معتبر و قابل‌تحویل روی دامنه شما باشد (SPF/DKIM پیکربندی شده "
 "باشد) وگرنه ممکن است پیام‌ها به‌عنوان هرزنامه علامت‌گذاری شوند."
 
-#: includes/Admin/SettingsFields.php:1040
+#: includes/Admin/SettingsFields.php:1092
 msgid "Auto-draft newsletter intros"
 msgstr "پیش‌نویس خودکار مقدمه‌های خبرنامه"
 
-#: includes/Admin/SettingsFields.php:1045
+#: includes/Admin/SettingsFields.php:1097
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3325,11 +3528,11 @@ msgstr ""
 "از قبل مقدمه‌ای نوشته باشید. برای اینکه هر دو فیلد مقدمه دقیقاً همان‌طور که "
 "گذاشته‌اید بمانند، همیشه غیرفعال کنید."
 
-#: includes/Admin/SettingsFields.php:1049
+#: includes/Admin/SettingsFields.php:1101
 msgid "Draft intro this many hours ahead"
 msgstr "این مقدمه را چند ساعت زودتر پیش‌نویس کن"
 
-#: includes/Admin/SettingsFields.php:1055
+#: includes/Admin/SettingsFields.php:1107
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3338,11 +3541,11 @@ msgstr ""
 "پیشنهاد می‌کند. فقط زمانی اعمال می‌شود که پیش‌نویس خودکار (بالا) فعال باشد. "
 "پیش‌فرض: 24."
 
-#: includes/Admin/SettingsFields.php:1059 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1111 includes/Newsletter/Scheduler.php:386
 msgid "Artist newsletter"
 msgstr "خبرنامه هنرمند"
 
-#: includes/Admin/SettingsFields.php:1062
+#: includes/Admin/SettingsFields.php:1114
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3351,11 +3554,11 @@ msgstr ""
 "شماره لغو اشتراک کنند). خلاصه جامعه: فعالیت‌های اخیر، اعضای جدید، رأی‌گیری‌های "
 "باز."
 
-#: includes/Admin/SettingsFields.php:1066
+#: includes/Admin/SettingsFields.php:1118
 msgid "Artist newsletter frequency (days)"
 msgstr "بازه زمانی خبرنامه هنرمند (روز)"
 
-#: includes/Admin/SettingsFields.php:1072
+#: includes/Admin/SettingsFields.php:1124
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -3363,11 +3566,11 @@ msgstr ""
 "پیش‌فرض 30 ≈ ماهانه. یک شماره جدید وقتی آماده می‌شود که این تعداد روز از ارسال "
 "آخرین شماره گذشته باشد."
 
-#: includes/Admin/SettingsFields.php:1076
+#: includes/Admin/SettingsFields.php:1128
 msgid "Artist newsletter intro"
 msgstr "مقدمه خبرنامه هنرمند"
 
-#: includes/Admin/SettingsFields.php:1080
+#: includes/Admin/SettingsFields.php:1132
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3382,11 +3585,11 @@ msgstr ""
 "برای بازبینی، ایمیلی برایتان می‌فرستد — هر زمان خواستید برای رد کردن این کار، "
 "متن خودتان را اینجا بنویسید."
 
-#: includes/Admin/SettingsFields.php:1084 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1136 includes/Newsletter/Scheduler.php:386
 msgid "Public newsletter"
 msgstr "خبرنامه عمومی"
 
-#: includes/Admin/SettingsFields.php:1087
+#: includes/Admin/SettingsFields.php:1139
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3394,19 +3597,19 @@ msgstr ""
 "بازدیدکنندگان از طریق بلوک agnosis/newsletter-signup مشترک می‌شوند (تأیید دو "
 "مرحله‌ای). خلاصه: آثار هنری و رویدادهای جدیدی که از شمارهٔ قبلی منتشر شده‌اند."
 
-#: includes/Admin/SettingsFields.php:1091
+#: includes/Admin/SettingsFields.php:1143
 msgid "Public newsletter frequency (days)"
 msgstr "تناوب خبرنامهٔ عمومی (روز)"
 
-#: includes/Admin/SettingsFields.php:1097
+#: includes/Admin/SettingsFields.php:1149
 msgid "Default 30 ≈ monthly."
 msgstr "پیش‌فرض ۳۰ ≈ ماهانه."
 
-#: includes/Admin/SettingsFields.php:1101
+#: includes/Admin/SettingsFields.php:1153
 msgid "Public newsletter intro"
 msgstr "مقدمهٔ خبرنامهٔ عمومی"
 
-#: includes/Admin/SettingsFields.php:1105
+#: includes/Admin/SettingsFields.php:1157
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3419,11 +3622,11 @@ msgstr ""
 "برای بازبینی، ایمیلی برایتان می‌فرستد — هر زمان خواستید برای رد کردن این کار، "
 "متن خودتان را اینجا بنویسید."
 
-#: includes/Admin/SettingsFields.php:1109
+#: includes/Admin/SettingsFields.php:1161
 msgid "Send batch size"
 msgstr "اندازهٔ دستهٔ ارسال"
 
-#: includes/Admin/SettingsFields.php:1115
+#: includes/Admin/SettingsFields.php:1167
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3432,11 +3635,11 @@ msgstr ""
 "خروجی را محدود می‌کند، این مقدار را کمتر کنید؛ اگر هاستی با محدودیت‌های "
 "سخاوتمندانه دارید، برای ارسال سریع‌تر آن را بیشتر کنید."
 
-#: includes/Admin/SettingsFields.php:1119
+#: includes/Admin/SettingsFields.php:1171
 msgid "Self-hosting comfort threshold"
 msgstr "آستانهٔ راحتی برای میزبانی شخصی"
 
-#: includes/Admin/SettingsFields.php:1125
+#: includes/Admin/SettingsFields.php:1177
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -3446,6 +3649,35 @@ msgstr ""
 "خود ادامه می‌دهد. وقتی مشترکان عمومیِ تأییدشده از این مقدار عبور کنند، این "
 "صفحه یادآوری‌ای نشان می‌دهد تا به‌جای آن استفاده از یک ارائه‌دهندهٔ خدمات ایمیل "
 "(مثلاً پلن رایگان Brevo) را در نظر بگیرید."
+
+#: includes/Admin/TagProposals.php:86
+msgid "AI-proposed tags awaiting review"
+msgstr "برچسب‌های پیشنهادی AI منتظر بررسی"
+
+#: includes/Admin/TagProposals.php:88
+msgid "Proposed tag"
+msgstr "برچسب پیشنهادی"
+
+#: includes/Admin/TagProposals.php:136
+msgid ""
+"Reject this tag proposal for all matching submissions? This cannot be undone."
+msgstr "آیا این پیشنهاد برچسب را برای تمام ارسال‌های همسان رد کنید؟ این کار غیرقابل برگشت است."
+
+#. translators: %d: number of submissions the approved tag was assigned to
+#: includes/Admin/TagProposals.php:453
+#, php-format
+msgid "Tag proposal approved and assigned to %d submission."
+msgid_plural "Tag proposal approved and assigned to %d submissions."
+msgstr[0] "پیشنهاد برچسب تأیید شد و به %d ارسال اختصاص داده شد."
+msgstr[1] "پیشنهاد رسانه تأیید شده و برای %d ارسال اختصاص داده شد."
+
+#. translators: %d: number of submissions the rejected proposal was cleared from
+#: includes/Admin/TagProposals.php:466
+#, php-format
+msgid "Tag proposal rejected for %d submission."
+msgid_plural "Tag proposal rejected for %d submissions."
+msgstr[0] "پیشنهاد برچسب برای %d ارسال رد شد."
+msgstr[1] "پیشنهاد رسانه برای %d ارسال رد شد."
 
 #: includes/Admin/TaxonomyLanguageFilter.php:276
 msgid "Sync translations"
@@ -3540,7 +3772,7 @@ msgid ""
 "date."
 msgstr "همگام‌سازی کامل شد: %1$d ترجمه ایجاد شد، %2$d زبان از قبل به‌روز بود."
 
-#: includes/AI/PromptConfig.php:230
+#: includes/AI/PromptConfig.php:268
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -4283,8 +4515,8 @@ msgid "Something went wrong. Please try again."
 msgstr "مشکلی پیش آمد. لطفاً دوباره تلاش کنید."
 
 #: includes/Artist/ContentEditor.php:247 includes/Artist/ContentEditor.php:943
-#: includes/Publishing/ReviewEndpoints.php:925
-#: includes/Publishing/ReviewEndpoints.php:942
+#: includes/Publishing/ReviewEndpoints.php:1064
+#: includes/Publishing/ReviewEndpoints.php:1081
 msgid "Authentication required."
 msgstr "احراز هویت لازم است."
 
@@ -4316,7 +4548,7 @@ msgstr "ذخیره شد — ترجمه‌ها ظرف چند دقیقه به‌ر
 
 #: includes/Artist/ContentEditor.php:445 includes/Artist/ContentEditor.php:446
 #: includes/Artist/ContentEditor.php:649 includes/Artist/ContentEditor.php:650
-#: includes/Publishing/PostCreator.php:2037
+#: includes/Publishing/PostCreator.php:2051
 msgid "Untitled"
 msgstr "بدون عنوان"
 
@@ -4377,7 +4609,7 @@ msgid "Unsupported field target."
 msgstr "هدف فیلد پشتیبانی نمی‌شود."
 
 #: includes/Artist/ContentEditor.php:1356
-#: includes/Publishing/SubmissionsPage.php:305
+#: includes/Publishing/SubmissionsPage.php:300
 msgid "Cancel"
 msgstr "انصراف"
 
@@ -4852,8 +5084,8 @@ msgstr "زندگی‌نامه‌ها"
 #: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:178
 #: includes/Network/SubdomainNavigation.php:135
 #: includes/Network/SubdomainNavigation.php:364
-#: includes/Publishing/PostCreator.php:1046
-#: includes/Publishing/PostCreator.php:1077
+#: includes/Publishing/PostCreator.php:1055
+#: includes/Publishing/PostCreator.php:1086
 #: blocks/artist-breadcrumb/editor.js:210
 #: blocks/breadcrumb-icon-link/editor.js:89
 #: blocks/breadcrumb-icon-link/editor.js:132
@@ -4903,8 +5135,8 @@ msgid "Events"
 msgstr "رویدادها"
 
 #: includes/Artist/Profile.php:92 includes/Artist/Profile.php:102
-#: includes/Publishing/PostCreator.php:1047
-#: includes/Publishing/PostCreator.php:1080
+#: includes/Publishing/PostCreator.php:1056
+#: includes/Publishing/PostCreator.php:1089
 msgid "Event"
 msgstr "رویداد"
 
@@ -4997,7 +5229,7 @@ msgid "© %1$s %2$s"
 msgstr "© %1$s %2$s"
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
-#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:1089
+#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:1098
 msgid "Artwork"
 msgstr "اثر هنری"
 
@@ -5154,7 +5386,7 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "تا این لحظه %d رأی مثبت ثبت شده است."
 msgstr[1] "تا این لحظه %d رأی مثبت ثبت شده است."
 
-#: includes/Compat/LinguaForge.php:1926
+#: includes/Compat/LinguaForge.php:1784
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -5164,19 +5396,19 @@ msgstr ""
 "مواجه شد. نام را ویرایش کنید تا ترجمهٔ درست را ارائه دهید، سپس این یادداشت را "
 "پاک کنید."
 
-#: includes/Compat/LinguaForge.php:3267
+#: includes/Compat/LinguaForge.php:3546
 msgid "is active and configured for"
 msgstr "فعال است و برای این مورد پیکربندی شده است"
 
-#: includes/Compat/LinguaForge.php:3268
+#: includes/Compat/LinguaForge.php:3547
 msgid "Subdomain"
 msgstr "زیردامنه"
 
-#: includes/Compat/LinguaForge.php:3269
+#: includes/Compat/LinguaForge.php:3548
 msgid "routing mode"
 msgstr "حالت مسیریابی"
 
-#: includes/Compat/LinguaForge.php:3271
+#: includes/Compat/LinguaForge.php:3550
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5184,39 +5416,39 @@ msgstr ""
 "این با زیردامنه‌های هنرمند Agnosis تداخل دارد — هر دو افزونه همان فضای نام "
 "زیردامنه را ادعا می‌کنند."
 
-#: includes/Compat/LinguaForge.php:3272
+#: includes/Compat/LinguaForge.php:3551
 msgid "Artist subdomain routing is"
 msgstr "مسیریابی زیردامنهٔ هنرمند"
 
-#: includes/Compat/LinguaForge.php:3273
+#: includes/Compat/LinguaForge.php:3552
 msgid "completely inactive"
 msgstr "کاملاً غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:3274
+#: includes/Compat/LinguaForge.php:3553
 msgid "until this is resolved."
 msgstr "تا زمانی که این مشکل برطرف شود."
 
-#: includes/Compat/LinguaForge.php:3276
+#: includes/Compat/LinguaForge.php:3555
 msgid "Fix: open"
 msgstr "رفع: باز کنید"
 
-#: includes/Compat/LinguaForge.php:3277
+#: includes/Compat/LinguaForge.php:3556
 msgid "Settings"
 msgstr "تنظیمات"
 
-#: includes/Compat/LinguaForge.php:3277
+#: includes/Compat/LinguaForge.php:3556
 msgid "Language Router"
 msgstr "مسیرساز زبان"
 
-#: includes/Compat/LinguaForge.php:3278
+#: includes/Compat/LinguaForge.php:3557
 msgid "and switch the URL strategy to"
 msgstr "و استراتژی URL را به این مورد تغییر دهید"
 
-#: includes/Compat/LinguaForge.php:3279
+#: includes/Compat/LinguaForge.php:3558
 msgid "Path prefix (subfolder)"
 msgstr "پیشوند مسیر (زیرپوشه)"
 
-#: includes/Compat/LinguaForge.php:3280
+#: includes/Compat/LinguaForge.php:3559
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5224,23 +5456,23 @@ msgstr ""
 "این حالت پیش‌فرض LinguaForge است و اجازه می‌دهد زیردامنه‌های هنرمند در کنار "
 "زیرپوشه‌های زبان وجود داشته باشند"
 
-#: includes/Compat/LinguaForge.php:3285
+#: includes/Compat/LinguaForge.php:3564
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — مسیریابی زیردامنهٔ هنرمند غیرفعال است"
 
-#: includes/Compat/LinguaForge.php:3295
+#: includes/Compat/LinguaForge.php:3574
 msgid "Open LinguaForge Settings"
 msgstr "تنظیمات LinguaForge را باز کنید"
 
-#: includes/Core/Activator.php:919 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1001 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "هنرمند Agnosis"
 
-#: includes/Core/Activator.php:1030 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1123 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "ارسال‌های من"
 
-#: includes/Core/Activator.php:1220
+#: includes/Core/Activator.php:1313
 msgid "Join"
 msgstr "پیوستن"
 
@@ -5256,7 +5488,7 @@ msgstr "زندگی‌نامه هنرمند خود را به‌روزرسانی �
 msgid "Announce an upcoming event."
 msgstr "یک رویداد پیشِ رو را اعلام کنید."
 
-#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:1050
+#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:1059
 msgid "Replace"
 msgstr "جایگزین"
 
@@ -5275,7 +5507,7 @@ msgstr ""
 "درخواست دهید که یک اثر هنری یا رویداد موجود حذف شود — موضوع ایمیل باید با "
 "عنوان آن یکسان باشد."
 
-#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:1052
+#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:1061
 msgid "Promote"
 msgstr "ترویج"
 
@@ -5299,8 +5531,8 @@ msgstr ""
 "یک عکس را دقیقاً همان‌طور که ارسال شده منتشر کنید — بدون بهبود با هوش مصنوعی، "
 "بدون بررسی کیفیت."
 
-#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:1048
-#: includes/Publishing/PostCreator.php:1071
+#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:1057
+#: includes/Publishing/PostCreator.php:1080
 msgid "Pure"
 msgstr "خالص"
 
@@ -5727,13 +5959,35 @@ msgstr "زمان‌مهرِ درخواست وب‌هوک وجود ندارد، �
 msgid "This webhook request has already been processed."
 msgstr "این درخواست وب‌هوک قبلاً پردازش شده است."
 
-#: includes/Network/ActivityPub.php:245
+#: includes/Network/ActivityPub.php:267
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:1226
+#. translators: %d: number of likes.
+#: includes/Network/ActivityPub.php:677
+#, php-format
+msgid "♥ %d like"
+msgid_plural "♥ %d likes"
+msgstr[0] "♥ %d لایک"
+msgstr[1] "♥ %d لایک"
+
+#. translators: %d: number of boosts.
+#: includes/Network/ActivityPub.php:689
+#, php-format
+msgid "⟲ %d boost"
+msgid_plural "⟲ %d boosts"
+msgstr[0] "⟲ %d بوست"
+msgstr[1] "⟲ %d بوست"
+
+#: includes/Network/ActivityPub.php:1402
 msgid "Sensitive content"
 msgstr "Sensitive content"
+
+#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
+#: includes/Network/ActivityPub.php:1567
+#, php-format
+msgid "Also available in: %s"
+msgstr "همچنین در دسترس است در: %s"
 
 #: includes/Network/HttpSignature.php:158
 msgid "Signature keyId does not belong to the activity actor."
@@ -6471,7 +6725,7 @@ msgid "Looks great — Publish it"
 msgstr "عالی به نظر می‌رسد — منتشرش کن"
 
 #: includes/Publishing/Notification.php:1022
-#: includes/Publishing/SubmissionsPage.php:257
+#: includes/Publishing/SubmissionsPage.php:260
 msgid "Discard"
 msgstr "دور انداختن"
 
@@ -6892,24 +7146,24 @@ msgstr ""
 msgid "View submissions →"
 msgstr "مشاهده ارسال‌ها →"
 
-#: includes/Publishing/PostCreator.php:1049
-#: includes/Publishing/PostCreator.php:1074
+#: includes/Publishing/PostCreator.php:1058
+#: includes/Publishing/PostCreator.php:1083
 msgid "Photo"
 msgstr "عکس"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:2340
+#: includes/Publishing/PostCreator.php:2354
 #, php-format
 msgid "%s (original)"
 msgstr "%s (نسخه اصلی)"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:2487
+#: includes/Publishing/PostCreator.php:2501
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s (قاب پوستر)"
 
-#: includes/Publishing/PostCreator.php:2967
+#: includes/Publishing/PostCreator.php:3060
 msgid "Failed to insert attachment."
 msgstr "درج پیوست ناموفق بود."
 
@@ -7095,7 +7349,7 @@ msgid "Yes, remove it"
 msgstr "بله، حذفش کن"
 
 #: includes/Publishing/ReviewConfirm.php:1085
-#: includes/Publishing/SubmissionsPage.php:268
+#: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "عنوان"
 
@@ -7122,7 +7376,7 @@ msgstr ""
 "منتشر شود، همه‌چیز را بدون تغییر بگذارید."
 
 #: includes/Publishing/ReviewConfirm.php:1137
-#: includes/Publishing/SubmissionsPage.php:248
+#: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "منتشرش کن"
 
@@ -7130,35 +7384,35 @@ msgstr "منتشرش کن"
 msgid "biography"
 msgstr "بیوگرافی"
 
-#: includes/Publishing/ReviewEndpoints.php:104
-#: includes/Publishing/ReviewEndpoints.php:185
-#: includes/Publishing/ReviewEndpoints.php:217
+#: includes/Publishing/ReviewEndpoints.php:107
+#: includes/Publishing/ReviewEndpoints.php:187
+#: includes/Publishing/ReviewEndpoints.php:219
 msgid "Submission not found."
 msgstr "ارسال پیدا نشد."
 
-#: includes/Publishing/ReviewEndpoints.php:113
-#: includes/Publishing/ReviewEndpoints.php:194
-#: includes/Publishing/ReviewEndpoints.php:226
+#: includes/Publishing/ReviewEndpoints.php:116
+#: includes/Publishing/ReviewEndpoints.php:196
+#: includes/Publishing/ReviewEndpoints.php:228
 msgid "This submission is not awaiting review."
 msgstr "این ارسال در انتظار بازبینی نیست."
 
-#: includes/Publishing/ReviewEndpoints.php:430
+#: includes/Publishing/ReviewEndpoints.php:451
 msgid "The original published item could not be found."
 msgstr "موردِ منتشرشدهٔ اصلی پیدا نشد."
 
-#: includes/Publishing/ReviewEndpoints.php:958
+#: includes/Publishing/ReviewEndpoints.php:1097
 msgid "You do not have permission to review this submission."
 msgstr "شما اجازهٔ بازبینی این ارسال را ندارید."
 
-#: includes/Publishing/ReviewEndpoints.php:983
+#: includes/Publishing/ReviewEndpoints.php:1122
 msgid "Review link not found or already used."
 msgstr "لینک بازبینی پیدا نشد یا قبلاً استفاده شده است."
 
-#: includes/Publishing/ReviewEndpoints.php:991
+#: includes/Publishing/ReviewEndpoints.php:1130
 msgid "Invalid review token."
 msgstr "توکن بازبینی نامعتبر است."
 
-#: includes/Publishing/ReviewEndpoints.php:999
+#: includes/Publishing/ReviewEndpoints.php:1138
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr ""
 "این لینک بازبینی منقضی شده است. لطفاً برای مدیریت ارسال‌های خود وارد شوید."
@@ -7167,84 +7421,80 @@ msgstr ""
 msgid "No submissions awaiting review."
 msgstr "هیچ ارسالی در انتظار بازبینی نیست."
 
-#: includes/Publishing/SubmissionsPage.php:252
+#: includes/Publishing/SubmissionsPage.php:255
 msgid "Make changes"
 msgstr "اعمال تغییرات"
 
-#: includes/Publishing/SubmissionsPage.php:277
+#: includes/Publishing/SubmissionsPage.php:280
 msgid "One-line description"
 msgstr "توضیح یک‌خطی"
 
-#: includes/Publishing/SubmissionsPage.php:285
+#: includes/Publishing/SubmissionsPage.php:288
 msgid "Description"
 msgstr "توضیح"
 
-#: includes/Publishing/SubmissionsPage.php:293
-msgid "Tags (comma-separated)"
-msgstr "برچسب‌ها (جداشده با ویرگول)"
-
-#: includes/Publishing/SubmissionsPage.php:302
+#: includes/Publishing/SubmissionsPage.php:297
 msgid "Save &amp; Publish"
 msgstr "ذخیره و انتشار"
 
-#: includes/Publishing/SubmissionsPage.php:390
+#: includes/Publishing/SubmissionsPage.php:385
 msgid "Publishing…"
 msgstr "در حال انتشار…"
 
-#: includes/Publishing/SubmissionsPage.php:398
-#: includes/Publishing/SubmissionsPage.php:470
+#: includes/Publishing/SubmissionsPage.php:393
+#: includes/Publishing/SubmissionsPage.php:465
 msgid "Published ✓"
 msgstr "منتشر شد ✓"
+
+#: includes/Publishing/SubmissionsPage.php:395
+#: includes/Publishing/SubmissionsPage.php:420
+#: includes/Publishing/SubmissionsPage.php:467
+msgid "Something went wrong."
+msgstr "مشکلی پیش آمد."
 
 #: includes/Publishing/SubmissionsPage.php:400
 #: includes/Publishing/SubmissionsPage.php:425
 #: includes/Publishing/SubmissionsPage.php:472
-msgid "Something went wrong."
-msgstr "مشکلی پیش آمد."
-
-#: includes/Publishing/SubmissionsPage.php:405
-#: includes/Publishing/SubmissionsPage.php:430
-#: includes/Publishing/SubmissionsPage.php:477
 msgid "Could not connect. Please try again."
 msgstr "اتصال برقرار نشد. لطفاً دوباره تلاش کنید."
 
-#: includes/Publishing/SubmissionsPage.php:413
+#: includes/Publishing/SubmissionsPage.php:408
 msgid "Discard this submission? This cannot be undone."
 msgstr "این ارسال حذف شود؟ این کار قابل بازگشت نیست."
 
-#: includes/Publishing/SubmissionsPage.php:415
+#: includes/Publishing/SubmissionsPage.php:410
 msgid "Discarding…"
 msgstr "در حال دور انداختن…"
 
-#: includes/Publishing/SubmissionsPage.php:423
+#: includes/Publishing/SubmissionsPage.php:418
 msgid "Discarded."
 msgstr "دور انداخته شد."
 
-#: includes/Publishing/SubmissionsPage.php:460
+#: includes/Publishing/SubmissionsPage.php:455
 msgid "Saving and publishing…"
 msgstr "در حال ذخیره‌سازی و انتشار…"
 
-#: includes/Publishing/SubmissionsPage.php:580
+#: includes/Publishing/SubmissionsPage.php:575
 msgid "Log in to view your submissions"
 msgstr "برای مشاهده ارسال‌های خود وارد شوید"
 
-#: includes/Publishing/SubmissionsPage.php:585
+#: includes/Publishing/SubmissionsPage.php:580
 msgid "Username or email address"
 msgstr "نام کاربری یا نشانی ایمیل"
 
-#: includes/Publishing/SubmissionsPage.php:586
+#: includes/Publishing/SubmissionsPage.php:581
 msgid "Password"
 msgstr "گذرواژه"
 
-#: includes/Publishing/SubmissionsPage.php:587
+#: includes/Publishing/SubmissionsPage.php:582
 msgid "Log in"
 msgstr "ورود"
 
-#: includes/Publishing/SubmissionsPage.php:589
+#: includes/Publishing/SubmissionsPage.php:584
 msgid "Remember me"
 msgstr "مرا به خاطر بسپار"
 
-#: includes/Publishing/SubmissionsPage.php:595
+#: includes/Publishing/SubmissionsPage.php:590
 msgid "Forgot your password?"
 msgstr "گذرواژه‌تان را فراموش کرده‌اید؟"
 
@@ -7430,6 +7680,10 @@ msgstr "✦ نمای کلی گالری Agnosis — رندرشده روی سرو�
 msgid "columns · proportional · random daily order"
 msgstr "ستون‌ها · تناسبی · ترتیب تصادفی روزانه"
 
+#: blocks/interaction-counts/editor.js:33
+msgid "♥ 12 · ⟲ 4"
+msgstr "♥ ۱۲ · ⟲ ۴"
+
 #: blocks/join/editor.js:32
 msgid "Join Agnosis"
 msgstr "به Agnosis بپیوندید"
@@ -7531,9 +7785,9 @@ msgstr "زیردامنه"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
 #: blocks/artwork-copyright/block.json blocks/breadcrumb-icon-link/block.json
-#: blocks/contact-form/block.json blocks/join/block.json
-#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
-#: blocks/submissions/block.json
+#: blocks/contact-form/block.json blocks/interaction-counts/block.json
+#: blocks/join/block.json blocks/newsletter-popover/block.json
+#: blocks/newsletter-signup/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
 msgstr "Agnosis"
@@ -7686,6 +7940,54 @@ msgctxt "block keyword"
 msgid "overview"
 msgstr "نمای کلی"
 
+#: blocks/interaction-counts/block.json
+msgctxt "block title"
+msgid "Interaction Counts"
+msgstr "تعداد تعاملات"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block description"
+msgid ""
+"Renders how many times this artwork has been liked and boosted across the "
+"fediverse — two small, independent counts. Renders nothing on an artwork "
+"with no interactions yet, or off an agnosis_artwork post."
+msgstr "تعداد دفعاتی که این اثر هنری در فدیویرس لایک و بوست شده است را نشان می‌دهد — دو شمارش کوچک و مستقل. بر روی یک اثر هنری که هنوز هیچ تعاملاتی ندارد یا از یک پست agnosis_artwork، چیزی نشان نمی‌دهد."
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "like"
+msgstr "لایک"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "likes"
+msgstr "لایک‌ها"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "boost"
+msgstr "بوست"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "boosts"
+msgstr "بوست‌ها"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "announce"
+msgstr "اعلام کردن"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "federation"
+msgstr "فدراسیون"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "activitypub"
+msgstr "اکتیوی‌پاب"
+
 #: blocks/join/block.json
 msgctxt "block title"
 msgid "Join Agnosis"
@@ -7800,6 +8102,9 @@ msgstr "ارسال‌ها"
 msgctxt "block keyword"
 msgid "review"
 msgstr "بررسی"
+
+#~ msgid "Tags (comma-separated)"
+#~ msgstr "برچسب‌ها (جداشده با ویرگول)"
 
 #~ msgid ""
 #~ "Retention varies by data type; see this site's administrator for "

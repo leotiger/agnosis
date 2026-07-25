@@ -11,6 +11,7 @@
         "env:stop":    "wp-env stop",
         "env:destroy": "wp-env destroy",
         "env:seed":    "bash bin/seed-dev-env.sh",
+        "env:tags:fresh":  "wp-env run cli wp eval-file wp-content/plugins/agnosis/dev/bin/fresh-tags.php",
         "env:cli":     "wp-env run cli wp",
 
         "build":       "wp-scripts build --config webpack.config.js",

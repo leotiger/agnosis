@@ -213,19 +213,18 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			[ 'Photography' ],
 			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
-		// 2026-07-21 (F-1): tags now come from the SAME classification call as
-		// medium — no second API call — so a pure@ post is no longer published
-		// tagless/undiscoverable. 2026-07-24: PostCreator::handle() only ever
-		// creates a DRAFT (finalize_publish()/approval never runs in this
-		// test), and tags are no longer attached to the real post_tag
-		// taxonomy at intake at all — they're cached as '_agnosis_native_tags'
-		// postmeta instead (see write_post_meta()'s own docblock), for
-		// ReviewEndpoints::finalize_tags() to assign for real once the post is
-		// actually approved. json_decode() order matches insertion here
-		// (unlike wp_get_post_terms(), which came back alphabetical).
-		$this->assertEqualsCanonicalizing(
+		// The old '_agnosis_native_tags' cache is gone outright (T0) and never
+		// comes back under that name — pin that permanently.
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_native_tags', true ) );
+
+		// TAG-REDESIGN.md T1: acquisition candidates DO land in
+		// '_agnosis_tag_candidates' now — this test's submission has no
+		// declared artist locale, so PostCreator::write_post_meta() treats it
+		// as a primary-language submission and persists the classification's
+		// own tags at intake.
+		$this->assertSame(
 			[ 'portrait', 'black-and-white' ],
-			(array) json_decode( (string) get_post_meta( $post_id, '_agnosis_native_tags', true ), true )
+			json_decode( (string) get_post_meta( $post_id, '_agnosis_tag_candidates', true ), true )
 		);
 	}
 
@@ -255,13 +254,12 @@ class PureLaneMediumClassificationTest extends \WP_UnitTestCase {
 			[ 'Poetry' ],
 			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
 		);
-		// 2026-07-21 (F-1): same one-call classification also supplies tags for
-		// the text-only (synthetic-poster) branch. 2026-07-24: same postmeta
-		// cache check as the image-attachment test above — see that test's
-		// comment for why.
-		$this->assertEqualsCanonicalizing(
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_native_tags', true ) );
+
+		// TAG-REDESIGN.md T1 — same reasoning as the image-attachment test above.
+		$this->assertSame(
 			[ 'nature', 'rhyme' ],
-			(array) json_decode( (string) get_post_meta( $post_id, '_agnosis_native_tags', true ), true )
+			json_decode( (string) get_post_meta( $post_id, '_agnosis_tag_candidates', true ), true )
 		);
 	}
 

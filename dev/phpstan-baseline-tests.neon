@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Method Agnosis\\\\Network\\\\ActivityPub\\:\\:is_primary_language_post\\(\\) is unused\\.$#"
+			count: 1
+			path: ../includes/Network/ActivityPub.php
+
+		-
 			message: "#^Callback expects 2 parameters, \\$accepted_args is set to 3\\.$#"
 			count: 1
 			path: ../tests/php/Integration/AI/AnthropicChatTest.php
@@ -156,17 +161,12 @@ parameters:
 			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
 
 		-
-			message: "#^Filter callback return statement is missing\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
-
-		-
 			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
 
@@ -177,8 +177,53 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
-			count: 7
+			count: 12
 			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\ArtworkRetagTest\\:\\:make_artwork\\(\\) has parameter \\$overrides with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\ArtworkRetagTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
+
+		-
+			message: "#^Static property Agnosis\\\\Tests\\\\Integration\\\\AI\\\\Stubs\\\\WpAiClientTestRegistry\\:\\:\\$response \\(string\\|null\\) does not accept string\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
 
 		-
 			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
@@ -236,7 +281,17 @@ parameters:
 			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
 
 		-
+			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
+
+		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
 
@@ -331,12 +386,47 @@ parameters:
 			path: ../tests/php/Integration/Admin/SettingsTermTranslationCacheTest.php
 
 		-
-			message: "#^Filter callback return statement is missing\\.$#"
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function sort expects TArray of array\\<string\\>, array\\<int, string\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\TagProposalsTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/TagProposalsTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/TaxonomyLanguageFilterTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/TaxonomyLanguageFilterTest.php
 
@@ -1216,8 +1306,28 @@ parameters:
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatNoticesTest.php
 
 		-
+			message: "#^Argument of an invalid type array\\<int, int\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
 			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
 			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Cannot access offset 0 on array\\<int, WP_Term\\>\\|WP_Error\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Cannot access offset 0 on array\\<int, int\\>\\|WP_Error\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function array_intersect expects array, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1242,7 +1352,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
-			count: 16
+			count: 19
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1267,7 +1377,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$translated_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 20
+			count: 22
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1281,18 +1391,23 @@ parameters:
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 4
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
-			count: 1
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertNotContains\\(\\) expects iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 2
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1308,6 +1423,11 @@ parameters:
 		-
 			message: "#^Parameter \\#2 \\$source_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
+
+		-
+			message: "#^Parameter \\#2 \\.\\.\\.\\$arrays of function array_intersect expects array, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1346,12 +1466,22 @@ parameters:
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
-			count: 7
-			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
+			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$name\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeRenameAndDeleteLifecycleTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$slug\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Compat/LinguaForgeRenameAndDeleteLifecycleTest.php
 
 		-
 			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeTermPropagationTest.php
+
+		-
+			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$description\\.$#"
 			count: 2
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
@@ -1362,13 +1492,28 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$slug\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
 			count: 6
 			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
 
 		-
-			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$description\\.$#"
+			message: "#^Cannot access offset 0 on array\\<int, WP_Term\\>\\|WP_Error\\.$#"
 			count: 1
-			path: ../tests/php/Integration/Compat/LinguaForgeTermSyncTest.php
+			path: ../tests/php/Integration/Compat/LinguaForgeTranslationQueueTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Compat/LinguaForgeTranslationQueueTest.php
 
 		-
 			message: "#^Function linguaforge_queue_translation\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
@@ -1772,7 +1917,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
-			count: 20
+			count: 21
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1836,8 +1981,13 @@ parameters:
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
+			message: "#^Parameter \\#1 \\$original_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
 			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
-			count: 18
+			count: 26
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1852,7 +2002,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
-			count: 1
+			count: 4
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1872,7 +2022,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:note_for\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 12
+			count: 20
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1897,7 +2047,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$url of method WP_UnitTestCase_Base\\:\\:go_to\\(\\) expects string, string\\|false given\\.$#"
-			count: 5
+			count: 6
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1929,6 +2079,26 @@ parameters:
 			message: "#^Parameter \\#3 \\$object_url of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:undo_like_request\\(\\) expects string, string\\|false given\\.$#"
 			count: 2
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$translated_id of static method Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:link\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/FederationSettlementTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/FederationSettlementTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Network\\\\FederationSettlementTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/FederationSettlementTest.php
 
 		-
 			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
@@ -2681,6 +2851,31 @@ parameters:
 			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
 
 		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RetagTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RetagTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\RetagTest\\:\\:make_post\\(\\) has parameter \\$overrides with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RetagTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\RetagTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/RetagTest.php
+
+		-
+			message: "#^Static property Agnosis\\\\Tests\\\\Integration\\\\AI\\\\Stubs\\\\WpAiClientTestRegistry\\:\\:\\$response \\(string\\|null\\) does not accept string\\|false\\.$#"
+			count: 5
+			path: ../tests/php/Integration/Publishing/RetagTest.php
+
+		-
 			message: "#^Filter callback return statement is missing\\.$#"
 			count: 2
 			path: ../tests/php/Integration/Publishing/ReviewConfirmActionTokenGateTest.php
@@ -2809,6 +3004,41 @@ parameters:
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsNativeLanguagePipelineTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$array of function sort expects TArray of array\\<int\\>, array\\<int, int\\>\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Test Artwork'\\} given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\TagGateAssociateTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
+
+		-
+			message: "#^Argument of an invalid type array\\<int, WP_Term\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Publishing/TagGateVocabularyTest.php
+
+		-
+			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Publishing/TagGateVocabularyTest.php
 
 		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Support\\\\FakeLinguaForge\\:\\:\\$cache_cleared_for type has no value type specified in iterable type array\\.$#"

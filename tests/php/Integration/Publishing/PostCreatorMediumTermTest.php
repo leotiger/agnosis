@@ -75,11 +75,17 @@ class PostCreatorMediumTermTest extends \WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	/** @param array<string, mixed> $primary */
+	/**
+	 * @param array<string, mixed> $primary
+	 *
+	 * Tags — 2026-07-24 demolition (TAG-REDESIGN.md, T0): write_post_meta()
+	 * dropped its $all_tags parameter (the removed `_agnosis_native_tags`
+	 * write was its only consumer). Four positional args now, not five.
+	 */
 	private function write_post_meta( int $post_id, array $primary, string $post_type = 'agnosis_artwork' ): void {
 		$ref = new \ReflectionMethod( PostCreator::class, 'write_post_meta' );
 		$ref->setAccessible( true );
-		$ref->invoke( $this->creator, $post_id, $primary, [], [], $post_type );
+		$ref->invoke( $this->creator, $post_id, $primary, [], $post_type );
 	}
 
 	/**

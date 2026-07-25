@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-23T17:42+00:00\n"
+"POT-Creation-Date: 2026-07-25T16:53+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:54+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Chinese (China)\n"
@@ -97,67 +97,85 @@ msgstr "上一页"
 msgid "Next"
 msgstr "下一页"
 
-#: includes/Admin/ArtworkMediumSync.php:233
+#: includes/Admin/ArtworkMediumSync.php:240
 msgid "Medium translations"
 msgstr "媒体翻译"
 
-#: includes/Admin/ArtworkMediumSync.php:246
+#: includes/Admin/ArtworkMediumSync.php:253
 msgid "Requires Lingua Forge."
 msgstr "需要 Lingua Forge。"
 
-#: includes/Admin/ArtworkMediumSync.php:254
+#: includes/Admin/ArtworkMediumSync.php:261
 msgid ""
-"This artwork's medium is translated from its primary-language original — "
-"nothing to sync from here."
-msgstr "此作品的媒介是从其主要语言原文翻译而来 — 没有什么可从此处同步的。"
+"This artwork's medium/tags are translated from its primary-language original "
+"— nothing to sync from here."
+msgstr "此艺术作品的媒介/标签是从其原始语言翻译而来的——这里没有需要同步的内容。"
 
-#: includes/Admin/ArtworkMediumSync.php:269
+#: includes/Admin/ArtworkMediumSync.php:289
 msgid ""
 "Push this artwork's current medium onto every already-translated sibling "
 "post."
 msgstr "将此作品当前的媒介推送到每个已翻译的姊妹文章。"
 
-#: includes/Admin/ArtworkMediumSync.php:271
+#: includes/Admin/ArtworkMediumSync.php:291
 msgid "Sync medium to translations"
 msgstr "将媒介与翻译同步"
 
-#: includes/Admin/ArtworkMediumSync.php:282
-#: includes/Admin/ArtworkMediumSync.php:354
+#: includes/Admin/ArtworkMediumSync.php:293
+msgid ""
+"Push this artwork's current tags onto every already-translated sibling post."
+msgstr "将此艺术作品当前的标签推送到每个已翻译的兄弟帖子上。"
+
+#: includes/Admin/ArtworkMediumSync.php:295
+msgid "Sync tags to translations"
+msgstr "将标签同步到翻译内容"
+
+#: includes/Admin/ArtworkMediumSync.php:306
+#: includes/Admin/ArtworkMediumSync.php:355
+#: includes/Admin/ArtworkMediumSync.php:439
+#: includes/Admin/ArtworkMediumSync.php:495 includes/Admin/ArtworkRetag.php:107
 #: includes/Admin/ContactMessagesPage.php:159
 #: includes/Admin/Dashboards/AdmissionDashboard.php:182
 #: includes/Admin/Dashboards/AdmissionDashboard.php:211
-#: includes/Admin/Dashboards/BiographyTitleCache.php:161
-#: includes/Admin/Dashboards/BiographyTitleCache.php:177
-#: includes/Admin/Dashboards/BiographyTitleCache.php:190
-#: includes/Admin/Dashboards/BrandingTestForm.php:69
+#: includes/Admin/Dashboards/BiographyTitleCache.php:170
+#: includes/Admin/Dashboards/BiographyTitleCache.php:186
+#: includes/Admin/Dashboards/BiographyTitleCache.php:199
+#: includes/Admin/Dashboards/BrandingTestForm.php:70
 #: includes/Admin/Dashboards/DeliverabilityCard.php:187
-#: includes/Admin/Dashboards/InvitationCard.php:76
-#: includes/Admin/Dashboards/InvitationCard.php:103
+#: includes/Admin/Dashboards/InvitationCard.php:78
+#: includes/Admin/Dashboards/InvitationCard.php:105
 #: includes/Admin/Dashboards/LogsTab.php:131
-#: includes/Admin/Dashboards/MembersDashboard.php:184
-#: includes/Admin/Dashboards/MembersDashboard.php:216
-#: includes/Admin/Dashboards/MembersDashboard.php:243
-#: includes/Admin/Dashboards/NewsletterDashboard.php:284
-#: includes/Admin/Dashboards/NewsletterDashboard.php:313
-#: includes/Admin/Dashboards/NewsletterDashboard.php:341
-#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:238
-#: includes/Admin/MediumProposals.php:273 includes/Admin/QueueController.php:31
+#: includes/Admin/Dashboards/MembersDashboard.php:185
+#: includes/Admin/Dashboards/MembersDashboard.php:217
+#: includes/Admin/Dashboards/MembersDashboard.php:244
+#: includes/Admin/Dashboards/NewsletterDashboard.php:285
+#: includes/Admin/Dashboards/NewsletterDashboard.php:314
+#: includes/Admin/Dashboards/NewsletterDashboard.php:342
+#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
+#: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
 #: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:898
-#: includes/Admin/Settings.php:917
+#: includes/Admin/Settings.php:917 includes/Admin/TagProposals.php:238
+#: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
 msgid "You do not have permission to perform this action."
 msgstr "你没有权限执行此操作。"
 
 #. translators: %d: number of translated sibling posts the medium was pushed to
-#: includes/Admin/ArtworkMediumSync.php:311
+#: includes/Admin/ArtworkMediumSync.php:335
 #, php-format
 msgid "Medium pushed to %d translated sibling post(s)."
 msgstr "媒介已推送到 %d 篇已翻译的姊妹文章。"
 
-#: includes/Admin/ArtworkMediumSync.php:345
+#. translators: %d: number of translated sibling posts the tags were pushed to
+#: includes/Admin/ArtworkMediumSync.php:384
+#, php-format
+msgid "Tags pushed to %d translated sibling post(s)."
+msgstr "标签已推送到 %d 个已翻译的兄弟帖子。"
+
+#: includes/Admin/ArtworkMediumSync.php:425
 msgid ""
 "Push every primary-language artwork's current medium onto its translated "
 "siblings? This can take a moment on a large catalog."
@@ -165,17 +183,106 @@ msgstr ""
 "将每篇主要语言作品当前的媒介推送到其翻译版本?对于较大的目录,这可能需要一些时"
 "间。"
 
-#: includes/Admin/ArtworkMediumSync.php:346
+#: includes/Admin/ArtworkMediumSync.php:426
 msgid "Sync all medium assignments"
 msgstr "同步所有媒介分配"
 
+#: includes/Admin/ArtworkMediumSync.php:430
+msgid ""
+"Push every primary-language artwork's current tags onto its translated "
+"siblings? This can take a moment on a large catalog."
+msgstr "将每个原始语言艺术作品当前的标签推送到其翻译兄弟中吗？在大型目录中，这可能需要一些时间。"
+
+#: includes/Admin/ArtworkMediumSync.php:431
+msgid "Sync all tag assignments"
+msgstr "同步所有标签分配"
+
 #. translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to
-#: includes/Admin/ArtworkMediumSync.php:388
+#: includes/Admin/ArtworkMediumSync.php:473
 #, php-format
 msgid ""
 "Sync complete: %1$d primary-language artwork(s) processed, medium pushed to "
 "%2$d sibling post(s)."
 msgstr "同步完成:已处理 %1$d 篇主要语言作品,媒介已推送到 %2$d 篇姊妹文章。"
+
+#. translators: 1: number of primary-language posts processed, 2: number of translated sibling posts tags were pushed to
+#: includes/Admin/ArtworkMediumSync.php:529
+#, php-format
+msgid ""
+"Sync complete: %1$d primary-language post(s) processed, tags pushed to %2$d "
+"sibling post(s)."
+msgstr "同步完成：处理了 %1$d 个原始语言帖子，标签推送到 %2$d 个兄弟帖子。"
+
+#: includes/Admin/ArtworkRetag.php:52
+msgid "Re-tag"
+msgstr "重新标记"
+
+#: includes/Admin/ArtworkRetag.php:65
+msgid "Available once this artwork is published."
+msgstr "在此艺术作品发布后可用。"
+
+#: includes/Admin/ArtworkRetag.php:75
+msgid ""
+"This artwork's tags are derived from its primary-language original — nothing "
+"to re-tag from here."
+msgstr "此艺术作品的标签源自其原始语言——这里没有需要重新标记的内容。"
+
+#: includes/Admin/ArtworkRetag.php:90
+msgid ""
+"Re-run tag detection for this artwork from its current title, excerpt, and "
+"content."
+msgstr "从此艺术作品的当前标题、摘录和内容重新运行标签检测。"
+
+#: includes/Admin/ArtworkRetag.php:95
+msgid ""
+"Re-run tag detection for this artwork? Any pending tag proposals for it will "
+"be replaced, and matched tags are re-assigned immediately."
+msgstr "是否重新运行此艺术作品的标签检测？任何待处理的标签提案将被替换，并且匹配的标签会立即重新分配。"
+
+#: includes/Admin/ArtworkRetag.php:96
+msgid "Re-tag this artwork"
+msgstr "重新标记此艺术作品"
+
+#. translators: 1: existing tags matched and assigned, 2: new tag proposals raised, 3: candidates gated out or trimmed
+#: includes/Admin/ArtworkRetag.php:154
+#, php-format
+msgid ""
+"Re-tag complete: %1$d tag(s) matched and assigned, %2$d new proposal(s) "
+"raised, %3$d candidate(s) gated out."
+msgstr "重新标记完成：%1$d 个标签匹配并分配，%2$d 个新提案被提出，%3$d 个候选项被排除。"
+
+#: includes/Admin/ArtworkRetag.php:174
+msgid "Re-tag failed: this post no longer exists."
+msgstr "重新标记失败：此帖子不再存在。"
+
+#: includes/Admin/ArtworkRetag.php:176
+msgid "Re-tag failed: this post type does not support tags."
+msgstr "重新标记失败：此帖子类型不支持标签。"
+
+#: includes/Admin/ArtworkRetag.php:178
+msgid "Re-tag failed: this artwork is not published yet."
+msgstr "重新标记失败：此艺术作品尚未发布。"
+
+#: includes/Admin/ArtworkRetag.php:180
+msgid ""
+"Re-tag failed: this artwork's tags are derived from its primary-language "
+"original."
+msgstr "重新标记失败：此艺术作品的标签源自其原始语言。"
+
+#: includes/Admin/ArtworkRetag.php:182
+msgid ""
+"Re-tag failed: the AI tag detection call did not return a usable response. "
+"Try again in a moment."
+msgstr "重新标记失败：AI 标签检测调用没有返回可用的响应。请稍后再试。"
+
+#: includes/Admin/ArtworkRetag.php:184
+msgid ""
+"Re-tag failed: the AI call succeeded but proposed no tags for this content."
+msgstr "重新标记失败：AI 调用成功但未为此内容提出标签。"
+
+#: includes/Admin/ArtworkRetag.php:186
+msgid "Re-tag failed for an unknown reason."
+msgstr "由于未知原因，重新标记失败。"
 
 #: includes/Admin/ContactMessagesPage.php:45
 #: includes/Admin/ContactMessagesPage.php:46
@@ -229,7 +336,8 @@ msgstr "接收时间"
 #: includes/Admin/ContactMessagesPage.php:102
 #: includes/Admin/Dashboards/AdmissionDashboard.php:105
 #: includes/Admin/Dashboards/MembersDashboard.php:58
-#: includes/Admin/InboxPage.php:170 includes/Admin/MediumProposals.php:80
+#: includes/Admin/InboxPage.php:170 includes/Admin/MediumProposals.php:105
+#: includes/Admin/TagProposals.php:90
 msgid "Actions"
 msgstr "操作"
 
@@ -281,7 +389,7 @@ msgid "Delete this message?"
 msgstr "删除这条消息？"
 
 #: includes/Admin/ContactMessagesPage.php:322
-#: includes/Admin/Dashboards/MembersDashboard.php:152
+#: includes/Admin/Dashboards/MembersDashboard.php:153
 #: includes/Admin/InboxPage.php:789
 msgid "Delete"
 msgstr "删除"
@@ -371,7 +479,7 @@ msgid "Admit"
 msgstr "通过"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
-#: includes/Admin/MediumProposals.php:142
+#: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
 msgid "Reject"
 msgstr "拒绝"
 
@@ -483,31 +591,37 @@ msgstr "语言"
 msgid "Cached translation"
 msgstr "缓存的翻译"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:95
+#. translators: %s: language name this translation row is for
+#: includes/Admin/Dashboards/BiographyTitleCache.php:98
+#, php-format
+msgid "Biography title translation (%s)"
+msgstr "传记标题翻译 (%s)"
+
+#: includes/Admin/Dashboards/BiographyTitleCache.php:104
 msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr "尚未翻译——留空可让 AI 自动翻译"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:97
+#: includes/Admin/Dashboards/BiographyTitleCache.php:106
 #: includes/Artist/ContentEditor.php:1355
 msgid "Save"
 msgstr "保存"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:103
+#: includes/Admin/Dashboards/BiographyTitleCache.php:112
 msgid ""
 "Discard the cached translation and have the AI translate this language again?"
 msgstr "要丢弃缓存的翻译并让 AI 重新翻译该语言吗？"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:107
+#: includes/Admin/Dashboards/BiographyTitleCache.php:116
 msgid "↻ Retranslate"
 msgstr "↻ 重新翻译"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:117
+#: includes/Admin/Dashboards/BiographyTitleCache.php:126
 msgid ""
 "Discard every cached translation for the current preset title and have the "
 "AI translate all of them again?"
 msgstr "要丢弃当前预设标题的所有缓存翻译，并让 AI 重新翻译全部语言吗？"
 
-#: includes/Admin/Dashboards/BiographyTitleCache.php:122
+#: includes/Admin/Dashboards/BiographyTitleCache.php:131
 msgid "Clear All (Retranslate All)"
 msgstr "全部清除（全部重新翻译）"
 
@@ -526,18 +640,22 @@ msgstr ""
 "实际查看，只会是下一封实际发出的邮件。请使用上方当前保存的设置向自己发送一封"
 "示例邮件（如果您刚刚更改了内容并希望测试结果一致，请先保存）。"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:51
+#: includes/Admin/Dashboards/BrandingTestForm.php:50
+msgid "Send test email to this address"
+msgstr "向此地址发送测试邮件"
+
+#: includes/Admin/Dashboards/BrandingTestForm.php:52
 #: includes/Admin/Dashboards/DeliverabilityCard.php:102
-#: includes/Admin/Dashboards/InvitationCard.php:63
-#: includes/Admin/Dashboards/NewsletterDashboard.php:270
+#: includes/Admin/Dashboards/InvitationCard.php:65
+#: includes/Admin/Dashboards/NewsletterDashboard.php:271
 msgid "Send Test"
 msgstr "发送测试邮件"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:77
+#: includes/Admin/Dashboards/BrandingTestForm.php:78
 msgid "Branding preview"
 msgstr "品牌预览"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:82
+#: includes/Admin/Dashboards/BrandingTestForm.php:83
 msgid ""
 "This is a sample of the branded email shell — header, body text, a button, "
 "and (below) the footer card — built from whatever is currently saved on "
@@ -546,11 +664,11 @@ msgstr ""
 "这是品牌邮件外壳的示例——页眉、正文文本、一个按钮，以及（下方的）页脚卡片——均"
 "由“设置 → 品牌”中当前保存的内容构建而成。"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:86
+#: includes/Admin/Dashboards/BrandingTestForm.php:87
 msgid "Sample button"
 msgstr "示例按钮"
 
-#: includes/Admin/Dashboards/BrandingTestForm.php:90
+#: includes/Admin/Dashboards/BrandingTestForm.php:91
 msgid ""
 "Didn't look right? Adjust the fields above and send another test — nothing "
 "here was recorded or sent to anyone but you."
@@ -559,7 +677,7 @@ msgstr ""
 "给除你之外的任何人。"
 
 #. translators: %s: site name
-#: includes/Admin/Dashboards/BrandingTestForm.php:112
+#: includes/Admin/Dashboards/BrandingTestForm.php:113
 #, php-format
 msgid "[TEST] Branding preview from %s"
 msgstr "[TEST] 来自 %s 的品牌预览"
@@ -725,12 +843,20 @@ msgstr ""
 "发送一次性邮件邀请他人申请。不会进行跟踪或排期 — 将立即发送到下方地址。"
 
 #: includes/Admin/Dashboards/InvitationCard.php:45
+msgid "Email address to invite"
+msgstr "邀请的电子邮件地址"
+
+#: includes/Admin/Dashboards/InvitationCard.php:46
 msgid "artist@example.com"
 msgstr "artist@example.com"
 
-#: includes/Admin/Dashboards/InvitationCard.php:51
+#: includes/Admin/Dashboards/InvitationCard.php:52
 msgid "Send Invitation"
 msgstr "发送邀请"
+
+#: includes/Admin/Dashboards/InvitationCard.php:58
+msgid "Send test invitation to this email address"
+msgstr "向此电子邮件地址发送测试邀请"
 
 #: includes/Admin/Dashboards/LogsTab.php:51
 msgid "Pipeline Logs"
@@ -840,25 +966,29 @@ msgstr "📬 投票摘要模式"
 msgid "Leave the date blank to ban indefinitely. Continue?"
 msgstr "如需无限期封禁，请将日期留空。继续？"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:140
+#: includes/Admin/Dashboards/MembersDashboard.php:138
+msgid "Banned until (leave blank to ban indefinitely)"
+msgstr "被禁直到（留空以无限期禁用）"
+
+#: includes/Admin/Dashboards/MembersDashboard.php:141
 msgid "Leave blank to ban indefinitely"
 msgstr "留空可无限期封禁"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:142
+#: includes/Admin/Dashboards/MembersDashboard.php:143
 msgid "Suspend"
 msgstr "暂停"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:148
+#: includes/Admin/Dashboards/MembersDashboard.php:149
 msgid ""
 "Permanently delete this artist and all their content? This cannot be undone."
 msgstr "永久删除这位艺术家及其所有内容？此操作无法撤销。"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:158
+#: includes/Admin/Dashboards/MembersDashboard.php:159
 msgid ""
 "Open a community removal vote for this artist? All members will be emailed."
 msgstr "为这位艺术家发起社区移除投票？所有成员都会收到邮件。"
 
-#: includes/Admin/Dashboards/MembersDashboard.php:162
+#: includes/Admin/Dashboards/MembersDashboard.php:163
 msgid "Open Vote"
 msgstr "发起投票"
 
@@ -957,7 +1087,7 @@ msgid "Never"
 msgstr "从不"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:208
-#: includes/Publishing/PostCreator.php:1035
+#: includes/Publishing/PostCreator.php:1044
 msgid "Unknown"
 msgstr "未知"
 
@@ -975,6 +1105,10 @@ msgstr[0] "%d 个失败"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:251
 msgid "Retry Failed"
 msgstr "重试失败项"
+
+#: includes/Admin/Dashboards/NewsletterDashboard.php:269
+msgid "Send test newsletter to this email address"
+msgstr "向此电子邮件地址发送测试通讯"
 
 #: includes/Admin/Deliverability.php:445
 msgid "Mail from (workflow)"
@@ -1109,12 +1243,12 @@ msgstr "强制重新处理"
 msgid "Process All Pending"
 msgstr "处理所有待处理项"
 
-#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1053
+#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1062
 msgid "Goodbye"
 msgstr "再见"
 
 #: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:307
-#: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1054
+#: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "社区"
 
@@ -1195,54 +1329,54 @@ msgstr ""
 msgid "Sync all translations"
 msgstr "同步所有翻译"
 
-#: includes/Admin/MediumProposals.php:76
+#: includes/Admin/MediumProposals.php:101
 msgid "AI-proposed medium categories awaiting review"
 msgstr "等待审核的AI建议的中等类别"
 
-#: includes/Admin/MediumProposals.php:78
+#: includes/Admin/MediumProposals.php:103
 msgid "Proposed medium"
 msgstr "建议的中等类别"
 
-#: includes/Admin/MediumProposals.php:79
+#: includes/Admin/MediumProposals.php:104 includes/Admin/TagProposals.php:89
 msgid "Submissions"
 msgstr "投稿"
 
-#: includes/Admin/MediumProposals.php:110
+#: includes/Admin/MediumProposals.php:135 includes/Admin/TagProposals.php:115
 msgid "(no title)"
 msgstr "（无标题）"
 
 #. translators: %d: number of submissions carrying this exact proposal
-#: includes/Admin/MediumProposals.php:123
+#: includes/Admin/MediumProposals.php:148 includes/Admin/TagProposals.php:128
 #, php-format
 msgid "%d submission"
 msgid_plural "%d submissions"
 msgstr[0] "%d 件投稿"
 
-#: includes/Admin/MediumProposals.php:134
+#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
 msgid "Approve"
 msgstr "批准"
 
-#: includes/Admin/MediumProposals.php:141
+#: includes/Admin/MediumProposals.php:166
 msgid ""
 "Reject this proposal for all matching submissions? This cannot be undone."
 msgstr "拒绝对所有匹配投稿的此建议？此操作无法撤销。"
 
 #. translators: %d: number of submissions the approved medium was assigned to
-#: includes/Admin/MediumProposals.php:349
+#: includes/Admin/MediumProposals.php:469
 #, php-format
 msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
 msgstr[0] "中等类别建议已批准，已分配给 %d 件投稿。"
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/MediumProposals.php:362
+#: includes/Admin/MediumProposals.php:482
 #, php-format
 msgid "Medium proposal rejected for %d submission."
 msgid_plural "Medium proposal rejected for %d submissions."
 msgstr[0] "中等类别建议已针对 %d 件投稿被拒绝。"
 
 #. translators: %s: the underlying WP_Error message from wp_insert_term()
-#: includes/Admin/MediumProposals.php:374
+#: includes/Admin/MediumProposals.php:494 includes/Admin/TagProposals.php:478
 #, php-format
 msgid "Could not approve this proposal: %s"
 msgstr "无法批准此建议：%s"
@@ -1477,7 +1611,7 @@ msgid "Select Image"
 msgstr "选择图片"
 
 #: includes/Admin/Settings.php:413 includes/Core/EmailFooter.php:85
-#: includes/Publishing/PostCreator.php:1051
+#: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "移除"
 
@@ -2401,7 +2535,10 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"OpenAI translation model\" below."
-msgstr "用于分类任务的便宜快速模型，当OpenAI作为描述提供者时使用——仅限文本的(pure@)提交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交翻译为网站主要语言的模型，请参见下面的“OpenAI翻译模型”。"
+msgstr ""
+"用于分类任务的便宜快速模型，当OpenAI作为描述提供者时使用——仅限文本的(pure@)提"
+"交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交翻译为网站"
+"主要语言的模型，请参见下面的“OpenAI翻译模型”。"
 
 #: includes/Admin/SettingsFields.php:482
 msgid "Anthropic text model"
@@ -2414,7 +2551,10 @@ msgid ""
 "submissions, and moderating contact-form messages. Does not need vision "
 "support. For the model used to translate submissions into the site's primary "
 "language, see \"Anthropic translation model\" below."
-msgstr "用于分类任务的便宜快速模型，当Anthropic作为描述提供者时使用——仅限文本的(pure@)提交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交翻译为网站主要语言的模型，请参见下面的“Anthropic翻译模型”。"
+msgstr ""
+"用于分类任务的便宜快速模型，当Anthropic作为描述提供者时使用——仅限文本的"
+"(pure@)提交的媒介/标签分类，以及联系表单消息的审核。无需视觉支持。用于将提交"
+"翻译为网站主要语言的模型，请参见下面的“Anthropic翻译模型”。"
 
 #: includes/Admin/SettingsFields.php:501
 msgid "OpenAI translation model"
@@ -2429,7 +2569,11 @@ msgid ""
 "surrounding text. This is the model that produces every artwork/biography/"
 "event's actual published primary-language text — worth a stronger model than "
 "the cheap classification one above. Does not need vision support."
-msgstr "当OpenAI是翻译提交为网站主要语言的AI提供者时使用的模型，还用于嵌入的外语检测过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻译。这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜分类模型更值得使用更强的模型。无需视觉支持。"
+msgstr ""
+"当OpenAI是翻译提交为网站主要语言的AI提供者时使用的模型，还用于嵌入的外语检测"
+"过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻译。"
+"这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜分类"
+"模型更值得使用更强的模型。无需视觉支持。"
 
 #: includes/Admin/SettingsFields.php:507
 msgid "Anthropic translation model"
@@ -2444,7 +2588,11 @@ msgid ""
 "the surrounding text. This is the model that produces every artwork/"
 "biography/event's actual published primary-language text — worth a stronger "
 "model than the cheap classification one above. Does not need vision support."
-msgstr "当Anthropic是翻译提交为网站主要语言的AI提供者时使用的模型，且用于嵌入的外语检测过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻译。这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜分类模型更值得使用更强的模型。无需视觉支持。"
+msgstr ""
+"当Anthropic是翻译提交为网站主要语言的AI提供者时使用的模型，且用于嵌入的外语检"
+"测过程，以保护故意的外语段落（例如，原文中给出的引用）不与周围文本一起被翻"
+"译。这是生成每个艺术作品/传记/事件实际发布的主要语言文本的模型——比上面的便宜"
+"分类模型更值得使用更强的模型。无需视觉支持。"
 
 #: includes/Admin/SettingsFields.php:527
 msgid "Max AI response tokens (chat/translation)"
@@ -2506,7 +2654,9 @@ msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
 "enhancement and publish the original."
-msgstr "在发布前增强艺术作品图像，使用下面的OpenAI图像模型集（例如gpt-image-1，gpt-image-2）。设置为禁用以跳过增强并发布原始图像。"
+msgstr ""
+"在发布前增强艺术作品图像，使用下面的OpenAI图像模型集（例如gpt-image-1，gpt-"
+"image-2）。设置为禁用以跳过增强并发布原始图像。"
 
 #: includes/Admin/SettingsFields.php:562
 msgid "OpenAI image model"
@@ -2666,11 +2816,59 @@ msgstr ""
 "提交审阅邮件中的“批准并发布 / 丢弃”链接在艺术家需要登录管理该条目之前可保持有"
 "效的时长。适用于作品、简介和活动草稿。默认值：7。"
 
-#: includes/Admin/SettingsFields.php:694
+#: includes/Admin/SettingsFields.php:699
+msgid "Tag / medium proposal expiry (days)"
+msgstr "标签 / 媒介提案过期（天）"
+
+#: includes/Admin/SettingsFields.php:705
+msgid ""
+"How long an AI-proposed tag or medium category can sit unreviewed on the "
+"Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same "
+"effect as clicking Reject). Default: 7."
+msgstr "AI 提出的标签或媒介类别在标签 / 艺术作品 → 媒介屏幕上可以未审核多少时间，超过此时间后每日清理将自动拒绝该提案（与单击拒绝的效果相同）。默认值：7。"
+
+#: includes/Admin/SettingsFields.php:719
+msgid "Federate which languages"
+msgstr "联合哪些语言"
+
+#: includes/Admin/SettingsFields.php:722
+msgid "Primary language only (default)"
+msgstr "仅原始语言（默认）"
+
+#: includes/Admin/SettingsFields.php:723
+msgid "All active languages"
+msgstr "所有活跃语言"
+
+#: includes/Admin/SettingsFields.php:726
+msgid ""
+"Whether a language sibling's Note is actively pushed to followers once it's "
+"tag-settled and ready. \"Primary language only\" sends one Fediverse post "
+"per artwork, same as before multi-language federation existed. \"All active "
+"languages\" sends one post PER LANGUAGE — a follower who hasn't set a "
+"language filter on their own account will see every language version of "
+"every artwork. Switching to \"All active languages\" only affects artworks "
+"that settle from that point forward; it never retroactively re-sends "
+"anything already published."
+msgstr "语言相似者的备注在标记设置完成并准备好后，是否会主动推送给关注者。“仅主语言”每个艺术作品发送一条Fediverse帖子，和多语言联盟存在之前一样。“所有活动语言”每个语言发送一条帖子——没有在自己账户上设置语言过滤器的关注者将看到每个艺术作品的所有语言版本。切换到“所有活动语言”只影响从那时起结算的艺术作品；不会追溯重新发送已经发布的内容。"
+
+#: includes/Admin/SettingsFields.php:734
+msgid "Federation tag-wait timeout (hours)"
+msgstr "联邦标签等待超时（小时）"
+
+#: includes/Admin/SettingsFields.php:740
+msgid ""
+"A published artwork with a new tag or medium category awaiting admin review "
+"normally federates to the Fediverse only once that proposal is resolved (so "
+"its hashtags are correct from the start). If it waits longer than this, it "
+"federates anyway with whatever tags it currently has — a later approval "
+"still updates the federated post. Default: 24."
+msgstr "带有新标签或媒介类别的已发布艺术作品在提案解决之前通常只会联邦到Fediverse（以确保其标签从一开始就是正确的）。如果等待时间超过这个值，它会联邦传播当前拥有的任何标签——稍后的批准仍会更新联邦帖子。默认值：24。"
+
+#: includes/Admin/SettingsFields.php:746
 msgid "System prompt"
 msgstr "系统提示词"
 
-#: includes/Admin/SettingsFields.php:700
+#: includes/Admin/SettingsFields.php:752
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -2678,11 +2876,11 @@ msgstr ""
 "作为系统指令发送给 AI。将 {tag_count} 和 {excerpt_words} 作为占位符使用——它们"
 "会被下面的值替换。"
 
-#: includes/Admin/SettingsFields.php:704
+#: includes/Admin/SettingsFields.php:756
 msgid "Artist prompt template"
 msgstr "艺术家提示模板"
 
-#: includes/Admin/SettingsFields.php:710
+#: includes/Admin/SettingsFields.php:762
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -2690,41 +2888,41 @@ msgstr ""
 "与作品图片一同发送的用户消息。请在艺术家自己的描述应出现的位置使用 "
 "{artist_prompt}。"
 
-#: includes/Admin/SettingsFields.php:714
+#: includes/Admin/SettingsFields.php:766
 msgid "Enhancement instructions"
 msgstr "增强指令"
 
-#: includes/Admin/SettingsFields.php:720
+#: includes/Admin/SettingsFields.php:772
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
 msgstr "传递给图片增强提供方的指令。AI 生成的作品描述会自动附加作为上下文。"
 
-#: includes/Admin/SettingsFields.php:724
+#: includes/Admin/SettingsFields.php:776
 msgid "Number of tags"
 msgstr "标签数量"
 
-#: includes/Admin/SettingsFields.php:730
+#: includes/Admin/SettingsFields.php:782
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
 msgstr "AI 应为每件作品生成多少个标签。在系统提示词中以 {tag_count} 引用。"
 
-#: includes/Admin/SettingsFields.php:734
+#: includes/Admin/SettingsFields.php:786
 msgid "Excerpt word limit"
 msgstr "摘录字数上限"
 
-#: includes/Admin/SettingsFields.php:740
+#: includes/Admin/SettingsFields.php:792
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
 msgstr "单句摘录的最大字数。在系统提示词中以 {excerpt_words} 引用。"
 
-#: includes/Admin/SettingsFields.php:753
+#: includes/Admin/SettingsFields.php:805
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr "信任所有已接纳艺术家（完全跳过链接审查）"
 
-#: includes/Admin/SettingsFields.php:758
+#: includes/Admin/SettingsFields.php:810
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -2738,11 +2936,11 @@ msgstr ""
 "启期间下方设置会被完全跳过）。默认关闭。只有在你能接受通过接纳流程的恶意行为"
 "者可能嵌入指向任意内容的链接时，才应启用。"
 
-#: includes/Admin/SettingsFields.php:762
+#: includes/Admin/SettingsFields.php:814
 msgid "Trusted embed platforms"
 msgstr "受信任的嵌入平台"
 
-#: includes/Admin/SettingsFields.php:768
+#: includes/Admin/SettingsFields.php:820
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -2751,11 +2949,11 @@ msgstr ""
 "每行一个主机名。提交的链接如果匹配其中之一（或其子域名之一），就会立即作为富"
 "媒体嵌入显示——无需 AI 审查，也不会对链接本身发起网络请求。"
 
-#: includes/Admin/SettingsFields.php:772
+#: includes/Admin/SettingsFields.php:824
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr "允许艺术家提交其他链接（由 AI 审查）"
 
-#: includes/Admin/SettingsFields.php:777
+#: includes/Admin/SettingsFields.php:829
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -2770,19 +2968,19 @@ msgstr ""
 "查。如果 AI 无法访问、请求超时，或页面无法安全抓取，则不会嵌入该链接——会安全"
 "失败。禁用时（默认），只会嵌入上方受信任的平台。"
 
-#: includes/Admin/SettingsFields.php:781
+#: includes/Admin/SettingsFields.php:833
 msgid "Block pornographic / sexually explicit content"
 msgstr "屏蔽色情 / 性暗示内容"
 
-#: includes/Admin/SettingsFields.php:786 includes/Admin/SettingsFields.php:804
+#: includes/Admin/SettingsFields.php:838 includes/Admin/SettingsFields.php:856
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "仅在启用 AI 审查（上方）时生效。"
 
-#: includes/Admin/SettingsFields.php:790
+#: includes/Admin/SettingsFields.php:842
 msgid "Block primarily commercial / promotional sites"
 msgstr "屏蔽主要以商业 / 促销为主的网站"
 
-#: includes/Admin/SettingsFields.php:795
+#: includes/Admin/SettingsFields.php:847
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -2791,15 +2989,15 @@ msgstr ""
 "网店、广告、营销落地页。默认关闭——艺术家链接到出售自己版画的商店很常见，也并"
 "非本身令人反感。仅在启用 AI 审查（上方）时生效。"
 
-#: includes/Admin/SettingsFields.php:799
+#: includes/Admin/SettingsFields.php:851
 msgid "Block gambling / betting sites"
 msgstr "屏蔽博彩 / 赌博网站"
 
-#: includes/Admin/SettingsFields.php:808
+#: includes/Admin/SettingsFields.php:860
 msgid "Additional disallowed categories"
 msgstr "其他不允许的类别"
 
-#: includes/Admin/SettingsFields.php:813
+#: includes/Admin/SettingsFields.php:865
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -2808,36 +3006,36 @@ msgstr ""
 "可选——用通俗语言描述你希望 AI 拒绝的其他内容类型（例如“仇恨言论或暴力极端主义"
 "内容”、“钓鱼或诈骗页面”）。仅在启用 AI 审查（上方）时生效。"
 
-#: includes/Admin/SettingsFields.php:819
+#: includes/Admin/SettingsFields.php:871
 msgid "Node label"
 msgstr "节点标签"
 
-#: includes/Admin/SettingsFields.php:820
+#: includes/Admin/SettingsFields.php:872
 msgid "How this node introduces itself to the network."
 msgstr "此节点向网络的自我介绍方式。"
 
-#: includes/Admin/SettingsFields.php:825
+#: includes/Admin/SettingsFields.php:877
 msgid "Enable ActivityPub federation"
 msgstr "启用 ActivityPub 联邦功能"
 
-#: includes/Admin/SettingsFields.php:829
+#: includes/Admin/SettingsFields.php:881
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "向 Mastodon、Pixelfed 和 Fediverse 广播新作品。"
 
-#: includes/Admin/SettingsFields.php:834
+#: includes/Admin/SettingsFields.php:886
 msgid "Node public key"
 msgstr "节点公钥"
 
-#: includes/Admin/SettingsFields.php:836
+#: includes/Admin/SettingsFields.php:888
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr "此节点自动生成的 RSA 公钥。请将其分享给对等节点。"
 
-#: includes/Admin/SettingsFields.php:846
+#: includes/Admin/SettingsFields.php:898
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "每位发件人每天的自我移除（告别）请求数"
 
-#: includes/Admin/SettingsFields.php:852
+#: includes/Admin/SettingsFields.php:904
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -2848,11 +3046,11 @@ msgstr ""
 "通常只需要请求一次——此上限用于防止伪造或重复的 From 被用来向真实艺术家发送垃"
 "圾确认邮件。默认值：3。"
 
-#: includes/Admin/SettingsFields.php:856
+#: includes/Admin/SettingsFields.php:908
 msgid "Community broadcasts per artist per day"
 msgstr "每位艺术家每天的社区广播数"
 
-#: includes/Admin/SettingsFields.php:862
+#: includes/Admin/SettingsFields.php:914
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -2861,11 +3059,11 @@ msgstr ""
 "单个艺术家每天可发送到社区公告地址（设置 → 电子邮件）的最大消息数。可防止某一"
 "成员淹没其他所有成员的收件箱。默认值：3。"
 
-#: includes/Admin/SettingsFields.php:866
+#: includes/Admin/SettingsFields.php:918
 msgid "Community broadcast max length (characters)"
 msgstr "社区广播最大长度（字符）"
 
-#: includes/Admin/SettingsFields.php:873
+#: includes/Admin/SettingsFields.php:925
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -2880,11 +3078,11 @@ msgstr ""
 "泰语等）也同样公平。每位收件人的副本都会单独翻译，因此这也限制了一条消息在 "
 "AI 翻译调用上的最高成本。默认值：2000。硬性上限：20000，不受此设置影响。"
 
-#: includes/Admin/SettingsFields.php:904
+#: includes/Admin/SettingsFields.php:956
 msgid "Admin approval only (disable community voting)"
 msgstr "仅管理员批准（禁用社区投票）"
 
-#: includes/Admin/SettingsFields.php:909
+#: includes/Admin/SettingsFields.php:961
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -2901,40 +3099,40 @@ msgstr ""
 "按正常流程完成；只会阻止新投票开始。默认关闭——大多数社区希望保留现有的背书/投"
 "票系统。"
 
-#: includes/Admin/SettingsFields.php:914
+#: includes/Admin/SettingsFields.php:966
 msgid "Admission vote threshold (%)"
 msgstr "录取投票门槛（%）"
 
-#: includes/Admin/SettingsFields.php:919
+#: includes/Admin/SettingsFields.php:971
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
 msgstr "必须获得“赞成”票的活跃艺术家百分比。与下方的最低票数下限结合使用。"
 
-#: includes/Admin/SettingsFields.php:923
+#: includes/Admin/SettingsFields.php:975
 msgid "Admission minimum votes"
 msgstr "录取最低票数"
 
-#: includes/Admin/SettingsFields.php:927
+#: includes/Admin/SettingsFields.php:979
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr "无论上面的百分比如何，都必须达到的绝对最低赞成票数。"
 
-#: includes/Admin/SettingsFields.php:931
+#: includes/Admin/SettingsFields.php:983
 msgid "Voting window (days)"
 msgstr "投票窗口（天）"
 
-#: includes/Admin/SettingsFields.php:935
+#: includes/Admin/SettingsFields.php:987
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
 msgstr "申请保持开放的天数。如果在此期间未达到门槛，申请将被拒绝。"
 
-#: includes/Admin/SettingsFields.php:939
+#: includes/Admin/SettingsFields.php:991
 msgid "Resolved application retention (days)"
 msgstr "已处理申请保留期（天）"
 
-#: includes/Admin/SettingsFields.php:945
+#: includes/Admin/SettingsFields.php:997
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -2948,11 +3146,11 @@ msgstr ""
 "被封禁艺术家的简介/声明/作品集也会按相同时间表匿名化，但其电子邮件会被刻意保"
 "留，以便封禁仍可执行。默认值：180 天。"
 
-#: includes/Admin/SettingsFields.php:949
+#: includes/Admin/SettingsFields.php:1001
 msgid "After applying, send artists to"
 msgstr "申请后将艺术家发送到"
 
-#: includes/Admin/SettingsFields.php:953
+#: includes/Admin/SettingsFields.php:1005
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -2963,11 +3161,11 @@ msgstr ""
 "会被重定向到那里，而不是只看到一条内联确认消息。留空为“无”即可仅保留内联消"
 "息。"
 
-#: includes/Admin/SettingsFields.php:957
+#: includes/Admin/SettingsFields.php:1009
 msgid "Community size cap"
 msgstr "社区规模上限"
 
-#: includes/Admin/SettingsFields.php:961
+#: includes/Admin/SettingsFields.php:1013
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -2976,53 +3174,53 @@ msgstr ""
 "可接纳艺术家的最大数量。满员后，新申请将进入等待名单而不是被拒绝；一旦有空"
 "位，会按顺序接纳下一位。设为 0 表示不设上限。社区也可以投票更改此项。"
 
-#: includes/Admin/SettingsFields.php:965
+#: includes/Admin/SettingsFields.php:1017
 msgid "Cap-change co-signers required"
 msgstr "更改上限所需联署人"
 
-#: includes/Admin/SettingsFields.php:969
+#: includes/Admin/SettingsFields.php:1021
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
 msgstr "在将社区规模上限的提案提交为正式社区投票之前，需要多少艺术家联署。"
 
-#: includes/Admin/SettingsFields.php:973
+#: includes/Admin/SettingsFields.php:1025
 msgid "Cap-change vote window (days)"
 msgstr "更改上限投票窗口（天）"
 
-#: includes/Admin/SettingsFields.php:977
+#: includes/Admin/SettingsFields.php:1029
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
 msgstr ""
 "社区上限变更投票保持开放的天数。活跃艺术家中超过半数赞成即可通过新上限。"
 
-#: includes/Admin/SettingsFields.php:981
+#: includes/Admin/SettingsFields.php:1033
 msgid "Removal nominations required"
 msgstr "移除提名所需人数"
 
-#: includes/Admin/SettingsFields.php:987
+#: includes/Admin/SettingsFields.php:1039
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
 msgstr "开启社区移除投票前所需的艺术家提名数量。管理员可以绕过此门槛。"
 
-#: includes/Admin/SettingsFields.php:991
+#: includes/Admin/SettingsFields.php:1043
 msgid "Removal vote window (days)"
 msgstr "移除投票窗口（天）"
 
-#: includes/Admin/SettingsFields.php:997
+#: includes/Admin/SettingsFields.php:1049
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
 msgstr ""
 "社区移除投票保持开放的天数。活跃艺术家中多数（>50%）投赞成票，移除才会继续。"
 
-#: includes/Admin/SettingsFields.php:1001
+#: includes/Admin/SettingsFields.php:1053
 msgid "Invitation intro"
 msgstr "邀请介绍"
 
-#: includes/Admin/SettingsFields.php:1005
+#: includes/Admin/SettingsFields.php:1057
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3048,7 +3246,7 @@ msgstr ""
 "以通过发送电子邮件来更新、推广或移除你的作品。更多信息可访问 agnosis.art 网"
 "站。"
 
-#: includes/Admin/SettingsFields.php:1010
+#: includes/Admin/SettingsFields.php:1062
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3060,20 +3258,20 @@ msgstr ""
 "在此添加）。两到三个简短段落即可。这里是固定文案，不会像上面的通讯简介那样在"
 "使用后被清除——当邀请以非站点默认语言发送时会自动翻译。"
 
-#: includes/Admin/SettingsFields.php:1029
+#: includes/Admin/SettingsFields.php:1081
 msgid "Sender name"
 msgstr "发件人名称"
 
-#: includes/Admin/SettingsFields.php:1030
+#: includes/Admin/SettingsFields.php:1082
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr "显示为摘要邮件发件人的名称。留空则使用站点名称。"
 
-#: includes/Admin/SettingsFields.php:1034
+#: includes/Admin/SettingsFields.php:1086
 msgid "Sender email address"
 msgstr "发件人电子邮件地址"
 
-#: includes/Admin/SettingsFields.php:1036
+#: includes/Admin/SettingsFields.php:1088
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3086,11 +3284,11 @@ msgstr ""
 "是你域名下一个有效、可送达的地址（已配置 SPF/DKIM），否则邮件可能会被标记为垃"
 "圾邮件。"
 
-#: includes/Admin/SettingsFields.php:1040
+#: includes/Admin/SettingsFields.php:1092
 msgid "Auto-draft newsletter intros"
 msgstr "自动草拟新闻简报开头"
 
-#: includes/Admin/SettingsFields.php:1045
+#: includes/Admin/SettingsFields.php:1097
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3101,11 +3299,11 @@ msgstr ""
 "存到该新闻简报的开头字段，并给您发送邮件请您审核——除非您已经为该期写好了开"
 "头。禁用后，这两个开头字段都将保持为您上次留下的内容，始终如此。"
 
-#: includes/Admin/SettingsFields.php:1049
+#: includes/Admin/SettingsFields.php:1101
 msgid "Draft intro this many hours ahead"
 msgstr "提前多少小时草拟开头"
 
-#: includes/Admin/SettingsFields.php:1055
+#: includes/Admin/SettingsFields.php:1107
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3113,11 +3311,11 @@ msgstr ""
 "在期刊到期前多久，Agnosis 会建议一个由 AI 起草的开头。仅在启用上方的自动草拟"
 "时生效。默认值：24。"
 
-#: includes/Admin/SettingsFields.php:1059 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1111 includes/Newsletter/Scheduler.php:386
 msgid "Artist newsletter"
 msgstr "艺术家新闻简报"
 
-#: includes/Admin/SettingsFields.php:1062
+#: includes/Admin/SettingsFields.php:1114
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3125,22 +3323,22 @@ msgstr ""
 "已获准的艺术家会自动订阅（他们可在任一期内容中一键取消订阅）。社区摘要：近期"
 "活动、新成员、开放投票。"
 
-#: includes/Admin/SettingsFields.php:1066
+#: includes/Admin/SettingsFields.php:1118
 msgid "Artist newsletter frequency (days)"
 msgstr "艺术家新闻简报频率（天）"
 
-#: includes/Admin/SettingsFields.php:1072
+#: includes/Admin/SettingsFields.php:1124
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
 msgstr ""
 "默认 30 天，约等于每月一次。从上次发送之后经过这么多天后，会准备新的一期。"
 
-#: includes/Admin/SettingsFields.php:1076
+#: includes/Admin/SettingsFields.php:1128
 msgid "Artist newsletter intro"
 msgstr "艺术家新闻简报开头"
 
-#: includes/Admin/SettingsFields.php:1080
+#: includes/Admin/SettingsFields.php:1132
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3153,11 +3351,11 @@ msgstr ""
 "自动草拟一段，并先通过邮件请您审核——您可随时在此填写自己的内容以跳过自动草"
 "拟。"
 
-#: includes/Admin/SettingsFields.php:1084 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1136 includes/Newsletter/Scheduler.php:386
 msgid "Public newsletter"
 msgstr "公开通讯"
 
-#: includes/Admin/SettingsFields.php:1087
+#: includes/Admin/SettingsFields.php:1139
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3165,19 +3363,19 @@ msgstr ""
 "访客通过 agnosis/newsletter-signup 区块订阅（双重确认）。摘要：自上一期以来发"
 "布的新作品和活动。"
 
-#: includes/Admin/SettingsFields.php:1091
+#: includes/Admin/SettingsFields.php:1143
 msgid "Public newsletter frequency (days)"
 msgstr "公开通讯频率（天）"
 
-#: includes/Admin/SettingsFields.php:1097
+#: includes/Admin/SettingsFields.php:1149
 msgid "Default 30 ≈ monthly."
 msgstr "默认 30，约为每月一次。"
 
-#: includes/Admin/SettingsFields.php:1101
+#: includes/Admin/SettingsFields.php:1153
 msgid "Public newsletter intro"
 msgstr "公开通讯导语"
 
-#: includes/Admin/SettingsFields.php:1105
+#: includes/Admin/SettingsFields.php:1157
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3188,11 +3386,11 @@ msgstr ""
 "空，Agnosis 会在该期发送前大约一天自动根据最新内容草拟一段，并先发邮件请您审"
 "核——如需跳过，随时可在这里自行撰写。"
 
-#: includes/Admin/SettingsFields.php:1109
+#: includes/Admin/SettingsFields.php:1161
 msgid "Send batch size"
 msgstr "发送批次大小"
 
-#: includes/Admin/SettingsFields.php:1115
+#: includes/Admin/SettingsFields.php:1167
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3200,11 +3398,11 @@ msgstr ""
 "每 5 分钟 cron 触发时向多少收件人发送邮件。如果您的主机限制外发邮件，请调低；"
 "如果主机限制宽松，可调高以加快投递。"
 
-#: includes/Admin/SettingsFields.php:1119
+#: includes/Admin/SettingsFields.php:1171
 msgid "Self-hosting comfort threshold"
 msgstr "自托管舒适阈值"
 
-#: includes/Admin/SettingsFields.php:1125
+#: includes/Admin/SettingsFields.php:1177
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -3212,6 +3410,33 @@ msgid ""
 msgstr ""
 "仅供参考——即使超过此数量，自托管发送仍可继续工作。一旦确认的公开订阅者超过此"
 "数，本页面会显示提醒，建议改用邮件服务提供商（例如 Brevo 的免费层）。"
+
+#: includes/Admin/TagProposals.php:86
+msgid "AI-proposed tags awaiting review"
+msgstr "待审查的AI提议标签"
+
+#: includes/Admin/TagProposals.php:88
+msgid "Proposed tag"
+msgstr "提议标签"
+
+#: includes/Admin/TagProposals.php:136
+msgid ""
+"Reject this tag proposal for all matching submissions? This cannot be undone."
+msgstr "拒绝该标签提案适用于所有匹配的提交？此操作无法撤销。"
+
+#. translators: %d: number of submissions the approved tag was assigned to
+#: includes/Admin/TagProposals.php:453
+#, php-format
+msgid "Tag proposal approved and assigned to %d submission."
+msgid_plural "Tag proposal approved and assigned to %d submissions."
+msgstr[0] "标签提案已批准并分配给%d个提交。"
+
+#. translators: %d: number of submissions the rejected proposal was cleared from
+#: includes/Admin/TagProposals.php:466
+#, php-format
+msgid "Tag proposal rejected for %d submission."
+msgid_plural "Tag proposal rejected for %d submissions."
+msgstr[0] "标签提案已拒绝，适用于%d个提交。"
 
 #: includes/Admin/TaxonomyLanguageFilter.php:276
 msgid "Sync translations"
@@ -3299,7 +3524,7 @@ msgid ""
 "date."
 msgstr "同步完成:已创建 %1$d 个翻译,%2$d 种语言已是最新。"
 
-#: includes/AI/PromptConfig.php:230
+#: includes/AI/PromptConfig.php:268
 msgid ""
 "The artist sent no subject line or message with this submission — let the "
 "image speak entirely for itself."
@@ -4001,8 +4226,8 @@ msgid "Something went wrong. Please try again."
 msgstr "出了点问题。请再试一次。"
 
 #: includes/Artist/ContentEditor.php:247 includes/Artist/ContentEditor.php:943
-#: includes/Publishing/ReviewEndpoints.php:925
-#: includes/Publishing/ReviewEndpoints.php:942
+#: includes/Publishing/ReviewEndpoints.php:1064
+#: includes/Publishing/ReviewEndpoints.php:1081
 msgid "Authentication required."
 msgstr "需要身份验证。"
 
@@ -4033,7 +4258,7 @@ msgstr "已保存——翻译将在几分钟内更新。"
 
 #: includes/Artist/ContentEditor.php:445 includes/Artist/ContentEditor.php:446
 #: includes/Artist/ContentEditor.php:649 includes/Artist/ContentEditor.php:650
-#: includes/Publishing/PostCreator.php:2037
+#: includes/Publishing/PostCreator.php:2051
 msgid "Untitled"
 msgstr "未命名"
 
@@ -4092,7 +4317,7 @@ msgid "Unsupported field target."
 msgstr "不支持的字段目标。"
 
 #: includes/Artist/ContentEditor.php:1356
-#: includes/Publishing/SubmissionsPage.php:305
+#: includes/Publishing/SubmissionsPage.php:300
 msgid "Cancel"
 msgstr "取消"
 
@@ -4542,8 +4767,8 @@ msgstr "简介"
 #: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:178
 #: includes/Network/SubdomainNavigation.php:135
 #: includes/Network/SubdomainNavigation.php:364
-#: includes/Publishing/PostCreator.php:1046
-#: includes/Publishing/PostCreator.php:1077
+#: includes/Publishing/PostCreator.php:1055
+#: includes/Publishing/PostCreator.php:1086
 #: blocks/artist-breadcrumb/editor.js:210
 #: blocks/breadcrumb-icon-link/editor.js:89
 #: blocks/breadcrumb-icon-link/editor.js:132
@@ -4593,8 +4818,8 @@ msgid "Events"
 msgstr "活动"
 
 #: includes/Artist/Profile.php:92 includes/Artist/Profile.php:102
-#: includes/Publishing/PostCreator.php:1047
-#: includes/Publishing/PostCreator.php:1080
+#: includes/Publishing/PostCreator.php:1056
+#: includes/Publishing/PostCreator.php:1089
 msgid "Event"
 msgstr "活动"
 
@@ -4687,7 +4912,7 @@ msgid "© %1$s %2$s"
 msgstr "© %1$s %2$s"
 
 #: includes/Artist/Profile.php:840 includes/Artist/Profile.php:853
-#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:1089
+#: includes/Core/EmailFooter.php:69 includes/Publishing/PostCreator.php:1098
 msgid "Artwork"
 msgstr "艺术作品"
 
@@ -4839,7 +5064,7 @@ msgid "%d positive vote recorded so far."
 msgid_plural "%d positive votes recorded so far."
 msgstr[0] "目前已记录 %d 票赞成。"
 
-#: includes/Compat/LinguaForge.php:1926
+#: includes/Compat/LinguaForge.php:1784
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -4848,79 +5073,79 @@ msgstr ""
 "占位符——在创建此术语时，AI 翻译不可用或失败。请编辑名称以提供正确翻译，然后清"
 "除此说明。"
 
-#: includes/Compat/LinguaForge.php:3267
+#: includes/Compat/LinguaForge.php:3546
 msgid "is active and configured for"
 msgstr "已激活并为以下内容配置"
 
-#: includes/Compat/LinguaForge.php:3268
+#: includes/Compat/LinguaForge.php:3547
 msgid "Subdomain"
 msgstr "子域名"
 
-#: includes/Compat/LinguaForge.php:3269
+#: includes/Compat/LinguaForge.php:3548
 msgid "routing mode"
 msgstr "路由模式"
 
-#: includes/Compat/LinguaForge.php:3271
+#: includes/Compat/LinguaForge.php:3550
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
 msgstr "这与 Agnosis 艺术家子域名冲突——两个插件都会声明同一个子域名命名空间。"
 
-#: includes/Compat/LinguaForge.php:3272
+#: includes/Compat/LinguaForge.php:3551
 msgid "Artist subdomain routing is"
 msgstr "艺术家子域名路由"
 
-#: includes/Compat/LinguaForge.php:3273
+#: includes/Compat/LinguaForge.php:3552
 msgid "completely inactive"
 msgstr "完全未启用"
 
-#: includes/Compat/LinguaForge.php:3274
+#: includes/Compat/LinguaForge.php:3553
 msgid "until this is resolved."
 msgstr "直到此问题解决。"
 
-#: includes/Compat/LinguaForge.php:3276
+#: includes/Compat/LinguaForge.php:3555
 msgid "Fix: open"
 msgstr "修复：打开"
 
-#: includes/Compat/LinguaForge.php:3277
+#: includes/Compat/LinguaForge.php:3556
 msgid "Settings"
 msgstr "设置"
 
-#: includes/Compat/LinguaForge.php:3277
+#: includes/Compat/LinguaForge.php:3556
 msgid "Language Router"
 msgstr "语言路由器"
 
-#: includes/Compat/LinguaForge.php:3278
+#: includes/Compat/LinguaForge.php:3557
 msgid "and switch the URL strategy to"
 msgstr "并将 URL 策略切换为"
 
-#: includes/Compat/LinguaForge.php:3279
+#: includes/Compat/LinguaForge.php:3558
 msgid "Path prefix (subfolder)"
 msgstr "路径前缀（子文件夹）"
 
-#: includes/Compat/LinguaForge.php:3280
+#: includes/Compat/LinguaForge.php:3559
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
 msgstr "这是 LinguaForge 的默认设置，并允许艺术家子域名与语言子文件夹共存"
 
-#: includes/Compat/LinguaForge.php:3285
+#: includes/Compat/LinguaForge.php:3564
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — 艺术家子域名路由已禁用"
 
-#: includes/Compat/LinguaForge.php:3295
+#: includes/Compat/LinguaForge.php:3574
 msgid "Open LinguaForge Settings"
 msgstr "打开 LinguaForge 设置"
 
-#: includes/Core/Activator.php:919 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1001 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis 艺术家"
 
-#: includes/Core/Activator.php:1030 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1123 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "我的提交"
 
-#: includes/Core/Activator.php:1220
+#: includes/Core/Activator.php:1313
 msgid "Join"
 msgstr "加入"
 
@@ -4936,7 +5161,7 @@ msgstr "更新您的艺术家简介。"
 msgid "Announce an upcoming event."
 msgstr "发布即将举行的活动公告。"
 
-#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:1050
+#: includes/Core/EmailFooter.php:81 includes/Publishing/PostCreator.php:1059
 msgid "Replace"
 msgstr "替换"
 
@@ -4951,7 +5176,7 @@ msgid ""
 "title."
 msgstr "请求下架现有作品或活动——主题必须与其标题匹配。"
 
-#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:1052
+#: includes/Core/EmailFooter.php:89 includes/Publishing/PostCreator.php:1061
 msgid "Promote"
 msgstr "推广"
 
@@ -4972,8 +5197,8 @@ msgstr "仅照片"
 msgid "Publish a photo exactly as sent — no AI enhancement, no quality check."
 msgstr "按原样发布照片——不进行 AI 增强，不做质量检查。"
 
-#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:1048
-#: includes/Publishing/PostCreator.php:1071
+#: includes/Core/EmailFooter.php:97 includes/Publishing/PostCreator.php:1057
+#: includes/Publishing/PostCreator.php:1080
 msgid "Pure"
 msgstr "纯净"
 
@@ -5377,13 +5602,33 @@ msgstr "Webhook 请求时间戳缺失、格式错误或已过旧。"
 msgid "This webhook request has already been processed."
 msgstr "此 webhook 请求已经处理过。"
 
-#: includes/Network/ActivityPub.php:245
+#: includes/Network/ActivityPub.php:267
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:1226
+#. translators: %d: number of likes.
+#: includes/Network/ActivityPub.php:677
+#, php-format
+msgid "♥ %d like"
+msgid_plural "♥ %d likes"
+msgstr[0] "♥ %d 个赞"
+
+#. translators: %d: number of boosts.
+#: includes/Network/ActivityPub.php:689
+#, php-format
+msgid "⟲ %d boost"
+msgid_plural "⟲ %d boosts"
+msgstr[0] "⟲ %d 个提升"
+
+#: includes/Network/ActivityPub.php:1402
 msgid "Sensitive content"
 msgstr "Sensitive content"
+
+#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
+#: includes/Network/ActivityPub.php:1567
+#, php-format
+msgid "Also available in: %s"
+msgstr "也可在以下语言中获取：%s"
 
 #: includes/Network/HttpSignature.php:158
 msgid "Signature keyId does not belong to the activity actor."
@@ -6077,7 +6322,7 @@ msgid "Looks great — Publish it"
 msgstr "看起来不错——发布它"
 
 #: includes/Publishing/Notification.php:1022
-#: includes/Publishing/SubmissionsPage.php:257
+#: includes/Publishing/SubmissionsPage.php:260
 msgid "Discard"
 msgstr "舍弃"
 
@@ -6450,24 +6695,24 @@ msgstr "你之前的投稿已保存在你的投稿页面中，方便你回看当
 msgid "View submissions →"
 msgstr "查看投稿 →"
 
-#: includes/Publishing/PostCreator.php:1049
-#: includes/Publishing/PostCreator.php:1074
+#: includes/Publishing/PostCreator.php:1058
+#: includes/Publishing/PostCreator.php:1083
 msgid "Photo"
 msgstr "照片"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:2340
+#: includes/Publishing/PostCreator.php:2354
 #, php-format
 msgid "%s (original)"
 msgstr "%s（原作）"
 
 #. translators: %s is the artwork title.
-#: includes/Publishing/PostCreator.php:2487
+#: includes/Publishing/PostCreator.php:2501
 #, php-format
 msgid "%s (poster frame)"
 msgstr "%s（装裱框）"
 
-#: includes/Publishing/PostCreator.php:2967
+#: includes/Publishing/PostCreator.php:3060
 msgid "Failed to insert attachment."
 msgstr "插入附件失败。"
 
@@ -6648,7 +6893,7 @@ msgid "Yes, remove it"
 msgstr "是的，移除它"
 
 #: includes/Publishing/ReviewConfirm.php:1085
-#: includes/Publishing/SubmissionsPage.php:268
+#: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "标题"
 
@@ -6673,7 +6918,7 @@ msgid ""
 msgstr "请在下方进行任何最终修改，或者保持原样，按草稿内容原样发布。"
 
 #: includes/Publishing/ReviewConfirm.php:1137
-#: includes/Publishing/SubmissionsPage.php:248
+#: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "发布它"
 
@@ -6681,35 +6926,35 @@ msgstr "发布它"
 msgid "biography"
 msgstr "传记"
 
-#: includes/Publishing/ReviewEndpoints.php:104
-#: includes/Publishing/ReviewEndpoints.php:185
-#: includes/Publishing/ReviewEndpoints.php:217
+#: includes/Publishing/ReviewEndpoints.php:107
+#: includes/Publishing/ReviewEndpoints.php:187
+#: includes/Publishing/ReviewEndpoints.php:219
 msgid "Submission not found."
 msgstr "未找到提交。"
 
-#: includes/Publishing/ReviewEndpoints.php:113
-#: includes/Publishing/ReviewEndpoints.php:194
-#: includes/Publishing/ReviewEndpoints.php:226
+#: includes/Publishing/ReviewEndpoints.php:116
+#: includes/Publishing/ReviewEndpoints.php:196
+#: includes/Publishing/ReviewEndpoints.php:228
 msgid "This submission is not awaiting review."
 msgstr "此提交未在等待审核。"
 
-#: includes/Publishing/ReviewEndpoints.php:430
+#: includes/Publishing/ReviewEndpoints.php:451
 msgid "The original published item could not be found."
 msgstr "未能找到原始已发布项目。"
 
-#: includes/Publishing/ReviewEndpoints.php:958
+#: includes/Publishing/ReviewEndpoints.php:1097
 msgid "You do not have permission to review this submission."
 msgstr "您没有审核此提交的权限。"
 
-#: includes/Publishing/ReviewEndpoints.php:983
+#: includes/Publishing/ReviewEndpoints.php:1122
 msgid "Review link not found or already used."
 msgstr "审核链接未找到或已被使用。"
 
-#: includes/Publishing/ReviewEndpoints.php:991
+#: includes/Publishing/ReviewEndpoints.php:1130
 msgid "Invalid review token."
 msgstr "无效的审核令牌。"
 
-#: includes/Publishing/ReviewEndpoints.php:999
+#: includes/Publishing/ReviewEndpoints.php:1138
 msgid "This review link has expired. Please log in to manage your submissions."
 msgstr "此审核链接已过期。请登录以管理您的提交。"
 
@@ -6717,84 +6962,80 @@ msgstr "此审核链接已过期。请登录以管理您的提交。"
 msgid "No submissions awaiting review."
 msgstr "没有待审核的提交。"
 
-#: includes/Publishing/SubmissionsPage.php:252
+#: includes/Publishing/SubmissionsPage.php:255
 msgid "Make changes"
 msgstr "进行修改"
 
-#: includes/Publishing/SubmissionsPage.php:277
+#: includes/Publishing/SubmissionsPage.php:280
 msgid "One-line description"
 msgstr "一行描述"
 
-#: includes/Publishing/SubmissionsPage.php:285
+#: includes/Publishing/SubmissionsPage.php:288
 msgid "Description"
 msgstr "描述"
 
-#: includes/Publishing/SubmissionsPage.php:293
-msgid "Tags (comma-separated)"
-msgstr "标签（逗号分隔）"
-
-#: includes/Publishing/SubmissionsPage.php:302
+#: includes/Publishing/SubmissionsPage.php:297
 msgid "Save &amp; Publish"
 msgstr "保存并发布"
 
-#: includes/Publishing/SubmissionsPage.php:390
+#: includes/Publishing/SubmissionsPage.php:385
 msgid "Publishing…"
 msgstr "正在发布…"
 
-#: includes/Publishing/SubmissionsPage.php:398
-#: includes/Publishing/SubmissionsPage.php:470
+#: includes/Publishing/SubmissionsPage.php:393
+#: includes/Publishing/SubmissionsPage.php:465
 msgid "Published ✓"
 msgstr "已发布 ✓"
+
+#: includes/Publishing/SubmissionsPage.php:395
+#: includes/Publishing/SubmissionsPage.php:420
+#: includes/Publishing/SubmissionsPage.php:467
+msgid "Something went wrong."
+msgstr "出了点问题。"
 
 #: includes/Publishing/SubmissionsPage.php:400
 #: includes/Publishing/SubmissionsPage.php:425
 #: includes/Publishing/SubmissionsPage.php:472
-msgid "Something went wrong."
-msgstr "出了点问题。"
-
-#: includes/Publishing/SubmissionsPage.php:405
-#: includes/Publishing/SubmissionsPage.php:430
-#: includes/Publishing/SubmissionsPage.php:477
 msgid "Could not connect. Please try again."
 msgstr "无法连接。请重试。"
 
-#: includes/Publishing/SubmissionsPage.php:413
+#: includes/Publishing/SubmissionsPage.php:408
 msgid "Discard this submission? This cannot be undone."
 msgstr "要丢弃此提交吗？这无法撤销。"
 
-#: includes/Publishing/SubmissionsPage.php:415
+#: includes/Publishing/SubmissionsPage.php:410
 msgid "Discarding…"
 msgstr "正在丢弃…"
 
-#: includes/Publishing/SubmissionsPage.php:423
+#: includes/Publishing/SubmissionsPage.php:418
 msgid "Discarded."
 msgstr "已丢弃。"
 
-#: includes/Publishing/SubmissionsPage.php:460
+#: includes/Publishing/SubmissionsPage.php:455
 msgid "Saving and publishing…"
 msgstr "正在保存并发布…"
 
-#: includes/Publishing/SubmissionsPage.php:580
+#: includes/Publishing/SubmissionsPage.php:575
 msgid "Log in to view your submissions"
 msgstr "登录以查看您的提交"
 
-#: includes/Publishing/SubmissionsPage.php:585
+#: includes/Publishing/SubmissionsPage.php:580
 msgid "Username or email address"
 msgstr "用户名或电子邮件地址"
 
-#: includes/Publishing/SubmissionsPage.php:586
+#: includes/Publishing/SubmissionsPage.php:581
 msgid "Password"
 msgstr "密码"
 
-#: includes/Publishing/SubmissionsPage.php:587
+#: includes/Publishing/SubmissionsPage.php:582
 msgid "Log in"
 msgstr "登录"
 
-#: includes/Publishing/SubmissionsPage.php:589
+#: includes/Publishing/SubmissionsPage.php:584
 msgid "Remember me"
 msgstr "记住我"
 
-#: includes/Publishing/SubmissionsPage.php:595
+#: includes/Publishing/SubmissionsPage.php:590
 msgid "Forgot your password?"
 msgstr "忘记密码？"
 
@@ -6978,6 +7219,10 @@ msgstr "✦ Agnosis 图库概览 — 服务器端渲染"
 msgid "columns · proportional · random daily order"
 msgstr "列 · 按比例 · 每日随机顺序"
 
+#: blocks/interaction-counts/editor.js:33
+msgid "♥ 12 · ⟲ 4"
+msgstr "♥ 12 · ⟲ 4"
+
 #: blocks/join/editor.js:32
 msgid "Join Agnosis"
 msgstr "加入 Agnosis"
@@ -7073,9 +7318,9 @@ msgstr "subdomain"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
 #: blocks/artwork-copyright/block.json blocks/breadcrumb-icon-link/block.json
-#: blocks/contact-form/block.json blocks/join/block.json
-#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
-#: blocks/submissions/block.json
+#: blocks/contact-form/block.json blocks/interaction-counts/block.json
+#: blocks/join/block.json blocks/newsletter-popover/block.json
+#: blocks/newsletter-signup/block.json blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
 msgstr "agnosis"
@@ -7222,6 +7467,54 @@ msgctxt "block keyword"
 msgid "overview"
 msgstr "概览"
 
+#: blocks/interaction-counts/block.json
+msgctxt "block title"
+msgid "Interaction Counts"
+msgstr "互动计数"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block description"
+msgid ""
+"Renders how many times this artwork has been liked and boosted across the "
+"fediverse — two small, independent counts. Renders nothing on an artwork "
+"with no interactions yet, or off an agnosis_artwork post."
+msgstr "渲染该艺术作品在联邦生态中被点赞和提升的次数——两个独立的小计数。没有互动的艺术作品，或从agnosis_artwork帖子上则不渲染任何内容。"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "like"
+msgstr "赞"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "likes"
+msgstr "赞"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "boost"
+msgstr "提升"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "boosts"
+msgstr "提升"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "announce"
+msgstr "公告"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "federation"
+msgstr "联邦"
+
+#: blocks/interaction-counts/block.json
+msgctxt "block keyword"
+msgid "activitypub"
+msgstr "活动pub"
+
 #: blocks/join/block.json
 msgctxt "block title"
 msgid "Join Agnosis"
@@ -7335,6 +7628,9 @@ msgstr "提交"
 msgctxt "block keyword"
 msgid "review"
 msgstr "审核"
+
+#~ msgid "Tags (comma-separated)"
+#~ msgstr "标签（逗号分隔）"
 
 #~ msgid ""
 #~ "Retention varies by data type; see this site's administrator for "

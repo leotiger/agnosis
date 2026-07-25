@@ -1,27 +1,34 @@
 <?php
 /**
- * On-demand "sync medium assignment to translated siblings" — both a
+ * On-demand "sync medium/tags assignment to translated siblings" — both a
  * per-artwork meta box (agnosis_artwork edit screen) and a bulk sweep
  * (agnosis_artwork list screen) — plus scoping the Mediums checklist itself
  * (Quick Edit and the classic edit-screen checklist meta box, both of which
  * render via core's wp_terms_checklist()) to one language at a time.
  *
- * Compat\LinguaForge::on_medium_terms_changed() already re-propagates a
- * primary-language artwork's medium onto its already-translated siblings
+ * Compat\LinguaForge::on_term_assignment_changed() already re-propagates a
+ * primary-language post's medium/tags onto its already-translated siblings
  * AUTOMATICALLY, but only reactively — it fires on a save that actually
- * changes the medium. It does nothing for an artwork/sibling pair that was
+ * changes the assignment. It does nothing for a post/sibling pair that was
  * ALREADY out of sync before that feature existed, or drifted for any
  * other reason. Requested directly as "a real sync button" after the
  * automatic-only version shipped and turned out not to cover that case —
  * the immediate one being the Catalan-testing data-integrity incident this
  * whole area exists to help clean up (a batch of artwork/sibling pairs
- * whose medium was never correctly propagated in the first place).
+ * whose medium was never correctly propagated in the first place). The
+ * tags side of both buttons was added in TAG-REDESIGN.md T3(c), once
+ * `post_tag` gained the same trid-linked translation machinery
+ * `agnosis_medium` already had (T3(a)) — this class stays artwork-scoped
+ * even for its tags option (tags themselves span every Agnosis CPT, but
+ * this specific UI only ever lived on the artwork screens, and nothing in
+ * T3(c) asked for biography/event equivalents).
  *
  * Both actions call the SAME underlying methods
- * (Compat\LinguaForge::sync_medium_assignment_to_siblings() /
- * sync_all_medium_assignments()) that on_medium_terms_changed() itself now
- * delegates to — one shared implementation, three ways to trigger it
- * (automatic on edit, one artwork on demand, all artwork on demand).
+ * (Compat\LinguaForge::sync_term_assignment_to_siblings() /
+ * sync_all_term_assignments(), taxonomy-parameterized since T3(c)) that
+ * on_term_assignment_changed() itself now delegates to — one shared
+ * implementation per taxonomy, three ways to trigger it (automatic on
+ * edit, one artwork on demand, all artwork on demand).
  *
  * Language scoping for the Mediums checklist (register_edit_screen_scoping() /
  * register_list_screen_scoping(), 2026-07-20) closes a gap in all of that:
@@ -34,7 +41,7 @@
  * translated). This isn't just cosmetic: with every language mixed in,
  * nothing stopped an editor from checking a WRONG-language term directly
  * onto a PRIMARY-language artwork, which
- * sync_medium_assignment_to_siblings()/sync_taxonomy() would then treat as
+ * sync_term_assignment_to_siblings()/sync_taxonomy() would then treat as
  * if it were genuine primary vocabulary — translating an already-translated
  * term instead of the real one, corrupting exactly the propagation this
  * class exists to keep correct.
@@ -104,7 +111,7 @@ class ArtworkMediumSync {
 	 * `$_GET['post']` gives a real post ID on post.php; post-new.php has
 	 * none yet, so resolve_post_language(0) falls back to the primary-
 	 * language bucket — the safe default, since that's where a checked box
-	 * actually needs to land for sync_medium_assignment_to_siblings() to
+	 * actually needs to land for sync_term_assignment_to_siblings() to
 	 * treat it as genuine primary vocabulary rather than accidentally
 	 * letting a translated-language term get checked directly onto what
 	 * will become a primary-language artwork.
@@ -165,7 +172,7 @@ class ArtworkMediumSync {
 	/**
 	 * Resolves a specific post's own language — same
 	 * `_agnosis_native_lang`-then-`_lf_lang` priority
-	 * Compat\LinguaForge::on_medium_terms_changed() already uses, for the
+	 * Compat\LinguaForge::on_term_assignment_changed() already uses, for the
 	 * same reason documented there: `_agnosis_native_lang` is written at
 	 * intake (before a post is ever published), `_lf_lang` only once
 	 * `agnosis_post_published` fires — reading only the latter would show
@@ -251,11 +258,11 @@ class ArtworkMediumSync {
 		$post_lang    = sanitize_key( (string) get_post_meta( $post->ID, '_lf_lang', true ) );
 
 		if ( '' === $primary_lang || $post_lang !== $primary_lang ) {
-			esc_html_e( "This artwork's medium is translated from its primary-language original — nothing to sync from here.", 'agnosis' );
+			esc_html_e( "This artwork's medium/tags are translated from its primary-language original — nothing to sync from here.", 'agnosis' );
 			return;
 		}
 
-		$url = wp_nonce_url(
+		$medium_url = wp_nonce_url(
 			add_query_arg(
 				[
 					'action'  => 'agnosis_sync_medium_assignment',
@@ -265,10 +272,27 @@ class ArtworkMediumSync {
 			),
 			'agnosis_sync_medium_assignment_' . $post->ID
 		);
+		// TAG-REDESIGN.md T3(c) — tags option alongside the pre-existing
+		// medium button, same gating (primary-language post), same pattern,
+		// its own nonce action/query var so the two never collide.
+		$tags_url = wp_nonce_url(
+			add_query_arg(
+				[
+					'action'  => 'agnosis_sync_tag_assignment',
+					'post_id' => $post->ID,
+				],
+				admin_url( 'admin-post.php' )
+			),
+			'agnosis_sync_tag_assignment_' . $post->ID
+		);
 		?>
 		<p><?php esc_html_e( "Push this artwork's current medium onto every already-translated sibling post.", 'agnosis' ); ?></p>
 		<p>
-			<a href="<?php echo esc_url( $url ); ?>" class="button"><?php esc_html_e( 'Sync medium to translations', 'agnosis' ); ?></a>
+			<a href="<?php echo esc_url( $medium_url ); ?>" class="button"><?php esc_html_e( 'Sync medium to translations', 'agnosis' ); ?></a>
+		</p>
+		<p><?php esc_html_e( "Push this artwork's current tags onto every already-translated sibling post.", 'agnosis' ); ?></p>
+		<p>
+			<a href="<?php echo esc_url( $tags_url ); ?>" class="button"><?php esc_html_e( 'Sync tags to translations', 'agnosis' ); ?></a>
 		</p>
 		<?php
 	}
@@ -282,7 +306,7 @@ class ArtworkMediumSync {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
 		}
 
-		$synced = ( new LinguaForge() )->sync_medium_assignment_to_siblings( $post_id );
+		$synced = ( new LinguaForge() )->sync_term_assignment_to_siblings( $post_id, 'agnosis_medium' );
 
 		$edit_link = get_edit_post_link( $post_id, 'raw' );
 		wp_safe_redirect(
@@ -315,6 +339,55 @@ class ArtworkMediumSync {
 		wp_admin_notice( $message, [ 'type' => $synced > 0 ? 'success' : 'info' ] );
 	}
 
+	/**
+	 * Tags analogue of handle_sync() — TAG-REDESIGN.md T3(c). Same nonce/
+	 * capability/redirect pattern, its own query var
+	 * (`agnosis_tags_synced`) so the two notices never collide when both
+	 * happen to be present (they can't in practice — each redirect only
+	 * ever carries its own var — but kept fully independent regardless).
+	 */
+	public function handle_sync_tags(): void {
+		$post_id = absint( wp_unslash( $_GET['post_id'] ?? 0 ) );
+
+		check_admin_referer( 'agnosis_sync_tag_assignment_' . $post_id );
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$synced = ( new LinguaForge() )->sync_term_assignment_to_siblings( $post_id, 'post_tag' );
+
+		$edit_link = get_edit_post_link( $post_id, 'raw' );
+		wp_safe_redirect(
+			add_query_arg( [ 'agnosis_tags_synced' => $synced ], $edit_link ? $edit_link : admin_url() )
+		);
+		exit;
+	}
+
+	/**
+	 * Renders the "pushed to N sibling(s)" notice after handle_sync_tags()'s
+	 * redirect back to the artwork edit screen it started from.
+	 */
+	public function maybe_render_single_tags_notice(): void {
+		global $pagenow;
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only courtesy notice reflecting the redirect this same class just performed after its own nonce-checked action, no state change here.
+		if ( 'post.php' !== $pagenow || ! isset( $_GET['agnosis_tags_synced'] ) ) {
+			return;
+		}
+
+		$synced = (int) $_GET['agnosis_tags_synced'];
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$message = sprintf(
+			/* translators: %d: number of translated sibling posts the tags were pushed to */
+			esc_html__( 'Tags pushed to %d translated sibling post(s).', 'agnosis' ),
+			$synced
+		);
+
+		wp_admin_notice( $message, [ 'type' => $synced > 0 ? 'success' : 'info' ] );
+	}
+
 	// -------------------------------------------------------------------------
 	// Bulk (artwork list screen)
 	// -------------------------------------------------------------------------
@@ -334,16 +407,28 @@ class ArtworkMediumSync {
 			return;
 		}
 
-		$url = wp_nonce_url(
+		$medium_url = wp_nonce_url(
 			add_query_arg( [ 'action' => 'agnosis_sync_all_medium_assignments' ], admin_url( 'admin-post.php' ) ),
 			'agnosis_sync_all_medium_assignments'
 		);
+		// TAG-REDESIGN.md T3(c) — tags option alongside the pre-existing bulk
+		// medium action, same gating/confirm-dialog pattern, its own nonce
+		// action so the two never collide.
+		$tags_url = wp_nonce_url(
+			add_query_arg( [ 'action' => 'agnosis_sync_all_tag_assignments' ], admin_url( 'admin-post.php' ) ),
+			'agnosis_sync_all_tag_assignments'
+		);
 		?>
 		<a
-			href="<?php echo esc_url( $url ); ?>"
+			href="<?php echo esc_url( $medium_url ); ?>"
 			class="button"
 			onclick="return confirm( '<?php echo esc_js( __( 'Push every primary-language artwork\'s current medium onto its translated siblings? This can take a moment on a large catalog.', 'agnosis' ) ); ?>' );"
 		><?php esc_html_e( 'Sync all medium assignments', 'agnosis' ); ?></a>
+		<a
+			href="<?php echo esc_url( $tags_url ); ?>"
+			class="button"
+			onclick="return confirm( '<?php echo esc_js( __( 'Push every primary-language artwork\'s current tags onto its translated siblings? This can take a moment on a large catalog.', 'agnosis' ) ); ?>' );"
+		><?php esc_html_e( 'Sync all tag assignments', 'agnosis' ); ?></a>
 		<?php
 	}
 
@@ -354,13 +439,13 @@ class ArtworkMediumSync {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
 		}
 
-		$result = ( new LinguaForge() )->sync_all_medium_assignments();
+		$result = ( new LinguaForge() )->sync_all_term_assignments( 'agnosis_medium' );
 
 		wp_safe_redirect(
 			add_query_arg(
 				[
 					'post_type'                        => 'agnosis_artwork',
-					'agnosis_medium_sync_all_artworks' => $result['artworks'],
+					'agnosis_medium_sync_all_artworks' => $result['posts'],
 					'agnosis_medium_sync_all_synced'   => $result['synced'],
 				],
 				admin_url( 'edit.php' )
@@ -387,6 +472,62 @@ class ArtworkMediumSync {
 			/* translators: 1: number of primary-language artworks processed, 2: number of translated sibling posts a medium was pushed to */
 			esc_html__( 'Sync complete: %1$d primary-language artwork(s) processed, medium pushed to %2$d sibling post(s).', 'agnosis' ),
 			$artworks,
+			$synced
+		);
+
+		wp_admin_notice( $message, [ 'type' => 'success' ] );
+	}
+
+	/**
+	 * Tags analogue of handle_sync_all() — TAG-REDESIGN.md T3(c). Note the
+	 * bulk sweep still only walks the ARTWORK list screen (this whole class
+	 * is artwork-scoped, per the class docblock) even though `post_tag`
+	 * itself spans every Agnosis CPT — `sync_all_term_assignments( 'post_tag' )`
+	 * internally sweeps every eligible CPT's PUBLISHED primary-language
+	 * posts regardless of which screen triggered it, so biography/event
+	 * tags still get swept by this one button; there just isn't a separate
+	 * button on THEIR list screens.
+	 */
+	public function handle_sync_all_tags(): void {
+		check_admin_referer( 'agnosis_sync_all_tag_assignments' );
+
+		if ( ! current_user_can( 'edit_others_posts' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
+		}
+
+		$result = ( new LinguaForge() )->sync_all_term_assignments( 'post_tag' );
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'post_type'                      => 'agnosis_artwork',
+					'agnosis_tags_sync_all_posts'    => $result['posts'],
+					'agnosis_tags_sync_all_synced'   => $result['synced'],
+				],
+				admin_url( 'edit.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Renders the "N posts processed, M siblings synced" notice after
+	 * handle_sync_all_tags()'s redirect back to the artwork list screen.
+	 */
+	public function maybe_render_bulk_tags_notice(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only courtesy notice reflecting the redirect this same class just performed after its own nonce-checked action, no state change here.
+		if ( ! isset( $_GET['agnosis_tags_sync_all_posts'], $_GET['agnosis_tags_sync_all_synced'] ) ) {
+			return;
+		}
+
+		$posts  = (int) $_GET['agnosis_tags_sync_all_posts'];
+		$synced = (int) $_GET['agnosis_tags_sync_all_synced'];
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		$message = sprintf(
+			/* translators: 1: number of primary-language posts processed, 2: number of translated sibling posts tags were pushed to */
+			esc_html__( 'Sync complete: %1$d primary-language post(s) processed, tags pushed to %2$d sibling post(s).', 'agnosis' ),
+			$posts,
 			$synced
 		);
 

@@ -35,6 +35,7 @@ namespace Agnosis\Tests\Integration\AI;
 
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\Providers\Anthropic;
+use Agnosis\AI\SubmissionTranslator;
 
 class AnthropicDescribeTest extends \WP_UnitTestCase {
 
@@ -528,7 +529,17 @@ class AnthropicDescribeTest extends \WP_UnitTestCase {
 		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
 
 		$payload = json_decode( (string) $captured['body'], true );
-		$this->assertSame( PromptConfig::secondary_system_prompt(), $payload['system'] ?? '' );
+		// TAG-REDESIGN.md T1: the provider now passes the live existing-tags
+		// vocabulary and the resolved primary-language name (both wired back
+		// in 2026-07-25) — the expected prompt has to be built the same way
+		// the provider itself builds it, not with secondary_system_prompt()'s
+		// bare defaults, which now diverges (no existing tags on a fresh test
+		// DB, but a real resolved language name instead of the "the site's
+		// primary language" fallback).
+		$this->assertSame(
+			PromptConfig::secondary_system_prompt( PromptConfig::existing_tags(), SubmissionTranslator::primary_language_name() ),
+			$payload['system'] ?? ''
+		);
 		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (2500).' );
 		$this->assertSame( 'submit_secondary_image_description', $payload['tools'][0]['name'] ?? null );
 		$this->assertSame(

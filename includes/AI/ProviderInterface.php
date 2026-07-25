@@ -28,10 +28,21 @@ interface ProviderInterface {
 	 * @param string $artist_prompt  The artist's own description / notes.
 	 * @param string $native_lang    The artist's own declared language (ISO
 	 *                               639-1), resolved once by
-	 *                               Pipeline::process() and threaded through
-	 *                               to build PromptConfig::existing_tags_for_language() —
-	 *                               '' when unknown, in which case the
-	 *                               existing-tags nudge is simply omitted.
+	 *                               Pipeline::process() and threaded through.
+	 *                               Still unconsumed by any provider — it fed
+	 *                               the per-language existing-tags nudge
+	 *                               removed in TAG-REDESIGN.md's T0
+	 *                               demolition, and T1's replacement
+	 *                               (PromptConfig::existing_tags(),
+	 *                               SubmissionTranslator::primary_language_name())
+	 *                               is a single site-wide vocabulary that
+	 *                               doesn't need the artist's OWN language at
+	 *                               all — resolved_system_prompt() reads the
+	 *                               SITE's primary language instead. Kept on
+	 *                               the signature only because build_artist_context()'s
+	 *                               reply-language directive (Pipeline.php)
+	 *                               still needs it for title/excerpt/body. ''
+	 *                               when unknown.
 	 *
 	 * @return DescriptionResult
 	 */

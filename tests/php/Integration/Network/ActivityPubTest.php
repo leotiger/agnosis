@@ -52,6 +52,9 @@ namespace Agnosis\Tests\Integration\Network;
 
 use Agnosis\Core\Logger;
 use Agnosis\Network\ActivityPub;
+use Agnosis\Tests\Integration\Support\FakeLinguaForge;
+
+require_once __DIR__ . '/../Compat/Stubs/lf_global_stubs.php';
 
 class ActivityPubTest extends \WP_UnitTestCase {
 
@@ -66,6 +69,7 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		parent::setUp();
 		delete_option( 'agnosis_private_key' );
 		delete_option( 'agnosis_ap_tombstones' );
+		FakeLinguaForge::reset();
 		// agnosis_followers / agnosis_ap_delivery_queue are real custom
 		// tables, not options — WP_UnitTestCase's per-test transaction
 		// rollback clears them the same way it already does for
@@ -74,6 +78,7 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 	protected function tearDown(): void {
 		unset( $_SERVER['HTTP_ACCEPT'] );
+		FakeLinguaForge::reset();
 
 		// 2026-07-24 fix: several tests in this class (test_note_id_equals_
 		// permalink_under_pretty_permalinks, test_inbox_like_resolves_the_
@@ -783,6 +788,32 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertNull( ( new ActivityPub() )->singular_activity_json() );
 	}
 
+	public function test_singular_activity_json_serves_a_language_siblings_own_note(): void {
+		// F2 acceptance criterion: a sibling's own permalink dereferences to
+		// its own Note. singular_activity_json() has never had a language
+		// guard — this just pins that fact directly for the sibling case,
+		// so a future guard added elsewhere can't silently regress F2.
+		update_option( 'agnosis_activitypub_enabled', true );
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id = self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Übersetzter Titel',
+		] );
+		update_post_meta( $post_id, '_lf_lang', 'de' );
+
+		$this->go_to( get_permalink( $post_id ) );
+		$_SERVER['HTTP_ACCEPT'] = 'application/activity+json';
+
+		$json = ( new ActivityPub() )->singular_activity_json();
+
+		$this->assertNotNull( $json, 'A language sibling must dereference to its own Note, not a 404/HTML fallback.' );
+		$note = json_decode( $json, true );
+		$this->assertSame( 'Note', $note['type'] );
+		$this->assertSame( get_permalink( $post_id ), $note['id'] );
+		$this->assertSame( 'de', $note['contentMap'] === null ? null : array_key_first( $note['contentMap'] ), 'The sibling\'s own Note must carry its own language in contentMap (F1), confirming it is genuinely the sibling\'s Note and not the primary\'s.' );
+	}
+
 	// -------------------------------------------------------------------------
 	// Ninth audit §3e — lifecycle federation: Delete + Tombstone (410), Update.
 	// These drive the REAL WordPress lifecycle (wp_trash_post, wp_delete_post,
@@ -957,7 +988,23 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertCount( 0, $deliveries );
 	}
 
-	public function test_language_sibling_lifecycle_does_not_federate(): void {
+	// F2: "no Creates for siblings yet" is a fact about WHERE
+	// agnosis_post_published fires (ReviewEndpoints.php:405, exclusively
+	// from the primary post's own publish/approval flow — never re-fired
+	// for a Lingua Forge fan-out sibling), not a guard inside broadcast()
+	// itself. broadcast() has no sibling-specific check and never needed
+	// one: if this action WERE fired for a sibling post id, it would
+	// broadcast a Create for it exactly like any other post. That call-site
+	// scoping is exercised by the existing ReviewEndpoints/PostCreator
+	// test suites (e.g. PostCreatorMergeRedraftsPublishedTargetTest's own
+	// $published_fired assertions), not re-tested here — a test that
+	// manually do_action()'s the hook for a sibling would just prove
+	// broadcast() delivers on demand, which is already known and correct.
+
+	public function test_language_sibling_edit_federates_update(): void {
+		// F2: Update is no longer primary-only. A sibling's Note is already
+		// dereferenceable (content negotiation has no language guard), so an
+		// editorial change to it must push its own Update.
 		[ $post_id ] = $this->published_artwork_with_follower();
 		update_option( 'linguaforge_primary_language', 'en' );
 		update_post_meta( $post_id, '_lf_lang', 'de' ); // A machine-translated sibling.
@@ -966,10 +1013,30 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->mock_inbox_collect( $deliveries );
 
 		wp_update_post( [ 'ID' => $post_id, 'post_title' => 'Übersetzter Titel' ] );
+
+		$this->assertCount( 1, $deliveries, 'F2: a sibling edit must federate its own Update.' );
+		$this->assertSame( 'Update', $deliveries[0]['type'] );
+		$this->assertSame( 'Übersetzter Titel', $deliveries[0]['object']['name'] );
+	}
+
+	public function test_language_sibling_delete_federates_and_tombstones(): void {
+		// F2: Delete/tombstone is no longer primary-only either. Deleting a
+		// dereferenceable sibling must both push Delete and record its own
+		// tombstone — otherwise a stale sibling Note would keep serving 200.
+		[ $post_id, $object_id ] = $this->published_artwork_with_follower();
+		update_option( 'linguaforge_primary_language', 'en' );
+		update_post_meta( $post_id, '_lf_lang', 'de' ); // A machine-translated sibling.
+		$slug = get_post( $post_id )->post_name;
+
+		$deliveries = [];
+		$this->mock_inbox_collect( $deliveries );
+
 		wp_trash_post( $post_id );
 
-		$this->assertCount( 0, $deliveries, 'Create only ever fires for the primary post — Delete/Update must mirror that scope.' );
-		$this->assertSame( [], get_option( 'agnosis_ap_tombstones', [] ), 'A sibling was never federated, so it must not be tombstoned either.' );
+		$this->assertCount( 1, $deliveries, 'F2: a sibling delete must federate its own Delete.' );
+		$this->assertSame( 'Delete', $deliveries[0]['type'] );
+		$this->assertSame( $object_id, $deliveries[0]['object']['id'] );
+		$this->assertArrayHasKey( $slug, get_option( 'agnosis_ap_tombstones', [] ), 'F2: a deleted sibling must be tombstoned by its own slug so its permalink serves 410 thereafter.' );
 	}
 
 	public function test_singular_activity_json_declines_when_activitypub_disabled(): void {
@@ -1056,6 +1123,28 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertCount( 3, $data['orderedItems'] );
 		$this->assertArrayNotHasKey( 'next', $data );
 		$this->assertArrayNotHasKey( 'prev', $data );
+	}
+
+	public function test_outbox_includes_a_language_siblings_own_note(): void {
+		// F2 acceptance criterion: the outbox lists federated siblings too —
+		// it's a pull-based, dereferenced listing (no active push), distinct
+		// from Create, which stays primary-only. The query behind outbox()
+		// has never filtered by _lf_lang, so a sibling — a full published
+		// agnosis_artwork post in its own right — already appears; this test
+		// pins that so a future language filter can't silently regress it.
+		update_option( 'linguaforge_primary_language', 'en' );
+		$primary_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_title' => 'Primary' ] );
+		$sibling_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_title' => 'Übersetzt' ] );
+		update_post_meta( $sibling_id, '_lf_lang', 'de' );
+
+		$request = new \WP_REST_Request( 'GET', '/agnosis/v1/activitypub/outbox' );
+		$request->set_param( 'page', 1 );
+		$data = ( new ActivityPub() )->outbox( $request )->get_data();
+
+		$this->assertSame( 2, $data['totalItems'], 'A sibling counts toward the outbox total just like the primary post.' );
+		$ids = array_column( array_column( $data['orderedItems'], 'object' ), 'id' );
+		$this->assertContains( get_permalink( $primary_id ), $ids );
+		$this->assertContains( get_permalink( $sibling_id ), $ids, 'The sibling\'s own Note must be listed too.' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -1157,6 +1246,108 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$note = $this->note_for( $post_id );
 
 		$this->assertArrayNotHasKey( 'tag', $note );
+	}
+
+	// -------------------------------------------------------------------------
+	// contentMap (TAG-REDESIGN.md F1) — the language-metadata gap: a Note
+	// previously carried no language hint at all, so a follower's per-account
+	// language filter (the mechanism `contentMap` exists for) couldn't act on
+	// it. Same resolution chain is_primary_language_post() already uses to
+	// decide WHETHER a post federates — resolve_note_language() reuses it to
+	// decide WHAT to key contentMap with.
+	// -------------------------------------------------------------------------
+
+	public function test_note_content_map_uses_the_posts_own_lf_lang_when_set(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		update_post_meta( $post_id, '_lf_lang', 'de' );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertArrayHasKey( 'contentMap', $note );
+		$this->assertArrayHasKey( 'de', $note['contentMap'] );
+		$this->assertSame( $note['content'], $note['contentMap']['de'], 'contentMap must carry the SAME content as the top-level content field.' );
+	}
+
+	public function test_note_content_map_falls_back_to_the_primary_language_option_when_lf_lang_is_not_set(): void {
+		update_option( 'linguaforge_primary_language', 'nl' );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		// No _lf_lang meta at all — a post predating/ignoring Lingua Forge is
+		// primary by definition (is_primary_language_post()'s own rule).
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertArrayHasKey( 'nl', $note['contentMap'] );
+
+		delete_option( 'linguaforge_primary_language' );
+	}
+
+	public function test_note_content_map_falls_back_to_the_site_locale_when_no_language_is_configured_anywhere(): void {
+		delete_option( 'linguaforge_primary_language' );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$note = $this->note_for( $post_id );
+
+		// WP's own test-suite default locale is en_US → 'en'.
+		$this->assertArrayHasKey( 'en', $note['contentMap'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// F4 (§6b) — the language-switch content line.
+	// -------------------------------------------------------------------------
+
+	public function test_note_content_links_a_published_sibling(): void {
+		$post_id    = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$sibling_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		FakeLinguaForge::link( $post_id, 'de', $sibling_id );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertStringContainsString( 'Also available in:', $note['content'] );
+		$this->assertStringContainsString( esc_url( (string) get_permalink( $sibling_id ) ), $note['content'] );
+	}
+
+	public function test_note_content_has_no_language_switch_line_with_no_siblings(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertStringNotContainsString( 'Also available in:', $note['content'] );
+	}
+
+	public function test_note_content_omits_an_unpublished_sibling(): void {
+		$post_id    = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$draft_id   = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'draft' ] );
+		FakeLinguaForge::link( $post_id, 'de', $draft_id );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertStringNotContainsString( 'Also available in:', $note['content'], 'A draft sibling is not a real language option yet — nothing to link to.' );
+	}
+
+	public function test_note_content_links_every_published_sibling(): void {
+		$post_id     = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$sibling_de  = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$sibling_fr  = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		FakeLinguaForge::link( $post_id, 'de', $sibling_de );
+		FakeLinguaForge::link( $post_id, 'fr', $sibling_fr );
+
+		$note = $this->note_for( $post_id );
+
+		$this->assertStringContainsString( esc_url( (string) get_permalink( $sibling_de ) ), $note['content'] );
+		$this->assertStringContainsString( esc_url( (string) get_permalink( $sibling_fr ) ), $note['content'] );
+	}
+
+	public function test_note_content_of_a_sibling_also_links_back_to_the_primary(): void {
+		// F4: the line is built generically for whichever post_to_note() is
+		// called for — a sibling's OWN Note must link back to its primary
+		// (and any other sibling) too, not just the primary linking forward.
+		$primary_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$sibling_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		FakeLinguaForge::link( $sibling_id, 'en', $primary_id ); // linguaforge_get_translations() is symmetric per post.
+
+		$note = $this->note_for( $sibling_id );
+
+		$this->assertStringContainsString( esc_url( (string) get_permalink( $primary_id ) ), $note['content'] );
 	}
 
 	public function test_note_content_carries_the_full_description_not_a_50_word_truncation(): void {

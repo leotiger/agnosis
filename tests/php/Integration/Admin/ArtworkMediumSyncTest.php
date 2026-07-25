@@ -65,7 +65,7 @@ class ArtworkMediumSyncTest extends \WP_UnitTestCase {
 	protected function tearDown(): void {
 		FakeLinguaForge::reset();
 		delete_option( 'linguaforge_primary_language' );
-		unset( $_GET['post_id'], $_GET['agnosis_medium_synced'], $GLOBALS['pagenow'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_GET['post_id'], $_GET['agnosis_medium_synced'], $_GET['agnosis_tags_synced'], $GLOBALS['pagenow'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_REQUEST['_wpnonce'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		parent::tearDown();
 	}
@@ -104,6 +104,26 @@ class ArtworkMediumSyncTest extends \WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'agnosis_sync_medium_assignment', $html );
 		$this->assertStringContainsString( (string) $post_id, $html );
+	}
+
+	/** TAG-REDESIGN.md T3(c) — the tags option alongside medium. */
+	public function test_meta_box_offers_the_tags_sync_action_on_a_primary_language_post(): void {
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id = $this->artwork( 'en' );
+
+		$html = $this->render_meta_box( get_post( $post_id ) );
+
+		$this->assertStringContainsString( 'agnosis_sync_tag_assignment', $html );
+		$this->assertStringContainsString( (string) $post_id, $html );
+	}
+
+	public function test_meta_box_offers_no_tags_sync_action_from_a_translated_post(): void {
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id = $this->artwork( 'de' );
+
+		$html = $this->render_meta_box( get_post( $post_id ) );
+
+		$this->assertStringNotContainsString( 'agnosis_sync_tag_assignment', $html );
 	}
 
 	// -------------------------------------------------------------------------
@@ -154,6 +174,87 @@ class ArtworkMediumSyncTest extends \WP_UnitTestCase {
 		} catch ( RedirectCapture $e ) {
 			$this->assertStringContainsString( 'agnosis_medium_synced=1', $e->url );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_sync_tags() — TAG-REDESIGN.md T3(c)
+	// -------------------------------------------------------------------------
+
+	public function test_handle_sync_tags_rejects_an_invalid_nonce(): void {
+		$_GET['post_id']      = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_REQUEST['_wpnonce'] = 'not-a-valid-nonce'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->sync->handle_sync_tags();
+			$this->fail( 'Expected wp_die() for an invalid nonce.' );
+		} catch ( DieCapture $e ) {
+			$this->addToAssertionCount( 1 );
+		}
+	}
+
+	public function test_handle_sync_tags_rejects_a_user_without_edit_post(): void {
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id = $this->artwork( 'en' );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'subscriber' ] ) );
+		$_GET['post_id']      = (string) $post_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agnosis_sync_tag_assignment_' . $post_id ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->sync->handle_sync_tags();
+			$this->fail( 'Expected wp_die() for a user without edit_post capability.' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'permission', $e->body );
+		}
+	}
+
+	public function test_handle_sync_tags_pushes_tags_to_translated_siblings_and_redirects(): void {
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id    = $this->artwork( 'en' );
+		$sibling_id = $this->artwork( 'de' );
+		FakeLinguaForge::link( $post_id, 'de', $sibling_id );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$_GET['post_id']      = (string) $post_id; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agnosis_sync_tag_assignment_' . $post_id ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->sync->handle_sync_tags();
+			$this->fail( 'Expected a redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_tags_synced=1', $e->url );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// maybe_render_single_tags_notice()
+	// -------------------------------------------------------------------------
+
+	private function render_single_tags_notice(): string {
+		ob_start();
+		$this->sync->maybe_render_single_tags_notice();
+		return (string) ob_get_clean();
+	}
+
+	public function test_single_tags_notice_is_silent_off_the_post_edit_screen(): void {
+		$GLOBALS['pagenow']           = 'edit.php';
+		$_GET['agnosis_tags_synced'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$this->assertSame( '', $this->render_single_tags_notice() );
+
+		unset( $_GET['agnosis_tags_synced'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	public function test_single_tags_notice_reports_how_many_siblings_were_synced(): void {
+		$GLOBALS['pagenow']           = 'post.php';
+		$_GET['agnosis_tags_synced'] = '2'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$html = $this->render_single_tags_notice();
+
+		$this->assertStringContainsString( 'notice-success', $html );
+		$this->assertStringContainsString( '2', $html );
+
+		unset( $_GET['agnosis_tags_synced'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
 	// -------------------------------------------------------------------------
@@ -213,6 +314,15 @@ class ArtworkMediumSyncTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'agnosis_sync_all_medium_assignments', $html );
 	}
 
+	/** TAG-REDESIGN.md T3(c) — the tags bulk option alongside medium. */
+	public function test_bulk_button_offers_the_tags_bulk_action_for_an_authorized_user(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+
+		$html = $this->render_bulk_button( 'agnosis_artwork' );
+
+		$this->assertStringContainsString( 'agnosis_sync_all_tag_assignments', $html );
+	}
+
 	// -------------------------------------------------------------------------
 	// handle_sync_all()
 	// -------------------------------------------------------------------------
@@ -245,6 +355,72 @@ class ArtworkMediumSyncTest extends \WP_UnitTestCase {
 			$this->assertStringContainsString( 'agnosis_medium_sync_all_artworks=1', $e->url );
 			$this->assertStringContainsString( 'agnosis_medium_sync_all_synced=1', $e->url );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// handle_sync_all_tags() — TAG-REDESIGN.md T3(c)
+	// -------------------------------------------------------------------------
+
+	public function test_handle_sync_all_tags_rejects_a_user_without_edit_others_posts(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'contributor' ] ) );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agnosis_sync_all_tag_assignments' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->sync->handle_sync_all_tags();
+			$this->fail( 'Expected wp_die() for a user without edit_others_posts.' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( 'permission', $e->body );
+		}
+	}
+
+	public function test_handle_sync_all_tags_pushes_every_primary_posts_tags_and_redirects(): void {
+		update_option( 'linguaforge_primary_language', 'en' );
+		$post_id    = $this->artwork( 'en' );
+		$sibling_id = $this->artwork( 'de' );
+		FakeLinguaForge::link( $post_id, 'de', $sibling_id );
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agnosis_sync_all_tag_assignments' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->sync->handle_sync_all_tags();
+			$this->fail( 'Expected a redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_tags_sync_all_posts=1', $e->url );
+			$this->assertStringContainsString( 'agnosis_tags_sync_all_synced=1', $e->url );
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// maybe_render_bulk_tags_notice()
+	// -------------------------------------------------------------------------
+
+	public function test_bulk_tags_notice_is_silent_without_both_query_args(): void {
+		$_GET['agnosis_tags_sync_all_posts'] = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// agnosis_tags_sync_all_synced deliberately not set.
+
+		ob_start();
+		$this->sync->maybe_render_bulk_tags_notice();
+		$html = (string) ob_get_clean();
+
+		$this->assertSame( '', $html );
+
+		unset( $_GET['agnosis_tags_sync_all_posts'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	public function test_bulk_tags_notice_reports_posts_processed_and_siblings_synced(): void {
+		$_GET['agnosis_tags_sync_all_posts']  = '3'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['agnosis_tags_sync_all_synced'] = '5'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		ob_start();
+		$this->sync->maybe_render_bulk_tags_notice();
+		$html = (string) ob_get_clean();
+
+		$this->assertStringContainsString( 'notice-success', $html );
+		$this->assertStringContainsString( '3', $html );
+		$this->assertStringContainsString( '5', $html );
+
+		unset( $_GET['agnosis_tags_sync_all_posts'], $_GET['agnosis_tags_sync_all_synced'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
 	// -------------------------------------------------------------------------

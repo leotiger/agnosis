@@ -422,6 +422,16 @@ class ReviewEndpointsIntegrationTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Tag editing via save() — REMOVED 2026-07-24 (TAG-REDESIGN.md, T0). The
+	// four tests that lived here exercised save()'s 'tags' REST param and
+	// the '_agnosis_native_tags' cache it wrote/cleared, both demolished
+	// outright — per TAG-REDESIGN.md §1, "the review card's tags field
+	// disappears: tags are a post-approval, vocabulary-level curatorial
+	// concern... not part of the content review." See TAG-REDESIGN.md §2/§4
+	// for the replacement pipeline (T1/T2).
+	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
 	// Featured meta — approve() and save(publish=true) must NOT auto-promote
 	// (featuring is now explicit via the promote@ email alias)
 	// -------------------------------------------------------------------------

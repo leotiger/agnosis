@@ -1069,349 +1069,102 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	}
 
 	public function test_sync_taxonomy_does_not_flag_a_pre_existing_term(): void {
-		// No AI provider configured — 'Landscape' and 'Coastal' are assigned
-		// to the translated post unchanged (translated_term_name() falls back
-		// to the source name), so both terms already existed BEFORE
-		// sync_taxonomy() ran (created when assigned to the source post
-		// above). Neither should come out flagged as machine-translated.
+		// No AI provider configured — translated_term_name() falls back to
+		// the source name for 'Landscape'/'Coastal', so sync_taxonomy() now
+		// (TW-3, TAG-WORKFLOW-AUDIT.md Phase 0) takes the SAME
+		// fallback-placeholder path insert_fallback_translated_term()
+		// already gives sync_term_across_languages(), rather than ever
+		// touching the SOURCE terms themselves. This asserts the source
+		// terms stay completely untouched — never flagged, never reused
+		// cross-language onto the translated post — and that the
+		// translated post gets its OWN distinct, flagged placeholder terms
+		// instead.
 		wp_set_object_terms( $this->artwork_id, [ 'Landscape', 'Coastal' ], 'post_tag' );
+		$source_ids = wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ] );
 		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		foreach ( [ 'Landscape', 'Coastal' ] as $name ) {
-			$term = get_term_by( 'name', $name, 'post_tag' );
-			$this->assertInstanceOf( \WP_Term::class, $term, $name );
-			$this->assertSame( '', get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ), $name );
+		foreach ( $source_ids as $term_id ) {
+			$this->assertSame(
+				'',
+				get_term_meta( $term_id, LinguaForge::TRANSLATED_TERM_META, true ),
+				'A source-side term must never be flagged as machine-translated merely because a sync ran.'
+			);
+		}
+
+		// TW-3: the translated post must get its OWN placeholder terms,
+		// never the source terms' own IDs directly.
+		$assigned_ids = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$this->assertEmpty(
+			array_intersect( $assigned_ids, $source_ids ),
+			"The translated post must never be assigned the SOURCE terms' own IDs directly when no translation is available — see insert_fallback_translated_term()."
+		);
+		foreach ( $assigned_ids as $term_id ) {
+			$this->assertSame( 'es', get_term_meta( $term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+			$this->assertSame( '1', get_term_meta( $term_id, LinguaForge::TERM_NEEDS_TRANSLATION_META, true ) );
 		}
 	}
 
-	// ── flag_newly_created_terms_by_post_language(): native-language intake ──
-	// (2026-07-19 fix) — a tag auto-created while tagging a draft submitted
-	// in the artist's native language must be flagged the moment it's born,
-	// even though `_lf_lang` doesn't exist yet at intake time (it's only
-	// ever written at publish time by set_language_meta()). This closes the
-	// same class of bug as the original 127-Catalan-tags incident, through
-	// the newer native-language-pipeline door: `_agnosis_native_lang` is
-	// set unconditionally at intake and must be preferred over `_lf_lang`.
+	public function test_sync_taxonomy_resolves_a_homograph_collision_instead_of_reusing_the_colliding_term(): void {
+		// TW-2 (TAG-WORKFLOW-AUDIT.md Phase 0): sync_taxonomy() used to have
+		// its OWN inline collision handling that pre-dated the 2026-07-19
+		// homograph fix — a wp_insert_term() collision fell straight
+		// through to reassigning the SOURCE term's own ID, silently mixing
+		// languages. "Fotografia" (the cached translation) collides with a
+		// pre-existing, unrelated primary term already sitting in the
+		// taxonomy under the exact same name (e.g. an admin-curated tag) —
+		// this must resolve via the same disambiguated-slug retry
+		// insert_translated_term() already gives every OTHER caller, never
+		// a silent reuse of either the collision or the untranslated source
+		// term.
+		$colliding = wp_insert_term( 'Fotografia', 'post_tag' ); // Pre-existing, unrelated, no trid.
+		$this->assertIsArray( $colliding );
+		$colliding_id = (int) $colliding['term_id'];
 
-	public function test_flag_newly_created_terms_by_post_language_prefers_native_lang_over_lf_lang(): void {
-		update_option( 'linguaforge_primary_language', 'en' );
-		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
-		// Deliberately no `_lf_lang` — the post hasn't been published yet,
-		// exactly the intake-time scenario the fix targets.
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Foto' => [ 'es' => 'Fotografia' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Foto' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 
-		new LinguaForge(); // Registers created_term/set_object_terms hooks.
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		wp_set_post_tags( $this->artwork_id, [ 'Acantilado' ], false );
+		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$this->assertCount( 1, $assigned );
+		$this->assertNotSame( [ $colliding_id ], $assigned, 'Must never reuse the pre-existing colliding term.' );
 
-		$term = get_term_by( 'name', 'Acantilado', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $term );
-		$this->assertSame(
-			'es',
-			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'A term created while tagging a native-language draft must be flagged with the native language, even with no _lf_lang yet.'
+		$source_term = get_term_by( 'name', 'Foto', 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $source_term );
+		$this->assertNotSame(
+			[ (int) $source_term->term_id ],
+			$assigned,
+			'Must never fall back to reassigning the SOURCE term itself.'
 		);
 
-		delete_option( 'linguaforge_primary_language' );
-	}
-
-	public function test_flag_newly_created_terms_by_post_language_falls_back_to_lf_lang_when_no_native_lang(): void {
-		update_option( 'linguaforge_primary_language', 'en' );
-		update_post_meta( $this->artwork_id, '_lf_lang', 'fr' );
-		// No `_agnosis_native_lang` at all — e.g. a biography/event post
-		// that predates the native-language pipeline.
-
-		new LinguaForge();
-
-		wp_set_post_tags( $this->artwork_id, [ 'Portrait Peint' ], false );
-
-		$term = get_term_by( 'name', 'Portrait Peint', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $term );
-		$this->assertSame(
-			'fr',
-			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'With no native-language meta at all, the pre-existing _lf_lang fallback must still work unchanged.'
-		);
-
-		delete_option( 'linguaforge_primary_language' );
-	}
-
-	public function test_flag_newly_created_terms_by_post_language_does_not_flag_when_native_lang_matches_primary(): void {
-		update_option( 'linguaforge_primary_language', 'en' );
-		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'en' );
-
-		new LinguaForge();
-
-		wp_set_post_tags( $this->artwork_id, [ 'Genuine Primary Tag' ], false );
-
-		$term = get_term_by( 'name', 'Genuine Primary Tag', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $term );
-		$this->assertSame(
-			'',
-			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'A term created on a genuinely primary-language post must be left unflagged — it IS the primary vocabulary.'
-		);
-
-		delete_option( 'linguaforge_primary_language' );
-	}
-
-	/**
-	 * 2026-07-24 fix. Before this, `$primary_lang` was read via a bare
-	 * `get_option( 'linguaforge_primary_language', '' )` with no further
-	 * fallback — unlike SubmissionTranslator::resolve_target_language(),
-	 * which has always fallen back to the site locale when that option
-	 * isn't explicitly saved. An unset option made this whole method
-	 * silently inert (every newly-created term looked like "primary
-	 * language unknown" and got skipped), reproducing the exact
-	 * 127-Catalan-tags incident this method exists to prevent, on any site
-	 * (or test environment — this is what caught it) relying on the site
-	 * locale default instead of explicitly configuring the option.
-	 */
-	public function test_flag_newly_created_terms_by_post_language_falls_back_to_site_locale_when_option_unset(): void {
-		// No linguaforge_primary_language set — WP test env locale defaults
-		// to en_US → 'en', same as SubmissionTranslator::resolve_target_language()'s
-		// own site-locale fallback.
-		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
-
-		new LinguaForge();
-
-		wp_set_post_tags( $this->artwork_id, [ 'Acantilado Sin Opcion' ], false );
-
-		$term = get_term_by( 'name', 'Acantilado Sin Opcion', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $term );
-		$this->assertSame(
-			'es',
-			get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'With no linguaforge_primary_language option set, this method must still resolve a primary language via the site locale fallback and flag accordingly — not silently skip flagging.'
-		);
-	}
-
-	// ── resolve_primary_tags(): approval-time native→primary tag dedup ───────
-	// (2026-07-19) The single choke point where every submission's tags,
-	// regardless of the artist's native language, get reconciled against ONE
-	// canonical primary-language vocabulary. Makes zero AI calls of its own —
-	// see the method's own docblock for why (folding reconciliation into the
-	// SAME translate_fields() call, instead of a second AI call, is what the
-	// exactly-one-AI-call-per-approval invariant in
-	// ReviewEndpointsNativeLanguagePipelineTest requires).
-
-	public function test_resolve_primary_tags_reuses_a_trid_linked_primary_term_for_free(): void {
-		$native  = wp_insert_term( 'Acantilado', 'post_tag' );
-		$this->assertIsArray( $native );
-		$native_id = (int) $native['term_id'];
-
-		$primary = wp_insert_term( 'Coastal Cliff', 'post_tag' );
-		$this->assertIsArray( $primary );
-		$primary_id = (int) $primary['term_id'];
-
-		$trid = wp_generate_uuid4();
-		add_term_meta( $native_id, LinguaForge::TERM_TRID_META, $trid, true );
-		add_term_meta( $primary_id, LinguaForge::TERM_TRID_META, $trid, true );
-		// The native term must carry TRANSLATED_TERM_META too, exactly as
-		// flag_newly_created_terms_by_post_language() would have stamped it
-		// at intake — without this, both terms in the trid group look
-		// identically "primary" (neither has the meta), so
-		// find_primary_term_by_trid()'s NOT EXISTS query can't tell them
-		// apart and may match either one.
-		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'es', true );
-		// No TRANSLATED_TERM_META on $primary_id — it's the primary/untranslated member.
-
-		$result = ( new LinguaForge() )->resolve_primary_tags( [ $native_id ], [ 'Some Different AI Wording' ] );
-
-		$this->assertSame(
-			[ $primary_id ],
-			$result,
-			'A native term already trid-linked to a primary term must resolve to that exact primary term for free, regardless of whatever name this particular translation call proposed.'
-		);
-	}
-
-	public function test_resolve_primary_tags_matches_an_existing_primary_tag_by_exact_name_and_links_the_trid(): void {
-		$existing = wp_insert_term( 'Coastal', 'post_tag' );
-		$this->assertIsArray( $existing );
-		$existing_id = (int) $existing['term_id'];
-
-		$native = wp_insert_term( 'Costero', 'post_tag' );
-		$this->assertIsArray( $native );
-		$native_id = (int) $native['term_id'];
-		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'es', true ); // As flag_newly_created_terms_by_post_language() would have stamped it at intake.
-		// No trid on the native term yet — first time this tag is approved.
-
-		$result = ( new LinguaForge() )->resolve_primary_tags( [ $native_id ], [ 'Coastal' ] );
-
-		$this->assertSame( [ $existing_id ], $result, 'An exact-name match against the current primary vocabulary must be trusted and reused, not duplicated.' );
-
-		$native_trid = get_term_meta( $native_id, LinguaForge::TERM_TRID_META, true );
-		$this->assertNotSame( '', $native_trid, 'The native term must be trid-linked after resolution so a future approval of the same native tag reuses it for free.' );
-		$this->assertSame(
-			$native_trid,
-			get_term_meta( $existing_id, LinguaForge::TERM_TRID_META, true ),
-			'The matched primary term must carry the same trid the native term now links to.'
-		);
-	}
-
-	public function test_resolve_primary_tags_creates_a_new_primary_term_when_nothing_matches(): void {
-		$native = wp_insert_term( 'Concepto Nuevo', 'post_tag' );
-		$this->assertIsArray( $native );
-		$native_id = (int) $native['term_id'];
-		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'es', true ); // As flag_newly_created_terms_by_post_language() would have stamped it at intake.
-
-		$result = ( new LinguaForge() )->resolve_primary_tags( [ $native_id ], [ 'Brand New Concept' ] );
-
-		$new_term = get_term_by( 'name', 'Brand New Concept', 'post_tag' );
+		$new_term = get_term( $assigned[0], 'post_tag' );
 		$this->assertInstanceOf( \WP_Term::class, $new_term );
-		$this->assertSame( [ $new_term->term_id ], $result );
-
-		$native_trid = get_term_meta( $native_id, LinguaForge::TERM_TRID_META, true );
-		$this->assertNotSame( '', $native_trid );
-		$this->assertSame( $native_trid, get_term_meta( $new_term->term_id, LinguaForge::TERM_TRID_META, true ) );
-	}
-
-	public function test_resolve_primary_tags_does_not_link_a_trid_when_arrays_are_unpaired(): void {
-		$native = wp_insert_term( 'Something', 'post_tag' );
-		$this->assertIsArray( $native );
-		$native_id = (int) $native['term_id'];
-		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'es', true ); // As flag_newly_created_terms_by_post_language() would have stamped it at intake.
-
-		// Two native IDs but only one translated name — count mismatch means
-		// positional pairing would be unsafe (the AI merged/split/dropped an
-		// entry), so no native term should get trid-linked from this call.
-		$result = ( new LinguaForge() )->resolve_primary_tags( [ $native_id, 999999 ], [ 'Solo Name' ] );
-
-		$new_term = get_term_by( 'name', 'Solo Name', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $new_term );
-		$this->assertSame( [ $new_term->term_id ], $result, 'Still resolves the tag itself (by exact-name match/create) even when pairing is unsafe.' );
+		$this->assertSame( 'Fotografia', $new_term->name );
+		$this->assertSame( 'es', get_term_meta( $assigned[0], LinguaForge::TRANSLATED_TERM_META, true ) );
 		$this->assertSame(
 			'',
-			get_term_meta( $native_id, LinguaForge::TERM_TRID_META, true ),
-			'With unpaired arrays, no native term should be trid-linked — degrade to a plain name match/create instead of risking a wrong pairing.'
-		);
-	}
-
-	public function test_resolve_primary_tags_skips_blank_names(): void {
-		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ '', '   ' ] );
-		$this->assertSame( [], $result );
-	}
-
-	/**
-	 * 2026-07-24 incident regression test. translate_fields() drops the
-	 * 'tags' field entirely when the AI's response isn't a plain string
-	 * (see that method's own docblock), and the caller
-	 * (ReviewEndpoints::translate_native_content_to_primary()) used to fall
-	 * back to the UNTRANSLATED native names — which, passed into this
-	 * method as if they were "the resolved primary tags," collided with the
-	 * exact native term they came from. The old collision fallback trusted
-	 * any name match unconditionally and reused that native (flagged) term
-	 * id directly — silently re-assigning the artist's own native-language
-	 * tag onto the primary post disguised as "resolved," and explaining why
-	 * it never once showed up under Admin\TaxonomyLanguageFilter's "Primary
-	 * language" view.
-	 */
-	public function test_resolve_primary_tags_does_not_reuse_an_already_flagged_native_term_on_collision(): void {
-		$native = wp_insert_term( 'Escultura', 'post_tag' );
-		$this->assertIsArray( $native );
-		$native_id = (int) $native['term_id'];
-		add_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, 'ca', true ); // As flag_newly_created_terms_by_post_language() would have stamped it at intake.
-
-		// Simulates the untranslated-native-name fallback: the "translated"
-		// name passed in is actually the SAME text as the native term above,
-		// which is exactly what happens when translate_fields() drops the
-		// tags field and the caller falls back to $native_tags.
-		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ 'Escultura' ] );
-
-		$this->assertSame(
-			[],
-			$result,
-			'A name collision with an already-flagged (native-language) term must never be treated as a resolved primary tag — that term is not primary vocabulary, it\'s the untranslated source.'
-		);
-		$this->assertSame(
-			'ca',
-			get_term_meta( $native_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'The native term itself must be left exactly as it was — untouched, still flagged.'
-		);
-	}
-
-	public function test_resolve_primary_tags_collision_with_an_unflagged_term_is_still_reused(): void {
-		// Sanity check for the fix above: the new guard only rejects a
-		// collision when the existing term is FLAGGED. An already-existing,
-		// unflagged (genuinely primary) term with the same name resolves via
-		// the ordinary exact-match map lookup (existing_primary_tag_map()),
-		// same as test_resolve_primary_tags_matches_an_existing_primary_tag_by_exact_name_and_links_the_trid
-		// above — pinned here specifically to confirm the new guard hasn't
-		// regressed that path.
-		$existing = wp_insert_term( 'Bodegón', 'post_tag' );
-		$this->assertIsArray( $existing );
-		$existing_id = (int) $existing['term_id'];
-
-		$result = ( new LinguaForge() )->resolve_primary_tags( [], [ 'Bodegón' ] );
-
-		$this->assertSame( [ $existing_id ], $result );
-	}
-
-	/**
-	 * assign_resolved_primary_tags() must suppress
-	 * flag_newly_created_terms_by_post_language() for the duration of its own
-	 * wp_set_object_terms() call — otherwise a BRAND NEW primary term
-	 * (resolve_primary_tags() found no existing match) gets immediately
-	 * flagged as native the moment it's created, since the post's own
-	 * '_agnosis_native_lang' postmeta is still (correctly) the artist's
-	 * original language at this point in ReviewEndpoints::finalize_publish().
-	 * This was the second, independent half of the 2026-07-24 incident —
-	 * see this method's own docblock.
-	 */
-	public function test_assign_resolved_primary_tags_does_not_flag_a_brand_new_term_as_native(): void {
-		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'ca' );
-		update_option( 'linguaforge_primary_language', 'en' );
-
-		$lf = new LinguaForge();
-
-		$new_term = wp_insert_term( 'Brand New Resolved Tag', 'post_tag' );
-		$this->assertIsArray( $new_term );
-		$term_id = (int) $new_term['term_id'];
-
-		$lf->assign_resolved_primary_tags( $this->artwork_id, [ $term_id ] );
-
-		$this->assertSame(
-			[ 'Brand New Resolved Tag' ],
-			wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] )
-		);
-		$this->assertSame(
-			'',
-			get_term_meta( $term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'A term assigned through assign_resolved_primary_tags() must never be flagged as native, regardless of the post\'s own declared language.'
+			get_term_meta( $colliding_id, LinguaForge::TERM_TRID_META, true ),
+			'The pre-existing colliding term must never be claimed as this sync\'s translation.'
 		);
 
-		delete_option( 'linguaforge_primary_language' );
+		delete_option( 'agnosis_term_translations' );
 	}
 
-	public function test_assign_resolved_primary_tags_leaves_flagging_active_for_a_later_unrelated_call(): void {
-		// The suppression flag must be scoped to exactly the one
-		// wp_set_object_terms() call it wraps — not left permanently on for
-		// the rest of the request.
-		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'ca' );
-		update_option( 'linguaforge_primary_language', 'en' );
-
-		$lf = new LinguaForge();
-
-		$resolved_term = wp_insert_term( 'Resolved Tag', 'post_tag' );
-		$this->assertIsArray( $resolved_term );
-		$lf->assign_resolved_primary_tags( $this->artwork_id, [ (int) $resolved_term['term_id'] ] );
-
-		// A later, ordinary wp_set_post_tags() call on the SAME post (as
-		// finalize_tags()'s own native-fallback branch would make) must
-		// still get its brand-new term flagged normally.
-		wp_set_post_tags( $this->artwork_id, [ 'Genuinely Native Tag' ], true );
-
-		$native_term = get_term_by( 'name', 'Genuinely Native Tag', 'post_tag' );
-		$this->assertInstanceOf( \WP_Term::class, $native_term );
-		$this->assertSame(
-			'ca',
-			get_term_meta( $native_term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-			'Suppression must not leak past the one call it wraps.'
-		);
-
-		delete_option( 'linguaforge_primary_language' );
-	}
+	// ── flag_newly_created_terms_by_post_language() / resolve_primary_tags() /
+	// assign_resolved_primary_tags() — REMOVED 2026-07-24 (TAG-REDESIGN.md,
+	// T0). All three symbols and the ~20 tests that exercised them are
+	// demolished outright, including their `agnosis_medium` coverage — see
+	// LinguaForge.php's own removal comments (on_term_assignment_changed()'s
+	// docblock — renamed from on_medium_terms_changed() in T3(c) — and T0's
+	// §3 removal block) for why the mechanism was a latent
+	// mis-flagging risk for medium too, not just a tag-specific concern. See
+	// TAG-REDESIGN.md §2/§4 for the replacement association pipeline (T1/T2)
+	// this coverage will move to once it exists.
 
 	// ── G-2: AI-call instrumentation ──────────────────────────────────────────
 
@@ -1584,15 +1337,21 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 	// ── sync_taxonomy(): numeric-looking term names (sixth audit §6) ──────────
 	//
-	// WordPress's own term_exists() adds a `t.term_id = %d` OR-clause whenever
-	// is_numeric($term) is true, so a translated term name that happens to be
-	// a bare number ("2026") could silently match an UNRELATED term whose
-	// term_id happens to equal that number, instead of a term actually named
-	// that. resolve_numeric_term_name() resolves numeric-looking names to a
-	// real term ID itself, before term_exists()/wp_set_object_terms() ever see
-	// the ambiguous string. As with the tests above, the term-translation
-	// cache (agnosis_term_translations) is used to force a specific
-	// "translated" name without a real AI provider.
+	// WordPress's own pre-6.0 term_exists() added a `t.term_id = %d` OR-clause
+	// whenever is_numeric($term) was true, so a translated term name that
+	// happened to be a bare number ("2026") could silently match an UNRELATED
+	// term whose term_id happened to equal that number. The old
+	// resolve_numeric_term_name()/resolve_and_link_numeric_term() pair
+	// guarded against that; TAG-REDESIGN.md T3(a) deleted both after
+	// verifying against the WP 6.9 core checkout that core's numeric handling
+	// is now gated on `is_int()`, never `is_numeric()`, so a numeric-looking
+	// STRING can no longer trigger that ambiguity at all — a numeric-looking
+	// translated name now just flows through the same
+	// `insert_or_reuse_translated_term()` machine-slug path as any other
+	// name. These tests confirm that path still produces the correct,
+	// unambiguous outcome for numeric-looking names specifically. As with the
+	// tests above, the term-translation cache (agnosis_term_translations) is
+	// used to force a specific "translated" name without a real AI provider.
 
 	public function test_sync_taxonomy_creates_and_assigns_a_new_numeric_term_name(): void {
 		update_option( 'agnosis_term_translations', [
@@ -1620,11 +1379,18 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		delete_option( 'agnosis_term_translations' );
 	}
 
-	public function test_sync_taxonomy_reuses_an_existing_numeric_term_without_reflagging_it(): void {
+	public function test_sync_taxonomy_never_reuses_an_unclaimed_numeric_term_by_name(): void {
 		// '2026' already exists as a genuine, admin-curated term (e.g. a real
-		// "year" tag used elsewhere) — sync_taxonomy() must reuse that exact
-		// term, not create a duplicate, and must not retroactively flag a term
-		// that already existed before this translation pass.
+		// "year" tag used elsewhere), completely unclaimed by any trid group.
+		// TAG-REDESIGN.md T3(a) deleted the old name-matching reuse this test
+		// used to require (TW-4, TAG-WORKFLOW-AUDIT.md) — that reuse-by-name
+		// behavior was itself an inconsistency the redesign closes: no OTHER
+		// term name (numeric or not) was ever reused this way, only
+		// disambiguated via `insert_or_reuse_translated_term()`'s machine
+		// slug. A numeric-looking translated name is now just a name, and
+		// gets its own distinct, deterministically-slugged term like any
+		// other — coexisting with the pre-existing unclaimed one rather than
+		// silently claiming it.
 		$existing = wp_insert_term( '2026', 'post_tag' );
 		$this->assertIsArray( $existing );
 
@@ -1637,8 +1403,66 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
 		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
-		$this->assertSame( [ (int) $existing['term_id'] ], $assigned, 'Must reuse the pre-existing "2026" term by ID, not create a second one.' );
-		$this->assertSame( '', get_term_meta( (int) $existing['term_id'], LinguaForge::TRANSLATED_TERM_META, true ), 'A pre-existing numeric term must not be flagged as translated.' );
+		$this->assertCount( 1, $assigned );
+		$this->assertNotSame(
+			[ (int) $existing['term_id'] ],
+			$assigned,
+			'Must never silently claim the pre-existing, unrelated "2026" term merely because the names match.'
+		);
+
+		$new_term = get_term( $assigned[0], 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $new_term );
+		$this->assertSame( '2026', $new_term->name );
+		$this->assertSame( 'es', get_term_meta( $assigned[0], LinguaForge::TRANSLATED_TERM_META, true ) );
+
+		$this->assertSame(
+			'',
+			get_term_meta( (int) $existing['term_id'], LinguaForge::TERM_TRID_META, true ),
+			'The pre-existing, unclaimed "2026" term must be left completely untouched — coexisting by name, not linked.'
+		);
+
+		delete_option( 'agnosis_term_translations' );
+	}
+
+	public function test_sync_taxonomy_disambiguates_a_numeric_term_already_claimed_by_a_different_language(): void {
+		// '2026' already exists but is claimed by a DIFFERENT trid/language
+		// pair (e.g. it's already the German translation of some OTHER
+		// primary term) — reusing it for this Spanish sync would silently
+		// reassign a term that belongs to a completely different
+		// translation group. TW-4 requires this to disambiguate exactly
+		// like any other collision, never reuse.
+		$other_trid = wp_generate_uuid4();
+		$existing   = wp_insert_term( '2026', 'post_tag' );
+		$this->assertIsArray( $existing );
+		add_term_meta( (int) $existing['term_id'], LinguaForge::TERM_TRID_META, $other_trid, true );
+		add_term_meta( (int) $existing['term_id'], LinguaForge::TRANSLATED_TERM_META, 'de', true );
+
+		update_option( 'agnosis_term_translations', [
+			'post_tag' => [ 'Landscape' => [ 'es' => '2026' ] ],
+		] );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
+
+		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$this->assertNotSame(
+			[ (int) $existing['term_id'] ],
+			$assigned,
+			'Must never silently reassign a numeric term already claimed by a different (trid, lang) pair.'
+		);
+		$this->assertCount( 1, $assigned );
+
+		$new_term = get_term( $assigned[0], 'post_tag' );
+		$this->assertInstanceOf( \WP_Term::class, $new_term );
+		$this->assertSame( '2026', $new_term->name );
+		$this->assertSame( 'es', get_term_meta( $assigned[0], LinguaForge::TRANSLATED_TERM_META, true ) );
+
+		$this->assertSame(
+			'de',
+			get_term_meta( (int) $existing['term_id'], LinguaForge::TRANSLATED_TERM_META, true ),
+			'The pre-existing German-linked term must be completely untouched.'
+		);
 
 		delete_option( 'agnosis_term_translations' );
 	}
@@ -1892,7 +1716,6 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
 		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Un resumen final, tal como lo escribió el artista.' );
 		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo final, editado por el artista.' );
-		update_post_meta( $this->artwork_id, '_agnosis_native_tags', wp_json_encode( [ 'Paisaje', 'Costero' ] ) );
 
 		// 2026-07-23: medium is no longer copied from `_agnosis_native_medium`
 		// directly (that value is actually PRIMARY-language, per
@@ -1928,29 +1751,95 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$this->assertContains( $sibling->ID, FakeLinguaForge::$cache_cleared_for, 'linguaforge_clear_translation_cache() must be called for the new sibling, or it stays invisible to LF\'s own translation-lookup UI/queries for up to an hour.' );
 		$this->assertContains( $sibling->ID, FakeLinguaForge::$marked_synced );
 
-		// wp_get_post_terms() doesn't guarantee insertion order (WP's own
-		// default term ordering), so this compares as a set rather than
-		// assertSame() — order was never the claim, exact membership was.
-		$this->assertEqualsCanonicalizing(
-			[ 'Paisaje', 'Costero' ],
+		// Tags — TAG-REDESIGN.md T3(d) added an explicit post_tag
+		// sync_taxonomy() call to sync_native_sibling() (see that method's
+		// own comment) once tags gained the same trid-linked translation
+		// machinery medium already had. The primary post here never had any
+		// post_tag terms assigned, so this stays empty either way — proving
+		// the call is harmless on a tagless primary — see
+		// test_sync_native_sibling_syncs_tags_via_trid() just below for
+		// coverage of the actual non-empty case.
+		$this->assertSame(
+			[],
 			wp_get_post_terms( $sibling->ID, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] ),
-			'Native tags must be assigned directly from _agnosis_native_tags, not re-derived from any translated set.'
+			'A primary post with no tags must leave its sibling tagless too — sync_taxonomy() with an empty source term set clears rather than fabricating.'
 		);
 		// No AI provider is configured anywhere in this test file — the same
 		// graceful "no provider available" fallback every OTHER trid-synced
 		// language gets (sync_taxonomy()'s own translated_term_name() returns
-		// the SOURCE name unchanged, so the SOURCE term itself is reused
-		// rather than a translated one created) applies here too, so the
-		// sibling ends up carrying the identical 'Oil Painting' term as the
-		// primary post — not a translated Spanish term, since none can be
-		// produced without a configured provider. This still proves the real
-		// claim: the assignment goes through sync_taxonomy()'s trid path (not
-		// a raw meta copy), and stays a zero-AI-call operation either way.
+		// the SOURCE name unchanged) applies here too. TW-3
+		// (TAG-WORKFLOW-AUDIT.md Phase 0): this used to mean the SOURCE
+		// term's own ID was reused directly on the (Spanish) sibling — a
+		// primary-language term silently attached to a non-primary post.
+		// It now creates a distinct, trid-linked, NEEDS_TRANSLATION_META
+		// placeholder term instead. The assigned NAME is still 'Oil
+		// Painting' (the placeholder reuses the source name verbatim) but
+		// the TERM_ID must differ from the primary post's own medium term,
+		// and it must carry the standard "needs translation" flags —
+		// proving this went through the placeholder path, not a raw reuse.
+		// This still proves the real claim: the assignment goes through
+		// sync_taxonomy()'s trid path (not a raw meta copy), and stays a
+		// zero-AI-call operation either way.
+		$sibling_medium_terms = wp_get_post_terms( $sibling->ID, 'agnosis_medium', [ 'fields' => 'all', 'hide_empty' => false ] );
+		$this->assertCount( 1, $sibling_medium_terms );
+		$sibling_medium = $sibling_medium_terms[0];
 		$this->assertSame(
-			[ 'Oil Painting' ],
-			wp_get_post_terms( $sibling->ID, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
-			'Native medium must be synced via sync_taxonomy(), falling back to the primary post\'s own term when no AI provider is configured to translate it.'
+			'Oil Painting',
+			$sibling_medium->name,
+			'Native medium must be synced via sync_taxonomy(), falling back to the primary post\'s own NAME when no AI provider is configured to translate it.'
 		);
+
+		$primary_medium_ids = wp_get_post_terms( $this->artwork_id, 'agnosis_medium', [ 'fields' => 'ids' ] );
+		$this->assertNotContains(
+			(int) $sibling_medium->term_id,
+			$primary_medium_ids,
+			'The sibling must get its OWN placeholder term, never the primary post\'s own term ID directly (TW-3).'
+		);
+		$this->assertSame( 'es', get_term_meta( $sibling_medium->term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+		$this->assertSame( '1', get_term_meta( $sibling_medium->term_id, LinguaForge::TERM_NEEDS_TRANSLATION_META, true ) );
+	}
+
+	/**
+	 * TAG-REDESIGN.md T3(d): sync_native_sibling() must sync the PRIMARY
+	 * post's tags onto the native sibling too, via the same trid path the
+	 * medium test above already exercises — never a raw copy, never the
+	 * primary post's own term ID reused directly on the (Spanish) sibling.
+	 * No AI provider configured in this test file, so this exercises the
+	 * same graceful placeholder fallback the medium case does.
+	 */
+	public function test_sync_native_sibling_syncs_tags_via_trid(): void {
+		self::$lf_languages = [ 'en', 'es' ];
+		update_post_meta( $this->artwork_id, '_lf_lang', 'en' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_lang', 'es' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_excerpt', 'Un resumen.' );
+		update_post_meta( $this->artwork_id, '_agnosis_native_body', 'Cuerpo.' );
+		wp_set_object_terms( $this->artwork_id, [ 'Landscape' ], 'post_tag' );
+
+		LinguaForge::sync_native_sibling( $this->artwork_id );
+
+		$trid    = FakeLinguaForge::$trids[ $this->artwork_id ] ?? '';
+		$sibling = $this->find_sibling_by_trid( $trid, $this->artwork_id );
+		$this->assertInstanceOf( \WP_Post::class, $sibling );
+
+		$this->assertSame(
+			[],
+			WpAiClientTestRegistry::$prompts,
+			'sync_native_sibling() must never call the AI translator for tags either.'
+		);
+
+		$sibling_tags = wp_get_post_terms( $sibling->ID, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
+		$this->assertCount( 1, $sibling_tags );
+		$sibling_tag = $sibling_tags[0];
+		$this->assertSame( 'Landscape', $sibling_tag->name, 'Falls back to the primary post\'s own NAME when no AI provider is configured to translate it.' );
+
+		$primary_tag_ids = wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$this->assertNotContains(
+			(int) $sibling_tag->term_id,
+			$primary_tag_ids,
+			'The sibling must get its OWN placeholder term, never the primary post\'s own tag term ID directly.'
+		);
+		$this->assertSame( 'es', get_term_meta( $sibling_tag->term_id, LinguaForge::TRANSLATED_TERM_META, true ) );
+		$this->assertSame( '1', get_term_meta( $sibling_tag->term_id, LinguaForge::TERM_NEEDS_TRANSLATION_META, true ) );
 	}
 
 	/**

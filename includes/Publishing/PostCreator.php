@@ -11,7 +11,11 @@
  *   5. Mark queue item as 'published' (meaning: pipeline complete).
  *   6. Fire 'agnosis_post_drafted' → Notification sends the artist a review email.
  *   7. Artist approves via email link or /my-submissions/ → ReviewEndpoints publishes the post.
- *   8. 'agnosis_post_published' fires only then, triggering ActivityPub broadcast.
+ *   8. 'agnosis_post_published' fires only then (Lingua Forge language-meta/
+ *      translation scheduling). ActivityPub federation is triggered
+ *      separately — TAG-REDESIGN.md F3: Network\FederationSettlement fires
+ *      'agnosis_federation_settled' (broadcast()'s real hook) once the
+ *      post's tags/medium have settled, immediately at approval or later.
  *
  * @package Agnosis\Publishing
  */
@@ -1985,7 +1989,6 @@ class PostCreator {
 
 		// ---- Build content ----------------------------------------------------
 		$primary  = $this->primary_result( $results );
-		$all_tags = array_unique( array_merge( ...array_column( $results, 'tags' ) ) );
 
 		// merge_gallery()'s "existing" gallery must come from whichever post
 		// actually holds the currently-accepted photos — for a staged update
@@ -2195,7 +2198,7 @@ class PostCreator {
 			update_post_meta( $post_id, '_agnosis_intake_endpoint', $intake_endpoint );
 		}
 
-		$this->write_post_meta( $post_id, $primary, $gallery, $all_tags, $post_type );
+		$this->write_post_meta( $post_id, $primary, $gallery, $post_type, $native_lang );
 
 		return $post_id;
 	}
@@ -2798,13 +2801,20 @@ class PostCreator {
 	 * Separated from create_post() to keep the insert/update block readable.
 	 * Safe to call on both inserts and updates — all operations are idempotent.
 	 *
-	 * @param int                  $post_id   WordPress post ID.
-	 * @param array<string, mixed> $primary   Primary AI pipeline result.
-	 * @param int[]                $gallery   Ordered attachment IDs.
-	 * @param string[]             $all_tags  Merged tag strings from all results.
-	 * @param string               $post_type CPT slug.
+	 * @param int                  $post_id     WordPress post ID.
+	 * @param array<string, mixed> $primary     Primary AI pipeline result.
+	 * @param int[]                $gallery     Ordered attachment IDs.
+	 * @param string               $post_type   CPT slug.
+	 * @param string               $native_lang The artist's own declared
+	 *                                          language (ISO 639-1), same
+	 *                                          value written to
+	 *                                          '_agnosis_native_lang' by the
+	 *                                          caller — gates the tag-
+	 *                                          candidates write below (T1,
+	 *                                          TAG-REDESIGN.md §2). '' when
+	 *                                          undeclared/unknown.
 	 */
-	private function write_post_meta( int $post_id, array $primary, array $gallery, array $all_tags, string $post_type ): void {
+	private function write_post_meta( int $post_id, array $primary, array $gallery, string $post_type, string $native_lang = '' ): void {
 		// Featured image. A video or audio attachment has no image representation
 		// wp_get_attachment_image_src() can use, so pick_thumbnail_id() prefers a
 		// video's linked poster frame, or the first genuine image attachment in
@@ -2813,48 +2823,63 @@ class PostCreator {
 			set_post_thumbnail( $post_id, $this->pick_thumbnail_id( $gallery ) );
 		}
 
-		// Tags — 2026-07-24 redesign (root-caused after Ulises flagged the Tags
-		// admin screen as "completely buggy": no primary-language tags ever
-		// existed, trid links broken, a published post still showing raw
-		// native-language tags on its own primary-language listing). This
-		// used to call wp_set_post_tags() right here, at intake, attaching the
-		// artist's own native-language words as real post_tag terms on the
-		// draft. ReviewEndpoints::finalize_publish() was then supposed to
-		// REPLACE them with resolved primary-language terms once translated —
-		// but that replacement had two independent bugs: (1) when translating
-		// the tag bundle specifically failed, its own fallback silently
-		// substituted the untranslated native names back in, and
-		// Compat\LinguaForge::resolve_primary_tags()'s collision handling
-		// then reused the SAME already-flagged native term as if it were "the
-		// resolved primary tag" — no genuine primary term was ever created;
-		// (2) flag_newly_created_terms_by_post_language() fires on every
-		// wp_set_object_terms() call, including finalize_publish()'s own
-		// resolution step, and this post's `_agnosis_native_lang` postmeta is
-		// still (correctly) the artist's original language at that point —
-		// so a BRAND NEW, correctly-resolved primary term got immediately
-		// flagged as native anyway, the moment it was created.
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): primary-language tag
+		// ACQUISITION only — nothing here assigns a post_tag term or touches
+		// the taxonomy at all (T2's finalize_tags() v2 does that, at
+		// approval). $primary['tags'] is whatever the intake AI call
+		// (describe()/describe_secondary()/pure@ classification) returned,
+		// already asked to answer specifically in the site's primary
+		// language regardless of what language the rest of its response is
+		// in (PromptConfig::resolved_system_prompt()'s {primary_language}
+		// token) — same single-image-result precedent $primary['medium']
+		// above already uses; not merged across a multi-image gallery.
 		//
-		// Ulises's own framing cuts through both: "shouldn't we tag once we
-		// provide the primary language version?" Tagging exactly once, only
-		// once the final (published) language is actually known — see
-		// ReviewEndpoints::finalize_tags() — removes both failure modes at
-		// the root instead of patching either symptom. Nothing here writes to
-		// the real post_tag taxonomy any more; the native-language names are
-		// simply cached so finalize_tags() has them to work with later.
+		// Written only for a PRIMARY-language submission — no declared
+		// native language, or the artist's declared language already IS the
+		// site's primary language — mirroring
+		// ReviewEndpoints::translate_native_content_to_primary()'s own
+		// "nothing to translate" condition exactly (same two checks: empty
+		// $native_lang, or $native_lang === the resolved primary code). A
+		// NATIVE-language submission's real candidates come from THAT
+		// method instead, at approval time, working from the artist's
+		// final/possibly-edited content rather than this pre-review intake
+		// snapshot (TAG-REDESIGN.md §2 — "either way the result lands in
+		// _agnosis_tag_candidates," never both). describe() already
+		// answered 'tags' in primary language for a native submission too —
+		// that value is simply not persisted here; no extra API spend
+		// either way, since this is the same single call already made.
 		//
-		// Trade-off accepted: find_duplicate_post()'s fuzzy-match step reads
-		// OTHER recent same-artist posts' real wp_get_post_tags() as a
-		// signal — for two still-pending (not yet approved) drafts by the
-		// same artist, that signal is now weaker (nothing attached yet on
-		// either side). Title/subject/image-hash matching there are
-		// unaffected, and a false negative there just means both drafts
-		// surface for separate manual review rather than being auto-merged —
-		// a minor, accepted cost.
-		if ( ! empty( $all_tags ) ) {
-			update_post_meta( $post_id, '_agnosis_native_tags', wp_json_encode( array_values( array_unique( $all_tags ) ) ) );
+		// Cleared unconditionally when a native-language pass writes no
+		// candidates, so a resubmission that changes the artist's declared
+		// language (or reprocesses an existing draft) never leaves a stale
+		// candidates list from an earlier pass sitting unused.
+		$is_primary_language_submission = '' === trim( $native_lang )
+			|| $native_lang === SubmissionTranslator::resolve_target_language();
+
+		if ( $is_primary_language_submission ) {
+			$candidate_tags = array_values( array_unique( array_filter(
+				array_map( 'sanitize_text_field', (array) ( $primary['tags'] ?? [] ) ),
+				static fn( string $t ): bool => '' !== trim( $t )
+			) ) );
+
+			if ( ! empty( $candidate_tags ) ) {
+				update_post_meta( $post_id, '_agnosis_tag_candidates', wp_json_encode( $candidate_tags, JSON_UNESCAPED_UNICODE ) );
+			} else {
+				delete_post_meta( $post_id, '_agnosis_tag_candidates' );
+			}
 		} else {
-			delete_post_meta( $post_id, '_agnosis_native_tags' );
+			delete_post_meta( $post_id, '_agnosis_tag_candidates' );
 		}
+
+		// Trade-off accepted (carried over from the prior redesign, still
+		// true): find_duplicate_post()'s fuzzy-match step reads OTHER recent
+		// same-artist posts' real wp_get_post_tags() as a signal — for two
+		// still-pending (not yet approved) drafts by the same artist, that
+		// signal is weaker (nothing attached yet on either side).
+		// Title/subject/image-hash matching there are unaffected, and a
+		// false negative there just means both drafts surface for separate
+		// manual review rather than being auto-merged — a minor, accepted
+		// cost.
 
 		// Medium taxonomy term — only for artwork posts.
 		// Validate against the LIVE medium vocabulary (PromptConfig::medium_terms()),
@@ -2892,6 +2917,7 @@ class PostCreator {
 			// a post must never carry a proposal for a medium it no longer
 			// actually has pending.
 			delete_post_meta( $post_id, '_agnosis_medium_proposal' );
+			delete_post_meta( $post_id, '_agnosis_medium_proposal_created' );
 
 			if ( $medium && in_array( $medium, PromptConfig::medium_terms(), true ) ) {
 				wp_set_object_terms( $post_id, $medium, 'agnosis_medium' );
@@ -2906,8 +2932,11 @@ class PostCreator {
 				// surfaces distinct pending proposals (grouped by value, with a
 				// post count) on the Artwork → Mediums admin screen, with
 				// Approve (create/reuse the term, assign it, clear this meta)
-				// and Reject (clear this meta only) actions.
+				// and Reject (clear this meta only) actions. The companion
+				// "_created" timestamp (TAG-REDESIGN.md T5(b)) feeds
+				// MediumProposals::sweep_expired()'s TTL auto-reject.
 				update_post_meta( $post_id, '_agnosis_medium_proposal', $medium );
+				update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() );
 			}
 		}
 

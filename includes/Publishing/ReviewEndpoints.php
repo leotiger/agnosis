@@ -10,7 +10,10 @@
  *   2. WP auth      — logged-in user who is the post author or has manage_options.
  *
  * On approve: post_status set to 'publish', fires 'agnosis_post_published'
- *             (triggers ActivityPub broadcast).
+ *             (Lingua Forge language-meta/translation-scheduling — NOT
+ *             ActivityPub federation since TAG-REDESIGN.md F3: see
+ *             finalize_publish()'s own note on where federation is
+ *             actually triggered from now).
  * On reject:  post moved to trash.
  *
  * Post types (2026-07-08 fix): every method here used to hard-check
@@ -36,6 +39,7 @@ use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RewriteFlush;
+use Agnosis\Network\FederationSettlement;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -62,7 +66,6 @@ class ReviewEndpoints {
 				'title'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
 				'excerpt' => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_textarea_field' ],
 				'body'    => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_textarea_field' ],
-				'tags'    => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
 				'publish' => [ 'type' => 'boolean', 'default' => false ],
 			] ),
 		] );
@@ -152,12 +155,11 @@ class ReviewEndpoints {
 			return $result;
 		}
 
-		// Update tags if provided.
-		$tags_raw = (string) ( $request->get_param( 'tags' ) ?? '' );
-		if ( '' !== $tags_raw ) {
-			$tags = array_map( 'trim', explode( ',', $tags_raw ) );
-			wp_set_post_tags( $post_id, array_filter( $tags ) );
-		}
+		// Tags — 2026-07-24 demolition (TAG-REDESIGN.md, T0). Tags are no
+		// longer a pre-approval review-card concern at all (§1: "the review
+		// card's tags field disappears"); this endpoint no longer accepts or
+		// writes a 'tags' param. See TAG-REDESIGN.md §2/§4 for the
+		// replacement acquisition/association pipeline (T1+).
 
 		$final_id = $post_id;
 		if ( $should_publish ) {
@@ -348,10 +350,6 @@ class ReviewEndpoints {
 				// straight onto this exact post at intake, and this is a
 				// first-time publish, so $post_id is never replaced by a
 				// different post the way a staged update's target is.
-				// '_agnosis_native_tags' is NOT re-written here (2026-07-24) —
-				// PostCreator::write_post_meta() already cached it onto this
-				// same post at intake, and translate_native_content_to_primary()
-				// reads it back from that same key, so it's already correct.
 				update_post_meta( $post_id, '_agnosis_native_excerpt', $translated['native_excerpt'] );
 				update_post_meta( $post_id, '_agnosis_native_body', $translated['native_body'] );
 
@@ -363,20 +361,46 @@ class ReviewEndpoints {
 					// stale proposal from an earlier finalize_publish() pass first,
 					// same reasoning as write_post_meta()'s own reset.
 					delete_post_meta( $post_id, '_agnosis_medium_proposal' );
+					delete_post_meta( $post_id, '_agnosis_medium_proposal_created' );
 					if ( in_array( $translated['medium'], PromptConfig::medium_terms(), true ) ) {
 						wp_set_object_terms( $post_id, $translated['medium'], 'agnosis_medium' );
 					} else {
 						update_post_meta( $post_id, '_agnosis_medium_proposal', $translated['medium'] );
+						update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() );
 					}
+				}
+
+				// Tags — 2026-07-25 (TAG-REDESIGN.md T1): candidates acquired
+				// on THIS translation call for a native-language submission.
+				// Post-type agnostic by construction (soundness review §8) —
+				// unlike medium above, this isn't gated to agnosis_artwork; a
+				// biography/event's own translate_native_content_to_primary()
+				// call proposes tags from its own content the same way.
+				if ( ! empty( $translated['tags'] ) ) {
+					update_post_meta( $post_id, '_agnosis_tag_candidates', wp_json_encode( $translated['tags'], JSON_UNESCAPED_UNICODE ) );
+				} else {
+					delete_post_meta( $post_id, '_agnosis_tag_candidates' );
 				}
 			}
 
-			// 2026-07-24 redesign — see finalize_tags()'s own docblock. Always
-			// runs, not just when $translated !== null: an artist already
-			// writing in the site's primary language never goes through
-			// translation at all, but still needs their intake-cached native
-			// tags assigned as this post's real, final ones.
-			$this->finalize_tags( $post_id, $translated );
+			// Tags — ASSOCIATION (T2, finalize_tags() v2). Runs unconditionally
+			// here (not nested inside the `null !== $translated` block above) —
+			// a PRIMARY-language submission never enters that block at all
+			// ($translated stays null, "nothing to translate"), but its own
+			// candidates were already written at INTAKE by
+			// PostCreator::write_post_meta() and still need associating.
+			$this->finalize_tags( $post_id );
+
+			// Federation trigger (TAG-REDESIGN.md F3, §6c) — deliberately AFTER
+			// finalize_tags() so this sees the just-associated tags/proposals,
+			// and NOT via 'agnosis_post_published' below (that action no longer
+			// drives federation at all — see this class's own header note). A
+			// submission whose every candidate matched the existing vocabulary
+			// settles and federates immediately here; one with a genuinely new
+			// tag/medium proposal waits (Admin\TagProposals/MediumProposals'
+			// resolve hooks, or the agnosis_federation_tag_wait_sweep cron
+			// fallback, settle it later).
+			( new FederationSettlement() )->maybe_settle( $post_id );
 
 			delete_post_meta( $post_id, '_agnosis_review_token' );
 			delete_post_meta( $post_id, '_agnosis_review_expiry' );
@@ -552,19 +576,6 @@ class ReviewEndpoints {
 			delete_post_meta( $pending_for, '_agnosis_native_medium' );
 		}
 
-		// 2026-07-24: copy the STAGING draft's own '_agnosis_native_tags'
-		// cache (written at intake by PostCreator::write_post_meta()) onto
-		// the live target post the same way — finalize_tags() below reads
-		// this key straight off $post_id's argument (always $pending_for
-		// here), and the staging draft is about to be deleted a few lines
-		// down, so this is the only chance to carry it over.
-		$current_native_tags_json = (string) get_post_meta( $post_id, '_agnosis_native_tags', true );
-		if ( '' !== $current_native_tags_json ) {
-			update_post_meta( $pending_for, '_agnosis_native_tags', $current_native_tags_json );
-		} else {
-			delete_post_meta( $pending_for, '_agnosis_native_tags' );
-		}
-
 		// The artist's declared language actually changed (not just cleared
 		// back to primary) — the OLD native-language sibling
 		// Compat\LinguaForge::sync_native_sibling() built for
@@ -575,22 +586,13 @@ class ReviewEndpoints {
 			LinguaForge::trash_orphaned_native_sibling( $pending_for, $previous_native_lang );
 		}
 
-		// 2026-07-24 redesign — see finalize_tags()'s own docblock. Always
-		// runs, not just when $translated !== null: an artist already
-		// writing in the site's primary language never goes through
-		// translation at all, but still needs their intake-cached native
-		// tags (just copied onto $pending_for above) assigned as this
-		// post's real, final ones.
-		$this->finalize_tags( $pending_for, $translated );
-
 		if ( null !== $translated ) {
 			update_post_meta( $pending_for, '_agnosis_translated_title', $translated['display_title'] );
 
 			// Phase 2 (§4b) — same preservation as the direct-publish branch
 			// above, here written onto $pending_for (the post that survives)
 			// rather than $post_id (the staging draft, about to be deleted a
-			// few lines below). '_agnosis_native_tags' is NOT re-written here
-			// — already copied above, before finalize_tags() ran.
+			// few lines below).
 			update_post_meta( $pending_for, '_agnosis_native_excerpt', $translated['native_excerpt'] );
 			update_post_meta( $pending_for, '_agnosis_native_body', $translated['native_body'] );
 
@@ -598,13 +600,59 @@ class ReviewEndpoints {
 				// 2026-07-21: same fix as the direct-publish branch above — see
 				// that comment for the full explanation.
 				delete_post_meta( $pending_for, '_agnosis_medium_proposal' );
+				delete_post_meta( $pending_for, '_agnosis_medium_proposal_created' );
 				if ( in_array( $translated['medium'], PromptConfig::medium_terms(), true ) ) {
 					wp_set_object_terms( $pending_for, $translated['medium'], 'agnosis_medium' );
 				} else {
 					update_post_meta( $pending_for, '_agnosis_medium_proposal', $translated['medium'] );
+					update_post_meta( $pending_for, '_agnosis_medium_proposal_created', time() );
 				}
 			}
+
+			// Tags — 2026-07-25 (TAG-REDESIGN.md T1): a NATIVE-language staged
+			// update's candidates come from THIS translation, same as the
+			// direct-publish branch above — see that branch's own comment.
+			// Takes precedence over whatever the staging draft's own intake
+			// pass wrote (it wouldn't have written anything for a native
+			// submission anyway — PostCreator::write_post_meta()'s own gate).
+			if ( ! empty( $translated['tags'] ) ) {
+				update_post_meta( $pending_for, '_agnosis_tag_candidates', wp_json_encode( $translated['tags'], JSON_UNESCAPED_UNICODE ) );
+			} else {
+				delete_post_meta( $pending_for, '_agnosis_tag_candidates' );
+			}
+		} else {
+			// PRIMARY-language staged update — translate_native_content_to_primary()
+			// never ran, so any candidates come from the staging draft's own
+			// intake-time write (PostCreator::write_post_meta()) instead;
+			// carry it over onto the post that survives, same "explicit
+			// set-or-clear" shape the native_lang/native_medium block above
+			// uses rather than the generic copy-loop's "skip when empty"
+			// (a staging draft with NO candidates — e.g. the AI proposed
+			// none — must actively CLEAR a stale value left on $pending_for
+			// by an earlier revision, not silently leave it in place).
+			$staged_tag_candidates = (string) get_post_meta( $post_id, '_agnosis_tag_candidates', true );
+			if ( '' !== $staged_tag_candidates ) {
+				update_post_meta( $pending_for, '_agnosis_tag_candidates', $staged_tag_candidates );
+			} else {
+				delete_post_meta( $pending_for, '_agnosis_tag_candidates' );
+			}
 		}
+
+		// Tags — ASSOCIATION (T2, finalize_tags() v2), on $pending_for (the
+		// post that survives) — same reasoning as the direct-publish branch's
+		// own call: must run for BOTH the native-translated and the
+		// primary-language-carried-over cases above, so it sits after the
+		// if/else rather than inside either branch.
+		$this->finalize_tags( $pending_for );
+
+		// Federation trigger (TAG-REDESIGN.md F3) — same reasoning as the
+		// direct-publish branch's own call just above finalize_tags()'s
+		// sibling call site there. $pending_for is already-published content
+		// (this whole branch never toggles its post_status), so this is a
+		// no-op when it already federated; it settles/federates now for the
+		// first time if the ORIGINAL publish left it pending-tags and this
+		// staged update's own tag association just cleared the gate.
+		( new FederationSettlement() )->maybe_settle( $pending_for );
 
 		// Repoint the originating agnosis_queue row off the staging draft
 		// BEFORE it's deleted below (2026-07-13 fix). PostCreator::handle()
@@ -765,7 +813,7 @@ class ReviewEndpoints {
 	 * artist's own native-language sibling post, agnosis-audit/
 	 * NATIVE-LANGUAGE-PIPELINE.md §4d) needs to exist at all.
 	 *
-	 * @return array{display_title: string, excerpt: string, content: string, medium: string, tags: string[], tags_translated: bool, native_excerpt: string, native_body: string, native_tags: string[]}|null
+	 * @return array{display_title: string, excerpt: string, content: string, medium: string, tags: array<string>, native_excerpt: string, native_body: string}|null
 	 */
 	private function translate_native_content_to_primary( \WP_Post $source ): ?array {
 		$native_lang = (string) get_post_meta( $source->ID, '_agnosis_native_lang', true );
@@ -792,32 +840,38 @@ class ReviewEndpoints {
 
 		$native_medium = (string) get_post_meta( $source->ID, '_agnosis_native_medium', true );
 
-		// 2026-07-24 redesign: read from the `_agnosis_native_tags` postmeta
-		// cache PostCreator::write_post_meta() writes at intake, not from the
-		// post's own post_tag terms — this draft is never actually tagged in
-		// the real taxonomy any more (see finalize_tags()'s own docblock for
-		// the full incident this closes). Native term IDs are no longer
-		// available at this point either, since nothing creates a real term
-		// pre-approval any more — resolve_primary_tags() is called with an
-		// empty native-ID list wherever this feeds into it, which safely
-		// degrades to exact-name matching only (see that method's own
-		// docblock: "no free trid reuse next time" is the entire cost).
-		$decoded     = json_decode( (string) get_post_meta( $source->ID, '_agnosis_native_tags', true ), true );
-		$native_tags = is_array( $decoded )
-			? array_values( array_filter( array_map( 'strval', $decoded ), static fn( $v ) => '' !== trim( $v ) ) )
-			: [];
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): the repurposed prompt is
+		// reintroduced — see §2's exact wording: "propose 3–{tag_count} tags
+		// in {primary language}; when a concept matches one of these
+		// existing tags, use its EXACT text: {primary vocabulary list}".
+		// Folded into THIS SAME translate_fields() call via
+		// $field_instructions (see that method's own docblock — one AI call
+		// per approval, not a second reconciliation round trip) rather than
+		// translating some pre-existing native-tags text: there is no such
+		// text any more (`_agnosis_native_tags` itself was removed outright
+		// in T0) — this is a fresh PROPOSAL generated from the artist's
+		// title/excerpt/body content, already present in this same batched
+		// prompt, not a translation of anything. $fields['tags']'s own
+		// "text" below is therefore just a placeholder the instruction
+		// explicitly overrides — never itself sent for translation.
+		$tag_count             = PromptConfig::from_options()->tag_count;
+		$primary_language_name = SubmissionTranslator::primary_language_name();
+		$existing_tags          = PromptConfig::existing_tags();
+		$existing_tags_note     = ! empty( $existing_tags )
+			? '; when a concept matches one of these existing tags, use its EXACT text: ' . implode( ' | ', $existing_tags )
+			: '';
 
-		// Batched into ONE chat() call via translate_fields() — title, excerpt,
-		// body, medium, and tags together — rather than one call per field.
-		// This is the single AI call §7 of the design doc accounts for per
-		// cross-language approval.
+		// Batched into ONE chat() call via translate_fields() — title,
+		// excerpt, body, medium, and tags together — rather than one call
+		// per field. This is the single AI call §7 of the design doc
+		// accounts for per cross-language approval.
 		$fields = array_filter(
 			[
 				'title'   => $source->post_title,
 				'excerpt' => $source->post_excerpt,
 				'body'    => $body_plain,
 				'medium'  => $native_medium,
-				'tags'    => implode( ' | ', $native_tags ),
+				'tags'    => '(n/a — see instruction above; generate from the TITLE/EXCERPT/BODY sections)',
 			],
 			static fn( $v ) => '' !== trim( (string) $v )
 		);
@@ -826,21 +880,20 @@ class ReviewEndpoints {
 			return null; // Nothing with any text content to translate.
 		}
 
-		// Existing primary-language tags folded into THIS SAME call as a
-		// per-field instruction, not a separate reconciliation call after
-		// translating — see translate_fields()'s own docblock for why: a
-		// second AI call here would break the exactly-one-call-per-approval
-		// invariant this whole pipeline exists to guarantee. Compat\LinguaForge::
-		// resolve_primary_tags() (below) trusts an exact match against this
-		// same list precisely because the AI was told, in this one prompt,
-		// to copy the existing text verbatim when it fits — not asked to
-		// freely translate and hope for a coincidental match afterward.
-		$field_instructions = [];
-		$existing_primary_tags = PromptConfig::existing_tags_for_language( $primary_lang );
-		if ( ! empty( $existing_primary_tags ) ) {
-			$field_instructions['tags'] = 'When translating, if a tag means the same as one of these already-existing tags, use its EXACT existing text instead of inventing new wording: '
-				. implode( ' | ', $existing_primary_tags );
-		}
+		// translate_fields() returns each field as a single STRING (it's built
+		// for prose fields — title/excerpt/body/medium — and rejects an
+		// array-typed value from the model as "not a plain string", dropping
+		// it silently; see that method's own decode loop). Asking for a
+		// " | "-delimited single line rather than a JSON array keeps this
+		// call inside that existing string-only contract instead of widening
+		// a shared method four other unrelated callers also depend on — the
+		// same delimiter convention {existing_tags}/{medium_list} already use
+		// throughout PromptConfig, so the model has already seen this exact
+		// format elsewhere. Split back into a real array below, once
+		// $translated comes back.
+		$field_instructions = [
+			'tags' => "Do NOT translate the line below — ignore its literal text entirely. Instead, propose 3–{$tag_count} tags in {$primary_language_name} for the artwork described in the TITLE/EXCERPT/BODY sections above, as a single line separated by \" | \" (no numbering, no quotes, no other punctuation){$existing_tags_note}.",
+		];
 
 		// $native_lang passed through explicitly (2026-07-23) — see
 		// translate_fields()'s own docblock for why: without it, the model
@@ -872,18 +925,20 @@ class ReviewEndpoints {
 			: '';
 		$content = $image_blocks ? $image_blocks . "\n\n" . $body_block : $body_block;
 
-		// 'tags_translated' (2026-07-24) tells finalize_tags() whether 'tags'
-		// below is a genuine AI-translated result or just the native names
-		// falling through untranslated — see that method's own docblock for
-		// why the distinction matters: treating a fallback as "resolved"
-		// (passing it into LinguaForge::resolve_primary_tags() as if it were
-		// a translated name) was the exact mechanism that silently
-		// re-assigned an artist's own native-language term back onto the
-		// primary post disguised as "the resolved primary tag."
-		$tags_translated = isset( $translated['tags'] ) && '' !== trim( $translated['tags'] );
-		$tags            = $tags_translated
-			? array_values( array_filter( array_map( 'trim', explode( '|', $translated['tags'] ) ) ) )
-			: $native_tags; // Translation of the tag bundle failed/was skipped — finalize_tags() falls back to publishing the native names directly rather than treating this as "resolved."
+		// Split the " | "-delimited tags line back into a real array — see
+		// $field_instructions['tags']'s own comment above for why the model
+		// was asked for this shape rather than a JSON array. Tolerant of the
+		// model using a bare "|" with no surrounding spaces despite the
+		// instruction. Deliberately no length/junk gating here (TAG-REDESIGN.md's
+		// gate — normalize_for_match(), junk rules — is T2's finalize_tags()
+		// v2 concern, at ASSOCIATION time; this is still just acquisition).
+		$tags = [];
+		if ( '' !== trim( (string) ( $translated['tags'] ?? '' ) ) ) {
+			$tags = array_values( array_unique( array_filter(
+				array_map( 'sanitize_text_field', array_map( 'trim', explode( '|', $translated['tags'] ) ) ),
+				static fn( string $t ): bool => '' !== $t
+			) ) );
+		}
 
 		return [
 			'display_title'    => $translated['title']   ?? $source->post_title,
@@ -891,83 +946,86 @@ class ReviewEndpoints {
 			'content'          => $content,
 			'medium'           => trim( $translated['medium'] ?? $native_medium ),
 			'tags'             => $tags,
-			'tags_translated'  => $tags_translated,
-			// Phase 2 (§4b) — see this method's own docblock above. Native
-			// tags are the SAME $native_tags read above, before translation —
-			// kept distinct from 'tags' (the translated set applied to the
-			// primary post) since Phase 4 (§4d) needs the untranslated names
-			// for the native-language sibling.
 			'native_excerpt'   => $source->post_excerpt,
 			'native_body'      => $body_plain,
-			'native_tags'      => $native_tags,
 		];
 	}
 
 	/**
-	 * Assigns a post's FINAL, real `post_tag` terms — the one and only point
-	 * in the whole native-language pipeline that ever touches the post_tag
-	 * taxonomy for tags any more (2026-07-24 redesign, from Ulises's own
-	 * question: "shouldn't we tag once we provide the primary language
-	 * version?").
+	 * Tag ASSOCIATION — TAG-REDESIGN.md T2's finalize_tags() v2, the single
+	 * writer of post_tag term assignments (invariant 5: association happens
+	 * only at approval, or an ordinary admin edit of an already-published
+	 * primary post — never a pre-approval draft). Called from both
+	 * finalize_publish() branches, after either the native-language
+	 * translation call or the primary-language intake write has already put
+	 * candidates in place — see those call sites' own comments for exactly
+	 * which case supplies '_agnosis_tag_candidates' here.
 	 *
-	 * Before this redesign, PostCreator::write_post_meta() tagged the draft
-	 * directly at intake, in the artist's own native language, and this
-	 * approval step only ever REPLACED those tags when translation
-	 * succeeded — leaving the native-language terms in place whenever
-	 * translating the tags field specifically failed, and in one documented
-	 * case (LinguaForge::resolve_primary_tags()'s collision fallback)
-	 * actively re-assigning the SAME native term back onto the post
-	 * disguised as "the resolved primary tag." Tagging exactly once, here,
-	 * in whichever language turns out to be final, removes both failure
-	 * modes at the root instead of patching either symptom.
+	 * No term is EVER created here (invariant 1) — every candidate is either
+	 * matched against the live primary vocabulary (by normalized name, via
+	 * TagGate) and assigned by ID, or — if unmatched — recorded as an
+	 * `_agnosis_tag_proposal` row for Admin\TagProposals (T2's other half)
+	 * to later resolve. Association is always by ID (invariant 3);
+	 * wp_set_object_terms() is never called with a tag NAME anywhere in this
+	 * method.
 	 *
-	 * @param int        $post_id    Post to tag — the live, PRIMARY-language
-	 *                                post. Must already carry
-	 *                                `_agnosis_native_tags` postmeta — for a
-	 *                                staged update, the caller copies the
-	 *                                STAGING draft's own cache onto the live
-	 *                                target post first (see the staged-update
-	 *                                branch of finalize_publish()).
-	 * @param array<string, mixed>|null $translated translate_native_content_to_primary()'s
-	 *                                return value, or null.
+	 * Replaces (not appends) the post's entire post_tag assignment every
+	 * time it runs — wp_set_object_terms()'s own default $append=false, the
+	 * same "full replace on every approval" behavior the medium block above
+	 * already relies on (a resubmission's AI re-derives tags fresh from the
+	 * current content, same as it re-derives medium). This is also exactly
+	 * what Retag (§2) needs — "assign by ID (replace, not append)" — so
+	 * ordinary approval and Retag share this one code path with no special
+	 * casing (invariant 8).
+	 *
+	 * A post with NO candidates this pass (absent/empty '_agnosis_tag_candidates' —
+	 * e.g. the T1→T2 deployment window the soundness review calls out, or a
+	 * native submission whose translation call genuinely produced nothing)
+	 * is left completely untouched: no wp_set_object_terms() call, no
+	 * proposal-row clearing. This is deliberately more conservative than
+	 * medium's own "always write, even to clear" pattern — silently wiping
+	 * an already-tagged post's tags just because THIS particular
+	 * resubmission's candidates happened to be empty would be actively
+	 * destructive, not a neutral no-op the way an empty medium is.
+	 *
+	 * @param int $post_id The live post to associate tags onto.
 	 */
-	private function finalize_tags( int $post_id, ?array $translated ): void {
-		$decoded     = json_decode( (string) get_post_meta( $post_id, '_agnosis_native_tags', true ), true );
-		$native_tags = is_array( $decoded )
-			? array_values( array_filter( array_map( 'strval', $decoded ), static fn( $v ) => '' !== trim( $v ) ) )
-			: [];
-
-		if ( empty( $native_tags ) ) {
-			return; // Nothing was ever tagged at intake — nothing to finalize.
-		}
-
-		if ( null === $translated ) {
-			// No translation needed or possible — the artist already writes
-			// in the site's primary language, or nothing was configured to
-			// translate with. These native names ARE the primary
-			// vocabulary — assign them directly, same as before this
-			// pipeline existed.
-			wp_set_post_tags( $post_id, $native_tags );
+	private function finalize_tags( int $post_id ): void {
+		$raw = (string) get_post_meta( $post_id, '_agnosis_tag_candidates', true );
+		if ( '' === $raw ) {
 			return;
 		}
 
-		if ( ! empty( $translated['tags_translated'] ) && ! empty( $translated['tags'] ) ) {
-			$primary_tag_ids = ( new LinguaForge() )->resolve_primary_tags( [], $translated['tags'] );
-			if ( ! empty( $primary_tag_ids ) ) {
-				( new LinguaForge() )->assign_resolved_primary_tags( $post_id, $primary_tag_ids );
-				return;
+		$candidates = json_decode( $raw, true );
+		if ( ! is_array( $candidates ) || empty( $candidates ) ) {
+			if ( ! is_array( $candidates ) ) {
+				Logger::warning(
+					sprintf( 'finalize_tags(#%d): _agnosis_tag_candidates did not decode to an array — leaving existing tags untouched.', $post_id ),
+					'review'
+				);
 			}
+			return;
 		}
 
-		// Translation of the tag bundle failed, or every resolved candidate
-		// collided with an already-flagged native term (see
-		// LinguaForge::resolve_primary_tags()'s own collision-fallback
-		// comment) — publish the native tags as-is rather than nothing.
-		// flag_newly_created_terms_by_post_language() (not suppressed here,
-		// unlike the resolved-primary branch above) correctly marks any
-		// brand-new one of these as non-primary, using this post's own
-		// `_agnosis_native_lang`.
-		wp_set_post_tags( $post_id, $native_tags );
+		// The actual gate → match → assign-by-ID → proposal-rows algorithm
+		// lives on TagGate::associate() now, not here — invariant 8 requires
+		// Retag to run "the same acquisition, gate, association ... code as
+		// a real approval," so this method and Publishing\Retag::run() both
+		// call that one shared implementation rather than each having their
+		// own copy. See TagGate::associate()'s own docblock for the
+		// gate/cap/replace-not-append details this used to document inline.
+		$result = TagGate::associate( $post_id, $candidates );
+
+		Logger::info(
+			sprintf(
+				'finalize_tags(#%d): %d matched (assigned by ID), %d new proposal(s) recorded, %d candidate(s) gated out or trimmed by cap.',
+				$post_id,
+				$result['matched'],
+				$result['proposed'],
+				$result['gated']
+			),
+			'review'
+		);
 	}
 
 	// -------------------------------------------------------------------------

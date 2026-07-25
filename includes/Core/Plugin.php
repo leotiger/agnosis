@@ -18,7 +18,9 @@ use Agnosis\Admin\InboxPage;
 use Agnosis\Admin\QueueController;
 use Agnosis\Admin\Settings;
 use Agnosis\Admin\ArtworkMediumSync;
+use Agnosis\Admin\ArtworkRetag;
 use Agnosis\Admin\MediumProposals;
+use Agnosis\Admin\TagProposals;
 use Agnosis\Admin\TaxonomyLanguageFilter;
 use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
@@ -44,6 +46,7 @@ use Agnosis\Compat\LinguaForge;
 use Agnosis\Email\Inbox;
 use Agnosis\Email\Webhook;
 use Agnosis\Network\ActivityPub;
+use Agnosis\Network\FederationSettlement;
 use Agnosis\Network\Node;
 use Agnosis\Network\SubdomainNavigation;
 use Agnosis\Newsletter\Archive;
@@ -175,12 +178,26 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_approve_medium_proposal', $medium_proposals, 'handle_approve' );
 			$this->loader->add_action( 'admin_post_agnosis_reject_medium_proposal',  $medium_proposals, 'handle_reject' );
 
-			// On-demand medium-ASSIGNMENT sync (distinct from the TERM sync
-			// above: that ensures a translated medium term exists at all,
-			// this pushes a specific artwork's current medium onto its
-			// already-translated siblings) — a per-artwork edit-screen
-			// button plus a bulk sweep, see ArtworkMediumSync's own
-			// docblock for why the automatic-only version wasn't enough.
+			// Tag-PROPOSAL review queue — TAG-REDESIGN.md T2's Admin\TagProposals,
+			// the tag-side analogue of MediumProposals immediately above (see its
+			// own class docblock for the multi-value-meta / cross-CPT / normalized-
+			// reuse differences). A notice/table on the Tags taxonomy list screen,
+			// Approve/Reject admin-post actions. Its TTL-sweep cron is registered
+			// further below, OUTSIDE this is_admin() block — see that comment for
+			// why (wp-cron.php requests are not admin requests).
+			$tag_proposals = new TagProposals();
+			$this->loader->add_action( 'admin_notices',                       $tag_proposals, 'maybe_render_notice' );
+			$this->loader->add_action( 'admin_post_agnosis_approve_tag_proposal', $tag_proposals, 'handle_approve' );
+			$this->loader->add_action( 'admin_post_agnosis_reject_tag_proposal',  $tag_proposals, 'handle_reject' );
+
+			// On-demand medium/tags-ASSIGNMENT sync (distinct from the TERM
+			// sync above: that ensures a translated medium/tag term exists
+			// at all, this pushes a specific artwork's current medium/tags
+			// onto its already-translated siblings) — a per-artwork
+			// edit-screen button plus a bulk sweep, see ArtworkMediumSync's
+			// own docblock for why the automatic-only version wasn't
+			// enough, and for the tags option added alongside medium
+			// (TAG-REDESIGN.md T3(c)).
 			$artwork_medium_sync = new ArtworkMediumSync();
 			$this->loader->add_action( 'load-post.php',     $artwork_medium_sync, 'register_edit_screen_scoping' );
 			$this->loader->add_action( 'load-post-new.php', $artwork_medium_sync, 'register_edit_screen_scoping' );
@@ -188,9 +205,23 @@ class Plugin {
 			$this->loader->add_action( 'add_meta_boxes',       $artwork_medium_sync, 'register_meta_box' );
 			$this->loader->add_action( 'admin_post_agnosis_sync_medium_assignment',      $artwork_medium_sync, 'handle_sync' );
 			$this->loader->add_action( 'admin_post_agnosis_sync_all_medium_assignments', $artwork_medium_sync, 'handle_sync_all' );
+			$this->loader->add_action( 'admin_post_agnosis_sync_tag_assignment',         $artwork_medium_sync, 'handle_sync_tags' );
+			$this->loader->add_action( 'admin_post_agnosis_sync_all_tag_assignments',    $artwork_medium_sync, 'handle_sync_all_tags' );
 			$this->loader->add_action( 'restrict_manage_posts', $artwork_medium_sync, 'render_bulk_sync_button' );
 			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_single_notice' );
 			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_bulk_notice' );
+			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_single_tags_notice' );
+			$this->loader->add_action( 'admin_notices',         $artwork_medium_sync, 'maybe_render_bulk_tags_notice' );
+
+			// Re-tag button (TAG-REDESIGN.md T3(e)) — per-artwork meta box
+			// re-running the whole tag pipeline (Publishing\Retag::run())
+			// for one post, mirroring ArtworkMediumSync's own per-artwork
+			// button pattern; see ArtworkRetag's own class docblock for why
+			// this is a separate class rather than folded into that one.
+			$artwork_retag = new ArtworkRetag();
+			$this->loader->add_action( 'add_meta_boxes',      $artwork_retag, 'register_meta_box' );
+			$this->loader->add_action( 'admin_post_agnosis_retag', $artwork_retag, 'handle_retag' );
+			$this->loader->add_action( 'admin_notices',       $artwork_retag, 'maybe_render_notice' );
 
 			// Settings tab clusters (2026-07-17 god-class refactor, AUDIT-1.0.0.md
 			// §4d) — each dashboard/card is now its own class under Admin\Dashboards,
@@ -374,6 +405,24 @@ class Plugin {
 		$join = new JoinPage();
 		$this->loader->add_action( 'init', $join, 'register_block' );
 
+		// Tag-proposal TTL sweep — must be registered unconditionally, not
+		// inside the is_admin() block above (that block only registers the
+		// notice/admin-post handlers): wp-cron.php requests are not admin
+		// requests, so an 'init' handler gated on is_admin() would never run
+		// during an actual cron execution and the sweep would silently never
+		// fire. A second, throwaway TagProposals instance — the class is
+		// stateless, so this costs nothing beyond the one extra object.
+		$tag_proposal_sweep = new TagProposals();
+		$this->loader->add_action( 'init',                          $tag_proposal_sweep, 'schedule_ttl_sweep' );
+		$this->loader->add_action( 'agnosis_tag_proposal_ttl_sweep', $tag_proposal_sweep, 'sweep_expired' );
+
+		// Medium-proposal TTL sweep (TAG-REDESIGN.md T5(b)) — same
+		// unconditional-registration reasoning as the tag sweep just above,
+		// and the same shared `agnosis_proposal_ttl` setting.
+		$medium_proposal_sweep = new MediumProposals();
+		$this->loader->add_action( 'init',                             $medium_proposal_sweep, 'schedule_ttl_sweep' );
+		$this->loader->add_action( 'agnosis_medium_proposal_ttl_sweep', $medium_proposal_sweep, 'sweep_expired' );
+
 		// Email ingestion — IMAP scheduled poll + daily cleanup.
 		$inbox = new Inbox();
 		$this->loader->add_filter( 'cron_schedules',        $inbox, 'register_interval' );
@@ -463,7 +512,15 @@ class Plugin {
 		// Interaction-surface roadmap, Phase 1 (2026-07-24): agnosis/interaction-counts,
 		// the on-site like/boost count display — see ActivityPub::register_interaction_counts_block().
 		$this->loader->add_action( 'init',                   $activitypub, 'register_interaction_counts_block' );
-		$this->loader->add_action( 'agnosis_post_published', $activitypub, 'broadcast', 10, 1 );
+		// TAG-REDESIGN.md F3 (§6c): broadcast() (the Create) no longer fires
+		// directly on 'agnosis_post_published' (that action still fires for
+		// EVERY publish, but now only drives Lingua Forge's own language-meta/
+		// translation-scheduling listeners) — it fires on the new
+		// 'agnosis_federation_settled' action instead, which
+		// Network\FederationSettlement raises only once a post's tags/medium
+		// have actually settled (or timed out). See FederationSettlement's own
+		// class docblock for the full trigger design.
+		$this->loader->add_action( 'agnosis_federation_settled', $activitypub, 'broadcast', 10, 1 );
 		// Audit §3c: artwork object ids must dereference to ActivityStreams
 		// JSON — content-negotiate on the artwork permalink itself.
 		$this->loader->add_action( 'template_redirect',      $activitypub, 'serve_artwork_activity_json' );
@@ -485,6 +542,32 @@ class Plugin {
 		// (every_five_minutes — the same interval Inbox::register_interval()
 		// already registers on every request).
 		$this->loader->add_action( 'agnosis_ap_retry_deliveries', $activitypub, 'process_delivery_retry_queue' );
+
+		// Federation settlement (TAG-REDESIGN.md F3, §6c) — the tag-settled
+		// state machine that decides WHEN a post is ready to fire
+		// 'agnosis_federation_settled' (wired to broadcast() above).
+		// Registered unconditionally (not inside the is_admin() block below)
+		// for the same reason the tag/medium-proposal TTL sweeps are: a
+		// resolve hook can fire from an admin-post request, but the fallback
+		// cron fires from wp-cron.php, which is never an admin request.
+		$federation_settlement = new FederationSettlement();
+		// TagProposals::approve/reject/sweep_expired and MediumProposals'
+		// three equivalents all resolve through these two actions (fired by
+		// Publishing\TagGate::clear_proposal() for tags — the one choke
+		// point all three tag paths already share — and directly at each of
+		// MediumProposals' three resolve call sites, since medium has no
+		// equivalent shared clear method).
+		$this->loader->add_action( 'agnosis_tag_proposal_resolved',    $federation_settlement, 'maybe_settle', 10, 1 );
+		$this->loader->add_action( 'agnosis_medium_proposal_resolved', $federation_settlement, 'maybe_settle', 10, 1 );
+		// Priority 20 — AFTER Compat\LinguaForge::sync_translated_terms()'s
+		// own priority-10 registration on this same action — so a sibling's
+		// terms are already synced (real hashtags) by the time this decides
+		// whether to federate it.
+		$this->loader->add_action( 'linguaforge_translation_complete', $federation_settlement, 'on_translation_complete', 20, 3 );
+		// Safety valve — force-settles any published artwork still waiting
+		// on a tag/medium proposal past agnosis_federation_tag_wait hours.
+		$this->loader->add_action( 'init',                              $federation_settlement, 'schedule_fallback_sweep' );
+		$this->loader->add_action( 'agnosis_federation_tag_wait_sweep', $federation_settlement, 'sweep_timed_out' );
 
 		// Subdomain navigation — artist-breadcrumb block, plus pointing the Site
 		// Logo/Site Title links back at the main site from an artist subdomain.

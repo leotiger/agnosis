@@ -17,6 +17,7 @@ use Agnosis\AI\EnhancementResult;
 use Agnosis\AI\MediaAdapter;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
+use Agnosis\AI\SubmissionTranslator;
 
 class OpenAI implements ProviderInterface {
 
@@ -59,7 +60,15 @@ class OpenAI implements ProviderInterface {
 		$image_b64  = base64_encode( $vision_image_data );
 		$image_url  = 'data:' . $mime_type . ';base64,' . $image_b64;
 
-		$system    = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): the single-vocabulary
+		// existing-tags nudge and the explicit primary-language naming (both
+		// removed in T0's demolition) are wired back in — see PromptConfig::
+		// existing_tags()/resolved_system_prompt()'s own docblocks.
+		$system    = $this->config->resolved_system_prompt(
+			PromptConfig::medium_terms(),
+			PromptConfig::existing_tags(),
+			SubmissionTranslator::primary_language_name()
+		);
 		$user_text = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [
@@ -149,7 +158,14 @@ class OpenAI implements ProviderInterface {
 			'max_tokens'      => 300,
 			'response_format' => [ 'type' => 'json_object' ],
 			'messages'        => [
-				[ 'role' => 'system', 'content' => PromptConfig::secondary_system_prompt( PromptConfig::existing_tags_for_language( $native_lang ) ) ],
+				// Tags — 2026-07-25 (TAG-REDESIGN.md T1): see describe()'s own comment.
+				[
+					'role'    => 'system',
+					'content' => PromptConfig::secondary_system_prompt(
+						PromptConfig::existing_tags(),
+						SubmissionTranslator::primary_language_name()
+					),
+				],
 				[
 					'role'    => 'user',
 					'content' => [

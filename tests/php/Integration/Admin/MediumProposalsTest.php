@@ -33,6 +33,11 @@ namespace Agnosis\Tests\Integration\Admin;
 
 use Agnosis\Admin\MediumProposals;
 use Agnosis\Artist\Profile;
+use Agnosis\Compat\LinguaForge;
+use Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest;
+use Agnosis\Tests\Integration\Support\FakeLinguaForge;
+
+require_once __DIR__ . '/../Compat/Stubs/lf_global_stubs.php';
 
 class MediumProposalsTest extends \WP_UnitTestCase {
 
@@ -56,6 +61,7 @@ class MediumProposalsTest extends \WP_UnitTestCase {
 				wp_delete_term( $term->term_id, 'agnosis_medium' );
 			}
 		}
+		delete_option( 'agnosis_proposal_ttl' );
 		parent::tearDown();
 	}
 
@@ -192,6 +198,81 @@ class MediumProposalsTest extends \WP_UnitTestCase {
 		$this->assertCount( 1, get_terms( [ 'taxonomy' => 'agnosis_medium', 'hide_empty' => false, 'name' => 'Ceramics' ] ), 'Approving an already-existing term name must not create a duplicate.' );
 	}
 
+	/**
+	 * TAG-REDESIGN.md T3(b): approving a proposal that creates a brand-new
+	 * primary term must queue background translation into every active
+	 * language — LinguaForge::queue_translation_for_term(), called from the
+	 * new-term branch of approve_proposal() only.
+	 */
+	public function test_approve_of_a_new_term_queues_background_translation(): void {
+		LinguaForgeCompatTest::$lf_languages = [ 'en', 'de' ];
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		$this->make_artwork_with_proposal( 'Ceramics' );
+		$this->call_approve( 'Ceramics' );
+
+		$term = get_term_by( 'name', 'Ceramics', 'agnosis_medium' );
+		$this->assertInstanceOf( \WP_Term::class, $term );
+		$pending = json_decode( (string) get_term_meta( $term->term_id, LinguaForge::TERM_PENDING_TRANSLATION_META, true ), true );
+		$this->assertSame( [ 'de' ], $pending );
+
+		LinguaForgeCompatTest::$lf_languages = null;
+		delete_option( 'linguaforge_primary_language' );
+	}
+
+	/**
+	 * The reuse branch (an already-existing term approved a second time)
+	 * must never re-queue translation — see the matching TagProposals test
+	 * for the full reasoning.
+	 */
+	public function test_approve_reuse_of_an_existing_term_does_not_queue_translation(): void {
+		LinguaForgeCompatTest::$lf_languages = [ 'en', 'de' ];
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		$existing = wp_insert_term( 'Ceramics', 'agnosis_medium' );
+		$this->assertIsArray( $existing );
+		$post_id = $this->make_artwork_with_proposal( 'Ceramics' );
+
+		$this->call_approve( 'Ceramics' );
+
+		$this->assertSame(
+			'',
+			get_term_meta( (int) $existing['term_id'], LinguaForge::TERM_PENDING_TRANSLATION_META, true ),
+			'Reusing an already-existing term must never queue translation from this approval.'
+		);
+
+		LinguaForgeCompatTest::$lf_languages = null;
+		delete_option( 'linguaforge_primary_language' );
+		wp_delete_post( $post_id, true );
+	}
+
+	/**
+	 * TAG-REDESIGN.md T3(c): approving a proposal must propagate the new
+	 * medium assignment to the approved artwork's translated siblings —
+	 * delivered automatically via the generalized
+	 * on_term_assignment_changed() listener (T3(c)) firing on this
+	 * method's own wp_set_object_terms() call.
+	 */
+	public function test_approve_propagates_the_new_medium_to_a_translated_sibling(): void {
+		new LinguaForge(); // Registers the set_object_terms propagation listener.
+		update_option( 'linguaforge_primary_language', 'en' );
+
+		$post_id = $this->make_artwork_with_proposal( 'Ceramics' );
+		update_post_meta( $post_id, '_lf_lang', 'en' );
+		$sibling_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		FakeLinguaForge::link( $post_id, 'de', $sibling_id );
+
+		$this->call_approve( 'Ceramics' );
+
+		$this->assertSame(
+			[ 'Ceramics' ],
+			wp_get_post_terms( $sibling_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] )
+		);
+
+		delete_option( 'linguaforge_primary_language' );
+		FakeLinguaForge::reset();
+	}
+
 	public function test_approve_does_not_affect_posts_with_a_different_proposal(): void {
 		$this->make_artwork_with_proposal( 'Ceramics', 'Piece A' );
 		$other = $this->make_artwork_with_proposal( 'Textiles', 'Piece B' );
@@ -239,5 +320,66 @@ class MediumProposalsTest extends \WP_UnitTestCase {
 
 	public function test_reject_of_empty_proposal_is_a_no_op(): void {
 		$this->assertSame( 0, $this->call_reject( '' ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// sweep_expired() — TTL boundary (TAG-REDESIGN.md T5(b))
+	// -------------------------------------------------------------------------
+
+	public function test_sweep_expires_a_proposal_older_than_the_shared_ttl_exactly_like_a_reject(): void {
+		update_option( 'agnosis_proposal_ttl', 7 );
+		wp_insert_term( 'Oil Painting', 'agnosis_medium' );
+		$post_id = $this->make_artwork_with_proposal( 'Stale Idea' );
+		wp_set_object_terms( $post_id, 'Oil Painting', 'agnosis_medium' );
+		update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() - ( 8 * DAY_IN_SECONDS ) );
+
+		$this->controller->sweep_expired();
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ), 'An expired proposal must be cleared exactly like a rejection.' );
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal_created', true ) );
+		$this->assertFalse( get_term_by( 'name', 'Stale Idea', 'agnosis_medium' ), 'The TTL sweep must never create a term — same as a real rejection.' );
+		$this->assertSame(
+			[ 'Oil Painting' ],
+			wp_get_post_terms( $post_id, 'agnosis_medium', [ 'fields' => 'names', 'hide_empty' => false ] ),
+			'Sweeping an expired proposal must not touch a medium the post already has assigned.'
+		);
+	}
+
+	public function test_sweep_leaves_a_proposal_younger_than_the_ttl_untouched(): void {
+		update_option( 'agnosis_proposal_ttl', 7 );
+		$post_id = $this->make_artwork_with_proposal( 'Fresh Idea' );
+		update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() - ( 6 * DAY_IN_SECONDS ) );
+
+		$this->controller->sweep_expired();
+
+		$this->assertSame( 'Fresh Idea', get_post_meta( $post_id, '_agnosis_medium_proposal', true ), 'A proposal younger than the TTL must survive the sweep.' );
+	}
+
+	public function test_sweep_respects_the_same_shared_ttl_setting_tag_proposals_read(): void {
+		update_option( 'agnosis_proposal_ttl', 1 );
+		$post_id = $this->make_artwork_with_proposal( 'Two Day Old Idea' );
+		update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() - ( 2 * DAY_IN_SECONDS ) );
+
+		$this->controller->sweep_expired();
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal', true ) );
+	}
+
+	public function test_approve_clears_the_created_timestamp_alongside_the_proposal(): void {
+		$post_id = $this->make_artwork_with_proposal( 'Ink Wash' );
+		update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() );
+
+		$this->call_approve( 'Ink Wash' );
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal_created', true ) );
+	}
+
+	public function test_reject_clears_the_created_timestamp_alongside_the_proposal(): void {
+		$post_id = $this->make_artwork_with_proposal( 'Charcoal' );
+		update_post_meta( $post_id, '_agnosis_medium_proposal_created', time() );
+
+		$this->call_reject( 'Charcoal' );
+
+		$this->assertSame( '', get_post_meta( $post_id, '_agnosis_medium_proposal_created', true ) );
 	}
 }

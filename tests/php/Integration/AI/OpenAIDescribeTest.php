@@ -25,6 +25,7 @@ namespace Agnosis\Tests\Integration\AI;
 use Agnosis\AI\DescriptionResult;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\Providers\OpenAI;
+use Agnosis\AI\SubmissionTranslator;
 
 class OpenAIDescribeTest extends \WP_UnitTestCase {
 
@@ -477,7 +478,14 @@ class OpenAIDescribeTest extends \WP_UnitTestCase {
 		$this->make_provider()->describe_secondary( 'imagedata', 'image/jpeg' );
 
 		$payload = json_decode( (string) $captured['body'], true );
-		$this->assertSame( PromptConfig::secondary_system_prompt(), $payload['messages'][0]['content'] ?? '' );
+		// TAG-REDESIGN.md T1: the provider now passes the live existing-tags
+		// vocabulary and the resolved primary-language name (both wired back
+		// in 2026-07-25) — build the expectation the same way the provider
+		// itself does, not with secondary_system_prompt()'s bare defaults.
+		$this->assertSame(
+			PromptConfig::secondary_system_prompt( PromptConfig::existing_tags(), SubmissionTranslator::primary_language_name() ),
+			$payload['messages'][0]['content'] ?? ''
+		);
 		$this->assertSame( 300, $payload['max_tokens'] ?? null, 'Secondary pass uses a much smaller max_tokens ceiling than the primary describe() call (1500).' );
 	}
 

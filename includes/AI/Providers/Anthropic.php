@@ -48,6 +48,7 @@ use Agnosis\AI\EnhancementResult;
 use Agnosis\AI\MediaAdapter;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
+use Agnosis\AI\SubmissionTranslator;
 
 class Anthropic implements ProviderInterface {
 
@@ -87,7 +88,15 @@ class Anthropic implements ProviderInterface {
 		$vision_image_data = MediaAdapter::maybe_downscale_for_vision( $image_data, $mime_type );
 
 		$image_b64    = base64_encode( $vision_image_data );
-		$system_prompt = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): the single-vocabulary
+		// existing-tags nudge and the explicit primary-language naming (both
+		// removed in T0's demolition) are wired back in — see PromptConfig::
+		// existing_tags()/resolved_system_prompt()'s own docblocks.
+		$system_prompt = $this->config->resolved_system_prompt(
+			PromptConfig::medium_terms(),
+			PromptConfig::existing_tags(),
+			SubmissionTranslator::primary_language_name()
+		);
 		$user_content  = $this->config->build_user_message( $artist_prompt );
 
 		$body = wp_json_encode( [
@@ -189,7 +198,11 @@ class Anthropic implements ProviderInterface {
 		$body = wp_json_encode( [
 			'model'      => $this->model,
 			'max_tokens' => 300,
-			'system'     => PromptConfig::secondary_system_prompt( PromptConfig::existing_tags_for_language( $native_lang ) ),
+			// Tags — 2026-07-25 (TAG-REDESIGN.md T1): see describe()'s own comment.
+			'system'     => PromptConfig::secondary_system_prompt(
+				PromptConfig::existing_tags(),
+				SubmissionTranslator::primary_language_name()
+			),
 			'messages'   => [
 				[
 					'role'    => 'user',

@@ -7,12 +7,19 @@
  * out-of-the-box behavior without any admin configuration.
  *
  * Placeholder tokens recognized in system_prompt:
- *   {tag_count}      — replaced with the configured number of tags.
- *   {excerpt_words}  — replaced with the configured excerpt word-limit.
- *   {medium_list}    — replaced with the live medium vocabulary (see medium_terms()).
- *   {existing_tags}  — replaced with existing tags in the artist's own
- *                      language (see existing_tags_for_language()), or an
- *                      empty string when none apply yet.
+ *   {tag_count}        — replaced with the configured number of tags.
+ *   {excerpt_words}    — replaced with the configured excerpt word-limit.
+ *   {medium_list}      — replaced with the live medium vocabulary (see medium_terms()).
+ *   {existing_tags}    — replaced with the site's existing primary-language
+ *                        tag vocabulary (see PromptConfig::existing_tags(),
+ *                        TAG-REDESIGN.md T1), or an empty string when none
+ *                        apply yet.
+ *   {primary_language} — replaced with the site's primary language's
+ *                        display name (SubmissionTranslator::primary_language_name(),
+ *                        TAG-REDESIGN.md T1) — names the language tags must
+ *                        be proposed in explicitly, the same "state it, don't
+ *                        make the model infer it" precedent {medium_list}'s
+ *                        closed choice already sets for medium.
  *
  * Placeholder token in user_template:
  *   {artist_prompt}  — replaced with the artist's own description, or a
@@ -79,33 +86,47 @@ class PromptConfig {
 	}
 
 	/**
-	 * Resolve {tag_count}, {excerpt_words}, {medium_list} and {existing_tags}
-	 * tokens in the system prompt.
+	 * Resolve {tag_count}, {excerpt_words}, {medium_list}, {existing_tags}
+	 * and {primary_language} tokens in the system prompt.
 	 *
-	 * $medium_terms/$existing_tags are injectable rather than looked up
-	 * internally (via medium_terms()/existing_tags_for_language() below) so
-	 * this stays a pure, WP-function-free value object — PromptConfigTest
-	 * exercises it under plain PHPUnit with no WordPress loaded at all. Real
-	 * callers (the OpenAI/Anthropic/WordPressAI providers) pass both
-	 * explicitly; omitting $medium_terms falls back to the CANONICAL_MEDIUMS
-	 * seed list (existing behavior, unchanged), and omitting $existing_tags
-	 * simply renders that section as nothing — a fresh vocabulary with
-	 * nothing yet to reuse is exactly what an empty list should produce, not
-	 * an error.
+	 * $medium_terms/$existing_tags/$primary_language_name are injectable
+	 * rather than looked up internally (via medium_terms()/existing_tags()/
+	 * SubmissionTranslator::primary_language_name()) so this stays a pure,
+	 * WP-function-free value object — PromptConfigTest exercises it under
+	 * plain PHPUnit with no WordPress loaded at all. Real callers (the
+	 * OpenAI/Anthropic/WordPressAI providers) pass all three explicitly;
+	 * omitting $medium_terms falls back to the CANONICAL_MEDIUMS seed list
+	 * (existing behavior, unchanged), omitting $existing_tags simply renders
+	 * that section as nothing — a fresh vocabulary with nothing yet to reuse
+	 * is exactly what an empty list should produce, not an error — and
+	 * omitting $primary_language_name falls back to the generic phrase "the
+	 * site's primary language" so the tags instruction still reads as a
+	 * complete sentence even when a caller (e.g. a unit test) never resolves
+	 * a real name.
 	 *
-	 * @param array<string>|null $medium_terms  Live medium vocabulary, or null for the seed default.
-	 * @param array<string>      $existing_tags Existing tags in the artist's own language,
-	 *                                          from PromptConfig::existing_tags_for_language() —
-	 *                                          empty when unknown/none yet.
+	 * @param array<string>|null $medium_terms          Live medium vocabulary, or null for the seed default.
+	 * @param array<string>      $existing_tags         Existing primary-language tag
+	 *                                                  vocabulary (PromptConfig::existing_tags(),
+	 *                                                  TAG-REDESIGN.md T1) — a single
+	 *                                                  site-wide list, not
+	 *                                                  per-language.
+	 * @param string              $primary_language_name Display name of the site's
+	 *                                                  primary language
+	 *                                                  (SubmissionTranslator::primary_language_name(),
+	 *                                                  TAG-REDESIGN.md T1) —
+	 *                                                  names the language tags
+	 *                                                  must be proposed in.
 	 */
-	public function resolved_system_prompt( ?array $medium_terms = null, array $existing_tags = [] ): string {
+	public function resolved_system_prompt( ?array $medium_terms = null, array $existing_tags = [], string $primary_language_name = '' ): string {
 		$existing_tags_line = ! empty( $existing_tags )
-			? 'Existing tags already in use for this language — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags )
+			? 'Existing tags already approved for this site — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags )
 			: '';
 
+		$primary_language_label = '' !== $primary_language_name ? $primary_language_name : "the site's primary language";
+
 		return str_replace(
-			[ '{tag_count}', '{excerpt_words}', '{medium_list}', '{existing_tags}' ],
-			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', $medium_terms ?? self::CANONICAL_MEDIUMS ), $existing_tags_line ],
+			[ '{tag_count}', '{excerpt_words}', '{medium_list}', '{existing_tags}', '{primary_language}' ],
+			[ (string) $this->tag_count, (string) $this->excerpt_words, implode( ' | ', $medium_terms ?? self::CANONICAL_MEDIUMS ), $existing_tags_line, $primary_language_label ],
 			$this->system_prompt
 		);
 	}
@@ -161,64 +182,81 @@ class PromptConfig {
 		return $terms;
 	}
 
-	/** Existing-tag candidates offered to the intake prompt — bounds prompt size on a large vocabulary. */
-	private const EXISTING_TAGS_PROMPT_LIMIT = 150;
+	/**
+	 * Prompt-size cap for existing_tags()'s returned vocabulary — a fresh
+	 * constant (TAG-REDESIGN.md T1), not a revival of the per-language
+	 * EXISTING_TAGS_PROMPT_LIMIT = 150 removed outright in T0 alongside the
+	 * per-language existing_tags_for_language() it bounded (that function was
+	 * built around the native-language-tagging-at-intake model this whole
+	 * redesign replaces, and a constant with no reader is phpstan-flagged
+	 * dead code — so both went together). Under the new single-vocabulary
+	 * model this list is the site's ENTIRE approved tag vocabulary rather
+	 * than one language's slice of it — likely to run larger over time — so
+	 * 200 is a deliberately generous fresh starting point, not the old value
+	 * inherited blindly.
+	 */
+	public const EXISTING_TAGS_PROMPT_LIMIT = 200;
 
 	/**
-	 * Existing `post_tag` vocabulary already in use for a given language —
-	 * the soft, cheap first line of defense against near-duplicate tag
-	 * proliferation (see Compat\LinguaForge::resolve_primary_tags() for the
-	 * hard, trid-gated second line, applied later at approval). Injected
-	 * into the intake describe()/describe_secondary() prompts so the AI's
-	 * own proposal already leans toward reusing a close match instead of
-	 * inventing a near-duplicate, rather than relying entirely on
-	 * after-the-fact reconciliation.
+	 * Live, current primary-language tag vocabulary — TAG-REDESIGN.md T1:
+	 * "all artists' submissions finally dedupe against one vocabulary" (§2),
+	 * a single flat list with no $lang parameter, replacing the removed
+	 * per-language existing_tags_for_language(). Fed into
+	 * resolved_system_prompt()'s/secondary_system_prompt()'s $existing_tags
+	 * parameter and into the approval-time translate-to-primary tags
+	 * instruction (ReviewEndpoints::translate_native_content_to_primary()).
 	 *
-	 * Scoped to ONE language, not the whole site's tag vocabulary: tags are
-	 * created in the artist's own native language at intake (the
-	 * native-language pipeline — NATIVE-LANGUAGE-PIPELINE.md), so the only
-	 * vocabulary relevant to THIS submission is whatever already exists in
-	 * THAT language — showing a Catalan artist a list of English primary
-	 * tags would be actively unhelpful, not just wasted tokens.
+	 * Excludes terms flagged with `LinguaForge::TRANSLATED_TERM_META` — same
+	 * reasoning and exclusion medium_terms() applies (see that method's own
+	 * docblock): a translated-sibling term is not part of the primary
+	 * vocabulary an AI proposal should dedupe against.
 	 *
-	 * A primary-language artist's own tags live in the unflagged "primary"
-	 * bucket (no `TRANSLATED_TERM_META`) — same convention medium_terms()
-	 * uses. A non-primary-language artist's tags are flagged with that meta
-	 * set to their own language (Compat\LinguaForge::
-	 * flag_newly_created_terms_by_post_language()) — so which query runs
-	 * depends on whether $lang matches the site's configured primary.
+	 * Ordered by post count, descending, and capped at
+	 * EXISTING_TAGS_PROMPT_LIMIT — a prompt-size concern only, so a
+	 * vocabulary that grows into the thousands doesn't blow the prompt
+	 * budget. This cap never gates ASSOCIATION: T2's finalize_tags() v2
+	 * matches a candidate against the FULL vocabulary via a direct term
+	 * lookup, not against this capped nudge list — a legitimate reuse of a
+	 * rarely-used existing tag that fell outside the top
+	 * EXISTING_TAGS_PROMPT_LIMIT still matches correctly at association
+	 * time; only the AI's own dedup NUDGE is capped.
 	 *
-	 * Calls the live WordPress term API (get_terms()), so — same reasoning
-	 * medium_terms() itself documents — this is NOT called from
-	 * resolved_system_prompt() itself; real callers resolve $lang and pass
-	 * the result in explicitly.
+	 * Returns [] when the taxonomy has no terms yet — the correct, honest
+	 * state immediately after T0's fresh restart, unlike CANONICAL_MEDIUMS's
+	 * "fall back to a seed list" pattern (medium's seed list exists to
+	 * bootstrap a brand-new install with real defaults an admin can rename;
+	 * there is no equivalent "default tag vocabulary" concept — an empty
+	 * list is genuinely correct here, not a gap to paper over).
+	 * resolved_system_prompt()/secondary_system_prompt() already render an
+	 * empty $existing_tags as "say nothing" (see those methods).
 	 *
-	 * @param string $lang ISO 639-1 code — the artist's own declared
-	 *                      language for this submission.
 	 * @return array<string>
 	 */
-	public static function existing_tags_for_language( string $lang ): array {
-		if ( '' === $lang || ! taxonomy_exists( 'post_tag' ) ) {
+	public static function existing_tags(): array {
+		if ( ! taxonomy_exists( 'post_tag' ) ) {
 			return [];
 		}
 
-		$primary_lang = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
-
-		$meta_query = ( '' === $primary_lang || $lang === $primary_lang )
-			? [ [ 'key' => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META, 'compare' => 'NOT EXISTS' ] ]
-			: [ [ 'key' => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META, 'value' => $lang ] ];
-
 		$terms = get_terms( [
 			'taxonomy'   => 'post_tag',
-			'fields'     => 'names',
-			'hide_empty' => false,
-			'number'     => self::EXISTING_TAGS_PROMPT_LIMIT,
 			'orderby'    => 'count',
 			'order'      => 'DESC',
-			'meta_query' => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- one bounded lookup per submission's own describe() call, not a hot path.
+			'number'     => self::EXISTING_TAGS_PROMPT_LIMIT,
+			'fields'     => 'names',
+			'hide_empty' => false,
+			'meta_query' => [
+				[
+					'key'     => \Agnosis\Compat\LinguaForge::TRANSLATED_TERM_META,
+					'compare' => 'NOT EXISTS',
+				],
+			],
 		] );
 
-		return is_wp_error( $terms ) || empty( $terms ) ? [] : $terms;
+		if ( is_wp_error( $terms ) || empty( $terms ) ) {
+			return [];
+		}
+
+		return $terms;
 	}
 
 	/**
@@ -289,7 +327,7 @@ class PromptConfig {
 			. '  "title":    "Short evocative title, max 10 words, no full stop",' . "\n"
 			. '  "excerpt":  "One sentence that earns a second look (max {excerpt_words} words)",' . "\n"
 			. '  "body":     "2–3 paragraphs. What you see. What it evokes. Why it matters. End with something that stays with the reader.",' . "\n"
-			. '  "tags":     ["tag1", "tag2", ..., "tag{tag_count}"],' . "\n"
+			. '  "tags":     ["tag1", "tag2", ..., "tag{tag_count}"] — propose these specifically in {primary_language}, even if the rest of your response above is in a different language,' . "\n"
 			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible.",' . "\n"
 			. '  "medium":   "Pick exactly one from: {medium_list}",' . "\n"
 			. '  "photo_quality": {' . "\n"
@@ -327,21 +365,31 @@ class PromptConfig {
 	 * lean paths — same precedent, same reasoning: a one-off structured
 	 * extraction doesn't need an admin-editable template.
 	 *
-	 * $existing_tags — same purpose and source as resolved_system_prompt()'s
-	 * own parameter (PromptConfig::existing_tags_for_language()) — a
-	 * secondary gallery image proposes tags too (see PostCreator's
-	 * $all_tags merge across every image result), so it needs the same
-	 * near-duplicate nudge the primary pass gets. No {token} substitution
-	 * here since, unlike system_prompt, this string is never admin-editable —
-	 * built directly with the resolved value rather than templated.
+	 * $existing_tags — same purpose and same single site-wide vocabulary as
+	 * resolved_system_prompt()'s own parameter (PromptConfig::existing_tags(),
+	 * TAG-REDESIGN.md T1) — a secondary gallery image proposes tags too, so
+	 * it gets the same near-duplicate nudge the primary pass gets.
+	 * $primary_language_name — same purpose as resolved_system_prompt()'s own
+	 * parameter (SubmissionTranslator::primary_language_name()) — a secondary
+	 * image's tags need the same explicit language naming the primary pass's
+	 * tags field gets. No {token} substitution here since, unlike
+	 * system_prompt, this string is never admin-editable — built directly
+	 * with the resolved values rather than templated.
 	 *
-	 * @param array<string> $existing_tags Existing tags in the artist's own
-	 *                                     language, or empty when unknown/none yet.
+	 * @param array<string> $existing_tags         Existing primary-language tag
+	 *                                             vocabulary, or empty when none yet.
+	 * @param string        $primary_language_name Display name of the site's
+	 *                                             primary language, or '' to
+	 *                                             fall back to the generic
+	 *                                             phrase "the site's primary
+	 *                                             language".
 	 */
-	public static function secondary_system_prompt( array $existing_tags = [] ): string {
+	public static function secondary_system_prompt( array $existing_tags = [], string $primary_language_name = '' ): string {
 		$existing_tags_line = ! empty( $existing_tags )
-			? 'Existing tags already in use for this language — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags ) . "\n\n"
+			? 'Existing tags already approved for this site — reuse one if it fits rather than inventing a near-duplicate; only propose something new for a genuinely different concept: ' . implode( ' | ', $existing_tags ) . "\n\n"
 			: '';
+
+		$primary_language_label = '' !== $primary_language_name ? $primary_language_name : "the site's primary language";
 
 		return 'You are assessing one image among several in a multi-image artwork gallery submission. '
 			. "This image's own title, description, and editorial text will never be published — only its alt text, tags, and photographic quality matter here.\n\n"
@@ -352,7 +400,7 @@ class PromptConfig {
 			. 'Respond ONLY with valid JSON — no markdown fences, no preamble — in exactly this structure:' . "\n"
 			. '{' . "\n"
 			. '  "alt_text": "Factual visual description for screen readers. Max 125 chars. No interpretation — describe only what is visible.",' . "\n"
-			. '  "tags":     ["tag1", "tag2", "..."] (3-6 descriptive lowercase tags),' . "\n"
+			. "  \"tags\":     [\"tag1\", \"tag2\", \"...\"] (3-6 descriptive lowercase tags, specifically in {$primary_language_label}, even if the rest of your response above is in a different language),\n"
 			. '  "photo_quality": {' . "\n"
 			. '    "score": <integer 1-10, where 1 = technically unusable, 10 = publication-perfect photograph>,' . "\n"
 			. '    "issues": ["<concise description of photographic issue>"]' . "\n"

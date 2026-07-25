@@ -63,13 +63,21 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 
 	private const VALID_TOKEN = 'native-pipeline-test-token';
 
-	/** Matches translate_fields()'s expected response shape exactly. */
+	/**
+	 * Matches translate_fields()'s expected response shape exactly.
+	 *
+	 * 'tags' added 2026-07-25 (TAG-REDESIGN.md T1) — a " | "-delimited single
+	 * line, exactly the shape $field_instructions['tags'] asks for (see
+	 * translate_native_content_to_primary()'s own comment on why: a plain
+	 * JSON array value is rejected by translate_fields()'s per-field
+	 * is_string() decode guard).
+	 */
 	private const TRANSLATED_RESPONSE = [
 		'title'   => 'Sunrise Over the Bay',
 		'excerpt' => 'A vivid excerpt in English.',
 		'body'    => 'Full translated body text.',
 		'medium'  => 'Oil Painting',
-		'tags'    => 'Landscape | Coastal',
+		'tags'    => 'sunrise | harbor | oil painting',
 	];
 
 	protected function setUp(): void {
@@ -100,13 +108,6 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		] );
 		update_post_meta( $this->post_id, '_agnosis_native_lang', 'es' );
 		update_post_meta( $this->post_id, '_agnosis_native_medium', 'Óleo' );
-		// 2026-07-24 redesign: PostCreator::write_post_meta() no longer
-		// attaches native tags to the real post_tag taxonomy at intake at
-		// all — it caches the names as postmeta instead, which
-		// ReviewEndpoints::finalize_tags() reads at approval time (see that
-		// method's own docblock). Simulate exactly that cache, not a real
-		// taxonomy assignment.
-		update_post_meta( $this->post_id, '_agnosis_native_tags', wp_json_encode( [ 'Paisaje', 'Costero' ] ) );
 
 		update_post_meta( $this->post_id, '_agnosis_review_token', self::VALID_TOKEN );
 		update_post_meta( $this->post_id, '_agnosis_review_expiry', time() + 86400 * 7 );
@@ -138,13 +139,14 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		$this->assertCount(
 			1,
 			WpAiClientTestRegistry::$prompts,
-			'A cross-language approval must translate title+excerpt+body+medium+tags together in one batched translate_fields() call — the concrete, checkable version of the design doc\'s §7 accounting (3-4 calls before this redesign, 1 now).'
+			'A cross-language approval must translate title+excerpt+body+medium+tags together in one batched translate_fields() call — the concrete, checkable version of the design doc\'s §7 accounting. Tags rejoined this call in TAG-REDESIGN.md T1, repurposed as a primary-language PROPOSAL rather than a translation of pre-existing native tags (there are none any more — T0).'
 		);
 		$this->assertStringContainsString( 'TITLE:', WpAiClientTestRegistry::$prompts[0] );
 		$this->assertStringContainsString( 'EXCERPT:', WpAiClientTestRegistry::$prompts[0] );
 		$this->assertStringContainsString( 'BODY:', WpAiClientTestRegistry::$prompts[0] );
 		$this->assertStringContainsString( 'MEDIUM:', WpAiClientTestRegistry::$prompts[0] );
-		$this->assertStringContainsString( 'TAGS:', WpAiClientTestRegistry::$prompts[0] );
+		$this->assertStringContainsString( 'TAGS:', WpAiClientTestRegistry::$prompts[0], 'TAG-REDESIGN.md T1 reintroduces the tags field on this same call.' );
+		$this->assertStringContainsString( 'propose 3', WpAiClientTestRegistry::$prompts[0], 'The tags field must carry the repurposed-proposal instruction, not a plain translate-this-text request.' );
 	}
 
 	public function test_approve_of_same_language_draft_makes_zero_ai_calls(): void {
@@ -215,12 +217,6 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 		// exactly once and the pre-translation text isn't simply lost.
 		$this->assertSame( 'Un resumen vívido en español.', get_post_meta( $this->post_id, '_agnosis_native_excerpt', true ) );
 		$this->assertStringContainsString( 'Texto completo del cuerpo en español.', (string) get_post_meta( $this->post_id, '_agnosis_native_body', true ) );
-		// wp_get_post_tags() (what native_tags is built from) doesn't guarantee
-		// insertion order, so this compares as sets rather than assertSame().
-		$this->assertEqualsCanonicalizing(
-			[ 'Paisaje', 'Costero' ],
-			(array) json_decode( (string) get_post_meta( $this->post_id, '_agnosis_native_tags', true ), true )
-		);
 	}
 
 	// -------------------------------------------------------------------------
@@ -262,81 +258,69 @@ class ReviewEndpointsNativeLanguagePipelineTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
-	// Tag finalization (2026-07-24 redesign) — ReviewEndpoints::finalize_tags()
-	// is now the ONE place a post's real post_tag terms are ever assigned; see
-	// its own docblock, and PostCreator::write_post_meta()'s, for the
-	// data-integrity incident this closes (no tags ever reachable under
-	// Admin\TaxonomyLanguageFilter's "Primary language" view; a published
-	// post still showing its own raw native-language tags on its own
-	// primary-language listing).
+	// Tag ACQUISITION — TAG-REDESIGN.md T1 (2026-07-25). The three tests that
+	// used to live here exercised ReviewEndpoints::finalize_tags() v1 and
+	// LinguaForge::resolve_primary_tags()/assign_resolved_primary_tags(), all
+	// demolished outright in T0. This is acquisition only — nothing here
+	// creates a post_tag term or calls wp_set_object_terms(); that's T2's
+	// finalize_tags() v2, at a later phase. These tests confirm the
+	// '_agnosis_tag_candidates' write itself, matching T1's own acceptance
+	// criteria (TAG-REDESIGN.md §4): "a Catalan test submission's proposals
+	// arrive in the primary language; accented characters round-trip intact;
+	// tag count respects {tag_count}."
 	// -------------------------------------------------------------------------
 
-	public function test_approve_assigns_resolved_primary_tags_for_a_cross_language_draft(): void {
-		// Uses the class default fixture — TRANSLATED_RESPONSE's 'tags' entry is "Landscape | Coastal".
+	public function test_approve_writes_translated_tags_as_candidates(): void {
 		$this->approve();
 
-		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
-		$this->assertIsArray( $assigned );
-		$this->assertEqualsCanonicalizing(
-			[ 'Landscape', 'Coastal' ],
-			wp_list_pluck( $assigned, 'name' ),
-			'A successfully translated tag bundle must be assigned to the published post as real, resolved primary tags.'
+		$this->assertSame(
+			[ 'sunrise', 'harbor', 'oil painting' ],
+			json_decode( (string) get_post_meta( $this->post_id, '_agnosis_tag_candidates', true ), true )
 		);
-		foreach ( $assigned as $term ) {
-			$this->assertSame(
-				'',
-				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-				sprintf( 'Genuinely resolved primary tag "%s" must NOT be flagged as native-language — see LinguaForge::assign_resolved_primary_tags().', $term->name )
-			);
-		}
 	}
 
-	public function test_approve_of_same_language_draft_assigns_native_tags_directly(): void {
-		// Artist's own language already matches the site's primary — no
-		// translation happens at all (see test_approve_of_same_language_draft_makes_zero_ai_calls
-		// above), but the tags cached at intake are still this post's real,
-		// final ones — they ARE the primary vocabulary already.
-		update_post_meta( $this->post_id, '_agnosis_native_lang', 'en' );
+	public function test_approve_with_no_tags_in_the_ai_response_clears_any_stale_candidates(): void {
+		update_post_meta( $this->post_id, '_agnosis_tag_candidates', wp_json_encode( [ 'stale', 'leftover' ] ) );
+
+		WpAiClientTestRegistry::$response = (string) wp_json_encode(
+			array_replace( self::TRANSLATED_RESPONSE, [ 'tags' => '' ] )
+		);
 
 		$this->approve();
 
-		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
-		$this->assertIsArray( $assigned );
-		$this->assertEqualsCanonicalizing( [ 'Paisaje', 'Costero' ], wp_list_pluck( $assigned, 'name' ) );
-		foreach ( $assigned as $term ) {
-			$this->assertSame(
-				'',
-				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-				'A same-language artist\'s tags are already primary-language and must never be flagged as native.'
-			);
-		}
+		$this->assertSame( '', get_post_meta( $this->post_id, '_agnosis_tag_candidates', true ) );
 	}
 
-	public function test_approve_falls_back_to_flagged_native_tags_when_tag_translation_fails(): void {
-		// The AI's response is missing 'tags' entirely — translate_fields()
-		// drops a field it can't parse as a plain string rather than failing
-		// the whole batch (see that method's own docblock), so
-		// translate_native_content_to_primary() falls back to the untranslated
-		// native names. finalize_tags() must publish those directly rather
-		// than nothing — but correctly flagged as native-language, not
-		// silently masquerading as resolved primary tags (the exact
-		// 2026-07-24 incident this redesign closes).
-		$response = self::TRANSLATED_RESPONSE;
-		unset( $response['tags'] );
-		WpAiClientTestRegistry::$response = (string) wp_json_encode( $response );
+	public function test_approve_round_trips_accented_tag_characters_intact(): void {
+		// The exact failure TAG-REDESIGN.md §2 calls out by name: a plain
+		// json_encode() (no JSON_UNESCAPED_UNICODE) is what produced the live
+		// "connexiu00f3" corruption this design must not repeat.
+		WpAiClientTestRegistry::$response = (string) wp_json_encode(
+			array_replace( self::TRANSLATED_RESPONSE, [ 'tags' => 'connexió | ilusió | història' ] )
+		);
 
 		$this->approve();
 
-		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'all', 'hide_empty' => false ] );
-		$this->assertIsArray( $assigned );
-		$this->assertEqualsCanonicalizing( [ 'Paisaje', 'Costero' ], wp_list_pluck( $assigned, 'name' ) );
-		foreach ( $assigned as $term ) {
-			$this->assertSame(
-				'es',
-				get_term_meta( $term->term_id, LinguaForge::TRANSLATED_TERM_META, true ),
-				sprintf( 'Untranslated native-language fallback tag "%s" must be flagged non-primary, not left indistinguishable from a genuine primary tag.', $term->name )
-			);
-		}
+		$stored = (string) get_post_meta( $this->post_id, '_agnosis_tag_candidates', true );
+		$this->assertStringNotContainsString( '\\u', $stored, 'JSON_UNESCAPED_UNICODE must keep accented characters literal, not \\uXXXX-escaped.' );
+		$this->assertSame( [ 'connexió', 'ilusió', 'història' ], json_decode( $stored, true ) );
+	}
+
+	public function test_approve_caps_translated_tags_at_the_configured_tag_count(): void {
+		// The AI is INSTRUCTED to respect {tag_count} (see the prompt
+		// assertion above) but nothing stops a non-compliant response from
+		// over-proposing — T1 is acquisition only, so this confirms what's
+		// ACTUALLY stored when that happens; the gate/cap TAG-REDESIGN.md §2
+		// describes ("matched names taking precedence... when trimming") is
+		// T2's finalize_tags() v2 concern, at association time, not here.
+		update_option( 'agnosis_prompt_tag_count', 3 );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode(
+			array_replace( self::TRANSLATED_RESPONSE, [ 'tags' => 'one | two | three | four | five' ] )
+		);
+
+		$this->approve();
+
+		$this->assertStringContainsString( 'propose 3–3', WpAiClientTestRegistry::$prompts[0], 'The instruction itself must reflect the configured tag_count, not a hardcoded default.' );
 	}
 
 	// -------------------------------------------------------------------------

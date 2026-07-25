@@ -688,6 +688,58 @@ class SettingsFields {
 				'desc'     => __( 'How long the Approve & Publish / Discard links in a submission review email stay valid before an artist has to log in to manage the item instead. Applies uniformly to artwork, biography, and event drafts. Default: 7.', 'agnosis' ),
 			],
 
+			// --- BEHAVIOUR: Tag/medium proposals ---
+			// Renamed from agnosis_tag_proposal_ttl (TAG-REDESIGN.md T5(b)) —
+			// shared between the Tags and Artwork → Mediums proposal queues,
+			// which now expire on the identical schedule. Activator's
+			// migrate_tag_proposal_ttl_option() carries an existing install's
+			// customized value across under the new key.
+			'agnosis_proposal_ttl' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Tag / medium proposal expiry (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 7,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'How long an AI-proposed tag or medium category can sit unreviewed on the Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same effect as clicking Reject). Default: 7.', 'agnosis' ),
+			],
+
+			// --- BEHAVIOUR: Federation ---
+			// TAG-REDESIGN.md F4 (§6b) — the rollout valve for sibling-language
+			// federation. Every language sibling is already dereferenceable
+			// once it exists (F2) and correctly tag-settled (F3) — this
+			// setting controls only whether a sibling's own Create is
+			// actively PUSHED to followers, independent of any of that.
+			// Default `primary-only` reproduces the pre-F2/F3/F4 follower
+			// experience exactly (plus F1's language metadata): one post per
+			// artwork, in whatever language the artist submitted in.
+			'agnosis_federate_languages' => [
+				'tab'     => 'behavior',
+				'label'   => __( 'Federate which languages', 'agnosis' ),
+				'input'   => 'select',
+				'options' => [
+					'primary-only' => __( 'Primary language only (default)', 'agnosis' ),
+					'all'          => __( 'All active languages', 'agnosis' ),
+				],
+				'default' => 'primary-only',
+				'desc'    => __( 'Whether a language sibling\'s Note is actively pushed to followers once it\'s tag-settled and ready. "Primary language only" sends one Fediverse post per artwork, same as before multi-language federation existed. "All active languages" sends one post PER LANGUAGE — a follower who hasn\'t set a language filter on their own account will see every language version of every artwork. Switching to "All active languages" only affects artworks that settle from that point forward; it never retroactively re-sends anything already published.', 'agnosis' ),
+			],
+			// TAG-REDESIGN.md F3 (§6c) — the safety valve on the tag-settled
+			// federation trigger. Most submissions settle (and federate)
+			// immediately at approval; this only matters for one that proposed
+			// a genuinely new tag/medium and is waiting on an admin.
+			'agnosis_federation_tag_wait' => [
+				'tab'      => 'behavior',
+				'label'    => __( 'Federation tag-wait timeout (hours)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 24,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'A published artwork with a new tag or medium category awaiting admin review normally federates to the Fediverse only once that proposal is resolved (so its hashtags are correct from the start). If it waits longer than this, it federates anyway with whatever tags it currently has — a later approval still updates the federated post. Default: 24.', 'agnosis' ),
+			],
+
 			// --- BEHAVIOUR: AI prompts ---
 			'agnosis_prompt_system' => [
 				'tab'         => 'behavior',

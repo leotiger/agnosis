@@ -48,8 +48,29 @@
  * follower and the object id serves HTTP 410 + Tombstone JSON thereafter;
  * a meaningful edit of a published artwork (title/content via
  * `ContentEditor`, or a replaced photo) delivers `Update` with the
- * refreshed Note. Language siblings are never federated — Create fires only
- * for the primary post, so Delete/Update mirror that scope.
+ * refreshed Note. Language siblings are dereferenceable and lifecycle-correct
+ * (TAG-REDESIGN.md F2): a sibling's own permalink content-negotiates its own
+ * Note (contentMap-scoped, F1) and its own Delete/Update pushes and tombstone
+ * just like the primary post's; only the initial Create stays primary-only —
+ * broadcast() only ever runs for a post id `Network\FederationSettlement`
+ * has itself decided is ready (see F3 below), and that class only ever
+ * considers the primary post plus its OWN already-existing/later-arriving
+ * siblings, never pushing a sibling's Create independently of its primary
+ * having settled first — so a sibling is never actively pushed into being on
+ * its own, but once it exists (and the group has settled) it is
+ * dereferenceable and its own edits/removal federate. The outbox (no
+ * language filter) already lists every published post, siblings included.
+ *
+ * `broadcast()` (the Create) does NOT fire directly on `agnosis_post_published`
+ * (TAG-REDESIGN.md F3, §6c) — it fires on `agnosis_federation_settled`
+ * instead, raised by `Network\FederationSettlement` only once a post's tags
+ * AND medium category have zero pending admin proposals (immediately at
+ * approval for the common case — every candidate already matched the
+ * vocabulary — or later, once the last pending proposal resolves, or after
+ * a bounded timeout either way): a Note that arrives with no hashtags and
+ * only gains them via a later Update mostly misses hashtag-timeline
+ * discovery, which only happens at delivery time. See FederationSettlement's
+ * own class docblock for the full trigger design.
  *
  * Followers are stored in the agnosis_followers table, keyed by actor id
  * (audit §3g note iii — replaces an autoloaded, wholesale-rewritten-on-every-
@@ -65,6 +86,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Network;
 
+use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use WP_REST_Request;
@@ -1083,14 +1105,17 @@ class ActivityPub {
 	 * The tombstone is recorded even when there are currently no followers:
 	 * a third server that ever saw the object (via a boost, or §3c
 	 * dereferencing) can still learn it's gone when it re-fetches.
+	 *
+	 * TAG-REDESIGN.md F2: no longer primary-only. A language sibling was
+	 * never remotely Created (that stays primary-only per F2's "no pushes
+	 * yet" scope), but its own permalink is dereferenceable (§3c content
+	 * negotiation has no language guard), so it still needs its own
+	 * tombstone recorded here — otherwise deleting a sibling would silently
+	 * leave its now-stale Note dereferenceable at 200 instead of 410.
 	 */
 	private function federate_delete( \WP_Post $post ): void {
 		if ( ! (bool) get_option( 'agnosis_activitypub_enabled', true ) ) {
 			return;
-		}
-
-		if ( ! $this->is_primary_language_post( $post->ID ) ) {
-			return; // Language siblings were never Created remotely — nothing to Delete.
 		}
 
 		$object_id = $this->object_id_for( $post );
@@ -1121,6 +1146,11 @@ class ActivityPub {
 	 * Deduplicated per post per request: a single editorial save can touch
 	 * the post row AND the thumbnail meta (two hooks), but one refreshed
 	 * Note says everything.
+	 *
+	 * TAG-REDESIGN.md F2: no longer primary-only. A sibling's Note is
+	 * already dereferenceable (§3c has no language guard), so an editorial
+	 * change to a sibling needs its own Update pushed too — only Create
+	 * stays primary-only under F2 ("no pushes yet" for the initial publish).
 	 */
 	private function broadcast_update( \WP_Post $post ): void {
 		static $sent = [];
@@ -1131,10 +1161,6 @@ class ActivityPub {
 
 		if ( ! (bool) get_option( 'agnosis_activitypub_enabled', true ) ) {
 			return;
-		}
-
-		if ( ! $this->is_primary_language_post( $post->ID ) ) {
-			return; // Same scope as Create/Delete: only the primary post federates.
 		}
 
 		$sent[ $post->ID ] = true;
@@ -1225,6 +1251,35 @@ class ActivityPub {
 	}
 
 	/**
+	 * The BCP-47-ish language code a Note's `contentMap` should be keyed
+	 * with (TAG-REDESIGN.md F1). Same resolution chain as
+	 * is_primary_language_post() above — `_lf_lang` meta when the post has
+	 * one, otherwise the configured primary language, otherwise the site
+	 * locale — but RETURNS the resolved code instead of comparing it,
+	 * since only post_to_note() (every post it's ever called for is
+	 * primary-language today — F2 is what extends federation to siblings)
+	 * needs an actual language string rather than a yes/no.
+	 *
+	 * Deliberately a separate method rather than refactoring
+	 * is_primary_language_post() to share it — F1 is scoped as "the
+	 * smallest possible change to post_to_activity()"; that method is
+	 * already tested and unrelated to this addition.
+	 */
+	private function resolve_note_language( int $post_id ): string {
+		$lf_lang = sanitize_key( (string) get_post_meta( $post_id, '_lf_lang', true ) );
+		if ( '' !== $lf_lang ) {
+			return $lf_lang;
+		}
+
+		$primary = sanitize_key( (string) get_option( 'linguaforge_primary_language', '' ) );
+		if ( '' !== $primary ) {
+			return $primary;
+		}
+
+		return LinguaForge::locale_to_lang( get_locale() );
+	}
+
+	/**
 	 * Record a slug in the tombstone registry (bounded, autoload=false).
 	 *
 	 * @param string $slug      Artwork slug (clean, without `__trashed`).
@@ -1299,6 +1354,11 @@ class ActivityPub {
 			$content .= '<p>' . $hashtag_text . '</p>';
 		}
 
+		$language_switch = $this->build_language_switch_line( $post->ID );
+		if ( '' !== $language_switch ) {
+			$content .= '<p>' . $language_switch . '</p>';
+		}
+
 		$note = [
 			'@context'     => self::CONTEXT,
 			'type'         => 'Note',
@@ -1307,6 +1367,17 @@ class ActivityPub {
 			'attributedTo' => $actor,
 			'name'         => wp_strip_all_tags( $post->post_title ),
 			'content'      => $content,
+			// TAG-REDESIGN.md F1 — the language-unknown gap: this Note
+			// otherwise carries no language hint at all, so a Mastodon
+			// follower's per-followed-account language filter can't act on
+			// it. `contentMap` is the mechanism Mastodon actually reads to
+			// infer a Note's language. Always a single entry: each language
+			// sibling is its own separate post with its own separate Note
+			// (F2 makes a sibling's Note dereferenceable/lifecycle-correct
+			// in its own right, via resolve_note_language()'s own _lf_lang
+			// lookup for that post) — there is no single Note that
+			// aggregates every language's content into one contentMap.
+			'contentMap'   => [ $this->resolve_note_language( $post->ID ) => $content ],
 			'published'    => gmdate( 'c', (int) strtotime( $post->post_date_gmt ) ),
 			'to'           => [ 'https://www.w3.org/ns/activitystreams#Public' ],
 		];
@@ -1444,6 +1515,58 @@ class ActivityPub {
 		}
 
 		return implode( '', array_map( static fn( string $word ): string => ucfirst( mb_strtolower( $word ) ), $words ) );
+	}
+
+	/**
+	 * A compact "Also available in: X, Y" line linking every OTHER published
+	 * language sibling of $post_id — TAG-REDESIGN.md F4 (§6b): "each sibling
+	 * Note linking its translations informally in content, matching what the
+	 * theme's language badge already does for HTML readers" (see
+	 * `Network\SubdomainNavigation::render_language_badge()` for that HTML
+	 * equivalent — same native-name source, `AI\SubmissionTranslator::
+	 * language_names()`).
+	 *
+	 * Deliberately built for EVERY Note this method is called for, not only
+	 * a sibling's own — under `agnosis_federate_languages`'s default
+	 * `primary-only`, a sibling's Note is dereferenceable (F2) but never
+	 * actively federated (F3/F4), so the PRIMARY Note is the only one an AP
+	 * reader ever actually sees; without this line ALSO appearing there, the
+	 * feature would be invisible in the default configuration. This is a
+	 * pure content addition — it has no bearing on whether a sibling itself
+	 * gets pushed (that's `Network\FederationSettlement`'s own
+	 * `agnosis_federate_languages` gate, unrelated to what any one Note's
+	 * `content` says).
+	 *
+	 * Returns '' (nothing appended) when Lingua Forge isn't active or no
+	 * OTHER language currently has a published sibling for this post.
+	 */
+	private function build_language_switch_line( int $post_id ): string {
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return '';
+		}
+
+		$language_names = SubmissionTranslator::language_names();
+		$links          = [];
+
+		foreach ( linguaforge_get_translations( $post_id ) as $lang => $sibling_id ) {
+			$sibling = get_post( (int) $sibling_id );
+			if ( ! $sibling instanceof \WP_Post || 'publish' !== $sibling->post_status ) {
+				continue;
+			}
+
+			$native_name = $language_names[ $lang ] ?? strtoupper( (string) $lang );
+			$links[]     = sprintf( '<a href="%1$s">%2$s</a>', esc_url( (string) get_permalink( $sibling ) ), esc_html( $native_name ) );
+		}
+
+		if ( [] === $links ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español" */
+			esc_html__( 'Also available in: %s', 'agnosis' ),
+			implode( ', ', $links )
+		);
 	}
 
 	/**

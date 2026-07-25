@@ -32,6 +32,15 @@
  *     it already had — rejecting a proposal is not the same as removing an
  *     existing assignment.
  *
+ * TAG-REDESIGN.md T5(b) (2026-07-25) added a bounded lifetime to match the
+ * tag side: CREATED_META_KEY records when a proposal was written, and a
+ * daily `agnosis_medium_proposal_ttl_sweep` auto-rejects anything older than
+ * the shared `agnosis_proposal_ttl` setting (also read by
+ * Admin\TagProposals::sweep_expired()) — closing soundness-review gap 1
+ * (§8): federation settlement (F3) gates on zero pending proposals of
+ * EITHER kind, so a medium proposal needed the same bound a tag proposal
+ * already had, or an ignored one could wait forever.
+ *
  * @package Agnosis\Admin
  */
 
@@ -39,9 +48,25 @@ declare(strict_types=1);
 
 namespace Agnosis\Admin;
 
+use Agnosis\Compat\LinguaForge;
+use Agnosis\Core\Logger;
+
 class MediumProposals {
 
 	private const META_KEY = '_agnosis_medium_proposal';
+
+	/**
+	 * Companion single-value meta recording WHEN a post's current
+	 * `_agnosis_medium_proposal` value was written — added TAG-REDESIGN.md
+	 * T5(b), the tag-side `TagGate::PROPOSAL_CREATED_META` map's
+	 * single-value analogue (medium has at most one pending proposal per
+	 * post, never several, so a plain timestamp is enough — no map needed).
+	 * Written alongside every `update_post_meta( …, self::META_KEY, … )` call
+	 * site (PostCreator::write_post_meta(), ReviewEndpoints's two re-check
+	 * sites), cleared alongside every `delete_post_meta( …, self::META_KEY )`
+	 * call site — never written or cleared independently of it.
+	 */
+	public const CREATED_META_KEY = '_agnosis_medium_proposal_created';
 
 	// -------------------------------------------------------------------------
 	// Display — Artwork → Mediums admin screen
@@ -304,12 +329,28 @@ class MediumProposals {
 			if ( is_wp_error( $inserted ) ) {
 				return [ 0, $inserted->get_error_message() ];
 			}
+			// TAG-REDESIGN.md T3(b): a brand-new primary term entering the
+			// vocabulary via approval queues background translation into
+			// every active language — never when the `if` above finds the
+			// name already exists (that term already has its own queue
+			// marker, or predates the queue and is covered by the "Sync all
+			// translations" backfill button).
+			LinguaForge::queue_translation_for_term( (int) $inserted['term_id'], 'agnosis_medium' );
 		}
 
 		$approved = 0;
 		foreach ( $this->get_posts_with_proposal( $proposal ) as $post_id ) {
-			wp_set_object_terms( (int) $post_id, $proposal, 'agnosis_medium' );
-			delete_post_meta( (int) $post_id, self::META_KEY );
+			$post_id = (int) $post_id;
+			wp_set_object_terms( $post_id, $proposal, 'agnosis_medium' );
+			delete_post_meta( $post_id, self::META_KEY );
+			delete_post_meta( $post_id, self::CREATED_META_KEY );
+			// TAG-REDESIGN.md F3 (§6c): a resolve hook — the sole listener,
+			// Network\FederationSettlement::maybe_settle() (Core\Plugin
+			// wiring), re-checks whether the post is NOW fully tag/medium-
+			// settled and no-ops if not (medium is single-value, so this
+			// post never has another pending medium proposal to wait on —
+			// but it may still have pending TAG proposals).
+			do_action( 'agnosis_medium_proposal_resolved', $post_id );
 			++$approved;
 		}
 
@@ -327,11 +368,90 @@ class MediumProposals {
 
 		$rejected = 0;
 		foreach ( $this->get_posts_with_proposal( $proposal ) as $post_id ) {
-			delete_post_meta( (int) $post_id, self::META_KEY );
+			$post_id = (int) $post_id;
+			delete_post_meta( $post_id, self::META_KEY );
+			delete_post_meta( $post_id, self::CREATED_META_KEY );
+			do_action( 'agnosis_medium_proposal_resolved', $post_id ); // F3 (§6c) — see approve_proposal()'s own note.
 			++$rejected;
 		}
 
 		return $rejected;
+	}
+
+	// -------------------------------------------------------------------------
+	// TTL sweep — WP-Cron (TAG-REDESIGN.md T5(b))
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Idempotent scheduler — identical pattern to
+	 * Admin\TagProposals::schedule_ttl_sweep() (hooked on `init`,
+	 * `wp_next_scheduled()` guard, core's built-in 'daily' interval).
+	 */
+	public function schedule_ttl_sweep(): void {
+		if ( ! wp_next_scheduled( 'agnosis_medium_proposal_ttl_sweep' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_medium_proposal_ttl_sweep' );
+		}
+	}
+
+	/**
+	 * Auto-reject any pending medium proposal older than
+	 * `agnosis_proposal_ttl` days (default 7 — the SAME option
+	 * Admin\TagProposals::sweep_expired() reads; TAG-REDESIGN.md T5(b):
+	 * "the proposal TTL sweep extends to _agnosis_medium_proposal... shared,
+	 * as agnosis_proposal_ttl"), closing soundness-review gap 1 (§8): a
+	 * pending medium proposal also gates federation settlement (F3) exactly
+	 * like a pending tag proposal, so it needs the identical bounded
+	 * expiry — without this, an artwork with an ignored medium proposal
+	 * would never settle.
+	 *
+	 * Behaves exactly like a rejection (clears both meta keys, creates or
+	 * assigns nothing) and logs each sweep, same convention as
+	 * Admin\TagProposals::sweep_expired().
+	 */
+	public function sweep_expired(): void {
+		$ttl_days = max( 1, (int) get_option( 'agnosis_proposal_ttl', 7 ) );
+		$cutoff   = time() - ( $ttl_days * DAY_IN_SECONDS );
+
+		$post_ids = get_posts( [
+			'post_type'      => 'agnosis_artwork',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => self::CREATED_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- daily cron, not a front-end query; bounded to posts actually carrying a pending proposal.
+		] );
+
+		$swept = 0;
+		foreach ( $post_ids as $post_id ) {
+			$post_id     = (int) $post_id;
+			$created_at  = (int) get_post_meta( $post_id, self::CREATED_META_KEY, true );
+			$proposal    = (string) get_post_meta( $post_id, self::META_KEY, true );
+
+			if ( $created_at > $cutoff ) {
+				continue;
+			}
+
+			delete_post_meta( $post_id, self::META_KEY );
+			delete_post_meta( $post_id, self::CREATED_META_KEY );
+			do_action( 'agnosis_medium_proposal_resolved', $post_id ); // F3 (§6c) — see approve_proposal()'s own note.
+			++$swept;
+
+			Logger::info(
+				sprintf(
+					'MediumProposals::sweep_expired(): proposal "%1$s" on post #%2$d expired (older than %3$d day(s)) — auto-rejected.',
+					$proposal,
+					$post_id,
+					$ttl_days
+				),
+				'review'
+			);
+		}
+
+		if ( $swept > 0 ) {
+			Logger::info(
+				sprintf( 'MediumProposals::sweep_expired(): %d expired proposal(s) auto-rejected.', $swept ),
+				'review'
+			);
+		}
 	}
 
 	/**

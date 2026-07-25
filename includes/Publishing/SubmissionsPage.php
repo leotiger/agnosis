@@ -190,7 +190,7 @@ class SubmissionsPage {
 	 *
 	 * The card shows the artwork and three actions:
 	 *   • Publish — approve as-is.
-	 *   • Make changes — expands an inline form (title, excerpt, body, tags).
+	 *   • Make changes — expands an inline form (title, excerpt, body).
 	 *   • Discard — trash the draft.
 	 *
 	 * No link to WP admin — artists never need to go there.
@@ -206,9 +206,12 @@ class SubmissionsPage {
 		$body_text = wp_strip_all_tags( preg_replace( '/<!--[^>]+-->/', '', $post->post_content ) ?? '' );
 		$body_text = trim( $body_text );
 
-		// Tags for the edit field.
-		$tags     = get_the_tags( $post->ID );
-		$tags_csv = $tags ? implode( ', ', array_column( (array) $tags, 'name' ) ) : '';
+		// Tags — 2026-07-24 demolition (TAG-REDESIGN.md, T0). The review
+		// card's tags field is gone outright, not just its data source: per
+		// TAG-REDESIGN.md §1, tags are a post-approval, vocabulary-level
+		// curatorial concern (the proposals queue and ordinary wp-admin
+		// editing) from here forward, never part of the artist-facing
+		// content review.
 
 		// Same reasoning as ReviewConfirm::render_approve_confirm()'s identical
 		// lookup: title/excerpt/body here are the artist's own draft, always in
@@ -288,14 +291,6 @@ class SubmissionsPage {
 							  id="agnosis-body-<?php echo esc_attr( (string) $post->ID ); ?>"
 							  name="body"
 							  <?php echo $lang_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already esc_attr()'d above. ?>><?php echo esc_textarea( $body_text ); ?></textarea>
-
-					<label class="agnosis-label" for="agnosis-tags-<?php echo esc_attr( (string) $post->ID ); ?>">
-						<?php esc_html_e( 'Tags (comma-separated)', 'agnosis' ); ?>
-					</label>
-					<input class="agnosis-input" type="text"
-						   id="agnosis-tags-<?php echo esc_attr( (string) $post->ID ); ?>"
-						   name="tags"
-						   value="<?php echo esc_attr( $tags_csv ); ?>">
 
 					<div class="agnosis-card__actions agnosis-card__edit-actions">
 						<button type="submit" class="agnosis-btn agnosis-btn--save-publish" data-publish="true">

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.51
+Stable tag: 0.9.54
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,24 +91,20 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
-= 0.9.51 =
-* Added: Artworks now show how many times they've been liked and boosted (reshared) across the fediverse — a small, independent count of each below the artwork itself, not a separate page. No setup needed; boosts and likes are always counted, with nothing for artists or admins to approve.
+= 0.9.54 =
+* Added: Tags redesign completed. Tag and medium-category translations into other languages now happen automatically and propagate to already-translated posts on their own, with no more risk of accidental duplicate/near-duplicate terms across languages. A new one-click "Re-tag" button on each artwork (and an optional bulk backfill script) can (re-)generate tags for posts that don't have them yet. Renaming or deleting a tag/medium term now correctly updates or removes its translations too, and the proposal-review expiry setting is now shared between tags and medium categories.
+* Added: Federated posts now carry proper language metadata, so followers using Mastodon's per-account language filter see them correctly.
+* Added: A translated-language version of an artwork is now correctly reachable and kept up to date over ActivityPub — editing or removing it now federates properly, instead of only the original-language post doing so.
+* Added: An artwork now federates to the Fediverse once its tags and medium category are actually settled, so it arrives with real hashtags instead of none; a genuinely new tag/medium proposal briefly delays federation until it's reviewed (or a configurable timeout passes).
+* Added: A new "Federate which languages" setting (Settings → Behavior) can turn on sending each artwork's translated versions to the Fediverse too, one post per language — off by default, so nothing changes unless you opt in. Every federated post now also links its other available languages.
 
-= 0.9.50 =
-* Fixed: The contact, join, and newsletter-signup forms' success/error messages weren't announced to screen readers after submitting — sighted visitors saw them appear normally, but a screen-reader user heard nothing. Each notice now announces itself as soon as it appears.
-* Fixed: A handful of translations (Arabic, Russian, Catalan, and 12 other languages) had a plural form come out wrong — a missing number placeholder, or two forms accidentally merged into one — so some notification/count text could show up wrong or blank in those languages. All are corrected now.
-* Fixed: Internal dev tooling used to keep translations up to date (`translate-missing`) had a few bugs that could cause a translation batch to fail silently, or in some cases write garbled text into a translation file — fixed, plus two safeguards added so those specific failures can't happen again.
-* Added: The Agnosis Theme's translation catalog now has the same AI-fill and compile tooling the plugin already had (dev-only, no user-facing change).
-* Fixed: Six admin-dashboard inputs (invite/test-send email fields, a ban-until date, a title translation field) relied on placeholder text only, so screen readers had no accessible name for them. Each now has a proper (visually-hidden) label.
-* Fixed: The newsletter digest's artwork thumbnail had no alt text, so a screen reader had nothing to announce for that link. Now uses the artwork's title.
-* Hardened: Internal cleanup that removes a superseded auto-generated placeholder image now double-checks it's actually a placeholder before deleting it — extra protection against ever deleting a real photo by mistake (no known instance of this happening).
-* Fixed: A cosmetic inconsistency in the internal release-packaging notes (dev-only, no user-facing change).
-* Fixed: An internal translation tool could silently skip strings that still needed translating under certain conditions (dev-only, no user-facing change).
+= 0.9.53 =
+* Added: Tags are back, rebuilt from scratch. New submissions once again get 3–5 AI-proposed tags in the site's main language, reusing an existing tag when one already fits instead of creating a near-duplicate. A tag the AI proposes that doesn't already exist now waits for an admin's Approve/Reject on the Tags screen rather than being created automatically; an unreviewed proposal is auto-rejected after 7 days (configurable in Settings → Behavior).
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.51 =
-New database table for like/boost counts is created automatically on upgrade; no action needed.
+= 0.9.54 =
+Tags/medium translations now propagate automatically across languages; a new "Re-tag" button can generate tags for older posts. Federation now waits for tags to settle before posting, and a new opt-in setting can federate translated versions too. No action needed.
 

@@ -28,6 +28,7 @@ use Agnosis\AI\DescriptionResult;
 use Agnosis\AI\EnhancementResult;
 use Agnosis\AI\PromptConfig;
 use Agnosis\AI\ProviderInterface;
+use Agnosis\AI\SubmissionTranslator;
 
 class WordPressAI implements ProviderInterface {
 
@@ -47,7 +48,15 @@ class WordPressAI implements ProviderInterface {
 			);
 		}
 
-		$system = $this->config->resolved_system_prompt( PromptConfig::medium_terms(), PromptConfig::existing_tags_for_language( $native_lang ) );
+		// Tags — 2026-07-25 (TAG-REDESIGN.md T1): the single-vocabulary
+		// existing-tags nudge and the explicit primary-language naming (both
+		// removed in T0's demolition) are wired back in — see PromptConfig::
+		// existing_tags()/resolved_system_prompt()'s own docblocks.
+		$system = $this->config->resolved_system_prompt(
+			PromptConfig::medium_terms(),
+			PromptConfig::existing_tags(),
+			SubmissionTranslator::primary_language_name()
+		);
 		// Append a note since we have no image to send.
 		$user = $this->config->build_user_message( $artist_prompt )
 			. "\n\n(Note: no image is available — generate artwork metadata solely from the artist's text above.)";
