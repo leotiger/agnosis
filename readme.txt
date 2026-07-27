@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.56
+Stable tag: 0.9.57
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,22 +91,19 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
-= 0.9.56 =
-* Fixed: Fediverse replies were silently failing to save at all, due to an internal value that was one character too long for its database column.
-* Fixed: An artwork with no likes/boosts/replies yet now correctly shows "0" instead of showing nothing.
+= 0.9.57 =
+* Fixed: The one-click Approve/Reject link an artist gets emailed for a Fediverse reply could be silently triggered by a corporate mail scanner prefetching the link, approving or discarding the reply before the artist ever saw it. The link now always requires a confirmation click, and expires after a configurable number of days like every other emailed action link.
+* Added: Artists can now opt out of search-engine and Fediverse discovery indexing (FEP-5feb) for their whole profile and body of work — on by default, changeable with no login needed via the existing preferences email link or a checkbox on the artwork/biography approval pages.
+* Added: The like count under an artwork is now a real toggle — visitors and artists can click the heart to like/unlike directly on-site, no fediverse account needed. Boosts are unchanged.
 
-= 0.9.55 =
-* Added: Artworks can now receive replies from the Fediverse. A reply is always held until the artist approves or rejects it (one click from an email, no login needed) and is automatically translated into the artist's own language. Artists can turn replies off for one piece, or for all their work, at any time; a "N replies" button opens them in an overlay without cluttering the artwork page. A new Settings → Network limit caps how many replies one fediverse account can leave per hour (default: 2).
-* Changed: The federation settings added in 0.9.54 ("Federate which languages", "Federation tag-wait timeout") moved from Settings → Behavior to Settings → Network, alongside the existing ActivityPub and node identity fields. No behavior change.
-* Fixed: A read-only redirect notice on the artwork editor now sanitizes its parameters the way WordPress expects (flagged by Plugin Check; no real-world impact).
+= 0.9.56 =
+* Fixed: Every federated reply was silently discarded due to a database column that was too narrow for the internal comment-type value used to store it.
+* Fixed: The like/boost/reply counts under an artwork rendered nothing at all when all three were zero, leaving a dangling label above an empty gap.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
-= 0.9.56 =
-Fixes a bug where Fediverse replies silently failed to save, and a display bug where an artwork with zero likes/boosts/replies showed nothing instead of "0". No action needed.
-
-= 0.9.55 =
-Artworks can now receive Fediverse replies (always held for artist approval, auto-translated, opt-out available). Federation settings moved from Settings → Behavior to Settings → Network (same names, same values). Minor sanitization fix on the artwork editor. No action needed.
+= 0.9.57 =
+Fixes a security-hardening bug where an email security scanner's link prefetch could silently approve or discard a Fediverse reply before the artist saw it. Also adds a search-engine/Fediverse discovery opt-out for artists (on by default) and lets visitors like an artwork directly on-site. No action needed.
 

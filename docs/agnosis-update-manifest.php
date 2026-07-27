@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.56';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.56/agnosis-0.9.56.zip';
+	$version      = '0.9.57';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.57/agnosis-0.9.57.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -98,8 +98,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
 	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Build started 2026-07-27T09:29:56Z by build-zip.sh for v0.9.56 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
-	$last_updated = '2026-07-27';
+	$sha256_note  = 'Build started 2026-07-27T17:50:48Z by build-zip.sh for v0.9.57 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
+	$last_updated = '';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -111,16 +111,16 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.57</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> The one-click Approve/Reject link an artist gets emailed for a Fediverse reply could be silently triggered by a corporate mail scanner prefetching the link, approving or discarding the reply before the artist ever saw it. The link now always requires a confirmation click, and expires after a configurable number of days like every other emailed action link.</li>' .
+			'<li><strong>Added:</strong> Artists can now opt out of search-engine and Fediverse discovery indexing (FEP-5feb) for their whole profile and body of work — on by default, changeable with no login needed via the existing preferences email link or a checkbox on the artwork/biography approval pages.</li>' .
+			'<li><strong>Added:</strong> The like count under an artwork is now a real toggle — visitors and artists can click the heart to like/unlike directly on-site, no fediverse account needed. Boosts are unchanged.</li>' .
+		'</ul>' .
 		'<h4>0.9.56</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> Fediverse replies were silently failing to save at all, due to an internal value that was one character too long for its database column.</li>' .
-			'<li><strong>Fixed:</strong> An artwork with no likes/boosts/replies yet now correctly shows &#8220;0&#8221; instead of showing nothing.</li>' .
-		'</ul>' .
-		'<h4>0.9.55</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> Artworks can now receive replies from the Fediverse. A reply is always held until the artist approves or rejects it (one click from an email, no login needed) and is automatically translated into the artist&#8217;s own language. Artists can turn replies off for one piece, or for all their work, at any time; a &#8220;N replies&#8221; button opens them in an overlay without cluttering the artwork page. A new Settings &#8594; Network limit caps how many replies one fediverse account can leave per hour (default: 2).</li>' .
-			'<li><strong>Changed:</strong> The federation settings added in 0.9.54 (&#8220;Federate which languages&#8221;, &#8220;Federation tag-wait timeout&#8221;) moved from Settings &#8594; Behavior to Settings &#8594; Network, alongside the existing ActivityPub and node identity fields. No behavior change.</li>' .
-			'<li><strong>Fixed:</strong> A read-only redirect notice on the artwork editor now sanitizes its parameters the way WordPress expects (flagged by Plugin Check; no real-world impact).</li>' .
+			'<li><strong>Fixed:</strong> Every federated reply was silently discarded due to a database column that was too narrow for the internal comment-type value used to store it.</li>' .
+			'<li><strong>Fixed:</strong> The like/boost/reply counts under an artwork rendered nothing at all when all three were zero, leaving a dangling label above an empty gap.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

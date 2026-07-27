@@ -1157,7 +1157,7 @@ parameters:
 
 		-
 			message: "#^Variable \\$raw_html might not be defined\\.$#"
-			count: 3
+			count: 4
 			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
 
 		-
@@ -1917,7 +1917,7 @@ parameters:
 
 		-
 			message: "#^Call to an undefined method WP_Error\\|WP_REST_Response\\:\\:get_data\\(\\)\\.$#"
-			count: 23
+			count: 26
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -1987,7 +1987,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
-			count: 38
+			count: 39
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2027,7 +2027,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:first_reply_comment_id\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 6
+			count: 7
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-

@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Publishing;
 
+use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Publishing\ReviewConfirm;
 use Agnosis\Tests\Integration\Support\DieCapture;
 use Agnosis\Tests\Integration\Support\RedirectCapture;
@@ -100,7 +101,8 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		unset(
 			$_POST['agnosis_review'], $_POST['id'], $_POST['action'], $_POST['token'],
 			$_POST['title'], $_POST['excerpt'], $_POST['body'],
-			$_POST['orig_title'], $_POST['orig_excerpt'], $_POST['orig_body']
+			$_POST['orig_title'], $_POST['orig_excerpt'], $_POST['orig_body'],
+			$_POST['discovery_optout']
 		); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'] );
 
@@ -884,5 +886,151 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		}
 
 		$this->assertSame( 'Asia/Tokyo', get_post_meta( $post_id, '_agnosis_event_timezone', true ) );
+	}
+
+	// -------------------------------------------------------------------------
+	// FEP-5feb discovery-consent checkbox (Interaction-surface roadmap, Phase 3,
+	// WP1) — mirrored on the artwork/biography approve pages (§7 Q7), never
+	// event. Account-level: reads/writes the artist's own usermeta via
+	// NotificationPreferences, not post meta, so it survives regardless of
+	// which post is being approved or whether the content itself was edited.
+	// -------------------------------------------------------------------------
+
+	private const DISCOVERY_LABEL_SNIPPET = 'search engine and Fediverse discovery indexing';
+
+	public function test_handle_confirm_get_renders_discovery_checkbox_for_artwork(): void {
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $this->post_id,
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( self::DISCOVERY_LABEL_SNIPPET, $e->body );
+		}
+	}
+
+	public function test_handle_confirm_get_renders_discovery_checkbox_for_biography(): void {
+		$token   = 'bio-discovery-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_biography', $token );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringContainsString( self::DISCOVERY_LABEL_SNIPPET, $e->body );
+		}
+	}
+
+	public function test_handle_confirm_get_does_not_render_discovery_checkbox_for_event(): void {
+		$token   = 'event-discovery-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_event', $token );
+
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected the confirm interstitial (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringNotContainsString( self::DISCOVERY_LABEL_SNIPPET, $e->body, 'An event approval has no artist body-of-work discovery question to ask.' );
+		}
+	}
+
+	public function test_handle_confirm_approve_artwork_unedited_path_saves_discovery_optout(): void {
+		$this->simulate_post( array_merge( $this->unedited_approve_params(), [ 'discovery_optout' => '1' ] ) );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->addToAssertionCount( 1 ); // redirect fired as expected.
+		}
+
+		$this->assertTrue( NotificationPreferences::is_discovery_opted_out( $this->artist_id ) );
+	}
+
+	public function test_handle_confirm_approve_artwork_omitting_discovery_optout_clears_it(): void {
+		NotificationPreferences::set_discovery_optout( $this->artist_id, true );
+
+		// discovery_optout deliberately absent — an unchecked checkbox submits nothing.
+		$this->simulate_post( $this->unedited_approve_params() );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->addToAssertionCount( 1 ); // redirect fired as expected.
+		}
+
+		$this->assertFalse( NotificationPreferences::is_discovery_opted_out( $this->artist_id ) );
+	}
+
+	public function test_handle_confirm_approve_with_edited_text_also_saves_discovery_optout(): void {
+		$this->simulate_post( [
+			'agnosis_review'    => '1',
+			'id'                => (string) $this->post_id,
+			'action'            => 'approve',
+			'token'             => self::VALID_TOKEN,
+			'title'             => 'Shim Test Artwork',
+			'excerpt'           => 'A short corrected description.',
+			'body'              => 'The artist tightened up the wording right before publishing.',
+			'orig_title'        => 'Shim Test Artwork',
+			'orig_excerpt'      => '',
+			'orig_body'         => '',
+			'discovery_optout'  => '1',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->addToAssertionCount( 1 ); // redirect fired as expected.
+		}
+
+		$this->assertTrue(
+			NotificationPreferences::is_discovery_opted_out( $this->artist_id ),
+			'The discovery checkbox must be honoured on the EDITED-content path too, not just the unedited fast path.'
+		);
+	}
+
+	public function test_handle_confirm_approve_event_does_not_clear_an_existing_discovery_optout(): void {
+		$token   = 'event-discovery-write-token-abc123456789';
+		$post_id = $this->create_reviewable_draft( 'agnosis_event', $token );
+		NotificationPreferences::set_discovery_optout( $this->artist_id, true );
+
+		// An event approve form has no discovery checkbox at all (§7 Q7:
+		// artwork and biography only), so nothing would ever be submitted for
+		// it on a real approval — this asserts a pre-existing opt-out isn't
+		// silently cleared just because this particular content type's form
+		// never sends the field.
+		$this->simulate_post( [
+			'agnosis_review' => '1',
+			'id'             => (string) $post_id,
+			'action'         => 'approve',
+			'token'          => $token,
+			'body'           => 'Original body text.',
+			'orig_body'      => 'Original body text.',
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+		} catch ( RedirectCapture $e ) {
+			$this->addToAssertionCount( 1 ); // redirect fired as expected.
+		}
+
+		$this->assertTrue( NotificationPreferences::is_discovery_opted_out( $this->artist_id ) );
 	}
 }

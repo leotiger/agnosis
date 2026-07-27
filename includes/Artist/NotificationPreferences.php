@@ -93,6 +93,34 @@ class NotificationPreferences {
 		return hash_hmac( 'sha256', "{$user_id}|notification_prefs", wp_salt( 'auth' ) );
 	}
 
+	/**
+	 * FEP-5feb discovery consent (Interaction-surface roadmap, Phase 3, WP1) —
+	 * `_agnosis_discovery_optout` gates the `indexable`/`discoverable` booleans
+	 * `Network\ActivityPub::artist_actor()` emits on that artist's `Person`
+	 * actor. Actor-level, not per-artwork (§7 Q7's own correction: "setting it
+	 * governs everything that artist has ever published"), default
+	 * discoverable — same NOT-EXISTS-or-not-'1' opt-out convention as every
+	 * other preference on this page, and same "on by default" posture Ulises
+	 * chose explicitly for this flag ("Default ON... artist should be able to
+	 * use/configure everything without the need to login"). This class stays
+	 * the single source of truth for both reading and writing the flag —
+	 * `Publishing\ReviewConfirm`'s mirrored checkbox on the artwork/biography
+	 * approval pages calls these same two methods rather than touching the
+	 * meta key directly, so there is exactly one place that knows what the
+	 * meta key is and what "opted out" means.
+	 */
+	public static function is_discovery_opted_out( int $user_id ): bool {
+		return '1' === get_user_meta( $user_id, '_agnosis_discovery_optout', true );
+	}
+
+	public static function set_discovery_optout( int $user_id, bool $opted_out ): void {
+		if ( $opted_out ) {
+			update_user_meta( $user_id, '_agnosis_discovery_optout', '1' );
+		} else {
+			delete_user_meta( $user_id, '_agnosis_discovery_optout' );
+		}
+	}
+
 	// -------------------------------------------------------------------------
 
 	public function handle(): void {
@@ -150,10 +178,11 @@ class NotificationPreferences {
 	 */
 	private function save( int $artist_id, array $source ): void {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- see handle()'s docblock: the HMAC token is this flow's nonce equivalent.
-		$mute_broadcasts = ! empty( $source['mute_broadcasts'] );
-		$vote_mode       = sanitize_key( wp_unslash( $source['vote_mode'] ?? 'instant' ) );
-		$contact_optout  = ! empty( $source['contact_optout'] );
-		$replies_optout  = ! empty( $source['replies_optout'] );
+		$mute_broadcasts   = ! empty( $source['mute_broadcasts'] );
+		$vote_mode         = sanitize_key( wp_unslash( $source['vote_mode'] ?? 'instant' ) );
+		$contact_optout    = ! empty( $source['contact_optout'] );
+		$replies_optout    = ! empty( $source['replies_optout'] );
+		$discovery_optout  = ! empty( $source['discovery_optout'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
 		if ( ! in_array( $vote_mode, self::VOTE_MODES, true ) ) {
@@ -192,7 +221,14 @@ class NotificationPreferences {
 			delete_user_meta( $artist_id, '_agnosis_replies_optout' );
 		}
 
-		$this->render_saved( $mute_broadcasts, $vote_mode, $contact_optout, $replies_optout );
+		// Interaction-surface roadmap, Phase 3 (WP1) — FEP-5feb discovery
+		// consent, account-wide, default discoverable. See
+		// is_discovery_opted_out()/set_discovery_optout()'s own docblock: this
+		// is the canonical write path, mirrored (not duplicated) by the
+		// artwork/biography approval pages in Publishing\ReviewConfirm.
+		self::set_discovery_optout( $artist_id, $discovery_optout );
+
+		$this->render_saved( $mute_broadcasts, $vote_mode, $contact_optout, $replies_optout, $discovery_optout );
 	}
 
 	// -------------------------------------------------------------------------
@@ -207,6 +243,8 @@ class NotificationPreferences {
 		// means "receiving replies"), same NOT-EXISTS-or-not-'1' convention as
 		// every other optout meta on this page.
 		$replies_opted_out = '1' === get_user_meta( $artist_id, '_agnosis_replies_optout', true );
+		// Interaction-surface roadmap, Phase 3 (WP1) — see is_discovery_opted_out()'s docblock.
+		$discovery_opted_out = self::is_discovery_opted_out( $artist_id );
 
 		$html = sprintf(
 			'<div style="max-width:520px;margin:60px auto;font-family:Georgia,serif;color:#222;padding:0 20px;">'
@@ -232,7 +270,10 @@ class NotificationPreferences {
 			. '<label style="display:block;margin:0 0 24px;font-size:17px;line-height:1.5;">'
 			. '<input type="checkbox" name="replies_optout" value="1" %14$s style="margin-right:8px;">%15$s'
 			. '</label>'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%16$s</button>'
+			. '<label style="display:block;margin:0 0 24px;font-size:17px;line-height:1.5;">'
+			. '<input type="checkbox" name="discovery_optout" value="1" %16$s style="margin-right:8px;">%17$s'
+			. '</label>'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%18$s</button>'
 			. '</form>'
 			. '</div>',
 			esc_html__( 'Notification preferences', 'agnosis' ),
@@ -250,6 +291,8 @@ class NotificationPreferences {
 			esc_html__( "Turn off the contact form on my page — visitors won't be able to message me.", 'agnosis' ),
 			checked( $replies_opted_out, true, false ),
 			esc_html__( "Turn off federated replies on my artworks entirely — no new reply will be accepted from the Fediverse (this doesn't affect replies already showing).", 'agnosis' ),
+			checked( $discovery_opted_out, true, false ),
+			esc_html__( 'Turn off search engine and Fediverse discovery indexing — applies to my whole profile and everything I publish here, not just one piece.', 'agnosis' ),
 			esc_html__( 'Save preferences', 'agnosis' )
 		);
 
@@ -260,7 +303,7 @@ class NotificationPreferences {
 	// Result pages (POST)
 	// -------------------------------------------------------------------------
 
-	private function render_saved( bool $muted, string $vote_mode, bool $contact_opted_out = false, bool $replies_opted_out = false ): void {
+	private function render_saved( bool $muted, string $vote_mode, bool $contact_opted_out = false, bool $replies_opted_out = false, bool $discovery_opted_out = false ): void {
 		$lines = [
 			$muted
 				? __( 'Community broadcasts are now muted.', 'agnosis' )
@@ -274,6 +317,9 @@ class NotificationPreferences {
 			$replies_opted_out
 				? __( 'Federated replies on your artworks are now turned off.', 'agnosis' )
 				: __( "You'll continue to receive federated replies (and their notification emails) on your artworks.", 'agnosis' ),
+			$discovery_opted_out
+				? __( 'Search engines and Fediverse discovery services will no longer be told to index your profile or your work.', 'agnosis' )
+				: __( 'Search engines and Fediverse discovery services may continue indexing your profile and your work.', 'agnosis' ),
 		];
 
 		$this->render_page( __( 'Preferences saved', 'agnosis' ), implode( ' ', $lines ), false );

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-25T20:39+00:00\n"
+"POT-Creation-Date: 2026-07-27T17:47+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:54+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Chinese (China)\n"
@@ -1168,7 +1168,7 @@ msgstr "旧行 — 删除并重新轮询以预览"
 msgid "Attachment viewer"
 msgstr "附件查看器"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2080
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2330
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -3058,7 +3058,10 @@ msgid ""
 "leave across all your artworks per window (below). A reply beyond this limit "
 "is silently declined — the remote server still gets an ordinary accepted "
 "response, not an error. Default: 2."
-msgstr "单个远程联邦账户在所有你的艺术作品中每个窗口可以留下的最多联邦回复数量（见下文）。超出该限制的回复将被默默拒绝 —— 远程服务器仍然会收到普通的接受响应，而不是错误。默认：2。"
+msgstr ""
+"单个远程联邦账户在所有你的艺术作品中每个窗口可以留下的最多联邦回复数量（见下"
+"文）。超出该限制的回复将被默默拒绝 —— 远程服务器仍然会收到普通的接受响应，而"
+"不是错误。默认：2。"
 
 #: includes/Admin/SettingsFields.php:905
 msgid "Federated reply limit window (hours)"
@@ -3068,7 +3071,8 @@ msgstr "联邦回复限制窗口（小时）"
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
-msgstr "上述回复限制适用的窗口周期的长度。默认：1（即每个活动者每小时2条回复）。"
+msgstr ""
+"上述回复限制适用的窗口周期的长度。默认：1（即每个活动者每小时2条回复）。"
 
 #: includes/Admin/SettingsFields.php:921
 msgid "Self-removal (goodbye) requests per sender per day"
@@ -3677,8 +3681,9 @@ msgid "Thanks, %s!"
 msgstr "谢谢，%s！"
 
 #: includes/Artist/AdmissionConfirm.php:169
-#: includes/Artist/NotificationPreferences.php:283
-#: includes/Network/ActivityPub.php:2430 includes/Network/ActivityPub.php:2439
+#: includes/Artist/NotificationPreferences.php:329
+#: includes/Network/ActivityPub.php:2742 includes/Network/ActivityPub.php:2749
+#: includes/Network/ActivityPub.php:2756
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "链接错误"
@@ -4396,7 +4401,7 @@ msgstr ""
 "您在 %s 上的账户以及您发布的一切内容都已被永久删除。这里不再存储任何与您相关"
 "的内容。"
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:303
+#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:315
 msgid "Link expired or already used"
 msgstr "链接已过期或已使用"
 
@@ -4723,86 +4728,106 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "请填写所有必填字段。"
 
-#: includes/Artist/NotificationPreferences.php:116
+#: includes/Artist/NotificationPreferences.php:144
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "此偏好链接无效或已被篡改。"
 
-#: includes/Artist/NotificationPreferences.php:122
+#: includes/Artist/NotificationPreferences.php:150
 msgid "This preferences link is no longer valid for this account."
 msgstr "此偏好链接对该账户已不再有效。"
 
-#: includes/Artist/NotificationPreferences.php:238
-#: includes/Artist/NotificationPreferences.php:256
+#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:299
 msgid "Notification preferences"
 msgstr "通知偏好"
 
-#: includes/Artist/NotificationPreferences.php:243
+#: includes/Artist/NotificationPreferences.php:284
 msgid "Mute community broadcast messages from other artists."
 msgstr "屏蔽来自其他艺术家的社区广播消息。"
 
-#: includes/Artist/NotificationPreferences.php:244
+#: includes/Artist/NotificationPreferences.php:285
 msgid "Application vote emails"
 msgstr "申请投票邮件"
 
-#: includes/Artist/NotificationPreferences.php:246
+#: includes/Artist/NotificationPreferences.php:287
 msgid "Instantly, one email per application (default)."
 msgstr "立即发送，每份申请一封邮件（默认）。"
 
-#: includes/Artist/NotificationPreferences.php:248
+#: includes/Artist/NotificationPreferences.php:289
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr "每天一次，将所有仍在等待我投票的申请汇总为一封摘要邮件。"
 
-#: includes/Artist/NotificationPreferences.php:250
+#: includes/Artist/NotificationPreferences.php:291
 msgid ""
 "Turn off the contact form on my page — visitors won't be able to message me."
 msgstr "关闭我页面上的联系表单——访客将无法给我发送消息。"
 
-#: includes/Artist/NotificationPreferences.php:252
+#: includes/Artist/NotificationPreferences.php:293
 msgid ""
 "Turn off federated replies on my artworks entirely — no new reply will be "
 "accepted from the Fediverse (this doesn't affect replies already showing)."
-msgstr "完全关闭我艺术作品上的联邦回复 — 不会接受来自联邦网络的新回复（这不会影响已显示的回复）。"
+msgstr ""
+"完全关闭我艺术作品上的联邦回复 — 不会接受来自联邦网络的新回复（这不会影响已显"
+"示的回复）。"
 
-#: includes/Artist/NotificationPreferences.php:253
+#: includes/Artist/NotificationPreferences.php:295
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just one piece."
+msgstr "关闭搜索引擎和 Fediverse 发现索引 — 应用于我的整个个人资料以及我在此发布的所有内容，而不仅仅是一件作品。"
+
+#: includes/Artist/NotificationPreferences.php:296
 msgid "Save preferences"
 msgstr "保存偏好"
 
-#: includes/Artist/NotificationPreferences.php:266
+#: includes/Artist/NotificationPreferences.php:309
 msgid "Community broadcasts are now muted."
 msgstr "社区广播现在已静音。"
 
-#: includes/Artist/NotificationPreferences.php:267
+#: includes/Artist/NotificationPreferences.php:310
 msgid "You'll continue to receive community broadcasts."
 msgstr "你将继续收到社区广播。"
 
-#: includes/Artist/NotificationPreferences.php:269
+#: includes/Artist/NotificationPreferences.php:312
 msgid "You'll receive one daily digest of applications awaiting your vote."
 msgstr "你将每天收到一封关于等待你投票的申请摘要邮件。"
 
-#: includes/Artist/NotificationPreferences.php:270
+#: includes/Artist/NotificationPreferences.php:313
 msgid "You'll receive an email as soon as each new application arrives."
 msgstr "每当有新申请到达时，你都会立即收到一封电子邮件。"
 
-#: includes/Artist/NotificationPreferences.php:272
+#: includes/Artist/NotificationPreferences.php:315
 msgid "The contact form on your page is now turned off."
 msgstr "你页面上的联系表单现在已关闭。"
 
-#: includes/Artist/NotificationPreferences.php:273
+#: includes/Artist/NotificationPreferences.php:316
 msgid "Visitors can still reach you through the contact form on your page."
 msgstr "访客仍可通过你页面上的联系表单联系你。"
 
-#: includes/Artist/NotificationPreferences.php:275
+#: includes/Artist/NotificationPreferences.php:318
 msgid "Federated replies on your artworks are now turned off."
 msgstr "你艺术作品上的联邦回复现已关闭。"
 
-#: includes/Artist/NotificationPreferences.php:276
+#: includes/Artist/NotificationPreferences.php:319
 msgid ""
 "You'll continue to receive federated replies (and their notification emails) "
 "on your artworks."
 msgstr "你将继续收到艺术作品上的联邦回复（及其通知邮件）。"
 
-#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:321
+msgid ""
+"Search engines and Fediverse discovery services will no longer be told to "
+"index your profile or your work."
+msgstr "搜索引擎和 Fediverse 发现服务将不再被告知索引您的个人资料或您的作品。"
+
+#: includes/Artist/NotificationPreferences.php:322
+msgid ""
+"Search engines and Fediverse discovery services may continue indexing your "
+"profile and your work."
+msgstr "搜索引擎和 Fediverse 发现服务可能会继续索引您的个人资料和您的作品。"
+
+#: includes/Artist/NotificationPreferences.php:325
 msgid "Preferences saved"
 msgstr "偏好已保存"
 
@@ -5194,15 +5219,15 @@ msgstr "Agnosis — 艺术家子域名路由已禁用"
 msgid "Open LinguaForge Settings"
 msgstr "打开 LinguaForge 设置"
 
-#: includes/Core/Activator.php:1002 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1016 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis 艺术家"
 
-#: includes/Core/Activator.php:1124 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1145 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "我的提交"
 
-#: includes/Core/Activator.php:1314
+#: includes/Core/Activator.php:1335
 msgid "Join"
 msgstr "加入"
 
@@ -5352,7 +5377,7 @@ msgstr "社区担保已提供"
 
 #: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
 #: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
-#: includes/Publishing/ReviewConfirm.php:817
+#: includes/Publishing/ReviewConfirm.php:897
 msgid "Date"
 msgstr "日期"
 
@@ -5659,57 +5684,75 @@ msgstr "Webhook 请求时间戳缺失、格式错误或已过旧。"
 msgid "This webhook request has already been processed."
 msgstr "此 webhook 请求已经处理过。"
 
-#: includes/Network/ActivityPub.php:328
+#: includes/Network/ActivityPub.php:390
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:743
+#: includes/Network/ActivityPub.php:823 includes/Network/ActivityPub.php:840
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
 msgstr[0] "♥ %d 个赞"
 
+#. translators: %d: number of likes.
+#: includes/Network/ActivityPub.php:825
+#, php-format
+msgid "♥ %d likes"
+msgstr "♥ %d 个喜欢"
+
+#: includes/Network/ActivityPub.php:826
+msgid "Could not update like."
+msgstr "无法更新喜欢。"
+
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:755
+#: includes/Network/ActivityPub.php:850
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d 个提升"
 
-#: includes/Network/ActivityPub.php:1468
+#: includes/Network/ActivityPub.php:1562
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:1633
+#: includes/Network/ActivityPub.php:1727
 #, php-format
 msgid "Also available in: %s"
 msgstr "也可在以下语言中获取：%s"
 
-#: includes/Network/ActivityPub.php:2046
+#: includes/Network/ActivityPub.php:2112
+msgid "No such artwork."
+msgstr "没有这样的艺术作品。"
+
+#: includes/Network/ActivityPub.php:2287
+msgid "0 replies"
+msgstr "0 条回复"
+
+#: includes/Network/ActivityPub.php:2296
 msgid "Loading replies…"
 msgstr "加载回复中…"
 
-#: includes/Network/ActivityPub.php:2047
+#: includes/Network/ActivityPub.php:2297
 msgid "Could not load replies."
 msgstr "无法加载回复。"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2067
+#: includes/Network/ActivityPub.php:2317
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d条回复"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:2357
+#: includes/Network/ActivityPub.php:2624
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "在 \"%s\" 上的新回复"
 
 #. translators: 1: reply excerpt, 2: approve link, 3: reject link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:2363
+#: includes/Network/ActivityPub.php:2630
 #, php-format
 msgid ""
 "Someone replied to your artwork from the Fediverse:\n"
@@ -5722,25 +5765,63 @@ msgid ""
 "Reject: %3$s\n"
 "\n"
 "Don't want reply notifications? Manage that here: %4$s"
-msgstr "有人从联邦网络回复了你的艺术作品：\n\n\"%1$s\"\n\n它正在等待你批准或拒绝：\n\n批准：%2$s\n拒绝：%3$s\n\n不想接收回复通知？在这里管理：%4$s"
+msgstr ""
+"有人从联邦网络回复了你的艺术作品：\n"
+"\n"
+"\"%1$s\"\n"
+"\n"
+"它正在等待你批准或拒绝：\n"
+"\n"
+"批准：%2$s\n"
+"拒绝：%3$s\n"
+"\n"
+"不想接收回复通知？在这里管理：%4$s"
 
-#: includes/Network/ActivityPub.php:2429
+#: includes/Network/ActivityPub.php:2676 includes/Network/ActivityPub.php:2741
 msgid "This link is invalid or has already expired."
 msgstr "此链接无效或已过期。"
 
-#: includes/Network/ActivityPub.php:2438
+#: includes/Network/ActivityPub.php:2681
+msgid "This link has expired."
+msgstr "该链接已过期。"
+
+#: includes/Network/ActivityPub.php:2755
 msgid "This reply no longer exists."
 msgstr "此回复不再存在。"
 
-#: includes/Network/ActivityPub.php:2446
+#: includes/Network/ActivityPub.php:2768
+msgid "Approve this reply?"
+msgstr "批准此回复吗？"
+
+#: includes/Network/ActivityPub.php:2769
+msgid "This will publish the reply on your artwork."
+msgstr "这将公开您的艺术作品的回复。"
+
+#: includes/Network/ActivityPub.php:2770
+msgid "Yes, approve it"
+msgstr "是的，批准它"
+
+#: includes/Network/ActivityPub.php:2773
+msgid "Reject this reply?"
+msgstr "拒绝此回复吗？"
+
+#: includes/Network/ActivityPub.php:2774
+msgid "This will discard the reply — it will not be shown."
+msgstr "这将丢弃回复 — 它将不被显示。"
+
+#: includes/Network/ActivityPub.php:2775
+msgid "Yes, reject it"
+msgstr "是的，拒绝它"
+
+#: includes/Network/ActivityPub.php:2795
 msgid "Reply approved — it now appears on your artwork."
 msgstr "回复已批准 — 现在出现在你的艺术作品上。"
 
-#: includes/Network/ActivityPub.php:2449
+#: includes/Network/ActivityPub.php:2798
 msgid "Reply rejected — it will not be shown."
 msgstr "回复已拒绝 — 将不显示。"
 
-#: includes/Network/ActivityPub.php:2452
+#: includes/Network/ActivityPub.php:2801
 msgid "Reply moderated"
 msgstr "回复已审核"
 
@@ -6267,14 +6348,14 @@ msgstr "[Agnosis] 你的投稿已可供审核：%s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1149
+#: includes/Publishing/ReviewConfirm.php:1283
 msgid "event"
 msgstr "活动"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1150
+#: includes/Publishing/ReviewConfirm.php:1284
 msgid "artwork"
 msgstr "作品"
 
@@ -6868,175 +6949,185 @@ msgstr "移除链接已过期。请重新发送移除请求。"
 msgid "Invalid removal token."
 msgstr "无效的移除令牌。"
 
-#: includes/Publishing/ReviewConfirm.php:253
+#: includes/Publishing/ReviewConfirm.php:265
 msgid "View it live"
 msgstr "在线查看"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Biography published"
 msgstr "简介已发布"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Your biography has been published."
 msgstr "你的简介已发布。"
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "Event published"
 msgstr "活动已发布"
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "The event has been published."
 msgstr "该活动已发布。"
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "Artwork published"
 msgstr "作品已发布"
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "The artwork has been published to the gallery."
 msgstr "该作品已发布到画廊。"
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "Submission discarded"
 msgstr "投稿已丢弃"
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "The submission has been discarded."
 msgstr "该投稿已被丢弃。"
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Biography removed"
 msgstr "简介已移除"
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Your biography has been removed."
 msgstr "你的简介已被移除。"
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "Event removed"
 msgstr "活动已移除"
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "The event has been removed."
 msgstr "该活动已被移除。"
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Artwork removed"
 msgstr "作品已移除"
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Your artwork has been removed from the gallery."
 msgstr "你的作品已从画廊中移除。"
 
-#: includes/Publishing/ReviewConfirm.php:303
+#: includes/Publishing/ReviewConfirm.php:315
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
 msgstr "此链接可能已被使用或已过期。请登录以管理你的投稿。"
 
-#: includes/Publishing/ReviewConfirm.php:407
+#: includes/Publishing/ReviewConfirm.php:420
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
 msgstr ""
 "标题和全文不能为空。请重新填写，或者改用原始邮件中的“Discard（丢弃）”。"
 
-#: includes/Publishing/ReviewConfirm.php:408
+#: includes/Publishing/ReviewConfirm.php:421
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
 msgstr "全文不能为空。请重新填写，或者改用原始邮件中的“Discard（丢弃）”。"
 
-#: includes/Publishing/ReviewConfirm.php:758
+#: includes/Publishing/ReviewConfirm.php:800
+msgid "Account-wide setting"
+msgstr "账户级设置"
+
+#: includes/Publishing/ReviewConfirm.php:803
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just this piece."
+msgstr "关闭搜索引擎和 Fediverse 发现索引 — 应用于我的整个个人资料以及我在此发布的所有内容，而不仅仅是这件作品。"
+
+#: includes/Publishing/ReviewConfirm.php:838
 msgid "Portfolio link"
 msgstr "作品集链接"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:785
+#: includes/Publishing/ReviewConfirm.php:865
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "社交链接 %d（可选）"
 
-#: includes/Publishing/ReviewConfirm.php:819
+#: includes/Publishing/ReviewConfirm.php:899
 msgid "Hour"
 msgstr "小时"
 
-#: includes/Publishing/ReviewConfirm.php:822
+#: includes/Publishing/ReviewConfirm.php:902
 msgid "Location"
 msgstr "地点"
 
-#: includes/Publishing/ReviewConfirm.php:824
+#: includes/Publishing/ReviewConfirm.php:904
 msgid "Address"
 msgstr "地址"
 
-#: includes/Publishing/ReviewConfirm.php:826
+#: includes/Publishing/ReviewConfirm.php:906
 msgid "Timezone"
 msgstr "时区"
 
-#: includes/Publishing/ReviewConfirm.php:846
+#: includes/Publishing/ReviewConfirm.php:926
 msgid "Other"
 msgstr "其他"
 
-#: includes/Publishing/ReviewConfirm.php:851
+#: includes/Publishing/ReviewConfirm.php:931
 msgid "— Not set —"
 msgstr "— 未设置 —"
 
-#: includes/Publishing/ReviewConfirm.php:971
+#: includes/Publishing/ReviewConfirm.php:1051
 msgid "Discard this submission?"
 msgstr "要丢弃此提交吗？"
 
-#: includes/Publishing/ReviewConfirm.php:972
+#: includes/Publishing/ReviewConfirm.php:1052
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "这将永久丢弃该提交——它不会被发布。"
 
-#: includes/Publishing/ReviewConfirm.php:973
+#: includes/Publishing/ReviewConfirm.php:1053
 msgid "Yes, discard it"
 msgstr "是的，丢弃它"
 
-#: includes/Publishing/ReviewConfirm.php:976
+#: includes/Publishing/ReviewConfirm.php:1056
 msgid "Remove this artwork?"
 msgstr "要移除此作品吗？"
 
-#: includes/Publishing/ReviewConfirm.php:977
+#: includes/Publishing/ReviewConfirm.php:1057
 msgid "This will remove the published artwork from the gallery."
 msgstr "这将把已发布的作品从画廊中移除。"
 
-#: includes/Publishing/ReviewConfirm.php:978
+#: includes/Publishing/ReviewConfirm.php:1058
 msgid "Yes, remove it"
 msgstr "是的，移除它"
 
-#: includes/Publishing/ReviewConfirm.php:1085
+#: includes/Publishing/ReviewConfirm.php:1209
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "标题"
 
-#: includes/Publishing/ReviewConfirm.php:1093
+#: includes/Publishing/ReviewConfirm.php:1217
 msgid "Short description"
 msgstr "简短描述"
 
-#: includes/Publishing/ReviewConfirm.php:1098
+#: includes/Publishing/ReviewConfirm.php:1222
 msgid "Full text"
 msgstr "全文"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1108
+#: includes/Publishing/ReviewConfirm.php:1242
 #, php-format
 msgid "Publish this %s?"
 msgstr "发布这个%s吗？"
 
-#: includes/Publishing/ReviewConfirm.php:1131
+#: includes/Publishing/ReviewConfirm.php:1265
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr "请在下方进行任何最终修改，或者保持原样，按草稿内容原样发布。"
 
-#: includes/Publishing/ReviewConfirm.php:1137
+#: includes/Publishing/ReviewConfirm.php:1271
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "发布它"
 
-#: includes/Publishing/ReviewConfirm.php:1148
+#: includes/Publishing/ReviewConfirm.php:1282
 msgid "biography"
 msgstr "传记"
 
@@ -7594,12 +7685,11 @@ msgstr "互动计数"
 #: blocks/interaction-counts/block.json
 msgctxt "block description"
 msgid ""
-"Renders how many times this artwork has been liked and boosted across the "
-"fediverse — two small, independent counts. Renders nothing on an artwork "
-"with no interactions yet, or off an agnosis_artwork post."
-msgstr ""
-"渲染该艺术作品在联邦生态中被点赞和提升的次数——两个独立的小计数。没有互动的艺"
-"术作品，或从agnosis_artwork帖子上则不渲染任何内容。"
+"Renders how many times this artwork has been liked and boosted — likes are a "
+"clickable on-site toggle (interaction-surface roadmap, Phase 3, WP2), boosts "
+"stay a plain independent count. Always shown (including \"0\") on an "
+"agnosis_artwork post; renders nothing off one."
+msgstr "显示此作品被喜欢和提升的次数 — 喜欢是一个可点击的站内切换（交互表面路线图，第三阶段，WP2），提升保持为一个普通的独立计数。始终在 agnosis_artwork 发布上显示（包括 \"0\"）；作品未获得喜欢时不显示任何内容。"
 
 #: blocks/interaction-counts/block.json
 msgctxt "block keyword"
@@ -7734,9 +7824,10 @@ msgstr "回复叠加"
 msgctxt "block description"
 msgid ""
 "\"N replies\" trigger that opens a full-viewport popover listing this "
-"artwork's approved federated replies. Renders nothing on an artwork with no "
-"approved replies yet, or off an agnosis_artwork post."
-msgstr "\"N条回复\"触发器，打开一个全屏视口的弹出窗口，列出该艺术作品已批准的联邦回复。在没有批准回复的艺术作品上或在agnosis_artwork帖子上不显示任何内容。"
+"artwork's approved federated replies. Shows plain, non-interactive \"0 "
+"replies\" text on an artwork with no approved replies yet; renders nothing "
+"off an agnosis_artwork post."
+msgstr "\"N 条回复\" 触发器，打开一个全视口弹出层，列出此艺术作品的批准联邦回复。在没有批准回复的艺术作品上显示普通的、非交互式的 \"0 条回复\" 文本；作品未获得回复时不显示任何内容。"
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

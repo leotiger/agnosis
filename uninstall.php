@@ -130,6 +130,7 @@ function agnosis_uninstall_site(): void {
 		'agnosis_drain_rename_queue',
 		'agnosis_federation_tag_wait_sweep',
 		'agnosis_drain_reply_translation_queue',
+		'agnosis_rotate_like_salt',
 		'agnosis_publish_submission',
 		'agnosis_dispatch_lf_translations',
 		'agnosis_flush_permalinks',

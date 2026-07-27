@@ -554,6 +554,9 @@ class Plugin {
 		// (ActivityPub::drain_reply_translation_queue()'s own docblock covers
 		// why this runs off the signed inbox() request path).
 		$this->loader->add_action( 'agnosis_drain_reply_translation_queue', $activitypub, 'drain_reply_translation_queue' );
+		// Interaction-surface roadmap, Phase 3, WP2 — daily anonymous-like
+		// salt rotation (ActivityPub::rotate_like_salt()'s own docblock).
+		$this->loader->add_action( 'agnosis_rotate_like_salt', $activitypub, 'rotate_like_salt' );
 
 		// Federation settlement (TAG-REDESIGN.md F3, §6c) — the tag-settled
 		// state machine that decides WHEN a post is ready to fire

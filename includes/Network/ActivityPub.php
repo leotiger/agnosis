@@ -91,6 +91,7 @@ use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
+use Agnosis\Publishing\ReviewConfirm;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_User;
@@ -146,6 +147,18 @@ class ActivityPub {
 	 */
 	private const REPLY_TRANSLATED_CONTENT_META = '_agnosis_reply_translated_content';
 
+	/**
+	 * Comment meta: when the reply's moderation link (notify_artist_of_reply())
+	 * expires — WP0, agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8. Written
+	 * once at email-send time; see that method's docblock for why it's stored
+	 * rather than recomputed from the option at verify time. Absent (falsy)
+	 * on any comment that got its notification email before this fix shipped —
+	 * treated as "never expires" by verify_reply_moderation_token(), same
+	 * backward-compat convention ReviewEndpoints::verify_token() already uses
+	 * for `_agnosis_review_expiry`.
+	 */
+	private const REPLY_MODERATION_EXPIRY_META_KEY = '_agnosis_reply_moderation_expiry';
+
 	/** Post meta: per-artwork override turning replies off for this one piece (Artist\ContentEditor). */
 	public const REPLIES_DISABLED_META = '_agnosis_replies_disabled';
 
@@ -192,6 +205,17 @@ class ActivityPub {
 	 */
 	private const STALE_CLAIM_MINUTES = 30;
 
+	/**
+	 * On-site like toggle rate limit (interaction-surface roadmap, Phase 3,
+	 * WP2, §5) — pure abuse prevention, not a product feature (Ulises: no
+	 * artist-level gate and no rate limit "as a feature" on likes at all).
+	 * Generous relative to admission_apply's 5/60 since a visitor
+	 * legitimately liking/unliking a few artworks in a minute while browsing
+	 * is completely ordinary, unlike submitting an admission application.
+	 */
+	private const LIKE_RATE_LIMIT   = 20;
+	private const LIKE_RATE_WINDOW  = 60;
+
 	public function register_routes(): void {
 		$args = [ 'permission_callback' => '__return_true' ];
 
@@ -209,6 +233,24 @@ class ActivityPub {
 		// (not Artist\ContentEditor) since replies are entirely this class's
 		// domain — ingestion, moderation, and now reading them back.
 		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/replies', array_merge( $args, [ 'methods' => 'GET', 'callback' => [ $this, 'get_replies' ] ] ) );
+
+		// Interaction-surface roadmap, Phase 3, WP2 — public, unauthenticated
+		// on-site like toggle. permission_callback is the per-IP rate limiter,
+		// not '__return_true' like the read-only routes above: this is the
+		// only route here a visitor can actually WRITE through with no
+		// identity check beyond that. Two routes (not one dispatching on
+		// $request->get_method()) to match every other method-specific route
+		// pair already in this file (e.g. the inbox routes below).
+		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/likes', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'like_content' ],
+			'permission_callback' => [ $this, 'rate_limit_like' ],
+		] );
+		register_rest_route( 'agnosis/v1', '/content/(?P<id>\d+)/likes', [
+			'methods'             => 'DELETE',
+			'callback'            => [ $this, 'unlike_content' ],
+			'permission_callback' => [ $this, 'rate_limit_like' ],
+		] );
 
 		// Every actor's inbox — the node's own, and each artist's own —
 		// shares the same callback pair: resolve_local_owner() determines the
@@ -270,6 +312,15 @@ class ActivityPub {
 			// same activity to both the node and one of its artists can use
 			// this single endpoint instead of two round trips.
 			'endpoints'         => [ 'sharedInbox' => rest_url( 'agnosis/v1/activitypub/inbox' ) ],
+			// FEP-5feb (Interaction-surface roadmap, Phase 3, WP1): a compliant
+			// search-indexing/FASP consumer must ignore an actor with neither
+			// flag set, so these must be emitted, not merely implied by their
+			// absence. The node itself isn't an artist — there is no per-artist
+			// consent question here, just the operator's own node choosing to
+			// run a public, federated, indexable presence — so this is always
+			// true, unlike artist_actor()'s per-artist opt-out below.
+			'discoverable'      => true,
+			'indexable'         => true,
 			'publicKey'         => [
 				'id'           => $node_url . '#main-key',
 				'owner'        => $node_url,
@@ -297,6 +348,15 @@ class ActivityPub {
 		$actor_url = $this->actor_url_for( 'artist', $user_id );
 		$keys      = $this->ensure_artist_key_pair( $user_id );
 
+		// FEP-5feb (Interaction-surface roadmap, Phase 3, WP1) — per-artist,
+		// account-wide consent (§7 Q7: this is an actor-level property, not a
+		// per-artwork one — it governs everything this artist has ever
+		// published, not just one piece). Default discoverable/indexable
+		// (Ulises: "Default ON"); NotificationPreferences::is_discovery_opted_out()
+		// is the single canonical read, shared with the mirrored checkbox on
+		// the artwork/biography approval pages (Publishing\ReviewConfirm).
+		$discoverable = ! NotificationPreferences::is_discovery_opted_out( $user_id );
+
 		return new WP_REST_Response( [
 			'@context'          => [ self::CONTEXT, 'https://w3id.org/security/v1' ],
 			'type'              => 'Person',
@@ -308,6 +368,8 @@ class ActivityPub {
 			'outbox'            => $actor_url . '/outbox',
 			'followers'         => $actor_url . '/followers',
 			'endpoints'         => [ 'sharedInbox' => rest_url( 'agnosis/v1/activitypub/inbox' ) ],
+			'discoverable'      => $discoverable,
+			'indexable'         => $discoverable,
 			'publicKey'         => [
 				'id'           => $actor_url . '#main-key',
 				'owner'        => $actor_url,
@@ -731,11 +793,47 @@ class ActivityPub {
 
 		$counts = $this->interaction_counts( $post_id );
 
+		// Interaction-surface roadmap, Phase 3, WP2 (2026-07-27) — the like
+		// half of this block is now a real toggle, not just a display. The
+		// visitor's own liked/not-liked state is computed here, server-side,
+		// at render time, using the exact same like_identity() the REST
+		// toggle itself hashes against — so the button's initial state is
+		// already correct on first paint, no separate fetch needed just to
+		// learn it (frontend.js only has to call the REST endpoint on an
+		// actual click). Boosts stay exactly as they were: plain text, no
+		// interactivity — WP2 is on-site LIKES only (boosting is WP5, per the
+		// roadmap's own dependency note), and the display deliberately
+		// resists growing into a toolbar.
+		$liked = $this->has_liked( $post_id, $this->like_identity() );
+
+		wp_enqueue_style( 'agnosis-interaction-counts', \AGNOSIS_URL . 'blocks/interaction-counts/frontend.css', [], \AGNOSIS_VERSION );
+		wp_enqueue_script( 'agnosis-interaction-counts', \AGNOSIS_URL . 'blocks/interaction-counts/frontend.js', [], \AGNOSIS_VERSION, [ 'in_footer' => true ] );
+		wp_localize_script( 'agnosis-interaction-counts', 'agnosisInteractionCounts', [
+			'apiUrlBase' => rest_url( 'agnosis/v1/content/' ),
+			// A logged-in artist's own session has auth cookies, which makes
+			// WordPress's cookie-auth REST layer require a valid nonce on any
+			// write request regardless of this route's own permission_callback
+			// (rest_cookie_check_errors() runs before route dispatch) — same
+			// reason blocks/content-editor/frontend.js carries one. A fully
+			// anonymous visitor has no auth cookie, so the check never
+			// triggers and this nonce is simply unused for them.
+			'nonce'      => wp_create_nonce( 'wp_rest' ),
+			'i18n'       => [
+				// translators: %d: number of likes.
+				'like'  => __( '♥ %d like', 'agnosis' ),
+				// translators: %d: number of likes.
+				'likes' => __( '♥ %d likes', 'agnosis' ),
+				'error' => __( 'Could not update like.', 'agnosis' ),
+			],
+		] );
+
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-interaction-counts' ] );
 
 		$parts   = [];
 		$parts[] = sprintf(
-			'<span class="agnosis-interaction-counts__likes">%s</span>',
+			'<button type="button" class="agnosis-interaction-counts__likes" data-agnosis-like-post-id="%1$s" aria-pressed="%2$s"><span class="agnosis-interaction-counts__likes-text">%3$s</span></button>',
+			esc_attr( (string) $post_id ),
+			esc_attr( $liked ? 'true' : 'false' ),
 			esc_html(
 				sprintf(
 					/* translators: %d: number of likes. */
@@ -1940,6 +2038,152 @@ class ActivityPub {
 		return $counts;
 	}
 
+	// -------------------------------------------------------------------------
+	// On-site likes (interaction-surface roadmap, Phase 3, WP2, 2026-07-27)
+	// -------------------------------------------------------------------------
+
+	/** REST `permission_callback` for the likes toggle routes — coarse per-IP gate, same convention as every other public-write route in this codebase. */
+	public function rate_limit_like(): bool|WP_Error {
+		return RateLimiter::check( 'agnosis_like_toggle', self::LIKE_RATE_LIMIT, self::LIKE_RATE_WINDOW );
+	}
+
+	/**
+	 * Which identity a same-origin, unauthenticated "like" is recorded under
+	 * (§7 Q5). A logged-in artist's ordinary front-end/wp-admin session (not
+	 * to be confused with the no-login rule for artist-facing ACTION LINKS —
+	 * that's a different thing) likes under their own real actor URL, so
+	 * their on-site like and a fediverse Like of the same artwork by the same
+	 * person naturally share one actor_id. Every other visitor gets a
+	 * same-day rotating salted hash of IP+UA: dedups repeat likes from the
+	 * same visitor within one day, stores nothing identifiable, and
+	 * deliberately does NOT support unliking after the salt rotates —
+	 * rotate_like_salt() overwriting the option with nothing retained is the
+	 * whole point of the rotation; a low-stakes, no-login feature accepts
+	 * that trade rather than retaining anything to avoid it.
+	 */
+	private function like_identity(): string {
+		if ( is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			if ( in_array( 'agnosis_artist', (array) $user->roles, true ) ) {
+				return $this->actor_url_for( 'artist', $user->ID );
+			}
+		}
+
+		$salt = (string) get_option( 'agnosis_like_salt', '' );
+		$ip   = RateLimiter::client_ip();
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- HTTP_USER_AGENT is hashed below, never stored or output raw.
+		$ua = sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) );
+
+		return 'anon:' . hash( 'sha256', $salt . '|' . $ip . '|' . $ua );
+	}
+
+	/** Does $actor_id already have a recorded 'like' row on $post_id? */
+	private function has_liked( int $post_id, string $actor_id ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- single-row existence check; $wpdb->prepare() parameterizes both values.
+		$found = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$wpdb->prefix}agnosis_interactions WHERE post_id = %d AND activity_type = 'like' AND actor_id = %s LIMIT 1",
+				$post_id,
+				$actor_id
+			)
+		);
+
+		return null !== $found;
+	}
+
+	/**
+	 * Shared response shape for like_content()/unlike_content() — the current toggle state plus the refreshed like count.
+	 *
+	 * @return array{liked: bool, like: int}
+	 */
+	private function like_response( int $post_id, string $actor_id ): array {
+		return [
+			'liked' => $this->has_liked( $post_id, $actor_id ),
+			'like'  => $this->interaction_counts( $post_id )['like'],
+		];
+	}
+
+	/** Is $post_id a real, currently-published agnosis_artwork? Shared guard for both like routes. */
+	private function likeable_artwork( int $post_id ): \WP_Post|WP_Error {
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post || 'agnosis_artwork' !== $post->post_type ) {
+			return new WP_Error( 'agnosis_like_not_found', __( 'No such artwork.', 'agnosis' ), [ 'status' => 404 ] );
+		}
+		return $post;
+	}
+
+	/**
+	 * POST /agnosis/v1/content/{id}/likes — record a like from the current
+	 * visitor/artist identity (like_identity()). Idempotent on repeat calls
+	 * from the same identity, same $wpdb->replace() pattern record_interaction()
+	 * already uses for a redelivered remote Like — a double-click just
+	 * refreshes received_at rather than erroring or double-counting.
+	 */
+	public function like_content( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$post_id = (int) $request->get_param( 'id' );
+		$post    = $this->likeable_artwork( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$actor_id = $this->like_identity();
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->replace() parameterizes every value; small, per-artwork-scale table.
+		$wpdb->replace(
+			$wpdb->prefix . 'agnosis_interactions',
+			[
+				'post_id'       => $post_id,
+				'activity_type' => 'like',
+				'actor_id'      => $actor_id,
+				'origin'        => 'local',
+			],
+			[ '%d', '%s', '%s', '%s' ]
+		);
+
+		return new WP_REST_Response( $this->like_response( $post_id, $actor_id ), 200 );
+	}
+
+	/**
+	 * DELETE /agnosis/v1/content/{id}/likes — remove the current visitor/
+	 * artist identity's own like, if any. A no-op (not an error) when that
+	 * identity never had one — same "undo of something already undone is
+	 * fine" tolerance undo_interaction() already has for a re-delivered
+	 * Undo{Like}.
+	 */
+	public function unlike_content( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$post_id = (int) $request->get_param( 'id' );
+		$post    = $this->likeable_artwork( $post_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$actor_id = $this->like_identity();
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->delete() parameterizes every value; small, per-artwork-scale table.
+		$wpdb->delete(
+			$wpdb->prefix . 'agnosis_interactions',
+			[ 'post_id' => $post_id, 'activity_type' => 'like', 'actor_id' => $actor_id ],
+			[ '%d', '%s', '%s' ]
+		);
+
+		return new WP_REST_Response( $this->like_response( $post_id, $actor_id ), 200 );
+	}
+
+	/**
+	 * agnosis_rotate_like_salt cron callback (daily) — overwrites the salt
+	 * used by like_identity()'s anonymous-visitor hash. Unconditional
+	 * update_option(), not add_option(): the whole point is that the
+	 * previous value is gone once this runs, not preserved if already set
+	 * (§7 Q5's explicit "no previous salt retained").
+	 */
+	public function rotate_like_salt(): void {
+		update_option( 'agnosis_like_salt', wp_generate_password( 32, false ) );
+	}
+
 	/**
 	 * Approved federated-reply count for one artwork — backs the
 	 * agnosis/reply-overlay trigger button (render_reply_overlay()). Only
@@ -2340,6 +2584,20 @@ class ActivityPub {
 	 * existing NotificationPreferences link so "opt out of reply
 	 * notifications" is reachable from every single email, not just the first
 	 * (Ulises: "on by default and possible to opt-out on... every reply").
+	 *
+	 * WP0 (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8): the moderation
+	 * link's token itself stays a stateless HMAC (reply_moderation_token()) —
+	 * nothing new to store there — but it never used to expire at all. An
+	 * expiry timestamp is now written once here, as comment meta, using the
+	 * same `agnosis_review_token_expiry_days` option (default 7) every other
+	 * stateless emailed action link in the plugin already honours
+	 * (ApplicationBiography, PostCreator, Notification) — one consistent
+	 * "how long do I have" window for an artist, not a second bespoke number
+	 * just for replies. Stored once at send time rather than recomputed from
+	 * the option at verify time: recomputing would silently move the
+	 * deadline on a link already sitting in an artist's inbox the moment an
+	 * admin changed the setting, exactly the trap ReviewEndpoints's stored
+	 * `_agnosis_review_expiry` already avoids.
 	 */
 	private function notify_artist_of_reply( \WP_Post $post, int $comment_id, string $content ): void {
 		$author_id = (int) $post->post_author;
@@ -2347,6 +2605,9 @@ class ActivityPub {
 		if ( ! $author || '' === $author->user_email ) {
 			return;
 		}
+
+		$expiry_days = max( 1, (int) get_option( 'agnosis_review_token_expiry_days', 7 ) );
+		update_comment_meta( $comment_id, self::REPLY_MODERATION_EXPIRY_META_KEY, time() + $expiry_days * DAY_IN_SECONDS );
 
 		$locale = (string) get_user_meta( $author_id, 'locale', true );
 		if ( '' !== $locale ) {
@@ -2404,6 +2665,26 @@ class ActivityPub {
 	}
 
 	/**
+	 * Verify a reply-moderation link's token and expiry (WP0, agnosis-audit/
+	 * INTERACTION-SURFACE-ROADMAP.md §8). Returns null when valid, or a
+	 * user-facing error message when not. There's no REST layer on this path
+	 * to hand a WP_Error to (unlike ReviewEndpoints::verify_token()), just a
+	 * wp_die() page, so this returns a plain translated string instead.
+	 */
+	private static function verify_reply_moderation_token( int $comment_id, string $action, string $token ): ?string {
+		if ( '' === $token || ! hash_equals( self::reply_moderation_token( $comment_id, $action ), $token ) ) {
+			return __( 'This link is invalid or has already expired.', 'agnosis' );
+		}
+
+		$expiry = (int) get_comment_meta( $comment_id, self::REPLY_MODERATION_EXPIRY_META_KEY, true );
+		if ( $expiry && time() > $expiry ) {
+			return __( 'This link has expired.', 'agnosis' );
+		}
+
+		return null;
+	}
+
+	/**
 	 * Register the template_redirect handler for the moderation link above.
 	 * Called from Core\Plugin, same as every other stateless-token flow.
 	 */
@@ -2416,26 +2697,56 @@ class ActivityPub {
 	 * No WP nonce — this is an unauthenticated email-link recipient with no
 	 * WP session; the HMAC token plays the nonce's role, same as
 	 * NotificationPreferences/VouchConfirm/AdmissionConfirm.
+	 *
+	 * WP0 fix (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §7a/§8): this used
+	 * to act on a bare GET — approving or trashing the comment the instant
+	 * the link was fetched, with no confirmation step at all. Corporate
+	 * mail-security scanners (Outlook SafeLinks, Mimecast, Proofpoint, etc.)
+	 * prefetch links in incoming email to scan them, issuing a GET and never
+	 * clicking anything — so the prefetch alone was enough to silently
+	 * approve or trash a held reply before the artist ever saw the email.
+	 * `Publishing\ReviewConfirm` solved exactly this for review/removal links
+	 * in July (see its class docblock); this now reuses that same
+	 * GET-renders/POST-acts split via its shared
+	 * `render_action_confirm_page()` interstitial rather than a second
+	 * hand-rolled copy of the same page:
+	 *
+	 *   GET  → token+expiry verified, comment existence verified, then a
+	 *          confirm interstitial renders with a single POST button. No
+	 *          state change yet, so a scanner's prefetch is harmless.
+	 *   POST → token+expiry re-verified, then the comment is actually
+	 *          approved/trashed.
 	 */
 	public function handle_reply_moderation(): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- see docblock above: the HMAC token is this flow's nonce equivalent.
-		if ( ! isset( $_GET['agnosis_reply'] ) ) {
+		$is_post = ReviewConfirm::is_post_request();
+
+		// No WP nonce for the same reason as always on this flow (see method
+		// docblock): an unauthenticated email-link recipient has no WP
+		// session, so the HMAC token is this flow's nonce equivalent, not
+		// $_POST/$_GET itself.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
+		$source = $is_post ? $_POST : $_GET;
+
+		if ( ! isset( $source['agnosis_reply'] ) ) {
 			return;
 		}
 
-		$comment_id = absint( wp_unslash( $_GET['agnosis_reply'] ) );
-		$action     = sanitize_key( wp_unslash( $_GET['action'] ?? '' ) );
-		$token      = sanitize_text_field( wp_unslash( $_GET['token'] ?? '' ) );
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		$comment_id = absint( wp_unslash( $source['agnosis_reply'] ) );
+		$action     = sanitize_key( wp_unslash( $source['action'] ?? '' ) );
+		$token      = sanitize_text_field( wp_unslash( $source['token'] ?? '' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended
 
-		if ( ! $comment_id || ! in_array( $action, [ 'approve', 'reject' ], true ) || '' === $token
-			|| ! hash_equals( self::reply_moderation_token( $comment_id, $action ), $token )
-		) {
+		if ( ! $comment_id || ! in_array( $action, [ 'approve', 'reject' ], true ) ) {
 			wp_die(
 				esc_html__( 'This link is invalid or has already expired.', 'agnosis' ),
 				esc_html__( 'Link error', 'agnosis' ),
 				[ 'response' => 400 ]
 			);
+		}
+
+		$token_error = self::verify_reply_moderation_token( $comment_id, $action, $token );
+		if ( null !== $token_error ) {
+			wp_die( esc_html( $token_error ), esc_html__( 'Link error', 'agnosis' ), [ 'response' => 400 ] );
 		}
 
 		$comment = get_comment( $comment_id );
@@ -2445,6 +2756,38 @@ class ActivityPub {
 				esc_html__( 'Link error', 'agnosis' ),
 				[ 'response' => 404 ]
 			);
+		}
+
+		// GET only renders the confirm interstitial — see method docblock.
+		// The token travels back to the POST in the confirm form's hidden
+		// field, never in the form's action URL (same reasoning as
+		// ReviewConfirm's own review/removal links).
+		if ( ! $is_post ) {
+			$prompts = [
+				'approve' => [
+					__( 'Approve this reply?', 'agnosis' ),
+					__( 'This will publish the reply on your artwork.', 'agnosis' ),
+					__( 'Yes, approve it', 'agnosis' ),
+				],
+				'reject'  => [
+					__( 'Reject this reply?', 'agnosis' ),
+					__( 'This will discard the reply — it will not be shown.', 'agnosis' ),
+					__( 'Yes, reject it', 'agnosis' ),
+				],
+			];
+			[ $heading, $description, $button ] = $prompts[ $action ];
+
+			ReviewConfirm::render_action_confirm_page(
+				$heading,
+				$description,
+				$button,
+				[
+					'agnosis_reply' => (string) $comment_id,
+					'action'        => $action,
+					'token'         => $token,
+				]
+			);
+			return; // render_action_confirm_page() always exits via wp_die().
 		}
 
 		if ( 'approve' === $action ) {

@@ -91,7 +91,19 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\Artist\NotificationPreferences;
+
 class ReviewConfirm {
+
+	/**
+	 * Post types the FEP-5feb discovery-consent checkbox is mirrored on
+	 * (Interaction-surface roadmap, Phase 3, WP1) — §7 Q7's own decision:
+	 * "surfaced on the artwork and biography approval pages", not event (an
+	 * event listing isn't the kind of thing FEP-5feb discovery/indexing is
+	 * about, and events aren't attributed to a `Person` actor's own body of
+	 * work the way artwork/biography content is).
+	 */
+	private const DISCOVERY_CONSENT_POST_TYPES = [ 'agnosis_artwork', 'agnosis_biography' ];
 
 	/**
 	 * Which of title/excerpt/body are editable on the approve confirm form,
@@ -389,6 +401,7 @@ class ReviewConfirm {
 				$data     = $response->get_data();
 				$final_id = isset( $data['post_id'] ) ? (int) $data['post_id'] : $id;
 				$this->sync_extra_fields( $final_id, $post->post_type, $source );
+				$this->sync_discovery_preference( (int) $post->post_author, $post->post_type, $source );
 			}
 
 			$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type, $final_id );
@@ -420,7 +433,13 @@ class ReviewConfirm {
 					// fields too, so a blank-title/body retry doesn't reset a
 					// portfolio-link correction or event detail edit made in the
 					// same submission.
-					$this->extra_prefill_from_source( $post->post_type, $source )
+					$this->extra_prefill_from_source( $post->post_type, $source ),
+					// Same preservation for the mirrored discovery-consent
+					// checkbox (WP1) — a blank-title/body retry must not silently
+					// revert an in-flight consent change back to the stored value.
+					in_array( $post->post_type, self::DISCOVERY_CONSENT_POST_TYPES, true )
+						? [ 'discovery_optout' => ! empty( $source['discovery_optout'] ) ? '1' : '' ]
+						: []
 				),
 				$error
 			);
@@ -463,6 +482,7 @@ class ReviewConfirm {
 			$data     = $response->get_data();
 			$final_id = isset( $data['post_id'] ) ? (int) $data['post_id'] : $id;
 			$this->sync_extra_fields( $final_id, $post->post_type, $source );
+			$this->sync_discovery_preference( (int) $post->post_author, $post->post_type, $source );
 		}
 
 		$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type, $final_id );
@@ -512,6 +532,33 @@ class ReviewConfirm {
 		// idempotent (see its own docblock) — it's a plain meta/content
 		// refresh, not a fresh translation.
 		\Agnosis\Compat\LinguaForge::sync_native_sibling( $id );
+	}
+
+	/**
+	 * Re-apply the mirrored FEP-5feb discovery-consent checkbox (WP1) —
+	 * account-level, not post-level, so unlike sync_extra_fields() this
+	 * writes to the AUTHOR's usermeta via
+	 * NotificationPreferences::set_discovery_optout() (the single canonical
+	 * read/write path — also used by NotificationPreferences::save() itself),
+	 * never to post meta. Called from both branches of
+	 * handle_approve_submission(), same always-re-apply convention as
+	 * sync_extra_fields() — an artist leaving the box exactly as it was is
+	 * exactly as valid a "no-op write" as an artist actively changing it, so
+	 * there's no need to diff against a previous value first.
+	 *
+	 * No-ops for any post type other than artwork/biography
+	 * (DISCOVERY_CONSENT_POST_TYPES) — the checkbox isn't rendered for an
+	 * event approval, so there is nothing in $source to read for one.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_discovery_preference( int $author_id, string $post_type, array $source ): void {
+		if ( ! in_array( $post_type, self::DISCOVERY_CONSENT_POST_TYPES, true ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- token itself is the auth mechanism, see class docblock.
+		NotificationPreferences::set_discovery_optout( $author_id, ! empty( $source['discovery_optout'] ) );
 	}
 
 	/**
@@ -723,6 +770,39 @@ class ReviewConfirm {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Render the mirrored FEP-5feb discovery-consent checkbox (WP1) —
+	 * account-level (§7 Q7's correction: this governs everything the artist
+	 * has ever published, not this one piece), so unlike every other field on
+	 * this form it's keyed by the AUTHOR's id, not the post's, and read via
+	 * `NotificationPreferences::is_discovery_opted_out()` — the same
+	 * canonical store that class's own preferences page reads, per its own
+	 * docblock ("the approval page is a convenient mirror of it, not a second
+	 * source of truth").
+	 *
+	 * Visually separated (a top border + slightly muted copy) from the
+	 * artwork/biography-specific fields above it — §7 Q7's own warning that
+	 * this page is "becoming a settings page by accretion" and that an
+	 * account-wide *consent* choice must not read like it's scoped to the one
+	 * piece being approved. The label states that scope explicitly rather
+	 * than implying it: "applies to everything I publish here", not "make
+	 * this artwork discoverable".
+	 *
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_discovery_field( int $author_id, array $prefill ): string {
+		$baseline_opted_out = NotificationPreferences::is_discovery_opted_out( $author_id );
+		$opted_out          = isset( $prefill['discovery_optout'] ) ? '1' === $prefill['discovery_optout'] : $baseline_opted_out;
+
+		return '<div style="margin:24px 0 0;padding:20px 0 0;border-top:1px solid #eee;">'
+			. '<p style="font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#999;margin:0 0 12px;">' . esc_html__( 'Account-wide setting', 'agnosis' ) . '</p>'
+			. '<label style="display:block;font-size:16px;line-height:1.5;color:#555;">'
+			. '<input type="checkbox" name="discovery_optout" value="1" ' . checked( $opted_out, true, false ) . ' style="margin-right:8px;">'
+			. esc_html__( 'Turn off search engine and Fediverse discovery indexing — applies to my whole profile and everything I publish here, not just this piece.', 'agnosis' )
+			. '</label>'
+			. '</div>';
 	}
 
 	/**
@@ -981,32 +1061,76 @@ class ReviewConfirm {
 
 		[ $title, $description, $button ] = $prompts[ $action ];
 
+		self::render_action_confirm_page(
+			$title,
+			$description,
+			$button,
+			[
+				'agnosis_review' => '1',
+				'id'             => (string) $id,
+				'action'         => $action,
+				'token'          => $token,
+			]
+		);
+	}
+
+	/**
+	 * Render a generic "are you sure?" GET confirm interstitial with a single
+	 * POST button — the shared shape behind every stateless emailed-link
+	 * action in the plugin that needs a GET-renders/POST-acts split (WP0,
+	 * agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8). Extracted from the
+	 * reject/remove branch of render_confirm() above so a second call site
+	 * outside this class — ActivityPub::handle_reply_moderation(), which had
+	 * shipped in 0.9.55 acting straight on GET with no interstitial at all —
+	 * reuses this exact page instead of hand-rolling a second copy of the same
+	 * markup (§7a/§8 WP0: "Publishing\ReviewConfirm already solved exactly
+	 * this problem for review links in July; the reply handler didn't inherit
+	 * the fix").
+	 *
+	 * Always exits via wp_die(); the caller's own GET branch should `return`
+	 * immediately after calling this (never reached in practice, but keeps
+	 * the call site's control flow honest for anyone reading it later).
+	 *
+	 * The form always posts back to home_url('/') — same as this class's own
+	 * confirm form — where the SAME query var checked on GET (the first key
+	 * of $hidden_fields, by convention 'agnosis_review' or 'agnosis_reply')
+	 * is expected to be checked again on the POST body by whichever
+	 * template_redirect handler owns that action.
+	 *
+	 * @param array<string,string> $hidden_fields Name => value pairs posted back verbatim as hidden inputs.
+	 */
+	public static function render_action_confirm_page(
+		string $heading,
+		string $description,
+		string $button_label,
+		array $hidden_fields
+	): void {
+		$hidden_html = '';
+		foreach ( $hidden_fields as $name => $value ) {
+			$hidden_html .= '<input type="hidden" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '">';
+		}
+
 		$html = sprintf(
 			'<div style="max-width:520px;margin:80px auto;font-family:Georgia,serif;text-align:center;color:#222;">'
 			. '<p style="font-size:34px;color:#7c6af7;margin:0 0 16px;">✦</p>'
 			. '<h1 style="font-size:24px;font-weight:700;margin:0 0 12px;">%1$s</h1>'
 			. '<p style="font-size:18px;color:#555;margin:0 0 32px;">%2$s</p>'
 			. '<form method="post" action="%3$s">'
-			. '<input type="hidden" name="agnosis_review" value="1">'
-			. '<input type="hidden" name="id" value="%4$s">'
-			. '<input type="hidden" name="action" value="%5$s">'
-			. '<input type="hidden" name="token" value="%6$s">'
-			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%7$s</button>'
+			. '%4$s'
+			. '<button type="submit" style="background:#7c6af7;color:#fff;border:0;border-radius:6px;padding:12px 28px;font-size:17px;font-family:inherit;cursor:pointer;">%5$s</button>'
 			. '</form>'
-			. '<p style="margin:24px 0 0;"><a href="%8$s" style="color:#999;font-size:16px;text-decoration:none;">&larr; %9$s</a></p>'
+			. '<p style="margin:24px 0 0;"><a href="%6$s" style="color:#999;font-size:16px;text-decoration:none;">&larr; %7$s</a></p>'
 			. '</div>',
-			esc_html( $title ),
+			esc_html( $heading ),
 			esc_html( $description ),
 			esc_url( home_url( '/' ) ),
-			esc_attr( (string) $id ),
-			esc_attr( $action ),
-			esc_attr( $token ),
-			esc_html( $button ),
+			$hidden_html, // Built entirely from esc_attr() name/value pairs above.
+			esc_html( $button_label ),
 			esc_url( home_url( '/' ) ),
 			esc_html( get_bloginfo( 'name' ) )
 		);
 
-		wp_die( $html, esc_html( $title ), [ 'response' => 200 ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $html is fully escaped above.
+		wp_die( $html, esc_html( $heading ), [ 'response' => 200 ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $html is fully escaped above.
 	}
 
 	/**
@@ -1103,6 +1227,16 @@ class ReviewConfirm {
 		// post type. See render_extra_fields_html()'s docblock.
 		$fields_html .= $this->render_extra_fields_html( $post->post_type, $post->ID, $prefill );
 
+		// FEP-5feb discovery consent (WP1) — account-level, artwork/biography
+		// only. Deliberately appended last and visually separated (§7 Q7's own
+		// warning: "the approval page is becoming a settings page by
+		// accretion" — grouping this apart from the artwork-specific fields
+		// above is what keeps a standing account-wide choice from being
+		// clicked through as if it were part of approving this one piece).
+		if ( in_array( $post->post_type, self::DISCOVERY_CONSENT_POST_TYPES, true ) ) {
+			$fields_html .= $this->render_discovery_field( (int) $post->post_author, $prefill );
+		}
+
 		$heading = sprintf(
 			/* translators: %s is the content type — artwork, biography, or event */
 			esc_html__( 'Publish this %s?', 'agnosis' ),
@@ -1151,8 +1285,13 @@ class ReviewConfirm {
 		};
 	}
 
-	/** True when the current request is a POST (the confirm button was clicked). */
-	private function is_post_request(): bool {
+	/**
+	 * True when the current request is a POST (the confirm button was
+	 * clicked). Public + static (WP0, agnosis-audit/
+	 * INTERACTION-SURFACE-ROADMAP.md §8) so ActivityPub::handle_reply_moderation()
+	 * shares this exact check instead of a second copy of the same one-liner.
+	 */
+	public static function is_post_request(): bool {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- comparison only, not used as output.
 		return isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'];
 	}

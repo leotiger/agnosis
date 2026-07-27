@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-25T20:39+00:00\n"
+"POT-Creation-Date: 2026-07-27T17:47+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:59+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Portuguese (Portugal)\n"
@@ -1242,7 +1242,7 @@ msgstr "Linha antiga — elimine e volte a consultar para pré-visualizar"
 msgid "Attachment viewer"
 msgstr "Visualizador de anexos"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2080
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2330
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -3370,7 +3370,11 @@ msgid ""
 "leave across all your artworks per window (below). A reply beyond this limit "
 "is silently declined — the remote server still gets an ordinary accepted "
 "response, not an error. Default: 2."
-msgstr "Número máximo de respostas federadas que uma única conta remota do fediverse pode deixar em todas as suas obras de arte por janela (abaixo). Uma resposta além deste limite é silenciosamente rejeitada — o servidor remoto ainda recebe uma resposta aceita normal, não um erro. Padrão: 2."
+msgstr ""
+"Número máximo de respostas federadas que uma única conta remota do fediverse "
+"pode deixar em todas as suas obras de arte por janela (abaixo). Uma resposta "
+"além deste limite é silenciosamente rejeitada — o servidor remoto ainda "
+"recebe uma resposta aceita normal, não um erro. Padrão: 2."
 
 #: includes/Admin/SettingsFields.php:905
 msgid "Federated reply limit window (hours)"
@@ -3380,7 +3384,9 @@ msgstr "Janela de limite de resposta federada (horas)"
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
-msgstr "Duração da janela à qual se aplica o limite de resposta acima. Padrão: 1 (ou seja, 2 respostas por hora por ator)."
+msgstr ""
+"Duração da janela à qual se aplica o limite de resposta acima. Padrão: 1 (ou "
+"seja, 2 respostas por hora por ator)."
 
 #: includes/Admin/SettingsFields.php:921
 msgid "Self-removal (goodbye) requests per sender per day"
@@ -4071,8 +4077,9 @@ msgid "Thanks, %s!"
 msgstr "Obrigado, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
-#: includes/Artist/NotificationPreferences.php:283
-#: includes/Network/ActivityPub.php:2430 includes/Network/ActivityPub.php:2439
+#: includes/Artist/NotificationPreferences.php:329
+#: includes/Network/ActivityPub.php:2742 includes/Network/ActivityPub.php:2749
+#: includes/Network/ActivityPub.php:2756
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Erro na ligação"
@@ -4838,7 +4845,7 @@ msgstr ""
 "A sua conta e tudo o que publicou em %s foram eliminados permanentemente. "
 "Nada associado a si é agora armazenado aqui."
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:303
+#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:315
 msgid "Link expired or already used"
 msgstr "Link expirado ou já utilizado"
 
@@ -5188,93 +5195,116 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "Preencha todos os campos obrigatórios."
 
-#: includes/Artist/NotificationPreferences.php:116
+#: includes/Artist/NotificationPreferences.php:144
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "Esta ligação de preferências é inválida ou foi adulterada."
 
-#: includes/Artist/NotificationPreferences.php:122
+#: includes/Artist/NotificationPreferences.php:150
 msgid "This preferences link is no longer valid for this account."
 msgstr "Esta ligação de preferências já não é válida para esta conta."
 
-#: includes/Artist/NotificationPreferences.php:238
-#: includes/Artist/NotificationPreferences.php:256
+#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:299
 msgid "Notification preferences"
 msgstr "Preferências de notificações"
 
-#: includes/Artist/NotificationPreferences.php:243
+#: includes/Artist/NotificationPreferences.php:284
 msgid "Mute community broadcast messages from other artists."
 msgstr ""
 "Silenciar mensagens de difusão da comunidade enviadas por outros artistas."
 
-#: includes/Artist/NotificationPreferences.php:244
+#: includes/Artist/NotificationPreferences.php:285
 msgid "Application vote emails"
 msgstr "Emails de votação de candidaturas"
 
-#: includes/Artist/NotificationPreferences.php:246
+#: includes/Artist/NotificationPreferences.php:287
 msgid "Instantly, one email per application (default)."
 msgstr "Imediatamente, um email por candidatura (predefinição)."
 
-#: includes/Artist/NotificationPreferences.php:248
+#: includes/Artist/NotificationPreferences.php:289
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
 "Uma vez por dia, um único resumo de todas as candidaturas ainda à espera do "
 "meu voto."
 
-#: includes/Artist/NotificationPreferences.php:250
+#: includes/Artist/NotificationPreferences.php:291
 msgid ""
 "Turn off the contact form on my page — visitors won't be able to message me."
 msgstr ""
 "Desativar o formulário de contacto na minha página — os visitantes não "
 "poderão enviar-me mensagens."
 
-#: includes/Artist/NotificationPreferences.php:252
+#: includes/Artist/NotificationPreferences.php:293
 msgid ""
 "Turn off federated replies on my artworks entirely — no new reply will be "
 "accepted from the Fediverse (this doesn't affect replies already showing)."
-msgstr "Desativar completamente as respostas federadas nas minhas obras de arte — nenhuma nova resposta será aceita do Fediverse (isto não afeta as respostas já exibidas)."
+msgstr ""
+"Desativar completamente as respostas federadas nas minhas obras de arte — "
+"nenhuma nova resposta será aceita do Fediverse (isto não afeta as respostas "
+"já exibidas)."
 
-#: includes/Artist/NotificationPreferences.php:253
+#: includes/Artist/NotificationPreferences.php:295
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just one piece."
+msgstr "Desativar a indexação por motores de busca e serviços de descoberta do Fediverse — aplica-se a todo o meu perfil e a tudo o que publico aqui, não apenas a uma peça."
+
+#: includes/Artist/NotificationPreferences.php:296
 msgid "Save preferences"
 msgstr "Guardar preferências"
 
-#: includes/Artist/NotificationPreferences.php:266
+#: includes/Artist/NotificationPreferences.php:309
 msgid "Community broadcasts are now muted."
 msgstr "As difusões da comunidade estão agora silenciadas."
 
-#: includes/Artist/NotificationPreferences.php:267
+#: includes/Artist/NotificationPreferences.php:310
 msgid "You'll continue to receive community broadcasts."
 msgstr "Continuará a receber difusões da comunidade."
 
-#: includes/Artist/NotificationPreferences.php:269
+#: includes/Artist/NotificationPreferences.php:312
 msgid "You'll receive one daily digest of applications awaiting your vote."
 msgstr "Receberá um resumo diário das candidaturas à espera do seu voto."
 
-#: includes/Artist/NotificationPreferences.php:270
+#: includes/Artist/NotificationPreferences.php:313
 msgid "You'll receive an email as soon as each new application arrives."
 msgstr "Receberá um email assim que cada nova candidatura chegar."
 
-#: includes/Artist/NotificationPreferences.php:272
+#: includes/Artist/NotificationPreferences.php:315
 msgid "The contact form on your page is now turned off."
 msgstr "O formulário de contacto na sua página está agora desativado."
 
-#: includes/Artist/NotificationPreferences.php:273
+#: includes/Artist/NotificationPreferences.php:316
 msgid "Visitors can still reach you through the contact form on your page."
 msgstr ""
 "Os visitantes ainda podem contactá-lo(a) através do formulário de contacto "
 "na sua página."
 
-#: includes/Artist/NotificationPreferences.php:275
+#: includes/Artist/NotificationPreferences.php:318
 msgid "Federated replies on your artworks are now turned off."
 msgstr "As respostas federadas nas suas obras de arte estão agora desativadas."
 
-#: includes/Artist/NotificationPreferences.php:276
+#: includes/Artist/NotificationPreferences.php:319
 msgid ""
 "You'll continue to receive federated replies (and their notification emails) "
 "on your artworks."
-msgstr "Você continuará a receber respostas federadas (e os seus e-mails de notificação) nas suas obras de arte."
+msgstr ""
+"Você continuará a receber respostas federadas (e os seus e-mails de "
+"notificação) nas suas obras de arte."
 
-#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:321
+msgid ""
+"Search engines and Fediverse discovery services will no longer be told to "
+"index your profile or your work."
+msgstr "Os motores de busca e serviços de descoberta do Fediverse não serão mais informados para indexar o seu perfil ou o seu trabalho."
+
+#: includes/Artist/NotificationPreferences.php:322
+msgid ""
+"Search engines and Fediverse discovery services may continue indexing your "
+"profile and your work."
+msgstr "Os motores de busca e serviços de descoberta do Fediverse podem continuar a indexar o seu perfil e o seu trabalho."
+
+#: includes/Artist/NotificationPreferences.php:325
 msgid "Preferences saved"
 msgstr "Preferências guardadas"
 
@@ -5677,15 +5707,15 @@ msgstr "Agnosis — Encaminhamento por Subdomínio de Artista desativado"
 msgid "Open LinguaForge Settings"
 msgstr "Abrir as Definições do LinguaForge"
 
-#: includes/Core/Activator.php:1002 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1016 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Artista Agnosis"
 
-#: includes/Core/Activator.php:1124 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1145 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "As minhas submissões"
 
-#: includes/Core/Activator.php:1314
+#: includes/Core/Activator.php:1335
 msgid "Join"
 msgstr "Juntar-se"
 
@@ -5845,7 +5875,7 @@ msgstr "Voto de recomendação da comunidade dado"
 
 #: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
 #: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
-#: includes/Publishing/ReviewConfirm.php:817
+#: includes/Publishing/ReviewConfirm.php:897
 msgid "Date"
 msgstr "Data"
 
@@ -6185,46 +6215,64 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Este pedido de webhook já foi processado."
 
-#: includes/Network/ActivityPub.php:328
+#: includes/Network/ActivityPub.php:390
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:743
+#: includes/Network/ActivityPub.php:823 includes/Network/ActivityPub.php:840
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
 msgstr[0] "♥ %d gosto"
 msgstr[1] "♥ %d gostos"
 
+#. translators: %d: number of likes.
+#: includes/Network/ActivityPub.php:825
+#, php-format
+msgid "♥ %d likes"
+msgstr "♥ %d gostos"
+
+#: includes/Network/ActivityPub.php:826
+msgid "Could not update like."
+msgstr "Não foi possível atualizar o gosto."
+
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:755
+#: includes/Network/ActivityPub.php:850
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d impulso"
 msgstr[1] "⟲ %d impulsos"
 
-#: includes/Network/ActivityPub.php:1468
+#: includes/Network/ActivityPub.php:1562
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:1633
+#: includes/Network/ActivityPub.php:1727
 #, php-format
 msgid "Also available in: %s"
 msgstr "Também disponível em: %s"
 
-#: includes/Network/ActivityPub.php:2046
+#: includes/Network/ActivityPub.php:2112
+msgid "No such artwork."
+msgstr "Não existe tal obra de arte."
+
+#: includes/Network/ActivityPub.php:2287
+msgid "0 replies"
+msgstr "0 respostas"
+
+#: includes/Network/ActivityPub.php:2296
 msgid "Loading replies…"
 msgstr "Carregando respostas…"
 
-#: includes/Network/ActivityPub.php:2047
+#: includes/Network/ActivityPub.php:2297
 msgid "Could not load replies."
 msgstr "Não foi possível carregar as respostas."
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2067
+#: includes/Network/ActivityPub.php:2317
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
@@ -6232,13 +6280,13 @@ msgstr[0] "%d resposta"
 msgstr[1] "%d respostas"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:2357
+#: includes/Network/ActivityPub.php:2624
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Nova resposta em \"%s\""
 
 #. translators: 1: reply excerpt, 2: approve link, 3: reject link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:2363
+#: includes/Network/ActivityPub.php:2630
 #, php-format
 msgid ""
 "Someone replied to your artwork from the Fediverse:\n"
@@ -6251,25 +6299,63 @@ msgid ""
 "Reject: %3$s\n"
 "\n"
 "Don't want reply notifications? Manage that here: %4$s"
-msgstr "Alguém respondeu à sua obra de arte do Fediverse:\n\n\"%1$s\"\n\nEstá a ser mantida até você aprovar ou rejeitar:\n\nAprovar: %2$s\nRejeitar: %3$s\n\nNão quer receber notificações de respostas? Gerencie isso aqui: %4$s"
+msgstr ""
+"Alguém respondeu à sua obra de arte do Fediverse:\n"
+"\n"
+"\"%1$s\"\n"
+"\n"
+"Está a ser mantida até você aprovar ou rejeitar:\n"
+"\n"
+"Aprovar: %2$s\n"
+"Rejeitar: %3$s\n"
+"\n"
+"Não quer receber notificações de respostas? Gerencie isso aqui: %4$s"
 
-#: includes/Network/ActivityPub.php:2429
+#: includes/Network/ActivityPub.php:2676 includes/Network/ActivityPub.php:2741
 msgid "This link is invalid or has already expired."
 msgstr "Este link é inválido ou já expirou."
 
-#: includes/Network/ActivityPub.php:2438
+#: includes/Network/ActivityPub.php:2681
+msgid "This link has expired."
+msgstr "Este link expirou."
+
+#: includes/Network/ActivityPub.php:2755
 msgid "This reply no longer exists."
 msgstr "Esta resposta já não existe."
 
-#: includes/Network/ActivityPub.php:2446
+#: includes/Network/ActivityPub.php:2768
+msgid "Approve this reply?"
+msgstr "Aprovar esta resposta?"
+
+#: includes/Network/ActivityPub.php:2769
+msgid "This will publish the reply on your artwork."
+msgstr "Isto publicará a resposta na sua obra de arte."
+
+#: includes/Network/ActivityPub.php:2770
+msgid "Yes, approve it"
+msgstr "Sim, aprová-la"
+
+#: includes/Network/ActivityPub.php:2773
+msgid "Reject this reply?"
+msgstr "Rejeitar esta resposta?"
+
+#: includes/Network/ActivityPub.php:2774
+msgid "This will discard the reply — it will not be shown."
+msgstr "Isto descartará a resposta — não será exibida."
+
+#: includes/Network/ActivityPub.php:2775
+msgid "Yes, reject it"
+msgstr "Sim, rejeitá-la"
+
+#: includes/Network/ActivityPub.php:2795
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Resposta aprovada — agora aparece na sua obra de arte."
 
-#: includes/Network/ActivityPub.php:2449
+#: includes/Network/ActivityPub.php:2798
 msgid "Reply rejected — it will not be shown."
 msgstr "Resposta rejeitada — não será exibida."
 
-#: includes/Network/ActivityPub.php:2452
+#: includes/Network/ActivityPub.php:2801
 msgid "Reply moderated"
 msgstr "Resposta moderada"
 
@@ -6835,14 +6921,14 @@ msgstr "[Agnosis] A tua submissão está pronta para revisão: %s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1149
+#: includes/Publishing/ReviewConfirm.php:1283
 msgid "event"
 msgstr "evento"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1150
+#: includes/Publishing/ReviewConfirm.php:1284
 msgid "artwork"
 msgstr "obra"
 
@@ -7509,67 +7595,67 @@ msgstr ""
 msgid "Invalid removal token."
 msgstr "Token de remoção inválido."
 
-#: includes/Publishing/ReviewConfirm.php:253
+#: includes/Publishing/ReviewConfirm.php:265
 msgid "View it live"
 msgstr "Ver ao vivo"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Biography published"
 msgstr "Biografia publicada"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Your biography has been published."
 msgstr "A sua biografia foi publicada."
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "Event published"
 msgstr "Evento publicado"
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "The event has been published."
 msgstr "O evento foi publicado."
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "Artwork published"
 msgstr "Obra publicada"
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "The artwork has been published to the gallery."
 msgstr "A obra foi publicada na galeria."
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "Submission discarded"
 msgstr "Submissão descartada"
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "The submission has been discarded."
 msgstr "A submissão foi descartada."
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Biography removed"
 msgstr "Biografia removida"
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Your biography has been removed."
 msgstr "A sua biografia foi removida."
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "Event removed"
 msgstr "Evento removido"
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "The event has been removed."
 msgstr "O evento foi removido."
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Artwork removed"
 msgstr "Obra removida"
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Your artwork has been removed from the gallery."
 msgstr "A sua obra foi removida da galeria."
 
-#: includes/Publishing/ReviewConfirm.php:303
+#: includes/Publishing/ReviewConfirm.php:315
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -7577,7 +7663,7 @@ msgstr ""
 "Este link pode já ter sido utilizado ou pode ter expirado. Inicie sessão "
 "para gerir as suas submissões."
 
-#: includes/Publishing/ReviewConfirm.php:407
+#: includes/Publishing/ReviewConfirm.php:420
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
@@ -7585,7 +7671,7 @@ msgstr ""
 "O título e o texto completo não podem estar vazios. Volte a preenchê-los, ou "
 "use \"Descartar\" a partir do email original em vez disso."
 
-#: includes/Publishing/ReviewConfirm.php:408
+#: includes/Publishing/ReviewConfirm.php:421
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
@@ -7593,85 +7679,95 @@ msgstr ""
 "O texto completo não pode estar vazio. Volte a preenchê-lo, ou use "
 "\"Descartar\" a partir do email original em vez disso."
 
-#: includes/Publishing/ReviewConfirm.php:758
+#: includes/Publishing/ReviewConfirm.php:800
+msgid "Account-wide setting"
+msgstr "Definição em toda a conta"
+
+#: includes/Publishing/ReviewConfirm.php:803
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just this piece."
+msgstr "Desativar a indexação por motores de busca e serviços de descoberta do Fediverse — aplica-se a todo o meu perfil e a tudo o que publico aqui, não apenas a esta peça."
+
+#: includes/Publishing/ReviewConfirm.php:838
 msgid "Portfolio link"
 msgstr "Link do portefólio"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:785
+#: includes/Publishing/ReviewConfirm.php:865
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "Link social %d (opcional)"
 
-#: includes/Publishing/ReviewConfirm.php:819
+#: includes/Publishing/ReviewConfirm.php:899
 msgid "Hour"
 msgstr "Hora"
 
-#: includes/Publishing/ReviewConfirm.php:822
+#: includes/Publishing/ReviewConfirm.php:902
 msgid "Location"
 msgstr "Local"
 
-#: includes/Publishing/ReviewConfirm.php:824
+#: includes/Publishing/ReviewConfirm.php:904
 msgid "Address"
 msgstr "Morada"
 
-#: includes/Publishing/ReviewConfirm.php:826
+#: includes/Publishing/ReviewConfirm.php:906
 msgid "Timezone"
 msgstr "Fuso horário"
 
-#: includes/Publishing/ReviewConfirm.php:846
+#: includes/Publishing/ReviewConfirm.php:926
 msgid "Other"
 msgstr "Outro"
 
-#: includes/Publishing/ReviewConfirm.php:851
+#: includes/Publishing/ReviewConfirm.php:931
 msgid "— Not set —"
 msgstr "— Não definido —"
 
-#: includes/Publishing/ReviewConfirm.php:971
+#: includes/Publishing/ReviewConfirm.php:1051
 msgid "Discard this submission?"
 msgstr "Descartar esta submissão?"
 
-#: includes/Publishing/ReviewConfirm.php:972
+#: includes/Publishing/ReviewConfirm.php:1052
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "Isto descartará permanentemente a submissão — não será publicada."
 
-#: includes/Publishing/ReviewConfirm.php:973
+#: includes/Publishing/ReviewConfirm.php:1053
 msgid "Yes, discard it"
 msgstr "Sim, descartá-la"
 
-#: includes/Publishing/ReviewConfirm.php:976
+#: includes/Publishing/ReviewConfirm.php:1056
 msgid "Remove this artwork?"
 msgstr "Remover esta obra?"
 
-#: includes/Publishing/ReviewConfirm.php:977
+#: includes/Publishing/ReviewConfirm.php:1057
 msgid "This will remove the published artwork from the gallery."
 msgstr "Isto removerá a obra publicada da galeria."
 
-#: includes/Publishing/ReviewConfirm.php:978
+#: includes/Publishing/ReviewConfirm.php:1058
 msgid "Yes, remove it"
 msgstr "Sim, removê-la"
 
-#: includes/Publishing/ReviewConfirm.php:1085
+#: includes/Publishing/ReviewConfirm.php:1209
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "Título"
 
-#: includes/Publishing/ReviewConfirm.php:1093
+#: includes/Publishing/ReviewConfirm.php:1217
 msgid "Short description"
 msgstr "Descrição curta"
 
-#: includes/Publishing/ReviewConfirm.php:1098
+#: includes/Publishing/ReviewConfirm.php:1222
 msgid "Full text"
 msgstr "Texto completo"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1108
+#: includes/Publishing/ReviewConfirm.php:1242
 #, php-format
 msgid "Publish this %s?"
 msgstr "Publicar este %s?"
 
-#: includes/Publishing/ReviewConfirm.php:1131
+#: includes/Publishing/ReviewConfirm.php:1265
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
@@ -7679,12 +7775,12 @@ msgstr ""
 "Faça quaisquer alterações finais abaixo, ou deixe tudo como está para "
 "publicar exactamente o que foi redigido."
 
-#: includes/Publishing/ReviewConfirm.php:1137
+#: includes/Publishing/ReviewConfirm.php:1271
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "Publicar"
 
-#: includes/Publishing/ReviewConfirm.php:1148
+#: includes/Publishing/ReviewConfirm.php:1282
 msgid "biography"
 msgstr "biografia"
 
@@ -8261,13 +8357,11 @@ msgstr "Contagem de Interações"
 #: blocks/interaction-counts/block.json
 msgctxt "block description"
 msgid ""
-"Renders how many times this artwork has been liked and boosted across the "
-"fediverse — two small, independent counts. Renders nothing on an artwork "
-"with no interactions yet, or off an agnosis_artwork post."
-msgstr ""
-"Mostra quantas vezes este artwork foi gostado e impulsionado no fediverse — "
-"duas contagens pequenas e independentes. Não mostra nada em um artwork sem "
-"interações ainda, ou fora de uma publicação agnosis_artwork."
+"Renders how many times this artwork has been liked and boosted — likes are a "
+"clickable on-site toggle (interaction-surface roadmap, Phase 3, WP2), boosts "
+"stay a plain independent count. Always shown (including \"0\") on an "
+"agnosis_artwork post; renders nothing off one."
+msgstr "Renderiza quantas vezes esta obra de arte foi gostada e promovida — os gostos são um alternador clicável no site (roteiro da superfície de interação, Fase 3, WP2), as promoções mantêm uma contagem independente simples. Sempre mostrado (incluindo \"0\") numa publicação de agnosis_artwork; não renderiza nada fora de uma."
 
 #: blocks/interaction-counts/block.json
 msgctxt "block keyword"
@@ -8405,9 +8499,10 @@ msgstr "Sobreposição de resposta"
 msgctxt "block description"
 msgid ""
 "\"N replies\" trigger that opens a full-viewport popover listing this "
-"artwork's approved federated replies. Renders nothing on an artwork with no "
-"approved replies yet, or off an agnosis_artwork post."
-msgstr "\"N respostas\" acionam um popover de tela cheia que lista as respostas federadas aprovadas desta obra de arte. Não renderiza nada numa obra de arte sem respostas aprovadas ainda, ou fora de um post agnosis_artwork."
+"artwork's approved federated replies. Shows plain, non-interactive \"0 "
+"replies\" text on an artwork with no approved replies yet; renders nothing "
+"off an agnosis_artwork post."
+msgstr "\"N respostas\" ativa que abre um popover de vista completa listando as respostas federadas aprovadas desta obra de arte. Mostra texto simples e não interativo \"0 respostas\" numa obra de arte sem respostas aprovadas ainda; não renderiza nada fora de uma publicação de agnosis_artwork."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

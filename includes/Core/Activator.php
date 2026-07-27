@@ -495,6 +495,7 @@ class Activator {
 		'agnosis_drain_rename_queue',
 		'agnosis_federation_tag_wait_sweep',
 		'agnosis_drain_reply_translation_queue',
+		'agnosis_rotate_like_salt',
 		// Single events — each scheduled with per-call arguments (a queue id,
 		// a translation dispatch payload), so clearing them needs
 		// wp_unschedule_hook() below, not wp_clear_scheduled_hook( $hook ):
@@ -877,11 +878,24 @@ class Activator {
 		// agnosis_ap_delivery_queue): a Like/Announce always targets one
 		// specific artwork post, never a node- or artist-level actor, so
 		// post_id alone is the correct scope.
+		//
+		// origin (interaction-surface roadmap, Phase 3, WP2, 2026-07-27) —
+		// 'remote' (default) for a federated Like/Announce ingested via
+		// inbox(), 'local' for an on-site visitor's like recorded directly by
+		// ActivityPub::like_content(). Added via plain dbDelta() ADD COLUMN
+		// (this table has never used IF NOT EXISTS, unlike the historical
+		// agnosis_queue/agnosis_followers cases above/below that needed an
+		// explicit SHOW COLUMNS + ALTER TABLE migration), so no separate
+		// migration block is needed here — see maybe_upgrade()'s own
+		// create_tables() call. actor_id already holds either identity scheme
+		// (a remote actor's AS2 URL, or a local visitor's salted hash / an
+		// artist's own actor URL) — VARCHAR(512) needed no widening.
 		$sql_interactions = "CREATE TABLE {$wpdb->prefix}agnosis_interactions (
 			id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			post_id        BIGINT UNSIGNED NOT NULL,
 			activity_type  ENUM('like','announce') NOT NULL,
 			actor_id       VARCHAR(512)    NOT NULL,
+			origin         ENUM('remote','local') NOT NULL DEFAULT 'remote',
 			object_id      VARCHAR(512)    DEFAULT NULL,
 			received_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY    (id),
@@ -1026,6 +1040,13 @@ class Activator {
 			'agnosis_imap_ssl'            => true,
 			'agnosis_imap_cleanup_days'   => 7,
 			'agnosis_webhook_secret'      => wp_generate_password( 32, false ),
+			// Interaction-surface roadmap, Phase 3, WP2 (2026-07-27) — seeds a
+			// real salt immediately at first activation so the very first
+			// on-site like already has one to hash against, ahead of the
+			// first agnosis_rotate_like_salt cron tick. rotate_like_salt()
+			// overwrites this daily thereafter; add_option() below only ever
+			// applies this default once.
+			'agnosis_like_salt'           => wp_generate_password( 32, false ),
 			'agnosis_node_label'          => get_bloginfo( 'name' ),
 			'agnosis_admission_percent'           => 10,  // min % of active artists required
 			'agnosis_admission_minimum'           => 3,   // absolute floor regardless of %
@@ -1375,6 +1396,17 @@ class Activator {
 		// translation meta).
 		if ( ! wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_reply_translation_queue' );
+		}
+		// On-site like anonymous identity salt rotation (interaction-surface
+		// roadmap, Phase 3, WP2, §7 Q5) — daily, so a same-day repeat visitor
+		// hashes to the same actor_id (dedup + able to unlike same-day), while
+		// no salt is ever retained past its own day (ActivityPub::rotate_
+		// like_salt() overwrites the option outright, nothing kept to
+		// re-derive a past day's hash). seed_options() above already seeds a
+		// real value at first activation so this cron's own first tick isn't
+		// load-bearing for day-one likes to work.
+		if ( ! wp_next_scheduled( 'agnosis_rotate_like_salt' ) ) {
+			wp_schedule_event( time(), 'daily', 'agnosis_rotate_like_salt' );
 		}
 		self::ensure_newsletter_cron_scheduled();
 		// The cron_schedules filter that defines 'every_five_minutes' must be

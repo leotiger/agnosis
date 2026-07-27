@@ -50,6 +50,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Network;
 
+use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Core\Logger;
 use Agnosis\Network\ActivityPub;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
@@ -1937,6 +1938,48 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertStringEndsWith( '/activitypub/actor/' . $artist_id . '/followers', $data['followers'] );
 		$this->assertSame( rest_url( 'agnosis/v1/activitypub/inbox' ), $data['endpoints']['sharedInbox'], 'sharedInbox must point at the one global inbox route, same as the node\'s.' );
 		$this->assertNotEmpty( $data['publicKey']['publicKeyPem'], 'The artist\'s own key must be exposed, not left empty or the node\'s.' );
+
+		// WP1 (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8) — FEP-5feb
+		// discovery consent, default discoverable/indexable (Ulises: "Default
+		// ON") until the artist opts out via NotificationPreferences.
+		$this->assertTrue( $data['discoverable'] ?? null, 'An artist actor must default to discoverable.' );
+		$this->assertTrue( $data['indexable'] ?? null, 'An artist actor must default to indexable.' );
+	}
+
+	/**
+	 * WP1: the SAME per-artist consent flag NotificationPreferences owns
+	 * (§7 Q7 — "the approval page is a convenient mirror of it, not a second
+	 * source of truth") must flip both actor-level FEP-5feb booleans to
+	 * false once an artist opts out, and only for that artist.
+	 */
+	public function test_artist_actor_reflects_discovery_optout(): void {
+		$opted_out_artist = $this->create_artist();
+		$other_artist      = $this->create_artist();
+		$this->install_artist_signing_key( $opted_out_artist );
+		$this->install_artist_signing_key( $other_artist );
+
+		NotificationPreferences::set_discovery_optout( $opted_out_artist, true );
+
+		$opted_out_data = ( new ActivityPub() )->actor( $this->actor_request( $opted_out_artist ) )->get_data();
+		$other_data     = ( new ActivityPub() )->actor( $this->actor_request( $other_artist ) )->get_data();
+
+		$this->assertFalse( $opted_out_data['discoverable'], 'An opted-out artist must not be advertised as discoverable.' );
+		$this->assertFalse( $opted_out_data['indexable'], 'An opted-out artist must not be advertised as indexable.' );
+		$this->assertTrue( $other_data['discoverable'], 'Opting one artist out must not affect a different artist.' );
+		$this->assertTrue( $other_data['indexable'], 'Opting one artist out must not affect a different artist.' );
+	}
+
+	/**
+	 * WP1: the node's own `Service` actor isn't an artist, so it has no
+	 * per-artist consent question — it always advertises both FEP-5feb
+	 * booleans, unconditionally.
+	 */
+	public function test_node_actor_is_discoverable_and_indexable(): void {
+		$data = ( new ActivityPub() )->actor( $this->actor_request() )->get_data();
+
+		$this->assertSame( 'Service', $data['type'] );
+		$this->assertTrue( $data['discoverable'] );
+		$this->assertTrue( $data['indexable'] );
 	}
 
 	public function test_artist_outbox_scopes_to_that_artists_own_published_artworks(): void {
@@ -2611,6 +2654,43 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertSame( '0', $comments[0]->comment_approved, 'A federated reply must always be held for moderation — never auto-published.' );
 		$this->assertSame( 'Remote Fan', $comments[0]->comment_author );
 		$this->assertStringContainsString( 'Lovely piece!', $comments[0]->comment_content );
+	}
+
+	/**
+	 * WP0 (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8): the reply
+	 * moderation link's expiry is stored as comment meta at email-send time
+	 * (notify_artist_of_reply(), fired from inside handle_create_reply()
+	 * above), following the site's configured `agnosis_review_token_expiry_days`
+	 * option rather than a hardcoded number — same option every other
+	 * stateless emailed action link in the plugin already honours.
+	 */
+	public function test_inbox_create_reply_stores_a_moderation_link_expiry_honouring_configured_days(): void {
+		update_option( 'agnosis_review_token_expiry_days', 3 );
+
+		// notify_artist_of_reply() (where the expiry is written) bails out
+		// before writing anything if get_userdata( $post->post_author ) has no
+		// real email — a factory post with no explicit post_author defaults to
+		// user id 0, which has none. An explicit author with a real (fake but
+		// non-empty) email is required for this test to actually exercise the
+		// code path it's testing, same reasoning as
+		// test_inbox_create_reply_declined_when_author_opted_out_account_wide()
+		// above.
+		$author_id = self::factory()->user->create();
+		$post_id   = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL, 'Remote Fan' );
+
+		( new ActivityPub() )->inbox(
+			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello' )
+		);
+
+		$comment_id = $this->first_reply_comment_id( $post_id );
+		$expiry     = (int) get_comment_meta( $comment_id, '_agnosis_reply_moderation_expiry', true );
+
+		$this->assertGreaterThan( 0, $expiry, 'notify_artist_of_reply() must write an expiry for every reply it emails about.' );
+		$this->assertGreaterThan( time() + 2 * DAY_IN_SECONDS, $expiry, 'A configured 3-day window must not collapse to something shorter.' );
+		$this->assertLessThanOrEqual( time() + 3 * DAY_IN_SECONDS + 5, $expiry, 'A configured 3-day window must not silently become longer.' );
+
+		delete_option( 'agnosis_review_token_expiry_days' );
 	}
 
 	public function test_inbox_create_reply_redelivery_is_idempotent(): void {

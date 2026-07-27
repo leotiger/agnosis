@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-25T20:39+00:00\n"
+"POT-Creation-Date: 2026-07-27T17:47+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:58+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Persian\n"
@@ -1223,7 +1223,7 @@ msgstr "سطر قدیمی — برای پیش‌نمایش حذف و دوبار�
 msgid "Attachment viewer"
 msgstr "نمایشگر پیوست"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2080
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2330
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -3272,7 +3272,11 @@ msgid ""
 "leave across all your artworks per window (below). A reply beyond this limit "
 "is silently declined — the remote server still gets an ordinary accepted "
 "response, not an error. Default: 2."
-msgstr "حداکثر تعداد پاسخ‌های فدرال که یک حساب فدراسیون از راه دور می‌تواند در تمام آثار شما در هر بازه زمانی (پایین) بگذارد. پاسخی که فراتر از این محدودیت باشد به‌طور سکوت رد می‌شود — سرور از راه دور هنوز یک پاسخ عادی پذیرفته شده دریافت می‌کند، نه یک خطا. پیش‌فرض: ۲."
+msgstr ""
+"حداکثر تعداد پاسخ‌های فدرال که یک حساب فدراسیون از راه دور می‌تواند در تمام "
+"آثار شما در هر بازه زمانی (پایین) بگذارد. پاسخی که فراتر از این محدودیت باشد "
+"به‌طور سکوت رد می‌شود — سرور از راه دور هنوز یک پاسخ عادی پذیرفته شده دریافت "
+"می‌کند، نه یک خطا. پیش‌فرض: ۲."
 
 #: includes/Admin/SettingsFields.php:905
 msgid "Federated reply limit window (hours)"
@@ -3282,7 +3286,9 @@ msgstr "بازه زمانی محدودیت پاسخ فدرال (ساعت)"
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
-msgstr "طول بازه زمانی که محدودیت پاسخ بالا به آن اعمال می‌شود. پیش‌فرض: ۱ (یعنی ۲ پاسخ در ساعت به ازای هر بازیگر)."
+msgstr ""
+"طول بازه زمانی که محدودیت پاسخ بالا به آن اعمال می‌شود. پیش‌فرض: ۱ (یعنی ۲ "
+"پاسخ در ساعت به ازای هر بازیگر)."
 
 #: includes/Admin/SettingsFields.php:921
 msgid "Self-removal (goodbye) requests per sender per day"
@@ -3950,8 +3956,9 @@ msgid "Thanks, %s!"
 msgstr "سپاس، %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
-#: includes/Artist/NotificationPreferences.php:283
-#: includes/Network/ActivityPub.php:2430 includes/Network/ActivityPub.php:2439
+#: includes/Artist/NotificationPreferences.php:329
+#: includes/Network/ActivityPub.php:2742 includes/Network/ActivityPub.php:2749
+#: includes/Network/ActivityPub.php:2756
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "خطای پیوند"
@@ -4708,7 +4715,7 @@ msgstr ""
 "حساب شما و هرآنچه در %s منتشر کرده‌اید، برای همیشه حذف شده است. دیگر هیچ چیز "
 "مرتبط با شما در اینجا ذخیره نشده است."
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:303
+#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:315
 msgid "Link expired or already used"
 msgstr "پیوند منقضی شده یا قبلاً استفاده شده است"
 
@@ -5054,92 +5061,114 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "لطفاً همهٔ فیلدهای الزامی را پر کنید."
 
-#: includes/Artist/NotificationPreferences.php:116
+#: includes/Artist/NotificationPreferences.php:144
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "این پیوند تنظیمات معتبر نیست یا دستکاری شده است."
 
-#: includes/Artist/NotificationPreferences.php:122
+#: includes/Artist/NotificationPreferences.php:150
 msgid "This preferences link is no longer valid for this account."
 msgstr "این پیوند تنظیمات دیگر برای این حساب کاربری معتبر نیست."
 
-#: includes/Artist/NotificationPreferences.php:238
-#: includes/Artist/NotificationPreferences.php:256
+#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:299
 msgid "Notification preferences"
 msgstr "ترجیحات اعلان"
 
-#: includes/Artist/NotificationPreferences.php:243
+#: includes/Artist/NotificationPreferences.php:284
 msgid "Mute community broadcast messages from other artists."
 msgstr "پیام‌های اطلاع‌رسانی جامعه از دیگر هنرمندان را بی‌صدا کنید."
 
-#: includes/Artist/NotificationPreferences.php:244
+#: includes/Artist/NotificationPreferences.php:285
 msgid "Application vote emails"
 msgstr "ایمیل‌های رأی‌گیری درخواست عضویت"
 
-#: includes/Artist/NotificationPreferences.php:246
+#: includes/Artist/NotificationPreferences.php:287
 msgid "Instantly, one email per application (default)."
 msgstr "بلافاصله، برای هر درخواست یک ایمیل (پیش‌فرض)."
 
-#: includes/Artist/NotificationPreferences.php:248
+#: includes/Artist/NotificationPreferences.php:289
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
 "روزی یک‌بار، یک خلاصهٔ واحد از همهٔ درخواست‌هایی که هنوز منتظر رأی من هستند."
 
-#: includes/Artist/NotificationPreferences.php:250
+#: includes/Artist/NotificationPreferences.php:291
 msgid ""
 "Turn off the contact form on my page — visitors won't be able to message me."
 msgstr ""
 "فرم تماس را در صفحه‌ام خاموش کنید — بازدیدکنندگان نمی‌توانند برای من پیام "
 "بفرستند."
 
-#: includes/Artist/NotificationPreferences.php:252
+#: includes/Artist/NotificationPreferences.php:293
 msgid ""
 "Turn off federated replies on my artworks entirely — no new reply will be "
 "accepted from the Fediverse (this doesn't affect replies already showing)."
-msgstr "کاملاً پاسخ‌های فدرال را بر روی آثار من خاموش کن — هیچ پاسخ جدیدی از فدراسیون پذیرفته نخواهد شد (این بر پاسخ‌های قبلاً نمایش داده شده تأثیری ندارد)."
+msgstr ""
+"کاملاً پاسخ‌های فدرال را بر روی آثار من خاموش کن — هیچ پاسخ جدیدی از فدراسیون "
+"پذیرفته نخواهد شد (این بر پاسخ‌های قبلاً نمایش داده شده تأثیری ندارد)."
 
-#: includes/Artist/NotificationPreferences.php:253
+#: includes/Artist/NotificationPreferences.php:295
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just one piece."
+msgstr "غیرفعال کردن فهرست‌برداری موتور جستجو و کشف فدیو (Fediverse) — این تنظیم به کل پروفایل من و هر چیزایی که اینجا منتشر می‌کنم اعمال می‌شود، نه فقط یک قطعه."
+
+#: includes/Artist/NotificationPreferences.php:296
 msgid "Save preferences"
 msgstr "ذخیرهٔ ترجیحات"
 
-#: includes/Artist/NotificationPreferences.php:266
+#: includes/Artist/NotificationPreferences.php:309
 msgid "Community broadcasts are now muted."
 msgstr "پیام‌های اطلاع‌رسانی جامعه اکنون بی‌صدا شده‌اند."
 
-#: includes/Artist/NotificationPreferences.php:267
+#: includes/Artist/NotificationPreferences.php:310
 msgid "You'll continue to receive community broadcasts."
 msgstr "شما همچنان پیام‌های اطلاع‌رسانی جامعه را دریافت خواهید کرد."
 
-#: includes/Artist/NotificationPreferences.php:269
+#: includes/Artist/NotificationPreferences.php:312
 msgid "You'll receive one daily digest of applications awaiting your vote."
 msgstr ""
 "شما روزی یک خلاصهٔ ایمیلی از درخواست‌های منتظر رأی خود دریافت خواهید کرد."
 
-#: includes/Artist/NotificationPreferences.php:270
+#: includes/Artist/NotificationPreferences.php:313
 msgid "You'll receive an email as soon as each new application arrives."
 msgstr "به‌محض رسیدن هر درخواست جدید، یک ایمیل دریافت خواهید کرد."
 
-#: includes/Artist/NotificationPreferences.php:272
+#: includes/Artist/NotificationPreferences.php:315
 msgid "The contact form on your page is now turned off."
 msgstr "فرم تماس در صفحهٔ شما اکنون خاموش شده است."
 
-#: includes/Artist/NotificationPreferences.php:273
+#: includes/Artist/NotificationPreferences.php:316
 msgid "Visitors can still reach you through the contact form on your page."
 msgstr ""
 "بازدیدکنندگان همچنان می‌توانند از طریق فرم تماس در صفحهٔ شما با شما ارتباط "
 "بگیرند."
 
-#: includes/Artist/NotificationPreferences.php:275
+#: includes/Artist/NotificationPreferences.php:318
 msgid "Federated replies on your artworks are now turned off."
 msgstr "پاسخ‌های فدرال بر روی آثار شما اکنون خاموش شده‌اند."
 
-#: includes/Artist/NotificationPreferences.php:276
+#: includes/Artist/NotificationPreferences.php:319
 msgid ""
 "You'll continue to receive federated replies (and their notification emails) "
 "on your artworks."
-msgstr "شما به دریافت پاسخ‌های فدرال (و ایمیل‌های اطلاع رسانی آنها) بر روی آثار خود ادامه خواهید داد."
+msgstr ""
+"شما به دریافت پاسخ‌های فدرال (و ایمیل‌های اطلاع رسانی آنها) بر روی آثار خود "
+"ادامه خواهید داد."
 
-#: includes/Artist/NotificationPreferences.php:279
+#: includes/Artist/NotificationPreferences.php:321
+msgid ""
+"Search engines and Fediverse discovery services will no longer be told to "
+"index your profile or your work."
+msgstr "به موتورهای جستجو و خدمات کشف فدیو دیگر گفته نخواهد شد که پروفایل یا کارهای شما را فهرست کنند."
+
+#: includes/Artist/NotificationPreferences.php:322
+msgid ""
+"Search engines and Fediverse discovery services may continue indexing your "
+"profile and your work."
+msgstr "موتورهای جستجو و خدمات کشف فدیو ممکن است به فهرست‌برداری پروفایل و کارهای شما ادامه دهند."
+
+#: includes/Artist/NotificationPreferences.php:325
 msgid "Preferences saved"
 msgstr "تنظیمات ذخیره شد"
 
@@ -5541,15 +5570,15 @@ msgstr "Agnosis — مسیریابی زیردامنهٔ هنرمند غیرفع�
 msgid "Open LinguaForge Settings"
 msgstr "تنظیمات LinguaForge را باز کنید"
 
-#: includes/Core/Activator.php:1002 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1016 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "هنرمند Agnosis"
 
-#: includes/Core/Activator.php:1124 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1145 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "ارسال‌های من"
 
-#: includes/Core/Activator.php:1314
+#: includes/Core/Activator.php:1335
 msgid "Join"
 msgstr "پیوستن"
 
@@ -5709,7 +5738,7 @@ msgstr "تأیید پشتیبانی جامعه داده شد"
 
 #: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
 #: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
-#: includes/Publishing/ReviewConfirm.php:817
+#: includes/Publishing/ReviewConfirm.php:897
 msgid "Date"
 msgstr "تاریخ"
 
@@ -6036,46 +6065,64 @@ msgstr "زمان‌مهرِ درخواست وب‌هوک وجود ندارد، �
 msgid "This webhook request has already been processed."
 msgstr "این درخواست وب‌هوک قبلاً پردازش شده است."
 
-#: includes/Network/ActivityPub.php:328
+#: includes/Network/ActivityPub.php:390
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:743
+#: includes/Network/ActivityPub.php:823 includes/Network/ActivityPub.php:840
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
 msgstr[0] "♥ %d لایک"
 msgstr[1] "♥ %d لایک"
 
+#. translators: %d: number of likes.
+#: includes/Network/ActivityPub.php:825
+#, php-format
+msgid "♥ %d likes"
+msgstr "♥ %d پسند"
+
+#: includes/Network/ActivityPub.php:826
+msgid "Could not update like."
+msgstr "نتوانستم پسند را به‌روز کنم."
+
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:755
+#: includes/Network/ActivityPub.php:850
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d بوست"
 msgstr[1] "⟲ %d بوست"
 
-#: includes/Network/ActivityPub.php:1468
+#: includes/Network/ActivityPub.php:1562
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:1633
+#: includes/Network/ActivityPub.php:1727
 #, php-format
 msgid "Also available in: %s"
 msgstr "همچنین در دسترس است در: %s"
 
-#: includes/Network/ActivityPub.php:2046
+#: includes/Network/ActivityPub.php:2112
+msgid "No such artwork."
+msgstr "چنین اثر هنری وجود ندارد."
+
+#: includes/Network/ActivityPub.php:2287
+msgid "0 replies"
+msgstr "0 پاسخ"
+
+#: includes/Network/ActivityPub.php:2296
 msgid "Loading replies…"
 msgstr "در حال بارگذاری پاسخ‌ها…"
 
-#: includes/Network/ActivityPub.php:2047
+#: includes/Network/ActivityPub.php:2297
 msgid "Could not load replies."
 msgstr "نتوانستم پاسخ‌ها را بارگذاری کنم."
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2067
+#: includes/Network/ActivityPub.php:2317
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
@@ -6083,13 +6130,13 @@ msgstr[0] "%d پاسخ"
 msgstr[1] "%d پاسخ"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:2357
+#: includes/Network/ActivityPub.php:2624
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "پاسخ جدید در \"%s\""
 
 #. translators: 1: reply excerpt, 2: approve link, 3: reject link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:2363
+#: includes/Network/ActivityPub.php:2630
 #, php-format
 msgid ""
 "Someone replied to your artwork from the Fediverse:\n"
@@ -6102,25 +6149,63 @@ msgid ""
 "Reject: %3$s\n"
 "\n"
 "Don't want reply notifications? Manage that here: %4$s"
-msgstr "کسی به Artwork شما از فدراسیون پاسخ داده است:\n\n\"%1$s\"\n\nاین پاسخ تا زمانی که شما آن را تأیید یا رد کنید، نگهداری می‌شود:\n\nتأیید: %2$s\nرد: %3$s\n\nنمی‌خواهید اطلاع‌رسانی پاسخ‌ها را دریافت کنید؟ اینجا مدیریت کنید: %4$s"
+msgstr ""
+"کسی به Artwork شما از فدراسیون پاسخ داده است:\n"
+"\n"
+"\"%1$s\"\n"
+"\n"
+"این پاسخ تا زمانی که شما آن را تأیید یا رد کنید، نگهداری می‌شود:\n"
+"\n"
+"تأیید: %2$s\n"
+"رد: %3$s\n"
+"\n"
+"نمی‌خواهید اطلاع‌رسانی پاسخ‌ها را دریافت کنید؟ اینجا مدیریت کنید: %4$s"
 
-#: includes/Network/ActivityPub.php:2429
+#: includes/Network/ActivityPub.php:2676 includes/Network/ActivityPub.php:2741
 msgid "This link is invalid or has already expired."
 msgstr "این لینک نامعتبر است یا قبلاً منقضی شده است."
 
-#: includes/Network/ActivityPub.php:2438
+#: includes/Network/ActivityPub.php:2681
+msgid "This link has expired."
+msgstr "این لینک منقضی شده است."
+
+#: includes/Network/ActivityPub.php:2755
 msgid "This reply no longer exists."
 msgstr "این پاسخ دیگر وجود ندارد."
 
-#: includes/Network/ActivityPub.php:2446
+#: includes/Network/ActivityPub.php:2768
+msgid "Approve this reply?"
+msgstr "این پاسخ را تأیید کنم؟"
+
+#: includes/Network/ActivityPub.php:2769
+msgid "This will publish the reply on your artwork."
+msgstr "این پاسخ را بر روی اثر هنری شما منتشر خواهد کرد."
+
+#: includes/Network/ActivityPub.php:2770
+msgid "Yes, approve it"
+msgstr "بله، تأییدش کن"
+
+#: includes/Network/ActivityPub.php:2773
+msgid "Reject this reply?"
+msgstr "این پاسخ را رد کنم؟"
+
+#: includes/Network/ActivityPub.php:2774
+msgid "This will discard the reply — it will not be shown."
+msgstr "این پاسخ را حذف خواهد کرد - نمایش داده نخواهد شد."
+
+#: includes/Network/ActivityPub.php:2775
+msgid "Yes, reject it"
+msgstr "بله، ردش کن"
+
+#: includes/Network/ActivityPub.php:2795
 msgid "Reply approved — it now appears on your artwork."
 msgstr "پاسخ تأیید شد — اکنون بر روی اثر شما نشان داده می‌شود."
 
-#: includes/Network/ActivityPub.php:2449
+#: includes/Network/ActivityPub.php:2798
 msgid "Reply rejected — it will not be shown."
 msgstr "پاسخ رد شد — نشان داده نخواهد شد."
 
-#: includes/Network/ActivityPub.php:2452
+#: includes/Network/ActivityPub.php:2801
 msgid "Reply moderated"
 msgstr "پاسخ مرجوع شده"
 
@@ -6676,14 +6761,14 @@ msgstr "[Agnosis] ارسال شما آماده بررسی است: %s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1149
+#: includes/Publishing/ReviewConfirm.php:1283
 msgid "event"
 msgstr "رویداد"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1150
+#: includes/Publishing/ReviewConfirm.php:1284
 msgid "artwork"
 msgstr "اثر هنری"
 
@@ -7340,67 +7425,67 @@ msgstr "پیوند حذف منقضی شده است. لطفاً یک درخواس
 msgid "Invalid removal token."
 msgstr "توکن حذف نامعتبر است."
 
-#: includes/Publishing/ReviewConfirm.php:253
+#: includes/Publishing/ReviewConfirm.php:265
 msgid "View it live"
 msgstr "مشاهده زنده"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Biography published"
 msgstr "زندگینامه منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:296
+#: includes/Publishing/ReviewConfirm.php:308
 msgid "Your biography has been published."
 msgstr "زندگینامه شما منتشر شد."
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "Event published"
 msgstr "رویداد منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:297
+#: includes/Publishing/ReviewConfirm.php:309
 msgid "The event has been published."
 msgstr "رویداد منتشر شده است."
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "Artwork published"
 msgstr "اثر هنری منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:298
+#: includes/Publishing/ReviewConfirm.php:310
 msgid "The artwork has been published to the gallery."
 msgstr "اثر هنری در گالری منتشر شد."
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "Submission discarded"
 msgstr "ارسال حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:299
+#: includes/Publishing/ReviewConfirm.php:311
 msgid "The submission has been discarded."
 msgstr "ارسال حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Biography removed"
 msgstr "بیوگرافی حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:300
+#: includes/Publishing/ReviewConfirm.php:312
 msgid "Your biography has been removed."
 msgstr "بیوگرافی شما حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "Event removed"
 msgstr "رویداد حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:301
+#: includes/Publishing/ReviewConfirm.php:313
 msgid "The event has been removed."
 msgstr "رویداد حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Artwork removed"
 msgstr "اثر هنری حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:302
+#: includes/Publishing/ReviewConfirm.php:314
 msgid "Your artwork has been removed from the gallery."
 msgstr "اثر هنری شما از گالری حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:303
+#: includes/Publishing/ReviewConfirm.php:315
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -7408,7 +7493,7 @@ msgstr ""
 "ممکن است از این لینک قبلاً استفاده شده باشد یا منقضی شده باشد. لطفاً برای "
 "مدیریت ارسال‌های خود وارد شوید."
 
-#: includes/Publishing/ReviewConfirm.php:407
+#: includes/Publishing/ReviewConfirm.php:420
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
@@ -7416,7 +7501,7 @@ msgstr ""
 "عنوان و متن کامل نمی‌توانند خالی باشند. آن‌ها را دوباره وارد کنید، یا به‌جای آن "
 "از «حذف» در ایمیل اصلی استفاده کنید."
 
-#: includes/Publishing/ReviewConfirm.php:408
+#: includes/Publishing/ReviewConfirm.php:421
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
@@ -7424,85 +7509,95 @@ msgstr ""
 "متن کامل نمی‌تواند خالی باشد. آن را دوباره وارد کنید، یا به‌جای آن از «حذف» در "
 "ایمیل اصلی استفاده کنید."
 
-#: includes/Publishing/ReviewConfirm.php:758
+#: includes/Publishing/ReviewConfirm.php:800
+msgid "Account-wide setting"
+msgstr "تنظیمات سراسری حساب"
+
+#: includes/Publishing/ReviewConfirm.php:803
+msgid ""
+"Turn off search engine and Fediverse discovery indexing — applies to my "
+"whole profile and everything I publish here, not just this piece."
+msgstr "غیرفعال کردن فهرست‌برداری موتور جستجو و کشف فدیو — این تنظیم به کل پروفایل من و هر چیزی که اینجا منتشر می‌کنم اعمال می‌شود، نه فقط این قطعه."
+
+#: includes/Publishing/ReviewConfirm.php:838
 msgid "Portfolio link"
 msgstr "لینک پورتفولیو"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:785
+#: includes/Publishing/ReviewConfirm.php:865
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "لینک شبکه اجتماعی %d (اختیاری)"
 
-#: includes/Publishing/ReviewConfirm.php:819
+#: includes/Publishing/ReviewConfirm.php:899
 msgid "Hour"
 msgstr "ساعت"
 
-#: includes/Publishing/ReviewConfirm.php:822
+#: includes/Publishing/ReviewConfirm.php:902
 msgid "Location"
 msgstr "مکان"
 
-#: includes/Publishing/ReviewConfirm.php:824
+#: includes/Publishing/ReviewConfirm.php:904
 msgid "Address"
 msgstr "نشانی"
 
-#: includes/Publishing/ReviewConfirm.php:826
+#: includes/Publishing/ReviewConfirm.php:906
 msgid "Timezone"
 msgstr "منطقه زمانی"
 
-#: includes/Publishing/ReviewConfirm.php:846
+#: includes/Publishing/ReviewConfirm.php:926
 msgid "Other"
 msgstr "سایر"
 
-#: includes/Publishing/ReviewConfirm.php:851
+#: includes/Publishing/ReviewConfirm.php:931
 msgid "— Not set —"
 msgstr "— تنظیم نشده —"
 
-#: includes/Publishing/ReviewConfirm.php:971
+#: includes/Publishing/ReviewConfirm.php:1051
 msgid "Discard this submission?"
 msgstr "این ارسال حذف شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:972
+#: includes/Publishing/ReviewConfirm.php:1052
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "این کار ارسال را برای همیشه حذف می‌کند — منتشر نخواهد شد."
 
-#: includes/Publishing/ReviewConfirm.php:973
+#: includes/Publishing/ReviewConfirm.php:1053
 msgid "Yes, discard it"
 msgstr "بله، حذفش کن"
 
-#: includes/Publishing/ReviewConfirm.php:976
+#: includes/Publishing/ReviewConfirm.php:1056
 msgid "Remove this artwork?"
 msgstr "این اثر هنری حذف شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:977
+#: includes/Publishing/ReviewConfirm.php:1057
 msgid "This will remove the published artwork from the gallery."
 msgstr "این کار، اثر هنریِ منتشرشده را از گالری حذف می‌کند."
 
-#: includes/Publishing/ReviewConfirm.php:978
+#: includes/Publishing/ReviewConfirm.php:1058
 msgid "Yes, remove it"
 msgstr "بله، حذفش کن"
 
-#: includes/Publishing/ReviewConfirm.php:1085
+#: includes/Publishing/ReviewConfirm.php:1209
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "عنوان"
 
-#: includes/Publishing/ReviewConfirm.php:1093
+#: includes/Publishing/ReviewConfirm.php:1217
 msgid "Short description"
 msgstr "توضیح کوتاه"
 
-#: includes/Publishing/ReviewConfirm.php:1098
+#: includes/Publishing/ReviewConfirm.php:1222
 msgid "Full text"
 msgstr "متن کامل"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1108
+#: includes/Publishing/ReviewConfirm.php:1242
 #, php-format
 msgid "Publish this %s?"
 msgstr "این %s منتشر شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:1131
+#: includes/Publishing/ReviewConfirm.php:1265
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
@@ -7510,12 +7605,12 @@ msgstr ""
 "در ادامه هر تغییر نهایی را اعمال کنید، یا اگر می‌خواهید دقیقاً همان پیش‌نویس "
 "منتشر شود، همه‌چیز را بدون تغییر بگذارید."
 
-#: includes/Publishing/ReviewConfirm.php:1137
+#: includes/Publishing/ReviewConfirm.php:1271
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "منتشرش کن"
 
-#: includes/Publishing/ReviewConfirm.php:1148
+#: includes/Publishing/ReviewConfirm.php:1282
 msgid "biography"
 msgstr "بیوگرافی"
 
@@ -8088,13 +8183,11 @@ msgstr "تعداد تعاملات"
 #: blocks/interaction-counts/block.json
 msgctxt "block description"
 msgid ""
-"Renders how many times this artwork has been liked and boosted across the "
-"fediverse — two small, independent counts. Renders nothing on an artwork "
-"with no interactions yet, or off an agnosis_artwork post."
-msgstr ""
-"تعداد دفعاتی که این اثر هنری در فدیویرس لایک و بوست شده است را نشان می‌دهد — "
-"دو شمارش کوچک و مستقل. بر روی یک اثر هنری که هنوز هیچ تعاملاتی ندارد یا از "
-"یک پست agnosis_artwork، چیزی نشان نمی‌دهد."
+"Renders how many times this artwork has been liked and boosted — likes are a "
+"clickable on-site toggle (interaction-surface roadmap, Phase 3, WP2), boosts "
+"stay a plain independent count. Always shown (including \"0\") on an "
+"agnosis_artwork post; renders nothing off one."
+msgstr "تعداد دفعاتی که این اثر هنری پسند و افزایش یافته را نشان می‌دهد - پسندها برای کلیک کردن در سایت قابل تغییر هستند (نقشه تعامل، مرحله ۳، WP2)، افزایش‌ها یک شمارش مستقل و ساده باقی می‌مانند. همیشه نشان داده می‌شود (از جمله \"0\") در یک پست agnosis_artwork؛ چیزی از یک پست نشان نمی‌دهد."
 
 #: blocks/interaction-counts/block.json
 msgctxt "block keyword"
@@ -8230,9 +8323,10 @@ msgstr "بررسی پاسخ"
 msgctxt "block description"
 msgid ""
 "\"N replies\" trigger that opens a full-viewport popover listing this "
-"artwork's approved federated replies. Renders nothing on an artwork with no "
-"approved replies yet, or off an agnosis_artwork post."
-msgstr "\"N پاسخ\" تریگر که یک پاپ‌آپ در نمای کامل باز می‌کند که پاسخ‌های فدرال تأیید شده این اثر را فهرست می‌کند. هیچ چیز را بر روی اثری که هنوز پاسخ‌های تأیید شده‌ای ندارد یا از یک پست agnosis_artwork نشان نمی‌دهد."
+"artwork's approved federated replies. Shows plain, non-interactive \"0 "
+"replies\" text on an artwork with no approved replies yet; renders nothing "
+"off an agnosis_artwork post."
+msgstr "\"N پاسخ\" ماشه‌ای که یک پنجره پاپ اوور تمام صفحه را برای فهرست کردن پاسخ‌های تأیید شده فدراسیونی این اثر هنری باز می‌کند. متن ساده و غیرتعاملی \"0 پاسخ\" را در اثر هنری که هنوز پاسخ‌های تأیید شده ندارد نشان می‌دهد؛ از یک پست agnosis_artwork چیزی نشان نمی‌دهد."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"
