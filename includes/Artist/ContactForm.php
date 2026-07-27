@@ -180,7 +180,7 @@ class ContactForm {
 			return new WP_Error(
 				'agnosis_field_too_long',
 				sprintf(
-					/* translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count */
+					/* translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count */
 					__( '%1$s must be %2$d characters or fewer.', 'agnosis' ),
 					$field_label,
 					$max

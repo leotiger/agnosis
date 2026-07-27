@@ -2504,19 +2504,35 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		return $block->render();
 	}
 
-	public function test_render_reply_overlay_shows_plain_zero_text_with_no_replies(): void {
+	public function test_render_reply_overlay_shows_plain_zero_text_when_replies_are_closed(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		update_post_meta( $post_id, ActivityPub::REPLIES_DISABLED_META, '1' );
+
+		$html = $this->render_reply_overlay_via_block( $post_id );
+
+		// 2026-07-25, superseded by WP4 (2026-07-27): with replies actually
+		// switched off (and none already posted, held or otherwise), still
+		// show "0 replies" — but as inert text, not a button. Before WP4 this
+		// was true unconditionally at zero; now it only holds once
+		// replies_open() itself is false, since an open-but-empty artwork
+		// gets the real trigger + form instead (see the next test).
+		$this->assertStringContainsString( '0 replies', $html );
+		$this->assertStringNotContainsString( '<button', $html, 'With replies closed and none already posted, there is nothing to open, so no clickable trigger should render.' );
+		$this->assertStringNotContainsString( 'popover', $html );
+	}
+
+	public function test_render_reply_overlay_shows_trigger_and_form_with_zero_replies_when_open(): void {
+		// WP4 (2026-07-27): the default state (no REPLIES_DISABLED_META, no
+		// author opt-out) is OPEN — so even at zero replies, visitors must
+		// get the real "Reply" trigger and the submission form inside the
+		// panel, not the old plain-text placeholder.
 		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 
 		$html = $this->render_reply_overlay_via_block( $post_id );
 
-		// 2026-07-25: consistent with interaction-counts, an artwork with no
-		// replies still shows "0 replies" — but as inert text, not a button:
-		// there's nothing to open (no existing replies to list) and no local
-		// reply/comment form exists yet (a separate, not-yet-built feature,
-		// deliberately out of scope here — Ulises, 2026-07-25).
-		$this->assertStringContainsString( '0 replies', $html );
-		$this->assertStringNotContainsString( '<button', $html, 'With zero replies there is nothing to open, so no clickable trigger should render.' );
-		$this->assertStringNotContainsString( 'popover', $html );
+		$this->assertStringContainsString( '<button', $html, 'Replies are open by default, so even at zero replies a real clickable trigger must render.' );
+		$this->assertStringContainsString( 'popovertarget', $html );
+		$this->assertStringContainsString( 'data-agnosis-reply-form', $html, 'The reply form itself must be present whenever replies are open.' );
 	}
 
 	public function test_render_reply_overlay_shows_interactive_trigger_with_approved_replies(): void {
@@ -2843,7 +2859,33 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		update_user_meta( $author_id, 'locale', 'es_ES' );
 		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
 
+		// Lingua Forge is inactive in this test process, so
+		// SubmissionTranslator::language_names() falls back to just the
+		// site's own locale ('en') — 'es' (this test's artist_lang) would
+		// resolve to null and translate_fields() returns [] before ever
+		// reaching the stubbed provider, same gap ContactFormTest's own
+		// setUp() already documents/works around for the same reason. This
+		// was silently masked before WP4: translate_text() (Phase 2's own
+		// call) falls back to returning the UNTRANSLATED original on an
+		// unresolvable target rather than '', so this test's old
+		// assertStringContainsString( 'Hello there', ... ) assertion passed
+		// either way and never actually proved a translation occurred.
+		// translate_fields() has no such lenient fallback (it returns []),
+		// which is what surfaced this — pin a resolvable language set rather
+		// than let the test depend on that leniency.
+		add_filter( 'agnosis_translation_languages', static fn( array $langs ): array => array_replace( $langs, [ 'es' => 'Spanish', 'en' => 'English' ] ) );
+
 		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		// The shared wp_ai stub's fallback echo (WpAiClientTestRegistry's
+		// docblock) only pattern-matches translate_text()'s own
+		// "BODY:\n"-shaped prompt. translate_fields() (used by WP4's
+		// reply_translation_for(), below) builds a differently-shaped prompt
+		// keyed on the field's own name ("CONTENT:\n"), which the fallback
+		// never matches — so, same as
+		// ReviewEndpointsNativeLanguagePipelineTest already does for its own
+		// translate_fields() calls, force a deterministic response rather
+		// than relying on the echo fallback.
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'content' => 'Hola, traducido' ] );
 		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
 
 		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello there' ) );
@@ -2853,12 +2895,54 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 		( new ActivityPub() )->drain_reply_translation_queue();
 
-		$translated = get_comment_meta( $comment_id, '_agnosis_reply_translated_content', true );
-		$this->assertStringContainsString( 'Hello there', $translated, 'The fake wp_ai provider echoes the original body back inside its deterministic translation — must still be present.' );
+		// Three-version model (WP4): the artist-language translation is
+		// written to _agnosis_reply_translated_content, and the
+		// site-primary-language translation (potentially a different target,
+		// here it always resolves to the same stubbed response since
+		// WpAiClientTestRegistry::$response is static regardless of prompt)
+		// to _agnosis_reply_translated_primary — both must be populated.
+		$this->assertSame( 'Hola, traducido', get_comment_meta( $comment_id, '_agnosis_reply_translated_content', true ) );
+		$this->assertSame( 'Hola, traducido', get_comment_meta( $comment_id, '_agnosis_reply_translated_primary', true ) );
 		$this->assertSame( '', get_comment_meta( $comment_id, '_agnosis_reply_pending_translation', true ), 'The pending-translation flag must be cleared once resolved.' );
 		// comment_content itself (the untouched original) must survive — "never
 		// discard the source" (roadmap §4 Phase 2 step 8).
 		$this->assertStringContainsString( 'Hello there', get_comment( $comment_id )->comment_content );
+
+		delete_option( 'agnosis_ai_provider' );
+		WpAiClientTestRegistry::reset();
+	}
+
+	public function test_drain_reply_translation_queue_skips_translation_when_target_equals_known_source(): void {
+		// WP4: a LOCAL reply's source language is known (the page's own LF
+		// language at submission time) — reply_translation_for() must skip
+		// the AI call entirely (returning '') when a target language exactly
+		// equals that known source, since display_reply_content() already
+		// serves the untouched original for that exact case. Simulated here
+		// by inserting a local-reply comment directly (submit_reply()'s own
+		// REST flow is covered end-to-end in ActivityPubLocalReplyTest) with
+		// its source-lang meta pre-set to match the artist's own locale.
+		$author_id = self::factory()->user->create();
+		update_user_meta( $author_id, 'locale', 'es_ES' );
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
+
+		$comment_id = (int) wp_insert_comment( [
+			'comment_post_ID'      => (int) $post_id,
+			'comment_content'      => 'Hola desde el sitio',
+			'comment_author'       => 'Visitor',
+			'comment_author_email' => 'visitor@example.com',
+			'comment_type'         => ActivityPub::LOCAL_REPLY_COMMENT_TYPE,
+			'comment_approved'     => 0,
+		] );
+		update_comment_meta( $comment_id, '_agnosis_reply_pending_translation', '1' );
+		update_comment_meta( $comment_id, '_agnosis_reply_source_lang', 'es' );
+
+		update_option( 'agnosis_ai_provider', 'wp_ai' );
+		WpAiClientTestRegistry::$response = (string) wp_json_encode( [ 'content' => 'Should never be used' ] );
+
+		( new ActivityPub() )->drain_reply_translation_queue();
+
+		$this->assertSame( '', get_comment_meta( $comment_id, '_agnosis_reply_translated_content', true ), 'Artist locale (es) equals the known source language (es) — no translation call should be needed, so the meta must stay empty.' );
+		$this->assertSame( '', get_comment_meta( $comment_id, '_agnosis_reply_pending_translation', true ), 'The queue must still clear the pending flag even when no translation call was made.' );
 
 		delete_option( 'agnosis_ai_provider' );
 		WpAiClientTestRegistry::reset();

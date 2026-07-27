@@ -214,6 +214,23 @@ class ArchiveTest extends \WP_UnitTestCase {
 		}
 	}
 
+	public function test_rendered_issue_strips_like_placeholder_to_nothing(): void {
+		// Interaction-surface roadmap, Phase 3, WP3 — this public page has no
+		// single recipient to build a per-artist like link for, so
+		// InteractionGateway::inert() must strip the placeholder entirely
+		// rather than leaving the raw marker or a live link in the output.
+		$issue_id = $this->insert_issue( 'public', 'sent', '', '<p>Some art.</p>{{AGNOSIS_LIKE:123}}', current_time( 'mysql' ) );
+		set_query_var( 'agnosis_newsletter_issue', $issue_id );
+
+		try {
+			$this->archive->dispatch();
+			$this->fail( 'Expected the rendered issue page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertStringNotContainsString( '{{AGNOSIS_LIKE:', $e->body );
+			$this->assertStringContainsString( 'Some art.', $e->body );
+		}
+	}
+
 	public function test_rendered_issue_title_includes_site_name(): void {
 		$issue_id = $this->insert_issue( 'public', 'sent', '', '<p>x</p>', current_time( 'mysql' ) );
 		set_query_var( 'agnosis_newsletter_issue', $issue_id );

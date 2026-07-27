@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Newsletter;
 
+use Agnosis\Network\FederationSettlement;
 use Agnosis\Newsletter\Archive;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
@@ -509,6 +510,127 @@ class QueueProcessorTest extends \WP_UnitTestCase {
 
 		$status = $wpdb->get_var( "SELECT status FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE recipient_email = 'orphan@example.com'" );
 		$this->assertSame( 'failed', $status );
+	}
+
+	// =========================================================================
+	// Interaction-surface roadmap, Phase 3, WP3 — like-link placeholder substitution
+	// =========================================================================
+
+	public function test_public_recipient_gets_an_anonymous_like_link_not_the_raw_placeholder(): void {
+		$post_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Federated For Public',
+			'post_author' => $this->create_artist(),
+		] );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$this->create_confirmed_subscriber( 'liker@example.com' );
+		$this->scheduler->send_now( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 1, $calls );
+		$body = $calls[0]['message'];
+		$this->assertStringNotContainsString( '{{AGNOSIS_LIKE:', $body, 'The raw placeholder must never reach a sent email.' );
+		$this->assertStringContainsString( 'agnosis_interaction=1', $body );
+		$this->assertStringContainsString( 'post=' . $post_id, $body );
+		$this->assertStringContainsString( 'artist=0', $body, 'A public-newsletter recipient has no actor — artist=0 means "resolve anonymously, live, at click time".' );
+	}
+
+	public function test_artist_recipient_gets_a_like_link_keyed_on_their_own_id(): void {
+		$artist_id = $this->create_artist();
+
+		$post_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Federated For Artist',
+			'post_author' => $this->create_artist(),
+		] );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		update_option( 'agnosis_newsletter_artist_enabled', true );
+		$this->scheduler->send_now( 'artist' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotEmpty( $calls, 'Sanity check: every admitted artist is auto-enrolled in the artist newsletter.' );
+
+		$mine = null;
+		foreach ( $calls as $call ) {
+			if ( str_contains( (string) $call['message'], 'artist=' . $artist_id ) ) {
+				$mine = $call;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $mine, 'This artist\'s own copy of the digest must carry a like link keyed on their own real user id, not artist=0.' );
+		$this->assertStringContainsString( 'post=' . $post_id, (string) $mine['message'] );
+	}
+
+	// =========================================================================
+	// Interaction-surface roadmap, Phase 3, WP5 — boost-link substitution
+	// =========================================================================
+
+	public function test_artist_recipient_gets_a_boost_link_keyed_on_their_own_id(): void {
+		$artist_id = $this->create_artist();
+
+		$post_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Federated For Artist Boost',
+			'post_author' => $this->create_artist(),
+		] );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		update_option( 'agnosis_newsletter_artist_enabled', true );
+		$this->scheduler->send_now( 'artist' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$mine = null;
+		foreach ( $calls as $call ) {
+			if ( str_contains( (string) $call['message'], 'artist=' . $artist_id ) ) {
+				$mine = $call;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $mine, 'Sanity check: this artist\'s own copy of the digest must exist.' );
+		$this->assertStringContainsString( 'do=boost', (string) $mine['message'], 'The artist digest must carry a real boost link, not the raw placeholder.' );
+		$this->assertStringNotContainsString( '{{AGNOSIS_BOOST:', (string) $mine['message'], 'The raw placeholder must never reach a sent email.' );
+	}
+
+	public function test_public_recipient_never_gets_a_boost_link(): void {
+		$post_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_title'  => 'Federated For Public No Boost',
+			'post_author' => $this->create_artist(),
+		] );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$this->create_confirmed_subscriber( 'noboost@example.com' );
+		$this->scheduler->send_now( 'public' );
+
+		$calls  = [];
+		$filter = $this->capture_mail( $calls );
+		$this->processor->process();
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertCount( 1, $calls );
+		$body = (string) $calls[0]['message'];
+		$this->assertStringNotContainsString( 'do=boost', $body, 'The public digest never even emits a boost placeholder — this confirms nothing conjures one up during substitution either.' );
+		$this->assertStringNotContainsString( '{{AGNOSIS_BOOST:', $body );
 	}
 
 	// =========================================================================

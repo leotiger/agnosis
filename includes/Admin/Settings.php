@@ -21,6 +21,7 @@ use Agnosis\Admin\Dashboards\InvitationCard;
 use Agnosis\Admin\Dashboards\LogsTab;
 use Agnosis\Admin\Dashboards\MembersDashboard;
 use Agnosis\Admin\Dashboards\NewsletterDashboard;
+use Agnosis\Admin\Dashboards\RelayManager;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Secrets;
@@ -698,6 +699,10 @@ class Settings {
 		}
 		if ( 'newsletter' === $tab ) {
 			( new NewsletterDashboard() )->render();
+			return;
+		}
+		if ( 'network' === $tab ) {
+			( new RelayManager() )->render();
 			return;
 		}
 		if ( 'branding' === $tab ) {

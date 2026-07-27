@@ -259,6 +259,23 @@ class QueueProcessor {
 			? $locale_map[ $locale ]
 			: [ 'intro' => (string) $issue->intro, 'digest_html' => (string) $issue->digest_html ];
 
+		// Interaction-surface roadmap, Phase 3, WP3 — Digest::render_post_list()
+		// left an inert {{AGNOSIS_LIKE:<post_id>}} placeholder per federated
+		// artwork entry (the shared, per-locale HTML has no per-recipient
+		// token baked in yet). Resolve it here, per recipient, at actual send
+		// time: an artist row's recipient_id is their own real WP user id
+		// (their click will use their own actor URL); a public row has none,
+		// so 0 is passed through — InteractionGateway treats that as
+		// "resolve anonymously, live, at click time", same as an on-site visitor.
+		$recipient_artist_id = ( 'artist' === $type && $row->recipient_id ) ? (int) $row->recipient_id : 0;
+		$content['digest_html'] = InteractionGateway::substitute_links( $content['digest_html'], $recipient_artist_id );
+		// WP5: the artist digest may ALSO carry a {{AGNOSIS_BOOST:<post_id>}}
+		// placeholder (Digest::build_artist()'s own $include_boost => true) —
+		// resolved the same way, per recipient, at the same send time. A
+		// no-op on a public row's HTML, which never contains this placeholder
+		// in the first place.
+		$content['digest_html'] = InteractionGateway::substitute_boost_links( $content['digest_html'], $recipient_artist_id );
+
 		if ( '' !== $locale ) {
 			switch_to_locale( $locale );
 		}

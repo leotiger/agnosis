@@ -50,6 +50,7 @@ use Agnosis\Network\FederationSettlement;
 use Agnosis\Network\Node;
 use Agnosis\Network\SubdomainNavigation;
 use Agnosis\Newsletter\Archive;
+use Agnosis\Newsletter\InteractionGateway;
 use Agnosis\Newsletter\PopoverBlock;
 use Agnosis\Newsletter\QueueProcessor;
 use Agnosis\Newsletter\Scheduler;
@@ -152,6 +153,11 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_save_biography_title_translation', $biography_title_cache, 'handle_save' );
 			$this->loader->add_action( 'admin_post_agnosis_retranslate_biography_title',       $biography_title_cache, 'handle_retranslate' );
 			$this->loader->add_action( 'admin_post_agnosis_clear_biography_title_cache',        $biography_title_cache, 'handle_clear_all' );
+
+			$relay_manager = new Dashboards\RelayManager();
+			$this->loader->add_action( 'admin_post_agnosis_add_relay',    $relay_manager, 'handle_add' );
+			$this->loader->add_action( 'admin_post_agnosis_toggle_relay', $relay_manager, 'handle_toggle' );
+			$this->loader->add_action( 'admin_post_agnosis_remove_relay', $relay_manager, 'handle_remove' );
 
 			// Tags/Mediums admin screens: language filter dropdown, on-demand
 			// per-term "Sync translations" row action, and a one-click "Sync
@@ -520,6 +526,12 @@ class Plugin {
 		// alongside FederationSettlement's own cron wiring.
 		$this->loader->add_action( 'init',                   $activitypub, 'register_reply_overlay_block' );
 		$activitypub->register_reply_moderation_handler();
+		// Interaction-surface roadmap, Phase 3, WP4 (2026-07-27): local
+		// (visitor) replies. POST content/{id}/replies is registered inside
+		// register_routes() above (already wired); this is only the admin
+		// Comments-screen filter-dropdown convenience — see
+		// ActivityPub::add_reply_type_filters()'s own docblock.
+		$this->loader->add_filter( 'admin_comment_types_dropdown', $activitypub, 'add_reply_type_filters' );
 		// TAG-REDESIGN.md F3 (§6c): broadcast() (the Create) no longer fires
 		// directly on 'agnosis_post_published' (that action still fires for
 		// EVERY publish, but now only drives Lingua Forge's own language-meta/
@@ -557,6 +569,16 @@ class Plugin {
 		// Interaction-surface roadmap, Phase 3, WP2 — daily anonymous-like
 		// salt rotation (ActivityPub::rotate_like_salt()'s own docblock).
 		$this->loader->add_action( 'agnosis_rotate_like_salt', $activitypub, 'rotate_like_salt' );
+		// Interaction-surface roadmap, Phase 3, WP6 (2026-07-27): federating
+		// artist replies outward. store_artist_gateway_reply() already
+		// triggers the outbound Create{Note} inline (no hook needed there —
+		// see that method's own docblock); these two cover the Delete{Note}
+		// side, since an admin can remove a federated artist reply via
+		// wp-admin even though the artist who authored it never logs in —
+		// see maybe_federate_reply_removal()'s own docblock for why both
+		// hooks are needed (trash vs. a hard/force delete that bypasses it).
+		$this->loader->add_action( 'transition_comment_status', $activitypub, 'handle_reply_status_transition', 10, 3 );
+		$this->loader->add_action( 'delete_comment',             $activitypub, 'handle_reply_hard_delete', 10, 1 );
 
 		// Federation settlement (TAG-REDESIGN.md F3, §6c) — the tag-settled
 		// state machine that decides WHEN a post is ready to fire
@@ -625,6 +647,13 @@ class Plugin {
 		// plus a paginated /newsletter/ index; see Newsletter\Archive.
 		$newsletter_archive = new Archive();
 		$this->loader->add_action( 'init', $newsletter_archive, 'register_routes' );
+
+		// Interaction-surface roadmap, Phase 3, WP3 — the no-login newsletter
+		// like/boost gateway. Same GET-renders/POST-acts template_redirect
+		// shim convention as ReviewConfirm just above.
+		$interaction_gateway = new InteractionGateway();
+		$this->loader->add_action( 'template_redirect', $interaction_gateway, 'handle_confirm', 1 );
+		$this->loader->add_action( 'template_redirect', $interaction_gateway, 'handle_result',  1 );
 
 		// Lingua Forge integration — boots itself only when LF is present;
 		// registers the compat admin notice unconditionally.

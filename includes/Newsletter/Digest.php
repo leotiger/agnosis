@@ -24,6 +24,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\Network\FederationSettlement;
+
 class Digest {
 
 	/** Maximum items listed per section before collapsing to "and N more". */
@@ -52,6 +54,9 @@ class Digest {
 
 		if ( ! empty( $artworks ) ) {
 			$html .= '<h2 style="margin:0 0 16px;font-size:20px;color:#111;">' . esc_html__( 'New artwork', 'agnosis' ) . '</h2>';
+			// Public recipients never get a boost link (§4 Phase 3G step 1's
+			// audience rule — they have no actor to boost under), hence the
+			// default $include_boost = false below.
 			$html .= self::render_post_list( $artworks, false, $lf_lang );
 		}
 
@@ -110,7 +115,10 @@ class Digest {
 
 		if ( ! empty( $artworks ) ) {
 			$html .= '<h2 style="margin:0 0 16px;font-size:20px;color:#111;">' . esc_html__( 'Recent work from the community', 'agnosis' ) . '</h2>';
-			$html .= self::render_post_list( $artworks, false, $lf_lang );
+			// WP5: the ARTIST digest is the only one that ever offers a boost
+			// link (§4 Phase 3E/3G step 1) — its recipients are, by definition,
+			// admitted Agnosis artists with real actors.
+			$html .= self::render_post_list( $artworks, false, $lf_lang, true );
 		}
 
 		return $html;
@@ -238,8 +246,14 @@ class Digest {
 
 	/**
 	 * @param \WP_Post[] $posts
+	 * @param bool       $include_boost Emit a boost placeholder alongside the
+	 *                                  like one (WP5) — true only from
+	 *                                  build_artist(); build_public() never
+	 *                                  passes true, since a public-newsletter
+	 *                                  recipient has no actor to boost under
+	 *                                  (§4 Phase 3G step 1's audience rule).
 	 */
-	private static function render_post_list( array $posts, bool $show_date = false, string $lf_lang = '' ): string {
+	private static function render_post_list( array $posts, bool $show_date = false, string $lf_lang = '', bool $include_boost = false ): string {
 		$shown    = array_slice( $posts, 0, self::MAX_ITEMS );
 		$overflow = count( $posts ) - count( $shown );
 
@@ -268,6 +282,31 @@ class Digest {
 					}
 				}
 			}
+
+			// Interaction-surface roadmap, Phase 3, WP3/WP5 (2026-07-27) — an
+			// inert placeholder, never a real token: this HTML is rendered
+			// ONCE per locale and stored verbatim on the shared issue row
+			// (Scheduler), long before any specific recipient is known, so a
+			// per-recipient token cannot be baked in here.
+			// Newsletter\InteractionGateway::substitute_links()/
+			// substitute_boost_links()/inert() resolve them later, per
+			// recipient, at actual send time (QueueProcessor) or strip them
+			// for the public "view in browser" page (Archive). Artwork-only
+			// ($show_date is true only for the events list — events have no
+			// like/boost concept at all, same as
+			// ActivityPub::render_interaction_counts()'s own artwork-only
+			// guard) and only for artwork that's actually federated —
+			// FederationSettlement::is_federated() checks the DISPLAYED
+			// post ($display — possibly a translated sibling), not
+			// assumed from the primary ($post) alone, per §4 Phase 3G step 2.
+			if ( ! $show_date && FederationSettlement::is_federated( $display->ID, $post->ID ) ) {
+				$html .= '<br><span style="font-size:15px;">{{AGNOSIS_LIKE:' . (int) $display->ID . '}}';
+				if ( $include_boost ) {
+					$html .= ' · {{AGNOSIS_BOOST:' . (int) $display->ID . '}}';
+				}
+				$html .= '</span>';
+			}
+
 			$html .= '</td></tr></table>';
 		}
 

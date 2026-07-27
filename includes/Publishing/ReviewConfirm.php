@@ -91,7 +91,9 @@ declare(strict_types=1);
 
 namespace Agnosis\Publishing;
 
+use Agnosis\Artist\ContentEditor;
 use Agnosis\Artist\NotificationPreferences;
+use Agnosis\Network\ActivityPub;
 
 class ReviewConfirm {
 
@@ -104,6 +106,16 @@ class ReviewConfirm {
 	 * work the way artwork/biography content is).
 	 */
 	private const DISCOVERY_CONSENT_POST_TYPES = [ 'agnosis_artwork', 'agnosis_biography' ];
+
+	/**
+	 * Post types the "Allow replies?" checkbox is mirrored on (Interaction-
+	 * surface roadmap, Phase 3, WP4, §4 Phase 3A) — artwork only. Replies are
+	 * an artwork-specific concept (ActivityPub::REPLIES_DISABLED_META is
+	 * already artwork-scoped, checked by both handle_create_reply() and the
+	 * new submit_reply()), so there is nothing for a biography or event
+	 * approval to gate here.
+	 */
+	private const REPLIES_CONSENT_POST_TYPES = [ 'agnosis_artwork' ];
 
 	/**
 	 * Which of title/excerpt/body are editable on the approve confirm form,
@@ -402,6 +414,7 @@ class ReviewConfirm {
 				$final_id = isset( $data['post_id'] ) ? (int) $data['post_id'] : $id;
 				$this->sync_extra_fields( $final_id, $post->post_type, $source );
 				$this->sync_discovery_preference( (int) $post->post_author, $post->post_type, $source );
+				$this->sync_replies_preference( $final_id, $post->post_type, $source );
 			}
 
 			$this->redirect_result( $response->is_error() ? 'error' : 'approve', $post->post_type, $final_id );
@@ -439,6 +452,12 @@ class ReviewConfirm {
 					// revert an in-flight consent change back to the stored value.
 					in_array( $post->post_type, self::DISCOVERY_CONSENT_POST_TYPES, true )
 						? [ 'discovery_optout' => ! empty( $source['discovery_optout'] ) ? '1' : '' ]
+						: [],
+					// Same preservation for the "Allow replies?" checkbox (WP4) —
+					// a blank-title/body retry must not silently revert an
+					// in-flight replies-on/off change back to the stored value.
+					in_array( $post->post_type, self::REPLIES_CONSENT_POST_TYPES, true )
+						? [ 'allow_replies' => ! empty( $source['allow_replies'] ) ? '1' : '' ]
 						: []
 				),
 				$error
@@ -559,6 +578,40 @@ class ReviewConfirm {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- token itself is the auth mechanism, see class docblock.
 		NotificationPreferences::set_discovery_optout( $author_id, ! empty( $source['discovery_optout'] ) );
+	}
+
+	/**
+	 * Re-apply the "Allow replies?" checkbox (WP4, interaction-surface
+	 * roadmap, Phase 3, §4 Phase 3A step 3) — POST-level, unlike the
+	 * account-wide discovery-consent checkbox above, so this writes
+	 * `ActivityPub::REPLIES_DISABLED_META` via
+	 * `Artist\ContentEditor::set_replies_disabled_everywhere()` (the same
+	 * write path that class's own front-end toggle uses, widened from
+	 * private to public specifically for this reuse — see that method's own
+	 * docblock) keyed by $post_id, never by author. Targets the FINAL post id
+	 * (same "staging draft may have been replaced by a different published
+	 * post" reasoning as sync_extra_fields()), not the original draft id.
+	 *
+	 * Always re-applies, same "no-op write is exactly as valid as an actual
+	 * change" convention as sync_extra_fields()/sync_discovery_preference().
+	 * No-ops for any post type other than artwork (REPLIES_CONSENT_POST_TYPES)
+	 * — the checkbox isn't rendered for a biography/event approval.
+	 *
+	 * @param array<string, mixed> $source Raw $_POST for this request (see handle_confirm()).
+	 */
+	private function sync_replies_preference( int $post_id, string $post_type, array $source ): void {
+		if ( ! in_array( $post_type, self::REPLIES_CONSENT_POST_TYPES, true ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended -- token itself is the auth mechanism, see class docblock.
+		$allowed = ! empty( $source['allow_replies'] );
+		( new ContentEditor() )->set_replies_disabled_everywhere( $post, ! $allowed );
 	}
 
 	/**
@@ -803,6 +856,28 @@ class ReviewConfirm {
 			. esc_html__( 'Turn off search engine and Fediverse discovery indexing — applies to my whole profile and everything I publish here, not just this piece.', 'agnosis' )
 			. '</label>'
 			. '</div>';
+	}
+
+	/**
+	 * Render the "Allow replies?" checkbox (WP4, interaction-surface roadmap,
+	 * Phase 3, §4 Phase 3A step 3) — artwork-only, POST-level (unlike the
+	 * account-wide discovery field above), default CHECKED (Ulises: "yes, we
+	 * implement checkbox, default checked" — §7 answer to a related question,
+	 * same default this step calls for). No visual separation/border needed
+	 * the way the discovery field gets one: this is an ordinary per-piece
+	 * field, not a standing account-wide consent choice that could otherwise
+	 * be mistaken for scoped to the one piece being approved.
+	 *
+	 * @param array<string, string> $prefill Same $prefill passed to render_approve_confirm().
+	 */
+	private function render_replies_field( int $post_id, array $prefill ): string {
+		$baseline_disabled = '1' === (string) get_post_meta( $post_id, ActivityPub::REPLIES_DISABLED_META, true );
+		$allowed           = isset( $prefill['allow_replies'] ) ? '1' === $prefill['allow_replies'] : ! $baseline_disabled;
+
+		return '<label style="display:block;margin:0 0 20px;font-size:16px;line-height:1.5;color:#555;">'
+			. '<input type="checkbox" name="allow_replies" value="1" ' . checked( $allowed, true, false ) . ' style="margin-right:8px;">'
+			. esc_html__( 'Allow visitors and the Fediverse to reply to this artwork.', 'agnosis' )
+			. '</label>';
 	}
 
 	/**
@@ -1221,6 +1296,15 @@ class ReviewConfirm {
 		$fields_html .= '<input type="hidden" name="orig_body" value="' . esc_attr( $baseline_body ) . '">'
 			. '<label style="' . esc_attr( $label_style ) . '">' . esc_html__( 'Full text', 'agnosis' ) . '</label>'
 			. '<textarea name="body" rows="10" style="' . esc_attr( $body_style ) . '"' . $lang_attr . '>' . esc_textarea( $body ) . '</textarea>';
+
+		// "Allow replies?" (WP4) — artwork-only, rendered right after the
+		// free-text fields and before the extra structured fields, an
+		// ordinary per-piece option rather than a standing account-wide one
+		// (see render_replies_field()'s own docblock for why it gets no
+		// special visual separation the way the discovery field below does).
+		if ( in_array( $post->post_type, self::REPLIES_CONSENT_POST_TYPES, true ) ) {
+			$fields_html .= $this->render_replies_field( $post->ID, $prefill );
+		}
 
 		// Extra structured fields (portfolio link / event date-hour-location-
 		// timezone-address) — added below the free-text fields above, per

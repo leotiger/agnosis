@@ -584,4 +584,47 @@ class FederationSettlementTest extends \WP_UnitTestCase {
 
 		$this->assertSame( [ $post_id ], $fired, 'Once the last pending proposal resolves, the post must federate — riding the same real hook chain a fresh approval uses.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// is_federated() — interaction-surface roadmap, Phase 3, WP3
+	// -------------------------------------------------------------------------
+
+	public function test_is_federated_true_for_the_primary_itself_once_settled(): void {
+		$primary_id = $this->make_artwork();
+		$this->settlement->maybe_settle( $primary_id );
+
+		$this->assertTrue( FederationSettlement::is_federated( $primary_id, $primary_id ) );
+	}
+
+	public function test_is_federated_false_for_the_primary_before_settlement(): void {
+		$primary_id = $this->make_artwork();
+		TagGate::replace_proposals( $primary_id, [ 'Impressionism' ] );
+		$this->settlement->maybe_settle( $primary_id ); // Stays pending.
+
+		$this->assertFalse( FederationSettlement::is_federated( $primary_id, $primary_id ) );
+	}
+
+	public function test_is_federated_true_for_a_sibling_present_in_delivered_meta(): void {
+		update_option( 'agnosis_federate_languages', 'all' );
+
+		$primary_id = $this->make_artwork();
+		$sibling_id = $this->make_artwork();
+		FakeLinguaForge::link( $primary_id, 'de', $sibling_id );
+
+		$this->settlement->maybe_settle( $primary_id ); // Sweeps and delivers the sibling too.
+
+		$this->assertTrue( FederationSettlement::is_federated( $sibling_id, $primary_id ) );
+	}
+
+	public function test_is_federated_false_for_a_sibling_not_yet_delivered(): void {
+		// Default setting is 'primary-only' — the sibling is never added to
+		// DELIVERED_META even though the primary itself settles.
+		$primary_id = $this->make_artwork();
+		$sibling_id = $this->make_artwork();
+		FakeLinguaForge::link( $primary_id, 'de', $sibling_id );
+
+		$this->settlement->maybe_settle( $primary_id );
+
+		$this->assertFalse( FederationSettlement::is_federated( $sibling_id, $primary_id ) );
+	}
 }

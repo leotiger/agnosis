@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-27T17:47+00:00\n"
+"POT-Creation-Date: 2026-07-27T22:38+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:54+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Arabic\n"
@@ -19,7 +19,7 @@ msgstr ""
 "X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:195
+#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:196
 #: includes/Core/Privacy.php:730 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
@@ -154,12 +154,15 @@ msgstr "مزامنة العلامات مع الترجمات"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:285
 #: includes/Admin/Dashboards/NewsletterDashboard.php:314
 #: includes/Admin/Dashboards/NewsletterDashboard.php:342
+#: includes/Admin/Dashboards/RelayManager.php:125
+#: includes/Admin/Dashboards/RelayManager.php:148
+#: includes/Admin/Dashboards/RelayManager.php:174
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:898
-#: includes/Admin/Settings.php:917 includes/Admin/TagProposals.php:238
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:903
+#: includes/Admin/Settings.php:922 includes/Admin/TagProposals.php:238
 #: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
@@ -343,6 +346,7 @@ msgstr "الرسالة"
 #: includes/Admin/Dashboards/AdmissionDashboard.php:103
 #: includes/Admin/Dashboards/MembersDashboard.php:56
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
+#: includes/Admin/Dashboards/RelayManager.php:69
 #: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:182
 #: includes/Core/Privacy.php:315 includes/Core/Privacy.php:351
 #: includes/Core/Privacy.php:387
@@ -511,6 +515,7 @@ msgstr "قبول"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
+#: includes/Network/ActivityPub.php:3845
 msgid "Reject"
 msgstr "رفض"
 
@@ -637,7 +642,7 @@ msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr "لم تُترجم بعد — اتركه فارغًا ليترجمها الذكاء الاصطناعي تلقائيًا"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:106
-#: includes/Artist/ContentEditor.php:1447
+#: includes/Artist/ContentEditor.php:1454
 msgid "Save"
 msgstr "حفظ"
 
@@ -943,7 +948,7 @@ msgid "Context"
 msgstr "السياق"
 
 #: includes/Admin/Dashboards/MembersDashboard.php:41
-#: includes/Admin/Settings.php:244
+#: includes/Admin/Settings.php:245
 msgid "Members"
 msgstr "الأعضاء"
 
@@ -1070,7 +1075,7 @@ msgstr ""
 "الحجم."
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:84
-#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:309
+#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:310
 #: includes/Newsletter/Mailer.php:76
 msgid "Newsletter"
 msgstr "النشرة الإخبارية"
@@ -1103,6 +1108,7 @@ msgstr "%1$d تم قبوله (%2$d انسحبوا)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
+#: includes/Network/ActivityPub.php:2892
 msgid "Sending…"
 msgstr "جارٍ الإرسال…"
 
@@ -1176,6 +1182,61 @@ msgstr "إعادة محاولة الفاشلة"
 msgid "Send test newsletter to this email address"
 msgstr "إرسال نشرة إخبارية اختبارية إلى هذا العنوان الإلكتروني"
 
+#: includes/Admin/Dashboards/RelayManager.php:57
+msgid "Fediverse Relays"
+msgstr "توجيهات فيديفيرس"
+
+#: includes/Admin/Dashboards/RelayManager.php:59
+msgid ""
+"A relay re-broadcasts everything it receives to every other server "
+"subscribed to it — following one is the cheapest way for this node's public "
+"artwork to reach servers that would otherwise never see it. This is node-"
+"level: it applies to every artwork, not a per-artist choice."
+msgstr "تقوم التوجيهات بإعادة بث كل ما تتلقاه إلى كل خادم آخر مشترك فيه - متابعة واحدة هي أرخص طريقة لجعل الأعمال الفنية العامة لهذه العقدة تصل إلى الخوادم التي لن تراها في العادة. هذا على مستوى العقدة: ينطبق على كل عمل فني، وليس خيار لكل فنان."
+
+#: includes/Admin/Dashboards/RelayManager.php:63
+msgid "No relays configured yet."
+msgstr "لا توجد توجيهات مُعدة بعد."
+
+#: includes/Admin/Dashboards/RelayManager.php:68
+#: includes/Admin/Dashboards/RelayManager.php:108
+msgid "Relay actor URL"
+msgstr "رابط ممثل التوجيه"
+
+#: includes/Admin/Dashboards/RelayManager.php:79
+#: includes/Admin/Settings.php:583
+msgid "Enabled"
+msgstr "مفعّل"
+
+#: includes/Admin/Dashboards/RelayManager.php:81
+#: includes/Admin/Settings.php:585
+msgid "Disabled"
+msgstr "معطّل"
+
+#: includes/Admin/Dashboards/RelayManager.php:89
+msgid "Disable"
+msgstr "تعطيل"
+
+#: includes/Admin/Dashboards/RelayManager.php:89
+msgid "Enable"
+msgstr "تفعيل"
+
+#: includes/Admin/Dashboards/RelayManager.php:92
+msgid ""
+"Remove this relay? If it's currently enabled, an Undo{Follow} is sent first "
+"so the relay stops delivering to this node."
+msgstr "هل تريد إزالة هذا التوجيه؟ إذا كان مفعلًا حاليًا، سيتم إرسال Undo{Follow} أولًا حتى يتوقف التوجيه عن التسليم إلى هذه العقدة."
+
+#: includes/Admin/Dashboards/RelayManager.php:96
+#: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
+#: includes/Publishing/PostCreator.php:1060
+msgid "Remove"
+msgstr "إزالة"
+
+#: includes/Admin/Dashboards/RelayManager.php:110
+msgid "Add Relay"
+msgstr "إضافة توجيه"
+
 #: includes/Admin/Deliverability.php:445
 msgid "Mail from (workflow)"
 msgstr "Mail from (workflow)"
@@ -1209,7 +1270,7 @@ msgstr "الموضوع"
 msgid "Endpoint"
 msgstr "نقطة النهاية"
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:607
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:608
 msgid "Files"
 msgstr "الملفات"
 
@@ -1229,7 +1290,7 @@ msgstr "السطر القديم — احذفه وأعد الاستطلاع لل�
 msgid "Attachment viewer"
 msgstr "عارض المرفقات"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2330
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2931
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1334,7 +1395,7 @@ msgstr "معالجة كل العناصر قيد الانتظار"
 msgid "Goodbye"
 msgstr "مع السلامة"
 
-#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:307
+#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:308
 #: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "المجتمع"
@@ -1446,6 +1507,7 @@ msgstr[4] "%d المرسلات"
 msgstr[5] "%d المرسلات"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
+#: includes/Network/ActivityPub.php:3844
 msgid "Approve"
 msgstr "الموافقة"
 
@@ -1484,12 +1546,12 @@ msgstr[5] "تم رفض اقتراح الوسيط من %d عمل."
 msgid "Could not approve this proposal: %s"
 msgstr "تعذر الموافقة على هذا الاقتراح: %s"
 
-#: includes/Admin/Settings.php:49 includes/Admin/Settings.php:50
+#: includes/Admin/Settings.php:50 includes/Admin/Settings.php:51
 msgid "Configuration"
 msgstr "الإعدادات"
 
 #. translators: 1: queue rows reset, 2: messages newly enqueued
-#: includes/Admin/Settings.php:102
+#: includes/Admin/Settings.php:103
 #, php-format
 msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
@@ -1499,12 +1561,12 @@ msgstr ""
 "الانتظار، وتمت إضافة %2$d رسالة/رسائل جديدة إلى قائمة الانتظار. انقر "
 "\"معالجة قائمة الانتظار قيد الانتظار\" لتشغيل خط أنابيب الذكاء الاصطناعي."
 
-#: includes/Admin/Settings.php:110
+#: includes/Admin/Settings.php:111
 msgid "Log cleared."
 msgstr "تم مسح السجل."
 
 #. translators: %d: number of debug files removed
-#: includes/Admin/Settings.php:118
+#: includes/Admin/Settings.php:119
 #, php-format
 msgid "Debug files cleared. %d file was removed."
 msgid_plural "Debug files cleared. %d files were removed."
@@ -1515,7 +1577,7 @@ msgstr[3] "تم مسح ملفات التصحيح. تمت إزالة %d ملفا�
 msgstr[4] "تم مسح ملفات التصحيح. تمت إزالة %d ملفًا."
 msgstr[5] "تم مسح ملفات التصحيح. تمت إزالة %d ملف."
 
-#: includes/Admin/Settings.php:125
+#: includes/Admin/Settings.php:126
 msgid ""
 "Term translation cache cleared. Terms will be re-translated the next time "
 "they're needed."
@@ -1524,7 +1586,7 @@ msgstr ""
 "الحاجة إليها مرة أخرى."
 
 #. translators: %d: number of queue items processed
-#: includes/Admin/Settings.php:133
+#: includes/Admin/Settings.php:134
 #, php-format
 msgid "Processed %d pending queue item(s). Check the Logs tab for details."
 msgstr ""
@@ -1532,7 +1594,7 @@ msgstr ""
 "السجلات للتفاصيل."
 
 #. translators: %d: number of new messages enqueued
-#: includes/Admin/Settings.php:143
+#: includes/Admin/Settings.php:144
 #, php-format
 msgid ""
 "Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
@@ -1541,104 +1603,104 @@ msgstr ""
 "اكتمل الاستطلاع. تمت إضافة %d رسالة/رسائل جديدة إلى قائمة الانتظار. راجع "
 "علامة تبويب السجلات، ثم انقر \"معالجة قائمة الانتظار قيد الانتظار\"."
 
-#: includes/Admin/Settings.php:159
+#: includes/Admin/Settings.php:160
 msgid "Applicant admitted. A welcome email has been sent."
 msgstr "تم قبول المتقدم. تم إرسال رسالة ترحيب بالبريد الإلكتروني."
 
-#: includes/Admin/Settings.php:160
+#: includes/Admin/Settings.php:161
 msgid "Could not admit — the application may no longer be pending."
 msgstr "تعذّر قبول المتقدم — قد لا يكون الطلب قيد الانتظار بعد الآن."
 
-#: includes/Admin/Settings.php:161
+#: includes/Admin/Settings.php:162
 msgid "Application rejected."
 msgstr "تم رفض الطلب."
 
-#: includes/Admin/Settings.php:162
+#: includes/Admin/Settings.php:163
 msgid "Could not reject — the application may no longer be pending."
 msgstr "تعذّر رفض الطلب — قد لا يكون الطلب قيد الانتظار بعد الآن."
 
-#: includes/Admin/Settings.php:163
+#: includes/Admin/Settings.php:164
 msgid "Artist suspended. A notification email has been sent."
 msgstr "تم تعليق الفنان. تم إرسال رسالة إشعار بالبريد الإلكتروني."
 
-#: includes/Admin/Settings.php:164
+#: includes/Admin/Settings.php:165
 msgid "Could not suspend the artist — they may no longer be active."
 msgstr "تعذّر تعليق الفنان — قد لا يكون نشطًا بعد الآن."
 
-#: includes/Admin/Settings.php:165
+#: includes/Admin/Settings.php:166
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
 msgstr "تم حذف الفنان نهائيًا. تمت إزالة حسابه وكل المحتوى."
 
-#: includes/Admin/Settings.php:166
+#: includes/Admin/Settings.php:167
 msgid "Could not delete the artist — please try again."
 msgstr "تعذّر حذف الفنان — يُرجى المحاولة مرة أخرى."
 
-#: includes/Admin/Settings.php:167
+#: includes/Admin/Settings.php:168
 msgid "Community removal vote opened. All artists have been emailed."
 msgstr ""
 "تم فتح تصويت لإزالة من المجتمع. تم إرسال بريد إلكتروني إلى جميع الفنانين."
 
-#: includes/Admin/Settings.php:168
+#: includes/Admin/Settings.php:169
 msgid ""
 "Could not open a removal vote — one may already be active for this artist."
 msgstr "تعذّر فتح تصويت للإزالة — قد يكون هناك تصويت نشط بالفعل لهذا الفنان."
 
-#: includes/Admin/Settings.php:169
+#: includes/Admin/Settings.php:170
 msgid ""
 "Issue prepared and queued — it will go out over the next few cron cycles."
 msgstr ""
 "تمت تهيئة العدد وإدراجه في قائمة الانتظار — سيُرسل خلال بضع دورات كرون "
 "القادمة."
 
-#: includes/Admin/Settings.php:170
+#: includes/Admin/Settings.php:171
 msgid "Could not start this issue — a previous one may still be sending."
 msgstr "تعذّر بدء هذا العدد — قد يكون عدد سابق لا يزال قيد الإرسال."
 
-#: includes/Admin/Settings.php:171
+#: includes/Admin/Settings.php:172
 msgid "Test email sent — check the inbox you sent it to."
 msgstr "تم إرسال رسالة الاختبار — تحقّق من صندوق الوارد الذي أرسلتها إليه."
 
-#: includes/Admin/Settings.php:172 includes/Admin/Settings.php:178
+#: includes/Admin/Settings.php:173 includes/Admin/Settings.php:179
 msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
 msgstr ""
 "تعذّر إرسال رسالة الاختبار — تحقّق من العنوان ومن إعدادات البريد الصادر لموقعك."
 
-#: includes/Admin/Settings.php:173
+#: includes/Admin/Settings.php:174
 msgid "Invitation sent."
 msgstr "تم إرسال الدعوة."
 
-#: includes/Admin/Settings.php:174
+#: includes/Admin/Settings.php:175
 msgid ""
 "Could not send the invitation — check the address and your site's outgoing "
 "mail configuration."
 msgstr "تعذّر إرسال الدعوة — تحقّق من العنوان ومن إعدادات البريد الصادر لموقعك."
 
-#: includes/Admin/Settings.php:175
+#: includes/Admin/Settings.php:176
 msgid "Test invitation sent — check the inbox you sent it to."
 msgstr "تم إرسال دعوة الاختبار — تحقّق من صندوق الوارد الذي أرسلتها إليه."
 
-#: includes/Admin/Settings.php:176
+#: includes/Admin/Settings.php:177
 msgid ""
 "Could not send the test invitation — check the address and your site's "
 "outgoing mail configuration."
 msgstr ""
 "تعذّر إرسال دعوة الاختبار — تحقّق من العنوان ومن إعدادات البريد الصادر لموقعك."
 
-#: includes/Admin/Settings.php:177
+#: includes/Admin/Settings.php:178
 msgid ""
 "Test email sent — check whether it lands in your inbox or your spam folder."
 msgstr ""
 "تم إرسال رسالة الاختبار — تحقّق مما إذا كانت تصل إلى صندوق الوارد أو إلى مجلد "
 "البريد المزعج."
 
-#: includes/Admin/Settings.php:179
+#: includes/Admin/Settings.php:180
 msgid "Branding preview sent — check the inbox you sent it to."
 msgstr "تم إرسال معاينة الهوية البصرية — تحقق من صندوق الوارد الذي أُرسلت إليه."
 
-#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:181
 msgid ""
 "Could not send the branding preview — check the address and your site's "
 "outgoing mail configuration."
@@ -1646,7 +1708,7 @@ msgstr ""
 "تعذّر إرسال معاينة الهوية البصرية — تحقق من العنوان ومن إعدادات البريد الصادر "
 "في موقعك."
 
-#: includes/Admin/Settings.php:181
+#: includes/Admin/Settings.php:182
 msgid ""
 "Failed recipients reset to pending — they will be retried on the next few "
 "cron cycles."
@@ -1654,60 +1716,60 @@ msgstr ""
 "تمت إعادة تعيين المستلمين الذين فشلوا إلى «قيد الانتظار» — وسيُعاد المحاولة "
 "خلال بضع دورات كرون القادمة."
 
-#: includes/Admin/Settings.php:182
+#: includes/Admin/Settings.php:183
 msgid "No failed recipients to retry for this newsletter."
 msgstr "لا يوجد مستلمون فشلوا لإعادة المحاولة لهذه النشرة الإخبارية."
 
-#: includes/Admin/Settings.php:196
+#: includes/Admin/Settings.php:197
 msgid "Art blooming out of oblivion"
 msgstr "فنّ يزهر من غياهب النسيان"
 
-#: includes/Admin/Settings.php:220 includes/Admin/Settings.php:287
+#: includes/Admin/Settings.php:221 includes/Admin/Settings.php:288
 msgid "Save Changes"
 msgstr "حفظ التغييرات"
 
-#: includes/Admin/Settings.php:245
+#: includes/Admin/Settings.php:246
 msgid "Rules"
 msgstr "القواعد"
 
-#: includes/Admin/Settings.php:301
+#: includes/Admin/Settings.php:302
 msgid "General"
 msgstr "عام"
 
-#: includes/Admin/Settings.php:302
+#: includes/Admin/Settings.php:303
 msgid "Branding"
 msgstr "الهوية البصرية"
 
-#: includes/Admin/Settings.php:303
+#: includes/Admin/Settings.php:304
 msgid "Email Inbox"
 msgstr "صندوق الوارد للبريد الإلكتروني"
 
-#: includes/Admin/Settings.php:304
+#: includes/Admin/Settings.php:305
 msgid "AI Providers"
 msgstr "مزوّدو الذكاء الاصطناعي"
 
-#: includes/Admin/Settings.php:305
+#: includes/Admin/Settings.php:306
 msgid "Behavior"
 msgstr "السلوك"
 
-#: includes/Admin/Settings.php:306
+#: includes/Admin/Settings.php:307
 msgid "Network"
 msgstr "الشبكة"
 
-#: includes/Admin/Settings.php:308 includes/Admin/Settings.php:490
+#: includes/Admin/Settings.php:309 includes/Admin/Settings.php:491
 msgid "Donations"
 msgstr "التبرعات"
 
-#: includes/Admin/Settings.php:310
+#: includes/Admin/Settings.php:311
 msgid "Logs"
 msgstr "السجلات"
 
-#: includes/Admin/Settings.php:342
+#: includes/Admin/Settings.php:343
 msgid "••••••••  (defined in wp-config.php)"
 msgstr "••••••••  (معرّف في wp-config.php)"
 
 #. translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in <code>
-#: includes/Admin/Settings.php:345
+#: includes/Admin/Settings.php:346
 #, php-format
 msgid ""
 "Set via the %s constant in wp-config.php — this field is inert until that "
@@ -1716,15 +1778,15 @@ msgstr ""
 "تم التعيين عبر ثابت %s في wp-config.php — هذا الحقل غير فعال حتى تتم إزالة "
 "هذا الثابت."
 
-#: includes/Admin/Settings.php:379
+#: includes/Admin/Settings.php:380
 msgid "— None (inline message only) —"
 msgstr "— لا شيء (رسالة مضمّنة فقط) —"
 
-#: includes/Admin/Settings.php:388 includes/Admin/Settings.php:399
+#: includes/Admin/Settings.php:389 includes/Admin/Settings.php:400
 msgid "Reset to default"
 msgstr "إعادة الضبط إلى الافتراضي"
 
-#: includes/Admin/Settings.php:389
+#: includes/Admin/Settings.php:390
 msgid ""
 "Replaces the text above with the plugin's built-in default — click Save "
 "Changes below to keep it."
@@ -1732,24 +1794,19 @@ msgstr ""
 "يستبدل النص أعلاه بالافتراضي المدمج في الإضافة — انقر «حفظ التغييرات» أدناه "
 "للاحتفاظ به."
 
-#: includes/Admin/Settings.php:412
+#: includes/Admin/Settings.php:413
 msgid "Select Image"
 msgstr "اختيار صورة"
 
-#: includes/Admin/Settings.php:413 includes/Core/EmailFooter.php:85
-#: includes/Publishing/PostCreator.php:1060
-msgid "Remove"
-msgstr "إزالة"
-
-#: includes/Admin/Settings.php:463
+#: includes/Admin/Settings.php:464
 msgid "Bot Protection"
 msgstr "الحماية من الروبوتات"
 
-#: includes/Admin/Settings.php:466
+#: includes/Admin/Settings.php:467
 msgid "Turnstile is configured."
 msgstr "تم إعداد Turnstile."
 
-#: includes/Admin/Settings.php:467
+#: includes/Admin/Settings.php:468
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
@@ -1757,11 +1814,11 @@ msgstr ""
 "يتطلب كلٌّ من نموذج طلب الانضمام ونموذج الاشتراك في النشرة الإخبارية التحقق "
 "البشري قبل قبول أي إرسال."
 
-#: includes/Admin/Settings.php:472
+#: includes/Admin/Settings.php:473
 msgid "Turnstile is not configured."
 msgstr "لم يتم إعداد Turnstile."
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:474
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -1778,7 +1835,7 @@ msgstr ""
 "ومفتاحًا سريًا لـ Cloudflare Turnstile أعلاه لفرض التحقق البشري على كلٍّ من "
 "نموذج الانضمام ونموذج الاشتراك في النشرة الإخبارية."
 
-#: includes/Admin/Settings.php:492
+#: includes/Admin/Settings.php:493
 msgid ""
 "A simple way for visitors to support an artist directly is planned, with no "
 "platform fee. That feature hasn't been built yet, so there is nothing to "
@@ -1787,7 +1844,7 @@ msgstr ""
 "يُخطط لطريقة بسيطة لزوار الموقع لدعم الفنان مباشرة، بدون رسوم منصة. لم تُبنَ "
 "هذه الميزة بعد، لذا لا يوجد شيء لتكوينه هنا اليوم."
 
-#: includes/Admin/Settings.php:495
+#: includes/Admin/Settings.php:496
 msgid ""
 "Agnosis is not a marketplace. Art sales, checkout, and other commerce "
 "functionality are left to dedicated plugins."
@@ -1795,24 +1852,24 @@ msgstr ""
 "Agnosis ليست سوقاً. مبيعات الفن والدفع والوظائف التجارية الأخرى متروكة "
 "للمكونات الإضافية المتخصصة."
 
-#: includes/Admin/Settings.php:520
+#: includes/Admin/Settings.php:521
 msgid "OpenAI"
 msgstr "OpenAI"
 
-#: includes/Admin/Settings.php:521
+#: includes/Admin/Settings.php:522
 msgid "Anthropic"
 msgstr "Anthropic"
 
-#: includes/Admin/Settings.php:528
+#: includes/Admin/Settings.php:529
 msgid "AI Processing & Privacy Policy"
 msgstr "سياسة معالجة الذكاء الاصطناعي والخصوصية"
 
-#: includes/Admin/Settings.php:531
+#: includes/Admin/Settings.php:532
 msgid "A Privacy Policy page is set."
 msgstr "تم تعيين صفحة سياسة خصوصية."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:535
+#: includes/Admin/Settings.php:536
 #, php-format
 msgid ""
 "Suggested wording covering %s and public federation was added to it "
@@ -1824,12 +1881,12 @@ msgstr ""
 "← الخصوصية ← \"الدليل\" قبل النشر، وتحقق مع مزود(ي) الخدمة من اتفاقية معالجة "
 "البيانات الخاصة بهم (DPA) بشأن التزامات الامتثال لديك."
 
-#: includes/Admin/Settings.php:543
+#: includes/Admin/Settings.php:544
 msgid "No Privacy Policy page is set."
 msgstr "لم يتم تعيين صفحة سياسة خصوصية."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:547
+#: includes/Admin/Settings.php:548
 #, php-format
 msgid ""
 "Submitted artwork, text, and visitor contact messages are sent to %s for "
@@ -1844,27 +1901,19 @@ msgstr ""
 "أيضًا في مراجعة اتفاقية معالجة البيانات (DPA) الخاصة بهذا المزود بشأن "
 "التزامات الامتثال لديك."
 
-#: includes/Admin/Settings.php:551
+#: includes/Admin/Settings.php:552
 msgid "Go to Settings → Privacy"
 msgstr "انتقل إلى الإعدادات ← الخصوصية"
 
-#: includes/Admin/Settings.php:575
+#: includes/Admin/Settings.php:576
 msgid "Debug Files"
 msgstr "ملفات التصحيح"
 
-#: includes/Admin/Settings.php:579
+#: includes/Admin/Settings.php:580
 msgid "Currently"
 msgstr "حاليًا"
 
-#: includes/Admin/Settings.php:582
-msgid "Enabled"
-msgstr "مفعّل"
-
-#: includes/Admin/Settings.php:584
-msgid "Disabled"
-msgstr "معطّل"
-
-#: includes/Admin/Settings.php:590
+#: includes/Admin/Settings.php:591
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1872,7 +1921,7 @@ msgstr ""
 "مفروض التشغيل بواسطة الثابت AGNOSIS_DEBUG في wp-config.php — لن يكون لمربع "
 "الاختيار أعلاه أي تأثير حتى تتم إزالة ذلك السطر."
 
-#: includes/Admin/Settings.php:592
+#: includes/Admin/Settings.php:593
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1880,21 +1929,21 @@ msgstr ""
 "مفروض الإيقاف بواسطة الثابت AGNOSIS_DEBUG في wp-config.php — لن يكون لمربع "
 "الاختيار أعلاه أي تأثير حتى تتم إزالة ذلك السطر."
 
-#: includes/Admin/Settings.php:600
+#: includes/Admin/Settings.php:601
 msgid "Directory"
 msgstr "الدليل"
 
-#: includes/Admin/Settings.php:603
+#: includes/Admin/Settings.php:604
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "يمكن التصفية باستخدام agnosis_debug_dir لإعادة توجيه مخرجات التصحيح إلى مكان "
 "آخر."
 
-#: includes/Admin/Settings.php:610
+#: includes/Admin/Settings.php:611
 msgid ".txt file(s) in the directory"
 msgstr "ملف(ات) .txt في الدليل"
 
-#: includes/Admin/Settings.php:616
+#: includes/Admin/Settings.php:617
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1902,19 +1951,19 @@ msgstr ""
 "حذف جميع ملفات .txt في دليل التصحيح؟ سيبقى الدليل نفسه في مكانه حتى تظل "
 "عمليات كتابة التصحيح المستقبلية تتم بشكل سليم."
 
-#: includes/Admin/Settings.php:621
+#: includes/Admin/Settings.php:622
 msgid "Clear Debug Files"
 msgstr "مسح ملفات التصحيح"
 
-#: includes/Admin/Settings.php:652
+#: includes/Admin/Settings.php:653
 msgid "Term Translation Cache"
 msgstr "ذاكرة التخزين المؤقت لترجمات المصطلحات"
 
-#: includes/Admin/Settings.php:656
+#: includes/Admin/Settings.php:657
 msgid "Cached translations"
 msgstr "الترجمات المخزنة مؤقتًا"
 
-#: includes/Admin/Settings.php:659
+#: includes/Admin/Settings.php:660
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -1927,7 +1976,7 @@ msgstr ""
 "ذاكرته المؤقتة تلقائيًا؛ استخدم الزر أدناه فقط إذا كانت ترجمة مخزنة نفسها "
 "خاطئة."
 
-#: includes/Admin/Settings.php:665
+#: includes/Admin/Settings.php:666
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
@@ -1935,38 +1984,38 @@ msgstr ""
 "مسح كل ترجمات المصطلحات المخزنة مؤقتًا؟ لن يُحذف أي شيء من موقعك — ستُعاد ترجمة "
 "المصطلحات بواسطة الذكاء الاصطناعي في المرة التالية التي تحتاج فيها إليها."
 
-#: includes/Admin/Settings.php:670
+#: includes/Admin/Settings.php:671
 msgid "Clear Term Translation Cache"
 msgstr "مسح ذاكرة التخزين المؤقت لترجمات المصطلحات"
 
-#: includes/Admin/Settings.php:716
+#: includes/Admin/Settings.php:721
 msgid "Inbox Tools"
 msgstr "أدوات صندوق الوارد"
 
-#: includes/Admin/Settings.php:720
+#: includes/Admin/Settings.php:725
 msgid "Test connection"
 msgstr "اختبار الاتصال"
 
-#: includes/Admin/Settings.php:725
+#: includes/Admin/Settings.php:730
 msgid "Test IMAP Connection"
 msgstr "اختبار اتصال IMAP"
 
-#: includes/Admin/Settings.php:727
+#: includes/Admin/Settings.php:732
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
 msgstr ""
 "يتصل بصندوق البريد المُهيأ ويعرض العدد الإجمالي للرسائل والرسائل غير المقروءة."
 
-#: includes/Admin/Settings.php:731
+#: includes/Admin/Settings.php:736
 msgid "Poll inbox now"
 msgstr "استرجاع صندوق الوارد الآن"
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:741
 msgid "Poll Inbox Now"
 msgstr "استرجاع صندوق الوارد الآن"
 
-#: includes/Admin/Settings.php:738
+#: includes/Admin/Settings.php:743
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -1974,15 +2023,15 @@ msgstr ""
 "يجلب الرسائل غير المقروءة فورًا دون انتظار WP-Cron. ثم انقر \"معالجة قائمة "
 "الانتظار المعلقة\" لتشغيل خط أنابيب الذكاء الاصطناعي."
 
-#: includes/Admin/Settings.php:742
+#: includes/Admin/Settings.php:747
 msgid "Process queue"
 msgstr "معالجة قائمة الانتظار"
 
-#: includes/Admin/Settings.php:747
+#: includes/Admin/Settings.php:752
 msgid "Process Pending Queue"
 msgstr "معالجة قائمة الانتظار المعلقة"
 
-#: includes/Admin/Settings.php:749
+#: includes/Admin/Settings.php:754
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -1991,15 +2040,15 @@ msgstr ""
 "دون انتظار WP-Cron. استخدم هذا لاختبار التدفق من البداية إلى النهاية بعد "
 "الاسترجاع."
 
-#: includes/Admin/Settings.php:753
+#: includes/Admin/Settings.php:758
 msgid "Force reprocess"
 msgstr "فرض إعادة المعالجة"
 
-#: includes/Admin/Settings.php:758
+#: includes/Admin/Settings.php:763
 msgid "Force Reprocess Inbox"
 msgstr "فرض إعادة معالجة صندوق الوارد"
 
-#: includes/Admin/Settings.php:760
+#: includes/Admin/Settings.php:765
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -3841,6 +3890,7 @@ msgstr ""
 "بالكامل."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
+#: includes/Network/ActivityPub.php:371
 msgid "Name"
 msgstr "الاسم"
 
@@ -3856,8 +3906,9 @@ msgstr "السيرة"
 msgid "Statement"
 msgstr "البيان"
 
-#. translators: 1: field name (e.g. "Bio", "Message"), 2: maximum character count
+#. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
+#: includes/Network/ActivityPub.php:3100
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "يجب أن يكون %1$s مكوّنًا من %2$d حرفًا أو أقل."
@@ -3951,8 +4002,8 @@ msgstr "شكرًا لك، %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:2742 includes/Network/ActivityPub.php:2749
-#: includes/Network/ActivityPub.php:2756
+#: includes/Network/ActivityPub.php:3745 includes/Network/ActivityPub.php:3752
+#: includes/Network/ActivityPub.php:3759 includes/Network/ActivityPub.php:3867
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "خطأ في الرابط"
@@ -4505,7 +4556,7 @@ msgstr ""
 "رسائل مزعجة، أو عمليات احتيال، أو إعلانات تجارية غير مرغوب فيها لا علاقة لها "
 "بالتواصل الحقيقي مع الفنان بشأن أعماله"
 
-#: includes/Artist/ContactForm.php:418
+#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3306
 msgid "Flagged by automatic content review."
 msgstr "تم وسمها من خلال المراجعة التلقائية للمحتوى."
 
@@ -4560,12 +4611,12 @@ msgid ""
 msgstr "شكرًا — تم إرسال رسالتك. يمكنك التواصل مع هذا الفنان مرة أخرى بعد قليل."
 
 #: includes/Artist/ContactFormBlock.php:187
-#: includes/Artist/ContentEditor.php:1451 includes/Artist/JoinPage.php:215
+#: includes/Artist/ContentEditor.php:1458 includes/Artist/JoinPage.php:215
 #: includes/Newsletter/SignupBlock.php:140
 msgid "Something went wrong. Please try again."
 msgstr "حدث خطأ ما. يُرجى المحاولة مرة أخرى."
 
-#: includes/Artist/ContentEditor.php:269 includes/Artist/ContentEditor.php:1035
+#: includes/Artist/ContentEditor.php:269 includes/Artist/ContentEditor.php:1042
 #: includes/Publishing/ReviewEndpoints.php:1064
 #: includes/Publishing/ReviewEndpoints.php:1081
 msgid "Authentication required."
@@ -4593,7 +4644,7 @@ msgstr "لا يبدو هذا رابطًا صالحًا (يجب أن يبدأ ب�
 msgid "The title cannot be empty."
 msgstr "لا يمكن أن يكون العنوان فارغًا."
 
-#: includes/Artist/ContentEditor.php:382 includes/Artist/ContentEditor.php:1450
+#: includes/Artist/ContentEditor.php:382 includes/Artist/ContentEditor.php:1457
 msgid "Saved — translations will update within a few minutes."
 msgstr "تم الحفظ — ستتحدّث الترجمات خلال بضع دقائق."
 
@@ -4615,70 +4666,70 @@ msgstr "يُرجى رفع صورة بصيغة JPEG أو PNG أو WebP أو GIF."
 msgid "The uploaded file could not be read."
 msgstr "تعذّر قراءة الملف الذي تم رفعه."
 
-#: includes/Artist/ContentEditor.php:705 includes/Artist/ContentEditor.php:1454
+#: includes/Artist/ContentEditor.php:705 includes/Artist/ContentEditor.php:1461
 msgid "Photo replaced — the original is kept and can be restored later."
 msgstr "تم استبدال الصورة — تم الاحتفاظ بالأصل ويمكن استعادته لاحقًا."
 
-#: includes/Artist/ContentEditor.php:878
+#: includes/Artist/ContentEditor.php:885
 msgid "There is no photo to restore."
 msgstr "لا توجد صورة لاستعادتها."
 
-#: includes/Artist/ContentEditor.php:887
+#: includes/Artist/ContentEditor.php:894
 msgid "No earlier version of this photo was found."
 msgstr "لم يتم العثور على إصدار أقدم من هذه الصورة."
 
-#: includes/Artist/ContentEditor.php:916 includes/Artist/ContentEditor.php:1457
+#: includes/Artist/ContentEditor.php:923 includes/Artist/ContentEditor.php:1464
 msgid "Restored the earlier photo."
 msgstr "تمت استعادة الصورة الأقدم."
 
-#: includes/Artist/ContentEditor.php:1043
+#: includes/Artist/ContentEditor.php:1050
 msgid "Only admitted artists may edit their own content."
 msgstr "يُسمح فقط للفنانين المقبولين بتعديل محتواهم الخاص."
 
-#: includes/Artist/ContentEditor.php:1052
+#: includes/Artist/ContentEditor.php:1059
 msgid "Content not found."
 msgstr "المحتوى غير موجود."
 
-#: includes/Artist/ContentEditor.php:1060
+#: includes/Artist/ContentEditor.php:1067
 msgid "Only published content can be corrected here."
 msgstr "لا يمكن تصحيح سوى المحتوى المنشور هنا."
 
-#: includes/Artist/ContentEditor.php:1070
+#: includes/Artist/ContentEditor.php:1077
 msgid "You may only edit your own content."
 msgstr "لا يمكنك تعديل سوى محتواك الخاص."
 
-#: includes/Artist/ContentEditor.php:1117
+#: includes/Artist/ContentEditor.php:1124
 msgid ""
 "This page is not in your own language. Edit the version in your language "
 "instead."
 msgstr "هذه الصفحة ليست بلغتك الخاصة. يُرجى تعديل النسخة بلغتك بدلًا من ذلك."
 
-#: includes/Artist/ContentEditor.php:1210
+#: includes/Artist/ContentEditor.php:1217
 msgid "Unsupported field target."
 msgstr "وجهة الحقل غير مدعومة."
 
-#: includes/Artist/ContentEditor.php:1448
+#: includes/Artist/ContentEditor.php:1455
 #: includes/Publishing/SubmissionsPage.php:300
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: includes/Artist/ContentEditor.php:1449
+#: includes/Artist/ContentEditor.php:1456
 msgid "Saving…"
 msgstr "جارٍ الحفظ…"
 
-#: includes/Artist/ContentEditor.php:1452
+#: includes/Artist/ContentEditor.php:1459
 msgid "Replace photo"
 msgstr "استبدال الصورة"
 
-#: includes/Artist/ContentEditor.php:1453
+#: includes/Artist/ContentEditor.php:1460
 msgid "Uploading…"
 msgstr "جارٍ الرفع…"
 
-#: includes/Artist/ContentEditor.php:1455
+#: includes/Artist/ContentEditor.php:1462
 msgid "Restore earlier photo"
 msgstr "استعادة الصورة السابقة"
 
-#: includes/Artist/ContentEditor.php:1456
+#: includes/Artist/ContentEditor.php:1463
 msgid "Restoring…"
 msgstr "جارٍ الاستعادة…"
 
@@ -4696,7 +4747,7 @@ msgstr ""
 "تم حذف حسابك وكل ما نشرته على %s نهائيًا. لم يعد هناك أي شيء مرتبط بك مخزن "
 "هنا."
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:315
+#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:327
 msgid "Link expired or already used"
 msgstr "انتهت صلاحية الرابط أو تم استخدامه بالفعل"
 
@@ -5078,7 +5129,9 @@ msgstr ""
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just one piece."
-msgstr "إيقاف فهرسة محركات البحث وخدمات اكتشاف فيديريفيرس — ينطبق على ملفي الشخصي بأكمله وكل ما أنشره هنا، وليس مجرد قطعة واحدة."
+msgstr ""
+"إيقاف فهرسة محركات البحث وخدمات اكتشاف فيديريفيرس — ينطبق على ملفي الشخصي "
+"بأكمله وكل ما أنشره هنا، وليس مجرد قطعة واحدة."
 
 #: includes/Artist/NotificationPreferences.php:296
 msgid "Save preferences"
@@ -5123,13 +5176,16 @@ msgstr ""
 msgid ""
 "Search engines and Fediverse discovery services will no longer be told to "
 "index your profile or your work."
-msgstr "لن يتم إخبار محركات البحث وخدمات اكتشاف فيديريفيرس بعد الآن بفهرسة ملفك الشخصي أو أعمالك."
+msgstr ""
+"لن يتم إخبار محركات البحث وخدمات اكتشاف فيديريفيرس بعد الآن بفهرسة ملفك "
+"الشخصي أو أعمالك."
 
 #: includes/Artist/NotificationPreferences.php:322
 msgid ""
 "Search engines and Fediverse discovery services may continue indexing your "
 "profile and your work."
-msgstr "قد تستمر محركات البحث وخدمات اكتشاف فيديريفيرس في فهرسة ملفك الشخصي وأعمالك."
+msgstr ""
+"قد تستمر محركات البحث وخدمات اكتشاف فيديريفيرس في فهرسة ملفك الشخصي وأعمالك."
 
 #: includes/Artist/NotificationPreferences.php:325
 msgid "Preferences saved"
@@ -5706,7 +5762,7 @@ msgstr "تزكية المجتمع المقدَّمة"
 
 #: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
 #: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
-#: includes/Publishing/ReviewConfirm.php:897
+#: includes/Publishing/ReviewConfirm.php:972
 msgid "Date"
 msgstr "التاريخ"
 
@@ -6028,12 +6084,16 @@ msgstr "الطابع الزمني لطلب Webhook مفقود أو غير صال
 msgid "This webhook request has already been processed."
 msgstr "تمت معالجة طلب Webhook هذا بالفعل."
 
-#: includes/Network/ActivityPub.php:390
+#: includes/Network/ActivityPub.php:383 includes/Network/ActivityPub.php:2911
+msgid "Reply"
+msgstr "رد"
+
+#: includes/Network/ActivityPub.php:558
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:823 includes/Network/ActivityPub.php:840
+#: includes/Network/ActivityPub.php:998 includes/Network/ActivityPub.php:1015
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6045,17 +6105,17 @@ msgstr[4] "♥ %d إعجاب"
 msgstr[5] "♥ %d إعجابات"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:825
+#: includes/Network/ActivityPub.php:1000
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d إعجابات"
 
-#: includes/Network/ActivityPub.php:826
+#: includes/Network/ActivityPub.php:1001
 msgid "Could not update like."
 msgstr "لا يمكن تحديث الإعجاب."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:850
+#: includes/Network/ActivityPub.php:1025
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
@@ -6066,34 +6126,58 @@ msgstr[3] "⟲ %d دعم"
 msgstr[4] "⟲ %d دعم"
 msgstr[5] "⟲ %d دعم"
 
-#: includes/Network/ActivityPub.php:1562
+#: includes/Network/ActivityPub.php:1905
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:1727
+#: includes/Network/ActivityPub.php:2070
 #, php-format
 msgid "Also available in: %s"
 msgstr "متاح أيضًا بـ: %s"
 
-#: includes/Network/ActivityPub.php:2112
+#: includes/Network/ActivityPub.php:2468
 msgid "No such artwork."
 msgstr "لا توجد مثل هذه العمل الفني."
 
-#: includes/Network/ActivityPub.php:2287
+#: includes/Network/ActivityPub.php:2869
 msgid "0 replies"
 msgstr "0 ردود"
 
-#: includes/Network/ActivityPub.php:2296
+#: includes/Network/ActivityPub.php:2890
 msgid "Loading replies…"
 msgstr "جارٍ تحميل الردود…"
 
-#: includes/Network/ActivityPub.php:2297
+#: includes/Network/ActivityPub.php:2891
 msgid "Could not load replies."
 msgstr "تعذر تحميل الردود."
 
+#: includes/Network/ActivityPub.php:2893 includes/Network/ActivityPub.php:3169
+msgid "Thanks — your reply has been submitted and is awaiting approval."
+msgstr "شكرًا - تم تقديم ردك وهو في انتظار الموافقة."
+
+#: includes/Network/ActivityPub.php:2894
+msgid "Could not send your reply. Please try again."
+msgstr "لم يتمكن من إرسال ردك. يرجى المحاولة مرة أخرى."
+
+#: includes/Network/ActivityPub.php:2895 includes/Network/ActivityPub.php:2961
+msgid "Name (optional)"
+msgstr "الاسم (اختياري)"
+
+#: includes/Network/ActivityPub.php:2896 includes/Network/ActivityPub.php:2962
+msgid "Your email"
+msgstr "بريدك الإلكتروني"
+
+#: includes/Network/ActivityPub.php:2897 includes/Network/ActivityPub.php:2959
+msgid "Write a reply…"
+msgstr "اكتب ردًا…"
+
+#: includes/Network/ActivityPub.php:2898 includes/Network/ActivityPub.php:2965
+msgid "Send reply"
+msgstr "إرسال رد"
+
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2317
+#: includes/Network/ActivityPub.php:2908
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
@@ -6104,146 +6188,214 @@ msgstr[3] "%d ردود"
 msgstr[4] "%d ردود"
 msgstr[5] "%d ردود"
 
+#: includes/Network/ActivityPub.php:3232
+msgid "Replies aren't open on this artwork right now."
+msgstr "لا الردود مفتوحة على هذا العمل الفني حاليًا."
+
+#: includes/Network/ActivityPub.php:3300
+msgid ""
+"Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
+"engaging with the artist about their work"
+msgstr "البريد المزعج أو الاحتيالات أو الإعلانات التجارية غير المطلوبة غير المتعلقة بالتفاعل الحقيقي مع الفنان حول عمله"
+
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:2624
+#: includes/Network/ActivityPub.php:3547
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "رد جديد على \"%s\""
 
-#. translators: 1: reply excerpt, 2: approve link, 3: reject link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:2630
+#: includes/Network/ActivityPub.php:3558
+msgid "Someone left a reply on your artwork:"
+msgstr "ترك أحدهم ردًا على عملك الفني:"
+
+#: includes/Network/ActivityPub.php:3559
+msgid "Someone replied to your artwork from the Fediverse:"
+msgstr "رد أحدهم على عملك الفني من فيديفيرس:"
+
+#. translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link.
+#: includes/Network/ActivityPub.php:3570
 #, php-format
 msgid ""
-"Someone replied to your artwork from the Fediverse:\n"
+"%1$s\n"
 "\n"
-"\"%1$s\"\n"
+"\"%2$s\"\n"
 "\n"
-"It's being held until you approve or reject it:\n"
+"It's being held until you approve or reject it — you can also write your own "
+"reply from the same page:\n"
 "\n"
-"Approve: %2$s\n"
-"Reject: %3$s\n"
+"%3$s\n"
 "\n"
 "Don't want reply notifications? Manage that here: %4$s"
-msgstr ""
-"شخص ما رد على عملك الفني من الفديفيرس:\n"
-"\n"
-"\"%1$s\"\n"
-"\n"
-"يتم احتجازه حتى تصادق عليه أو ترفضه:\n"
-"\n"
-"المصادقة: %2$s\n"
-"الرفض: %3$s\n"
-"\n"
-"لا تريد إشعارات الردود؟ قم بإدارة ذلك هنا: %4$s"
+msgstr "%1$s\n\n\"%2$s\"\n\nيتم الاحتفاظ به حتى تقوم بالموافقة أو الرفض - يمكنك أيضًا كتابة ردك بنفس الصفحة:\n\n%3$s\n\nلا تريد إشعارات الرد؟ إدارة ذلك هنا: %4$s"
 
-#: includes/Network/ActivityPub.php:2676 includes/Network/ActivityPub.php:2741
+#: includes/Network/ActivityPub.php:3628 includes/Network/ActivityPub.php:3744
+#: includes/Network/ActivityPub.php:3866
 msgid "This link is invalid or has already expired."
 msgstr "هذا الرابط غير صالح أو قد انتهت صلاحيته."
 
-#: includes/Network/ActivityPub.php:2681
+#: includes/Network/ActivityPub.php:3633
 msgid "This link has expired."
 msgstr "انتهت صلاحية هذا الرابط."
 
-#: includes/Network/ActivityPub.php:2755
+#: includes/Network/ActivityPub.php:3663
+msgid "Fediverse replies"
+msgstr "ردود فيديفيرس"
+
+#: includes/Network/ActivityPub.php:3664
+msgid "Site replies"
+msgstr "ردود الموقع"
+
+#: includes/Network/ActivityPub.php:3758
 msgid "This reply no longer exists."
 msgstr "هذا الرد لم يعد موجودًا."
 
-#: includes/Network/ActivityPub.php:2768
-msgid "Approve this reply?"
-msgstr "هل توافق على هذا الرد؟"
+#: includes/Network/ActivityPub.php:3801
+msgid "Original"
+msgstr "الأصلي"
 
-#: includes/Network/ActivityPub.php:2769
-msgid "This will publish the reply on your artwork."
-msgstr "سيتم نشر الرد على عملك الفني."
+#: includes/Network/ActivityPub.php:3807
+msgid "Translated"
+msgstr "المترجم"
 
-#: includes/Network/ActivityPub.php:2770
-msgid "Yes, approve it"
-msgstr "نعم، وافق عليه"
+#: includes/Network/ActivityPub.php:3810
+msgid "Translation pending…"
+msgstr "ترجمة قيد الانتظار…"
 
-#: includes/Network/ActivityPub.php:2773
-msgid "Reject this reply?"
-msgstr "هل ترفض هذا الرد؟"
+#: includes/Network/ActivityPub.php:3815
+msgid "Also post my reply to the Fediverse."
+msgstr "نشر ردي أيضًا إلى فيديفيرس."
 
-#: includes/Network/ActivityPub.php:2774
-msgid "This will discard the reply — it will not be shown."
-msgstr "سيؤدي ذلك إلىDiscard الرد — لن يظهر."
+#: includes/Network/ActivityPub.php:3836 includes/Network/ActivityPub.php:3848
+msgid "Review this reply"
+msgstr "راجع هذا الرد"
 
-#: includes/Network/ActivityPub.php:2775
-msgid "Yes, reject it"
-msgstr "نعم، ارفضه"
+#: includes/Network/ActivityPub.php:3842
+msgid "Write your own reply (optional)"
+msgstr "اكتب ردك الخاص (اختياري)"
 
-#: includes/Network/ActivityPub.php:2795
+#: includes/Network/ActivityPub.php:3874
 msgid "Reply approved — it now appears on your artwork."
 msgstr "تمت المصادقة على الرد — أصبح الآن ظاهرًا في عملك الفني."
 
-#: includes/Network/ActivityPub.php:2798
+#: includes/Network/ActivityPub.php:3877
 msgid "Reply rejected — it will not be shown."
 msgstr "تم رفض الرد — لن يتم عرضه."
 
-#: includes/Network/ActivityPub.php:2801
+#: includes/Network/ActivityPub.php:3888
+msgid "Your reply has been posted."
+msgstr "تم نشر ردك."
+
+#: includes/Network/ActivityPub.php:3891
 msgid "Reply moderated"
 msgstr "تم تعديل الرد"
 
-#: includes/Network/HttpSignature.php:158
+#: includes/Network/ActivityPub.php:3917
+msgid "No such reply."
+msgstr "لا يوجد رد بهذا الشكل."
+
+#: includes/Network/HttpSignature.php:180
 msgid "Signature keyId does not belong to the activity actor."
 msgstr "المعرّف keyId للتوقيع لا ينتمي إلى منفّذ النشاط."
 
-#: includes/Network/HttpSignature.php:205
+#: includes/Network/HttpSignature.php:233
+#: includes/Network/HttpSignature.php:556
 msgid "OpenSSL is required for HTTP Signature verification."
 msgstr "يلزم OpenSSL للتحقق من توقيع HTTP."
 
-#: includes/Network/HttpSignature.php:215
+#: includes/Network/HttpSignature.php:243
 msgid "Signature header is required."
 msgstr "ترويسة التوقيع مطلوبة."
 
-#: includes/Network/HttpSignature.php:224
+#: includes/Network/HttpSignature.php:252
 msgid ""
 "Signature header is missing required fields (keyId, headers, signature)."
 msgstr "ترويسة التوقيع تفتقد الحقول المطلوبة (keyId, headers, signature)."
 
-#: includes/Network/HttpSignature.php:244
+#: includes/Network/HttpSignature.php:272
 msgid "Signature must cover the Date header."
 msgstr "Signature must cover the Date header."
 
-#: includes/Network/HttpSignature.php:251
+#: includes/Network/HttpSignature.php:279
 msgid "Signature on a POST request must cover the Digest header."
 msgstr "Signature on a POST request must cover the Digest header."
 
-#: includes/Network/HttpSignature.php:266
+#: includes/Network/HttpSignature.php:294
+#: includes/Network/HttpSignature.php:595
 msgid "Request date is too old or too far in the future."
 msgstr "تاريخ الطلب قديم جدًا أو بعيد جدًا في المستقبل."
 
-#: includes/Network/HttpSignature.php:297
+#: includes/Network/HttpSignature.php:325
+#: includes/Network/HttpSignature.php:638
 msgid "Signature value is not valid base64."
 msgstr "قيمة التوقيع ليست base64 صالحًا."
 
-#: includes/Network/HttpSignature.php:309
+#: includes/Network/HttpSignature.php:337
+#: includes/Network/HttpSignature.php:658
 msgid "HTTP Signature verification failed."
 msgstr "فشل التحقق من توقيع HTTP."
 
-#: includes/Network/HttpSignature.php:347
+#: includes/Network/HttpSignature.php:375
 msgid "Digest header does not match the request body."
 msgstr "لا تتطابق ترويسة Digest مع نص الطلب."
 
-#: includes/Network/HttpSignature.php:391
+#: includes/Network/HttpSignature.php:419
 msgid "keyId in Signature header is not a valid URL."
 msgstr "‏keyId في ترويسة التوقيع ليس عنوان URL صالحًا."
 
-#: includes/Network/HttpSignature.php:410
+#: includes/Network/HttpSignature.php:438
 msgid "Actor document could not be fetched (cached failure)."
 msgstr "Actor document could not be fetched (cached failure)."
 
-#: includes/Network/HttpSignature.php:428
+#: includes/Network/HttpSignature.php:456
 msgid "Failed to fetch actor document."
 msgstr "تعذّر جلب مستند الفاعل."
 
-#: includes/Network/HttpSignature.php:439
+#: includes/Network/HttpSignature.php:467
 msgid "Actor document returned a non-200 response."
 msgstr "أعاد مستند الفاعل استجابة غير 200."
 
-#: includes/Network/HttpSignature.php:455
+#: includes/Network/HttpSignature.php:483
 msgid "Actor document does not contain a publicKey.publicKeyPem field."
 msgstr "لا يحتوي مستند الفاعل على الحقل publicKey.publicKeyPem."
+
+#. translators: %s: the unsupported signature algorithm name.
+#: includes/Network/HttpSignature.php:571
+#, php-format
+msgid "Unsupported signature algorithm: %s."
+msgstr "خوارزمية التوقيع غير المدعومة: %s."
+
+#: includes/Network/HttpSignature.php:580
+msgid "Signature-Input header is missing keyid."
+msgstr "رأس Signature-Input مفقود منه keyid."
+
+#: includes/Network/HttpSignature.php:602
+msgid "Signature has expired."
+msgstr "انتهت صلاحية التوقيع."
+
+#: includes/Network/HttpSignature.php:614
+msgid "Signature on a POST request must cover the Content-Digest field."
+msgstr "يجب أن يغطي التوقيع في طلب POST حقل Content-Digest."
+
+#: includes/Network/HttpSignature.php:629
+msgid ""
+"Signature header does not contain a value for the Signature-Input label."
+msgstr "رأس التوقيع لا يحتوي على قيمة لتسمية Signature-Input."
+
+#: includes/Network/HttpSignature.php:680
+msgid "Signature-Input header is malformed."
+msgstr "رأس Signature-Input غير صحيح."
+
+#: includes/Network/HttpSignature.php:695
+msgid "Signature-Input covers no components."
+msgstr "Signature-Input لا يغطي أي مكونات."
+
+#: includes/Network/HttpSignature.php:739
+msgid "Content-Digest header does not contain a sha-256 value."
+msgstr "رأس Content-Digest لا يحتوي على قيمة sha-256."
+
+#: includes/Network/HttpSignature.php:748
+msgid "Content-Digest header does not match the request body."
+msgstr "رأس Content-Digest لا يتطابق مع جسم الطلب."
 
 #: includes/Network/Node.php:116
 msgid "Node URL is required."
@@ -6287,63 +6439,63 @@ msgstr "تعذّر العثور على هذا العدد من النشرة."
 msgid "Issue not found"
 msgstr "العدد غير موجود"
 
-#: includes/Newsletter/Archive.php:168
+#: includes/Newsletter/Archive.php:177
 msgid "Newsletter archive"
 msgstr "أرشيف النشرة البريدية"
 
 #. translators: %s: site name
-#: includes/Newsletter/Archive.php:173
+#: includes/Newsletter/Archive.php:182
 #, php-format
 msgid "Past issues of the %s newsletter."
 msgstr "الأعداد السابقة من نشرة %s البريدية."
 
-#: includes/Newsletter/Archive.php:180
+#: includes/Newsletter/Archive.php:189
 msgid "No issues have gone out yet — check back soon."
 msgstr "لم تُرسل أي أعداد بعد — تحقّق لاحقًا قريبًا."
 
-#: includes/Newsletter/Archive.php:199
+#: includes/Newsletter/Archive.php:208
 msgid "← Newer"
 msgstr "← الأحدث"
 
-#: includes/Newsletter/Archive.php:202
+#: includes/Newsletter/Archive.php:211
 msgid "Older →"
 msgstr "الأقدم →"
 
 #. translators: %s: site name
-#: includes/Newsletter/Archive.php:213
+#: includes/Newsletter/Archive.php:222
 #, php-format
 msgid "Newsletter archive — %s"
 msgstr "أرشيف النشرة البريدية — %s"
 
 #. translators: 1: site name, 2: date the issue was sent
-#: includes/Newsletter/Archive.php:241
+#: includes/Newsletter/Archive.php:250
 #, php-format
 msgid "%1$s Newsletter — %2$s"
 msgstr "نشرة %1$s — %2$s"
 
 #. translators: %s: site name
-#: includes/Newsletter/Archive.php:247
+#: includes/Newsletter/Archive.php:256
 #, php-format
 msgid "%s Newsletter"
 msgstr "نشرة %s البريدية"
 
-#: includes/Newsletter/Digest.php:47
+#: includes/Newsletter/Digest.php:49
 msgid ""
 "Nothing new to report this time — but the community is still here, and the "
 "next issue will have more."
 msgstr ""
 "لا جديد نعلنه هذه المرة — لكن المجتمع ما زال هنا، والعدد القادم سيحمل المزيد."
 
-#: includes/Newsletter/Digest.php:54
+#: includes/Newsletter/Digest.php:56
 msgid "New artwork"
 msgstr "عمل فني جديد"
 
-#: includes/Newsletter/Digest.php:59
+#: includes/Newsletter/Digest.php:64
 msgid "Upcoming events"
 msgstr "فعاليات قادمة"
 
 #. translators: %d: number of new artworks published
-#: includes/Newsletter/Digest.php:84
+#: includes/Newsletter/Digest.php:89
 #, php-format
 msgid "%d new artwork published"
 msgid_plural "%d new artworks published"
@@ -6355,7 +6507,7 @@ msgstr[4] "نُشر %d عملاً فنيًا جديدًا"
 msgstr[5] "نُشر %d عمل فني جديد"
 
 #. translators: %d: number of new events announced
-#: includes/Newsletter/Digest.php:89
+#: includes/Newsletter/Digest.php:94
 #, php-format
 msgid "%d new event announced"
 msgid_plural "%d new events announced"
@@ -6367,7 +6519,7 @@ msgstr[4] "أُعلن عن %d فعاليةً جديدةً"
 msgstr[5] "أُعلن عن %d فعالية جديدة"
 
 #. translators: %s: comma-separated list of new members' display names
-#: includes/Newsletter/Digest.php:96
+#: includes/Newsletter/Digest.php:101
 #, php-format
 msgid "Welcome to our newest member: %s"
 msgid_plural "Welcome to our newest members: %s"
@@ -6379,7 +6531,7 @@ msgstr[4] "مرحبًا بأحدث أعضائنا: %s"
 msgstr[5] "مرحبًا بأحدث أعضائنا: %s"
 
 #. translators: %d: number of open community votes
-#: includes/Newsletter/Digest.php:104
+#: includes/Newsletter/Digest.php:109
 #, php-format
 msgid ""
 "%d community vote is open — check your email for your personal voting link."
@@ -6405,12 +6557,12 @@ msgstr[5] ""
 "الكثير من تصويتات المجتمع مفتوحة — تحقّق من بريدك الإلكتروني للحصول على روابط "
 "التصويت الخاصة بك."
 
-#: includes/Newsletter/Digest.php:112
+#: includes/Newsletter/Digest.php:117
 msgid "Recent work from the community"
 msgstr "أعمال حديثة من المجتمع"
 
 #. translators: %d: number of additional items not individually listed
-#: includes/Newsletter/Digest.php:278
+#: includes/Newsletter/Digest.php:317
 #, php-format
 msgid "…and %d more."
 msgid_plural "…and %d more."
@@ -6420,6 +6572,76 @@ msgstr[2] "…و%d المزيد."
 msgstr[3] "…و%d المزيد."
 msgstr[4] "…و%d المزيد."
 msgstr[5] "…و%d المزيد."
+
+#: includes/Newsletter/InteractionGateway.php:94
+msgid "♥ Like this"
+msgstr "♥ أعجبني هذا"
+
+#: includes/Newsletter/InteractionGateway.php:126
+msgid "⟲ Boost this"
+msgstr "⟲ ضمّن هذا"
+
+#: includes/Newsletter/InteractionGateway.php:216
+msgid "This link has expired or is no longer valid."
+msgstr "هذا الرابط قد انتهى أو لم يعد صالحًا."
+
+#: includes/Newsletter/InteractionGateway.php:223
+msgid "This artwork could not be found."
+msgstr "لم يُعثر على هذا العمل الفني."
+
+#: includes/Newsletter/InteractionGateway.php:234
+msgid "This link is invalid."
+msgstr "هذا الرابط غير صالح."
+
+#: includes/Newsletter/InteractionGateway.php:274
+msgid "Boosted"
+msgstr "تم الضمّ"
+
+#: includes/Newsletter/InteractionGateway.php:274
+msgid "Liked"
+msgstr "تم الإعجاب"
+
+#: includes/Newsletter/InteractionGateway.php:276
+msgid "Thanks for sharing this artist's work with your own followers."
+msgstr "شكرًا لمشاركة أعمال هذا الفنان مع متابعينك."
+
+#: includes/Newsletter/InteractionGateway.php:277
+msgid "Thanks for supporting this artist."
+msgstr "شكرًا لدعمك لهذا الفنان."
+
+#. translators: %s: artwork title.
+#: includes/Newsletter/InteractionGateway.php:303
+#, php-format
+msgid "Boost \"%s\"?"
+msgstr "ضمّن \"%s\"؟"
+
+#. translators: %s: artwork title.
+#: includes/Newsletter/InteractionGateway.php:305
+#, php-format
+msgid "Like \"%s\"?"
+msgstr "أحب \"%s\"؟"
+
+#: includes/Newsletter/InteractionGateway.php:307
+msgid ""
+"This will share the artwork with your own followers, under your own name."
+msgstr "سيؤدي ذلك إلى مشاركة العمل الفني مع متابعينك، باسمك."
+
+#: includes/Newsletter/InteractionGateway.php:308
+msgid "Your like will be recorded once you confirm below."
+msgstr "سيتم تسجيل إعجابك بمجرد تأكيدك أدناه."
+
+#: includes/Newsletter/InteractionGateway.php:310
+msgid "Yes, boost it"
+msgstr "نعم، ضمّنه"
+
+#: includes/Newsletter/InteractionGateway.php:311
+msgid "Yes, like it"
+msgstr "نعم، أحبّه"
+
+#: includes/Newsletter/InteractionGateway.php:331
+#: includes/Newsletter/InteractionGateway.php:337
+msgid "Link expired or invalid"
+msgstr "انتهى الرابط أو غير صالح"
 
 #: includes/Newsletter/Mailer.php:75
 msgid "Community Newsletter"
@@ -6762,14 +6984,14 @@ msgstr "[Agnosis] طلبك جاهز للمراجعة: %s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1283
+#: includes/Publishing/ReviewConfirm.php:1367
 msgid "event"
 msgstr "حدث"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1284
+#: includes/Publishing/ReviewConfirm.php:1368
 msgid "artwork"
 msgstr "عمل فني"
 
@@ -7422,67 +7644,67 @@ msgstr "انتهى صلاحية رابط الإزالة. يرجى إرسال ط�
 msgid "Invalid removal token."
 msgstr "رمز الإزالة غير صالح."
 
-#: includes/Publishing/ReviewConfirm.php:265
+#: includes/Publishing/ReviewConfirm.php:277
 msgid "View it live"
 msgstr "اعرضه مباشرة"
 
-#: includes/Publishing/ReviewConfirm.php:308
+#: includes/Publishing/ReviewConfirm.php:320
 msgid "Biography published"
 msgstr "تم نشر السيرة الذاتية"
 
-#: includes/Publishing/ReviewConfirm.php:308
+#: includes/Publishing/ReviewConfirm.php:320
 msgid "Your biography has been published."
 msgstr "تم نشر سيرتك الذاتية."
 
-#: includes/Publishing/ReviewConfirm.php:309
+#: includes/Publishing/ReviewConfirm.php:321
 msgid "Event published"
 msgstr "تم نشر الحدث"
 
-#: includes/Publishing/ReviewConfirm.php:309
+#: includes/Publishing/ReviewConfirm.php:321
 msgid "The event has been published."
 msgstr "تم نشر الحدث."
 
-#: includes/Publishing/ReviewConfirm.php:310
+#: includes/Publishing/ReviewConfirm.php:322
 msgid "Artwork published"
 msgstr "تم نشر العمل الفني"
 
-#: includes/Publishing/ReviewConfirm.php:310
+#: includes/Publishing/ReviewConfirm.php:322
 msgid "The artwork has been published to the gallery."
 msgstr "تم نشر العمل الفني في المعرض."
 
-#: includes/Publishing/ReviewConfirm.php:311
+#: includes/Publishing/ReviewConfirm.php:323
 msgid "Submission discarded"
 msgstr "تم تجاهل الإرسال"
 
-#: includes/Publishing/ReviewConfirm.php:311
+#: includes/Publishing/ReviewConfirm.php:323
 msgid "The submission has been discarded."
 msgstr "تم تجاهل الإرسال."
 
-#: includes/Publishing/ReviewConfirm.php:312
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Biography removed"
 msgstr "تمت إزالة السيرة الذاتية"
 
-#: includes/Publishing/ReviewConfirm.php:312
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Your biography has been removed."
 msgstr "تمت إزالة سيرتك الذاتية."
 
-#: includes/Publishing/ReviewConfirm.php:313
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "Event removed"
 msgstr "تمت إزالة الفعالية"
 
-#: includes/Publishing/ReviewConfirm.php:313
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "The event has been removed."
 msgstr "تمت إزالة الفعالية."
 
-#: includes/Publishing/ReviewConfirm.php:314
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "Artwork removed"
 msgstr "تمت إزالة العمل الفني"
 
-#: includes/Publishing/ReviewConfirm.php:314
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "Your artwork has been removed from the gallery."
 msgstr "تمت إزالة عملك الفني من المعرض."
 
-#: includes/Publishing/ReviewConfirm.php:315
+#: includes/Publishing/ReviewConfirm.php:327
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -7490,7 +7712,7 @@ msgstr ""
 "قد يكون هذا الرابط قد استُخدم بالفعل أو قد انتهت صلاحيته. يُرجى تسجيل الدخول "
 "لإدارة إرسالاتك."
 
-#: includes/Publishing/ReviewConfirm.php:420
+#: includes/Publishing/ReviewConfirm.php:433
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
@@ -7498,7 +7720,7 @@ msgstr ""
 "لا يمكن أن يكون العنوان والنص الكامل فارغين. أعد ملأهما، أو استخدم \"تجاهل\" "
 "من البريد الإلكتروني الأصلي بدلًا من ذلك."
 
-#: includes/Publishing/ReviewConfirm.php:421
+#: includes/Publishing/ReviewConfirm.php:434
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
@@ -7506,107 +7728,113 @@ msgstr ""
 "لا يمكن أن يكون النص الكامل فارغًا. أعد ملأه، أو استخدم \"تجاهل\" من البريد "
 "الإلكتروني الأصلي بدلًا من ذلك."
 
-#: includes/Publishing/ReviewConfirm.php:800
+#: includes/Publishing/ReviewConfirm.php:853
 msgid "Account-wide setting"
 msgstr "إعداد على مستوى الحساب"
 
-#: includes/Publishing/ReviewConfirm.php:803
+#: includes/Publishing/ReviewConfirm.php:856
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just this piece."
-msgstr "إيقاف فهرسة محركات البحث وخدمات اكتشاف فيديريفيرس — ينطبق على ملفي الشخصي بأكمله وكل ما أنشره هنا، وليس مجرد هذه القطعة."
+msgstr ""
+"إيقاف فهرسة محركات البحث وخدمات اكتشاف فيديريفيرس — ينطبق على ملفي الشخصي "
+"بأكمله وكل ما أنشره هنا، وليس مجرد هذه القطعة."
 
-#: includes/Publishing/ReviewConfirm.php:838
+#: includes/Publishing/ReviewConfirm.php:879
+msgid "Allow visitors and the Fediverse to reply to this artwork."
+msgstr "اسمح للزوار وFediverse بالرد على هذا العمل الفني."
+
+#: includes/Publishing/ReviewConfirm.php:913
 msgid "Portfolio link"
 msgstr "رابط الملف التعريفي"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:865
+#: includes/Publishing/ReviewConfirm.php:940
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "رابط اجتماعي %d (اختياري)"
 
-#: includes/Publishing/ReviewConfirm.php:899
+#: includes/Publishing/ReviewConfirm.php:974
 msgid "Hour"
 msgstr "الساعة"
 
-#: includes/Publishing/ReviewConfirm.php:902
+#: includes/Publishing/ReviewConfirm.php:977
 msgid "Location"
 msgstr "الموقع"
 
-#: includes/Publishing/ReviewConfirm.php:904
+#: includes/Publishing/ReviewConfirm.php:979
 msgid "Address"
 msgstr "العنوان"
 
-#: includes/Publishing/ReviewConfirm.php:906
+#: includes/Publishing/ReviewConfirm.php:981
 msgid "Timezone"
 msgstr "المنطقة الزمنية"
 
-#: includes/Publishing/ReviewConfirm.php:926
+#: includes/Publishing/ReviewConfirm.php:1001
 msgid "Other"
 msgstr "أخرى"
 
-#: includes/Publishing/ReviewConfirm.php:931
+#: includes/Publishing/ReviewConfirm.php:1006
 msgid "— Not set —"
 msgstr "— غير مضبوط —"
 
-#: includes/Publishing/ReviewConfirm.php:1051
+#: includes/Publishing/ReviewConfirm.php:1126
 msgid "Discard this submission?"
 msgstr "هل تريد تجاهل هذا الإرسال؟"
 
-#: includes/Publishing/ReviewConfirm.php:1052
+#: includes/Publishing/ReviewConfirm.php:1127
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "سيؤدي هذا إلى تجاهل الإرسال نهائيًا — ولن يتم نشره."
 
-#: includes/Publishing/ReviewConfirm.php:1053
+#: includes/Publishing/ReviewConfirm.php:1128
 msgid "Yes, discard it"
 msgstr "نعم، تجاهله"
 
-#: includes/Publishing/ReviewConfirm.php:1056
+#: includes/Publishing/ReviewConfirm.php:1131
 msgid "Remove this artwork?"
 msgstr "هل تريد إزالة هذا العمل الفني؟"
 
-#: includes/Publishing/ReviewConfirm.php:1057
+#: includes/Publishing/ReviewConfirm.php:1132
 msgid "This will remove the published artwork from the gallery."
 msgstr "سيؤدي هذا إلى إزالة العمل الفني المنشور من المعرض."
 
-#: includes/Publishing/ReviewConfirm.php:1058
+#: includes/Publishing/ReviewConfirm.php:1133
 msgid "Yes, remove it"
 msgstr "نعم، أزِله"
 
-#: includes/Publishing/ReviewConfirm.php:1209
+#: includes/Publishing/ReviewConfirm.php:1284
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "العنوان"
 
-#: includes/Publishing/ReviewConfirm.php:1217
+#: includes/Publishing/ReviewConfirm.php:1292
 msgid "Short description"
 msgstr "وصف قصير"
 
-#: includes/Publishing/ReviewConfirm.php:1222
+#: includes/Publishing/ReviewConfirm.php:1297
 msgid "Full text"
 msgstr "النص الكامل"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1242
+#: includes/Publishing/ReviewConfirm.php:1326
 #, php-format
 msgid "Publish this %s?"
 msgstr "هل تريد نشر هذا %s؟"
 
-#: includes/Publishing/ReviewConfirm.php:1265
+#: includes/Publishing/ReviewConfirm.php:1349
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
 msgstr ""
 "أجرِ أي تعديلات نهائية أدناه، أو اترك كل شيء كما هو لنشر ما تمّت صياغته تمامًا."
 
-#: includes/Publishing/ReviewConfirm.php:1271
+#: includes/Publishing/ReviewConfirm.php:1355
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "انشره"
 
-#: includes/Publishing/ReviewConfirm.php:1282
+#: includes/Publishing/ReviewConfirm.php:1366
 msgid "biography"
 msgstr "سيرة ذاتية"
 
@@ -8179,7 +8407,11 @@ msgid ""
 "clickable on-site toggle (interaction-surface roadmap, Phase 3, WP2), boosts "
 "stay a plain independent count. Always shown (including \"0\") on an "
 "agnosis_artwork post; renders nothing off one."
-msgstr "يعرض عدد المرات التي تم فيها الإعجاب بهذا العمل الفني وزيادته — الإعجابات هي مفتاح قابل للنقر في الموقع (خريطة التفاعل، المرحلة 3، WP2)، والزيادات تبقى عدداً مستقلاً بسيطاً. دائماً ما تظهر (بما في ذلك \"0\") على منشور agnosis_artwork؛ لا تعرض شيئاً على منشور واحد."
+msgstr ""
+"يعرض عدد المرات التي تم فيها الإعجاب بهذا العمل الفني وزيادته — الإعجابات هي "
+"مفتاح قابل للنقر في الموقع (خريطة التفاعل، المرحلة 3، WP2)، والزيادات تبقى "
+"عدداً مستقلاً بسيطاً. دائماً ما تظهر (بما في ذلك \"0\") على منشور "
+"agnosis_artwork؛ لا تعرض شيئاً على منشور واحد."
 
 #: blocks/interaction-counts/block.json
 msgctxt "block keyword"
@@ -8314,11 +8546,12 @@ msgstr "تراكب الرد"
 #: blocks/reply-overlay/block.json
 msgctxt "block description"
 msgid ""
-"\"N replies\" trigger that opens a full-viewport popover listing this "
-"artwork's approved federated replies. Shows plain, non-interactive \"0 "
-"replies\" text on an artwork with no approved replies yet; renders nothing "
-"off an agnosis_artwork post."
-msgstr "\"N ردود\" تفعيل يفتح نافذة منبثقة بعرض كامل تعرض الردود المعتمدة على هذا العمل الفني. يظهر نص \"0 ردود\" العادي وغير التفاعلي على عمل فني بدون ردود معتمدة بعد؛ لا يعرض شيئاً على منشور agnosis_artwork."
+"Trigger that opens a full-viewport popover listing this artwork's approved "
+"replies (Fediverse and on-site visitors alike) alongside a reply form, when "
+"replies are open. Shows plain, non-interactive \"0 replies\" text when "
+"replies are switched off with none already posted; renders nothing off an "
+"agnosis_artwork post."
+msgstr "إجراء يفتح نافذة منبثقة بكامل الشاشة تُدرج ردود هذا العمل الفني المعتمدة (لـFediverse والزوار على الموقع على حدٍ سواء) جنبًا إلى جنب مع نموذج الرد، عندما تكون الردود مفتوحة. يعرض نص \"0 ردود\" العادي وغير التفاعلي عندما تكون الردود موقوفة ولم يُنشر أي رد من قبل؛ ولا يعرض شيئًا في منشور agnosis_artwork."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"
@@ -8360,6 +8593,15 @@ msgstr "المرسلات"
 msgctxt "block keyword"
 msgid "review"
 msgstr "مراجعة"
+
+#~ msgid "Approve this reply?"
+#~ msgstr "هل توافق على هذا الرد؟"
+
+#~ msgid "Yes, approve it"
+#~ msgstr "نعم، وافق عليه"
+
+#~ msgid "This will discard the reply — it will not be shown."
+#~ msgstr "سيؤدي ذلك إلىDiscard الرد — لن يظهر."
 
 #~ msgid "Tags (comma-separated)"
 #~ msgstr "الوسوم (مفصولة بفواصل)"

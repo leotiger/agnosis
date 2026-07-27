@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Agnosis\Tests\Integration\Newsletter;
 
+use Agnosis\Network\FederationSettlement;
 use Agnosis\Newsletter\Digest;
 use Agnosis\Tests\Integration\Support\FakeLinguaForge;
 
@@ -74,6 +75,104 @@ class DigestTest extends \WP_UnitTestCase {
 		$html = Digest::build_artist( $since );
 
 		$this->assertStringContainsString( '2 new artworks published', $html );
+	}
+
+	// =========================================================================
+	// Interaction-surface roadmap, Phase 3, WP3 — like-link placeholder
+	// =========================================================================
+
+	public function test_federated_artwork_gets_a_like_placeholder_in_the_artist_digest(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$post_id = $this->make_artwork( 'Federated Piece', gmdate( 'Y-m-d H:i:s' ) );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$html = Digest::build_artist( $since );
+
+		$this->assertStringContainsString( '{{AGNOSIS_LIKE:' . $post_id . '}}', $html );
+	}
+
+	public function test_federated_artwork_gets_a_like_placeholder_in_the_public_digest_too(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$post_id = $this->make_artwork( 'Federated Piece Public', gmdate( 'Y-m-d H:i:s' ) );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$html = Digest::build_public( $since );
+
+		$this->assertStringContainsString( '{{AGNOSIS_LIKE:' . $post_id . '}}', $html );
+	}
+
+	public function test_not_yet_federated_artwork_gets_no_like_placeholder(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$post_id = $this->make_artwork( 'Pending Piece', gmdate( 'Y-m-d H:i:s' ) );
+		// No STATE_META at all — the common "just published, still pending
+		// tag/medium settlement" case (FederationSettlement's own STATE_PENDING).
+
+		$html = Digest::build_artist( $since );
+
+		$this->assertStringNotContainsString( '{{AGNOSIS_LIKE:', $html );
+	}
+
+	// =========================================================================
+	// Interaction-surface roadmap, Phase 3, WP5 — boost-link placeholder
+	// =========================================================================
+
+	public function test_federated_artwork_gets_a_boost_placeholder_in_the_artist_digest(): void {
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$post_id = $this->make_artwork( 'Federated Boostable Piece', gmdate( 'Y-m-d H:i:s' ) );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$html = Digest::build_artist( $since );
+
+		$this->assertStringContainsString( '{{AGNOSIS_BOOST:' . $post_id . '}}', $html );
+	}
+
+	public function test_federated_artwork_never_gets_a_boost_placeholder_in_the_public_digest(): void {
+		// §4 Phase 3G step 1's audience rule: the public newsletter's
+		// recipients have no actor, so a boost link would be a dead
+		// affordance — only the artist digest ever offers one.
+		$since   = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$post_id = $this->make_artwork( 'Federated Piece No Boost', gmdate( 'Y-m-d H:i:s' ) );
+		update_post_meta( $post_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$html = Digest::build_public( $since );
+
+		$this->assertStringContainsString( '{{AGNOSIS_LIKE:' . $post_id . '}}', $html, 'The public digest still gets a like placeholder — only boost is withheld.' );
+		$this->assertStringNotContainsString( '{{AGNOSIS_BOOST:', $html );
+	}
+
+	public function test_not_yet_federated_artwork_gets_no_boost_placeholder(): void {
+		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+		$this->make_artwork( 'Pending Boost Piece', gmdate( 'Y-m-d H:i:s' ) );
+
+		$html = Digest::build_artist( $since );
+
+		$this->assertStringNotContainsString( '{{AGNOSIS_BOOST:', $html );
+	}
+
+	public function test_events_never_get_a_like_placeholder_even_if_federated(): void {
+		// build_artist() never lists individual events at all — only a bare
+		// count ("N new events announced", see Digest::build_artist()'s own
+		// <ul> summary). Only build_public() actually calls render_post_list()
+		// for events (with $show_date = true), so that's the one that can
+		// prove render_post_list()'s "! $show_date" guard is what's actually
+		// keeping the placeholder off events, not just that events never
+		// render at all.
+		$since = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
+
+		// @phpstan-ignore-next-line -- factory()->user->create() returns int|WP_Error; a bare event fixture never fails in practice (see feedback_phpstan_baseline_test_gotchas Rule 4).
+		$event_id = (int) wp_insert_post( [
+			'post_type'   => 'agnosis_event',
+			'post_status' => 'publish',
+			'post_title'  => 'Federated Event',
+			'post_date'   => gmdate( 'Y-m-d H:i:s' ),
+			'post_author' => self::factory()->user->create(),
+		] );
+		update_post_meta( $event_id, FederationSettlement::STATE_META, FederationSettlement::STATE_FEDERATED );
+
+		$html = Digest::build_public( $since );
+
+		$this->assertStringContainsString( 'Federated Event', $html );
+		$this->assertStringNotContainsString( '{{AGNOSIS_LIKE:', $html );
 	}
 
 	// =========================================================================

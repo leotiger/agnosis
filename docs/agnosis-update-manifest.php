@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.57';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.57/agnosis-0.9.57.zip';
+	$version      = '0.9.58';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.58/agnosis-0.9.58.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -97,8 +97,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '546b9c2c8467ea83a32b9ce48653bd867b84fd5ca1f4790b2c8f4efdae8e3295'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-27 for agnosis-0.9.57.zip.';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Build started 2026-07-27T22:47:00Z by build-zip.sh for v0.9.58 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
 	$last_updated = '2026-07-27';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -111,16 +111,15 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.58</h4>' .
+		'<ul>' .
+			'<li><strong>Added:</strong> Every artwork in your email newsletter now carries a like link — followers (and artists reading their own artist newsletter) can like a piece straight from the email, no login or fediverse account needed.</li>' .
+		'</ul>' .
 		'<h4>0.9.57</h4>' .
 		'<ul>' .
 			'<li><strong>Fixed:</strong> The one-click Approve/Reject link an artist gets emailed for a Fediverse reply could be silently triggered by a corporate mail scanner prefetching the link, approving or discarding the reply before the artist ever saw it. The link now always requires a confirmation click, and expires after a configurable number of days like every other emailed action link.</li>' .
 			'<li><strong>Added:</strong> Artists can now opt out of search-engine and Fediverse discovery indexing (FEP-5feb) for their whole profile and body of work — on by default, changeable with no login needed via the existing preferences email link or a checkbox on the artwork/biography approval pages.</li>' .
 			'<li><strong>Added:</strong> The like count under an artwork is now a real toggle — visitors and artists can click the heart to like/unlike directly on-site, no fediverse account needed. Boosts are unchanged.</li>' .
-		'</ul>' .
-		'<h4>0.9.56</h4>' .
-		'<ul>' .
-			'<li><strong>Fixed:</strong> Every federated reply was silently discarded due to a database column that was too narrow for the internal comment-type value used to store it.</li>' .
-			'<li><strong>Fixed:</strong> The like/boost/reply counts under an artwork rendered nothing at all when all three were zero, leaving a dangling label above an empty gap.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

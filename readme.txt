@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.57
+Stable tag: 0.9.58
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,19 +91,18 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.58 =
+* Added: Every artwork in your email newsletter now carries a like link — followers (and artists reading their own artist newsletter) can like a piece straight from the email, no login or fediverse account needed.
+
 = 0.9.57 =
 * Fixed: The one-click Approve/Reject link an artist gets emailed for a Fediverse reply could be silently triggered by a corporate mail scanner prefetching the link, approving or discarding the reply before the artist ever saw it. The link now always requires a confirmation click, and expires after a configurable number of days like every other emailed action link.
 * Added: Artists can now opt out of search-engine and Fediverse discovery indexing (FEP-5feb) for their whole profile and body of work — on by default, changeable with no login needed via the existing preferences email link or a checkbox on the artwork/biography approval pages.
 * Added: The like count under an artwork is now a real toggle — visitors and artists can click the heart to like/unlike directly on-site, no fediverse account needed. Boosts are unchanged.
-
-= 0.9.56 =
-* Fixed: Every federated reply was silently discarded due to a database column that was too narrow for the internal comment-type value used to store it.
-* Fixed: The like/boost/reply counts under an artwork rendered nothing at all when all three were zero, leaving a dangling label above an empty gap.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
 
 = 0.9.57 =
-Fixes a security-hardening bug where an email security scanner's link prefetch could silently approve or discard a Fediverse reply before the artist saw it. Also adds a search-engine/Fediverse discovery opt-out for artists (on by default) and lets visitors like an artwork directly on-site. No action needed.
+Security fix: an email scanner's link prefetch could silently approve or discard a Fediverse reply before you saw it. No action needed.
 

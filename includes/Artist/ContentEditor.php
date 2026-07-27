@@ -836,8 +836,15 @@ class ContentEditor {
 	/**
 	 * Copy the replies-disabled flag to every language version of the post —
 	 * same language-neutral, synchronous shape as set_sensitive_everywhere().
+	 *
+	 * Public (WP4, interaction-surface roadmap, Phase 3, §4 Phase 3A step 3):
+	 * Publishing\ReviewConfirm's new "Allow replies?" approve-page checkbox
+	 * calls this directly rather than duplicating the sibling-propagation
+	 * logic — approval is the artist's FIRST chance to set this, before
+	 * they've ever seen ContentEditor's own front-end toggle, so the two must
+	 * write through the exact same path.
 	 */
-	private function set_replies_disabled_everywhere( WP_Post $post, bool $value ): void {
+	public function set_replies_disabled_everywhere( WP_Post $post, bool $value ): void {
 		foreach ( $this->resolve_language_targets( $post->ID ) as $target_id ) {
 			if ( $value ) {
 				update_post_meta( $target_id, ActivityPub::REPLIES_DISABLED_META, '1' );

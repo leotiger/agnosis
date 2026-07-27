@@ -301,6 +301,21 @@ parameters:
 			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
 
 		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RelayManagerTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RelayManagerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 11
+			path: ../tests/php/Integration/Admin/RelayManagerTest.php
+
+		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
@@ -1866,6 +1881,41 @@ parameters:
 			path: ../tests/php/Integration/Email/WebhookReplyRejectionTest.php
 
 		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubFederateReplyTest.php
+
+		-
+			message: "#^Empty array passed to foreach\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/ActivityPubFederateReplyTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubFederateReplyTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubLocalReplyTest.php
+
+		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubLocalReplyTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubLocalReplyTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubLocalReplyTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubLocalReplyTest.php
+
+		-
 			message: "#^Access to an undefined property WP_Error\\|WP_Term\\:\\:\\$term_id\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
@@ -1946,6 +1996,11 @@ parameters:
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
+			message: "#^Cannot cast int\\|WP_Error to int\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:broadcast_and_capture\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
@@ -2002,7 +2057,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, int\\|WP_Error given\\.$#"
-			count: 5
+			count: 6
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2042,7 +2097,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:render_reply_overlay_via_block\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 2
+			count: 3
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2077,7 +2132,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
-			count: 2
+			count: 3
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2129,6 +2184,21 @@ parameters:
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Network\\\\FederationSettlementTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/FederationSettlementTest.php
+
+		-
+			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureRfc9421Test.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_export expects array\\|OpenSSLAsymmetricKey\\|OpenSSLCertificate\\|string, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Network/HttpSignatureRfc9421Test.php
+
+		-
+			message: "#^Parameter \\#1 \\$key of function openssl_pkey_get_details expects OpenSSLAsymmetricKey, OpenSSLAsymmetricKey\\|false given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/HttpSignatureRfc9421Test.php
 
 		-
 			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
@@ -2269,6 +2339,16 @@ parameters:
 			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Context Event', post_date\\: string, post_author\\: int\\|WP_Error\\} given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Newsletter/DigestTest.php
+
+		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/InteractionGatewayTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Newsletter/InteractionGatewayTest.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$attempts\\.$#"

@@ -127,6 +127,15 @@ class Archive {
 			? $locale_map[ $locale ]
 			: [ 'intro' => (string) $issue->intro, 'digest_html' => (string) $issue->digest_html ];
 
+		// Interaction-surface roadmap, Phase 3, WP3 — this is a public,
+		// unauthenticated page, so any {{AGNOSIS_LIKE:<post_id>}} placeholder
+		// (Digest::render_post_list()) is stripped to nothing rather than
+		// resolved to a real link, same convention as the unsubscribe URL
+		// just below (Mailer::build_body()'s own `$unsubscribe_url = null`
+		// path) — there is no single recipient here to build a per-person
+		// link for.
+		$content['digest_html'] = InteractionGateway::inert( $content['digest_html'] );
+
 		// No unsubscribe URL and no "view online" banner — this already *is*
 		// the online view. See Mailer::build_body() doc for why a fragment
 		// (not build_email()'s full document) is used here: wp_die() below

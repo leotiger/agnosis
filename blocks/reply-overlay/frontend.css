@@ -116,3 +116,75 @@
 .agnosis-reply-overlay__status {
 	opacity: 0.7;
 }
+
+/* Reply form (WP4, interaction-surface roadmap, Phase 3) — sits below the
+ * (possibly empty) reply list inside the same popover panel, never a
+ * separate surface. */
+.agnosis-reply-overlay__form {
+	margin-top: var(--wp--preset--spacing--50, 2rem);
+	padding-top: var(--wp--preset--spacing--40, 1.5rem);
+	border-top: 1px solid var(--wp--preset--color--tertiary, #e0e0e0);
+}
+
+.agnosis-reply-overlay__form-message,
+.agnosis-reply-overlay__form-row input {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.75em;
+	font: inherit;
+	font-size: 1em;
+	color: inherit;
+	background: transparent;
+	border: 1px solid var(--wp--preset--color--tertiary, currentColor);
+	border-radius: 4px;
+	margin: 0 0 0.75em;
+}
+
+.agnosis-reply-overlay__form-row {
+	display: flex;
+	gap: 0.75em;
+}
+
+.agnosis-reply-overlay__form-row input {
+	flex: 1;
+	margin: 0 0 0.75em;
+}
+
+.agnosis-reply-overlay__form-submit {
+	display: inline-block;
+	background: var(--wp--preset--color--foreground, #111);
+	color: var(--wp--preset--color--background, #fff);
+	border: 0;
+	border-radius: 999px;
+	padding: 0.6em 1.5em;
+	font: inherit;
+	font-size: 0.95em;
+	cursor: pointer;
+	opacity: 0.9;
+}
+
+.agnosis-reply-overlay__form-submit:hover {
+	opacity: 1;
+}
+
+.agnosis-reply-overlay__form-submit[aria-busy="true"] {
+	opacity: 0.5;
+	cursor: wait;
+}
+
+.agnosis-reply-overlay__form-status {
+	margin: 0.75em 0 0;
+	font-size: 0.9em;
+	opacity: 0.8;
+}
+
+.agnosis-reply-overlay__form-status--success {
+	color: var(--wp--preset--color--success, #2e7d32);
+	opacity: 1;
+}
+
+.agnosis-reply-overlay__form-status--error {
+	color: var(--wp--preset--color--error, #c0392b);
+	opacity: 1;
+}

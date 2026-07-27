@@ -267,6 +267,36 @@ class FederationSettlement {
 		return is_array( $ids ) ? array_map( 'intval', $ids ) : [];
 	}
 
+	/**
+	 * Is $display_post_id (whatever a caller is about to show/link to — the
+	 * primary itself, or one of its language siblings) actually federated?
+	 * (Interaction-surface roadmap, Phase 3, WP3 — newsletter interaction
+	 * links must only ever be rendered for content a remote server can
+	 * actually dereference.)
+	 *
+	 * `on_translation_complete()` only ever adds an id to DELIVERED_META once
+	 * the primary itself is already STATE_FEDERATED (see that method's own
+	 * early-return), so a sibling can never appear in DELIVERED_META while
+	 * the primary isn't federated — checking the primary's own state first is
+	 * therefore both necessary and sufficient, not a redundant second check.
+	 *
+	 * @param int $display_post_id The specific post a link/entry actually
+	 *                             points at — may be the primary itself or a
+	 *                             translated sibling.
+	 * @param int $primary_post_id The primary post this content belongs to.
+	 */
+	public static function is_federated( int $display_post_id, int $primary_post_id ): bool {
+		if ( self::STATE_FEDERATED !== (string) get_post_meta( $primary_post_id, self::STATE_META, true ) ) {
+			return false;
+		}
+
+		if ( $display_post_id === $primary_post_id ) {
+			return true;
+		}
+
+		return in_array( $display_post_id, self::delivered_ids( $primary_post_id ), true );
+	}
+
 	// -------------------------------------------------------------------------
 	// Safety-valve cron — agnosis_federation_tag_wait_sweep
 	// -------------------------------------------------------------------------

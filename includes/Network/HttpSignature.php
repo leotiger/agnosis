@@ -23,6 +23,21 @@
  *     node registration, audit §2d), instead of fetching it from a remote
  *     actor document.
  *
+ * RFC 9421 HTTP Message Signatures — interaction-surface roadmap, Phase 3,
+ * WP10 (§7 Q9a): verify() also accepts the newer `Signature-Input:` +
+ * `Signature:` structured-field form a peer may send instead of (or, during
+ * a real migration, alongside) the legacy header above — detected by the
+ * presence of a `Signature-Input` header, which cavage never sends.
+ * Deliberately scoped to `rsa-v1_5-sha256` against the SAME
+ * `publicKey.publicKeyPem` fetch_public_key() already resolves: no actor
+ * document in the deployed fediverse publishes an Ed25519 key today, and
+ * verifying one is explicitly WP12/FASP's own concern, not this one — a
+ * request signed with any other `alg` is rejected rather than silently
+ * mis-verified. *Signing* stays cavage-only (§7 Q9a: that is what every
+ * major implementation still speaks, and is not a defect); this is
+ * inbound-only, so a peer that has migrated away from cavage is not
+ * rejected the day it stops sending it.
+ *
  * @package Agnosis\Network
  */
 
@@ -69,6 +84,13 @@ class HttpSignature {
 	 * @return true|WP_Error
 	 */
 	public static function verify( WP_REST_Request $request ): bool|WP_Error {
+		// A `Signature-Input` header is unique to RFC 9421 — cavage never
+		// sends one, so its mere presence is an unambiguous dispatch signal
+		// (WP10, §7 Q9a).
+		if ( '' !== (string) $request->get_header( 'signature-input' ) ) {
+			return self::verify_rfc9421( $request );
+		}
+
 		$params = self::verify_preamble( $request );
 		if ( is_wp_error( $params ) ) {
 			return $params;
@@ -180,6 +202,12 @@ class HttpSignature {
 	 * @return string
 	 */
 	public static function signing_key_owner( WP_REST_Request $request ): string {
+		$sig_input_header = (string) $request->get_header( 'signature-input' );
+		if ( '' !== $sig_input_header ) {
+			$parsed = self::parse_signature_input( $sig_input_header );
+			return is_wp_error( $parsed ) ? '' : (string) strtok( (string) ( $parsed['params']['keyid'] ?? '' ), '#' );
+		}
+
 		$params = self::parse_signature_header( (string) $request->get_header( 'signature' ) );
 		return (string) strtok( (string) ( $params['keyId'] ?? '' ), '#' );
 	}
@@ -502,5 +530,282 @@ class HttpSignature {
 		}
 
 		return implode( "\n", $parts );
+	}
+
+	// -------------------------------------------------------------------------
+	// RFC 9421 (HTTP Message Signatures) — interaction-surface roadmap, WP10
+	// -------------------------------------------------------------------------
+
+	/** Only algorithm this class will verify under RFC 9421 — see the class docblock for why Ed25519 is deliberately out of scope here. */
+	private const RFC9421_SUPPORTED_ALG = 'rsa-v1_5-sha256';
+
+	/**
+	 * Verify an RFC 9421 `Signature-Input:`/`Signature:` pair — the
+	 * structured-field-based successor to the cavage draft verify()
+	 * otherwise handles. Mirrors verify()'s own step order (parse → signed-
+	 * component strictness → freshness → digest → fetch key → verify)
+	 * exactly, just against RFC 9421's own header/parameter shapes.
+	 *
+	 * @param WP_REST_Request $request Incoming REST request.
+	 * @return true|WP_Error
+	 */
+	private static function verify_rfc9421( WP_REST_Request $request ): bool|WP_Error {
+		if ( ! function_exists( 'openssl_verify' ) ) {
+			return new WP_Error(
+				'ap_sig_openssl_missing',
+				__( 'OpenSSL is required for HTTP Signature verification.', 'agnosis' ),
+				[ 'status' => 501 ]
+			);
+		}
+
+		$sig_input = self::parse_signature_input( (string) $request->get_header( 'signature-input' ) );
+		if ( is_wp_error( $sig_input ) ) {
+			return $sig_input;
+		}
+
+		$alg = $sig_input['params']['alg'] ?? '';
+		if ( '' !== $alg && self::RFC9421_SUPPORTED_ALG !== $alg ) {
+			return new WP_Error(
+				'ap_sig_unsupported_alg',
+				/* translators: %s: the unsupported signature algorithm name. */
+				sprintf( __( 'Unsupported signature algorithm: %s.', 'agnosis' ), $alg ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$key_id = (string) ( $sig_input['params']['keyid'] ?? '' );
+		if ( '' === $key_id ) {
+			return new WP_Error(
+				'ap_sig_malformed',
+				__( 'Signature-Input header is missing keyid.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		// ── Freshness — the `created`/`expires` metadata parameters are RFC
+		// 9421's own replacement for a signed Date header, same ±12h window
+		// and same "must be present" strictness verify_preamble() enforces
+		// for cavage's Date.
+		$created = isset( $sig_input['params']['created'] ) && ctype_digit( (string) $sig_input['params']['created'] )
+			? (int) $sig_input['params']['created']
+			: 0;
+		if ( 0 === $created || abs( time() - $created ) > self::MAX_REQUEST_AGE ) {
+			return new WP_Error(
+				'ap_sig_stale',
+				__( 'Request date is too old or too far in the future.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+		if ( isset( $sig_input['params']['expires'] ) && ctype_digit( (string) $sig_input['params']['expires'] ) && time() > (int) $sig_input['params']['expires'] ) {
+			return new WP_Error(
+				'ap_sig_stale',
+				__( 'Signature has expired.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+
+		// ── Signed-component strictness (mirrors verify_preamble()'s 1b) —
+		// every POST's signature must cover content-digest, since that's the
+		// request class carrying a body worth binding to the signature.
+		$covered = array_map( 'strtolower', $sig_input['components'] );
+		if ( 'POST' === $request->get_method() && ! in_array( 'content-digest', $covered, true ) ) {
+			return new WP_Error(
+				'ap_sig_no_digest',
+				__( 'Signature on a POST request must cover the Content-Digest field.', 'agnosis' ),
+				[ 'status' => 401 ]
+			);
+		}
+		if ( in_array( 'content-digest', $covered, true ) ) {
+			$digest_err = self::verify_content_digest( $request );
+			if ( is_wp_error( $digest_err ) ) {
+				return $digest_err;
+			}
+		}
+
+		$signature_b64 = self::parse_signature_dict( (string) $request->get_header( 'signature' ), $sig_input['label'] );
+		if ( null === $signature_b64 ) {
+			return new WP_Error(
+				'ap_sig_malformed',
+				__( 'Signature header does not contain a value for the Signature-Input label.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$raw_signature = base64_decode( $signature_b64, true );
+		if ( false === $raw_signature || '' === $raw_signature ) {
+			return new WP_Error(
+				'ap_sig_malformed',
+				__( 'Signature value is not valid base64.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		// ── Fetch (and cache) the actor's RSA public key — the exact same
+		// helper and cache cavage verification already uses; keyid means the
+		// same thing (the actor document URL, optionally with a #fragment)
+		// in both schemes.
+		$public_key_pem = self::fetch_public_key( $key_id );
+		if ( is_wp_error( $public_key_pem ) ) {
+			return $public_key_pem;
+		}
+
+		$signature_base = self::build_rfc9421_signature_base( $request, $sig_input['components'], $sig_input['raw_params'] );
+		$result         = openssl_verify( $signature_base, $raw_signature, $public_key_pem, OPENSSL_ALGO_SHA256 );
+
+		if ( 1 !== $result ) {
+			return new WP_Error(
+				'ap_sig_invalid',
+				__( 'HTTP Signature verification failed.', 'agnosis' ),
+				[ 'status' => 403 ]
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Parse a `Signature-Input` header into its label, covered-component
+	 * list, and parameters — a light, single-signature parser (first label
+	 * found) rather than a general RFC 8941 structured-field parser,
+	 * matching parse_signature_header()'s own "just enough for what real
+	 * fediverse servers send" scope.
+	 *
+	 * @param string $header Raw `Signature-Input` header value.
+	 * @return array{label: string, components: array<int, string>, params: array<string, string>, raw_params: string}|WP_Error
+	 */
+	private static function parse_signature_input( string $header ): array|WP_Error {
+		if ( ! preg_match( '/^\s*([\w-]+)=(\([^)]*\)(?:;[\w-]+=(?:"[^"]*"|[^;,]+))*)/', trim( $header ), $m ) ) {
+			return new WP_Error(
+				'ap_sig_malformed',
+				__( 'Signature-Input header is malformed.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$label      = $m[1];
+		$raw_params = $m[2];
+
+		preg_match( '/^\(([^)]*)\)/', $raw_params, $list_match );
+		preg_match_all( '/"([^"]+)"/', $list_match[1] ?? '', $component_matches );
+		$components = $component_matches[1];
+
+		if ( [] === $components ) {
+			return new WP_Error(
+				'ap_sig_malformed',
+				__( 'Signature-Input covers no components.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$params = [];
+		preg_match_all( '/;([\w-]+)=(?:"([^"]*)"|([^;,]+))/', $raw_params, $param_matches, PREG_SET_ORDER );
+		foreach ( $param_matches as $p ) {
+			$params[ $p[1] ] = '' !== ( $p[2] ?? '' ) ? $p[2] : ( $p[3] ?? '' );
+		}
+
+		return [ 'label' => $label, 'components' => $components, 'params' => $params, 'raw_params' => $raw_params ];
+	}
+
+	/**
+	 * Extract one label's base64 signature value out of a `Signature` header
+	 * formatted as an RFC 8941 structured-field dictionary of byte sequences
+	 * (`sig1=:base64:`, possibly several comma-separated labels) — the
+	 * RFC 9421 counterpart of parse_signature_header()'s cavage parsing.
+	 *
+	 * @param string $header Raw `Signature` header value.
+	 * @param string $label  The label named by this request's Signature-Input.
+	 * @return string|null Base64 signature bytes, or null if the label isn't present.
+	 */
+	private static function parse_signature_dict( string $header, string $label ): ?string {
+		if ( ! preg_match( '/(?:^|,)\s*' . preg_quote( $label, '/' ) . '=:([^:]*):/', $header, $m ) ) {
+			return null;
+		}
+		return $m[1];
+	}
+
+	/**
+	 * Verify a `Content-Digest` header (RFC 9530) against the raw request
+	 * body — RFC 9421's own replacement for cavage's `Digest` header,
+	 * structured as `sha-256=:base64:` rather than `SHA-256=base64`.
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @return true|WP_Error
+	 */
+	private static function verify_content_digest( WP_REST_Request $request ): bool|WP_Error {
+		$header = (string) $request->get_header( 'content-digest' );
+		if ( ! preg_match( '/sha-256=:([^:]*):/', $header, $m ) ) {
+			return new WP_Error(
+				'ap_sig_digest',
+				__( 'Content-Digest header does not contain a sha-256 value.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$expected_digest = base64_encode( hash( 'sha256', $request->get_body(), true ) );
+		if ( ! hash_equals( $expected_digest, $m[1] ) ) {
+			return new WP_Error(
+				'ap_sig_digest',
+				__( 'Content-Digest header does not match the request body.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Reconstruct the RFC 9421 "signature base" — one `"<component>": <value>`
+	 * line per covered component (§2.5), followed by a final
+	 * `"@signature-params": <...>` line whose value is the SAME raw
+	 * component-list-and-parameters substring that appeared in
+	 * `Signature-Input` (byte-exact, per spec — reusing the captured raw
+	 * string rather than re-serializing avoids any risk of the two drifting).
+	 *
+	 * @param WP_REST_Request      $request    Incoming request.
+	 * @param array<int, string>   $components Covered component identifiers, in order.
+	 * @param string               $raw_params The exact `(...)…` substring from Signature-Input.
+	 * @return string
+	 */
+	private static function build_rfc9421_signature_base( WP_REST_Request $request, array $components, string $raw_params ): string {
+		$lines = [];
+
+		foreach ( $components as $component ) {
+			$lines[] = '"' . strtolower( $component ) . '": ' . self::rfc9421_component_value( $request, strtolower( $component ) );
+		}
+
+		$lines[] = '"@signature-params": ' . $raw_params;
+
+		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Resolve one RFC 9421 covered-component identifier to its signed value —
+	 * the small set of "derived components" (§2.2, `@`-prefixed) real
+	 * fediverse signers actually cover, plus ordinary HTTP fields (looked up
+	 * the same way build_signing_string() already looks up cavage's signed
+	 * headers).
+	 *
+	 * @param WP_REST_Request $request Incoming request.
+	 * @param string           $name    Lowercase component identifier.
+	 * @return string
+	 */
+	private static function rfc9421_component_value( WP_REST_Request $request, string $name ): string {
+		switch ( $name ) {
+			case '@method':
+				return strtoupper( $request->get_method() );
+			case '@target-uri':
+				// Build as home_url() + <rest-prefix><route> so it works
+				// regardless of whether pretty permalinks are enabled — same
+				// reasoning as build_signing_string()'s own (request-target).
+				return home_url( '/' . rest_get_url_prefix() . $request->get_route() );
+			case '@authority':
+				return strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+			case '@path':
+				return '/' . rest_get_url_prefix() . $request->get_route();
+			case '@scheme':
+				return (string) ( wp_parse_url( home_url(), PHP_URL_SCHEME ) ?: 'https' );
+			default:
+				return (string) $request->get_header( $name );
+		}
 	}
 }
