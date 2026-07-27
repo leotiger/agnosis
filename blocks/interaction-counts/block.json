@@ -6,7 +6,7 @@
 	"title": "Interaction Counts",
 	"category": "agnosis",
 	"icon": "heart",
-	"description": "Renders how many times this artwork has been liked and boosted across the fediverse — two small, independent counts. Renders nothing on an artwork with no interactions yet, or off an agnosis_artwork post.",
+	"description": "Renders how many times this artwork has been liked and boosted across the fediverse — two small, independent counts, always shown (including \"0\") on an agnosis_artwork post. Renders nothing off an agnosis_artwork post.",
 	"keywords": [ "like", "likes", "boost", "boosts", "announce", "federation", "activitypub", "agnosis" ],
 	"textdomain": "agnosis",
 	"usesContext": [ "postId" ],

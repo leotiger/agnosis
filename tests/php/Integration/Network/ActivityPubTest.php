@@ -2392,12 +2392,18 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		return $block->render();
 	}
 
-	public function test_render_interaction_counts_renders_nothing_with_no_interactions(): void {
+	public function test_render_interaction_counts_shows_zero_of_both_with_no_interactions(): void {
 		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 
 		$html = $this->render_interaction_counts_via_block( $post_id );
 
-		$this->assertSame( '', $html, 'A brand-new artwork with zero likes/boosts must render nothing — no permanent "0" fixture.' );
+		// 2026-07-25: hiding the whole line at zero-of-both left the theme's
+		// "Universe:" label above it dangling with nothing after it on every
+		// unliked artwork — corrected to always show both counts, even 0.
+		$this->assertStringContainsString( 'agnosis-interaction-counts', $html );
+		$this->assertStringContainsString( '0', $html, 'A brand-new artwork with zero likes/boosts must still show "0" for both, not render nothing.' );
+		$this->assertStringContainsString( 'agnosis-interaction-counts__likes', $html );
+		$this->assertStringContainsString( 'agnosis-interaction-counts__boosts', $html );
 	}
 
 	public function test_render_interaction_counts_renders_nothing_off_an_artwork_post(): void {
@@ -2422,14 +2428,65 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( '1', $html, 'The boost count (1) must appear, independently of the like count.' );
 	}
 
-	public function test_render_interaction_counts_shows_only_likes_when_there_are_no_boosts(): void {
+	public function test_render_interaction_counts_shows_zero_boosts_alongside_real_likes(): void {
 		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 		$this->seed_interaction( $post_id, 'like', self::REMOTE_ACTOR_URL );
 
 		$html = $this->render_interaction_counts_via_block( $post_id );
 
 		$this->assertStringContainsString( 'agnosis-interaction-counts__likes', $html );
-		$this->assertStringNotContainsString( 'agnosis-interaction-counts__boosts', $html, 'With zero boosts, only the likes span should render — no "0 boosts" clutter.' );
+		// 2026-07-25: both spans always render now — with zero boosts this
+		// must still show "0 boosts", not omit the boosts span entirely.
+		$this->assertStringContainsString( 'agnosis-interaction-counts__boosts', $html );
+		$this->assertMatchesRegularExpression( '/⟲\s*0\s*boosts/u', $html, 'Zero boosts must render as "⟲ 0 boosts", not be hidden.' );
+	}
+
+	/** Dispatch agnosis/reply-overlay through a real WP_Block::render() — same reason as render_interaction_counts_via_block() above (get_block_wrapper_attributes() needs WP_Block_Supports::$block_to_render populated). */
+	private function render_reply_overlay_via_block( int $post_id ): string {
+		if ( ! \WP_Block_Type_Registry::get_instance()->is_registered( 'agnosis/reply-overlay' ) ) {
+			( new ActivityPub() )->register_reply_overlay_block();
+		}
+
+		$block = new \WP_Block(
+			[
+				'blockName'    => 'agnosis/reply-overlay',
+				'attrs'        => [],
+				'innerBlocks'  => [],
+				'innerHTML'    => '',
+				'innerContent' => [],
+			],
+			[ 'postId' => $post_id ]
+		);
+
+		return $block->render();
+	}
+
+	public function test_render_reply_overlay_shows_plain_zero_text_with_no_replies(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+
+		$html = $this->render_reply_overlay_via_block( $post_id );
+
+		// 2026-07-25: consistent with interaction-counts, an artwork with no
+		// replies still shows "0 replies" — but as inert text, not a button:
+		// there's nothing to open (no existing replies to list) and no local
+		// reply/comment form exists yet (a separate, not-yet-built feature,
+		// deliberately out of scope here — Ulises, 2026-07-25).
+		$this->assertStringContainsString( '0 replies', $html );
+		$this->assertStringNotContainsString( '<button', $html, 'With zero replies there is nothing to open, so no clickable trigger should render.' );
+		$this->assertStringNotContainsString( 'popover', $html );
+	}
+
+	public function test_render_reply_overlay_shows_interactive_trigger_with_approved_replies(): void {
+		$post_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
+		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL );
+		( new ActivityPub() )->inbox( $this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello' ) );
+		wp_set_comment_status( $this->first_reply_comment_id( $post_id ), 'approve' );
+
+		$html = $this->render_reply_overlay_via_block( $post_id );
+
+		$this->assertStringContainsString( '1 reply', $html );
+		$this->assertStringContainsString( '<button', $html, 'With at least one approved reply, the real clickable trigger must render.' );
+		$this->assertStringContainsString( 'popovertarget', $html );
 	}
 
 	// -------------------------------------------------------------------------

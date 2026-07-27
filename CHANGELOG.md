@@ -5,6 +5,12 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.56] — 2026-07-25
+
+### Fixed
+- **Every federated reply was silently discarded.** `ActivityPub::REPLY_COMMENT_TYPE` was `'agnosis_federated_reply'` (23 characters) against `wp_comments.comment_type`'s `varchar(20)` column (WP core's own schema) — under strict SQL mode the insert failed outright rather than truncating, so `wp_insert_comment()` returned `false` and every inbound reply was reported back as `'ignored'` regardless of its actual gates. Shortened to `'agnosis_ap_reply'` (17 characters). (`includes/Network/ActivityPub.php`)
+- **`agnosis/interaction-counts` and `agnosis/reply-overlay` rendered nothing at all on an artwork with zero likes/boosts/replies, leaving the theme's "Universe:" label above them dangling with nothing after it** (caught on a live front-end check). `render_interaction_counts()` now always shows both counts, including "♥ 0 likes · ⟲ 0 boosts". `render_reply_overlay()` now shows a plain, non-interactive "0 replies" line instead of nothing — not a clickable button, since there's nothing to open (and a local, non-fediverse reply/comment form is a separate, not-yet-built feature, deliberately out of scope here). Once an artwork has at least one approved reply, the real button + popover panel takes over as before. (`includes/Network/ActivityPub.php`, `blocks/interaction-counts/block.json`, `blocks/reply-overlay/block.json`)
+
 ## [0.9.55] — 2026-07-25
 
 ### Added
@@ -16,6 +22,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 - **`Admin\ArtworkRetag::maybe_render_notice()` read `$_GET['agnosis_retag_success']`/`agnosis_retag_matched`/`agnosis_retag_proposed`/`agnosis_retag_gated` without `wp_unslash()`, flagged by Plugin Check.** These are read-only, same-request redirect params this class writes itself (not user-facing form input), so there was no real vulnerability — but the fix now wraps each in `wp_unslash()` before casting, matching WPCS convention. (`includes/Admin/ArtworkRetag.php`)
 - **Every federated reply was silently discarded.** `ActivityPub::REPLY_COMMENT_TYPE` was `'agnosis_federated_reply'` (23 characters) against `wp_comments.comment_type`'s `varchar(20)` column (WP core's own schema) — under strict SQL mode the insert failed outright rather than truncating, so `wp_insert_comment()` returned `false` and every inbound reply was reported back as `'ignored'` regardless of its actual gates. Shortened to `'agnosis_ap_reply'` (17 characters). (`includes/Network/ActivityPub.php`)
+- **`agnosis/interaction-counts` and `agnosis/reply-overlay` rendered nothing at all on an artwork with zero likes/boosts/replies, leaving the theme's "Universe:" label above them dangling with nothing after it** (caught on a live front-end check). `render_interaction_counts()` now always shows both counts, including "♥ 0 likes · ⟲ 0 boosts". `render_reply_overlay()` now shows a plain, non-interactive "0 replies" line instead of nothing — not a clickable button, since there's nothing to open (and a local, non-fediverse reply/comment form is a separate, not-yet-built feature, deliberately out of scope here). Once an artwork has at least one approved reply, the real button + popover panel takes over as before. (`includes/Network/ActivityPub.php`, `blocks/interaction-counts/block.json`, `blocks/reply-overlay/block.json`)
 
 ## [0.9.54] — 2026-07-25
 

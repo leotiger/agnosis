@@ -707,11 +707,14 @@ class ActivityPub {
 	 * §3/§5): likes shown inline, small, never competing visually with the
 	 * artwork; boosts counted AND displayed independently from likes, not
 	 * combined into one number. Renders nothing — not an empty element — on a
-	 * non-artwork post, or when an artwork genuinely has zero of both (same
-	 * "empty string takes no space" convention every other bare-registered
-	 * block in this plugin already follows, e.g.
-	 * Artist\Profile::render_event_location()), so a brand-new artwork's page
-	 * doesn't show a permanent "♥ 0 · ⟲ 0" fixture.
+	 * non-artwork post, but ALWAYS renders both counts on an artwork, even
+	 * "♥ 0 like · ⟲ 0 boosts" — an earlier version of this method hid the
+	 * whole line at zero-of-both to avoid a "permanent fixture", but that
+	 * left the "Universe:" label above it (agnosis-theme's
+	 * templates/single.html) dangling with nothing after it on every artwork
+	 * that hadn't yet been liked/boosted, which reads as a broken layout
+	 * rather than "nothing to show" (caught 2026-07-25 on a live front-end
+	 * check). Always-show is the corrected, deliberate call.
 	 *
 	 * @param array<string, mixed> $attrs   Block attributes (unused).
 	 * @param string               $content Inner block content (unused).
@@ -727,37 +730,30 @@ class ActivityPub {
 		}
 
 		$counts = $this->interaction_counts( $post_id );
-		if ( 0 === $counts['like'] && 0 === $counts['announce'] ) {
-			return '';
-		}
 
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-interaction-counts' ] );
 
-		$parts = [];
-		if ( $counts['like'] > 0 ) {
-			$parts[] = sprintf(
-				'<span class="agnosis-interaction-counts__likes">%s</span>',
-				esc_html(
-					sprintf(
-						/* translators: %d: number of likes. */
-						_n( '♥ %d like', '♥ %d likes', $counts['like'], 'agnosis' ),
-						$counts['like']
-					)
+		$parts   = [];
+		$parts[] = sprintf(
+			'<span class="agnosis-interaction-counts__likes">%s</span>',
+			esc_html(
+				sprintf(
+					/* translators: %d: number of likes. */
+					_n( '♥ %d like', '♥ %d likes', $counts['like'], 'agnosis' ),
+					$counts['like']
 				)
-			);
-		}
-		if ( $counts['announce'] > 0 ) {
-			$parts[] = sprintf(
-				'<span class="agnosis-interaction-counts__boosts">%s</span>',
-				esc_html(
-					sprintf(
-						/* translators: %d: number of boosts. */
-						_n( '⟲ %d boost', '⟲ %d boosts', $counts['announce'], 'agnosis' ),
-						$counts['announce']
-					)
+			)
+		);
+		$parts[] = sprintf(
+			'<span class="agnosis-interaction-counts__boosts">%s</span>',
+			esc_html(
+				sprintf(
+					/* translators: %d: number of boosts. */
+					_n( '⟲ %d boost', '⟲ %d boosts', $counts['announce'], 'agnosis' ),
+					$counts['announce']
 				)
-			);
-		}
+			)
+		);
 
 		return sprintf(
 			'<p %s>%s</p>',
@@ -2015,11 +2011,16 @@ class ActivityPub {
 	}
 
 	/**
-	 * Render callback for agnosis/reply-overlay. Renders nothing — not an
-	 * empty element, same convention render_interaction_counts() already
-	 * follows — on a non-artwork post or an artwork with zero APPROVED
-	 * replies: a held-but-unreviewed reply must never tease its own existence
-	 * to the public via an otherwise-empty trigger button.
+	 * Render callback for agnosis/reply-overlay. Renders nothing on a
+	 * non-artwork post. On an artwork with zero APPROVED replies, renders a
+	 * plain, non-interactive "0 replies" line instead — no button, no
+	 * popover, no enqueued JS/CSS — since there's nothing to open and (as of
+	 * 2026-07-25) this block still only surfaces existing fediverse replies,
+	 * not a local reply/comment form (that's a separate, not-yet-built
+	 * feature, deliberately out of scope here — a held-but-unreviewed reply
+	 * must never tease its own existence via a clickable trigger either way).
+	 * Once there's at least one approved reply, the real button + popover
+	 * panel takes over, same as before.
 	 *
 	 * @param array<string, mixed> $attrs   Block attributes (unused).
 	 * @param string               $content Inner block content (unused).
@@ -2035,7 +2036,12 @@ class ActivityPub {
 
 		$count = $this->reply_count( $post_id );
 		if ( 0 === $count ) {
-			return '';
+			$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-reply-overlay agnosis-reply-overlay--empty' ] );
+			return sprintf(
+				'<span %s>%s</span>',
+				$wrapper_attributes,
+				esc_html__( '0 replies', 'agnosis' )
+			);
 		}
 
 		wp_enqueue_style( 'agnosis-reply-overlay', \AGNOSIS_URL . 'blocks/reply-overlay/frontend.css', [], \AGNOSIS_VERSION );

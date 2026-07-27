@@ -6,7 +6,7 @@
 	"title": "Reply Overlay",
 	"category": "agnosis",
 	"icon": "admin-comments",
-	"description": "\"N replies\" trigger that opens a full-viewport popover listing this artwork's approved federated replies. Renders nothing on an artwork with no approved replies yet, or off an agnosis_artwork post.",
+	"description": "\"N replies\" trigger that opens a full-viewport popover listing this artwork's approved federated replies. Shows plain, non-interactive \"0 replies\" text on an artwork with no approved replies yet; renders nothing off an agnosis_artwork post.",
 	"keywords": [ "reply", "replies", "comments", "federation", "activitypub", "agnosis" ],
 	"textdomain": "agnosis",
 	"usesContext": [ "postId" ],
