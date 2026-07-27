@@ -1987,7 +1987,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post of function get_permalink expects int\\|WP_Post, int\\|WP_Error given\\.$#"
-			count: 37
+			count: 38
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2027,7 +2027,7 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:first_reply_comment_id\\(\\) expects int, int\\|WP_Error given\\.$#"
-			count: 5
+			count: 6
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
@@ -2038,6 +2038,11 @@ parameters:
 		-
 			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:render_interaction_counts_via_block\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 4
+			path: ../tests/php/Integration/Network/ActivityPubTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\ActivityPubTest\\:\\:render_reply_overlay_via_block\\(\\) expects int, int\\|WP_Error given\\.$#"
+			count: 2
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
