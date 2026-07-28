@@ -26,9 +26,20 @@
 #      misleading leftover from a previous one.
 #   2. Set to the freshly-built zip's real sha256sum once the build succeeds.
 #
-# The manifest's $version / $download_url / $last_updated and the changelog
-# HTML block are NOT touched here — those are still updated by hand as part
-# of the version bump, same as always (CONTRIBUTING.md's Release process).
+# $last_updated, ported over from the plugin's own build-zip.sh: this script
+# already knows today's date once the build succeeds, and the documented
+# release process (agnosis-theme/CONTRIBUTING.md) builds the zip immediately
+# before shipping it — so there is no real reason to keep this one a separate
+# hand-set-at-ship-time field either. write_manifest_last_updated() below sets
+# it to today's date at that same success step, right after $sha256. Unlike
+# $sha256 it is NOT cleared at the start of a run — a failed/interrupted build
+# should leave the previous successful build's date in place, not blank it;
+# there's no "silently wrong" risk for a plain display date the way there is
+# for a digest that could otherwise look valid while matching the wrong zip.
+#
+# The manifest's $version / $download_url and the changelog HTML block are
+# still NOT touched here — those are still updated by hand as part of the
+# version bump, same as always (CONTRIBUTING.md's Release process).
 #
 # Output: ../agnosis-deploy/agnosis-theme-<version>.zip  (or [output-dir]/agnosis-theme-<version>.zip)
 
@@ -142,6 +153,31 @@ write_manifest_sha() {
 }
 write_manifest_sha
 
+# --- Write today's date into $last_updated -----------------------------------
+# Ported from the plugin's own dev/bin/build-zip.sh — see the header comment
+# above for the reasoning. Not cleared at the start of a run, unlike $sha256.
+write_manifest_last_updated() {
+    if [ ! -f "$MANIFEST" ]; then
+        return
+    fi
+    if ! grep -qE "^[[:space:]]*[$]last_updated[[:space:]]*=" "$MANIFEST"; then
+        echo "WARNING: could not find a \$last_updated assignment in $(basename "$MANIFEST") — set it manually." >&2
+        return
+    fi
+    local today
+    today=$(date -u +%Y-%m-%d)
+    # Same [$] bracket-expression reasoning as clear_manifest_sha() above —
+    # matches the literal dollar sign reliably in `sed -E`. The trailing
+    # `[[:space:]]*(//.*)?;` tail also swallows any inline `// comment` after
+    # the semicolon (e.g. "TODO(release): fill in...") so it doesn't linger,
+    # now-inaccurate, next to a freshly-written real date.
+    sed -i.bak -E "s/^([[:space:]]*[$]last_updated[[:space:]]*=[[:space:]]*)'[^']*'([[:space:]]*;).*/\1'${today}'\2/" "$MANIFEST"
+    rm -f "$MANIFEST.bak"
+    echo "--> Last updated: $today"
+    echo "✓ Wrote last_updated into $(basename "$MANIFEST")"
+}
+write_manifest_last_updated
+
 echo ""
 echo "  Contents preview:"
 unzip -l "$ZIP_PATH" | awk 'NR>3 && NR<=33'
@@ -149,5 +185,5 @@ unzip -l "$ZIP_PATH" | awk 'NR>3 && NR<=33'
 echo ""
 echo "Remaining manual steps:"
 echo "  1. Upload $ZIP_NAME to the v$VERSION GitHub release on agnosis-theme."
-echo "  2. Confirm \$version / \$download_url / \$last_updated in $(basename "$MANIFEST") match this release."
+echo "  2. Confirm \$version / \$download_url in $(basename "$MANIFEST") match this release (\$sha256/\$last_updated are already written above)."
 echo "  3. Deploy $(basename "$MANIFEST") to wp-content/mu-plugins/ on agnosis.art."

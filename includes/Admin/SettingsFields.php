@@ -422,6 +422,25 @@ class SettingsFields {
 				'desc'     => __( 'Time window, in hours, the per-artist contact limit above applies over. Also controls how long a visitor sees the "already contacted" notice instead of the form after messaging an artist. Default: 1 (one hour).', 'agnosis' ),
 			],
 
+			// Contact-form thread roadmap (agnosis-audit/CONTACT-FORM-TRANSLATION-ROADMAP.md
+			// §3.0/CF2) — how many messages the VISITOR may send in one
+			// contact thread (their original message plus any replies-to-a-
+			// reply); the artist is never gated by this number, since every
+			// artist reply directly answers an already-counted visitor turn.
+			// Exists because each hop costs a real AI translation call —
+			// Ulises's own framing, not a technical limit.
+			'agnosis_contact_reply_depth' => [
+				'tab'      => 'email',
+				'label'    => __( 'Contact thread reply depth', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 2,
+				'min'      => 1,
+				'max'      => 10,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Maximum number of messages a visitor may send in one contact-form conversation (their original message, plus any replies to the artist\'s reply). The artist is never limited — only the visitor\'s own turns count. A value of 1 disables back-and-forth entirely (the artist can still reply once, but the visitor cannot reply again). Default: 2 (the visitor can answer back one time).', 'agnosis' ),
+			],
+
 			'agnosis_require_email_auth' => [
 				'tab'     => 'email',
 				'label'   => __( 'Require SPF/DKIM authentication', 'agnosis' ),

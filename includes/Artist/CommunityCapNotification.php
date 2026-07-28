@@ -83,7 +83,7 @@ class CommunityCapNotification {
 
 	private function build_vote_opened_body( string $artist_name, string $site_name, string $cap_label, string $close_formatted, int $artist_id ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $artist_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $artist_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 20px;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-28T15:04+00:00\n"
+"POT-Creation-Date: 2026-07-28T16:51+00:00\n"
 "PO-Revision-Date: 2026-07-19 17:00+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Swahili\n"
@@ -342,7 +342,7 @@ msgid "From"
 msgstr "Kutoka"
 
 #: includes/Admin/ContactMessagesPage.php:99
-#: includes/Admin/Dashboards/LogsTab.php:81 includes/Artist/ContactForm.php:157
+#: includes/Admin/Dashboards/LogsTab.php:81 includes/Artist/ContactForm.php:176
 #: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:227
 #: includes/Core/Privacy.php:245 includes/Core/Privacy.php:385
 msgid "Message"
@@ -2752,11 +2752,25 @@ msgstr ""
 "umewasiliana\" badala ya fomu baada ya kumwandikia msanii. Chaguo-msingi: 1 "
 "(saa moja)."
 
-#: includes/Admin/SettingsFields.php:427
+#: includes/Admin/SettingsFields.php:434
+msgid "Contact thread reply depth"
+msgstr "Urefu wa majibu katika mada ya mawasiliano"
+
+#: includes/Admin/SettingsFields.php:441
+msgid ""
+"Maximum number of messages a visitor may send in one contact-form "
+"conversation (their original message, plus any replies to the artist's "
+"reply). The artist is never limited — only the visitor's own turns count. A "
+"value of 1 disables back-and-forth entirely (the artist can still reply "
+"once, but the visitor cannot reply again). Default: 2 (the visitor can "
+"answer back one time)."
+msgstr "Idadi ya juu ya ujumbe ambao mtembelea anaweza kutuma katika mazungumzo ya fomu ya mawasiliano (ujumbe wao wa awali, pamoja na majibu yoyote kwa jibu la msanii). Msanii hajawahi kuwa na mipaka — ni wakati pekee wa mtembelea unachukuliwa. Thamani ya 1 inakataza majibu kabisa (msanii anaweza bado kujibu mara moja, lakini mtembelea hawezi kujibu tena). Kawaida: 2 (mtembelea anaweza kujibu mara moja)."
+
+#: includes/Admin/SettingsFields.php:446
 msgid "Require SPF/DKIM authentication"
 msgstr "Hitaji uthibitishaji wa SPF/DKIM"
 
-#: includes/Admin/SettingsFields.php:430
+#: includes/Admin/SettingsFields.php:449
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -2771,11 +2785,11 @@ msgstr ""
 "huna uhakika — barua halali ikikataliwa huwa kimyakimya. Chaguo-msingi: "
 "imezimwa."
 
-#: includes/Admin/SettingsFields.php:436
+#: includes/Admin/SettingsFields.php:455
 msgid "Description provider"
 msgstr "Mtoa huduma wa maelezo"
 
-#: includes/Admin/SettingsFields.php:444
+#: includes/Admin/SettingsFields.php:463
 msgid ""
 "Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -2785,11 +2799,11 @@ msgstr ""
 "text. WordPress AI Services hupeleka kazi kwa mtoa huduma yeyote ambaye "
 "tovuti imesanidi kupitia programu-jalizi ya AI Services."
 
-#: includes/Admin/SettingsFields.php:448
+#: includes/Admin/SettingsFields.php:467
 msgid "OpenAI vision model"
 msgstr "Muundo wa OpenAI wa kuona"
 
-#: includes/Admin/SettingsFields.php:450
+#: includes/Admin/SettingsFields.php:469
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -2797,11 +2811,11 @@ msgstr ""
 "Muundo unaotumika kwa maelezo ya kazi ya sanaa wakati OpenAI ndiye mtoa "
 "huduma wa maelezo. Lazima iunge mkono ingizo la kuona."
 
-#: includes/Admin/SettingsFields.php:454
+#: includes/Admin/SettingsFields.php:473
 msgid "Anthropic model"
 msgstr "Muundo wa Anthropic"
 
-#: includes/Admin/SettingsFields.php:456
+#: includes/Admin/SettingsFields.php:475
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -2809,11 +2823,11 @@ msgstr ""
 "Mfano unaotumika kwa maelezo ya kazi ya sanaa wakati Anthropic ndiye mtoa "
 "maelezo. Lazima iunge mkono ingizo la kuona."
 
-#: includes/Admin/SettingsFields.php:476
+#: includes/Admin/SettingsFields.php:495
 msgid "OpenAI text model"
 msgstr "OpenAI text model"
 
-#: includes/Admin/SettingsFields.php:478
+#: includes/Admin/SettingsFields.php:497
 msgid ""
 "Cheap, fast model used for classification tasks when OpenAI is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -2827,11 +2841,11 @@ msgstr ""
 "msaada wa macho. Kwa modeli inayotumiwa kutafsiri mawasilisho katika lugha "
 "kuu ya tovuti, tazama \"Modeli wa tafsiri wa OpenAI\" hapa chini."
 
-#: includes/Admin/SettingsFields.php:482
+#: includes/Admin/SettingsFields.php:501
 msgid "Anthropic text model"
 msgstr "Anthropic text model"
 
-#: includes/Admin/SettingsFields.php:484
+#: includes/Admin/SettingsFields.php:503
 msgid ""
 "Cheap, fast model used for classification tasks when Anthropic is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -2845,11 +2859,11 @@ msgstr ""
 "msaada wa macho. Kwa modeli inayotumiwa kutafsiri mawasilisho katika lugha "
 "kuu ya tovuti, tazama \"Modeli wa tafsiri wa Anthropic\" hapa chini."
 
-#: includes/Admin/SettingsFields.php:501
+#: includes/Admin/SettingsFields.php:520
 msgid "OpenAI translation model"
 msgstr "Modeli wa tafsiri wa OpenAI"
 
-#: includes/Admin/SettingsFields.php:503
+#: includes/Admin/SettingsFields.php:522
 msgid ""
 "Model used when OpenAI is the AI provider for translating a submission into "
 "the site's primary language, and for the embedded-other-language detection "
@@ -2867,11 +2881,11 @@ msgstr ""
 "yaliyochapishwa ya kila sanaa/wasifu/tukio — inastahili modeli yenye nguvu "
 "zaidi kuliko ile rahisi ya uainishaji hapo juu. Haihitaji msaada wa macho."
 
-#: includes/Admin/SettingsFields.php:507
+#: includes/Admin/SettingsFields.php:526
 msgid "Anthropic translation model"
 msgstr "Modeli wa tafsiri wa Anthropic"
 
-#: includes/Admin/SettingsFields.php:509
+#: includes/Admin/SettingsFields.php:528
 msgid ""
 "Model used when Anthropic is the AI provider for translating a submission "
 "into the site's primary language, and for the embedded-other-language "
@@ -2889,11 +2903,11 @@ msgstr ""
 "yaliyochapishwa ya kila sanaa/wasifu/tukio — inastahili modeli yenye nguvu "
 "zaidi kuliko ile rahisi ya uainishaji hapo juu. Haihitaji msaada wa macho."
 
-#: includes/Admin/SettingsFields.php:527
+#: includes/Admin/SettingsFields.php:546
 msgid "Max AI response tokens (chat/translation)"
 msgstr "Token za kiwango cha juu cha AI (mazungumzo/tafsiri)"
 
-#: includes/Admin/SettingsFields.php:534
+#: includes/Admin/SettingsFields.php:553
 msgid ""
 "Ceiling for chat/translation AI responses (submission translation, medium "
 "classification, contact-message moderation, and similar text-only tasks — "
@@ -2915,11 +2929,11 @@ msgstr ""
 "katika jibu moja. Mipango yako ya mtoa huduma wa AI mwenyewe au mipango ya "
 "mfano bado inatumika juu ya hii. Chaguo: 8192."
 
-#: includes/Admin/SettingsFields.php:538
+#: includes/Admin/SettingsFields.php:557
 msgid "Vision image max width (px)"
 msgstr "Upana wa juu wa picha ya kuona (px)"
 
-#: includes/Admin/SettingsFields.php:544
+#: includes/Admin/SettingsFields.php:563
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -2940,19 +2954,19 @@ msgstr ""
 "Imagick; picha hutumwa kwa ukubwa wake wa asili bila kujali mpangilio huu "
 "inapokosekana. Chaguo msingi: 800."
 
-#: includes/Admin/SettingsFields.php:550
+#: includes/Admin/SettingsFields.php:569
 msgid "Enhancement provider"
 msgstr "Mtoa huduma wa uboreshaji"
 
-#: includes/Admin/SettingsFields.php:553
+#: includes/Admin/SettingsFields.php:572
 msgid "Auto (OpenAI if key is set)"
 msgstr "Kiotomatiki (OpenAI ikiwa ufunguo umewekwa)"
 
-#: includes/Admin/SettingsFields.php:555
+#: includes/Admin/SettingsFields.php:574
 msgid "Disabled — use original image"
 msgstr "Imelemazwa — tumia picha ya asili"
 
-#: includes/Admin/SettingsFields.php:558
+#: includes/Admin/SettingsFields.php:577
 msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
@@ -2962,22 +2976,22 @@ msgstr ""
 "OpenAI iliyowekwa hapa chini (k.m. gpt-image-1, gpt-image-2). Weka kuwa "
 "Fungwa ili kuruka uboreshaji na kuchapisha asili."
 
-#: includes/Admin/SettingsFields.php:562
+#: includes/Admin/SettingsFields.php:581
 msgid "OpenAI image model"
 msgstr "Mfano wa picha wa OpenAI"
 
-#: includes/Admin/SettingsFields.php:564
+#: includes/Admin/SettingsFields.php:583
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "Muundo unaotumika kwa uboreshaji wa picha wakati OpenAI ndiye mtoa huduma wa "
 "uboreshaji."
 
-#: includes/Admin/SettingsFields.php:570
+#: includes/Admin/SettingsFields.php:589
 msgid "Polish biography with AI"
 msgstr "Wasifu wa mwandishi ulioboreshwa kwa AI"
 
-#: includes/Admin/SettingsFields.php:573
+#: includes/Admin/SettingsFields.php:592
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -2985,11 +2999,11 @@ msgstr ""
 "Ikitumika, uwasilishaji wa wasifu hupitishwa kupitia AI ili kusahihisha "
 "tahajia na kufanya maboresho madogo ya maandishi kabla ya kuhifadhiwa."
 
-#: includes/Admin/SettingsFields.php:577
+#: includes/Admin/SettingsFields.php:596
 msgid "Polish events with AI"
 msgstr "Matukio yaliyoimarishwa kwa AI"
 
-#: includes/Admin/SettingsFields.php:580
+#: includes/Admin/SettingsFields.php:599
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -2997,11 +3011,11 @@ msgstr ""
 "Ikitumika, uwasilishaji wa matukio hupitishwa kupitia AI ili kusahihisha "
 "tahajia na kufanya maboresho madogo ya maandishi kabla ya kuhifadhiwa."
 
-#: includes/Admin/SettingsFields.php:586
+#: includes/Admin/SettingsFields.php:605
 msgid "Merge biography updates with AI"
 msgstr "Unganisha masasisho ya wasifu kwa AI"
 
-#: includes/Admin/SettingsFields.php:589
+#: includes/Admin/SettingsFields.php:608
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -3015,11 +3029,11 @@ msgstr ""
 "\") bila kutuma upya wasifu wao kamili. Zima ili kila wakati ubadilishe "
 "wasifu na uwasilishaji wa hivi karibuni."
 
-#: includes/Admin/SettingsFields.php:595
+#: includes/Admin/SettingsFields.php:614
 msgid "Rejection threshold (quality score)"
 msgstr "Kizingiti cha kukataliwa (alama ya ubora)"
 
-#: includes/Admin/SettingsFields.php:603
+#: includes/Admin/SettingsFields.php:622
 msgid ""
 "Photos scoring at or below this agnosis_vendor_value (1–10) are "
 "automatically rejected — the artist receives a friendly email explaining the "
@@ -3032,11 +3046,11 @@ msgstr ""
 "kiotomatiki. Lazima iwe chini kuliko kiwango cha uboreshaji. Chaguo-msingi: "
 "3."
 
-#: includes/Admin/SettingsFields.php:608
+#: includes/Admin/SettingsFields.php:627
 msgid "Enhancement threshold (quality score)"
 msgstr "Kizingiti cha uboreshaji (alama ya ubora)"
 
-#: includes/Admin/SettingsFields.php:616
+#: includes/Admin/SettingsFields.php:635
 msgid ""
 "Photos scoring below this agnosis_vendor_value (1–10) are automatically "
 "enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: "
@@ -3048,27 +3062,27 @@ msgstr ""
 "7 — ni picha zenye matatizo yanayoonekana pekee ndizo huchakatwa. Weka 1 ili "
 "kuzima uimarishaji wa kiotomatiki kabisa."
 
-#: includes/Admin/SettingsFields.php:622
+#: includes/Admin/SettingsFields.php:641
 msgid "OpenAI API key"
 msgstr "Ufunguo wa API wa OpenAI"
 
-#: includes/Admin/SettingsFields.php:625
+#: includes/Admin/SettingsFields.php:644
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "Unahitajika wakati OpenAI ndiye mtoa huduma wa maelezo au uboreshaji."
 
-#: includes/Admin/SettingsFields.php:629
+#: includes/Admin/SettingsFields.php:648
 msgid "Anthropic API key"
 msgstr "Ufunguo wa API wa Anthropic"
 
-#: includes/Admin/SettingsFields.php:632
+#: includes/Admin/SettingsFields.php:651
 msgid "Required when Anthropic is the description provider."
 msgstr "Unahitajika wakati Anthropic ndiye mtoa huduma wa maelezo."
 
-#: includes/Admin/SettingsFields.php:638
+#: includes/Admin/SettingsFields.php:657
 msgid "Artwork display width (px)"
 msgstr "Upana wa kuonyesha kazi ya sanaa (px)"
 
-#: includes/Admin/SettingsFields.php:644
+#: includes/Admin/SettingsFields.php:663
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -3078,11 +3092,11 @@ msgstr ""
 "lightbox. Urefu huongezeka sawia. Chaguo-msingi: 1920. Picha zilizopo "
 "zinahitaji kuzalishwa upya baada ya kubadilisha thamani hii."
 
-#: includes/Admin/SettingsFields.php:648
+#: includes/Admin/SettingsFields.php:667
 msgid "Thumbnail size (px)"
 msgstr "Ukubwa wa kijipicha (px)"
 
-#: includes/Admin/SettingsFields.php:654
+#: includes/Admin/SettingsFields.php:673
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -3092,11 +3106,11 @@ msgstr ""
 "za uwasilishaji na dashibodi. Chaguo-msingi: 512. Picha zilizopo zinahitaji "
 "kuzalishwa upya baada ya kubadilisha thamani hii."
 
-#: includes/Admin/SettingsFields.php:658
+#: includes/Admin/SettingsFields.php:677
 msgid "Email image width (px)"
 msgstr "Upana wa picha ya barua pepe (px)"
 
-#: includes/Admin/SettingsFields.php:664
+#: includes/Admin/SettingsFields.php:683
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -3106,11 +3120,11 @@ msgstr ""
 "msanii. Urefu huongezeka sawia — hakuna ukataji. Chaguo-msingi: 420. Picha "
 "zilizopo zinahitaji kuzalishwa upya baada ya kubadilisha thamani hii."
 
-#: includes/Admin/SettingsFields.php:670
+#: includes/Admin/SettingsFields.php:689
 msgid "Gallery overview — items per page"
 msgstr "Muhtasari wa ghala — vipengee kwa kila ukurasa"
 
-#: includes/Admin/SettingsFields.php:676
+#: includes/Admin/SettingsFields.php:695
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -3120,11 +3134,11 @@ msgstr ""
 "ukurasa. Kundi hujengwa kwa uwiano katika wasanii wote; kazi za sanaa "
 "zilizoangaziwa hupendelewa. Chaguo-msingi: 12."
 
-#: includes/Admin/SettingsFields.php:682
+#: includes/Admin/SettingsFields.php:701
 msgid "Review link expiry (days)"
 msgstr "Kuisha kwa kiungo cha ukaguzi (siku)"
 
-#: includes/Admin/SettingsFields.php:688
+#: includes/Admin/SettingsFields.php:707
 msgid ""
 "How long the Approve & Publish / Discard links in a submission review email "
 "stay valid before an artist has to log in to manage the item instead. "
@@ -3135,11 +3149,11 @@ msgstr ""
 "kusimamia kipengee badala yake. Hutumika kwa usawa kwa rasimu za kazi ya "
 "sanaa, wasifu, na matukio. Chaguo-msingi: 7."
 
-#: includes/Admin/SettingsFields.php:699
+#: includes/Admin/SettingsFields.php:718
 msgid "Tag / medium proposal expiry (days)"
 msgstr "Ukweli wa pendekezo la tag / kati (siku)"
 
-#: includes/Admin/SettingsFields.php:705
+#: includes/Admin/SettingsFields.php:724
 msgid ""
 "How long an AI-proposed tag or medium category can sit unreviewed on the "
 "Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same "
@@ -3149,11 +3163,11 @@ msgstr ""
 "bila kudadisiwa kwenye skrini ya Tagi / Kazi → Kundi kabla ya kuchuja kila "
 "siku kuzikataa (athari sawa na kubonyeza Kukataa). Kiwango cha kawaida: 7."
 
-#: includes/Admin/SettingsFields.php:711
+#: includes/Admin/SettingsFields.php:730
 msgid "System prompt"
 msgstr "Amri ya mfumo"
 
-#: includes/Admin/SettingsFields.php:717
+#: includes/Admin/SettingsFields.php:736
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -3161,11 +3175,11 @@ msgstr ""
 "Hutumika kwa AI kama maagizo ya mfumo. Tumia {tag_count} na {excerpt_words} "
 "kama tokoni — hubadilishwa na thamani zilizo hapa chini."
 
-#: includes/Admin/SettingsFields.php:721
+#: includes/Admin/SettingsFields.php:740
 msgid "Artist prompt template"
 msgstr "Kiolezo cha amri ya msanii"
 
-#: includes/Admin/SettingsFields.php:727
+#: includes/Admin/SettingsFields.php:746
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -3173,11 +3187,11 @@ msgstr ""
 "Ujumbe wa mtumiaji unaotumwa pamoja na picha ya kazi ya sanaa. Tumia "
 "{artist_prompt} ambapo maelezo ya msanii mwenyewe yanapaswa kuonekana."
 
-#: includes/Admin/SettingsFields.php:731
+#: includes/Admin/SettingsFields.php:750
 msgid "Enhancement instructions"
 msgstr "Maelekezo ya uboreshaji"
 
-#: includes/Admin/SettingsFields.php:737
+#: includes/Admin/SettingsFields.php:756
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -3185,11 +3199,11 @@ msgstr ""
 "Maelekezo yanayopitishwa kwa mtoa huduma wa uboreshaji wa picha. Maelezo ya "
 "kazi ya sanaa yanayotolewa na AI huongezwa kiotomatiki kama muktadha."
 
-#: includes/Admin/SettingsFields.php:741
+#: includes/Admin/SettingsFields.php:760
 msgid "Number of tags"
 msgstr "Idadi ya tagi"
 
-#: includes/Admin/SettingsFields.php:747
+#: includes/Admin/SettingsFields.php:766
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -3197,11 +3211,11 @@ msgstr ""
 "AI inapaswa kutengeneza tagi ngapi kwa kila kazi ya sanaa. Inatajwa kama "
 "{tag_count} katika amri ya mfumo."
 
-#: includes/Admin/SettingsFields.php:751
+#: includes/Admin/SettingsFields.php:770
 msgid "Excerpt word limit"
 msgstr "Kikomo cha maneno ya dondoo"
 
-#: includes/Admin/SettingsFields.php:757
+#: includes/Admin/SettingsFields.php:776
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -3209,11 +3223,11 @@ msgstr ""
 "Idadi ya juu ya maneno kwa dondoo la sentensi moja. Inatajwa kama "
 "{excerpt_words} katika amri ya mfumo."
 
-#: includes/Admin/SettingsFields.php:770
+#: includes/Admin/SettingsFields.php:789
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr "Waamini wasanii wote waliokubaliwa (ruka ukaguzi wa kiungo kabisa)"
 
-#: includes/Admin/SettingsFields.php:775
+#: includes/Admin/SettingsFields.php:794
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -3229,11 +3243,11 @@ msgstr ""
 "chaguo-msingi. Washa hili tu ikiwa unaridhika kwamba mtu mbaya aliyefanikiwa "
 "kupita kwenye uandikishaji anaweza kupachika kiungo chochote."
 
-#: includes/Admin/SettingsFields.php:779
+#: includes/Admin/SettingsFields.php:798
 msgid "Trusted embed platforms"
 msgstr "Majukwaa ya kupachika yaliyoaminika"
 
-#: includes/Admin/SettingsFields.php:785
+#: includes/Admin/SettingsFields.php:804
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -3244,11 +3258,11 @@ msgstr ""
 "kidogo chake) — hakuna ukaguzi wa AI unaohitajika, hakuna ombi la mtandao "
 "linalofanywa kwa kiungo chenyewe."
 
-#: includes/Admin/SettingsFields.php:789
+#: includes/Admin/SettingsFields.php:808
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr "Waruhusu wasanii pia kuwasilisha viungo vingine (vinakaguliwa na AI)"
 
-#: includes/Admin/SettingsFields.php:794
+#: includes/Admin/SettingsFields.php:813
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -3266,19 +3280,19 @@ msgstr ""
 "hakipachikwi — hufeli kwa usalama. Ikitoshelezwa (chaguo-msingi), ni "
 "majukwaa yaliyoaminika hapo juu pekee yanayowahi kupachikwa."
 
-#: includes/Admin/SettingsFields.php:798
+#: includes/Admin/SettingsFields.php:817
 msgid "Block pornographic / sexually explicit content"
 msgstr "Zuia maudhui ya ponografia / ya wazi kingono"
 
-#: includes/Admin/SettingsFields.php:803 includes/Admin/SettingsFields.php:821
+#: includes/Admin/SettingsFields.php:822 includes/Admin/SettingsFields.php:840
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "Hufanya kazi tu wakati ukaguzi wa AI (hapo juu) umewashwa."
 
-#: includes/Admin/SettingsFields.php:807
+#: includes/Admin/SettingsFields.php:826
 msgid "Block primarily commercial / promotional sites"
 msgstr "Zuia tovuti hasa za kibiashara / za matangazo"
 
-#: includes/Admin/SettingsFields.php:812
+#: includes/Admin/SettingsFields.php:831
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -3289,15 +3303,15 @@ msgstr ""
 "la kawaida na si la kuhitajika kiasili. Hufanya kazi tu wakati ukaguzi wa AI "
 "(hapo juu) umewashwa."
 
-#: includes/Admin/SettingsFields.php:816
+#: includes/Admin/SettingsFields.php:835
 msgid "Block gambling / betting sites"
 msgstr "Zuia tovuti za kamari / kubet"
 
-#: includes/Admin/SettingsFields.php:825
+#: includes/Admin/SettingsFields.php:844
 msgid "Additional disallowed categories"
 msgstr "Kategoria nyingine zisizoruhusiwa"
 
-#: includes/Admin/SettingsFields.php:830
+#: includes/Admin/SettingsFields.php:849
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -3308,46 +3322,46 @@ msgstr ""
 "msimamo mkali\", \"kurasa za hadaa au ulaghai\"). Hufanya kazi tu wakati "
 "ukaguzi wa AI (hapo juu) umewashwa."
 
-#: includes/Admin/SettingsFields.php:836
+#: includes/Admin/SettingsFields.php:855
 msgid "Node label"
 msgstr "Lebo ya nodi"
 
-#: includes/Admin/SettingsFields.php:837
+#: includes/Admin/SettingsFields.php:856
 msgid "How this node introduces itself to the network."
 msgstr "Jinsi nodi hii inavyojitambulisha kwa mtandao."
 
-#: includes/Admin/SettingsFields.php:842
+#: includes/Admin/SettingsFields.php:861
 msgid "Enable ActivityPub federation"
 msgstr "Wezesha muungano wa ActivityPub"
 
-#: includes/Admin/SettingsFields.php:846
+#: includes/Admin/SettingsFields.php:865
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Tangaza kazi mpya za sanaa kwa Mastodon, Pixelfed na Fediverse."
 
-#: includes/Admin/SettingsFields.php:851
+#: includes/Admin/SettingsFields.php:870
 msgid "Node public key"
 msgstr "Funguo ya umma ya nodi"
 
-#: includes/Admin/SettingsFields.php:853
+#: includes/Admin/SettingsFields.php:872
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Funguo ya umma ya RSA iliyozalishwa kiotomatiki kwa nodi hii. Shiriki hii na "
 "nodi nyingine shirikishi."
 
-#: includes/Admin/SettingsFields.php:865
+#: includes/Admin/SettingsFields.php:884
 msgid "Federate which languages"
 msgstr "Shirikisha lugha zipi"
 
-#: includes/Admin/SettingsFields.php:868
+#: includes/Admin/SettingsFields.php:887
 msgid "Primary language only (default)"
 msgstr "Lugha ya msingi pekee (kiwango cha kawaida)"
 
-#: includes/Admin/SettingsFields.php:869
+#: includes/Admin/SettingsFields.php:888
 msgid "All active languages"
 msgstr "Lugha zote za kazi"
 
-#: includes/Admin/SettingsFields.php:872
+#: includes/Admin/SettingsFields.php:891
 msgid ""
 "Whether a language sibling's Note is actively pushed to followers once it's "
 "tag-settled and ready. \"Primary language only\" sends one Fediverse post "
@@ -3367,11 +3381,11 @@ msgstr ""
 "kazi za sanaa ambazo zinaweza kupangwa kutoka wakati huo kuendelea; "
 "haijawahi kupeleka tena chochote ambacho tayari kimechapishwa."
 
-#: includes/Admin/SettingsFields.php:880
+#: includes/Admin/SettingsFields.php:899
 msgid "Federation tag-wait timeout (hours)"
 msgstr "Muda wa kusubiri alama ya muungano (masaa)"
 
-#: includes/Admin/SettingsFields.php:886
+#: includes/Admin/SettingsFields.php:905
 msgid ""
 "A published artwork with a new tag or medium category awaiting admin review "
 "normally federates to the Fediverse only once that proposal is resolved (so "
@@ -3386,11 +3400,11 @@ msgstr ""
 "zinazokuwa nazo kwa sasa - idhini ya baadaye bado inasasisha chapisho "
 "lililounganishwa. Kiwango cha kawaida: 24."
 
-#: includes/Admin/SettingsFields.php:895
+#: includes/Admin/SettingsFields.php:914
 msgid "Federated reply limit (per actor)"
 msgstr "Kiwango cha majibu yaliyofederiwa (kwa kila mchezaji)"
 
-#: includes/Admin/SettingsFields.php:901
+#: includes/Admin/SettingsFields.php:920
 msgid ""
 "Maximum number of federated replies a single remote fediverse account can "
 "leave across all your artworks per window (below). A reply beyond this limit "
@@ -3403,11 +3417,11 @@ msgstr ""
 "seva ya mbali bado inapokea jibu la kawaida lililo batilishwa, si kosa. "
 "Kawaida: 2."
 
-#: includes/Admin/SettingsFields.php:905
+#: includes/Admin/SettingsFields.php:924
 msgid "Federated reply limit window (hours)"
 msgstr "Dirisha la kiwango cha majibu yaliyofederiwa (masaa)"
 
-#: includes/Admin/SettingsFields.php:911
+#: includes/Admin/SettingsFields.php:930
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
@@ -3415,11 +3429,11 @@ msgstr ""
 "Muda wa dirisha ambalo kiwango cha jibu kilichotajwa hapo juu kinatumika. "
 "Kawaida: 1 (yaani, majibu 2 kwa saa kwa kila mchezaji)."
 
-#: includes/Admin/SettingsFields.php:921
+#: includes/Admin/SettingsFields.php:940
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "Maombi ya kujiondoa (kwaheri) kwa kila mtumaji kwa siku"
 
-#: includes/Admin/SettingsFields.php:927
+#: includes/Admin/SettingsFields.php:946
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3432,11 +3446,11 @@ msgstr ""
 "uthibitisho ambazo From iliyoghushiwa au inayorudiwa inaweza kutumia "
 "kumtumia msanii halisi barua taka. Chaguo msingi: 3."
 
-#: includes/Admin/SettingsFields.php:931
+#: includes/Admin/SettingsFields.php:950
 msgid "Community broadcasts per artist per day"
 msgstr "Matangazo ya jamii kwa kila msanii kwa siku"
 
-#: includes/Admin/SettingsFields.php:937
+#: includes/Admin/SettingsFields.php:956
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3446,11 +3460,11 @@ msgstr ""
 "tangazo la Jumuiya (Mipangilio → Barua pepe) kwa siku. Huzuia mwanachama "
 "mmoja kujaza kikasha cha kila mwanachama mwingine. Chaguo msingi: 3."
 
-#: includes/Admin/SettingsFields.php:941
+#: includes/Admin/SettingsFields.php:960
 msgid "Community broadcast max length (characters)"
 msgstr "Urefu wa juu wa matangazo ya jamii (herufi)"
 
-#: includes/Admin/SettingsFields.php:948
+#: includes/Admin/SettingsFields.php:967
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3469,11 +3483,11 @@ msgstr ""
 "msingi: 2000. Kiwango cha juu kisichoweza kuvukwa: 20000, bila kujali "
 "mpangilio huu."
 
-#: includes/Admin/SettingsFields.php:979
+#: includes/Admin/SettingsFields.php:998
 msgid "Admin approval only (disable community voting)"
 msgstr "Idhini ya msimamizi pekee (zima upigaji kura wa jamii)"
 
-#: includes/Admin/SettingsFields.php:984
+#: includes/Admin/SettingsFields.php:1003
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3494,11 +3508,11 @@ msgstr ""
 "kunakozuiwa. Imewashwa kwa chaguomsingi — jamii nyingi hutaka mfumo uliopo "
 "wa kupendekeza/kupiga kura."
 
-#: includes/Admin/SettingsFields.php:989
+#: includes/Admin/SettingsFields.php:1008
 msgid "Admission vote threshold (%)"
 msgstr "Kizingiti cha kura za kujiunga (%)"
 
-#: includes/Admin/SettingsFields.php:994
+#: includes/Admin/SettingsFields.php:1013
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3506,22 +3520,22 @@ msgstr ""
 "Asilimia ya wasanii hai wanaopaswa kupiga kura ya ndiyo ili kujiunga. "
 "Huchanganywa na kiwango cha chini kilicho hapa chini."
 
-#: includes/Admin/SettingsFields.php:998
+#: includes/Admin/SettingsFields.php:1017
 msgid "Admission minimum votes"
 msgstr "Idadi ya chini ya kura za kujiunga"
 
-#: includes/Admin/SettingsFields.php:1002
+#: includes/Admin/SettingsFields.php:1021
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Idadi kamili ya chini ya kura chanya zinazohitajika bila kujali asilimia "
 "iliyo hapo juu."
 
-#: includes/Admin/SettingsFields.php:1006
+#: includes/Admin/SettingsFields.php:1025
 msgid "Voting window (days)"
 msgstr "Dirisha la kura (siku)"
 
-#: includes/Admin/SettingsFields.php:1010
+#: includes/Admin/SettingsFields.php:1029
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3529,11 +3543,11 @@ msgstr ""
 "Siku ambazo ombi hubaki wazi. Ikiwa kizingiti hakijafikiwa ndani ya dirisha "
 "hili ombi linakataliwa."
 
-#: includes/Admin/SettingsFields.php:1014
+#: includes/Admin/SettingsFields.php:1033
 msgid "Resolved application retention (days)"
 msgstr "Siku za kubaki kwa ombi lililomalizwa"
 
-#: includes/Admin/SettingsFields.php:1020
+#: includes/Admin/SettingsFields.php:1039
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3550,11 +3564,11 @@ msgstr ""
 "yao huhifadhiwa kimakusudi ili marufuku ibaki kutekelezeka. Chaguo msingi: "
 "siku 180."
 
-#: includes/Admin/SettingsFields.php:1024
+#: includes/Admin/SettingsFields.php:1043
 msgid "After applying, send artists to"
 msgstr "Baada ya kuomba, tuma wasanii kwenda"
 
-#: includes/Admin/SettingsFields.php:1028
+#: includes/Admin/SettingsFields.php:1047
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3566,11 +3580,11 @@ msgstr ""
 "ujumbe wa uthibitisho ndani ya ukurasa. Acha kama \"Hakuna\" ili kubaki na "
 "ujumbe wa ndani tu."
 
-#: includes/Admin/SettingsFields.php:1032
+#: includes/Admin/SettingsFields.php:1051
 msgid "Community size cap"
 msgstr "Kikomo cha ukubwa wa jamii"
 
-#: includes/Admin/SettingsFields.php:1036
+#: includes/Admin/SettingsFields.php:1055
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3581,11 +3595,11 @@ msgstr ""
 "humpokea anayefuata. Weka 0 kwa bila kikomo. Jamii pia inaweza kupiga kura "
 "kubadilisha hili."
 
-#: includes/Admin/SettingsFields.php:1040
+#: includes/Admin/SettingsFields.php:1059
 msgid "Cap-change co-signers required"
 msgstr "Washirika wa kusaini kwa pamoja wa mabadiliko ya kikomo wanaohitajika"
 
-#: includes/Admin/SettingsFields.php:1044
+#: includes/Admin/SettingsFields.php:1063
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3593,11 +3607,11 @@ msgstr ""
 "Ni wasanii wangapi lazima wasaini pamoja pendekezo la kubadilisha kikomo cha "
 "ukubwa wa jamii kabla halijafunguliwa kama kura kamili ya jamii."
 
-#: includes/Admin/SettingsFields.php:1048
+#: includes/Admin/SettingsFields.php:1067
 msgid "Cap-change vote window (days)"
 msgstr "Dirisha la kura la mabadiliko ya kikomo (siku)"
 
-#: includes/Admin/SettingsFields.php:1052
+#: includes/Admin/SettingsFields.php:1071
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3606,11 +3620,11 @@ msgstr ""
 "thabiti wa zaidi ya nusu ya wasanii hai wanaopiga kura ya ndiyo hupitisha "
 "kikomo kipya."
 
-#: includes/Admin/SettingsFields.php:1056
+#: includes/Admin/SettingsFields.php:1075
 msgid "Removal nominations required"
 msgstr "Uteuzi unaohitajika wa kuondoa"
 
-#: includes/Admin/SettingsFields.php:1062
+#: includes/Admin/SettingsFields.php:1081
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3618,11 +3632,11 @@ msgstr ""
 "Idadi ya uteuzi wa wasanii unaohitajika kabla ya kura ya jamii ya kuondoa "
 "kufunguliwa. Wasimamizi wanaweza kuruka kizingiti hiki."
 
-#: includes/Admin/SettingsFields.php:1066
+#: includes/Admin/SettingsFields.php:1085
 msgid "Removal vote window (days)"
 msgstr "Dirisha la kura la kuondoa (siku)"
 
-#: includes/Admin/SettingsFields.php:1072
+#: includes/Admin/SettingsFields.php:1091
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3630,11 +3644,11 @@ msgstr ""
 "Siku ambazo kura ya jamii ya kuondoa hubaki wazi. Wingi wa zaidi ya 50% ya "
 "wasanii hai lazima wapige kura ya ndiyo ili kuondoa kuendelee."
 
-#: includes/Admin/SettingsFields.php:1076
+#: includes/Admin/SettingsFields.php:1095
 msgid "Invitation intro"
 msgstr "Utangulizi wa mwaliko"
 
-#: includes/Admin/SettingsFields.php:1080
+#: includes/Admin/SettingsFields.php:1099
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3664,7 +3678,7 @@ msgstr ""
 "yako kwa kutuma barua pepe. Unaweza kupata taarifa zaidi kwa kutembelea "
 "tovuti ya agnosis.art."
 
-#: includes/Admin/SettingsFields.php:1085
+#: includes/Admin/SettingsFields.php:1104
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3680,22 +3694,22 @@ msgstr ""
 "yenyewe.Asilimia inayobaki kwa nodi hii kwenye michango na mauzo ya sanaa. "
 "Wasanii hawalipi chochote awali."
 
-#: includes/Admin/SettingsFields.php:1104
+#: includes/Admin/SettingsFields.php:1123
 msgid "Sender name"
 msgstr "Jina la mtumaji"
 
-#: includes/Admin/SettingsFields.php:1105
+#: includes/Admin/SettingsFields.php:1124
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "Jina linaloonyeshwa kama mtumaji wa barua pepe za muhtasari. Acha tupu ili "
 "kutumia jina la tovuti."
 
-#: includes/Admin/SettingsFields.php:1109
+#: includes/Admin/SettingsFields.php:1128
 msgid "Sender email address"
 msgstr "Anwani ya barua pepe ya mtumaji"
 
-#: includes/Admin/SettingsFields.php:1111
+#: includes/Admin/SettingsFields.php:1130
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3710,11 +3724,11 @@ msgstr ""
 "inayoweza kupokelewa kwenye domeni yako (SPF/DKIM imesanidiwa) la sivyo "
 "ujumbe unaweza kuwekwa kama barua taka."
 
-#: includes/Admin/SettingsFields.php:1115
+#: includes/Admin/SettingsFields.php:1134
 msgid "Auto-draft newsletter intros"
 msgstr "Kujizalishia rasimu za utangulizi za jarida"
 
-#: includes/Admin/SettingsFields.php:1120
+#: includes/Admin/SettingsFields.php:1139
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3727,11 +3741,11 @@ msgstr ""
 "isipokuwa kama tayari umeandika moja kwa mzunguko huo. Lemaza ili kuacha uga "
 "wote wa utangulizi kama ulivyoziacha, daima."
 
-#: includes/Admin/SettingsFields.php:1124
+#: includes/Admin/SettingsFields.php:1143
 msgid "Draft intro this many hours ahead"
 msgstr "Tengeneza rasimu ya utangulizi saa hizi ngapi kabla"
 
-#: includes/Admin/SettingsFields.php:1130
+#: includes/Admin/SettingsFields.php:1149
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3740,11 +3754,11 @@ msgstr ""
 "kwa AI. Hufanya kazi tu wakati kujizalishia rasimu kiotomatiki (hapo juu) "
 "kimewezeshwa. Chaguo msingi: 24."
 
-#: includes/Admin/SettingsFields.php:1134 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1153 includes/Newsletter/Scheduler.php:386
 msgid "Artist newsletter"
 msgstr "Jarida la wasanii"
 
-#: includes/Admin/SettingsFields.php:1137
+#: includes/Admin/SettingsFields.php:1156
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3753,11 +3767,11 @@ msgstr ""
 "kwenye toleo lolote kwa kubofya mara moja). Muhtasari wa jumuiya: shughuli "
 "za hivi karibuni, wanachama wapya, kura zilizo wazi."
 
-#: includes/Admin/SettingsFields.php:1141
+#: includes/Admin/SettingsFields.php:1160
 msgid "Artist newsletter frequency (days)"
 msgstr "Marudio ya jarida la wasanii (siku)"
 
-#: includes/Admin/SettingsFields.php:1147
+#: includes/Admin/SettingsFields.php:1166
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -3765,11 +3779,11 @@ msgstr ""
 "Chaguo msingi 30 ≈ kila mwezi. Toleo jipya huandaliwa mara tu siku hizi "
 "nyingi zinapopita tangu la mwisho kutumwa."
 
-#: includes/Admin/SettingsFields.php:1151
+#: includes/Admin/SettingsFields.php:1170
 msgid "Artist newsletter intro"
 msgstr "Utangulizi wa jarida la wasanii"
 
-#: includes/Admin/SettingsFields.php:1155
+#: includes/Admin/SettingsFields.php:1174
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3784,11 +3798,11 @@ msgstr ""
 "ya toleo kutumwa, na hukutumia barua pepe ili ulihakiki kwanza — andika yako "
 "hapa wakati wowote ili kuruka hilo."
 
-#: includes/Admin/SettingsFields.php:1159 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1178 includes/Newsletter/Scheduler.php:386
 msgid "Public newsletter"
 msgstr "Jarida la umma"
 
-#: includes/Admin/SettingsFields.php:1162
+#: includes/Admin/SettingsFields.php:1181
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3797,19 +3811,19 @@ msgstr ""
 "wa mara mbili). Digest: kazi mpya za sanaa na matukio yaliyochapishwa tangu "
 "toleo la mwisho."
 
-#: includes/Admin/SettingsFields.php:1166
+#: includes/Admin/SettingsFields.php:1185
 msgid "Public newsletter frequency (days)"
 msgstr "Mzunguko wa jarida la umma (siku)"
 
-#: includes/Admin/SettingsFields.php:1172
+#: includes/Admin/SettingsFields.php:1191
 msgid "Default 30 ≈ monthly."
 msgstr "Chaguo-msingi 30 ≈ kila mwezi."
 
-#: includes/Admin/SettingsFields.php:1176
+#: includes/Admin/SettingsFields.php:1195
 msgid "Public newsletter intro"
 msgstr "Utangulizi wa jarida la umma"
 
-#: includes/Admin/SettingsFields.php:1180
+#: includes/Admin/SettingsFields.php:1199
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3822,11 +3836,11 @@ msgstr ""
 "karibu siku moja kabla ya toleo kutumwa, na hukutumia barua pepe ili "
 "ulihakiki kwanza — andika yako hapa wakati wowote ili kuruka hilo."
 
-#: includes/Admin/SettingsFields.php:1184
+#: includes/Admin/SettingsFields.php:1203
 msgid "Send batch size"
 msgstr "Ukubwa wa kundi la kutuma"
 
-#: includes/Admin/SettingsFields.php:1190
+#: includes/Admin/SettingsFields.php:1209
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3835,11 +3849,11 @@ msgstr ""
 "Punguza hili ikiwa hosti yako inaweka kikomo cha kasi ya barua zinazotoka; "
 "ongeza kwa uwasilishaji wa haraka zaidi kwenye hosti zenye mipaka ya ukarimu."
 
-#: includes/Admin/SettingsFields.php:1194
+#: includes/Admin/SettingsFields.php:1213
 msgid "Self-hosting comfort threshold"
 msgstr "Kizingiti cha starehe cha kujihostia"
 
-#: includes/Admin/SettingsFields.php:1200
+#: includes/Admin/SettingsFields.php:1219
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -3985,7 +3999,7 @@ msgstr ""
 "Msanii hakutuma kichwa cha habari wala ujumbe pamoja na uwasilishaji huu — "
 "acha picha izungumze kikamilifu yenyewe."
 
-#: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
+#: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
 #: includes/Network/ActivityPub.php:410
 msgid "Name"
 msgstr "Jina"
@@ -4003,7 +4017,7 @@ msgid "Statement"
 msgstr "Taarifa"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
-#: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
+#: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
 #: includes/Network/ActivityPub.php:3340
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
@@ -4096,7 +4110,8 @@ msgstr "Ombi limethibitishwa"
 msgid "Thanks, %s!"
 msgstr "Asante, %s!"
 
-#: includes/Artist/AdmissionConfirm.php:169
+#: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
+#: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:329
 #: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
 #: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
@@ -4134,7 +4149,7 @@ msgstr "Karibu kwenye %s"
 msgid "We received your application to %s"
 msgstr "Tumepokea ombi lako kwa %s"
 
-#. translators: %s: recipient's display name
+#. translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable)
 #: includes/Artist/AdmissionNotification.php:392
 #: includes/Artist/AdmissionNotification.php:438
 #: includes/Artist/AdmissionNotification.php:594
@@ -4143,6 +4158,7 @@ msgstr "Tumepokea ombi lako kwa %s"
 #: includes/Artist/CommunityBroadcast.php:183
 #: includes/Artist/CommunityBroadcast.php:251
 #: includes/Artist/CommunityCapNotification.php:86
+#: includes/Artist/ContactForm.php:689 includes/Artist/ContactForm.php:1229
 #: includes/Artist/DepartureNotification.php:95
 #: includes/Artist/DepartureNotification.php:221
 #: includes/Artist/DepartureNotification.php:289
@@ -4647,15 +4663,15 @@ msgstr "Pendekezo halikupatikana."
 msgid "This vote is not currently open."
 msgstr "Kura hii kwa sasa haijafunguliwa."
 
-#: includes/Artist/ContactForm.php:211
+#: includes/Artist/ContactForm.php:230
 msgid "This artist can't be reached through this form right now."
 msgstr "Msanii huyu hawezi kufikiwa kupitia fomu hii kwa sasa."
 
-#: includes/Artist/ContactForm.php:261 includes/Artist/ContactFormBlock.php:186
+#: includes/Artist/ContactForm.php:296 includes/Artist/ContactFormBlock.php:186
 msgid "Thanks — your message has been sent."
 msgstr "Asante — ujumbe wako umetumwa."
 
-#: includes/Artist/ContactForm.php:394
+#: includes/Artist/ContactForm.php:429
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "contacting the artist about their work"
@@ -4663,36 +4679,134 @@ msgstr ""
 "Barua taka, ulaghai, au matangazo ya kibiashara yasiyoombwa yasiyohusiana na "
 "kuwasiliana na msanii kwa kweli kuhusu kazi zake"
 
-#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3549
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:3549
 msgid "Flagged by automatic content review."
 msgstr "Imebainishwa na ukaguzi wa maudhui wa kiotomatiki."
 
 #. translators: %s: visitor's name, or their email address if no name was given
-#: includes/Artist/ContactForm.php:556
+#: includes/Artist/ContactForm.php:674
 #, php-format
 msgid "New message from %s via your Agnosis contact form"
 msgstr "Ujumbe mpya kutoka %s kupitia fomu yako ya mawasiliano ya Agnosis"
 
 #. translators: %s: visitor's name, or a placeholder if none was given
-#: includes/Artist/ContactForm.php:563
+#: includes/Artist/ContactForm.php:698
 #, php-format
-msgid "From: %s"
-msgstr "Kutoka: %s"
+msgid "Someone reached you through your Agnosis contact form: %s"
+msgstr "Mtu amekufikia kupitia fomu yako ya mawasiliano ya Agnosis: %s"
 
-#: includes/Artist/ContactForm.php:564
+#: includes/Artist/ContactForm.php:699
 msgid "(no name provided)"
 msgstr "(hakuna jina lililotolewa)"
 
-#. translators: %s: visitor's own email address, for the artist to reply to directly.
-#: includes/Artist/ContactForm.php:568
-#, php-format
-msgctxt "contact form reply-to email"
-msgid "Email: %s"
-msgstr "Barua pepe: %s"
+#: includes/Artist/ContactForm.php:708
+msgid "Original message, as submitted"
+msgstr "Ujumbe wa asili, kama ulivyowasilishwa"
 
-#: includes/Artist/ContactForm.php:577
-msgid "Original message, as submitted:"
-msgstr "Ujumbe asili, kama ulivyowasilishwa:"
+#. translators: %s: visitor's own email address
+#: includes/Artist/ContactForm.php:718
+#, php-format
+msgid "Reply directly to this email to write back to %s."
+msgstr "Jibu moja kwa moja kwa baruapepe hii ili kuandika tena kwa %s."
+
+#: includes/Artist/ContactForm.php:724
+msgid "Reply (translated automatically)"
+msgstr "Jibu (linat ترجمة automáticamente)"
+
+#: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
+#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
+#: includes/Network/ActivityPub.php:4304
+msgid "This link is invalid or has already expired."
+msgstr "Kiungo hiki si halali au kimekwisha muda."
+
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4071
+msgid "This link has expired."
+msgstr "Kiungo hiki kimeisha muda wake."
+
+#: includes/Artist/ContactForm.php:904
+msgid "This conversation no longer exists."
+msgstr "Mazungumzo haya hayapo tena."
+
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4239
+msgid "Original"
+msgstr "Asilia"
+
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4245
+msgid "Translated"
+msgstr "Tafsiri"
+
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4248
+msgid "Translation pending…"
+msgstr "Tafsiri inasubiri…"
+
+#: includes/Artist/ContactForm.php:962 includes/Artist/ContactForm.php:967
+msgid "This conversation"
+msgstr "Mazungumzo haya"
+
+#: includes/Artist/ContactForm.php:965 includes/Artist/ContactForm.php:1026
+msgid "You have already used all of your replies for this conversation."
+msgstr "Tayari umekamilisha majibu yako yote kwa mazungumzo haya."
+
+#: includes/Artist/ContactForm.php:985 includes/Artist/ContactForm.php:995
+msgid "Reply to this conversation"
+msgstr "Jibu kwa mazungumzo haya"
+
+#: includes/Artist/ContactForm.php:991
+msgid "Your reply (it will be translated automatically, if needed)"
+msgstr "Jibu lako (litatafsiriwa kiotomatiki, ikiwa inahitajika)"
+
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:2985
+#: includes/Network/ActivityPub.php:3052
+msgid "Send reply"
+msgstr "Tuma jibu"
+
+#: includes/Artist/ContactForm.php:1018
+msgid "Please write a reply before sending."
+msgstr "Tafadhali andika jibu kabla ya kutuma."
+
+#: includes/Artist/ContactForm.php:1019 includes/Artist/ContactForm.php:1027
+#: includes/Artist/ContactForm.php:1072
+msgid "Reply error"
+msgstr "Kosa la jibu"
+
+#: includes/Artist/ContactForm.php:1072
+msgid "Something went wrong sending your reply — please try again."
+msgstr "Kuna tatizo katika kutuma jibu lako — tafadhali jaribu tena."
+
+#: includes/Artist/ContactForm.php:1082
+msgid "Thanks — your reply has been sent."
+msgstr "Asante — jibu lako limetumwa."
+
+#: includes/Artist/ContactForm.php:1083
+msgid "Reply sent"
+msgstr "Jibu limetumwa"
+
+#. translators: %s: site name
+#: includes/Artist/ContactForm.php:1214
+#, php-format
+msgid "New reply via %s"
+msgstr "Jibu jipya kupitia %s"
+
+#: includes/Artist/ContactForm.php:1230
+msgid "there"
+msgstr "pale"
+
+#: includes/Artist/ContactForm.php:1235
+msgid "You have a new reply to your message:"
+msgstr "Una jibu jipya kwa ujumbe wako:"
+
+#: includes/Artist/ContactForm.php:1242
+msgid "Original message, as written"
+msgstr "Ujumbe wa asili, kama ulivyoandika"
+
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:422
+#: includes/Network/ActivityPub.php:2998
+msgid "Reply"
+msgstr "Jibu"
+
+#: includes/Artist/ContactForm.php:1254
+msgid "You've used all of your replies for this conversation."
+msgstr "Umekamilisha majibu yako yote kwa mazungumzo haya."
 
 #: includes/Artist/ContactFormBlock.php:102
 msgid "Your name (optional)"
@@ -5729,15 +5843,15 @@ msgstr "Agnosis — Uelekezaji wa Kikoa Kidogo cha Msanii umezimwa"
 msgid "Open LinguaForge Settings"
 msgstr "Fungua Mipangilio ya LinguaForge"
 
-#: includes/Core/Activator.php:1016 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1055 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Msanii wa Agnosis"
 
-#: includes/Core/Activator.php:1145 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1184 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "Maombi Yangu"
 
-#: includes/Core/Activator.php:1335
+#: includes/Core/Activator.php:1374
 msgid "Join"
 msgstr "Jiunge"
 
@@ -6235,10 +6349,6 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Ombi hili la webhook tayari limechakatwa."
 
-#: includes/Network/ActivityPub.php:422 includes/Network/ActivityPub.php:2998
-msgid "Reply"
-msgstr "Jibu"
-
 #: includes/Network/ActivityPub.php:597
 msgid "No such artist actor."
 msgstr "No such artist actor."
@@ -6315,10 +6425,6 @@ msgstr "Barua yako ya pepe"
 msgid "Write a reply…"
 msgstr "Andika jibu…"
 
-#: includes/Network/ActivityPub.php:2985 includes/Network/ActivityPub.php:3052
-msgid "Send reply"
-msgstr "Tuma jibu"
-
 #. translators: %d: number of replies.
 #: includes/Network/ActivityPub.php:2995
 #, php-format
@@ -6357,7 +6463,9 @@ msgstr "Mtu alijibu kazi yako ya sanaa kutoka Fediverse:"
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
-msgstr "Inashikiliwa mpaka upokee au kukataa — unaweza pia kuandika jibu lako mwenyewe kutoka kwenye ukurasa huo."
+msgstr ""
+"Inashikiliwa mpaka upokee au kukataa — unaweza pia kuandika jibu lako "
+"mwenyewe kutoka kwenye ukurasa huo."
 
 #: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
 #: includes/Network/ActivityPub.php:4286
@@ -6383,23 +6491,20 @@ msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
 "the usual reply/approval page for it."
-msgstr "Mtu mmoja amejibu kazi yako kutoka kwenye Fediverse, lakini hatungeweza kubaini lugha iliyoandikwa, hivyo hatuwezi kutoa tafsiri au ukurasa wa kawaida wa jibu/idhinisha kwa ajili yake."
+msgstr ""
+"Mtu mmoja amejibu kazi yako kutoka kwenye Fediverse, lakini hatungeweza "
+"kubaini lugha iliyoandikwa, hivyo hatuwezi kutoa tafsiri au ukurasa wa "
+"kawaida wa jibu/idhinisha kwa ajili yake."
 
 #: includes/Network/ActivityPub.php:3990
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
 "dashboard."
-msgstr "Hii ni kwa taarifa yako tu — hakuna chochote cha kuidhinisha au kukataa hapa. Ikiwa ungependa kuchukua hatua, unaweza kufanya hivyo kutoka kwenye dashibodi yako ya WordPress."
-
-#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
-#: includes/Network/ActivityPub.php:4304
-msgid "This link is invalid or has already expired."
-msgstr "Kiungo hiki si halali au kimekwisha muda."
-
-#: includes/Network/ActivityPub.php:4071
-msgid "This link has expired."
-msgstr "Kiungo hiki kimeisha muda wake."
+msgstr ""
+"Hii ni kwa taarifa yako tu — hakuna chochote cha kuidhinisha au kukataa "
+"hapa. Ikiwa ungependa kuchukua hatua, unaweza kufanya hivyo kutoka kwenye "
+"dashibodi yako ya WordPress."
 
 #: includes/Network/ActivityPub.php:4101
 msgid "Fediverse replies"
@@ -6412,18 +6517,6 @@ msgstr "Majibu ya Tovuti"
 #: includes/Network/ActivityPub.php:4196
 msgid "This reply no longer exists."
 msgstr "Jibu hili halipo tena."
-
-#: includes/Network/ActivityPub.php:4239
-msgid "Original"
-msgstr "Asilia"
-
-#: includes/Network/ActivityPub.php:4245
-msgid "Translated"
-msgstr "Tafsiri"
-
-#: includes/Network/ActivityPub.php:4248
-msgid "Translation pending…"
-msgstr "Tafsiri inasubiri…"
 
 #: includes/Network/ActivityPub.php:4253
 msgid "Also post my reply to the Fediverse."
@@ -8770,6 +8863,15 @@ msgstr "mawasilisho"
 msgctxt "block keyword"
 msgid "review"
 msgstr "mapitio"
+
+#, php-format
+#~ msgid "From: %s"
+#~ msgstr "Kutoka: %s"
+
+#, php-format
+#~ msgctxt "contact form reply-to email"
+#~ msgid "Email: %s"
+#~ msgstr "Barua pepe: %s"
 
 #~ msgid "Approve this reply?"
 #~ msgstr "Thibitisha jibu hili?"

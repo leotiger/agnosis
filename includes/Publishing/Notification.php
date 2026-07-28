@@ -285,7 +285,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -378,7 +378,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -554,7 +554,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -662,7 +662,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -943,7 +943,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -1233,7 +1233,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -1347,7 +1347,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -1453,7 +1453,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);
@@ -1581,7 +1581,7 @@ class Notification {
 		<p style="margin:0 0 20px;font-size:20px;color:#555;">
 			<?php
 			printf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $artist_name )
 			);

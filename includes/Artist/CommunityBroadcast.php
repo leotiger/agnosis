@@ -180,7 +180,7 @@ class CommunityBroadcast {
 
 	private function build_too_long_bounce_body( string $display_name, int $length, int $limit ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(
@@ -248,7 +248,7 @@ class CommunityBroadcast {
 
 	private function build_empty_bounce_body( string $display_name ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
 			. esc_html__( 'Your message to the community had no subject or message text that could be found — this often happens when an email client sends an HTML-only message with no plain-text version included. It was not sent to anyone.', 'agnosis' )

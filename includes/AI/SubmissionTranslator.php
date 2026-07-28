@@ -476,6 +476,161 @@ class SubmissionTranslator {
 	}
 
 	/**
+	 * Contact-form thread roadmap (agnosis-audit/CONTACT-FORM-TRANSLATION-ROADMAP.md
+	 * §3.5/CF4) — detect $text's own language AND, when it differs from
+	 * $target_code, translate it into $target_code, in ONE `chat()` call.
+	 *
+	 * Deliberately NOT built on top of detect_language() + translate_fields():
+	 * two reasons, both from Ulises's own §5 Q1 answer. (1) Cost — a contact
+	 * thread's depth-limited ping-pong (Settings → Email, `agnosis_contact_reply_depth`)
+	 * already bills one AI call per hop; folding detection into the SAME
+	 * call as the translation halves that for the one hop that needs
+	 * detection at all (the thread root — every later hop already knows
+	 * both languages, see ActivityPub::drain_outbound_reply_translation()'s
+	 * own docblock for reply threads' identical reasoning). (2) Scope —
+	 * detect_language() deliberately constrains its answer to the site's own
+	 * configured `language_names()` set (correct for WP13's public-reply
+	 * federation, which must resolve to a language the site actually
+	 * displays); a contact-form visitor's message is a private 1:1 exchange
+	 * that never surfaces on the front end, so Ulises explicitly asked for
+	 * "unsupported languages on the instance" to translate correctly too —
+	 * this method's detection half is deliberately open-world, not
+	 * constrained to `language_names()` at all.
+	 *
+	 * $target_code IS still resolved through `language_names()` (via
+	 * resolve_language_name()) — unlike the detected source language, the
+	 * target here is always the ARTIST's own declared language, which is
+	 * always one of the site's configured/supported languages (every artist
+	 * necessarily has one — see [[user_ulises_decision_style]]'s convention,
+	 * already relied on throughout WP13). Translating the OTHER direction —
+	 * an artist's or a later visitor turn's message back into the ORIGINAL
+	 * visitor's own (possibly unconfigured) language — needs
+	 * translate_to_language_name() below instead, precisely because that
+	 * target is NOT guaranteed to be a configured language.
+	 *
+	 * @return array{detected_code: string, detected_name: string, translated: string}
+	 *   `detected_code` is a best-effort ISO 639-1 guess (never validated
+	 *   against `language_names()` — that constraint is what this method
+	 *   deliberately removes); `detected_name` is the language's own common
+	 *   English name, suitable for a later translate_to_language_name() call
+	 *   without ever needing `detected_code` to resolve to anything; both are
+	 *   '' on total failure. `translated` is '' when detection failed, when
+	 *   $target_code itself doesn't resolve (defensive only — the artist's
+	 *   own language should always resolve), or when the detected language
+	 *   already IS $target_code (display already correct, matching the
+	 *   "skip when they coincide" rule used throughout this class).
+	 */
+	public function detect_and_translate( string $text, string $target_code ): array {
+		$empty = [ 'detected_code' => '', 'detected_name' => '', 'translated' => '' ];
+
+		$text = trim( $text );
+		if ( '' === $text ) {
+			return $empty;
+		}
+
+		$target_name = $this->resolve_language_name( $target_code );
+		if ( null === $target_name ) {
+			Logger::warning(
+				sprintf( 'SubmissionTranslator::detect_and_translate: unknown target language code "%s" — skipping.', $target_code ),
+				'pipeline'
+			);
+			return $empty;
+		}
+
+		$prompt = 'Identify the language the text below is written in — it may be ANY language, '
+			. "not limited to a fixed list.\n"
+			. "Return ONLY a JSON object with these keys:\n"
+			. "\"language_code\": your best-guess ISO 639-1 two-letter code for that language (or the closest existing code if none exists precisely),\n"
+			. "\"language_name\": that language's own common English name (e.g. \"Portuguese\", \"Catalan\"),\n"
+			. "\"translation\": the text translated into {$target_name}, or an empty string if the text is ALREADY written in {$target_name}.\n"
+			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. "TEXT:\n{$text}";
+
+		$response = $this->provider->chat( $prompt );
+		if ( '' === trim( $response ) ) {
+			return $empty;
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded )
+			|| ! isset( $decoded['language_code'], $decoded['language_name'], $decoded['translation'] )
+			|| ! is_string( $decoded['language_code'] )
+			|| ! is_string( $decoded['language_name'] )
+			|| ! is_string( $decoded['translation'] )
+		) {
+			$this->log_json_decode_failure( 'detect_and_translate', $json_str, $target_name, 'text excerpt' );
+			return $empty;
+		}
+
+		return [
+			'detected_code' => sanitize_key( trim( $decoded['language_code'] ) ),
+			'detected_name' => sanitize_text_field( trim( $decoded['language_name'] ) ),
+			'translated'    => sanitize_textarea_field( $decoded['translation'] ),
+		];
+	}
+
+	/**
+	 * Contact-form thread roadmap (§3.2 point 7/CF4) — translate $text into
+	 * $language_name, an arbitrary human-readable language name rather than a
+	 * code constrained to `language_names()`. The counterpart to
+	 * detect_and_translate() above: once a contact thread's visitor-side
+	 * language is known (that method's own `detected_name`), every reply
+	 * translated BACK toward that visitor needs a target that may not be one
+	 * of the site's own configured/displayed languages at all — reusing
+	 * translate_fields()/translate_text() here would silently no-op, since
+	 * both gate their target through resolve_language_name() and would
+	 * refuse anything `language_names()` doesn't list.
+	 *
+	 * $source_code is optional and, when it resolves via `language_names()`
+	 * (typically the ARTIST's own language, which always does), only
+	 * improves prompt quality the same way translate_fields()'s own
+	 * `$source_lang_code` parameter does — never required, since the target
+	 * language name is supplied directly rather than needing to be resolved.
+	 */
+	public function translate_to_language_name( string $text, string $language_name, string $source_code = '' ): string {
+		$text          = trim( $text );
+		$language_name = trim( $language_name );
+		if ( '' === $text || '' === $language_name ) {
+			return '';
+		}
+
+		$source_name = '' !== $source_code ? $this->resolve_language_name( $source_code ) : null;
+
+		$directive = null !== $source_name
+			? "Translate the text below, written in {$source_name}, into {$language_name}. Do not translate any text that "
+				. "is not written in {$source_name} — leave it EXACTLY as written, character for character.\n"
+			: "Translate the text below into {$language_name}.\n";
+
+		$prompt = $directive
+			. "If the text is already written in {$language_name}, return it unchanged.\n"
+			. self::GENDER_NEUTRAL_INSTRUCTION . "\n"
+			. self::PRESERVE_EMBEDDED_OTHER_LANGUAGE_INSTRUCTION . "\n"
+			. "Return ONLY a JSON object with one key, \"translation\", holding the translated text as a single plain string.\n"
+			. self::PLAIN_STRING_VALUES_INSTRUCTION . "\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. "TEXT:\n{$text}";
+
+		$response = $this->provider->chat( $prompt );
+		if ( '' === trim( $response ) ) {
+			return '';
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded ) || ! isset( $decoded['translation'] ) || ! is_string( $decoded['translation'] ) ) {
+			$this->log_json_decode_failure( 'translate_to_language_name', $json_str, $language_name, 'text excerpt' );
+			return '';
+		}
+
+		return sanitize_textarea_field( $decoded['translation'] );
+	}
+
+	/**
 	 * Translate an arbitrary named set of text fields to $target_code in a
 	 * single `chat()` call, returning a same-keyed array of translated
 	 * strings.

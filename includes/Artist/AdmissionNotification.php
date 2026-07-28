@@ -388,7 +388,7 @@ class AdmissionNotification {
 
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
 			. sprintf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $display_name )
 			)
@@ -434,7 +434,7 @@ class AdmissionNotification {
 
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
 			. sprintf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $application->display_name )
 			)
@@ -590,7 +590,7 @@ class AdmissionNotification {
 
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
 			. sprintf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $voter_name )
 			)
@@ -725,7 +725,7 @@ class AdmissionNotification {
 
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
 			. sprintf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $application->display_name )
 			)
@@ -788,7 +788,7 @@ class AdmissionNotification {
 
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
 			. sprintf(
-				/* translators: %s: recipient's display name */
+				/* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */
 				esc_html__( 'Hi %s,', 'agnosis' ),
 				esc_html( $user->display_name )
 			)

@@ -125,7 +125,7 @@ class RelayManager {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'agnosis' ) );
 		}
 
-		$url = esc_url_raw( trim( (string) wp_unslash( $_POST['relay_url'] ?? '' ) ) );
+		$url = esc_url_raw( wp_unslash( $_POST['relay_url'] ?? '' ) );
 
 		if ( '' !== $url && false !== filter_var( $url, FILTER_VALIDATE_URL ) ) {
 			$relays = $this->relays();

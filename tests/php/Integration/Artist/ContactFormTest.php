@@ -135,10 +135,28 @@ class ContactFormTest extends \WP_UnitTestCase {
 		};
 	}
 
-	/** SubmissionTranslator wrapping a stub provider whose chat() always returns a fixed translation. */
-	private function stub_translator( string $translated_message ): SubmissionTranslator {
+	/**
+	 * SubmissionTranslator wrapping a stub provider whose chat() always
+	 * returns a fixed response.
+	 *
+	 * The thread ROOT's own translation call is
+	 * SubmissionTranslator::detect_and_translate() (CF3/CF4) — a single
+	 * `language_code`/`language_name`/`translation` JSON envelope, not
+	 * translate_fields()'s `{field: text}` shape — so this stub's response
+	 * must match THAT shape for submit()'s own translation call
+	 * (translate_and_detect_for_artist()) to succeed. $detected_code/
+	 * $detected_name are only asserted on directly by the CF3/CF5/CF7
+	 * thread tests (ContactFormReplyGatewayTest); the pre-existing
+	 * translation tests here only ever check the translated text itself, so
+	 * their defaults are inert filler.
+	 */
+	private function stub_translator( string $translated_message, string $detected_code = 'en', string $detected_name = 'English' ): SubmissionTranslator {
 		$provider = $this->createMock( ProviderInterface::class );
-		$provider->method( 'chat' )->willReturn( (string) wp_json_encode( [ 'message' => $translated_message ] ) );
+		$provider->method( 'chat' )->willReturn( (string) wp_json_encode( [
+			'language_code' => $detected_code,
+			'language_name' => $detected_name,
+			'translation'   => $translated_message,
+		] ) );
 		return new SubmissionTranslator( $provider );
 	}
 

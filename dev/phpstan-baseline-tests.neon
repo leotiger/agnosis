@@ -826,6 +826,86 @@ parameters:
 			path: ../tests/php/Integration/Artist/CommunityCapVoteIntegrationTest.php
 
 		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$thread_root_id\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$parent_id\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$sender\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$sender_lang\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$sender_lang_name\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$reply_token_expires_at\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$delivered_at\\.$#"
+			count: 6
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$status\\.$#"
+			count: 3
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$translated_message\\.$#"
+			count: 2
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormReplyGatewayTest\\:\\:build_request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormReplyGatewayTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
+			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormReplyGatewayTest\\:\\:\\$sent_mails type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
+
+		-
 			message: "#^Access to an undefined property object\\:\\:\\$artist_id\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/ContactFormTest.php

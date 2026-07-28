@@ -404,6 +404,15 @@ class Plugin {
 		// daily inbox-cleanup cron rather than a new scheduled event; see
 		// ContactForm::prune_old_messages()'s own docblock.
 		$this->loader->add_action( 'agnosis_cleanup_inbox', $contact_form, 'prune_old_messages' );
+		// Contact-thread reply gateway (CONTACT-FORM-TRANSLATION-ROADMAP.md
+		// §3, CF5/CF6) — called directly, not via $this->loader, since it
+		// internally calls add_action() itself (same convention as
+		// ActivityPub::register_reply_moderation_handler() just below).
+		$contact_form->register_reply_gateway_handler();
+		// CF7 drain cron — translates and emails onward every reply row
+		// still awaiting delivery (see ContactForm::drain_reply_queue()'s
+		// own docblock).
+		$this->loader->add_action( 'agnosis_drain_contact_reply_queue', $contact_form, 'drain_reply_queue' );
 
 		$contact_form_block = new ContactFormBlock();
 		$this->loader->add_action( 'init', $contact_form_block, 'register_block' );

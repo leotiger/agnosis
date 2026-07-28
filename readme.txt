@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.59
+Stable tag: 0.9.60
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,6 +91,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.60 =
+* Added: The contact form now supports a full reply conversation — artists can reply to a visitor's message from an emailed link with no login needed, and the visitor can answer back (up to a configurable number of turns), with every reply translated automatically for whichever language the recipient needs.
+* Fixed: Contact-form notification emails to artists now use the site's branded email template instead of plain text.
+
 = 0.9.59 =
 * Added: Site visitors can now reply directly to an artwork with no fediverse account or login needed; artists can allow or disallow replies per artwork.
 * Added: Artists can boost (re-share) artwork to their own fediverse followers via a link in their artist newsletter.
@@ -100,9 +104,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Changed: The emailed reply-moderation link now shows everything — original text, translation, approve/reject, your own reply, and the federate option — on one page instead of two separate links.
 * Fixed: The reply form inside the reply popover no longer stretches to the full width of the screen.
 * Fixed: Reply-notification emails now reach the artist translated into their own language, and use the site's branded email template.
-
-= 0.9.58 =
-* Added: Every artwork in your email newsletter now carries a like link — followers (and artists reading their own artist newsletter) can like a piece straight from the email, no login or fediverse account needed.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

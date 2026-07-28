@@ -92,7 +92,7 @@ class DepartureNotification {
 
 	private function build_confirmation_requested_body( string $display_name, string $site_name, string $confirm_url ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(
@@ -218,7 +218,7 @@ class DepartureNotification {
 
 	private function build_artist_left_confirmation_body( string $display_name, string $site_name ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(
@@ -286,7 +286,7 @@ class DepartureNotification {
 
 	private function build_banned_body( string $display_name, string $site_name, ?string $until_formatted ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>';
 
 		if ( null !== $until_formatted ) {
@@ -369,7 +369,7 @@ class DepartureNotification {
 
 	private function build_reinstated_body( string $display_name, string $site_name, int $user_id ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $display_name ) )
 			. '</p>'
 			. '<p style="margin:0;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(
@@ -464,7 +464,7 @@ class DepartureNotification {
 
 	private function build_vote_opened_body( string $voter_name, string $site_name, string $close_formatted, string $yes_url, string $no_url, int $voter_id ): string {
 		$body = '<p style="margin:0 0 20px;font-size:18px;color:#555;">'
-			. sprintf( /* translators: %s: recipient's display name */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $voter_name ) )
+			. sprintf( /* translators: %s: the name of the person being greeted (may fall back to a generic greeting if unavailable) */ esc_html__( 'Hi %s,', 'agnosis' ), esc_html( $voter_name ) )
 			. '</p>'
 			. '<p style="margin:0 0 24px;font-size:18px;line-height:1.6;color:#555;">'
 			. sprintf(

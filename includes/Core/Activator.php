@@ -496,6 +496,7 @@ class Activator {
 		'agnosis_federation_tag_wait_sweep',
 		'agnosis_drain_reply_translation_queue',
 		'agnosis_rotate_like_salt',
+		'agnosis_drain_contact_reply_queue',
 		// Single events — each scheduled with per-call arguments (a queue id,
 		// a translation dispatch payload), so clearing them needs
 		// wp_unschedule_hook() below, not wp_clear_scheduled_hook( $hook ):
@@ -782,20 +783,58 @@ class Activator {
 		// artist's own language actually emailed to them (empty when rejected, or
 		// when the artist's language couldn't be resolved and the original was sent
 		// as-is). rejection_reason is empty for a sent message.
+		//
+		// Thread/ping-pong columns (CONTACT-FORM-TRANSLATION-ROADMAP.md §3.3,
+		// CF3) — every row in a conversation lives in this same table, not a
+		// companion one: a fresh visitor submission is its own thread root
+		// (thread_root_id/parent_id both NULL); any reply — artist or visitor —
+		// is a new row pointing thread_root_id at the root's id and parent_id at
+		// the row it directly answers. sender records who wrote THIS row's
+		// message text (needed because translated_message alone can't tell you
+		// direction once a thread has more than one hop); sender_lang is that
+		// author's own language, either detected (thread root, via
+		// SubmissionTranslator::detect_and_translate()) or already known from
+		// the other party's own prior row (every reply already knows both
+		// languages — no repeat detection); sender_lang_name is that same
+		// language's own common English name (SubmissionTranslator::
+		// detect_and_translate()'s open-world `detected_name`, not looked up
+		// in language_names() — the visitor's own language may not be one of
+		// the site's configured languages at all), needed because translating
+		// a reply BACK toward that party uses translate_to_language_name(),
+		// which takes an arbitrary name, not a resolve_language_name()-gated
+		// code. reply_token_expires_at backs the stateless HMAC reply-gateway
+		// link for THIS row (same hash_hmac( "{$id}|purpose",
+		// wp_salt('auth')) shape as ActivityPub's reply_gateway_token(), but
+		// — unlike a comment, which has commentmeta to hold an expiry — a
+		// contact row has nowhere else to put one, hence a real column here).
+		// delivered_at marks when the drain cron (CF7) has actually
+		// translated-and-emailed this row's message onward to the other
+		// party; kept distinct from translated_message being empty,
+		// which can legitimately mean "no translation needed, both parties
+		// share a language" rather than "not processed yet".
 		$sql_contact_messages = "CREATE TABLE {$wpdb->prefix}agnosis_contact_messages (
-			id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			artist_id          BIGINT UNSIGNED NOT NULL,
-			visitor_name       VARCHAR(255)    DEFAULT NULL,
-			visitor_email      VARCHAR(255)    NOT NULL,
-			message            TEXT            NOT NULL,
-			translated_message TEXT            DEFAULT NULL,
-			status             ENUM('sent','rejected') NOT NULL DEFAULT 'sent',
-			rejection_reason   VARCHAR(255)    DEFAULT NULL,
-			ip                 VARCHAR(45)     DEFAULT NULL,
-			created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			artist_id              BIGINT UNSIGNED NOT NULL,
+			visitor_name           VARCHAR(255)    DEFAULT NULL,
+			visitor_email          VARCHAR(255)    NOT NULL,
+			message                TEXT            NOT NULL,
+			translated_message     TEXT            DEFAULT NULL,
+			status                 ENUM('sent','rejected') NOT NULL DEFAULT 'sent',
+			rejection_reason       VARCHAR(255)    DEFAULT NULL,
+			ip                     VARCHAR(45)     DEFAULT NULL,
+			created_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			thread_root_id         BIGINT UNSIGNED DEFAULT NULL,
+			parent_id              BIGINT UNSIGNED DEFAULT NULL,
+			sender                 ENUM('visitor','artist') NOT NULL DEFAULT 'visitor',
+			sender_lang            VARCHAR(10)     DEFAULT NULL,
+			sender_lang_name       VARCHAR(100)    DEFAULT NULL,
+			reply_token_expires_at DATETIME        DEFAULT NULL,
+			delivered_at           DATETIME        DEFAULT NULL,
 			PRIMARY KEY        (id),
 			KEY                idx_artist (artist_id),
-			KEY                idx_status (status)
+			KEY                idx_status (status),
+			KEY                idx_thread_root (thread_root_id),
+			KEY                idx_delivered (delivered_at)
 		) $charset_collate;";
 
 		// ActivityPub followers (audit §3g note iii) — replaces the
@@ -1396,6 +1435,14 @@ class Activator {
 		// translation meta).
 		if ( ! wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_reply_translation_queue' );
+		}
+		// Contact-form thread reply queue drain (CONTACT-FORM-TRANSLATION-
+		// ROADMAP.md §3/CF7) — same 5-minute tick, same no-op-when-empty
+		// convention as every other drain cron above (ContactForm::
+		// drain_reply_queue() returns immediately when no row currently has
+		// delivered_at IS NULL).
+		if ( ! wp_next_scheduled( 'agnosis_drain_contact_reply_queue' ) ) {
+			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_contact_reply_queue' );
 		}
 		// On-site like anonymous identity salt rotation (interaction-surface
 		// roadmap, Phase 3, WP2, §7 Q5) — daily, so a same-day repeat visitor
