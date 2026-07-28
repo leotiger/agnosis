@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.61
+Stable tag: 0.9.62
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,12 +91,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.62 =
+* Added: An approved reply to an artwork now also appears on that artwork's other translated versions — specifically the reply's own language, the site's primary language, and the artist's native language — wherever a real translated version already exists. Nested replies (including an artist's own reply to a reply) are mirrored too, editing an already-mirrored reply updates every copy, and a reply is backfilled onto a translated version created afterward.
+* Fixed: Replying to an artwork could send an artist a second, plain, unbranded "new comment" email from WordPress itself, in addition to (and before) our own branded notification. That extra email is now suppressed for artwork replies.
+
 = 0.9.61 =
 * Fixed: Several background tasks (reply/translation queues, the retry queue, the newsletter sender) could stop running on their own after being scheduled, with no artist- or admin-visible error — for example, a visitor's reply would be stored but the artist would never get notified. These now automatically re-check and re-register themselves on every site visit, so they can no longer silently go missing.
-
-= 0.9.60 =
-* Added: The contact form now supports a full reply conversation — artists can reply to a visitor's message from an emailed link with no login needed, and the visitor can answer back (up to a configurable number of turns), with every reply translated automatically for whichever language the recipient needs.
-* Fixed: Contact-form notification emails to artists now use the site's branded email template instead of plain text.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

@@ -241,6 +241,33 @@ class ActivityPub {
 	private const REPLY_UNSUPPORTED_LANG_META = '_agnosis_reply_unsupported_lang';
 
 	/**
+	 * Comment meta: shared group identifier tying together one visitor
+	 * reply's CANONICAL row and every real, mirrored comment row created
+	 * for it on other LF-sibling posts (agnosis-audit/
+	 * REPLY-LANGUAGE-MIRRORING-ROADMAP.md, RLM1-RLM3). Modeled directly on
+	 * Lingua Forge's own `_lf_trid` convention (a shared group value,
+	 * distinct from each row's own id) — see that roadmap's §3.3 for why
+	 * this is a plain Agnosis-only convention, not an actual integration
+	 * with LF's own trid system.
+	 *
+	 * Written to the CANONICAL row's own value at insertion time as ITS OWN
+	 * `comment_ID` (never blank) — `mirror_reply_across_languages()` treats
+	 * "this value equals the row's own id" as the definition of "canonical,
+	 * not yet mirrored" and "this value differs from the row's own id" as
+	 * the definition of a mirror row, without needing a second flag. Only
+	 * ever set on a visitor-submitted or federated-inbound reply
+	 * (store_local_reply(), handle_create_reply()) — never on an artist's
+	 * own reply (store_artist_gateway_reply()), since cross-post mirroring
+	 * of artist replies-to-replies is deliberately out of scope for now
+	 * (roadmap §4 Q3).
+	 *
+	 * `get_comments( ['meta_key' => self::REPLY_GROUP_ID_META, 'meta_value'
+	 * => $group_id] )` finds every row in one reply's group across every
+	 * sibling post — the mechanism cascade_delete_reply_group() uses.
+	 */
+	private const REPLY_GROUP_ID_META = '_agnosis_reply_group_id';
+
+	/**
 	 * Comment meta: when the reply's moderation link (notify_artist_of_reply())
 	 * expires — WP0, agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8. Written
 	 * once at email-send time; see that method's docblock for why it's stored
@@ -3265,6 +3292,19 @@ class ActivityPub {
 
 		delete_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META );
 
+		// RLM5 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md, roadmap §4 Q3): mirror
+		// this artist reply now that its translations are resolved — an
+		// artist's reply is already comment_approved => 1 at insert time
+		// (store_artist_gateway_reply()), so it never fires
+		// transition_comment_status, which is why RLM2's own trigger point
+		// can't reach it; this is the equivalent trigger for the outbound
+		// direction. Re-fetch first: reply_translation_for() calls above ran
+		// against a snapshot taken before this comment's own meta existed.
+		$fresh = get_comment( $comment_id );
+		if ( $fresh instanceof \WP_Comment ) {
+			$this->mirror_reply_across_languages( $fresh );
+		}
+
 		// WP13 §13.4: federation moves here from store_artist_gateway_reply()'s
 		// own synchronous call site — the Note's contentMap needs the
 		// translations resolved above to exist before it's built.
@@ -3431,6 +3471,10 @@ class ActivityPub {
 		if ( ! $comment_id ) {
 			return;
 		}
+
+		// RLM1 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md): tag this row as its own
+		// canonical reply-group — see REPLY_GROUP_ID_META's own docblock.
+		update_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, (string) $comment_id );
 
 		// Known ONLY here, for a local reply — the page's own LF language at
 		// the moment of submission. See REPLY_SOURCE_LANG_META's own docblock
@@ -3688,6 +3732,9 @@ class ActivityPub {
 		update_comment_meta( $comment_id, self::REPLY_ACTIVITY_ID_META, $activity_id );
 		update_comment_meta( $comment_id, self::REPLY_ACTOR_META, $actor_url );
 		update_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META, '1' );
+		// RLM1 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md): tag this row as its own
+		// canonical reply-group — see REPLY_GROUP_ID_META's own docblock.
+		update_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, (string) $comment_id );
 
 		// Notification fires once drain_reply_translation_queue() has produced
 		// an artist-language translation (or established there's nothing to
@@ -3799,6 +3846,46 @@ class ActivityPub {
 	 *                              or a federated one (false) — only changes
 	 *                              the intro line.
 	 */
+	/**
+	 * Suppress WordPress core's own native comment-notification emails
+	 * (`comment_notification_recipients`/`comment_moderation_recipients`)
+	 * for Agnosis's own reply comment types — local and federated alike.
+	 * Every one of these already gets its own fully branded, translated,
+	 * gateway-linked notification from notify_artist_of_reply() once
+	 * drain_reply_translation_queue() resolves it (see that method's own
+	 * docblock). Core's raw "New comment on ..." notice firing on top of
+	 * that isn't just redundant — it fires SYNCHRONOUSLY at comment-insert
+	 * time (the `comment_post` action), so it always reaches the artist
+	 * BEFORE our own translated version does, in whichever language core's
+	 * admin-area locale happens to be, with no gateway link at all. Exactly
+	 * the "plain-text-before-translation" problem notify_artist_of_reply()
+	 * itself was already fixed to avoid (0.9.59) — just via a second,
+	 * entirely separate code path this plugin doesn't own.
+	 *
+	 * Found 2026-07-28: a live artist received exactly this raw core email
+	 * for a held reply, on top of our own branded one.
+	 * `agnosis_artist` has no `moderate_comments` capability, so
+	 * `wp_notify_moderator()` was already correctly reasoned as a non-issue
+	 * (see notify_artist_of_reply()'s own docblock) — but
+	 * `wp_notify_postauthor()` needs no capability at all, only that the
+	 * POST AUTHOR's own account has "Email me whenever anyone posts a
+	 * comment" enabled in Settings -> Discussion, which is exactly what
+	 * fired here. Filtered to an empty recipient list ONLY for
+	 * REPLY_COMMENT_TYPES — an ordinary WordPress comment on any other post
+	 * type (should this site ever have one) is completely unaffected.
+	 *
+	 * @param array<int, string> $emails     Recipients core is about to notify.
+	 * @param int                $comment_id
+	 * @return array<int, string>
+	 */
+	public function suppress_native_reply_notifications( array $emails, int $comment_id ): array {
+		$comment = get_comment( $comment_id );
+		if ( $comment instanceof \WP_Comment && in_array( $comment->comment_type, self::REPLY_COMMENT_TYPES, true ) ) {
+			return [];
+		}
+		return $emails;
+	}
+
 	private function notify_artist_of_reply( \WP_Post $post, \WP_Comment $comment, bool $is_local = false ): void {
 		$comment_id = (int) $comment->comment_ID;
 		$author_id  = (int) $post->post_author;
@@ -4417,6 +4504,16 @@ class ActivityPub {
 			return;
 		}
 
+		// RLM1/RLM5 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md, roadmap §4 Q3 —
+		// "for sure, that's vital"): an artist's own reply is now mirrored
+		// too, same as a visitor's — tagged with its own group id here so
+		// mirror_reply_across_languages() (called once translations resolve,
+		// from drain_outbound_reply_translation() below, never here — this
+		// reply is already comment_approved => 1 at insert time, so no
+		// transition_comment_status ever fires for it) recognizes it as a
+		// fresh canonical reply.
+		update_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, (string) $comment_id );
+
 		if ( $federate_requested ) {
 			update_comment_meta( $comment_id, self::REPLY_FEDERATE_REQUESTED_META, '1' );
 		}
@@ -4483,12 +4580,506 @@ class ActivityPub {
 	 * no-op — re-approving out of trash does not currently re-federate,
 	 * matching Create's own "no re-publish on undo" behavior elsewhere in
 	 * this class.
+	 *
+	 * RLM2/RLM3 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md) widen this same
+	 * callback with two more branches: 'approved' triggers
+	 * mirror_reply_across_languages() (an artist approving a reply, even
+	 * without answering, is the signal that it should now also appear on
+	 * whichever of the reply's source/primary/artist-native sibling posts
+	 * actually exist), and 'trash' — already handled below for federation
+	 * cleanup — also cascades a delete to every mirror sharing this reply's
+	 * group id. Per core's own wp_transition_comment_status(), $new_status
+	 * here is the human-readable, already-translated form ('approved', not
+	 * 'approve' — see that function's own $comment_statuses map; only
+	 * 'approve'/'hold'/0/1 get translated, 'trash'/'spam' pass through
+	 * unchanged, which is why the check just below still reads literal
+	 * 'trash').
 	 */
 	public function handle_reply_status_transition( string $new_status, string $old_status, \WP_Comment $comment ): void {
+		if ( 'approved' === $new_status ) {
+			$this->mirror_reply_across_languages( $comment );
+			return;
+		}
+
 		if ( 'trash' !== $new_status ) {
 			return;
 		}
+
+		$this->cascade_delete_reply_group( $comment );
 		$this->maybe_federate_reply_removal( (int) $comment->comment_ID );
+	}
+
+	/**
+	 * RLM2/RLM5 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md §3, §4 Q2/Q3): once a
+	 * reply is approved, mirror it as a REAL, already-approved comment row
+	 * onto whichever of its three target languages (§2's deliberate
+	 * cost-conscious scope, NOT every LF sibling) actually has a real
+	 * sibling post today. A language that already IS the post the reply
+	 * lives on needs no mirror; a language with no real sibling post is
+	 * skipped silently — never force-creates a translated artwork post just
+	 * to host a reply (§3.2).
+	 *
+	 * Ulises's own answers widened this from the original visitor-only,
+	 * top-level-only build: "for sure, that's vital" (Q3, nested replies)
+	 * and "we allow replies in every context for every user" (Q2) — so
+	 * BOTH artist-authored replies and replies-to-a-reply are now in scope.
+	 * create_reply_mirrors_for() branches the target-language computation on
+	 * authorship (reply_mirror_target_langs()) and, for a nested reply, maps
+	 * its own mirror's comment_parent to whichever row represents its
+	 * parent's OWN reply-group on that same target sibling
+	 * (find_mirror_on_sibling()) — skipping a sibling entirely if the parent
+	 * has no representative row there yet, rather than orphaning a reply
+	 * with no visible context.
+	 *
+	 * Only ever runs once per canonical reply: REPLY_GROUP_ID_META is set to
+	 * the row's OWN id only at insertion time (RLM1); a row whose value
+	 * differs from its own id is itself already a mirror, not a fresh
+	 * canonical reply, and is skipped.
+	 *
+	 * After attempting this reply's own mirrors, recurses into any already-
+	 * APPROVED direct child of it (roadmap §4 Q1/Q3's "cascade forward"):
+	 * a child approved before its own parent could have been skipped on
+	 * every sibling for lacking a mapped parent row there — now that this
+	 * reply's mirrors may only just have been (re)created (by a fresh
+	 * approval OR by backfill_reply_mirrors_for_new_sibling()'s sweep), its
+	 * children get a fresh attempt too. Recursive, so an arbitrarily deep
+	 * reply chain resolves in one pass regardless of the order replies
+	 * happened to be approved in.
+	 */
+	private function mirror_reply_across_languages( \WP_Comment $comment ): void {
+		if ( ! in_array( $comment->comment_type, self::REPLY_COMMENT_TYPES, true ) ) {
+			return;
+		}
+
+		$comment_id = (int) $comment->comment_ID;
+		$group_id   = (string) get_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, true );
+		if ( '' === $group_id || (string) $comment_id !== $group_id ) {
+			return; // Not a fresh canonical reply (already a mirror, or never tagged).
+		}
+
+		$this->create_reply_mirrors_for( $comment, $group_id );
+
+		$children = get_comments( [
+			'parent' => $comment_id,
+			'type'   => self::REPLY_COMMENT_TYPES,
+			'status' => 'approve',
+		] );
+		if ( is_array( $children ) ) {
+			foreach ( $children as $child ) {
+				if ( $child instanceof \WP_Comment ) {
+					$this->mirror_reply_across_languages( $child );
+				}
+			}
+		}
+	}
+
+	/** The actual mirror-creation attempt for one canonical reply — split out of mirror_reply_across_languages() so its own recursive cascade-to-children step stays readable. */
+	private function create_reply_mirrors_for( \WP_Comment $comment, string $group_id ): void {
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return;
+		}
+
+		$comment_id = (int) $comment->comment_ID;
+		$post_id    = (int) $comment->comment_post_ID;
+		$post       = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$translations = linguaforge_get_translations( $post_id );
+		if ( empty( $translations ) ) {
+			return; // No real LF siblings at all — nothing to mirror onto.
+		}
+
+		[ $source_lang, $primary_lang, $third_lang ] = $this->reply_mirror_target_langs( $comment, $post );
+
+		$canonical_lang = $this->resolve_post_lf_lang( $post_id );
+		if ( '' === $canonical_lang ) {
+			$canonical_lang = $primary_lang;
+		}
+
+		$parent_id = (int) $comment->comment_parent;
+
+		// The three target language identities, deduplicated — sometimes
+		// two (or all three) coincide, per Ulises's own "sometimes it's
+		// obviously only two languages... but that does not matter" (§2).
+		foreach ( array_unique( [ $source_lang, $primary_lang, $third_lang ] ) as $target_lang ) {
+			if ( $target_lang === $canonical_lang ) {
+				continue; // Already visible right here — no mirror needed.
+			}
+			if ( ! isset( $translations[ $target_lang ] ) ) {
+				continue; // No real sibling in this language — skip silently.
+			}
+			$sibling_id = (int) $translations[ $target_lang ];
+			if ( 0 === $sibling_id || $sibling_id === $post_id ) {
+				continue;
+			}
+
+			$mirror_parent_id = 0;
+			if ( $parent_id > 0 ) {
+				$mirror_parent_id = $this->find_mirror_on_sibling( $parent_id, $sibling_id );
+				if ( 0 === $mirror_parent_id ) {
+					continue; // This reply's own parent has no representative row on this sibling yet.
+				}
+			}
+
+			$this->insert_reply_mirror(
+				$comment,
+				$sibling_id,
+				$this->reply_mirror_content_for( $comment, $target_lang, $primary_lang, $third_lang, $source_lang ),
+				$group_id,
+				$mirror_parent_id
+			);
+		}
+	}
+
+	/**
+	 * The [source_lang, primary_lang, third_lang] target-language triple for
+	 * one reply — roadmap §4 Q3's widened scope means this now branches on
+	 * authorship, since WP13's own outbound translation model already
+	 * assigns a DIFFERENT meaning to REPLY_TRANSLATED_CONTENT_META depending
+	 * on direction:
+	 *   - INBOUND (visitor/federated, no `user_id`): source = the reply's
+	 *     own known language; third slot = the ARTIST's native language
+	 *     (resolve_artist_lang()) — REPLY_TRANSLATED_CONTENT_META holds
+	 *     that, per drain_reply_translation_queue()'s inbound branch.
+	 *   - OUTBOUND (artist-authored, real `user_id`): source = the artist's
+	 *     OWN declared language (drain_outbound_reply_translation() always
+	 *     sets REPLY_SOURCE_LANG_META to this) — "artist-native" would be
+	 *     redundant as a separate slot here, since it already IS the
+	 *     source, so the third slot is instead the ORIGINAL COMMENTER's
+	 *     language (resolve_original_commenter_lang()), matching exactly
+	 *     what REPLY_TRANSLATED_CONTENT_META holds for an outbound reply.
+	 *
+	 * @return array{0: string, 1: string, 2: string}
+	 */
+	private function reply_mirror_target_langs( \WP_Comment $comment, \WP_Post $post ): array {
+		$primary_lang = SubmissionTranslator::resolve_target_language();
+
+		// REPLY_SOURCE_LANG_META uses Agnosis's own "'' means the site's
+		// primary language" convention (resolve_post_lf_lang()'s own
+		// docblock) — never a LinguaForge lang code of '', which
+		// linguaforge_get_translations() never returns as a key either.
+		$source_lang = (string) get_comment_meta( (int) $comment->comment_ID, self::REPLY_SOURCE_LANG_META, true );
+		if ( '' === $source_lang ) {
+			$source_lang = $primary_lang;
+		}
+
+		if ( (int) $comment->user_id > 0 ) {
+			$third_lang = $this->resolve_original_commenter_lang( (int) $comment->comment_parent, $primary_lang );
+			return [ $source_lang, $primary_lang, $third_lang ];
+		}
+
+		$third_lang = SubmissionTranslator::resolve_artist_lang( (int) $post->post_author );
+		if ( '' === $third_lang ) {
+			$third_lang = $primary_lang;
+		}
+		return [ $source_lang, $primary_lang, $third_lang ];
+	}
+
+	/**
+	 * The existing row representing $parent_id's OWN reply-group on
+	 * $sibling_post_id — either a mirror of it, or $parent_id's own
+	 * canonical row, should it happen to already live there — or 0 if
+	 * neither exists (yet). Roadmap §4 Q2/Q3: a nested reply is only ever
+	 * mirrored onto a sibling where its own parent already has a visible
+	 * counterpart; see mirror_reply_across_languages()'s own cascade-to-
+	 * children step for how a temporarily-skipped nested reply catches up
+	 * once its parent's mirrors do get created.
+	 */
+	private function find_mirror_on_sibling( int $parent_id, int $sibling_post_id ): int {
+		$parent_group_id = (string) get_comment_meta( $parent_id, self::REPLY_GROUP_ID_META, true );
+		if ( '' === $parent_group_id ) {
+			return 0; // Parent predates RLM1, or isn't a tracked reply at all.
+		}
+
+		$found = get_comments( [
+			'post_id'    => $sibling_post_id,
+			'meta_key'   => self::REPLY_GROUP_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded lookup for one specific reply group, not a listing query.
+			'meta_value' => $parent_group_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'status'     => 'any',
+			'number'     => 1,
+		] );
+		if ( ! is_array( $found ) || ! isset( $found[0] ) || ! $found[0] instanceof \WP_Comment ) {
+			return 0;
+		}
+		return (int) $found[0]->comment_ID;
+	}
+
+	/**
+	 * Which stored version of the canonical reply's text to mirror for
+	 * $target_lang — the same fallback discipline as display_reply_content()
+	 * (never worse than the untouched original), keyed on real language
+	 * codes rather than a viewed post, since a mirror has no "page being
+	 * viewed" of its own. $third_lang is whichever of artist-native/
+	 * original-commenter's-language reply_mirror_target_langs() resolved
+	 * for this specific reply (see that method's own docblock) — the stored
+	 * meta key is the same (REPLY_TRANSLATED_CONTENT_META) either way.
+	 */
+	private function reply_mirror_content_for( \WP_Comment $canonical, string $target_lang, string $primary_lang, string $third_lang, string $source_lang ): string {
+		if ( $target_lang === $source_lang ) {
+			return $canonical->comment_content;
+		}
+
+		$comment_id = (int) $canonical->comment_ID;
+
+		if ( $target_lang === $primary_lang ) {
+			$primary = (string) get_comment_meta( $comment_id, self::REPLY_TRANSLATED_PRIMARY_META, true );
+			if ( '' !== $primary ) {
+				return $primary;
+			}
+		}
+
+		if ( $target_lang === $third_lang ) {
+			$third_translation = (string) get_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, true );
+			if ( '' !== $third_translation ) {
+				return $third_translation;
+			}
+		}
+
+		return $canonical->comment_content;
+	}
+
+	/**
+	 * Insert one real, already-approved mirror comment row on $sibling_post_id
+	 * — indistinguishable from an ordinary approved reply to every existing
+	 * read path (get_replies(), reply_count(), display_reply_content() all
+	 * stay completely unchanged, roadmap §3.4), except for carrying
+	 * REPLY_GROUP_ID_META so cascade_delete_reply_group() can find it later.
+	 * $parent_id (roadmap §4 Q2/Q3) is 0 for a top-level reply, or the
+	 * mapped parent row on THIS sibling for a nested one — see
+	 * find_mirror_on_sibling().
+	 *
+	 * Idempotent: a duplicate hook fire must never insert a second mirror
+	 * for the same (group, sibling) pair — checked directly rather than
+	 * assumed, same "replay must upsert, not duplicate" discipline as
+	 * handle_create_reply()'s own idempotency check above.
+	 */
+	private function insert_reply_mirror( \WP_Comment $canonical, int $sibling_post_id, string $content, string $group_id, int $parent_id = 0 ): void {
+		$already = get_comments( [
+			'post_id'    => $sibling_post_id,
+			'meta_key'   => self::REPLY_GROUP_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- one-off idempotency check per mirror insert, not a listing query.
+			'meta_value' => $group_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'status'     => 'any',
+			'number'     => 1,
+			'count'      => true,
+		] );
+		if ( $already > 0 ) {
+			return;
+		}
+
+		$mirror_id = wp_insert_comment( [
+			'comment_post_ID'      => $sibling_post_id,
+			'comment_author'       => $canonical->comment_author,
+			'comment_author_email' => $canonical->comment_author_email,
+			'comment_author_url'   => $canonical->comment_author_url,
+			'comment_content'      => $content,
+			'comment_type'         => $canonical->comment_type,
+			'comment_approved'     => 1,
+			'comment_parent'       => $parent_id,
+			'comment_agent'        => 'AgnosisReplyMirror',
+			'comment_date_gmt'     => $canonical->comment_date_gmt,
+			'comment_date'         => $canonical->comment_date,
+		] );
+
+		if ( ! $mirror_id ) {
+			return;
+		}
+
+		update_comment_meta( $mirror_id, self::REPLY_GROUP_ID_META, $group_id );
+	}
+
+	/**
+	 * RLM9 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md §4 Q1): once Lingua Forge
+	 * creates or re-translates a sibling into $target_lang, back-fill any
+	 * already-approved reply anywhere in that artwork's translation group
+	 * whose own three-language target set includes $target_lang but didn't
+	 * yet have a mirror there — most commonly a reply approved before this
+	 * sibling existed. Ulises's own answer: "we want additional
+	 * translations... to show up... right now we conform with our three
+	 * language approach" — i.e. this backfills a newly-available one of the
+	 * SAME three slots, never an expansion beyond them (that's RLM8, gated
+	 * on RLM7).
+	 *
+	 * Hooked on 'linguaforge_translation_complete' (fires on both creation
+	 * AND re-translation — see Compat\LinguaForge::copy_translated_meta()'s
+	 * own docblock for that same fact), so this may run more than once for
+	 * the same sibling; mirror_reply_across_languages()'s own idempotency
+	 * guard (insert_reply_mirror()) makes every re-run beyond the first a
+	 * cheap no-op.
+	 *
+	 * Sweeps EVERY post in the artwork's translation group, not just
+	 * $source_id/$translated_id — a reply could be canonical on any
+	 * sibling, not only the two this specific firing names. Processes
+	 * canonical replies oldest-first: since a reply can only ever be
+	 * submitted after its own parent already exists, this ordering
+	 * guarantees a parent's mirror on the new sibling is attempted before
+	 * its children's, at any nesting depth, in this same sweep.
+	 */
+	public function backfill_reply_mirrors_for_new_sibling( int $translated_id, int $source_id, string $target_lang ): void {
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$group = linguaforge_get_translations( $source_id );
+		$post_ids = array_unique( array_map( 'intval', array_merge( array_values( $group ), [ $source_id, $translated_id ] ) ) );
+
+		$canonical_replies = [];
+		foreach ( $post_ids as $post_id ) {
+			if ( 0 === $post_id || 'agnosis_artwork' !== get_post_type( $post_id ) ) {
+				continue;
+			}
+			$comments = get_comments( [
+				'post_id' => $post_id,
+				'type'    => self::REPLY_COMMENT_TYPES,
+				'status'  => 'approve',
+			] );
+			if ( ! is_array( $comments ) ) {
+				continue;
+			}
+			foreach ( $comments as $comment ) {
+				if ( ! $comment instanceof \WP_Comment ) {
+					continue;
+				}
+				$comment_id = (int) $comment->comment_ID;
+				$group_id   = (string) get_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, true );
+				if ( '' !== $group_id && (string) $comment_id === $group_id ) {
+					$canonical_replies[] = $comment;
+				}
+			}
+		}
+
+		usort( $canonical_replies, static fn( \WP_Comment $a, \WP_Comment $b ) => strcmp( $a->comment_date_gmt, $b->comment_date_gmt ) );
+
+		foreach ( $canonical_replies as $comment ) {
+			$this->mirror_reply_across_languages( $comment );
+		}
+	}
+
+	/**
+	 * RLM4 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md §4 Q4): hook callback for
+	 * 'edit_comment' — when the CANONICAL row of a mirrored reply has its
+	 * own text edited (an artist/admin correcting it via wp-admin), every
+	 * existing mirror's stored translation is regenerated from the NEW text
+	 * and pushed to the mirror row itself, so mirrors never silently drift
+	 * from a corrected original.
+	 *
+	 * Deliberately one-directional, same convention as
+	 * cascade_delete_reply_group(): editing an individual MIRROR's own text
+	 * does not cascade back to the canonical or sideways to other mirrors —
+	 * §4 Q2 answered mirrors as fully interactive replies in their own
+	 * right, not read-only reflections, so a mirror's own text is treated
+	 * the same way any other approved reply's text would be once it exists.
+	 *
+	 * wp_update_comment() (called below, once per mirror) itself re-fires
+	 * 'edit_comment' for that mirror — verified safe against recursion by
+	 * this same "only a canonical row's own group id equals its own id"
+	 * guard every other reply-group method here uses; a mirror's group id
+	 * always differs from its own id, so the second-level call returns
+	 * immediately.
+	 */
+	public function handle_reply_content_edit( int $comment_id ): void {
+		$comment = get_comment( $comment_id );
+		if ( ! $comment instanceof \WP_Comment || ! in_array( $comment->comment_type, self::REPLY_COMMENT_TYPES, true ) ) {
+			return;
+		}
+
+		$group_id = (string) get_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, true );
+		if ( '' === $group_id || $group_id !== (string) $comment_id ) {
+			return; // Only the canonical row's own edit cascades.
+		}
+
+		$mirrors = get_comments( [
+			'meta_key'   => self::REPLY_GROUP_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded to one small reply group (at most a few rows), not a listing query.
+			'meta_value' => $group_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'status'     => 'any',
+		] );
+		if ( ! is_array( $mirrors ) || empty( $mirrors ) ) {
+			return; // No mirrors exist yet — nothing to keep in sync.
+		}
+
+		$post_id = (int) $comment->comment_post_ID;
+		$post    = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		[ $source_lang, $primary_lang, $third_lang ] = $this->reply_mirror_target_langs( $comment, $post );
+
+		$translator = SubmissionTranslator::from_settings();
+		if ( null !== $translator ) {
+			update_comment_meta( $comment_id, self::REPLY_TRANSLATED_PRIMARY_META, $this->reply_translation_for( $translator, $comment->comment_content, $primary_lang, $source_lang ) );
+			update_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, $this->reply_translation_for( $translator, $comment->comment_content, $third_lang, $source_lang ) );
+			$comment = get_comment( $comment_id ); // Re-fetch so reply_mirror_content_for() below reads the just-refreshed meta.
+		}
+
+		foreach ( $mirrors as $mirror ) {
+			if ( ! $mirror instanceof \WP_Comment ) {
+				continue;
+			}
+			$mirror_id = (int) $mirror->comment_ID;
+			if ( $mirror_id === $comment_id ) {
+				continue;
+			}
+
+			$mirror_lang = $this->resolve_post_lf_lang( (int) $mirror->comment_post_ID );
+			if ( '' === $mirror_lang ) {
+				$mirror_lang = $primary_lang;
+			}
+
+			$new_content = $this->reply_mirror_content_for( $comment, $mirror_lang, $primary_lang, $third_lang, $source_lang );
+			if ( $new_content === $mirror->comment_content ) {
+				continue; // Idempotent — avoid a pointless write + recursive edit_comment firing.
+			}
+			wp_update_comment( [ 'comment_ID' => $mirror_id, 'comment_content' => $new_content ] );
+		}
+	}
+
+	/**
+	 * RLM3 (REPLY-LANGUAGE-MIRRORING-ROADMAP.md §4 Q5): rejecting/trashing
+	 * the CANONICAL row of a mirrored reply removes every row sharing its
+	 * group id outright (hard delete, not trash) — a mirror has no
+	 * independent existence once the reply it reflects is gone (§4 Q2 is
+	 * still open on independent INTERACTION with a mirror, but removal is
+	 * unambiguous either way: nothing approved should keep showing a reply
+	 * the artist just rejected).
+	 *
+	 * Deliberately one-directional: trashing an individual MIRROR (e.g. an
+	 * admin trashes just the sibling-language copy from that sibling's own
+	 * wp-admin comments list) does NOT cascade back to the canonical or the
+	 * other mirrors — left as an ordinary, uncascaded moderation action
+	 * until §4 Q2 is answered. Guarded by checking this row's own
+	 * REPLY_GROUP_ID_META equals its own id, the same "am I canonical"
+	 * check mirror_reply_across_languages() uses.
+	 */
+	private function cascade_delete_reply_group( \WP_Comment $comment ): void {
+		$comment_id = (int) $comment->comment_ID;
+		$group_id   = (string) get_comment_meta( $comment_id, self::REPLY_GROUP_ID_META, true );
+		if ( '' === $group_id || $group_id !== (string) $comment_id ) {
+			return;
+		}
+
+		$members = get_comments( [
+			'meta_key'   => self::REPLY_GROUP_ID_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- bounded to one small reply group (at most 3 rows), not a listing query.
+			'meta_value' => $group_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value_field
+			'status'     => 'any',
+		] );
+		if ( ! is_array( $members ) ) {
+			return;
+		}
+
+		foreach ( $members as $member ) {
+			if ( ! $member instanceof \WP_Comment ) {
+				continue;
+			}
+			$member_id = (int) $member->comment_ID;
+			if ( $member_id === $comment_id ) {
+				continue; // This one is already being trashed by WP itself.
+			}
+			wp_delete_comment( $member_id, true );
+		}
 	}
 
 	/**

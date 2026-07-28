@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-28T16:51+00:00\n"
+"POT-Creation-Date: 2026-07-28T23:20+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:57+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: German\n"
@@ -523,7 +523,7 @@ msgstr "Aufnehmen"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4283
+#: includes/Network/ActivityPub.php:4370
 msgid "Reject"
 msgstr "Ablehnen"
 
@@ -1132,7 +1132,7 @@ msgstr "%1$d zugelassen (%2$d abgemeldet)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:2979
+#: includes/Network/ActivityPub.php:3006
 msgid "Sending…"
 msgstr "Wird gesendet…"
 
@@ -1319,7 +1319,7 @@ msgstr "Alte Zeile — löschen und erneut abrufen, um die Vorschau zu sehen"
 msgid "Attachment viewer"
 msgstr "Anhang-Viewer"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3018
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3045
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1524,7 +1524,7 @@ msgstr[0] "%d Einreichung"
 msgstr[1] "%d Einreichungen"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4282
+#: includes/Network/ActivityPub.php:4369
 msgid "Approve"
 msgstr "Genehmigen"
 
@@ -2792,7 +2792,14 @@ msgid ""
 "value of 1 disables back-and-forth entirely (the artist can still reply "
 "once, but the visitor cannot reply again). Default: 2 (the visitor can "
 "answer back one time)."
-msgstr "Maximale Anzahl von Nachrichten, die ein Besucher in einem Kontaktformular-Gespräch senden kann (seine ursprüngliche Nachricht plus alle Antworten auf die Antwort des/der Künstlers/Künstlerin). Der/die Künstler/in ist nie limitiert – nur die eigenen Beiträge des Besuchers zählen. Ein Wert von 1 deaktiviert den Austausch vollständig (der/die Künstler/in kann trotzdem einmal antworten, aber der/die Besucher/in kann nicht erneut antworten). Standard: 2 (der/die Besucher/in kann einmal antworten)."
+msgstr ""
+"Maximale Anzahl von Nachrichten, die ein Besucher in einem Kontaktformular-"
+"Gespräch senden kann (seine ursprüngliche Nachricht plus alle Antworten auf "
+"die Antwort des/der Künstlers/Künstlerin). Der/die Künstler/in ist nie "
+"limitiert – nur die eigenen Beiträge des Besuchers zählen. Ein Wert von 1 "
+"deaktiviert den Austausch vollständig (der/die Künstler/in kann trotzdem "
+"einmal antworten, aber der/die Besucher/in kann nicht erneut antworten). "
+"Standard: 2 (der/die Besucher/in kann einmal antworten)."
 
 #: includes/Admin/SettingsFields.php:446
 msgid "Require SPF/DKIM authentication"
@@ -4054,7 +4061,7 @@ msgstr ""
 "noch Nachricht gesendet — lass das Bild ganz für sich selbst sprechen."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
-#: includes/Network/ActivityPub.php:410
+#: includes/Network/ActivityPub.php:437
 msgid "Name"
 msgstr "Name"
 
@@ -4072,7 +4079,7 @@ msgstr "Statement"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3340
+#: includes/Network/ActivityPub.php:3380
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s darf %2$d Zeichen oder weniger haben."
@@ -4175,8 +4182,8 @@ msgstr "Danke, %s!"
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
-#: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
+#: includes/Network/ActivityPub.php:4270 includes/Network/ActivityPub.php:4277
+#: includes/Network/ActivityPub.php:4284 includes/Network/ActivityPub.php:4392
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Link-Fehler"
@@ -4226,8 +4233,8 @@ msgstr "Wir haben deine Bewerbung für %s erhalten"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3859
-#: includes/Network/ActivityPub.php:3978
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3946
+#: includes/Network/ActivityPub.php:4065
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4751,7 +4758,7 @@ msgstr ""
 "Spam, Betrug oder unaufgeforderte kommerzielle Werbung, die nichts damit zu "
 "tun hat, den Künstler wirklich wegen seiner Arbeit zu kontaktieren"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:3549
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:3593
 msgid "Flagged by automatic content review."
 msgstr "Durch automatische Inhaltsprüfung markiert."
 
@@ -4786,12 +4793,12 @@ msgid "Reply (translated automatically)"
 msgstr "Antwort (automatisch übersetzt)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
-#: includes/Network/ActivityPub.php:4304
+#: includes/Network/ActivityPub.php:4153 includes/Network/ActivityPub.php:4269
+#: includes/Network/ActivityPub.php:4391
 msgid "This link is invalid or has already expired."
 msgstr "Dieser Link ist ungültig oder bereits abgelaufen."
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4071
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4158
 msgid "This link has expired."
 msgstr "Dieser Link ist abgelaufen."
 
@@ -4799,15 +4806,15 @@ msgstr "Dieser Link ist abgelaufen."
 msgid "This conversation no longer exists."
 msgstr "Dieses Gespräch existiert nicht mehr."
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4239
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4326
 msgid "Original"
 msgstr "Original"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4245
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4332
 msgid "Translated"
 msgstr "Übersetzt"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4248
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4335
 msgid "Translation pending…"
 msgstr "Übersetzung ausstehend…"
 
@@ -4827,8 +4834,8 @@ msgstr "Antworten Sie auf dieses Gespräch"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "Ihre Antwort (sie wird automatisch übersetzt, falls nötig)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:2985
-#: includes/Network/ActivityPub.php:3052
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3012
+#: includes/Network/ActivityPub.php:3079
 msgid "Send reply"
 msgstr "Antwort senden"
 
@@ -4843,7 +4850,9 @@ msgstr "Antwortfehler"
 
 #: includes/Artist/ContactForm.php:1072
 msgid "Something went wrong sending your reply — please try again."
-msgstr "Bei dem Senden Ihrer Antwort ist etwas schiefgegangen – bitte versuchen Sie es erneut."
+msgstr ""
+"Bei dem Senden Ihrer Antwort ist etwas schiefgegangen – bitte versuchen Sie "
+"es erneut."
 
 #: includes/Artist/ContactForm.php:1082
 msgid "Thanks — your reply has been sent."
@@ -4871,8 +4880,8 @@ msgstr "Sie haben eine neue Antwort auf Ihre Nachricht:"
 msgid "Original message, as written"
 msgstr "Ursprüngliche Nachricht, wie geschrieben"
 
-#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:422
-#: includes/Network/ActivityPub.php:2998
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:449
+#: includes/Network/ActivityPub.php:3025
 msgid "Reply"
 msgstr "Antworten"
 
@@ -6445,12 +6454,12 @@ msgstr "Zeitstempel der Webhook-Anfrage fehlt, ist fehlerhaft oder zu alt."
 msgid "This webhook request has already been processed."
 msgstr "Diese Webhook-Anfrage wurde bereits verarbeitet."
 
-#: includes/Network/ActivityPub.php:597
+#: includes/Network/ActivityPub.php:624
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1037 includes/Network/ActivityPub.php:1054
+#: includes/Network/ActivityPub.php:1064 includes/Network/ActivityPub.php:1081
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6458,83 +6467,83 @@ msgstr[0] "♥ %d Like"
 msgstr[1] "♥ %d Likes"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1039
+#: includes/Network/ActivityPub.php:1066
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d Likes"
 
-#: includes/Network/ActivityPub.php:1040
+#: includes/Network/ActivityPub.php:1067
 msgid "Could not update like."
 msgstr "Konnte das Like nicht aktualisieren."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1064
+#: includes/Network/ActivityPub.php:1091
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d Boost"
 msgstr[1] "⟲ %d Boosts"
 
-#: includes/Network/ActivityPub.php:1992
+#: includes/Network/ActivityPub.php:2019
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2157
+#: includes/Network/ActivityPub.php:2184
 #, php-format
 msgid "Also available in: %s"
 msgstr "Auch verfügbar in: %s"
 
-#: includes/Network/ActivityPub.php:2555
+#: includes/Network/ActivityPub.php:2582
 msgid "No such artwork."
 msgstr "Kein solches Artwork."
 
-#: includes/Network/ActivityPub.php:2956
+#: includes/Network/ActivityPub.php:2983
 msgid "0 replies"
 msgstr "0 Antworten"
 
-#: includes/Network/ActivityPub.php:2977
+#: includes/Network/ActivityPub.php:3004
 msgid "Loading replies…"
 msgstr "Antworten werden geladen…"
 
-#: includes/Network/ActivityPub.php:2978
+#: includes/Network/ActivityPub.php:3005
 msgid "Could not load replies."
 msgstr "Antworten konnten nicht geladen werden."
 
-#: includes/Network/ActivityPub.php:2980 includes/Network/ActivityPub.php:3409
+#: includes/Network/ActivityPub.php:3007 includes/Network/ActivityPub.php:3449
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Danke — Ihre Antwort wurde eingereicht und wartet auf Genehmigung."
 
-#: includes/Network/ActivityPub.php:2981
+#: includes/Network/ActivityPub.php:3008
 msgid "Could not send your reply. Please try again."
 msgstr ""
 "Ihre Antwort konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
 
-#: includes/Network/ActivityPub.php:2982 includes/Network/ActivityPub.php:3048
+#: includes/Network/ActivityPub.php:3009 includes/Network/ActivityPub.php:3075
 msgid "Name (optional)"
 msgstr "Name (optional)"
 
-#: includes/Network/ActivityPub.php:2983 includes/Network/ActivityPub.php:3049
+#: includes/Network/ActivityPub.php:3010 includes/Network/ActivityPub.php:3076
 msgid "Your email"
 msgstr "Ihre E-Mail"
 
-#: includes/Network/ActivityPub.php:2984 includes/Network/ActivityPub.php:3046
+#: includes/Network/ActivityPub.php:3011 includes/Network/ActivityPub.php:3073
 msgid "Write a reply…"
 msgstr "Schreiben Sie eine Antwort…"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2995
+#: includes/Network/ActivityPub.php:3022
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d Antwort"
 msgstr[1] "%d Antworten"
 
-#: includes/Network/ActivityPub.php:3475
+#: includes/Network/ActivityPub.php:3519
 msgid "Replies aren't open on this artwork right now."
 msgstr "Antworten zu diesem Artwork sind derzeit nicht geöffnet."
 
-#: includes/Network/ActivityPub.php:3543
+#: includes/Network/ActivityPub.php:3587
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6543,20 +6552,20 @@ msgstr ""
 "dem Künstler über sein Werk in Kontakt tritt"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3832
+#: includes/Network/ActivityPub.php:3919
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Neue Antwort auf \"%s\""
 
-#: includes/Network/ActivityPub.php:3843
+#: includes/Network/ActivityPub.php:3930
 msgid "Someone left a reply on your artwork:"
 msgstr "Jemand hat eine Antwort auf Ihr Artwork hinterlassen:"
 
-#: includes/Network/ActivityPub.php:3844
+#: includes/Network/ActivityPub.php:3931
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Jemand hat auf Ihr Artwork aus dem Fediverse geantwortet:"
 
-#: includes/Network/ActivityPub.php:3871
+#: includes/Network/ActivityPub.php:3958
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6564,13 +6573,13 @@ msgstr ""
 "Es wird gehalten, bis Sie es genehmigen oder ablehnen — Sie können auch von "
 "derselben Seite aus Ihre eigene Antwort schreiben."
 
-#: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
-#: includes/Network/ActivityPub.php:4286
+#: includes/Network/ActivityPub.php:3962 includes/Network/ActivityPub.php:4361
+#: includes/Network/ActivityPub.php:4373
 msgid "Review this reply"
 msgstr "Diese Antwort überprüfen"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:3883
+#: includes/Network/ActivityPub.php:3970
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6578,14 +6587,14 @@ msgstr[0] "Dieser Link läuft in %d Tag ab."
 msgstr[1] "Dieser Link läuft in %d Tagen ab."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3968
+#: includes/Network/ActivityPub.php:4055
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr ""
 "Eine Antwort zu \"%s\" ist in einer Sprache angekommen, die wir nicht "
 "identifizieren konnten."
 
-#: includes/Network/ActivityPub.php:3984
+#: includes/Network/ActivityPub.php:4071
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6595,7 +6604,7 @@ msgstr ""
 "die Sprache, in der sie verfasst wurde, nicht identifizieren, daher können "
 "wir keine Übersetzung oder die übliche Antwort-/Genehmigungsseite anbieten."
 
-#: includes/Network/ActivityPub.php:3990
+#: includes/Network/ActivityPub.php:4077
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6605,43 +6614,43 @@ msgstr ""
 "abzulehnen. Wenn Sie darauf reagieren möchten, können Sie dies über Ihr "
 "WordPress-Dashboard tun."
 
-#: includes/Network/ActivityPub.php:4101
+#: includes/Network/ActivityPub.php:4188
 msgid "Fediverse replies"
 msgstr "Fediverse-Antworten"
 
-#: includes/Network/ActivityPub.php:4102
+#: includes/Network/ActivityPub.php:4189
 msgid "Site replies"
 msgstr "Webseiten-Antworten"
 
-#: includes/Network/ActivityPub.php:4196
+#: includes/Network/ActivityPub.php:4283
 msgid "This reply no longer exists."
 msgstr "Diese Antwort existiert nicht mehr."
 
-#: includes/Network/ActivityPub.php:4253
+#: includes/Network/ActivityPub.php:4340
 msgid "Also post my reply to the Fediverse."
 msgstr "Meine Antwort auch im Fediverse posten."
 
-#: includes/Network/ActivityPub.php:4280
+#: includes/Network/ActivityPub.php:4367
 msgid "Write your own reply (optional)"
 msgstr "Schreiben Sie Ihre eigene Antwort (optional)"
 
-#: includes/Network/ActivityPub.php:4312
+#: includes/Network/ActivityPub.php:4399
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Antwort genehmigt — sie erscheint jetzt auf Ihrem Kunstwerk."
 
-#: includes/Network/ActivityPub.php:4315
+#: includes/Network/ActivityPub.php:4402
 msgid "Reply rejected — it will not be shown."
 msgstr "Antwort abgelehnt — sie wird nicht angezeigt."
 
-#: includes/Network/ActivityPub.php:4326
+#: includes/Network/ActivityPub.php:4413
 msgid "Your reply has been posted."
 msgstr "Ihre Antwort wurde gepostet."
 
-#: includes/Network/ActivityPub.php:4329
+#: includes/Network/ActivityPub.php:4416
 msgid "Reply moderated"
 msgstr "Antwort moderiert"
 
-#: includes/Network/ActivityPub.php:4355
+#: includes/Network/ActivityPub.php:4442
 msgid "No such reply."
 msgstr "Keine solche Antwort."
 

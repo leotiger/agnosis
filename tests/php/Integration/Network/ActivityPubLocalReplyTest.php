@@ -405,6 +405,58 @@ class ActivityPubLocalReplyTest extends \WP_UnitTestCase {
 		$this->assertArrayHasKey( ActivityPub::LOCAL_REPLY_COMMENT_TYPE, $types );
 	}
 
+	// -------------------------------------------------------------------------
+	// suppress_native_reply_notifications() — regression, found 2026-07-28
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Regression test: an artist received WordPress core's own raw, unbranded,
+	 * untranslated "new comment" notification (wp_notify_postauthor(), fired
+	 * synchronously at comment-insert time) IN ADDITION TO our own branded
+	 * notify_artist_of_reply() email. Neither REPLY_COMMENT_TYPE (federated)
+	 * nor LOCAL_REPLY_COMMENT_TYPE (site visitor / artist gateway reply)
+	 * should ever let core's own notification pipeline fire — this plugin
+	 * already owns notifying the artist for both.
+	 */
+	public function test_suppress_native_reply_notifications_clears_recipients_for_local_reply(): void {
+		$post_id    = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork' ] );
+		$comment_id = self::factory()->comment->create( [
+			'comment_post_ID' => $post_id,
+			'comment_type'    => ActivityPub::LOCAL_REPLY_COMMENT_TYPE,
+		] );
+
+		// @phpstan-ignore-next-line -- factory()->comment->create() returns int|WP_Error; a bare comment fixture with valid args never fails in practice.
+		$result = ( new ActivityPub() )->suppress_native_reply_notifications( [ 'artist@example.com' ], $comment_id );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_suppress_native_reply_notifications_clears_recipients_for_federated_reply(): void {
+		$post_id    = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork' ] );
+		$comment_id = self::factory()->comment->create( [
+			'comment_post_ID' => $post_id,
+			'comment_type'    => ActivityPub::REPLY_COMMENT_TYPE,
+		] );
+
+		// @phpstan-ignore-next-line -- factory()->comment->create() returns int|WP_Error; a bare comment fixture with valid args never fails in practice.
+		$result = ( new ActivityPub() )->suppress_native_reply_notifications( [ 'artist@example.com' ], $comment_id );
+
+		$this->assertSame( [], $result );
+	}
+
+	public function test_suppress_native_reply_notifications_leaves_ordinary_comments_untouched(): void {
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create( [
+			'comment_post_ID' => $post_id,
+			'comment_type'    => 'comment',
+		] );
+
+		// @phpstan-ignore-next-line -- factory()->comment->create() returns int|WP_Error; a bare comment fixture with valid args never fails in practice.
+		$result = ( new ActivityPub() )->suppress_native_reply_notifications( [ 'admin@example.com' ], $comment_id );
+
+		$this->assertSame( [ 'admin@example.com' ], $result, 'Must not touch recipients for a comment type this plugin does not own.' );
+	}
+
 	/** First comment against $post_id whose author email matches, or null. */
 	private function find_comment_by_email( int $post_id, string $email ): ?\WP_Comment {
 		foreach ( $this->all_comments( $post_id ) as $comment ) {

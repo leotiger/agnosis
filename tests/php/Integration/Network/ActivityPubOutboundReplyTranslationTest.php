@@ -369,10 +369,26 @@ class ActivityPubOutboundReplyTranslationTest extends \WP_UnitTestCase {
 		$this->assertCount( 1, $this->sent_mails, 'Exactly one email — the informational-only notice — must be sent, never the normal gateway one as well.' );
 		$mail = $this->sent_mails[0];
 		$this->assertSame( 'artist@example.com', $mail['to'] );
-		$this->assertStringContainsString( 'could not identify', $mail['subject'] );
+
+		// notify_artist_of_unsupported_reply_language() switches to the
+		// artist's own declared locale ('es_ES' here) before building the
+		// email, and agnosis DOES ship a real Spanish translation for both
+		// strings below (languages/agnosis-es_ES.po) — so the artist
+		// genuinely receives this notice in Spanish, not English. Compute
+		// the expected fragments via the same real gettext lookup rather
+		// than hardcoding either language's wording, so this stays correct
+		// regardless of which locale is used or how the translation itself
+		// is later reworded.
+		switch_to_locale( 'es_ES' );
+		/* translators: %s: artwork title. */
+		$expected_subject       = sprintf( __( 'A reply on "%s" arrived in a language we could not identify', 'agnosis' ), get_post( $post_id )->post_title );
+		$expected_body_fragment = __( "This is for your information only — there is nothing to approve or reject here. If you'd like to act on it, you can do so from your WordPress dashboard.", 'agnosis' );
+		restore_current_locale();
+
+		$this->assertStringContainsString( $expected_subject, $mail['subject'] );
 		$this->assertStringContainsString( '<!DOCTYPE html>', $mail['message'], 'Must be sent through the branded EmailTemplate::render(), not a bare string.' );
 		$this->assertStringNotContainsString( 'agnosis_reply=', $mail['message'], 'Must carry no gateway link — nothing to approve/reject.' );
-		$this->assertStringContainsString( 'nothing to approve or reject', $mail['message'] );
+		$this->assertStringContainsString( $expected_body_fragment, $mail['message'] );
 	}
 
 	public function test_inbound_federated_reply_skips_detection_when_federate_languages_is_primary_only(): void {

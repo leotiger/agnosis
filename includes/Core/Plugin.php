@@ -588,6 +588,27 @@ class Plugin {
 		// hooks are needed (trash vs. a hard/force delete that bypasses it).
 		$this->loader->add_action( 'transition_comment_status', $activitypub, 'handle_reply_status_transition', 10, 3 );
 		$this->loader->add_action( 'delete_comment',             $activitypub, 'handle_reply_hard_delete', 10, 1 );
+		// Found 2026-07-28: WordPress core's own native comment-notification
+		// emails (unbranded, untranslated, fired synchronously at insert
+		// time) were reaching artists on top of our own branded, translated
+		// notify_artist_of_reply() — see suppress_native_reply_notifications()'s
+		// own docblock.
+		$this->loader->add_filter( 'comment_notification_recipients', $activitypub, 'suppress_native_reply_notifications', 10, 2 );
+		$this->loader->add_filter( 'comment_moderation_recipients',   $activitypub, 'suppress_native_reply_notifications', 10, 2 );
+
+		// Reply-language-mirroring roadmap (agnosis-audit/
+		// REPLY-LANGUAGE-MIRRORING-ROADMAP.md), RLM4/RLM9 — built once
+		// Ulises answered §4's open questions (2026-07-29). RLM2/RLM3's own
+		// 'transition_comment_status'/'delete_comment' hooks are already
+		// registered just above; these two cover the two NEW trigger points:
+		// editing an already-mirrored canonical reply's text (RLM4), and a
+		// brand-new Lingua Forge sibling appearing that lets an
+		// already-approved reply's mirror finally be created (RLM9,
+		// backfill_reply_mirrors_for_new_sibling()'s own docblock).
+		// Harmless to register unconditionally even when Lingua Forge is
+		// inactive — 'linguaforge_translation_complete' simply never fires.
+		$this->loader->add_action( 'edit_comment',                       $activitypub, 'handle_reply_content_edit', 10, 1 );
+		$this->loader->add_action( 'linguaforge_translation_complete',   $activitypub, 'backfill_reply_mirrors_for_new_sibling', 10, 3 );
 
 		// Federation settlement (TAG-REDESIGN.md F3, §6c) — the tag-settled
 		// state machine that decides WHEN a post is ready to fire
