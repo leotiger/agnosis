@@ -25,11 +25,18 @@
  * tests cover the gateway page's own additions.
  *
  * WP6 (federating artist replies outward, same day) is what actually reads
- * that flag now — see ActivityPubFederateReplyTest.php for the delivery
+ * that flag — see ActivityPubFederateReplyTest.php for the delivery
  * coverage (Create{Note}/Delete{Note}, the dereferenceable reply endpoint,
  * repliesCount). This file's own federate-checkbox tests below were
  * extended to also assert ActivityPub::REPLY_FEDERATED_META, so the two
  * files agree on the actual end-to-end outcome, not just the request flag.
+ * WP13 (§13.4, 2026-07-28) moved the actual federate_artist_reply() call
+ * off store_artist_gateway_reply()'s own synchronous insert path and onto
+ * drain_reply_translation_queue() instead (so an outbound Note's contentMap
+ * is never built before its translations exist) — this file's one positive
+ * "actually federates" test below calls drain_reply_translation_queue()
+ * explicitly before asserting the outcome flag; the negative tests don't
+ * need to, since they assert the flag is never set either way.
  *
  * Testing strategy mirrors ReviewConfirmIntegrationTest: wp_die() is
  * intercepted via 'wp_die_handler'/'wp_die_ajax_handler' to capture the
@@ -554,11 +561,17 @@ class ActivityPubReplyModerationTest extends \WP_UnitTestCase {
 			$this->addToAssertionCount( 1 ); // Expected exit path — the real assertions are below.
 		}
 
+		// WP13 §13.4: federate_artist_reply() no longer fires synchronously
+		// from store_artist_gateway_reply() — it now fires from the
+		// translation-drain step, once any outbound translations are
+		// resolved, so the Note's contentMap can never go out empty/stale.
+		$this->ap->drain_reply_translation_queue();
+
 		$reply = $this->artist_reply_comment();
 		$this->assertNotNull( $reply );
 		$this->assertSame( '1', get_comment_meta( (int) $reply->comment_ID, ActivityPub::REPLY_FEDERATE_REQUESTED_META, true ) );
-		// WP6: the request flag above is no longer inert — store_artist_gateway_reply()
-		// triggers federate_artist_reply() inline, which sets this outcome flag.
+		// WP6: the request flag above is no longer inert — draining
+		// triggers federate_artist_reply(), which sets this outcome flag.
 		// See ActivityPubFederateReplyTest.php for the actual Create{Note}
 		// delivery coverage.
 		$this->assertSame( '1', get_comment_meta( (int) $reply->comment_ID, '_agnosis_reply_federated', true ) );
@@ -585,7 +598,7 @@ class ActivityPubReplyModerationTest extends \WP_UnitTestCase {
 		$reply = $this->artist_reply_comment();
 		$this->assertNotNull( $reply );
 		$this->assertSame( '', get_comment_meta( (int) $reply->comment_ID, ActivityPub::REPLY_FEDERATE_REQUESTED_META, true ) );
-		$this->assertSame( '', get_comment_meta( (int) $reply->comment_ID, '_agnosis_reply_federated', true ), 'No request => store_artist_gateway_reply() must never call federate_artist_reply().' );
+		$this->assertSame( '', get_comment_meta( (int) $reply->comment_ID, '_agnosis_reply_federated', true ), 'No request => the translation-drain step must never call federate_artist_reply().' );
 	}
 
 	public function test_post_federate_flag_not_written_when_not_actually_offered_even_if_submitted(): void {

@@ -119,10 +119,22 @@
 
 /* Reply form (WP4, interaction-surface roadmap, Phase 3) — sits below the
  * (possibly empty) reply list inside the same popover panel, never a
- * separate surface. */
+ * separate surface.
+ *
+ * Rendered as .agnosis-reply-overlay__inner's own SIBLING (both direct
+ * children of .agnosis-reply-overlay__panel — see ActivityPub::
+ * render_reply_overlay()), not nested inside it: frontend.js replaces
+ * .inner's entire innerHTML on every list refresh, which would silently
+ * destroy the form (and any in-progress reply the visitor was typing) if it
+ * lived inside that div. Because of that, the width cap has to be repeated
+ * here rather than inherited from .inner — same max-width/margin/padding
+ * values, so the form's fields line up with the list content above them
+ * instead of stretching to the full-bleed panel's own edges.
+ */
 .agnosis-reply-overlay__form {
-	margin-top: var(--wp--preset--spacing--50, 2rem);
-	padding-top: var(--wp--preset--spacing--40, 1.5rem);
+	max-width: 40rem;
+	margin: var(--wp--preset--spacing--50, 2rem) auto 0;
+	padding: var(--wp--preset--spacing--40, 1.5rem) var(--wp--preset--spacing--50, 2rem) 0;
 	border-top: 1px solid var(--wp--preset--color--tertiary, #e0e0e0);
 }
 

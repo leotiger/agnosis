@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-27T22:38+00:00\n"
+"POT-Creation-Date: 2026-07-28T15:04+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:54+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Catalan\n"
@@ -518,7 +518,7 @@ msgstr "Admet"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:3845
+#: includes/Network/ActivityPub.php:4283
 msgid "Reject"
 msgstr "Rebutja"
 
@@ -1125,7 +1125,7 @@ msgstr "%1$d admesos (%2$d han optat per no participar)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:2892
+#: includes/Network/ActivityPub.php:2979
 msgid "Sending…"
 msgstr "Enviant…"
 
@@ -1207,7 +1207,11 @@ msgid ""
 "subscribed to it — following one is the cheapest way for this node's public "
 "artwork to reach servers that would otherwise never see it. This is node-"
 "level: it applies to every artwork, not a per-artist choice."
-msgstr "Un relay reemetrà tot el que rep a cada altre servidor que estigui subscrit — seguir un és la manera més econòmica perquè l'art públic d'aquest node arribi a servidors que, d'altra manera, mai ho veurien. Això és a nivell de node: s'aplica a cada obra d'art, no és una elecció del artista."
+msgstr ""
+"Un relay reemetrà tot el que rep a cada altre servidor que estigui subscrit "
+"— seguir un és la manera més econòmica perquè l'art públic d'aquest node "
+"arribi a servidors que, d'altra manera, mai ho veurien. Això és a nivell de "
+"node: s'aplica a cada obra d'art, no és una elecció del artista."
 
 #: includes/Admin/Dashboards/RelayManager.php:63
 msgid "No relays configured yet."
@@ -1240,7 +1244,9 @@ msgstr "Activar"
 msgid ""
 "Remove this relay? If it's currently enabled, an Undo{Follow} is sent first "
 "so the relay stops delivering to this node."
-msgstr "Eliminar aquest relay? Si actualment està habilitat, primer s'enviarà un Undo{Follow} perquè el relay deixi de lliurar a aquest node."
+msgstr ""
+"Eliminar aquest relay? Si actualment està habilitat, primer s'enviarà un "
+"Undo{Follow} perquè el relay deixi de lliurar a aquest node."
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
@@ -1305,7 +1311,7 @@ msgstr "Fila antiga — elimina-la i torna a fer el sondatge per previsualitzar"
 msgid "Attachment viewer"
 msgstr "Visor de fitxers adjunts"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2931
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3018
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1508,7 +1514,7 @@ msgstr[0] "%d tramesa"
 msgstr[1] "%d trameses"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:3844
+#: includes/Network/ActivityPub.php:4282
 msgid "Approve"
 msgstr "Aprovar"
 
@@ -4019,7 +4025,7 @@ msgstr ""
 "que la imatge parli completament per si mateixa."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
-#: includes/Network/ActivityPub.php:371
+#: includes/Network/ActivityPub.php:410
 msgid "Name"
 msgstr "Nom"
 
@@ -4037,7 +4043,7 @@ msgstr "Declaració"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
-#: includes/Network/ActivityPub.php:3100
+#: includes/Network/ActivityPub.php:3340
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s ha de tenir %2$d caràcters o menys."
@@ -4135,8 +4141,8 @@ msgstr "Gràcies, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:3745 includes/Network/ActivityPub.php:3752
-#: includes/Network/ActivityPub.php:3759 includes/Network/ActivityPub.php:3867
+#: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
+#: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Error de l’enllaç"
@@ -4185,7 +4191,9 @@ msgstr "Hem rebut la teva sol·licitud a %s"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Publishing/Notification.php:289
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3859
+#: includes/Network/ActivityPub.php:3978
+#: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
 #: includes/Publishing/Notification.php:666
@@ -4705,7 +4713,7 @@ msgstr ""
 "Correu brossa, estafes o publicitat comercial no sol·licitada no relacionada "
 "amb contactar genuïnament amb l’artista sobre la seva obra"
 
-#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3306
+#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3549
 msgid "Flagged by automatic content review."
 msgstr "Marcat per la revisió automàtica del contingut."
 
@@ -6285,16 +6293,16 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Aquesta sol·licitud de webhook ja s'ha processat."
 
-#: includes/Network/ActivityPub.php:383 includes/Network/ActivityPub.php:2911
+#: includes/Network/ActivityPub.php:422 includes/Network/ActivityPub.php:2998
 msgid "Reply"
 msgstr "Respondre"
 
-#: includes/Network/ActivityPub.php:558
+#: includes/Network/ActivityPub.php:597
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:998 includes/Network/ActivityPub.php:1015
+#: includes/Network/ActivityPub.php:1037 includes/Network/ActivityPub.php:1054
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6302,183 +6310,204 @@ msgstr[0] "♥ %d m'agrada"
 msgstr[1] "♥ %d m'agrada"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1000
+#: includes/Network/ActivityPub.php:1039
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d m'agrada"
 
-#: includes/Network/ActivityPub.php:1001
+#: includes/Network/ActivityPub.php:1040
 msgid "Could not update like."
 msgstr "No s'ha pogut actualitzar el m'agrada."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1025
+#: includes/Network/ActivityPub.php:1064
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d impulsos"
 msgstr[1] "⟲ %d impulsos"
 
-#: includes/Network/ActivityPub.php:1905
+#: includes/Network/ActivityPub.php:1992
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2070
+#: includes/Network/ActivityPub.php:2157
 #, php-format
 msgid "Also available in: %s"
 msgstr "També disponible en: %s"
 
-#: includes/Network/ActivityPub.php:2468
+#: includes/Network/ActivityPub.php:2555
 msgid "No such artwork."
 msgstr "No existeix tal obra."
 
-#: includes/Network/ActivityPub.php:2869
+#: includes/Network/ActivityPub.php:2956
 msgid "0 replies"
 msgstr "0 respostes"
 
-#: includes/Network/ActivityPub.php:2890
+#: includes/Network/ActivityPub.php:2977
 msgid "Loading replies…"
 msgstr "Carregant respostes…"
 
-#: includes/Network/ActivityPub.php:2891
+#: includes/Network/ActivityPub.php:2978
 msgid "Could not load replies."
 msgstr "No s'han pogut carregar les respostes."
 
-#: includes/Network/ActivityPub.php:2893 includes/Network/ActivityPub.php:3169
+#: includes/Network/ActivityPub.php:2980 includes/Network/ActivityPub.php:3409
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Gràcies — la teva resposta s'ha enviat i està a l'espera d'aprovació."
 
-#: includes/Network/ActivityPub.php:2894
+#: includes/Network/ActivityPub.php:2981
 msgid "Could not send your reply. Please try again."
 msgstr "No s'ha pogut enviar la teva resposta. Siusplau, torna-ho a intentar."
 
-#: includes/Network/ActivityPub.php:2895 includes/Network/ActivityPub.php:2961
+#: includes/Network/ActivityPub.php:2982 includes/Network/ActivityPub.php:3048
 msgid "Name (optional)"
 msgstr "Nom (opcional)"
 
-#: includes/Network/ActivityPub.php:2896 includes/Network/ActivityPub.php:2962
+#: includes/Network/ActivityPub.php:2983 includes/Network/ActivityPub.php:3049
 msgid "Your email"
 msgstr "El teu correu electrònic"
 
-#: includes/Network/ActivityPub.php:2897 includes/Network/ActivityPub.php:2959
+#: includes/Network/ActivityPub.php:2984 includes/Network/ActivityPub.php:3046
 msgid "Write a reply…"
 msgstr "Escriu una resposta…"
 
-#: includes/Network/ActivityPub.php:2898 includes/Network/ActivityPub.php:2965
+#: includes/Network/ActivityPub.php:2985 includes/Network/ActivityPub.php:3052
 msgid "Send reply"
 msgstr "Enviar resposta"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2908
+#: includes/Network/ActivityPub.php:2995
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d resposta"
 msgstr[1] "%d resposta"
 
-#: includes/Network/ActivityPub.php:3232
+#: includes/Network/ActivityPub.php:3475
 msgid "Replies aren't open on this artwork right now."
 msgstr "Les respostes no estan obertes en aquesta obra d'art en aquest moment."
 
-#: includes/Network/ActivityPub.php:3300
+#: includes/Network/ActivityPub.php:3543
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
-msgstr "Spam, estafes o publicitat comercial no sol·licitada no relacionada amb comprometre's genuïnament amb l'artista sobre la seva feina"
+msgstr ""
+"Spam, estafes o publicitat comercial no sol·licitada no relacionada amb "
+"comprometre's genuïnament amb l'artista sobre la seva feina"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3547
+#: includes/Network/ActivityPub.php:3832
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Nova resposta a \"%s\""
 
-#: includes/Network/ActivityPub.php:3558
+#: includes/Network/ActivityPub.php:3843
 msgid "Someone left a reply on your artwork:"
 msgstr "Algú ha deixat una resposta a la teva obra d'art:"
 
-#: includes/Network/ActivityPub.php:3559
+#: includes/Network/ActivityPub.php:3844
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Algú ha respost a la teva obra d'art des del Fediverse:"
 
-#. translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:3570
-#, php-format
+#: includes/Network/ActivityPub.php:3871
 msgid ""
-"%1$s\n"
-"\n"
-"\"%2$s\"\n"
-"\n"
 "It's being held until you approve or reject it — you can also write your own "
-"reply from the same page:\n"
-"\n"
-"%3$s\n"
-"\n"
-"Don't want reply notifications? Manage that here: %4$s"
-msgstr "%1$s\n\n\"%2$s\"\n\nS'està mantenint fins que aprovis o rebutgis — també pots escriure la teva pròpia resposta des de la mateixa pàgina:\n\n%3$s\n\nNo vols notificacions de resposta? Gestiona-ho aquí: %4$s"
+"reply from the same page."
+msgstr "S'està mantenint fins que ho aprovis o rebutgis — també hi pots escriure la teva pròpia resposta des de la mateixa pàgina."
 
-#: includes/Network/ActivityPub.php:3628 includes/Network/ActivityPub.php:3744
-#: includes/Network/ActivityPub.php:3866
-msgid "This link is invalid or has already expired."
-msgstr "Aquest enllaç no és vàlid o ja ha caducat."
-
-#: includes/Network/ActivityPub.php:3633
-msgid "This link has expired."
-msgstr "Aquest enllaç ha caducat."
-
-#: includes/Network/ActivityPub.php:3663
-msgid "Fediverse replies"
-msgstr "Respostes del Fediverse"
-
-#: includes/Network/ActivityPub.php:3664
-msgid "Site replies"
-msgstr "Respostes del lloc"
-
-#: includes/Network/ActivityPub.php:3758
-msgid "This reply no longer exists."
-msgstr "Aquesta resposta ja no existeix."
-
-#: includes/Network/ActivityPub.php:3801
-msgid "Original"
-msgstr "Original"
-
-#: includes/Network/ActivityPub.php:3807
-msgid "Translated"
-msgstr "Traduït"
-
-#: includes/Network/ActivityPub.php:3810
-msgid "Translation pending…"
-msgstr "Traducció pendent…"
-
-#: includes/Network/ActivityPub.php:3815
-msgid "Also post my reply to the Fediverse."
-msgstr "També publica la meva resposta al Fediverse."
-
-#: includes/Network/ActivityPub.php:3836 includes/Network/ActivityPub.php:3848
+#: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
+#: includes/Network/ActivityPub.php:4286
 msgid "Review this reply"
 msgstr "Revisar aquesta resposta"
 
-#: includes/Network/ActivityPub.php:3842
+#. translators: %d: number of days the link stays valid
+#: includes/Network/ActivityPub.php:3883
+#, php-format
+msgid "This link expires in %d day."
+msgid_plural "This link expires in %d days."
+msgstr[0] "Aquest enllaç caduca en %d dia."
+msgstr[1] "Aquest enllaç caduca en %d dies."
+
+#. translators: %s: artwork title.
+#: includes/Network/ActivityPub.php:3968
+#, php-format
+msgid "A reply on \"%s\" arrived in a language we could not identify"
+msgstr "Una resposta a \"%s\" ha arribat en un idioma que no hem pogut identificar."
+
+#: includes/Network/ActivityPub.php:3984
+msgid ""
+"Someone replied to your artwork from the Fediverse, but we weren't able to "
+"identify the language it's written in, so we can't offer a translation or "
+"the usual reply/approval page for it."
+msgstr "Algú ha respost a la teva obra d'art des del Fediverse, però no hem pogut identificar l'idioma en què està escrit, així que no podem oferir una traducció ni la pàgina de resposta/aprovació habitual."
+
+#: includes/Network/ActivityPub.php:3990
+msgid ""
+"This is for your information only — there is nothing to approve or reject "
+"here. If you'd like to act on it, you can do so from your WordPress "
+"dashboard."
+msgstr "Això és només per a la teva informació — no hi ha res a aprovar o rebutjar aquí. Si vols actuar-hi, ho pots fer des del teu tauler de WordPress."
+
+#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
+#: includes/Network/ActivityPub.php:4304
+msgid "This link is invalid or has already expired."
+msgstr "Aquest enllaç no és vàlid o ja ha caducat."
+
+#: includes/Network/ActivityPub.php:4071
+msgid "This link has expired."
+msgstr "Aquest enllaç ha caducat."
+
+#: includes/Network/ActivityPub.php:4101
+msgid "Fediverse replies"
+msgstr "Respostes del Fediverse"
+
+#: includes/Network/ActivityPub.php:4102
+msgid "Site replies"
+msgstr "Respostes del lloc"
+
+#: includes/Network/ActivityPub.php:4196
+msgid "This reply no longer exists."
+msgstr "Aquesta resposta ja no existeix."
+
+#: includes/Network/ActivityPub.php:4239
+msgid "Original"
+msgstr "Original"
+
+#: includes/Network/ActivityPub.php:4245
+msgid "Translated"
+msgstr "Traduït"
+
+#: includes/Network/ActivityPub.php:4248
+msgid "Translation pending…"
+msgstr "Traducció pendent…"
+
+#: includes/Network/ActivityPub.php:4253
+msgid "Also post my reply to the Fediverse."
+msgstr "També publica la meva resposta al Fediverse."
+
+#: includes/Network/ActivityPub.php:4280
 msgid "Write your own reply (optional)"
 msgstr "Escriu la teva pròpia resposta (opcional)"
 
-#: includes/Network/ActivityPub.php:3874
+#: includes/Network/ActivityPub.php:4312
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Resposta aprovada — ara apareix a la teva obra d'art."
 
-#: includes/Network/ActivityPub.php:3877
+#: includes/Network/ActivityPub.php:4315
 msgid "Reply rejected — it will not be shown."
 msgstr "Resposta rebutjada — no es mostrarà."
 
-#: includes/Network/ActivityPub.php:3888
+#: includes/Network/ActivityPub.php:4326
 msgid "Your reply has been posted."
 msgstr "La teva resposta s'ha publicat."
 
-#: includes/Network/ActivityPub.php:3891
+#: includes/Network/ActivityPub.php:4329
 msgid "Reply moderated"
 msgstr "Resposta moderada"
 
-#: includes/Network/ActivityPub.php:3917
+#: includes/Network/ActivityPub.php:4355
 msgid "No such reply."
 msgstr "No hi ha tal resposta."
 
@@ -6567,12 +6596,14 @@ msgstr "La signatura ha caducat."
 
 #: includes/Network/HttpSignature.php:614
 msgid "Signature on a POST request must cover the Content-Digest field."
-msgstr "La signatura en una sol·licitud POST ha de cobrir el camp Content-Digest."
+msgstr ""
+"La signatura en una sol·licitud POST ha de cobrir el camp Content-Digest."
 
 #: includes/Network/HttpSignature.php:629
 msgid ""
 "Signature header does not contain a value for the Signature-Input label."
-msgstr "L'encapçalat de signatura no conté un valor per a l'etiqueta Signature-Input."
+msgstr ""
+"L'encapçalat de signatura no conté un valor per a l'etiqueta Signature-Input."
 
 #: includes/Network/HttpSignature.php:680
 msgid "Signature-Input header is malformed."
@@ -6588,7 +6619,8 @@ msgstr "L'encapçalat Content-Digest no conté un valor sha-256."
 
 #: includes/Network/HttpSignature.php:748
 msgid "Content-Digest header does not match the request body."
-msgstr "L'encapçalat Content-Digest no coincideix amb el cos de la sol·licitud."
+msgstr ""
+"L'encapçalat Content-Digest no coincideix amb el cos de la sol·licitud."
 
 #: includes/Network/Node.php:116
 msgid "Node URL is required."
@@ -6769,7 +6801,9 @@ msgstr "M'agrada"
 
 #: includes/Newsletter/InteractionGateway.php:276
 msgid "Thanks for sharing this artist's work with your own followers."
-msgstr "Gràcies per compartir la feina d'aquest artista amb els teus propis seguidors."
+msgstr ""
+"Gràcies per compartir la feina d'aquest artista amb els teus propis "
+"seguidors."
 
 #: includes/Newsletter/InteractionGateway.php:277
 msgid "Thanks for supporting this artist."
@@ -6790,7 +6824,9 @@ msgstr "M'agrada \"%s\"?"
 #: includes/Newsletter/InteractionGateway.php:307
 msgid ""
 "This will share the artwork with your own followers, under your own name."
-msgstr "Això compartirà l'obra d'art amb els teus propis seguidors, amb el teu propi nom."
+msgstr ""
+"Això compartirà l'obra d'art amb els teus propis seguidors, amb el teu propi "
+"nom."
 
 #: includes/Newsletter/InteractionGateway.php:308
 msgid "Your like will be recorded once you confirm below."
@@ -7939,7 +7975,8 @@ msgstr ""
 
 #: includes/Publishing/ReviewConfirm.php:879
 msgid "Allow visitors and the Fediverse to reply to this artwork."
-msgstr "Permet que els visitants i el Fediverse responguin a aquesta obra d'art."
+msgstr ""
+"Permet que els visitants i el Fediverse responguin a aquesta obra d'art."
 
 #: includes/Publishing/ReviewConfirm.php:913
 msgid "Portfolio link"
@@ -8765,7 +8802,13 @@ msgid ""
 "replies are open. Shows plain, non-interactive \"0 replies\" text when "
 "replies are switched off with none already posted; renders nothing off an "
 "agnosis_artwork post."
-msgstr "Activar que obre una finestra emergent a pantalla completa amb una llista de les respostes aprovades d'aquesta obra d'art (tant del Fediverse com dels visitants del lloc) juntament amb un formulari de resposta, quan les respostes estan obertes. Mostra el text \"0 respostes\" sense format i no interactiu quan les respostes estan desactivades sense cap publicació prèvia; no mostra res d'una publicació d'agnosis_artwork."
+msgstr ""
+"Activar que obre una finestra emergent a pantalla completa amb una llista de "
+"les respostes aprovades d'aquesta obra d'art (tant del Fediverse com dels "
+"visitants del lloc) juntament amb un formulari de resposta, quan les "
+"respostes estan obertes. Mostra el text \"0 respostes\" sense format i no "
+"interactiu quan les respostes estan desactivades sense cap publicació "
+"prèvia; no mostra res d'una publicació d'agnosis_artwork."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

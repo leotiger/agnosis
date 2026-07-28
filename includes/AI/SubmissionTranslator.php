@@ -404,6 +404,78 @@ class SubmissionTranslator {
 	}
 
 	/**
+	 * Detect which of the site's own configured languages (`language_names()`)
+	 * a piece of text is written in — built for WP13 (Interaction-surface
+	 * roadmap §8), which needs to know a FEDERATED reply's own language
+	 * before an artist's translated reply can be built for it (a LOCAL
+	 * visitor reply already records this at submission time via the page's
+	 * own LF language — see `ActivityPub::REPLY_SOURCE_LANG_META`'s own
+	 * docblock — so this method is only ever called for the federated case).
+	 * Nothing else in this class answers "what language is this" — every
+	 * other method here takes a target language as an INPUT.
+	 *
+	 * Deliberately NOT an open-world language guess: constrained to exactly
+	 * the codes `language_names()` returns, since identifying a language the
+	 * site isn't even configured for is useless — nothing could ever render
+	 * a translation into it, or usefully compare it against the site's own
+	 * primary/artist languages. Mirrors `translate_term_name()`'s small-JSON-
+	 * envelope-and-graceful-failure shape rather than `translate_fields()`'s
+	 * larger one, since the response here is a single short code, not
+	 * translated prose.
+	 *
+	 * @param string $text Text to identify. Callers should already have
+	 *                     truncated this to a short excerpt (WP13 §13.2:
+	 *                     ~300 characters is enough for reliable
+	 *                     identification and keeps the prompt/cost small) —
+	 *                     this method sends whatever it's given as-is.
+	 * @return string ISO 639-1 code from `language_names()`, or `''` when
+	 *                the text's language can't be identified, the response
+	 *                fails to parse, or the detected language isn't one of
+	 *                the site's configured languages — never throws, same
+	 *                graceful-degradation convention as every other method
+	 *                in this file.
+	 */
+	public function detect_language( string $text ): string {
+		$text = trim( $text );
+		if ( '' === $text ) {
+			return '';
+		}
+
+		$names = self::language_names();
+		if ( empty( $names ) ) {
+			return '';
+		}
+
+		$lang_list = implode( ', ', array_map(
+			static fn( string $code, string $name ) => "{$code} ({$name})",
+			array_keys( $names ),
+			array_values( $names )
+		) );
+
+		$prompt = "Identify which ONE of these languages the text below is written in: {$lang_list}.\n"
+			. "Return ONLY a JSON object with one key, \"language\", whose value is the matching ISO 639-1 code from the list above.\n"
+			. "If the text is not clearly written in any of those languages, set \"language\" to an empty string rather than guessing the closest one.\n"
+			. "No markdown fences. No preamble. No explanation.\n\n"
+			. "TEXT:\n{$text}";
+
+		$response = $this->provider->chat( $prompt );
+		if ( '' === trim( $response ) ) {
+			return '';
+		}
+
+		$json_str = trim( (string) preg_replace( '/^```(?:json)?\s*|\s*```$/', '', trim( $response ) ) );
+		$decoded  = json_decode( $json_str, true );
+
+		if ( ! is_array( $decoded ) || ! isset( $decoded['language'] ) || ! is_string( $decoded['language'] ) ) {
+			$this->log_json_decode_failure( 'detect_language', $json_str, 'auto-detect', 'text excerpt' );
+			return '';
+		}
+
+		$detected = sanitize_key( trim( $decoded['language'] ) );
+		return isset( $names[ $detected ] ) ? $detected : '';
+	}
+
+	/**
 	 * Translate an arbitrary named set of text fields to $target_code in a
 	 * single `chat()` call, returning a same-keyed array of translated
 	 * strings.

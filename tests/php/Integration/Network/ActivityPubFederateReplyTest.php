@@ -225,6 +225,10 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'First reply', true ] );
 		$first_reply = $this->latest_child_comment( $parent_id );
 		$this->assertNotNull( $first_reply );
+		// WP13 §13.4: federate_artist_reply() no longer fires synchronously —
+		// drain the queue so REPLY_FEDERATED_META is actually set on
+		// $first_reply before it's used as a "previously federated" parent below.
+		$this->invoke( 'drain_reply_translation_queue' );
 
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, (int) $first_reply->comment_ID, 'Second reply', false ] );
 		$second_reply = $this->latest_child_comment( (int) $first_reply->comment_ID );
@@ -244,6 +248,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$parent_id = $this->insert_local_visitor_parent();
 
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', true ] );
+		// WP13 §13.4: federate_artist_reply() now fires from the drain step, not synchronously.
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply = $this->latest_child_comment( $parent_id );
 
 		$this->assertNotNull( $reply );
@@ -254,6 +260,7 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$parent_id = $this->insert_local_visitor_parent();
 
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', false ] );
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply = $this->latest_child_comment( $parent_id );
 
 		$this->assertNotNull( $reply );
@@ -268,6 +275,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$this->mock_transport( $deliveries );
 
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thank you!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 
 		$urls = array_column( $deliveries, 'url' );
 		$this->assertContains( self::OTHER_INBOX_URL, $urls, 'Must broadcast to the artist\'s own followers.' );
@@ -288,6 +297,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$this->mock_transport( $deliveries );
 
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thank you!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 
 		$urls = array_column( $deliveries, 'url' );
 		$this->assertContains( self::OTHER_INBOX_URL, $urls );
@@ -303,6 +314,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$deliveries = [];
 		$this->mock_transport( $deliveries );
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply = $this->latest_child_comment( $parent_id );
 
 		$response = $this->get_reply_route( (int) $reply->comment_ID );
@@ -333,6 +346,7 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 	public function test_serve_reply_activity_json_404s_for_an_artist_reply_never_federated(): void {
 		$parent_id = $this->insert_local_visitor_parent();
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', false ] );
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply = $this->latest_child_comment( $parent_id );
 
 		$response = $this->get_reply_route( (int) $reply->comment_ID );
@@ -351,6 +365,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$deliveries = [];
 		$this->mock_transport( $deliveries );
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply      = $this->latest_child_comment( $parent_id );
 		$comment_id = (int) $reply->comment_ID;
 
@@ -377,6 +393,7 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 	public function test_trashing_a_reply_that_was_never_federated_delivers_nothing(): void {
 		$parent_id = $this->insert_local_visitor_parent();
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', false ] );
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply      = $this->latest_child_comment( $parent_id );
 		$comment_id = (int) $reply->comment_ID;
 
@@ -395,6 +412,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$deliveries = [];
 		$this->mock_transport( $deliveries );
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply      = $this->latest_child_comment( $parent_id );
 		$comment_id = (int) $reply->comment_ID;
 
@@ -417,6 +436,8 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$deliveries = [];
 		$this->mock_transport( $deliveries );
 		$this->invoke( 'store_artist_gateway_reply', [ $this->post_id, $parent_id, 'Thanks!', true ] );
+		// WP13 §13.4: federation is dispatched from the drain step now.
+		$this->invoke( 'drain_reply_translation_queue' );
 		$reply      = $this->latest_child_comment( $parent_id );
 		$comment_id = (int) $reply->comment_ID;
 

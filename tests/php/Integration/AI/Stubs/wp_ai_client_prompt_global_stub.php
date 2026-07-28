@@ -80,6 +80,17 @@ function wp_ai_client_prompt( string $prompt ) {
 		}
 
 		private function resolve_text(): string {
+			// WP13: the detect-language helper's own prompt shape, checked
+			// first so a test exercising both a detection call and one or
+			// more translate-fields calls in the same run (e.g. draining
+			// the reply translation queue) can control each independently —
+			// see the registry's own detected-language property docblock.
+			if ( null !== WpAiClientTestRegistry::$detected_language
+				&& str_contains( $this->prompt, 'Identify which ONE of these languages' )
+			) {
+				return (string) wp_json_encode( [ 'language' => WpAiClientTestRegistry::$detected_language ] );
+			}
+
 			if ( null !== WpAiClientTestRegistry::$response ) {
 				return WpAiClientTestRegistry::$response;
 			}

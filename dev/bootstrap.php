@@ -280,7 +280,14 @@ if ( ! function_exists( 'absint' ) ) {
     function absint( mixed $val ): int { return abs( (int) $val ); }
 }
 if ( ! function_exists( 'sanitize_key' ) ) {
-    function sanitize_key( string $key ): string { return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', $key ) ); }
+    // Real WP core (formatting.php) lowercases FIRST, then strips anything
+    // outside [a-z0-9_-] — this stub previously did it in the opposite
+    // order, which silently discarded any uppercase-letter input entirely
+    // (e.g. 'ES' -> '' rather than 'es', since the case-sensitive strip ran
+    // before the lowercase and matched neither 'E' nor 'S'). Caught by
+    // SubmissionTranslatorTest::test_detect_language_sanitizes_and_lowercases_the_returned_code,
+    // 2026-07-28 — this stub was simply wrong, not the calling code.
+    function sanitize_key( string $key ): string { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( $key ) ); }
 }
 if ( ! function_exists( 'get_locale' ) ) {
     function get_locale(): string { return 'en_US'; }

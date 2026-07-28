@@ -922,4 +922,103 @@ class SubmissionTranslatorTest extends TestCase {
 
 		$this->assertSame( [ 'es' => 'Hola' ], $result );
 	}
+
+	// -------------------------------------------------------------------------
+	// detect_language() — WP13 (Interaction-surface roadmap §8): identify a
+	// federated reply's own language, constrained to the site's configured set.
+	// -------------------------------------------------------------------------
+
+	public function test_detect_language_returns_empty_string_for_empty_text_without_chat_call(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( '   ' ) );
+	}
+
+	public function test_detect_language_returns_empty_string_when_no_languages_are_configured(): void {
+		// The agnosis_translation_languages filter can legitimately narrow the
+		// set to nothing — detect_language() must not send a prompt with an
+		// empty language list.
+		self::$languages_override = [];
+
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->never() )->method( 'chat' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Bonjour tout le monde' ) );
+	}
+
+	public function test_detect_language_returns_the_matching_code_from_the_configured_list(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"language":"es"}' );
+
+		$result = $this->make_translator( $provider )->detect_language( 'Hola a todos' );
+
+		$this->assertSame( 'es', $result );
+	}
+
+	public function test_detect_language_returns_empty_string_when_detected_code_is_not_in_the_configured_list(): void {
+		// 'zz' is not among LINGUAFORGE_DEFAULT_LANGUAGES — a model
+		// hallucinating or naming a language the site simply isn't configured
+		// for must not be trusted as-is.
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"language":"zz"}' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Some text.' ) );
+	}
+
+	public function test_detect_language_returns_empty_string_when_model_reports_no_match(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"language":""}' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Some unrecognisable text.' ) );
+	}
+
+	public function test_detect_language_sanitizes_and_lowercases_the_returned_code(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"language":" ES "}' );
+
+		$this->assertSame( 'es', $this->make_translator( $provider )->detect_language( 'Hola' ) );
+	}
+
+	public function test_detect_language_prompt_lists_the_configured_languages_and_their_names(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->expects( $this->once() )
+			->method( 'chat' )
+			->with( $this->logicalAnd(
+				$this->stringContains( 'es (Spanish)' ),
+				$this->stringContains( 'de (German)' ),
+				$this->stringContains( "TEXT:\nHola" )
+			) )
+			->willReturn( '{"language":"es"}' );
+
+		$this->make_translator( $provider )->detect_language( 'Hola' );
+	}
+
+	public function test_detect_language_returns_empty_string_on_empty_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Some text.' ) );
+	}
+
+	public function test_detect_language_returns_empty_string_on_non_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( 'Sorry, I cannot help with that.' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Some text.' ) );
+	}
+
+	public function test_detect_language_returns_empty_string_on_truncated_json_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( '{"language":"e' );
+
+		$this->assertSame( '', $this->make_translator( $provider )->detect_language( 'Some text.' ) );
+	}
+
+	public function test_detect_language_strips_markdown_fences_from_chat_response(): void {
+		$provider = $this->createMock( ProviderInterface::class );
+		$provider->method( 'chat' )->willReturn( "```json\n{\"language\":\"de\"}\n```" );
+
+		$this->assertSame( 'de', $this->make_translator( $provider )->detect_language( 'Hallo zusammen' ) );
+	}
 }

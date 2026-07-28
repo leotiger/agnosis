@@ -18,15 +18,18 @@
  *     (_agnosis_replies_optout) — all distinct 403/404s, not the
  *     "identical response" discipline (that only covers the moderation
  *     step, see submit_reply()'s own docblock).
- *   - Moderation: an allowed message is stored (held) and notifies the
- *     artist; a rejected one gets the SAME REST response but is never
- *     stored and never emailed.
+ *   - Moderation: an allowed message is stored (held) and, once drained
+ *     through drain_reply_translation_queue(), notifies the artist; a
+ *     rejected one gets the SAME REST response but is never stored and
+ *     never emailed.
  *   - store_local_reply() writes REPLY_SOURCE_LANG_META from the page's own
  *     LF language at submission time (resolve_post_lf_lang()), left unset
  *     when the artwork has no _lf_lang meta (the site's own primary-
  *     language post).
  *   - notify_artist_of_reply()'s local-copy branch (intro line differs from
- *     the federated-reply copy; rest of the email is identical).
+ *     the federated-reply copy; rest of the email is identical). Fired from
+ *     drain_reply_translation_queue() (2026-07-28 fix), not at
+ *     submit_reply()'s own insert time — see that method's own docblock.
  *   - Rate limiting: the per-IP tier (rate_limit_reply(), the REST
  *     permission_callback) and the per-sender tier (inside submit_reply()
  *     itself).
@@ -223,7 +226,13 @@ class ActivityPubLocalReplyTest extends \WP_UnitTestCase {
 		$this->assertSame( 'visitor@example.com', $comment->comment_author_email );
 		$this->assertSame( 'Visitor Name', $comment->comment_author );
 
-		$this->assertCount( 1, $this->sent_mails, 'The artist must be notified of a stored reply.' );
+		// notify_artist_of_reply() fires from the translation-drain step, not
+		// synchronously at insert time (2026-07-28 fix — see that method's own
+		// docblock: it needs the artist-language version resolved first).
+		$this->assertCount( 0, $this->sent_mails, 'Nothing must be emailed before the reply has drained through the translation queue.' );
+		$form->drain_reply_translation_queue();
+
+		$this->assertCount( 1, $this->sent_mails, 'The artist must be notified of a stored reply once it drains.' );
 		$this->assertSame( 'artist@example.com', $this->sent_mails[0]['to'] );
 	}
 
@@ -256,6 +265,11 @@ class ActivityPubLocalReplyTest extends \WP_UnitTestCase {
 			$this->find_comment_by_email( $post_id, 'rejected@example.com' ),
 			'A rejected reply must never be stored.'
 		);
+
+		// notify_artist_of_reply() fires from the translation-drain step, not
+		// synchronously at insert time (2026-07-28 fix) — drain before
+		// checking which replies actually got emailed about.
+		$allowed_form->drain_reply_translation_queue();
 		$this->assertCount( 1, $this->sent_mails, 'Only the allowed reply should have notified the artist.' );
 	}
 
@@ -269,6 +283,7 @@ class ActivityPubLocalReplyTest extends \WP_UnitTestCase {
 			'email'   => 'visitor@example.com',
 			'message' => 'Nice work.',
 		] ) );
+		$form->drain_reply_translation_queue();
 
 		$this->assertCount( 1, $this->sent_mails );
 		$this->assertStringContainsString( 'Someone left a reply on your artwork:', $this->sent_mails[0]['message'] );

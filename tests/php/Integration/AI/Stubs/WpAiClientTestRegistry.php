@@ -53,11 +53,28 @@ class WpAiClientTestRegistry {
 	 */
 	public static ?string $response = null;
 
+	/**
+	 * Forced result for SubmissionTranslator::detect_language()'s own prompt
+	 * shape specifically — checked BEFORE $response above, so a test that
+	 * exercises a code path making both a detection call and one or more
+	 * translate_fields() calls in the same run (WP13's outbound/inbound-
+	 * federated reply drain — ActivityPub::drain_reply_translation_queue())
+	 * can set both independently rather than being limited to one fixed
+	 * response for every chat() call regardless of shape. `''` simulates
+	 * "language not detected/unsupported"; leaving this `null` (the default)
+	 * means a detect_language() call falls through to $response (if set) or
+	 * the ordinary translate_text()-shaped fallback (which won't match
+	 * detect_language()'s own prompt and returns '', the same as an
+	 * undetectable result) — see the stub function's own docblock.
+	 */
+	public static ?string $detected_language = null;
+
 	/** Reset every property to its default — call from tearDown(). */
 	public static function reset(): void {
 		self::$prompts                  = [];
 		self::$available                = null;
 		self::$supports_text_generation = null;
 		self::$response                 = null;
+		self::$detected_language        = null;
 	}
 }

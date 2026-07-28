@@ -90,6 +90,9 @@ use Agnosis\AI\Pipeline;
 use Agnosis\AI\SubmissionTranslator;
 use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Compat\LinguaForge;
+use Agnosis\Core\CommunityMailer;
+use Agnosis\Core\EmailFooter;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Core\Turnstile;
@@ -188,18 +191,54 @@ class ActivityPub {
 	private const REPLY_TRANSLATED_PRIMARY_META = '_agnosis_reply_translated_primary';
 
 	/**
-	 * Comment meta: the LF language the reply was actually submitted in —
-	 * known and stored ONLY for a local reply (the page's own
-	 * `resolve_post_lf_lang()` value at submission time); left unset for a
-	 * federated reply, whose true source language Phase 2 step 7 already
-	 * documented as generally unknowable. Two uses: drain_reply_translation_queue()
-	 * passes it as SubmissionTranslator::translate_fields()'s optional
-	 * `$source_lang_code` (closing that documented weak spot for local replies
-	 * specifically) and skips translating into a target language that already
-	 * equals this one — the "store once, skip the call" efficiency §4 Phase 3A
-	 * step 6 asks for.
+	 * Comment meta: the reply's own known written language — direction- and
+	 * authorship-agnostic despite the name, since WP13 widened this from its
+	 * original (WP4/Phase 2) scope. Populated three different ways depending
+	 * on what kind of comment this is:
+	 *   - A LOCAL visitor reply: the page's own `resolve_post_lf_lang()`
+	 *     value at submission time (known instantly, no AI call).
+	 *   - A FEDERATED (remote) reply: left unset UNLESS
+	 *     `agnosis_federate_languages` is `all`, in which case
+	 *     drain_reply_translation_queue() calls
+	 *     SubmissionTranslator::detect_language() once, at inbound-drain
+	 *     time, and stores the result here — WP13 §13.2/13.3. Detection
+	 *     failing or being gated off both leave this unset, identical to
+	 *     Phase 2's original "generally unknowable" case.
+	 *   - An ARTIST-authored reply (WP13 §13.1): `resolve_artist_lang()` —
+	 *     always known (an admitted artist necessarily has a declared
+	 *     language), never detected.
+	 *
+	 * Three uses: drain_reply_translation_queue() passes it as
+	 * SubmissionTranslator::translate_fields()'s optional `$source_lang_code`
+	 * (closing Phase 2 step 7's documented weak spot, for both directions
+	 * once a value exists); it skips translating into a target language that
+	 * already equals this one — the "store once, skip the call" efficiency
+	 * §4 Phase 3A step 6 and WP13 both rely on; and, for an artist's own
+	 * reply, WP13 §13.1 reads a FEDERATED parent's own value of this field
+	 * directly as "the original commenter's language" — detection only ever
+	 * runs once, at inbound time, never re-run when the artist later replies.
 	 */
 	private const REPLY_SOURCE_LANG_META = '_agnosis_reply_source_lang';
+
+	/**
+	 * Comment meta: '1' when a federated (remote) reply's own language could
+	 * not be identified as one of the site's configured languages at all —
+	 * WP13 §13.5, Ulises's own confirmed answer: only ever relevant inbound,
+	 * only ever set when `agnosis_federate_languages` is `all` (the only
+	 * setting under which detection is attempted in the first place — see
+	 * REPLY_SOURCE_LANG_META's own docblock). A comment flagged this way
+	 * skips the normal translation attempt AND the normal
+	 * notify_artist_of_reply() gateway email entirely — the artist instead
+	 * gets notify_artist_of_unsupported_reply_language()'s plain,
+	 * non-actionable, branded-but-linkless email carrying the untouched
+	 * original text, because "we don't want to support undetectable or
+	 * unsupported languages, this will complicate things a lot" (Ulises,
+	 * §13.5). Never set for a local reply (its language is always known at
+	 * submission time) or an artist's own reply (an artist's declared
+	 * language is always one of the site's configured ones, by construction
+	 * — no detection is ever attempted outbound at all).
+	 */
+	private const REPLY_UNSUPPORTED_LANG_META = '_agnosis_reply_unsupported_lang';
 
 	/**
 	 * Comment meta: when the reply's moderation link (notify_artist_of_reply())
@@ -1767,10 +1806,37 @@ class ActivityPub {
 	 * federate_artist_reply() (the Create{Note} payload) so the two can
 	 * never drift out of sync — the object served IS the object delivered.
 	 *
-	 * contentMap's language mirrors post_to_note()'s own resolution
-	 * (resolve_note_language()) rather than resolve_post_lf_lang(): the
-	 * latter returns '' for the primary-language post by convention (see its
-	 * own docblock), which is never a usable BCP-47-ish code by itself.
+	 * WP13 §13.4 fix: `contentMap` used to carry a single entry tagged with
+	 * `resolve_note_language( $post_id )` — the ARTWORK's own page language,
+	 * not necessarily the language the artist actually wrote this reply in
+	 * (an artist can, and often will, reply in their own native language on
+	 * an artwork whose page is in the site's primary language). Now a
+	 * genuine multi-key AS2 `contentMap` (spec-legitimate, not a hack),
+	 * built from whichever of the three WP13 translation-model meta values
+	 * are actually populated on this comment — always the source entry
+	 * (`REPLY_SOURCE_LANG_META` → `comment_content`), plus the primary-
+	 * language entry when distinct (`REPLY_TRANSLATED_PRIMARY_META`), plus
+	 * the original commenter's own language when distinct from both
+	 * (`REPLY_TRANSLATED_CONTENT_META`, target re-derived via
+	 * resolve_original_commenter_lang() — cheap, no AI call, since it's the
+	 * exact same derivation drain_outbound_reply_translation() already used
+	 * when it stored that translation).
+	 *
+	 * By the time this runs, `REPLY_SOURCE_LANG_META` should always be
+	 * populated — `federate_artist_reply()` (this method's only two callers)
+	 * is only ever invoked from `drain_outbound_reply_translation()`, which
+	 * writes it unconditionally before federating. The `resolve_note_language()`
+	 * fallback below only guards a comment somehow reaching this method
+	 * before that, never an expected path.
+	 *
+	 * Flat, non-map `content` field: defaults to the untouched SOURCE text
+	 * (what the artist actually wrote), not the primary-language translation
+	 * — a disclosed choice, not silently picked: `post_to_note()` instead
+	 * defaults an ARTWORK's flat `content` to its primary/page language, so
+	 * this is a deliberately different convention for a reply specifically
+	 * (least surprising: "this is literally what the artist wrote" for any
+	 * client that ignores `contentMap` entirely). Revisit if Ulises prefers
+	 * the artwork's own convention mirrored here instead.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -1778,8 +1844,29 @@ class ActivityPub {
 		$comment_id = (int) $comment->comment_ID;
 		$post_id    = (int) $comment->comment_post_ID;
 		$note_id    = $this->reply_object_id_for( $comment_id );
-		$lang       = $this->resolve_note_language( $post_id );
-		$content    = '<p>' . esc_html( $comment->comment_content ) . '</p>';
+
+		$source_lang = (string) get_comment_meta( $comment_id, self::REPLY_SOURCE_LANG_META, true );
+		if ( '' === $source_lang ) {
+			$source_lang = $this->resolve_note_language( $post_id ); // Defensive only — see docblock.
+		}
+		$primary_lang   = SubmissionTranslator::resolve_target_language();
+		$commenter_lang = $this->resolve_original_commenter_lang( (int) $comment->comment_parent, $primary_lang );
+
+		$content_map = [ $source_lang => '<p>' . esc_html( $comment->comment_content ) . '</p>' ];
+
+		if ( $primary_lang !== $source_lang ) {
+			$primary_translation = (string) get_comment_meta( $comment_id, self::REPLY_TRANSLATED_PRIMARY_META, true );
+			if ( '' !== $primary_translation ) {
+				$content_map[ $primary_lang ] = '<p>' . esc_html( $primary_translation ) . '</p>';
+			}
+		}
+
+		if ( $commenter_lang !== $source_lang && $commenter_lang !== $primary_lang ) {
+			$commenter_translation = (string) get_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, true );
+			if ( '' !== $commenter_translation ) {
+				$content_map[ $commenter_lang ] = '<p>' . esc_html( $commenter_translation ) . '</p>';
+			}
+		}
 
 		$note = [
 			'@context'     => self::CONTEXT,
@@ -1787,8 +1874,8 @@ class ActivityPub {
 			'id'           => $note_id,
 			'url'          => $note_id,
 			'attributedTo' => $this->actor_url_for( 'artist', (int) $comment->user_id ),
-			'content'      => $content,
-			'contentMap'   => [ $lang => $content ],
+			'content'      => $content_map[ $source_lang ],
+			'contentMap'   => $content_map,
 			'published'    => gmdate( 'c', (int) strtotime( $comment->comment_date_gmt ) ),
 			'to'           => [ 'https://www.w3.org/ns/activitystreams#Public' ],
 			'inReplyTo'    => $this->reply_in_reply_to( $comment ),
@@ -2974,34 +3061,48 @@ class ActivityPub {
 	 * `agnosis_drain_reply_translation_queue`, `every_five_minutes` (mirrors
 	 * Compat\LinguaForge::drain_translation_queue()'s own shape: walk every
 	 * row still flagged pending, time-budgeted, resumable). Translation
-	 * happens here, off the signed inbox()/submit_reply() request path
-	 * (roadmap §4 Phase 2 step 8) — the caller already returned a response the
-	 * moment the comment was inserted; this only ever refines what
-	 * get_replies() later returns. Federated AND local replies share this one
-	 * queue (WP4).
+	 * happens here, off the signed inbox()/submit_reply()/reply-gateway
+	 * request path (roadmap §4 Phase 2 step 8) — the caller already returned
+	 * a response the moment the comment was inserted; this only ever refines
+	 * what get_replies() and the federated Note later serve. Federated AND
+	 * local replies, AND (since WP13) an artist's OWN reply, all share this
+	 * one queue.
 	 *
-	 * Three-version model (§4 Phase 3A step 6, superseding Phase 2's single
-	 * artist-language field): stores BOTH an artist-language translation
-	 * (REPLY_TRANSLATED_CONTENT_META, as before) and a site-primary-language
-	 * one (REPLY_TRANSLATED_PRIMARY_META, new) per reply — see
-	 * display_reply_content() for which one a given viewer actually sees.
-	 * Two efficiencies, both required by that same step:
-	 *   - When the artist's language and the site's primary language
-	 *     coincide, the artist-language result is reused outright rather than
-	 *     spending a second AI call translating into an identical target.
-	 *   - For a LOCAL reply (REPLY_SOURCE_LANG_META set — the page's own LF
-	 *     language at submission time, see that constant's own docblock), a
-	 *     target language matching the reply's own known source is skipped
-	 *     entirely: the untouched original already IS correct for that
-	 *     language, and display_reply_content() serves comment_content
-	 *     directly whenever the viewer's language matches it.
+	 * Three-version model (§4 Phase 3A step 6 / §7 Q4, both directions):
+	 * every reply gets a source (untouched), a site-primary-language
+	 * translation (REPLY_TRANSLATED_PRIMARY_META), and one more
+	 * general-purpose translation (REPLY_TRANSLATED_CONTENT_META) whose
+	 * TARGET depends on which direction this comment is:
+	 *   - INBOUND (a visitor's or a remote actor's reply, `user_id` unset —
+	 *     handled directly in this method, below): the target is the
+	 *     ARTIST'S own language, so they can read and judge it before
+	 *     approving — Phase 2/WP4's original meaning of this field.
+	 *   - OUTBOUND (WP13 — an artist's own reply, written via the reply
+	 *     gateway, always carrying a real `user_id`): delegated to
+	 *     drain_outbound_reply_translation() below. The target is the
+	 *     ORIGINAL COMMENTER'S own language instead, so the person the
+	 *     artist is actually answering can read the reply — see that
+	 *     method's own docblock.
+	 * Both directions reuse the exact same three meta constants and the
+	 * exact same display_reply_content()/get_replies() read path with no
+	 * changes there at all — see REPLY_SOURCE_LANG_META's own docblock for
+	 * why that works.
 	 *
-	 * Target languages: the artist's own declared locale
-	 * (SubmissionTranslator::resolve_artist_lang()) falling back to the
-	 * site's own resolve_target_language() chain when the artist has none —
-	 * same fallback order already used for submissions. Ulises confirmed
-	 * every real Agnosis artist has a declared language via their profile, so
-	 * this is a defensive fallback, not an expected real-world path.
+	 * Efficiencies, required either direction: when two of the three
+	 * languages in play coincide, the already-computed result is reused (or
+	 * the call is skipped and the meta left `''`) rather than spending a
+	 * second identical AI call — display_reply_content()'s own fallback
+	 * order already resolves an unset/empty meta to whichever OTHER stored
+	 * version is actually correct for that case.
+	 *
+	 * WP13 §13.2/13.3: for a FEDERATED (remote) inbound reply whose own
+	 * language isn't yet known (REPLY_SOURCE_LANG_META unset), and only when
+	 * `agnosis_federate_languages` is `all` (see that constant's own
+	 * docblock for why the default `primary-only` needs no detection at
+	 * all), this method calls SubmissionTranslator::detect_language() once
+	 * before anything else — an undetectable/unsupported result short-
+	 * circuits straight to notify_artist_of_unsupported_reply_language()
+	 * instead of the normal translation+notification flow (§13.5).
 	 */
 	public function drain_reply_translation_queue(): void {
 		$deadline = microtime( true ) + self::REPLY_TRANSLATION_TIME_BUDGET_SECONDS;
@@ -3019,10 +3120,16 @@ class ActivityPub {
 			return;
 		}
 
+		// A missing/unconfigured translator must not silently strand every
+		// pending reply's artist notification forever (it used to — this
+		// method returned outright before any comment was ever touched, and
+		// notify_artist_of_reply() was never called from anywhere else once
+		// it moved here). The queue is still walked and each artist still
+		// notified below; only the translation calls themselves are skipped,
+		// so notify_artist_of_reply()'s own display_reply_content() call
+		// falls back to the untouched original — worse than a translation,
+		// never worse than silence.
 		$translator = SubmissionTranslator::from_settings();
-		if ( null === $translator ) {
-			return;
-		}
 
 		foreach ( $comments as $comment ) {
 			if ( microtime( true ) >= $deadline ) {
@@ -3035,36 +3142,169 @@ class ActivityPub {
 			$comment_id = (int) $comment->comment_ID;
 			$post_id    = (int) $comment->comment_post_ID;
 
-			$artist_lang = SubmissionTranslator::resolve_artist_lang( (int) get_post_field( 'post_author', $post_id ) );
-			if ( '' === $artist_lang ) {
-				$artist_lang = SubmissionTranslator::resolve_target_language();
+			// WP13 §13.6: an artist-authored reply (store_artist_gateway_reply()
+			// always sets a real WP user id; every visitor/federated-inbound
+			// path never does) takes the OUTBOUND translation model, never
+			// the inbound one below — and must NEVER reach
+			// notify_artist_of_reply(), or the artist would be notified
+			// about, and offered a gateway to approve/reject, their own
+			// already-approved reply.
+			if ( (int) $comment->user_id > 0 ) {
+				$this->drain_outbound_reply_translation( $comment, $translator );
+				continue;
 			}
-			$primary_lang = SubmissionTranslator::resolve_target_language();
 
-			// Known only for a local reply — see REPLY_SOURCE_LANG_META's own docblock.
 			$source_lang = (string) get_comment_meta( $comment_id, self::REPLY_SOURCE_LANG_META, true );
 
-			$artist_translation = $this->reply_translation_for( $translator, $comment->comment_content, $artist_lang, $source_lang );
-			update_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, $artist_translation );
+			// WP13 §13.2/13.3 — detect a federated reply's own language, once,
+			// only when it's possible for that language to be anything other
+			// than the site's primary in the first place.
+			if ( null !== $translator
+				&& self::REPLY_COMMENT_TYPE === $comment->comment_type
+				&& '' === $source_lang
+				&& 'all' === get_option( 'agnosis_federate_languages', 'primary-only' )
+			) {
+				$excerpt  = mb_substr( wp_strip_all_tags( $comment->comment_content ), 0, 300 );
+				$detected = $translator->detect_language( $excerpt );
 
-			$primary_translation = $primary_lang === $artist_lang
-				? $artist_translation
-				: $this->reply_translation_for( $translator, $comment->comment_content, $primary_lang, $source_lang );
-			update_comment_meta( $comment_id, self::REPLY_TRANSLATED_PRIMARY_META, $primary_translation );
+				if ( '' === $detected ) {
+					// §13.5: undetectable/unsupported — no translation, no
+					// normal gateway, an informational-only email instead.
+					update_comment_meta( $comment_id, self::REPLY_UNSUPPORTED_LANG_META, '1' );
+					delete_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META );
+
+					$post = get_post( $post_id );
+					if ( $post instanceof \WP_Post ) {
+						$this->notify_artist_of_unsupported_reply_language( $post, $comment );
+					}
+					continue;
+				}
+
+				update_comment_meta( $comment_id, self::REPLY_SOURCE_LANG_META, $detected );
+				$source_lang = $detected;
+			}
+
+			if ( null !== $translator ) {
+				$artist_lang = SubmissionTranslator::resolve_artist_lang( (int) get_post_field( 'post_author', $post_id ) );
+				if ( '' === $artist_lang ) {
+					$artist_lang = SubmissionTranslator::resolve_target_language();
+				}
+				$primary_lang = SubmissionTranslator::resolve_target_language();
+
+				$artist_translation = $this->reply_translation_for( $translator, $comment->comment_content, $artist_lang, $source_lang );
+				update_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, $artist_translation );
+
+				$primary_translation = $primary_lang === $artist_lang
+					? $artist_translation
+					: $this->reply_translation_for( $translator, $comment->comment_content, $primary_lang, $source_lang );
+				update_comment_meta( $comment_id, self::REPLY_TRANSLATED_PRIMARY_META, $primary_translation );
+			}
 
 			delete_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META );
+
+			$post = get_post( $post_id );
+			if ( $post instanceof \WP_Post ) {
+				$is_local = self::LOCAL_REPLY_COMMENT_TYPE === $comment->comment_type;
+				$this->notify_artist_of_reply( $post, $comment, $is_local );
+			}
 		}
+	}
+
+	/**
+	 * WP13 §13.1/§13.6b — the OUTBOUND half of the three-version model, for
+	 * an artist's own reply (always carries a real `user_id`, set by
+	 * store_artist_gateway_reply()). No email is ever sent from this
+	 * method — the artist already knows what they wrote; only the stored
+	 * translations and (once ready) the federated Note need to catch up.
+	 *
+	 * Source is always the artist's own declared language
+	 * (SubmissionTranslator::resolve_artist_lang()) — never detected, unlike
+	 * the inbound federated case, per Ulises's own confirmed answer (§13.5):
+	 * "outbound content by an artist: we can assume that he writes in the
+	 * language he defined as his or her native language, which was chosen
+	 * from supported languages on the agnosis system." Falls back to the
+	 * site's primary language only defensively (an admitted artist always
+	 * has a declared language in practice).
+	 *
+	 * The "original commenter's language" target is resolved via
+	 * resolve_original_commenter_lang() — reusing whatever the PARENT
+	 * comment's own REPLY_SOURCE_LANG_META already holds (known instantly
+	 * for a local visitor's parent; detected, at most once, by this same
+	 * method's inbound branch above for a federated parent) rather than
+	 * ever detecting anything here.
+	 */
+	private function drain_outbound_reply_translation( \WP_Comment $comment, ?SubmissionTranslator $translator ): void {
+		$comment_id = (int) $comment->comment_ID;
+
+		$artist_lang = SubmissionTranslator::resolve_artist_lang( (int) $comment->user_id );
+		if ( '' === $artist_lang ) {
+			$artist_lang = SubmissionTranslator::resolve_target_language();
+		}
+		update_comment_meta( $comment_id, self::REPLY_SOURCE_LANG_META, $artist_lang );
+
+		if ( null !== $translator ) {
+			$primary_lang = SubmissionTranslator::resolve_target_language();
+
+			if ( $primary_lang !== $artist_lang ) {
+				update_comment_meta(
+					$comment_id,
+					self::REPLY_TRANSLATED_PRIMARY_META,
+					$this->reply_translation_for( $translator, $comment->comment_content, $primary_lang, $artist_lang )
+				);
+			}
+
+			$commenter_lang = $this->resolve_original_commenter_lang( (int) $comment->comment_parent, $primary_lang );
+			if ( $commenter_lang !== $artist_lang && $commenter_lang !== $primary_lang ) {
+				update_comment_meta(
+					$comment_id,
+					self::REPLY_TRANSLATED_CONTENT_META,
+					$this->reply_translation_for( $translator, $comment->comment_content, $commenter_lang, $artist_lang )
+				);
+			}
+		}
+
+		delete_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META );
+
+		// WP13 §13.4: federation moves here from store_artist_gateway_reply()'s
+		// own synchronous call site — the Note's contentMap needs the
+		// translations resolved above to exist before it's built.
+		if ( '1' === (string) get_comment_meta( $comment_id, self::REPLY_FEDERATE_REQUESTED_META, true ) ) {
+			$this->federate_artist_reply( $comment );
+		}
+	}
+
+	/**
+	 * The language an artist's reply's own PARENT comment was written in —
+	 * WP13 §13.1's "original commenter's language" target. Reused directly
+	 * from REPLY_SOURCE_LANG_META, never re-detected here: known instantly
+	 * for a local visitor parent (submission-time LF language), or already
+	 * detected at most once by drain_reply_translation_queue()'s inbound
+	 * branch for a federated parent (see that constant's own docblock).
+	 * Empty on either meta or an unresolvable parent means "the site's
+	 * primary language" — the same convention used throughout this class —
+	 * so $fallback_primary_lang is returned rather than ''.
+	 */
+	private function resolve_original_commenter_lang( int $parent_id, string $fallback_primary_lang ): string {
+		if ( $parent_id <= 0 ) {
+			return $fallback_primary_lang;
+		}
+		$parent = get_comment( $parent_id );
+		if ( ! $parent instanceof \WP_Comment ) {
+			return $fallback_primary_lang;
+		}
+		$lang = (string) get_comment_meta( $parent_id, self::REPLY_SOURCE_LANG_META, true );
+		return '' !== $lang ? $lang : $fallback_primary_lang;
 	}
 
 	/**
 	 * One reply's content translated into $target_lang, or '' when
 	 * $target_lang already IS this reply's own known source language
-	 * (non-empty $source_lang, local replies only) — display_reply_content()
-	 * already serves the untouched original for that exact case, so storing
-	 * an identical "translation" would only be a wasted AI call. Uses
-	 * translate_fields() rather than translate_text() specifically for its
-	 * `$source_lang_code` parameter (empty for a federated reply, whose true
-	 * source language Phase 2 step 7 documented as generally unknowable).
+	 * (non-empty $source_lang) — display_reply_content() already serves the
+	 * untouched original for that exact case, so storing an identical
+	 * "translation" would only be a wasted AI call. Uses translate_fields()
+	 * rather than translate_text() specifically for its `$source_lang_code`
+	 * parameter — reused by both the inbound and outbound (WP13) directions,
+	 * $source_lang meaning "the reply's own known written language" either way.
 	 */
 	private function reply_translation_for( SubmissionTranslator $translator, string $content, string $target_lang, string $source_lang ): string {
 		if ( '' !== $source_lang && $target_lang === $source_lang ) {
@@ -3201,7 +3441,10 @@ class ActivityPub {
 		}
 		update_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META, '1' );
 
-		$this->notify_artist_of_reply( $post, $comment_id, $message, true );
+		// Notification fires once drain_reply_translation_queue() has produced
+		// an artist-language translation (or established there's nothing to
+		// translate) — never here, at insert time, before either is known. See
+		// notify_artist_of_reply()'s own docblock for why.
 	}
 
 	/**
@@ -3446,7 +3689,10 @@ class ActivityPub {
 		update_comment_meta( $comment_id, self::REPLY_ACTOR_META, $actor_url );
 		update_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META, '1' );
 
-		$this->notify_artist_of_reply( $post, $comment_id, $content );
+		// Notification fires once drain_reply_translation_queue() has produced
+		// an artist-language translation (or established there's nothing to
+		// translate) — never here, at insert time, before either is known. See
+		// notify_artist_of_reply()'s own docblock for why.
 
 		return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 	}
@@ -3499,7 +3745,7 @@ class ActivityPub {
 	 * capability (see REPLY_COMMENT_TYPE's own docblock), so wp-admin's
 	 * ordinary "comment held for moderation" notice (wp_notify_moderator(),
 	 * which mails the site admin, not the post author) would never reach
-	 * them at all. Includes a one-click Approve/Reject pair
+	 * them at all. Includes a one-click gateway link
 	 * (handle_reply_moderation()) — the same stateless, emailed-HMAC-link
 	 * pattern already used throughout this plugin (VouchConfirm,
 	 * AdmissionConfirm) for an artist to act without a WP login — plus the
@@ -3521,10 +3767,42 @@ class ActivityPub {
 	 * deadline on a link already sitting in an artist's inbox the moment an
 	 * admin changed the setting, exactly the trap ReviewEndpoints's stored
 	 * `_agnosis_review_expiry` already avoids.
+	 *
+	 * Fixed, 2026-07-28 (same 0.9.59 patch — Ulises caught both in a live
+	 * sent email): this only ever fires from drain_reply_translation_queue()
+	 * now, once that queue has run for this exact comment — never at insert
+	 * time, which is BEFORE either of the two things below can possibly be
+	 * known:
+	 *   1. Translation. An artist who doesn't read the reply's own source
+	 *      language couldn't understand a reply shown untranslated — the
+	 *      whole reason §4 Phase 3A step 6 built the three-version
+	 *      translation model in the first place. `$comment` (not a raw
+	 *      content string) lets this method call display_reply_content()
+	 *      itself, resolving to whichever version actually belongs in front
+	 *      of THIS artist: the untouched original when it already IS their
+	 *      language, the artist-language translation once one exists, or the
+	 *      original as a last-resort fallback if translation is
+	 *      unavailable — never silently the wrong-language original just
+	 *      because the mail went out before translation caught up.
+	 *   2. The branded template. This was the only wp_mail() call in the
+	 *      entire file — every other transactional email in the plugin
+	 *      already goes through Core\EmailTemplate's shared branded shell
+	 *      (header/accent/footer all reading from Settings → Branding); this
+	 *      one was a bare plain-text string, unstyled and unbranded.
+	 *
+	 * @param \WP_Post    $post     The artwork the reply belongs to.
+	 * @param \WP_Comment $comment  The held reply comment — its OWN content is
+	 *                              never shown directly; display_reply_content()
+	 *                              resolves the right version for the artist's
+	 *                              language.
+	 * @param bool        $is_local Whether this is a site-visitor reply (true)
+	 *                              or a federated one (false) — only changes
+	 *                              the intro line.
 	 */
-	private function notify_artist_of_reply( \WP_Post $post, int $comment_id, string $content, bool $is_local = false ): void {
-		$author_id = (int) $post->post_author;
-		$author    = get_userdata( $author_id );
+	private function notify_artist_of_reply( \WP_Post $post, \WP_Comment $comment, bool $is_local = false ): void {
+		$comment_id = (int) $comment->comment_ID;
+		$author_id  = (int) $post->post_author;
+		$author     = get_userdata( $author_id );
 		if ( ! $author || '' === $author->user_email ) {
 			return;
 		}
@@ -3536,6 +3814,13 @@ class ActivityPub {
 		if ( '' !== $locale ) {
 			switch_to_locale( $locale );
 		}
+
+		// The artist's own reading language — same code
+		// SubmissionTranslator::resolve_artist_lang() already resolves reply
+		// translations against in drain_reply_translation_queue(), so this
+		// always agrees with whichever version that queue actually stored.
+		$artist_lang = SubmissionTranslator::resolve_artist_lang( $author_id );
+		$content     = $this->display_reply_content( $comment, $artist_lang );
 
 		$excerpt = wp_strip_all_tags( $content );
 		if ( mb_strlen( $excerpt ) > 300 ) {
@@ -3558,26 +3843,179 @@ class ActivityPub {
 			? __( 'Someone left a reply on your artwork:', 'agnosis' )
 			: __( 'Someone replied to your artwork from the Fediverse:', 'agnosis' );
 
-		// WP7 (§4 Phase 3A, "the reply gateway page"): one link, not two.
-		// Previously this carried separate Approve/Reject links, each with
-		// its own action-specific token — reply_gateway_url() below is
-		// action-agnostic (see its own docblock) because the artist now
-		// chooses approve/reject, optionally writes their own reply, and
-		// optionally requests federation, all as one decision on one page,
-		// reached via one link.
-		$message = sprintf(
-			/* translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link. */
-			__(
-				"%1\$s\n\n\"%2\$s\"\n\nIt's being held until you approve or reject it — you can also write your own reply from the same page:\n\n%3\$s\n\nDon't want reply notifications? Manage that here: %4\$s",
-				'agnosis'
-			),
-			$intro,
-			$excerpt,
-			self::reply_gateway_url( $comment_id ),
-			NotificationPreferences::prefs_url( $author_id )
+		// WP7 (§4 Phase 3A, "the reply gateway page"): one link, not two —
+		// the artist chooses approve/reject, optionally writes their own
+		// reply, and optionally requests federation, all as one decision on
+		// one page, reached via one button.
+		$gateway_url = self::reply_gateway_url( $comment_id );
+		$accent      = EmailTemplate::accent();
+
+		ob_start();
+		?>
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $author->display_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 20px;font-size:19px;line-height:1.6;color:#555;">
+			<?php echo esc_html( $intro ); ?>
+		</p>
+		<p style="margin:0 0 28px;padding:16px 20px;background:<?php echo esc_attr( EmailTemplate::notice_bg() ); ?>;border-left:3px solid <?php echo esc_attr( $accent ); ?>;border-radius:4px;font-size:18px;font-style:italic;line-height:1.6;color:#333;">
+			&ldquo;<?php echo esc_html( $excerpt ); ?>&rdquo;
+		</p>
+		<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;">
+			<?php esc_html_e( "It's being held until you approve or reject it — you can also write your own reply from the same page.", 'agnosis' ); ?>
+		</p>
+		<table cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+		<tr><td>
+			<?php echo EmailTemplate::button( $gateway_url, __( 'Review this reply', 'agnosis' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailTemplate::button() escapes internally. ?>
+		</td></tr>
+		</table>
+		<p style="font-size:16px;color:#999;margin:0;">
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: %d: number of days the link stays valid */
+					_n(
+						'This link expires in %d day.',
+						'This link expires in %d days.',
+						$expiry_days,
+						'agnosis'
+					),
+					$expiry_days
+				)
+			);
+			?>
+		</p>
+		<?php
+		$body_html = (string) ob_get_clean();
+
+		ob_start();
+		$prefs_html = EmailFooter::preferences_html( $author_id );
+		if ( '' !== $prefs_html ) :
+			?>
+		<p style="margin:0;text-align:center;">
+			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
+		</p>
+			<?php
+		endif;
+		$footer_extra_html = (string) ob_get_clean();
+
+		$html_lang = str_replace( '_', '-', '' !== $locale ? $locale : get_locale() );
+
+		wp_mail(
+			$author->user_email,
+			$subject,
+			EmailTemplate::render( '' !== $html_lang ? $html_lang : 'en', $body_html, $footer_extra_html ),
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . CommunityMailer::sender_header(),
+				'Auto-Submitted: auto-generated',
+				'X-Auto-Response-Suppress: All',
+			]
 		);
 
-		wp_mail( $author->user_email, $subject, $message );
+		if ( '' !== $locale ) {
+			restore_current_locale();
+		}
+	}
+
+	/**
+	 * Email the artist that a federated reply arrived in a language that
+	 * couldn't be identified as one of the site's own configured languages
+	 * (WP13 §13.5) — a plain, informational, branded email with NO gateway
+	 * link, no Approve/Reject, no "write your own reply" option, and no
+	 * moderation-expiry meta, because none of that is offered here at all.
+	 * Ulises's own confirmed answer: "we don't want to support undetectable
+	 * or unsupported languages, this will complicate things a lot... it's up
+	 * to the artist to decide what to do with the comment" — meaning the
+	 * comment stays held (`comment_approved = 0`) exactly like any other
+	 * reply, reachable only through the existing wp-admin backstop (Comments
+	 * → All already lists it — §4 Phase 3A's own verified precedent), never
+	 * through a no-login link this class would have to mint and secure.
+	 *
+	 * Only ever called from drain_reply_translation_queue() for a federated
+	 * (REPLY_COMMENT_TYPE) comment flagged REPLY_UNSUPPORTED_LANG_META — see
+	 * that constant's own docblock for exactly when this fires instead of
+	 * notify_artist_of_reply().
+	 *
+	 * @param \WP_Post    $post    The artwork the reply belongs to.
+	 * @param \WP_Comment $comment The held reply whose language is unsupported.
+	 */
+	private function notify_artist_of_unsupported_reply_language( \WP_Post $post, \WP_Comment $comment ): void {
+		$author_id = (int) $post->post_author;
+		$author    = get_userdata( $author_id );
+		if ( ! $author || '' === $author->user_email ) {
+			return;
+		}
+
+		$locale = (string) get_user_meta( $author_id, 'locale', true );
+		if ( '' !== $locale ) {
+			switch_to_locale( $locale );
+		}
+
+		$excerpt = wp_strip_all_tags( $comment->comment_content );
+		if ( mb_strlen( $excerpt ) > 300 ) {
+			$excerpt = mb_substr( $excerpt, 0, 300 ) . '…';
+		}
+
+		$subject = sprintf(
+			/* translators: %s: artwork title. */
+			__( 'A reply on "%s" arrived in a language we could not identify', 'agnosis' ),
+			$post->post_title
+		);
+
+		ob_start();
+		?>
+		<p style="margin:0 0 20px;font-size:20px;color:#555;">
+			<?php
+			printf(
+				/* translators: %s: recipient's display name */
+				esc_html__( 'Hi %s,', 'agnosis' ),
+				esc_html( $author->display_name )
+			);
+			?>
+		</p>
+		<p style="margin:0 0 20px;font-size:19px;line-height:1.6;color:#555;">
+			<?php esc_html_e( "Someone replied to your artwork from the Fediverse, but we weren't able to identify the language it's written in, so we can't offer a translation or the usual reply/approval page for it.", 'agnosis' ); ?>
+		</p>
+		<p style="margin:0 0 28px;padding:16px 20px;background:<?php echo esc_attr( EmailTemplate::notice_bg() ); ?>;border-left:3px solid <?php echo esc_attr( EmailTemplate::accent() ); ?>;border-radius:4px;font-size:18px;font-style:italic;line-height:1.6;color:#333;">
+			&ldquo;<?php echo esc_html( $excerpt ); ?>&rdquo;
+		</p>
+		<p style="margin:0;font-size:17px;line-height:1.6;color:#555;">
+			<?php esc_html_e( 'This is for your information only — there is nothing to approve or reject here. If you\'d like to act on it, you can do so from your WordPress dashboard.', 'agnosis' ); ?>
+		</p>
+		<?php
+		$body_html = (string) ob_get_clean();
+
+		ob_start();
+		$prefs_html = EmailFooter::preferences_html( $author_id );
+		if ( '' !== $prefs_html ) :
+			?>
+		<p style="margin:0;text-align:center;">
+			<?php echo $prefs_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- EmailFooter::preferences_html() escapes internally. ?>
+		</p>
+			<?php
+		endif;
+		$footer_extra_html = (string) ob_get_clean();
+
+		$html_lang = str_replace( '_', '-', '' !== $locale ? $locale : get_locale() );
+
+		wp_mail(
+			$author->user_email,
+			$subject,
+			EmailTemplate::render( '' !== $html_lang ? $html_lang : 'en', $body_html, $footer_extra_html ),
+			[
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . CommunityMailer::sender_header(),
+				'Auto-Submitted: auto-generated',
+				'X-Auto-Response-Suppress: All',
+			]
+		);
 
 		if ( '' !== $locale ) {
 			restore_current_locale();
@@ -3936,16 +4374,21 @@ class ActivityPub {
 	 * auto-applied). There is also no realistic abuse vector: only the
 	 * artist who received this specific email can reach this form at all.
 	 *
-	 * $federate_requested writes REPLY_FEDERATE_REQUESTED_META and, when
-	 * true, triggers federate_artist_reply() immediately (WP6). That's safe
-	 * to do inline here rather than via a separate transition-status
-	 * listener: the comment is inserted ALREADY comment_approved => 1 above,
-	 * so "deliver only once approved" and "deliver at this exact insert" are
-	 * the same moment for this reply type. There is also no other code path
-	 * that can ever produce an artist-authored reply in the first place —
-	 * the no-login rule means this gateway page is the only way one is ever
-	 * created — so there's no hypothetical held-then-later-approved case
-	 * that would need a separate listener to catch.
+	 * $federate_requested writes REPLY_FEDERATE_REQUESTED_META, a REQUEST
+	 * flag only — federate_artist_reply() itself no longer fires from here
+	 * (WP13 §13.4). It used to run inline, immediately, on the reasoning that
+	 * "comment_approved => 1 already, so deliver-on-approve and deliver-at-
+	 * insert are the same moment" — still true, but insufficient once WP13
+	 * gave this reply its own outbound translation step: federating
+	 * immediately would build the Note's contentMap before any translation
+	 * could exist. Both this flag and REPLY_PENDING_TRANSLATION_META (set
+	 * unconditionally below, whether or not federation was requested — the
+	 * on-site three-version display needs translation regardless) are read
+	 * by drain_outbound_reply_translation(), which calls
+	 * federate_artist_reply() itself once translation resolves. There is
+	 * still no other code path that can ever produce an artist-authored
+	 * reply in the first place — the no-login rule means this gateway page
+	 * is the only way one is ever created.
 	 */
 	private function store_artist_gateway_reply( int $post_id, int $parent_comment_id, string $message, bool $federate_requested ): void {
 		$post = get_post( $post_id );
@@ -3976,12 +4419,13 @@ class ActivityPub {
 
 		if ( $federate_requested ) {
 			update_comment_meta( $comment_id, self::REPLY_FEDERATE_REQUESTED_META, '1' );
-
-			$comment = get_comment( $comment_id );
-			if ( $comment instanceof \WP_Comment ) {
-				$this->federate_artist_reply( $comment );
-			}
 		}
+
+		// WP13 §13.1/§13.6: queue for the outbound translation step
+		// regardless of whether federation was requested — the on-site
+		// three-version display (source / primary / original commenter's
+		// language) matters for every artist reply, not just a federated one.
+		update_comment_meta( $comment_id, self::REPLY_PENDING_TRANSLATION_META, '1' );
 	}
 
 	/**

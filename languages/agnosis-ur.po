@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-27T22:38+00:00\n"
+"POT-Creation-Date: 2026-07-28T15:04+00:00\n"
 "PO-Revision-Date: 2026-07-19 17:01+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Urdu\n"
@@ -511,7 +511,7 @@ msgstr "داخل کریں"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:3845
+#: includes/Network/ActivityPub.php:4283
 msgid "Reject"
 msgstr "مسترد کریں"
 
@@ -1113,7 +1113,7 @@ msgstr "%1$d شامل کیے گئے (%2$d نے دستبرداری اختیار �
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:2892
+#: includes/Network/ActivityPub.php:2979
 msgid "Sending…"
 msgstr "بھیجا جا رہا ہے…"
 
@@ -1194,7 +1194,11 @@ msgid ""
 "subscribed to it — following one is the cheapest way for this node's public "
 "artwork to reach servers that would otherwise never see it. This is node-"
 "level: it applies to every artwork, not a per-artist choice."
-msgstr "ایک ریلی ہر اس سرور کو دوبارہ نشر کرتا ہے جس نے اسے سبسکرائب کیا ہے — اس کو پیچھے چھوڑنے کے لیے یہ سب سے سستا ذریعہ ہے کہ اس نوڈ کے عوامی فن پارے ان سرورز تک پہنچیں جو بصورت دیگر اسے نہیں دیکھیں گے۔ یہ نوڈ کی سطح پر ہے: یہ ہر فن پارے پر لاگو ہوتا ہے، یہ کسی فنکار کی انتخاب نہیں ہے۔"
+msgstr ""
+"ایک ریلی ہر اس سرور کو دوبارہ نشر کرتا ہے جس نے اسے سبسکرائب کیا ہے — اس کو "
+"پیچھے چھوڑنے کے لیے یہ سب سے سستا ذریعہ ہے کہ اس نوڈ کے عوامی فن پارے ان "
+"سرورز تک پہنچیں جو بصورت دیگر اسے نہیں دیکھیں گے۔ یہ نوڈ کی سطح پر ہے: یہ ہر "
+"فن پارے پر لاگو ہوتا ہے، یہ کسی فنکار کی انتخاب نہیں ہے۔"
 
 #: includes/Admin/Dashboards/RelayManager.php:63
 msgid "No relays configured yet."
@@ -1227,7 +1231,9 @@ msgstr "فعال کریں"
 msgid ""
 "Remove this relay? If it's currently enabled, an Undo{Follow} is sent first "
 "so the relay stops delivering to this node."
-msgstr "کیا آپ اس ریلی کو ہٹانا چاہتے ہیں؟ اگر یہ فی الحال فعال ہے تو پہلے ایک Undo{Follow} بھیجا جاتا ہے تاکہ ریلی اس نوڈ کو مواد فراہم کرنا بند کر دے۔"
+msgstr ""
+"کیا آپ اس ریلی کو ہٹانا چاہتے ہیں؟ اگر یہ فی الحال فعال ہے تو پہلے ایک "
+"Undo{Follow} بھیجا جاتا ہے تاکہ ریلی اس نوڈ کو مواد فراہم کرنا بند کر دے۔"
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
@@ -1292,7 +1298,7 @@ msgstr "پرانی قطار — پیش نظارہ کے لیے حذف کریں ا
 msgid "Attachment viewer"
 msgstr "منسلکہ دیکھنے والا"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2931
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3018
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1493,7 +1499,7 @@ msgstr[0] "%d گذارش"
 msgstr[1] "%d گذارشات"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:3844
+#: includes/Network/ActivityPub.php:4282
 msgid "Approve"
 msgstr "منظور کریں"
 
@@ -3917,7 +3923,7 @@ msgstr ""
 "اپنی بات کہنے دیں۔"
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
-#: includes/Network/ActivityPub.php:371
+#: includes/Network/ActivityPub.php:410
 msgid "Name"
 msgstr "نام"
 
@@ -3935,7 +3941,7 @@ msgstr "بیان"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
-#: includes/Network/ActivityPub.php:3100
+#: includes/Network/ActivityPub.php:3340
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s %2$d حروف یا اس سے کم ہونا چاہیے۔"
@@ -4032,8 +4038,8 @@ msgstr "شکریہ، %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:3745 includes/Network/ActivityPub.php:3752
-#: includes/Network/ActivityPub.php:3759 includes/Network/ActivityPub.php:3867
+#: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
+#: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "لنک میں خرابی"
@@ -4082,7 +4088,9 @@ msgstr "ہم نے %s کے لیے آپ کی درخواست موصول کر لی �
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Publishing/Notification.php:289
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3859
+#: includes/Network/ActivityPub.php:3978
+#: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
 #: includes/Publishing/Notification.php:666
@@ -4596,7 +4604,7 @@ msgstr ""
 "اسپام، دھوکہ دہی، یا غیر مطلوب تجارتی اشتہارات جو فنکار سے اس کے کام کے بارے "
 "میں حقیقی طور پر رابطہ کرنے سے غیر متعلق ہوں"
 
-#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3306
+#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3549
 msgid "Flagged by automatic content review."
 msgstr "خودکار مواد کے جائزے کے ذریعے نشان زد کیا گیا۔"
 
@@ -6151,16 +6159,16 @@ msgstr "Webhook درخواست کا وقت موجود نہیں، غلط شکل �
 msgid "This webhook request has already been processed."
 msgstr "یہ webhook درخواست پہلے ہی پراسیس کی جا چکی ہے۔"
 
-#: includes/Network/ActivityPub.php:383 includes/Network/ActivityPub.php:2911
+#: includes/Network/ActivityPub.php:422 includes/Network/ActivityPub.php:2998
 msgid "Reply"
 msgstr "جواب دیں"
 
-#: includes/Network/ActivityPub.php:558
+#: includes/Network/ActivityPub.php:597
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:998 includes/Network/ActivityPub.php:1015
+#: includes/Network/ActivityPub.php:1037 includes/Network/ActivityPub.php:1054
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6168,183 +6176,204 @@ msgstr[0] "♥ %d پسند"
 msgstr[1] "♥ %d پسند"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1000
+#: includes/Network/ActivityPub.php:1039
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d پسند"
 
-#: includes/Network/ActivityPub.php:1001
+#: includes/Network/ActivityPub.php:1040
 msgid "Could not update like."
 msgstr "پسند کو اپ ڈیٹ نہیں کر سکا۔"
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1025
+#: includes/Network/ActivityPub.php:1064
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d بوسٹ"
 msgstr[1] "⟲ %d بوسٹ"
 
-#: includes/Network/ActivityPub.php:1905
+#: includes/Network/ActivityPub.php:1992
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2070
+#: includes/Network/ActivityPub.php:2157
 #, php-format
 msgid "Also available in: %s"
 msgstr "یہ بھی دستیاب ہے: %s"
 
-#: includes/Network/ActivityPub.php:2468
+#: includes/Network/ActivityPub.php:2555
 msgid "No such artwork."
 msgstr "ایسی کوئی آرٹ ورک نہیں۔"
 
-#: includes/Network/ActivityPub.php:2869
+#: includes/Network/ActivityPub.php:2956
 msgid "0 replies"
 msgstr "0 جوابات"
 
-#: includes/Network/ActivityPub.php:2890
+#: includes/Network/ActivityPub.php:2977
 msgid "Loading replies…"
 msgstr "جواب لوڈ ہو رہے ہیں…"
 
-#: includes/Network/ActivityPub.php:2891
+#: includes/Network/ActivityPub.php:2978
 msgid "Could not load replies."
 msgstr "جواب لوڈ نہیں کیے جا سکے۔"
 
-#: includes/Network/ActivityPub.php:2893 includes/Network/ActivityPub.php:3169
+#: includes/Network/ActivityPub.php:2980 includes/Network/ActivityPub.php:3409
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "شکریہ — آپ کا جواب جمع کیا گیا ہے اور منظوری کا منتظر ہے۔"
 
-#: includes/Network/ActivityPub.php:2894
+#: includes/Network/ActivityPub.php:2981
 msgid "Could not send your reply. Please try again."
 msgstr "آپ کا جواب بھیجنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
 
-#: includes/Network/ActivityPub.php:2895 includes/Network/ActivityPub.php:2961
+#: includes/Network/ActivityPub.php:2982 includes/Network/ActivityPub.php:3048
 msgid "Name (optional)"
 msgstr "نام (اختیاری)"
 
-#: includes/Network/ActivityPub.php:2896 includes/Network/ActivityPub.php:2962
+#: includes/Network/ActivityPub.php:2983 includes/Network/ActivityPub.php:3049
 msgid "Your email"
 msgstr "آپ کا ای میل"
 
-#: includes/Network/ActivityPub.php:2897 includes/Network/ActivityPub.php:2959
+#: includes/Network/ActivityPub.php:2984 includes/Network/ActivityPub.php:3046
 msgid "Write a reply…"
 msgstr "ایک جواب لکھیں…"
 
-#: includes/Network/ActivityPub.php:2898 includes/Network/ActivityPub.php:2965
+#: includes/Network/ActivityPub.php:2985 includes/Network/ActivityPub.php:3052
 msgid "Send reply"
 msgstr "جواب بھیجیں"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2908
+#: includes/Network/ActivityPub.php:2995
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d جواب"
 msgstr[1] "%d جواب"
 
-#: includes/Network/ActivityPub.php:3232
+#: includes/Network/ActivityPub.php:3475
 msgid "Replies aren't open on this artwork right now."
 msgstr "فی الحال اس فن پارے پر جوابات کھلے نہیں ہیں۔"
 
-#: includes/Network/ActivityPub.php:3300
+#: includes/Network/ActivityPub.php:3543
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
-msgstr "اسپیم، فراڈ، یا غیر متعلقہ بلااجازت تجارتی اشتہار جو واقعی فنکار کے ساتھ ان کی کام پر بات چیت کرنے سے منسلک نہیں ہے۔"
+msgstr ""
+"اسپیم، فراڈ، یا غیر متعلقہ بلااجازت تجارتی اشتہار جو واقعی فنکار کے ساتھ ان "
+"کی کام پر بات چیت کرنے سے منسلک نہیں ہے۔"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3547
+#: includes/Network/ActivityPub.php:3832
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "\"%s\" پر نیا جواب"
 
-#: includes/Network/ActivityPub.php:3558
+#: includes/Network/ActivityPub.php:3843
 msgid "Someone left a reply on your artwork:"
 msgstr "کسی نے آپ کے فن پارے پر ایک جواب چھوڑا ہے:"
 
-#: includes/Network/ActivityPub.php:3559
+#: includes/Network/ActivityPub.php:3844
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "کسی نے فیڈیورس سے آپ کے فن پارے پر جواب دیا:"
 
-#. translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:3570
-#, php-format
+#: includes/Network/ActivityPub.php:3871
 msgid ""
-"%1$s\n"
-"\n"
-"\"%2$s\"\n"
-"\n"
 "It's being held until you approve or reject it — you can also write your own "
-"reply from the same page:\n"
-"\n"
-"%3$s\n"
-"\n"
-"Don't want reply notifications? Manage that here: %4$s"
-msgstr "%1$s\n\n\"%2$s\"\n\nیہ اس وقت تک روکا گیا ہے جب تک کہ آپ اس کی منظوری یا انکار نہ کریں — آپ اسی صفحے سے اپنا جواب بھی لکھ سکتے ہیں:\n\n%3$s\n\nجواب کی اطلاع نہیں چاہیئے؟ یہاں منظم کریں: %4$s"
+"reply from the same page."
+msgstr "یہ آپ کی منظوری یا مسترد کرنے تک روک رکھا گیا ہے — آپ اسی صفحے سے اپنا جواب بھی لکھ سکتے ہیں۔"
 
-#: includes/Network/ActivityPub.php:3628 includes/Network/ActivityPub.php:3744
-#: includes/Network/ActivityPub.php:3866
-msgid "This link is invalid or has already expired."
-msgstr "یہ لنک درست نہیں ہے یا پہلے ہی ختم ہو چکا ہے۔"
-
-#: includes/Network/ActivityPub.php:3633
-msgid "This link has expired."
-msgstr "یہ لنک ختم ہو چکا ہے۔"
-
-#: includes/Network/ActivityPub.php:3663
-msgid "Fediverse replies"
-msgstr "فیڈیورس جوابات"
-
-#: includes/Network/ActivityPub.php:3664
-msgid "Site replies"
-msgstr "سائٹ کے جوابات"
-
-#: includes/Network/ActivityPub.php:3758
-msgid "This reply no longer exists."
-msgstr "یہ جواب اب موجود نہیں ہے۔"
-
-#: includes/Network/ActivityPub.php:3801
-msgid "Original"
-msgstr "اصلی"
-
-#: includes/Network/ActivityPub.php:3807
-msgid "Translated"
-msgstr "ترجمہ شدہ"
-
-#: includes/Network/ActivityPub.php:3810
-msgid "Translation pending…"
-msgstr "ترجمہ زیر التوا ہے…"
-
-#: includes/Network/ActivityPub.php:3815
-msgid "Also post my reply to the Fediverse."
-msgstr "میرا جواب فیڈیورس پر بھی شائع करें۔"
-
-#: includes/Network/ActivityPub.php:3836 includes/Network/ActivityPub.php:3848
+#: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
+#: includes/Network/ActivityPub.php:4286
 msgid "Review this reply"
 msgstr "اس جواب کا جائزہ لیں"
 
-#: includes/Network/ActivityPub.php:3842
+#. translators: %d: number of days the link stays valid
+#: includes/Network/ActivityPub.php:3883
+#, php-format
+msgid "This link expires in %d day."
+msgid_plural "This link expires in %d days."
+msgstr[0] "یہ لنک %d دن میں ختم ہو جائے گا۔"
+msgstr[1] "یہ لنک %d دن میں ختم ہو جائے گا۔"
+
+#. translators: %s: artwork title.
+#: includes/Network/ActivityPub.php:3968
+#, php-format
+msgid "A reply on \"%s\" arrived in a language we could not identify"
+msgstr "ایک جواب \"%s\" پر آیا ہے، لیکن ہم اس زبان کی شناخت نہیں کر سکے۔"
+
+#: includes/Network/ActivityPub.php:3984
+msgid ""
+"Someone replied to your artwork from the Fediverse, but we weren't able to "
+"identify the language it's written in, so we can't offer a translation or "
+"the usual reply/approval page for it."
+msgstr "کسی نے فیڈوروس سے آپ کے آرٹ ورک پر جواب دیا، لیکن ہم اس زبان کی شناخت نہیں کر سکے جس میں یہ لکھا گیا ہے، اس لیے ہم اس کا ترجمہ یا عام جواب/منظوری کا صفحہ فراہم نہیں کر سکتے۔"
+
+#: includes/Network/ActivityPub.php:3990
+msgid ""
+"This is for your information only — there is nothing to approve or reject "
+"here. If you'd like to act on it, you can do so from your WordPress "
+"dashboard."
+msgstr "یہ صرف آپ کی معلومات کے لیے ہے — یہاں کچھ منظور یا مسترد کرنے کے لیے نہیں ہے۔ اگر آپ اس پر عمل کرنا چاہتے ہیں، تو آپ اپنے ورڈپریس ڈیش بورڈ سے ایسا کر سکتے ہیں۔"
+
+#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
+#: includes/Network/ActivityPub.php:4304
+msgid "This link is invalid or has already expired."
+msgstr "یہ لنک درست نہیں ہے یا پہلے ہی ختم ہو چکا ہے۔"
+
+#: includes/Network/ActivityPub.php:4071
+msgid "This link has expired."
+msgstr "یہ لنک ختم ہو چکا ہے۔"
+
+#: includes/Network/ActivityPub.php:4101
+msgid "Fediverse replies"
+msgstr "فیڈیورس جوابات"
+
+#: includes/Network/ActivityPub.php:4102
+msgid "Site replies"
+msgstr "سائٹ کے جوابات"
+
+#: includes/Network/ActivityPub.php:4196
+msgid "This reply no longer exists."
+msgstr "یہ جواب اب موجود نہیں ہے۔"
+
+#: includes/Network/ActivityPub.php:4239
+msgid "Original"
+msgstr "اصلی"
+
+#: includes/Network/ActivityPub.php:4245
+msgid "Translated"
+msgstr "ترجمہ شدہ"
+
+#: includes/Network/ActivityPub.php:4248
+msgid "Translation pending…"
+msgstr "ترجمہ زیر التوا ہے…"
+
+#: includes/Network/ActivityPub.php:4253
+msgid "Also post my reply to the Fediverse."
+msgstr "میرا جواب فیڈیورس پر بھی شائع करें۔"
+
+#: includes/Network/ActivityPub.php:4280
 msgid "Write your own reply (optional)"
 msgstr "اپنا جواب لکھیں (اختیاری)"
 
-#: includes/Network/ActivityPub.php:3874
+#: includes/Network/ActivityPub.php:4312
 msgid "Reply approved — it now appears on your artwork."
 msgstr "جواب کی منظوری دی گئی — یہ اب آپ کے فن پارے پر ظاہر ہوتا ہے۔"
 
-#: includes/Network/ActivityPub.php:3877
+#: includes/Network/ActivityPub.php:4315
 msgid "Reply rejected — it will not be shown."
 msgstr "جواب مسترد کر دیا گیا — یہ ظاہر نہیں ہوگا۔"
 
-#: includes/Network/ActivityPub.php:3888
+#: includes/Network/ActivityPub.php:4326
 msgid "Your reply has been posted."
 msgstr "آپ کا جواب شائع ہو چکا ہے۔"
 
-#: includes/Network/ActivityPub.php:3891
+#: includes/Network/ActivityPub.php:4329
 msgid "Reply moderated"
 msgstr "جواب معدلت کیا گیا"
 
-#: includes/Network/ActivityPub.php:3917
+#: includes/Network/ActivityPub.php:4355
 msgid "No such reply."
 msgstr "ایسا جواب نہیں ہے۔"
 
@@ -8602,7 +8631,11 @@ msgid ""
 "replies are open. Shows plain, non-interactive \"0 replies\" text when "
 "replies are switched off with none already posted; renders nothing off an "
 "agnosis_artwork post."
-msgstr "ایک فعال پورے ویو پورٹ پوپ اوور کو متحرک کرتا ہے جو اس آرٹ ورک کے منظور شدہ جوابات (فیڈور س اور سائٹ پر آنے والے دونوں) کو جواب فارم کے ساتھ دکھاتا ہے، جب جوابات کھلے ہیں۔ جب جوابات بند ہوں اور کوئی پہلے سے پوسٹ نہ ہوا ہو تو \"0 جوابات\" ٹیکسٹ دکھاتا ہے، اور agnosis_artwork پوسٹ سے کچھ نہیں ظاہر کرتا۔"
+msgstr ""
+"ایک فعال پورے ویو پورٹ پوپ اوور کو متحرک کرتا ہے جو اس آرٹ ورک کے منظور شدہ "
+"جوابات (فیڈور س اور سائٹ پر آنے والے دونوں) کو جواب فارم کے ساتھ دکھاتا ہے، "
+"جب جوابات کھلے ہیں۔ جب جوابات بند ہوں اور کوئی پہلے سے پوسٹ نہ ہوا ہو تو \"0 "
+"جوابات\" ٹیکسٹ دکھاتا ہے، اور agnosis_artwork پوسٹ سے کچھ نہیں ظاہر کرتا۔"
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.58
+Stable tag: 0.9.59
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,13 +91,18 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.59 =
+* Added: Site visitors can now reply directly to an artwork with no fediverse account or login needed; artists can allow or disallow replies per artwork.
+* Added: Artists can boost (re-share) artwork to their own fediverse followers via a link in their artist newsletter.
+* Added: An artist's own replies can now federate outward to the fediverse, reaching the original commenter directly.
+* Added: A new "Fediverse Relays" panel in Settings → Network lets you subscribe this site to relay servers for wider discoverability.
+* Added: Improved compatibility with fediverse servers migrating to the newer RFC 9421 signature standard.
+* Changed: The emailed reply-moderation link now shows everything — original text, translation, approve/reject, your own reply, and the federate option — on one page instead of two separate links.
+* Fixed: The reply form inside the reply popover no longer stretches to the full width of the screen.
+* Fixed: Reply-notification emails now reach the artist translated into their own language, and use the site's branded email template.
+
 = 0.9.58 =
 * Added: Every artwork in your email newsletter now carries a like link — followers (and artists reading their own artist newsletter) can like a piece straight from the email, no login or fediverse account needed.
-
-= 0.9.57 =
-* Fixed: The one-click Approve/Reject link an artist gets emailed for a Fediverse reply could be silently triggered by a corporate mail scanner prefetching the link, approving or discarding the reply before the artist ever saw it. The link now always requires a confirmation click, and expires after a configurable number of days like every other emailed action link.
-* Added: Artists can now opt out of search-engine and Fediverse discovery indexing (FEP-5feb) for their whole profile and body of work — on by default, changeable with no login needed via the existing preferences email link or a checkbox on the artwork/biography approval pages.
-* Added: The like count under an artwork is now a real toggle — visitors and artists can click the heart to like/unlike directly on-site, no fediverse account needed. Boosts are unchanged.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

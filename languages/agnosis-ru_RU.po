@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-27T22:38+00:00\n"
+"POT-Creation-Date: 2026-07-28T15:04+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:59+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Russian\n"
@@ -527,7 +527,7 @@ msgstr "Принять"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:3845
+#: includes/Network/ActivityPub.php:4283
 msgid "Reject"
 msgstr "Отклонить"
 
@@ -1129,7 +1129,7 @@ msgstr "%1$d допущено (%2$d отказались)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:2892
+#: includes/Network/ActivityPub.php:2979
 msgid "Sending…"
 msgstr "Отправка…"
 
@@ -1211,7 +1211,12 @@ msgid ""
 "subscribed to it — following one is the cheapest way for this node's public "
 "artwork to reach servers that would otherwise never see it. This is node-"
 "level: it applies to every artwork, not a per-artist choice."
-msgstr "Ретранслятор пересылает всё, что получает, на каждый другой сервер, подписанный на него — следование одному из них является самым дешевым способом сделать так, чтобы публичное искусство этого узла достигло серверов, которые иначе никогда его не увидят. Это уровень узла: это относится ко всем произведениям, а не является выбором отдельного художника."
+msgstr ""
+"Ретранслятор пересылает всё, что получает, на каждый другой сервер, "
+"подписанный на него — следование одному из них является самым дешевым "
+"способом сделать так, чтобы публичное искусство этого узла достигло "
+"серверов, которые иначе никогда его не увидят. Это уровень узла: это "
+"относится ко всем произведениям, а не является выбором отдельного художника."
 
 #: includes/Admin/Dashboards/RelayManager.php:63
 msgid "No relays configured yet."
@@ -1244,7 +1249,9 @@ msgstr "Включить"
 msgid ""
 "Remove this relay? If it's currently enabled, an Undo{Follow} is sent first "
 "so the relay stops delivering to this node."
-msgstr "Удалить этот ретранслятор? Если он в данный момент включен, сначала будет отправлено Undo{Follow}, чтобы ретранслятор перестал доставлять на этот узел."
+msgstr ""
+"Удалить этот ретранслятор? Если он в данный момент включен, сначала будет "
+"отправлено Undo{Follow}, чтобы ретранслятор перестал доставлять на этот узел."
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
@@ -1310,7 +1317,7 @@ msgstr ""
 msgid "Attachment viewer"
 msgstr "Просмотр вложения"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2931
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3018
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1516,7 +1523,7 @@ msgstr[1] "%d заявка"
 msgstr[2] "%d заявки"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:3844
+#: includes/Network/ActivityPub.php:4282
 msgid "Approve"
 msgstr "Одобрить"
 
@@ -4009,7 +4016,7 @@ msgstr ""
 "изображение говорит само за себя."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
-#: includes/Network/ActivityPub.php:371
+#: includes/Network/ActivityPub.php:410
 msgid "Name"
 msgstr "Имя"
 
@@ -4027,7 +4034,7 @@ msgstr "Заявление"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
-#: includes/Network/ActivityPub.php:3100
+#: includes/Network/ActivityPub.php:3340
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s должно быть не более %2$d символов."
@@ -4123,8 +4130,8 @@ msgstr "Спасибо, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:3745 includes/Network/ActivityPub.php:3752
-#: includes/Network/ActivityPub.php:3759 includes/Network/ActivityPub.php:3867
+#: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
+#: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Ошибка ссылки"
@@ -4173,7 +4180,9 @@ msgstr "Мы получили вашу заявку в %s"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Publishing/Notification.php:289
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3859
+#: includes/Network/ActivityPub.php:3978
+#: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
 #: includes/Publishing/Notification.php:666
@@ -4690,7 +4699,7 @@ msgstr ""
 "Спам, мошенничество или нежелательная коммерческая реклама, не связанная с "
 "реальным обращением к художнику по поводу его работ"
 
-#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3306
+#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3549
 msgid "Flagged by automatic content review."
 msgstr "Помечено автоматической проверкой содержимого."
 
@@ -6272,16 +6281,16 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Этот запрос вебхука уже был обработан."
 
-#: includes/Network/ActivityPub.php:383 includes/Network/ActivityPub.php:2911
+#: includes/Network/ActivityPub.php:422 includes/Network/ActivityPub.php:2998
 msgid "Reply"
 msgstr "Ответить"
 
-#: includes/Network/ActivityPub.php:558
+#: includes/Network/ActivityPub.php:597
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:998 includes/Network/ActivityPub.php:1015
+#: includes/Network/ActivityPub.php:1037 includes/Network/ActivityPub.php:1054
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6290,17 +6299,17 @@ msgstr[1] "♥ %d лайк"
 msgstr[2] "♥ %d лайк"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1000
+#: includes/Network/ActivityPub.php:1039
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d лайков"
 
-#: includes/Network/ActivityPub.php:1001
+#: includes/Network/ActivityPub.php:1040
 msgid "Could not update like."
 msgstr "Не удалось обновить лайк."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1025
+#: includes/Network/ActivityPub.php:1064
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
@@ -6308,58 +6317,58 @@ msgstr[0] "⟲ %d буст"
 msgstr[1] "⟲ %d буст"
 msgstr[2] "⟲ %d буст"
 
-#: includes/Network/ActivityPub.php:1905
+#: includes/Network/ActivityPub.php:1992
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2070
+#: includes/Network/ActivityPub.php:2157
 #, php-format
 msgid "Also available in: %s"
 msgstr "Также доступно на: %s"
 
-#: includes/Network/ActivityPub.php:2468
+#: includes/Network/ActivityPub.php:2555
 msgid "No such artwork."
 msgstr "Такое произведение не найдено."
 
-#: includes/Network/ActivityPub.php:2869
+#: includes/Network/ActivityPub.php:2956
 msgid "0 replies"
 msgstr "0 ответов"
 
-#: includes/Network/ActivityPub.php:2890
+#: includes/Network/ActivityPub.php:2977
 msgid "Loading replies…"
 msgstr "Загрузка ответов..."
 
-#: includes/Network/ActivityPub.php:2891
+#: includes/Network/ActivityPub.php:2978
 msgid "Could not load replies."
 msgstr "Не удалось загрузить ответы."
 
-#: includes/Network/ActivityPub.php:2893 includes/Network/ActivityPub.php:3169
+#: includes/Network/ActivityPub.php:2980 includes/Network/ActivityPub.php:3409
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Спасибо — ваш ответ был отправлен и ожидает одобрения."
 
-#: includes/Network/ActivityPub.php:2894
+#: includes/Network/ActivityPub.php:2981
 msgid "Could not send your reply. Please try again."
 msgstr "Не удалось отправить ваш ответ. Пожалуйста, попробуйте снова."
 
-#: includes/Network/ActivityPub.php:2895 includes/Network/ActivityPub.php:2961
+#: includes/Network/ActivityPub.php:2982 includes/Network/ActivityPub.php:3048
 msgid "Name (optional)"
 msgstr "Имя (необязательно)"
 
-#: includes/Network/ActivityPub.php:2896 includes/Network/ActivityPub.php:2962
+#: includes/Network/ActivityPub.php:2983 includes/Network/ActivityPub.php:3049
 msgid "Your email"
 msgstr "Ваш email"
 
-#: includes/Network/ActivityPub.php:2897 includes/Network/ActivityPub.php:2959
+#: includes/Network/ActivityPub.php:2984 includes/Network/ActivityPub.php:3046
 msgid "Write a reply…"
 msgstr "Написать ответ…"
 
-#: includes/Network/ActivityPub.php:2898 includes/Network/ActivityPub.php:2965
+#: includes/Network/ActivityPub.php:2985 includes/Network/ActivityPub.php:3052
 msgid "Send reply"
 msgstr "Отправить ответ"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2908
+#: includes/Network/ActivityPub.php:2995
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
@@ -6367,109 +6376,131 @@ msgstr[0] "%d ответ"
 msgstr[1] "%d ответа"
 msgstr[2] "%d ответов"
 
-#: includes/Network/ActivityPub.php:3232
+#: includes/Network/ActivityPub.php:3475
 msgid "Replies aren't open on this artwork right now."
 msgstr "Ответы на это произведение сейчас недоступны."
 
-#: includes/Network/ActivityPub.php:3300
+#: includes/Network/ActivityPub.php:3543
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
-msgstr "Спам, мошенничество или нежелательная коммерческая реклама, не связанная с искренним взаимодействием с художником по поводу его работы"
+msgstr ""
+"Спам, мошенничество или нежелательная коммерческая реклама, не связанная с "
+"искренним взаимодействием с художником по поводу его работы"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3547
+#: includes/Network/ActivityPub.php:3832
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Новый ответ на \"%s\""
 
-#: includes/Network/ActivityPub.php:3558
+#: includes/Network/ActivityPub.php:3843
 msgid "Someone left a reply on your artwork:"
 msgstr "Кто-то оставил ответ на ваше произведение:"
 
-#: includes/Network/ActivityPub.php:3559
+#: includes/Network/ActivityPub.php:3844
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Кто-то ответил на ваше произведение из Федиверса:"
 
-#. translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:3570
-#, php-format
+#: includes/Network/ActivityPub.php:3871
 msgid ""
-"%1$s\n"
-"\n"
-"\"%2$s\"\n"
-"\n"
 "It's being held until you approve or reject it — you can also write your own "
-"reply from the same page:\n"
-"\n"
-"%3$s\n"
-"\n"
-"Don't want reply notifications? Manage that here: %4$s"
-msgstr "%1$s\n\n\"%2$s\"\n\nОн будет удержан, пока вы не одобрите или не отклоните его — вы также можете написать свой собственный ответ с той же страницы:\n\n%3$s\n\nНе хотите уведомлений о ответах? Управляйте ими здесь: %4$s"
+"reply from the same page."
+msgstr "Он удерживается до тех пор, пока вы не одобрите или не отклоните его — вы также можете написать свой собственный ответ с той же страницы."
 
-#: includes/Network/ActivityPub.php:3628 includes/Network/ActivityPub.php:3744
-#: includes/Network/ActivityPub.php:3866
-msgid "This link is invalid or has already expired."
-msgstr "Эта ссылка недействительна или уже истекла."
-
-#: includes/Network/ActivityPub.php:3633
-msgid "This link has expired."
-msgstr "Эта ссылка истекла."
-
-#: includes/Network/ActivityPub.php:3663
-msgid "Fediverse replies"
-msgstr "Ответы из Федиверса"
-
-#: includes/Network/ActivityPub.php:3664
-msgid "Site replies"
-msgstr "Ответы сайта"
-
-#: includes/Network/ActivityPub.php:3758
-msgid "This reply no longer exists."
-msgstr "Этот ответ больше не существует."
-
-#: includes/Network/ActivityPub.php:3801
-msgid "Original"
-msgstr "Оригинал"
-
-#: includes/Network/ActivityPub.php:3807
-msgid "Translated"
-msgstr "Переведено"
-
-#: includes/Network/ActivityPub.php:3810
-msgid "Translation pending…"
-msgstr "Перевод в ожидании…"
-
-#: includes/Network/ActivityPub.php:3815
-msgid "Also post my reply to the Fediverse."
-msgstr "Также опубликовать мой ответ в Федиверсе."
-
-#: includes/Network/ActivityPub.php:3836 includes/Network/ActivityPub.php:3848
+#: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
+#: includes/Network/ActivityPub.php:4286
 msgid "Review this reply"
 msgstr "Просмотреть этот ответ"
 
-#: includes/Network/ActivityPub.php:3842
+#. translators: %d: number of days the link stays valid
+#: includes/Network/ActivityPub.php:3883
+#, php-format
+msgid "This link expires in %d day."
+msgid_plural "This link expires in %d days."
+msgstr[0] "Срок действия этой ссылки истекает через %d день."
+msgstr[1] "Срок действия этой ссылки истекает через %d день."
+msgstr[2] "Срок действия этой ссылки истекает через %d день."
+
+#. translators: %s: artwork title.
+#: includes/Network/ActivityPub.php:3968
+#, php-format
+msgid "A reply on \"%s\" arrived in a language we could not identify"
+msgstr "Ответ на \"%s\" пришёл на языке, который мы не смогли идентифицировать"
+
+#: includes/Network/ActivityPub.php:3984
+msgid ""
+"Someone replied to your artwork from the Fediverse, but we weren't able to "
+"identify the language it's written in, so we can't offer a translation or "
+"the usual reply/approval page for it."
+msgstr "Кто-то ответил на ваше художественное произведение из Федерального универсума, но мы не смогли определить язык, на котором оно написано, поэтому мы не можем предложить перевод или обычную страницу ответа/одобрения для него."
+
+#: includes/Network/ActivityPub.php:3990
+msgid ""
+"This is for your information only — there is nothing to approve or reject "
+"here. If you'd like to act on it, you can do so from your WordPress "
+"dashboard."
+msgstr "Это только для вашей информации — здесь нечего одобрять или отклонять. Если вы хотите с этим что-то сделать, вы можете сделать это из своей панели управления WordPress."
+
+#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
+#: includes/Network/ActivityPub.php:4304
+msgid "This link is invalid or has already expired."
+msgstr "Эта ссылка недействительна или уже истекла."
+
+#: includes/Network/ActivityPub.php:4071
+msgid "This link has expired."
+msgstr "Эта ссылка истекла."
+
+#: includes/Network/ActivityPub.php:4101
+msgid "Fediverse replies"
+msgstr "Ответы из Федиверса"
+
+#: includes/Network/ActivityPub.php:4102
+msgid "Site replies"
+msgstr "Ответы сайта"
+
+#: includes/Network/ActivityPub.php:4196
+msgid "This reply no longer exists."
+msgstr "Этот ответ больше не существует."
+
+#: includes/Network/ActivityPub.php:4239
+msgid "Original"
+msgstr "Оригинал"
+
+#: includes/Network/ActivityPub.php:4245
+msgid "Translated"
+msgstr "Переведено"
+
+#: includes/Network/ActivityPub.php:4248
+msgid "Translation pending…"
+msgstr "Перевод в ожидании…"
+
+#: includes/Network/ActivityPub.php:4253
+msgid "Also post my reply to the Fediverse."
+msgstr "Также опубликовать мой ответ в Федиверсе."
+
+#: includes/Network/ActivityPub.php:4280
 msgid "Write your own reply (optional)"
 msgstr "Написать свой собственный ответ (необязательно)"
 
-#: includes/Network/ActivityPub.php:3874
+#: includes/Network/ActivityPub.php:4312
 msgid "Reply approved — it now appears on your artwork."
 msgstr ""
 "Ответ одобрен — он теперь отображается на вашем произведении искусства."
 
-#: includes/Network/ActivityPub.php:3877
+#: includes/Network/ActivityPub.php:4315
 msgid "Reply rejected — it will not be shown."
 msgstr "Ответ отклонен — он не будет показан."
 
-#: includes/Network/ActivityPub.php:3888
+#: includes/Network/ActivityPub.php:4326
 msgid "Your reply has been posted."
 msgstr "Ваш ответ был опубликован."
 
-#: includes/Network/ActivityPub.php:3891
+#: includes/Network/ActivityPub.php:4329
 msgid "Reply moderated"
 msgstr "Ответ модерации"
 
-#: includes/Network/ActivityPub.php:3917
+#: includes/Network/ActivityPub.php:4355
 msgid "No such reply."
 msgstr "Нет такого ответа."
 
@@ -6765,7 +6796,8 @@ msgstr "Понравилось"
 
 #: includes/Newsletter/InteractionGateway.php:276
 msgid "Thanks for sharing this artist's work with your own followers."
-msgstr "Спасибо за то, что поделились работой этого художника со своими подписчиками."
+msgstr ""
+"Спасибо за то, что поделились работой этого художника со своими подписчиками."
 
 #: includes/Newsletter/InteractionGateway.php:277
 msgid "Thanks for supporting this artist."
@@ -6786,7 +6818,9 @@ msgstr "Нравится \"%s\"?"
 #: includes/Newsletter/InteractionGateway.php:307
 msgid ""
 "This will share the artwork with your own followers, under your own name."
-msgstr "Это поделится произведением с вашими собственными подписчиками под вашим именем."
+msgstr ""
+"Это поделится произведением с вашими собственными подписчиками под вашим "
+"именем."
 
 #: includes/Newsletter/InteractionGateway.php:308
 msgid "Your like will be recorded once you confirm below."
@@ -8758,7 +8792,12 @@ msgid ""
 "replies are open. Shows plain, non-interactive \"0 replies\" text when "
 "replies are switched off with none already posted; renders nothing off an "
 "agnosis_artwork post."
-msgstr "Триггер, который открывает всплывающее окно на весь экран со списком одобренных ответов на это произведение (как от Федиверса, так и от посетителей сайта) рядом с формой ответа, когда ответы открыты. Показывает простой, не интерактивный текст \"0 ответов\", когда ответы отключены и никаких уже не размещено; ничего не отображает для поста agnosis_artwork."
+msgstr ""
+"Триггер, который открывает всплывающее окно на весь экран со списком "
+"одобренных ответов на это произведение (как от Федиверса, так и от "
+"посетителей сайта) рядом с формой ответа, когда ответы открыты. Показывает "
+"простой, не интерактивный текст \"0 ответов\", когда ответы отключены и "
+"никаких уже не размещено; ничего не отображает для поста agnosis_artwork."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-27T22:38+00:00\n"
+"POT-Creation-Date: 2026-07-28T15:04+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:55+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Dutch\n"
@@ -516,7 +516,7 @@ msgstr "Toelaten"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:3845
+#: includes/Network/ActivityPub.php:4283
 msgid "Reject"
 msgstr "Afwijzen"
 
@@ -1120,7 +1120,7 @@ msgstr "%1$d toegelaten (%2$d afgemeld)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:2892
+#: includes/Network/ActivityPub.php:2979
 msgid "Sending…"
 msgstr "Bezig met verzenden…"
 
@@ -1201,7 +1201,12 @@ msgid ""
 "subscribed to it — following one is the cheapest way for this node's public "
 "artwork to reach servers that would otherwise never see it. This is node-"
 "level: it applies to every artwork, not a per-artist choice."
-msgstr "Een relay zendt alles wat het ontvangt opnieuw uit naar elke andere server die erop geabonneerd is - het volgen van een relay is de goedkoopste manier voor de publieke kunstwerken van deze node om servers te bereiken die ze anders nooit zouden zien. Dit is op node-niveau: het geldt voor elk artwork, niet als keuze per artist."
+msgstr ""
+"Een relay zendt alles wat het ontvangt opnieuw uit naar elke andere server "
+"die erop geabonneerd is - het volgen van een relay is de goedkoopste manier "
+"voor de publieke kunstwerken van deze node om servers te bereiken die ze "
+"anders nooit zouden zien. Dit is op node-niveau: het geldt voor elk artwork, "
+"niet als keuze per artist."
 
 #: includes/Admin/Dashboards/RelayManager.php:63
 msgid "No relays configured yet."
@@ -1234,7 +1239,9 @@ msgstr "Inschakelen"
 msgid ""
 "Remove this relay? If it's currently enabled, an Undo{Follow} is sent first "
 "so the relay stops delivering to this node."
-msgstr "Deze relay verwijderen? Als deze momenteel is ingeschakeld, wordt eerst een Undo{Follow} verzonden zodat de relay stopt met leveren aan deze node."
+msgstr ""
+"Deze relay verwijderen? Als deze momenteel is ingeschakeld, wordt eerst een "
+"Undo{Follow} verzonden zodat de relay stopt met leveren aan deze node."
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
@@ -1299,7 +1306,7 @@ msgstr "Oude rij — verwijderen en opnieuw pollen om een preview te zien"
 msgid "Attachment viewer"
 msgstr "Bijlageviewer"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:2931
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3018
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1502,7 +1509,7 @@ msgstr[0] "%d inzending"
 msgstr[1] "%d inzendingen"
 
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:3844
+#: includes/Network/ActivityPub.php:4282
 msgid "Approve"
 msgstr "Goedkeuren"
 
@@ -3989,7 +3996,7 @@ msgstr ""
 "inzending — laat het beeld volledig voor zichzelf spreken."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:145
-#: includes/Network/ActivityPub.php:371
+#: includes/Network/ActivityPub.php:410
 msgid "Name"
 msgstr "Naam"
 
@@ -4007,7 +4014,7 @@ msgstr "Statement"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:184
-#: includes/Network/ActivityPub.php:3100
+#: includes/Network/ActivityPub.php:3340
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s mag %2$d tekens of minder zijn."
@@ -4103,8 +4110,8 @@ msgstr "Dank je, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169
 #: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:3745 includes/Network/ActivityPub.php:3752
-#: includes/Network/ActivityPub.php:3759 includes/Network/ActivityPub.php:3867
+#: includes/Network/ActivityPub.php:4183 includes/Network/ActivityPub.php:4190
+#: includes/Network/ActivityPub.php:4197 includes/Network/ActivityPub.php:4305
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Linkfout"
@@ -4153,7 +4160,9 @@ msgstr "We hebben je aanvraag voor %s ontvangen"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Publishing/Notification.php:289
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3859
+#: includes/Network/ActivityPub.php:3978
+#: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
 #: includes/Publishing/Notification.php:666
@@ -4670,7 +4679,7 @@ msgstr ""
 "Spam, oplichting of ongevraagde commerciële reclame die niets te maken heeft "
 "met de kunstenaar echt contacteren over diens werk"
 
-#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3306
+#: includes/Artist/ContactForm.php:418 includes/Network/ActivityPub.php:3549
 msgid "Flagged by automatic content review."
 msgstr "Gemarkeerd door automatische inhoudscontrole."
 
@@ -6243,16 +6252,16 @@ msgstr "Tijdstempel van webhookverzoek ontbreekt, is ongeldig of te oud."
 msgid "This webhook request has already been processed."
 msgstr "Dit webhookverzoek is al verwerkt."
 
-#: includes/Network/ActivityPub.php:383 includes/Network/ActivityPub.php:2911
+#: includes/Network/ActivityPub.php:422 includes/Network/ActivityPub.php:2998
 msgid "Reply"
 msgstr "Antwoord"
 
-#: includes/Network/ActivityPub.php:558
+#: includes/Network/ActivityPub.php:597
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:998 includes/Network/ActivityPub.php:1015
+#: includes/Network/ActivityPub.php:1037 includes/Network/ActivityPub.php:1054
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6260,183 +6269,204 @@ msgstr[0] "♥ %d vind-ik-leuks"
 msgstr[1] "♥ %d vind-ik-leuks"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1000
+#: includes/Network/ActivityPub.php:1039
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d vind-ik-leuks"
 
-#: includes/Network/ActivityPub.php:1001
+#: includes/Network/ActivityPub.php:1040
 msgid "Could not update like."
 msgstr "Kon de vind-ik-leuk niet bijwerken."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1025
+#: includes/Network/ActivityPub.php:1064
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d boosts"
 msgstr[1] "⟲ %d boosts"
 
-#: includes/Network/ActivityPub.php:1905
+#: includes/Network/ActivityPub.php:1992
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2070
+#: includes/Network/ActivityPub.php:2157
 #, php-format
 msgid "Also available in: %s"
 msgstr "Ook beschikbaar in: %s"
 
-#: includes/Network/ActivityPub.php:2468
+#: includes/Network/ActivityPub.php:2555
 msgid "No such artwork."
 msgstr "Geen zulk kunstwerk."
 
-#: includes/Network/ActivityPub.php:2869
+#: includes/Network/ActivityPub.php:2956
 msgid "0 replies"
 msgstr "0 reacties"
 
-#: includes/Network/ActivityPub.php:2890
+#: includes/Network/ActivityPub.php:2977
 msgid "Loading replies…"
 msgstr "Antwoorden laden…"
 
-#: includes/Network/ActivityPub.php:2891
+#: includes/Network/ActivityPub.php:2978
 msgid "Could not load replies."
 msgstr "Kon antwoorden niet laden."
 
-#: includes/Network/ActivityPub.php:2893 includes/Network/ActivityPub.php:3169
+#: includes/Network/ActivityPub.php:2980 includes/Network/ActivityPub.php:3409
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Bedankt - je antwoord is ingediend en wacht op goedkeuring."
 
-#: includes/Network/ActivityPub.php:2894
+#: includes/Network/ActivityPub.php:2981
 msgid "Could not send your reply. Please try again."
 msgstr "Je antwoord kon niet verzonden worden. Probeer het opnieuw."
 
-#: includes/Network/ActivityPub.php:2895 includes/Network/ActivityPub.php:2961
+#: includes/Network/ActivityPub.php:2982 includes/Network/ActivityPub.php:3048
 msgid "Name (optional)"
 msgstr "Naam (optioneel)"
 
-#: includes/Network/ActivityPub.php:2896 includes/Network/ActivityPub.php:2962
+#: includes/Network/ActivityPub.php:2983 includes/Network/ActivityPub.php:3049
 msgid "Your email"
 msgstr "Jouw e-mail"
 
-#: includes/Network/ActivityPub.php:2897 includes/Network/ActivityPub.php:2959
+#: includes/Network/ActivityPub.php:2984 includes/Network/ActivityPub.php:3046
 msgid "Write a reply…"
 msgstr "Schrijf een antwoord…"
 
-#: includes/Network/ActivityPub.php:2898 includes/Network/ActivityPub.php:2965
+#: includes/Network/ActivityPub.php:2985 includes/Network/ActivityPub.php:3052
 msgid "Send reply"
 msgstr "Antwoord verzenden"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:2908
+#: includes/Network/ActivityPub.php:2995
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d antwoord"
 msgstr[1] "%d antwoorden"
 
-#: includes/Network/ActivityPub.php:3232
+#: includes/Network/ActivityPub.php:3475
 msgid "Replies aren't open on this artwork right now."
 msgstr "Antwoorden zijn momenteel niet geopend op dit artwork."
 
-#: includes/Network/ActivityPub.php:3300
+#: includes/Network/ActivityPub.php:3543
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
-msgstr "Spam, scams of ongevraagde commerciële advertenties die niet te maken hebben met oprechte interactie met de artist over hun werk"
+msgstr ""
+"Spam, scams of ongevraagde commerciële advertenties die niet te maken hebben "
+"met oprechte interactie met de artist over hun werk"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3547
+#: includes/Network/ActivityPub.php:3832
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Nieuw antwoord op \"%s\""
 
-#: includes/Network/ActivityPub.php:3558
+#: includes/Network/ActivityPub.php:3843
 msgid "Someone left a reply on your artwork:"
 msgstr "Iemand heeft een antwoord achtergelaten op jouw artwork:"
 
-#: includes/Network/ActivityPub.php:3559
+#: includes/Network/ActivityPub.php:3844
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Iemand heeft gereageerd op jouw artwork vanuit de Fediverse:"
 
-#. translators: 1: intro line (varies by reply source), 2: reply excerpt, 3: gateway link, 4: notification-preferences link.
-#: includes/Network/ActivityPub.php:3570
-#, php-format
+#: includes/Network/ActivityPub.php:3871
 msgid ""
-"%1$s\n"
-"\n"
-"\"%2$s\"\n"
-"\n"
 "It's being held until you approve or reject it — you can also write your own "
-"reply from the same page:\n"
-"\n"
-"%3$s\n"
-"\n"
-"Don't want reply notifications? Manage that here: %4$s"
-msgstr "%1$s\n\n\"%2$s\"\n\nHet wordt vastgehouden totdat je het goedkeurt of afwijst - je kunt ook je eigen antwoord schrijven vanaf dezelfde pagina:\n\n%3$s\n\nWil je geen antwoordmeldingen? Beheer dat hier: %4$s"
+"reply from the same page."
+msgstr "Het wordt vastgehouden tot je het goedkeurt of afwijst — je kunt ook je eigen reactie schrijven vanaf dezelfde pagina."
 
-#: includes/Network/ActivityPub.php:3628 includes/Network/ActivityPub.php:3744
-#: includes/Network/ActivityPub.php:3866
-msgid "This link is invalid or has already expired."
-msgstr "Deze link is ongeldig of is al verlopen."
-
-#: includes/Network/ActivityPub.php:3633
-msgid "This link has expired."
-msgstr "Deze link is verlopen."
-
-#: includes/Network/ActivityPub.php:3663
-msgid "Fediverse replies"
-msgstr "Fediverse antwoorden"
-
-#: includes/Network/ActivityPub.php:3664
-msgid "Site replies"
-msgstr "Site-antwoorden"
-
-#: includes/Network/ActivityPub.php:3758
-msgid "This reply no longer exists."
-msgstr "Dit antwoord bestaat niet meer."
-
-#: includes/Network/ActivityPub.php:3801
-msgid "Original"
-msgstr "Origineel"
-
-#: includes/Network/ActivityPub.php:3807
-msgid "Translated"
-msgstr "Vertaald"
-
-#: includes/Network/ActivityPub.php:3810
-msgid "Translation pending…"
-msgstr "Vertaling in behandeling…"
-
-#: includes/Network/ActivityPub.php:3815
-msgid "Also post my reply to the Fediverse."
-msgstr "Plaats ook mijn antwoord in de Fediverse."
-
-#: includes/Network/ActivityPub.php:3836 includes/Network/ActivityPub.php:3848
+#: includes/Network/ActivityPub.php:3875 includes/Network/ActivityPub.php:4274
+#: includes/Network/ActivityPub.php:4286
 msgid "Review this reply"
 msgstr "Controleer dit antwoord"
 
-#: includes/Network/ActivityPub.php:3842
+#. translators: %d: number of days the link stays valid
+#: includes/Network/ActivityPub.php:3883
+#, php-format
+msgid "This link expires in %d day."
+msgid_plural "This link expires in %d days."
+msgstr[0] "Deze link verloopt over %d dag."
+msgstr[1] "Deze link verloopt over %d dagen."
+
+#. translators: %s: artwork title.
+#: includes/Network/ActivityPub.php:3968
+#, php-format
+msgid "A reply on \"%s\" arrived in a language we could not identify"
+msgstr "Een reactie op \"%s\" is binnengekomen in een taal die we niet konden identificeren"
+
+#: includes/Network/ActivityPub.php:3984
+msgid ""
+"Someone replied to your artwork from the Fediverse, but we weren't able to "
+"identify the language it's written in, so we can't offer a translation or "
+"the usual reply/approval page for it."
+msgstr "Iemand heeft gereageerd op jouw artwork vanuit de Fediverse, maar we konden de taal waarin het is geschreven niet identificeren, dus kunnen we geen vertaling of de gebruikelijke goedkeuringspagina aanbieden."
+
+#: includes/Network/ActivityPub.php:3990
+msgid ""
+"This is for your information only — there is nothing to approve or reject "
+"here. If you'd like to act on it, you can do so from your WordPress "
+"dashboard."
+msgstr "Dit is alleen ter informatie — er is hier niets goed te keuren of af te wijzen. Als je hierop wilt handelen, kun je dat doen via je WordPress-dashboard."
+
+#: includes/Network/ActivityPub.php:4066 includes/Network/ActivityPub.php:4182
+#: includes/Network/ActivityPub.php:4304
+msgid "This link is invalid or has already expired."
+msgstr "Deze link is ongeldig of is al verlopen."
+
+#: includes/Network/ActivityPub.php:4071
+msgid "This link has expired."
+msgstr "Deze link is verlopen."
+
+#: includes/Network/ActivityPub.php:4101
+msgid "Fediverse replies"
+msgstr "Fediverse antwoorden"
+
+#: includes/Network/ActivityPub.php:4102
+msgid "Site replies"
+msgstr "Site-antwoorden"
+
+#: includes/Network/ActivityPub.php:4196
+msgid "This reply no longer exists."
+msgstr "Dit antwoord bestaat niet meer."
+
+#: includes/Network/ActivityPub.php:4239
+msgid "Original"
+msgstr "Origineel"
+
+#: includes/Network/ActivityPub.php:4245
+msgid "Translated"
+msgstr "Vertaald"
+
+#: includes/Network/ActivityPub.php:4248
+msgid "Translation pending…"
+msgstr "Vertaling in behandeling…"
+
+#: includes/Network/ActivityPub.php:4253
+msgid "Also post my reply to the Fediverse."
+msgstr "Plaats ook mijn antwoord in de Fediverse."
+
+#: includes/Network/ActivityPub.php:4280
 msgid "Write your own reply (optional)"
 msgstr "Schrijf je eigen antwoord (optioneel)"
 
-#: includes/Network/ActivityPub.php:3874
+#: includes/Network/ActivityPub.php:4312
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Antwoord goedgekeurd — het verschijnt nu op je artwork."
 
-#: includes/Network/ActivityPub.php:3877
+#: includes/Network/ActivityPub.php:4315
 msgid "Reply rejected — it will not be shown."
 msgstr "Antwoord afgewezen — het zal niet worden getoond."
 
-#: includes/Network/ActivityPub.php:3888
+#: includes/Network/ActivityPub.php:4326
 msgid "Your reply has been posted."
 msgstr "Jouw antwoord is geplaatst."
 
-#: includes/Network/ActivityPub.php:3891
+#: includes/Network/ActivityPub.php:4329
 msgid "Reply moderated"
 msgstr "Antwoord gemodereerd"
 
-#: includes/Network/ActivityPub.php:3917
+#: includes/Network/ActivityPub.php:4355
 msgid "No such reply."
 msgstr "Geen dergelijk antwoord."
 
@@ -6722,7 +6752,8 @@ msgstr "Leuk gevonden"
 
 #: includes/Newsletter/InteractionGateway.php:276
 msgid "Thanks for sharing this artist's work with your own followers."
-msgstr "Bedankt voor het delen van het werk van deze artiest met uw eigen volgers."
+msgstr ""
+"Bedankt voor het delen van het werk van deze artiest met uw eigen volgers."
 
 #: includes/Newsletter/InteractionGateway.php:277
 msgid "Thanks for supporting this artist."
@@ -8709,7 +8740,12 @@ msgid ""
 "replies are open. Shows plain, non-interactive \"0 replies\" text when "
 "replies are switched off with none already posted; renders nothing off an "
 "agnosis_artwork post."
-msgstr "Trigger die een popover over het volledige venster opent met de goedgekeurde reacties op deze artwork (zowel van Fediverse als van site bezoekers) naast een reactieformulier, wanneer reacties open zijn. Toont gewone, niet-interactieve tekst \"0 reacties\" wanneer reacties zijn uitgeschakeld zonder dat er al reacties zijn geplaatst; render niets van een agnosis_artwork post."
+msgstr ""
+"Trigger die een popover over het volledige venster opent met de goedgekeurde "
+"reacties op deze artwork (zowel van Fediverse als van site bezoekers) naast "
+"een reactieformulier, wanneer reacties open zijn. Toont gewone, niet-"
+"interactieve tekst \"0 reacties\" wanneer reacties zijn uitgeschakeld zonder "
+"dat er al reacties zijn geplaatst; render niets van een agnosis_artwork post."
 
 #: blocks/reply-overlay/block.json
 msgctxt "block keyword"

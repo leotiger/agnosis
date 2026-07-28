@@ -2675,10 +2675,12 @@ class ActivityPubTest extends \WP_UnitTestCase {
 	/**
 	 * WP0 (agnosis-audit/INTERACTION-SURFACE-ROADMAP.md §8): the reply
 	 * moderation link's expiry is stored as comment meta at email-send time
-	 * (notify_artist_of_reply(), fired from inside handle_create_reply()
-	 * above), following the site's configured `agnosis_review_token_expiry_days`
-	 * option rather than a hardcoded number — same option every other
-	 * stateless emailed action link in the plugin already honours.
+	 * (notify_artist_of_reply(), fired from drain_reply_translation_queue()
+	 * as of the 2026-07-28 fix — see that method's own docblock for why
+	 * notification moved off the synchronous insert path), following the
+	 * site's configured `agnosis_review_token_expiry_days` option rather than
+	 * a hardcoded number — same option every other stateless emailed action
+	 * link in the plugin already honours.
 	 */
 	public function test_inbox_create_reply_stores_a_moderation_link_expiry_honouring_configured_days(): void {
 		update_option( 'agnosis_review_token_expiry_days', 3 );
@@ -2695,9 +2697,13 @@ class ActivityPubTest extends \WP_UnitTestCase {
 		$post_id   = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish', 'post_author' => $author_id ] );
 		$this->mock_actor_profile_fetch( self::REMOTE_ACTOR_URL, 'Remote Fan' );
 
-		( new ActivityPub() )->inbox(
+		$ap = new ActivityPub();
+		$ap->inbox(
 			$this->create_reply_request( self::REMOTE_ACTOR_URL, (string) get_permalink( $post_id ), 'Hello' )
 		);
+		// notify_artist_of_reply() no longer fires at insert time — it fires
+		// once the reply has drained through the translation queue.
+		$ap->drain_reply_translation_queue();
 
 		$comment_id = $this->first_reply_comment_id( $post_id );
 		$expiry     = (int) get_comment_meta( $comment_id, '_agnosis_reply_moderation_expiry', true );
