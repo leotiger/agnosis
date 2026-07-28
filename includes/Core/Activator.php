@@ -1385,6 +1385,97 @@ class Activator {
 		}
 	}
 
+	/**
+	 * Every recurring WP-Cron event that is ONLY ever (re-)scheduled from
+	 * schedule_events() below — i.e. only on plugin activation or the one
+	 * request where `agnosis_db_version` catches up to `AGNOSIS_VERSION` —
+	 * mapped to its interval. Single source of truth for
+	 * ensure_recurring_crons_scheduled()'s continuous self-heal below.
+	 *
+	 * Deliberately excludes `agnosis_poll_inbox`, `agnosis_cleanup_inbox`,
+	 * `agnosis_tag_proposal_ttl_sweep`, `agnosis_medium_proposal_ttl_sweep`,
+	 * and `agnosis_federation_tag_wait_sweep` — those five already self-heal
+	 * on every request via their own class's `init`-hooked scheduling method
+	 * (Email\Inbox::schedule_poll()/schedule_cleanup(),
+	 * Admin\TagProposals::schedule_ttl_sweep(),
+	 * Admin\MediumProposals::schedule_ttl_sweep(),
+	 * Network\FederationSettlement::schedule_fallback_sweep()), so listing
+	 * them here too would just be redundant, not more correct.
+	 *
+	 * Found 2026-07-28: on a live, up-to-date, already-tested install,
+	 * `wp cron event list` showed every hook below MISSING — while every
+	 * hook covered by one of the five self-healing methods above was still
+	 * present. Root cause: `wp_schedule_event()` calls guarded only by
+	 * `schedule_events()` fire exactly once, at the moment a version bump
+	 * makes `maybe_upgrade()` run — never again afterward on that same
+	 * version. If a host's cron-table cleanup, a caching/optimisation
+	 * plugin, a migration, or a stray `wp cron event delete` ever clears one
+	 * of these events, nothing brings it back until the NEXT version bump —
+	 * exactly the same failure mode `ensure_newsletter_cron_scheduled()` was
+	 * already built to fix for the newsletter pair (2026-07-06 incident),
+	 * just never generalised to the other queue-drain crons added since.
+	 * `ensure_recurring_crons_scheduled()` closes that gap for all of them
+	 * at once, and is hooked unconditionally to `plugins_loaded` in
+	 * agnosis.php — no version bump, no admin visiting a specific dashboard
+	 * page, and no manual `wp cron event schedule` required; the very next
+	 * request after this fix ships re-registers whatever is missing.
+	 */
+	private const RECURRING_CRON_SCHEDULE = [
+		'agnosis_check_admissions'              => 'daily',
+		'agnosis_check_bans'                    => 'daily',
+		'agnosis_check_removal_votes'           => 'daily',
+		'agnosis_check_cap_votes'               => 'daily',
+		'agnosis_vote_digest'                   => 'daily',
+		'agnosis_rotate_like_salt'              => 'daily',
+		'agnosis_prepare_newsletters'           => 'daily',
+		'agnosis_send_newsletter_queue'         => 'every_five_minutes',
+		'agnosis_ap_retry_deliveries'           => 'every_five_minutes',
+		'agnosis_drain_translation_queue'       => 'every_five_minutes',
+		'agnosis_drain_rename_queue'            => 'every_five_minutes',
+		'agnosis_drain_reply_translation_queue' => 'every_five_minutes',
+		'agnosis_drain_contact_reply_queue'     => 'every_five_minutes',
+	];
+
+	/**
+	 * Re-check every hook in RECURRING_CRON_SCHEDULE and re-register any
+	 * that's missing — called unconditionally from agnosis.php on every
+	 * `plugins_loaded`, not just from schedule_events()'s activation/upgrade
+	 * path. See RECURRING_CRON_SCHEDULE's own docblock for the incident this
+	 * fixes. Cheap: each iteration is one `wp_next_scheduled()` array lookup
+	 * against the already-loaded `cron` option; `wp_schedule_event()` only
+	 * runs for whichever (normally zero) hooks are actually missing.
+	 *
+	 * Logged only when something was actually missing — a self-heal
+	 * happening at all is itself worth an admin seeing in Settings → Logs,
+	 * same convention NewsletterDashboard::render() already uses for its own
+	 * narrower newsletter-only version of this check.
+	 *
+	 * @return array<int, string> Hooks that had to be (re)scheduled — empty when everything was already in place.
+	 */
+	public static function ensure_recurring_crons_scheduled(): array {
+		$rescheduled = [];
+
+		foreach ( self::RECURRING_CRON_SCHEDULE as $hook => $recurrence ) {
+			if ( ! wp_next_scheduled( $hook ) ) {
+				wp_schedule_event( time(), $recurrence, $hook );
+				$rescheduled[] = $hook;
+			}
+		}
+
+		if ( ! empty( $rescheduled ) ) {
+			Logger::warning(
+				sprintf(
+					'Recurring-cron self-heal found %d missing event(s), re-registered: %s',
+					count( $rescheduled ),
+					implode( ', ', $rescheduled )
+				),
+				'cron-health'
+			);
+		}
+
+		return $rescheduled;
+	}
+
 	private static function schedule_events(): void {
 		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
 			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_poll_inbox' );

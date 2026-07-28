@@ -49,10 +49,13 @@ if [ ${#PO_FILES[@]} -gt 0 ] && [ -f "${PO_FILES[0]}" ]; then
     # ---- 5. Clear fuzzy matches (policy: never keep a guessed translation
     #         in a .po — msgmerge's fuzzy guesses are frequently wrong, see
     #         AUDIT-0.9.38.md §6b). Blank each fuzzy entry back to a clean
-    #         untranslated string so Loco Translate offers it fresh; the
-    #         .mo/.l10n.php compile step already skips fuzzy entries anyway,
-    #         so nothing user-facing changes — this only stops misleading
-    #         "translated-looking" text from sitting in the .po source. ----
+    #         untranslated string so `composer translate-missing` (the AI
+    #         pipeline, bin/translate-missing.php — NOT Loco Translate, which
+    #         is only ever used as a fallback if the AI step is unavailable)
+    #         picks it up fresh; the .mo/.l10n.php compile step already skips
+    #         fuzzy entries anyway, so nothing user-facing changes — this
+    #         only stops misleading "translated-looking" text from sitting
+    #         in the .po source. ----
     echo "→ Clearing fuzzy matches..."
     TOTAL_CLEARED=0
     CLEAR_COUNT_FILE="$(mktemp)"
@@ -66,7 +69,7 @@ if [ ${#PO_FILES[@]} -gt 0 ] && [ -f "${PO_FILES[0]}" ]; then
         TOTAL_CLEARED=$(( TOTAL_CLEARED + CLEARED ))
     done
     rm -f "${CLEAR_COUNT_FILE}"
-    echo "✓ ${TOTAL_CLEARED} fuzzy entries cleared. Run compile-pos.sh next, then translate freshly in Loco Translate."
+    echo "✓ ${TOTAL_CLEARED} fuzzy entries cleared. Run 'composer translate-missing' next, then 'composer compile-pos'."
 else
     echo "ℹ No .po files found in languages/ — add translations and re-run."
 fi

@@ -552,6 +552,94 @@ class ActivatorTest extends \WP_UnitTestCase {
 	}
 
 	// =========================================================================
+	// ensure_recurring_crons_scheduled() — regression, found 2026-07-28
+	// =========================================================================
+
+	/**
+	 * Regression test: a live, already-up-to-date site was found with
+	 * `agnosis_drain_reply_translation_queue` (and five sibling
+	 * `every_five_minutes`/`daily` queue-drain crons) missing entirely from
+	 * `wp cron event list` — held replies sat forever with no artist
+	 * notification, no error anywhere. Root cause: every hook in
+	 * RECURRING_CRON_SCHEDULE is only ever (re-)registered by
+	 * schedule_events(), reachable exclusively via activate() or
+	 * maybe_upgrade(), both gated on a version bump — the exact same class
+	 * of freeze ensure_newsletter_cron_scheduled() already exists to fix,
+	 * just never generalised past the newsletter pair. This method is
+	 * called unconditionally from an `init` hook in agnosis.php (see that
+	 * file's own comment for why `init`, not `plugins_loaded`), so it's
+	 * exercised on literally every request, not one specific admin screen.
+	 */
+	public function test_ensure_recurring_crons_scheduled_registers_missing_events(): void {
+		foreach ( array_keys( self::recurring_cron_schedule_for_test() ) as $hook ) {
+			wp_clear_scheduled_hook( $hook );
+		}
+		$this->assertFalse( wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ) );
+
+		$rescheduled = Activator::ensure_recurring_crons_scheduled();
+
+		foreach ( array_keys( self::recurring_cron_schedule_for_test() ) as $hook ) {
+			$this->assertContains( $hook, $rescheduled, "Must report that $hook had to be registered." );
+			$this->assertNotFalse( wp_next_scheduled( $hook ), "$hook must actually be scheduled afterward." );
+		}
+	}
+
+	public function test_ensure_recurring_crons_scheduled_is_a_no_op_when_already_scheduled(): void {
+		foreach ( array_keys( self::recurring_cron_schedule_for_test() ) as $hook ) {
+			wp_clear_scheduled_hook( $hook );
+		}
+		Activator::ensure_recurring_crons_scheduled();
+		$first_run_at = wp_next_scheduled( 'agnosis_drain_reply_translation_queue' );
+
+		$rescheduled = Activator::ensure_recurring_crons_scheduled();
+
+		$this->assertSame( [], $rescheduled, 'Must report nothing was missing when every event is already scheduled.' );
+		$this->assertSame(
+			$first_run_at,
+			wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ),
+			'Must not reschedule (and so reset the timer on) an event that already exists.'
+		);
+	}
+
+	public function test_ensure_recurring_crons_scheduled_only_touches_a_single_missing_hook(): void {
+		foreach ( array_keys( self::recurring_cron_schedule_for_test() ) as $hook ) {
+			wp_clear_scheduled_hook( $hook );
+		}
+		Activator::ensure_recurring_crons_scheduled();
+		wp_clear_scheduled_hook( 'agnosis_drain_contact_reply_queue' );
+
+		$rescheduled = Activator::ensure_recurring_crons_scheduled();
+
+		$this->assertSame( [ 'agnosis_drain_contact_reply_queue' ], $rescheduled, 'Must only report/reschedule the one hook that actually went missing.' );
+	}
+
+	/**
+	 * Literal copy of Activator::RECURRING_CRON_SCHEDULE's keys, since the
+	 * const itself is private. Kept as a single small helper (rather than
+	 * inlining this list in all three tests above) so there's exactly one
+	 * place to update if that const's own hook set ever changes.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function recurring_cron_schedule_for_test(): array {
+		return [
+			'agnosis_check_admissions'              => 'daily',
+			'agnosis_check_bans'                    => 'daily',
+			'agnosis_check_removal_votes'           => 'daily',
+			'agnosis_check_cap_votes'               => 'daily',
+			'agnosis_vote_digest'                   => 'daily',
+			'agnosis_rotate_like_salt'              => 'daily',
+			'agnosis_prepare_newsletters'           => 'daily',
+			'agnosis_send_newsletter_queue'         => 'every_five_minutes',
+			'agnosis_ap_retry_deliveries'           => 'every_five_minutes',
+			'agnosis_drain_translation_queue'       => 'every_five_minutes',
+			'agnosis_drain_rename_queue'            => 'every_five_minutes',
+			'agnosis_drain_reply_translation_queue' => 'every_five_minutes',
+			'agnosis_drain_contact_reply_queue'     => 'every_five_minutes',
+		];
+	}
+
+	// =========================================================================
 	// maybe_upgrade() — agnosis_followers uq_actor_id -> uq_owner_actor (§3h)
 	// =========================================================================
 

@@ -3,7 +3,7 @@
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
  * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
- * Version:           0.9.60
+ * Version:           0.9.61
  * Requires at least: 6.6
  * Requires PHP:      8.2
  * Requires Plugins:  lingua-forge
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AGNOSIS_VERSION', '0.9.60' );
+define( 'AGNOSIS_VERSION', '0.9.61' );
 define( 'AGNOSIS_FILE', __FILE__ );
 define( 'AGNOSIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGNOSIS_URL', plugin_dir_url( __FILE__ ) );
@@ -114,6 +114,43 @@ add_action(
 		}
 	},
 	5
+);
+
+// Recurring-cron self-heal — deliberately UNCONDITIONAL, unlike the version
+// gate just above. Found 2026-07-28: several `every_five_minutes`/`daily`
+// cron events (Activator::RECURRING_CRON_SCHEDULE) were missing entirely
+// from a live, already-up-to-date site's schedule — because schedule_events()
+// only ever (re-)registers them once, at the exact moment a version bump
+// makes maybe_upgrade() run, never again afterward on that same version. If
+// anything external clears one of those events later (a host's cron-table
+// cleanup, a caching/optimisation plugin, a migration, a stray `wp cron
+// event delete`), nothing brought it back until the next version bump — the
+// same failure mode Activator::ensure_newsletter_cron_scheduled() already
+// existed to fix for just the newsletter pair, never generalised. Running
+// this on every single request (not version-gated, not tied to an admin
+// visiting one specific dashboard page) means the very next page load after
+// this ships re-registers whatever's missing, no manual intervention needed.
+//
+// Hooked to 'init', not 'plugins_loaded', deliberately — every sibling
+// self-healing scheduler already in this codebase (Email\Inbox::
+// schedule_poll()/schedule_cleanup(), Admin\TagProposals::
+// schedule_ttl_sweep(), Admin\MediumProposals::schedule_ttl_sweep(),
+// Network\FederationSettlement::schedule_fallback_sweep()) uses 'init' too,
+// specifically because the 'every_five_minutes' custom interval itself is
+// only registered once Core\Plugin::run() applies its own collected
+// 'cron_schedules' filter — which happens later in this same
+// 'plugins_loaded' action (priority 10, in the "Boot." block below).
+// wp_schedule_event() validates its $recurrence argument against
+// wp_get_schedules() at call time, so calling it any earlier than that —
+// including from another 'plugins_loaded' callback at a lower priority —
+// would silently fail to schedule any 'every_five_minutes' hook every
+// single time. 'init' always fires after every 'plugins_loaded' priority
+// has run, so the filter is guaranteed to be in place by then.
+add_action(
+	'init',
+	static function (): void {
+		Core\Activator::ensure_recurring_crons_scheduled();
+	}
 );
 
 // Subdomain router — must boot before the main plugin (priority 10) so the

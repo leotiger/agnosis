@@ -5,6 +5,11 @@ All notable changes to Agnosis are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) —
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [0.9.61] — 2026-07-28
+
+### Fixed
+- **Six recurring WP-Cron events could silently vanish from a live site with no way back short of a version bump, and on Ulises's own site, they had.** `wp cron event list` on an already-up-to-date install showed `agnosis_drain_reply_translation_queue`, `agnosis_ap_retry_deliveries`, `agnosis_drain_translation_queue`, `agnosis_drain_rename_queue`, `agnosis_drain_contact_reply_queue`, and `agnosis_send_newsletter_queue` all missing entirely — the reason a visitor's reply to an artwork was stored (correctly held for moderation) but the artist was never emailed: nothing was left to drain the translation queue and fire the notification. Root cause: every one of those `wp_schedule_event()` calls lives inside `Activator::schedule_events()`, reachable only from `activate()`/`maybe_upgrade()` — which runs exactly once, at the single request where `agnosis_db_version` catches up to `AGNOSIS_VERSION`, never again on that same version. Anything that clears the event afterward (a host's cron-table cleanup, a caching/optimization plugin, a migration, a stray `wp cron event delete`) leaves it gone until the next version bump, with no error anywhere. New `Activator::RECURRING_CRON_SCHEDULE`/`ensure_recurring_crons_scheduled()` generalizes the fix `ensure_newsletter_cron_scheduled()` already applied narrowly to the newsletter pair (2026-07-06) to all six affected hooks at once, and — unlike that fix, which only re-checks when an admin happens to view the Newsletter dashboard — is hooked unconditionally to `init` in `agnosis.php`, so it self-heals on every single request, front-end included, no admin action or version bump required. (`includes/Core/Activator.php`, `agnosis.php`, new tests in `tests/php/Integration/Core/ActivatorTest.php`)
+
 ## [0.9.60] — 2026-07-28
 
 ### Added

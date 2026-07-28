@@ -44,8 +44,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.60';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.60/agnosis-0.9.60.zip';
+	$version      = '0.9.61';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.61/agnosis-0.9.61.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -97,8 +97,8 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '49a3b4259f237c4eb6650ad308ce3ad0f54432043f5b8a861f1bb8681ccbc00d'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-28 for agnosis-0.9.60.zip.';
+	$sha256       = 'b81edf07455b63369be86183df0bee836719c4f101b984156983c5f5849feae8'; // Verified — see $sha256_note above for build date/version.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-28 for agnosis-0.9.61.zip.';
 	$last_updated = '2026-07-28';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -111,21 +111,14 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.61</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> Several background tasks (reply/translation queues, the retry queue, the newsletter sender) could stop running on their own after being scheduled, with no artist- or admin-visible error &#8212; for example, a visitor&#8217;s reply would be stored but the artist would never get notified. These now automatically re-check and re-register themselves on every site visit, so they can no longer silently go missing.</li>' .
+		'</ul>' .
 		'<h4>0.9.60</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> The contact form now supports a full reply conversation &#8212; artists can reply to a visitor&#8217;s message from an emailed link with no login needed, and the visitor can answer back (up to a configurable number of turns), with every reply translated automatically for whichever language the recipient needs.</li>' .
 			'<li><strong>Fixed:</strong> Contact-form notification emails to artists now use the site&#8217;s branded email template instead of plain text.</li>' .
-		'</ul>' .
-		'<h4>0.9.59</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> Site visitors can now reply directly to an artwork with no fediverse account or login needed; artists can allow or disallow replies per artwork.</li>' .
-			'<li><strong>Added:</strong> Artists can boost (re-share) artwork to their own fediverse followers via a link in their artist newsletter.</li>' .
-			'<li><strong>Added:</strong> An artist&#8217;s own replies can now federate outward to the fediverse, reaching the original commenter directly.</li>' .
-			'<li><strong>Added:</strong> A new &#8220;Fediverse Relays&#8221; panel in Settings &#8594; Network lets you subscribe this site to relay servers for wider discoverability.</li>' .
-			'<li><strong>Added:</strong> Improved compatibility with fediverse servers migrating to the newer RFC 9421 signature standard.</li>' .
-			'<li><strong>Changed:</strong> The emailed reply-moderation link now shows everything &#8212; original text, translation, approve/reject, your own reply, and the federate option &#8212; on one page instead of two separate links.</li>' .
-			'<li><strong>Fixed:</strong> The reply form inside the reply popover no longer stretches to the full width of the screen.</li>' .
-			'<li><strong>Fixed:</strong> Reply-notification emails now reach the artist translated into their own language, and use the site&#8217;s branded email template.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

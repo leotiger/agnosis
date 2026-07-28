@@ -6,9 +6,10 @@
 # similar old string rather than carrying over a confirmed match — the guess
 # is often wrong (audit AUDIT-0.9.38.md §6b: 90 wrong-match fuzzy entries).
 # Policy: never let a fuzzy (possibly-wrong) string sit in a .po looking
-# translated. Clear it back to a clean, honestly-untranslated entry so a
-# human retranslates it fresh in Loco Translate, instead of leaving stale
-# guessed text that only *looks* reviewed.
+# translated. Clear it back to a clean, honestly-untranslated entry so the
+# translate-missing/translate-theme-missing AI pipeline (or, as a fallback
+# only, a human in Loco Translate) retranslates it fresh, instead of leaving
+# stale guessed text that only *looks* reviewed.
 #
 # This is a line-surgical rewrite, not a full reformat via a library like
 # polib: only the lines belonging to a fuzzy entry are touched, so running

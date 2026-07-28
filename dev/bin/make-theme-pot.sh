@@ -67,7 +67,10 @@ if [ ${#PO_FILES[@]} -gt 0 ] && [ -f "${PO_FILES[0]}" ]; then
     #         reasoning: msgmerge's fuzzy guesses are frequently wrong, and
     #         a fuzzy entry is skipped at compile time anyway, so clearing
     #         it back to genuinely-untranslated is strictly more honest than
-    #         leaving a stale, possibly-wrong guess sitting in the .po). ----
+    #         leaving a stale, possibly-wrong guess sitting in the .po).
+    #         `composer translate-theme-missing` (the AI pipeline) is the
+    #         correct next step for anything newly blanked — NOT Loco
+    #         Translate, which is only ever a fallback. ----
     echo "→ Clearing fuzzy matches..."
     TOTAL_CLEARED=0
     CLEAR_COUNT_FILE="$(mktemp)"
@@ -81,7 +84,7 @@ if [ ${#PO_FILES[@]} -gt 0 ] && [ -f "${PO_FILES[0]}" ]; then
         TOTAL_CLEARED=$(( TOTAL_CLEARED + CLEARED ))
     done
     rm -f "${CLEAR_COUNT_FILE}"
-    echo "✓ ${TOTAL_CLEARED} fuzzy entries cleared. Translate freshly in Loco Translate, or re-run translate-missing.php-style tooling, for anything newly empty."
+    echo "✓ ${TOTAL_CLEARED} fuzzy entries cleared. Run 'composer translate-theme-missing' next, then 'composer compile-theme-pos'."
 else
     echo "ℹ No agnosis-theme-*.po files found in languages/ — add translations and re-run."
 fi
