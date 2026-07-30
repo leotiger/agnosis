@@ -929,6 +929,21 @@ class SettingsFields {
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Length of the window the reply limit above applies to. Default: 1 (i.e. 2 replies per hour per actor).', 'agnosis' ),
 			],
+			// --- RHIZOME ---
+			// RN1 (RHIZOME-NETWORK-ROADMAP.md §4/§8, ANSWERED, 2026-07-30) — the
+			// gate on RhizomeManager's manual "add a trusted peer directly" path.
+			// Off by default: a site that only wants Agnosis-to-Agnosis trust
+			// (via Node::register_peer()'s self-registration flow) can leave
+			// this off entirely and never see the manual-add form at all.
+			'agnosis_rhizome_allow_manual_trust' => [
+				'tab'      => 'rhizome',
+				'label'    => __( 'Allow manually trusting non-Agnosis Fediverse actors', 'agnosis' ),
+				'input'    => 'checkbox',
+				'default'  => 0,
+				'type'     => 'boolean',
+				'sanitize' => fn( $v ) => (bool) $v,
+				'desc'     => __( 'When enabled, the Partner Nodes panel below gains a form to directly add a trusted third-party Fediverse actor (a curator account, a specific instance) by pasting its actor and inbox URLs — no self-registration round trip. Leave this off if you only want to trust other Agnosis instances.', 'agnosis' ),
+			],
 			// --- COMMUNITY ---
 			// Note: the outbound "From:" identity for workflow mail used to live
 			// here as agnosis_community_from_name/email. Moved to Settings → Email

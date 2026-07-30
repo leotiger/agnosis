@@ -316,6 +316,31 @@ parameters:
 			path: ../tests/php/Integration/Admin/RelayManagerTest.php
 
 		-
+			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
+
+		-
+			message: "#^Filter callback return statement is missing\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\RhizomeManagerTest\\:\\:get_peer\\(\\) should return array\\{status\\: string, trust_scope\\: string, actor_id\\: string\\|null, inbox_url\\: string\\|null, reciprocal\\: string, reciprocity_checked_at\\: string\\|null\\}\\|null but returns array\\|null\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\RhizomeManagerTest\\:\\:insert_peer\\(\\) has parameter \\$overrides with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
+			count: 20
+			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
+
+		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
@@ -1252,7 +1277,7 @@ parameters:
 
 		-
 			message: "#^Variable \\$raw_html might not be defined\\.$#"
-			count: 4
+			count: 5
 			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
 
 		-
@@ -2311,7 +2336,17 @@ parameters:
 			path: ../tests/php/Integration/Network/NodeTest.php
 
 		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:get_node_row\\(\\) should return array\\{status\\: string, url\\: string, public_key\\: string, label\\: string\\}\\|null but returns array\\|null\\.$#"
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:get_node_row\\(\\) should return array\\{status\\: string, url\\: string, public_key\\: string, label\\: string, description\\: string\\|null, trust_scope\\: string, actor_id\\: string\\|null, inbox_url\\: string\\|null\\}\\|null but returns array\\|null\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:mock_full_node_card_chain\\(\\) has parameter \\$args with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../tests/php/Integration/Network/NodeTest.php
+
+		-
+			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:mock_full_node_card_chain\\(\\) has parameter \\$preempt with no type specified\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/NodeTest.php
 

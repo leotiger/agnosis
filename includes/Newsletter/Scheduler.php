@@ -120,6 +120,20 @@ class Scheduler {
 		$digest_html = 'artist' === $type ? Digest::build_artist( $since ) : Digest::build_public( $since );
 		$intro       = (string) get_option( "agnosis_newsletter_{$type}_intro", '' );
 
+		// Neutralize every deferred placeholder before this goes anywhere
+		// (§13 F5, 2026-07-30). A real send resolves these per recipient in
+		// QueueProcessor::send_one(); a test send has no recipient row at all
+		// and never reached that stage, so the raw `{{AGNOSIS_LIKE:<id>}}`,
+		// `{{AGNOSIS_BOOST:<id>}}`, and `{{AGNOSIS_INTERACTION_SUMMARY}}`
+		// markers were being emailed as literal text. The like/boost pair has
+		// leaked this way since 0.9.59 and NL1 added a third; InteractionGateway
+		// ::inert() is the same stripper Archive.php already uses for exactly
+		// this situation (a rendering with no recipient to personalize for),
+		// and substitute_interaction_summary() with a recipient id of 0 is
+		// NL1's own documented no-recipient path.
+		$digest_html = InteractionGateway::inert( $digest_html );
+		$digest_html = Digest::substitute_interaction_summary( $digest_html, 0, $since );
+
 		$test_notice = __( 'This is a TEST send — it previews the next issue using the current draft intro and recent activity. It was not counted as a real send and no subscribers were emailed. The unsubscribe link below is a non-functional placeholder.', 'agnosis' );
 		$combined_intro = trim( $test_notice . "\n\n" . $intro );
 
@@ -461,10 +475,16 @@ class Scheduler {
 				'intro'           => $base['intro'],
 				'digest_html'     => $base['digest_html'],
 				'locale_content'  => wp_json_encode( $locale_content ),
+				// NL1 (§11a) — the exact window this issue's content was built
+				// from, persisted so QueueProcessor can compute each artist
+				// recipient's own personal interaction-summary counts over the
+				// same window later, at send time (see the column's own comment
+				// in Activator.php).
+				'digest_since'    => $since,
 				'recipient_count' => count( $recipients ),
 				'scheduled_at'    => current_time( 'mysql' ),
 			],
-			[ '%s', '%s', '%s', '%s', '%s', '%d', '%s' ]
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ]
 		);
 		$issue_id = (int) $wpdb->insert_id;
 

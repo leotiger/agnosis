@@ -232,7 +232,7 @@ class QueueProcessor {
 
 	/**
 	 * @param object{id: int|string, issue_id: int|string, recipient_id: int|string|null, recipient_email: string, recipient_type: string, unsubscribe_token: string, locale: string|null, status: string, attempts: int|string} $row   Row from agnosis_newsletter_queue.
-	 * @param object{id: int|string, newsletter_type: string, status: string, intro: string|null, digest_html: string|null, locale_content: string|null, recipient_count: int|string, scheduled_at: string|null, sent_at: string|null} $issue Row from agnosis_newsletter_issues.
+	 * @param object{id: int|string, newsletter_type: string, status: string, intro: string|null, digest_html: string|null, locale_content: string|null, digest_since: string|null, recipient_count: int|string, scheduled_at: string|null, sent_at: string|null} $issue Row from agnosis_newsletter_issues.
 	 * @param array<string, array{intro: string, digest_html: string}> $locale_map Decoded issue locale_content, keyed by locale.
 	 */
 	private function send_one( object $row, object $issue, array $locale_map = [] ): bool {
@@ -275,6 +275,16 @@ class QueueProcessor {
 		// no-op on a public row's HTML, which never contains this placeholder
 		// in the first place.
 		$content['digest_html'] = InteractionGateway::substitute_boost_links( $content['digest_html'], $recipient_artist_id );
+		// NL1 (RHIZOME-NETWORK-ROADMAP.md §11a) — Digest::build_artist()'s own
+		// {{AGNOSIS_INTERACTION_SUMMARY}} placeholder, resolved the same way and
+		// at the same send-time stage as the two substitutions above, using the
+		// exact window this issue's content was built from (Scheduler::
+		// prepare_type() persisted it as digest_since — see that column's own
+		// comment in Activator.php). A no-op on a public row's HTML
+		// (recipient_artist_id is 0), which never contains this placeholder in
+		// the first place — same defensive posture substitute_boost_links()
+		// already takes for its own artist-only one.
+		$content['digest_html'] = Digest::substitute_interaction_summary( $content['digest_html'], $recipient_artist_id, (string) ( $issue->digest_since ?? '' ) );
 
 		if ( '' !== $locale ) {
 			switch_to_locale( $locale );

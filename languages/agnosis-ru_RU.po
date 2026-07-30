@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-28T23:20+00:00\n"
+"POT-Creation-Date: 2026-07-30T20:58+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:59+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Russian\n"
@@ -19,7 +19,7 @@ msgstr ""
 "X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:196
+#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:198
 #: includes/Core/Privacy.php:730 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
@@ -162,12 +162,18 @@ msgstr "Синхронизировать метки с переводами"
 #: includes/Admin/Dashboards/RelayManager.php:125
 #: includes/Admin/Dashboards/RelayManager.php:148
 #: includes/Admin/Dashboards/RelayManager.php:174
+#: includes/Admin/Dashboards/RhizomeManager.php:319
+#: includes/Admin/Dashboards/RhizomeManager.php:379
+#: includes/Admin/Dashboards/RhizomeManager.php:395
+#: includes/Admin/Dashboards/RhizomeManager.php:426
+#: includes/Admin/Dashboards/RhizomeManager.php:464
+#: includes/Admin/Dashboards/RhizomeManager.php:508
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:903
-#: includes/Admin/Settings.php:922 includes/Admin/TagProposals.php:238
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:910
+#: includes/Admin/Settings.php:929 includes/Admin/TagProposals.php:238
 #: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
@@ -361,6 +367,7 @@ msgstr "Сообщение"
 #: includes/Admin/Dashboards/MembersDashboard.php:56
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/Dashboards/RelayManager.php:69
+#: includes/Admin/Dashboards/RhizomeManager.php:79
 #: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:182
 #: includes/Core/Privacy.php:315 includes/Core/Privacy.php:351
 #: includes/Core/Privacy.php:387
@@ -527,7 +534,7 @@ msgstr "Принять"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4370
+#: includes/Network/ActivityPub.php:4889
 msgid "Reject"
 msgstr "Отклонить"
 
@@ -656,6 +663,7 @@ msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr "Ещё не переведено — оставьте пустым, чтобы AI перевёл автоматически"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:106
+#: includes/Admin/Dashboards/RhizomeManager.php:205
 #: includes/Artist/ContentEditor.php:1454
 msgid "Save"
 msgstr "Сохранить"
@@ -970,7 +978,7 @@ msgid "Context"
 msgstr "Контекст"
 
 #: includes/Admin/Dashboards/MembersDashboard.php:41
-#: includes/Admin/Settings.php:245
+#: includes/Admin/Settings.php:247
 msgid "Members"
 msgstr "Участники"
 
@@ -1096,7 +1104,7 @@ msgstr ""
 "подключить почтового провайдера (например, бесплатный тариф Brevo)."
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:84
-#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:310
+#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:313
 #: includes/Newsletter/Mailer.php:76
 msgid "Newsletter"
 msgstr "Новостная рассылка"
@@ -1129,7 +1137,7 @@ msgstr "%1$d допущено (%2$d отказались)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3006
+#: includes/Network/ActivityPub.php:3525
 msgid "Sending…"
 msgstr "Отправка…"
 
@@ -1176,6 +1184,7 @@ msgid "Never"
 msgstr "Никогда"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:208
+#: includes/Admin/Dashboards/RhizomeManager.php:154
 #: includes/Publishing/PostCreator.php:1044
 msgid "Unknown"
 msgstr "Неизвестно"
@@ -1228,12 +1237,12 @@ msgid "Relay actor URL"
 msgstr "URL актера ретранслятора"
 
 #: includes/Admin/Dashboards/RelayManager.php:79
-#: includes/Admin/Settings.php:583
+#: includes/Admin/Settings.php:586
 msgid "Enabled"
 msgstr "Включено"
 
 #: includes/Admin/Dashboards/RelayManager.php:81
-#: includes/Admin/Settings.php:585
+#: includes/Admin/Settings.php:588
 msgid "Disabled"
 msgstr "Отключено"
 
@@ -1254,7 +1263,8 @@ msgstr ""
 "отправлено Undo{Follow}, чтобы ретранслятор перестал доставлять на этот узел."
 
 #: includes/Admin/Dashboards/RelayManager.php:96
-#: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
+#: includes/Admin/Dashboards/RhizomeManager.php:222
+#: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "Удалить"
@@ -1262,6 +1272,184 @@ msgstr "Удалить"
 #: includes/Admin/Dashboards/RelayManager.php:110
 msgid "Add Relay"
 msgstr "Добавить ретранслятор"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:65
+msgid "Partner Nodes"
+msgstr "Партнёрские узлы"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:67
+msgid ""
+"A trusted partner’s boosts also reach this node’s own followers, extending "
+"its reach through your node the same way one artist can already boost "
+"another’s work. Nothing here shows another instance’s content on your own "
+"site — it only affects what leaves this node toward the wider Fediverse. "
+"Every peer starts here as \"Pending\" until approved."
+msgstr "Увеличения от надежного партнёра также достигают последователей этого узла, расширяя его охват через ваш узел так же, как один художник может поддержать работу другого. Здесь ничего не показывает контент другого экземпляра на вашем сайте — это касается только того, что покидает этот узел в более широкий Федиверс. Каждый участник начинает с \"Ожидание\" до одобрения."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:73
+msgid "No peers have registered or been added yet."
+msgstr "Пока что ни один участник не зарегистрирован и не добавлен."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:78
+msgid "Peer"
+msgstr "Участник"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:80
+#: includes/Admin/Dashboards/RhizomeManager.php:275
+msgid "Trust scope"
+msgstr "Область доверия"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:81
+msgid "Reciprocal?"
+msgstr "Взаимный?"
+
+#. translators: %s: link to the Rhizome settings toggle
+#: includes/Admin/Dashboards/RhizomeManager.php:100
+#, php-format
+msgid ""
+"Manually adding a non-Agnosis Fediverse actor as a trusted peer is currently "
+"off. Enable \"Allow manually trusting non-Agnosis Fediverse actors\" %s to "
+"add one directly."
+msgstr "В настоящее время ручное добавление не-Agnosis акторов Федиверса в качестве доверенных участников отключено. Включите \"Позволить ручное доверие не-Agnosis акторов Федиверса\" %s, чтобы добавить одного напрямую."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:101
+msgid "above"
+msgstr "выше"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:123
+msgid "Resolved actor:"
+msgstr "Разрешённый актор:"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:152
+msgid "Mutual"
+msgstr "Взаимный"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:153
+msgid "One-directional"
+msgstr "Один направленный"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:166
+msgid "Checked:"
+msgstr "Проверено:"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:175
+msgid "Check"
+msgstr "Проверить"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:182
+#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
+msgid "Pending"
+msgstr "В ожидании"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:183
+msgid "Trusted"
+msgstr "Доверенный"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:184
+msgid "Blocked"
+msgstr "Заблокированный"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:202
+msgid "Domain"
+msgstr "Домен"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:203
+msgid "Actor only"
+msgstr "Только актор"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:212
+#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
+#: includes/Network/ActivityPub.php:4888
+msgid "Approve"
+msgstr "Одобрить"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:213
+#: includes/Admin/Dashboards/RhizomeManager.php:215
+msgid "Block"
+msgstr "Заблокировать"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:217
+msgid "Unblock"
+msgstr "Разблокировать"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:224
+msgid "Remove this peer entirely? It will need to register again from scratch."
+msgstr "Убрать этого участника полностью? Ему нужно будет зарегистрироваться заново."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:251
+msgid "Add a trusted peer directly"
+msgstr "Добавить доверенного участника напрямую"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:253
+msgid ""
+"For a non-Agnosis Fediverse actor (a curator account, a specific instance "
+"you already trust) that you want to vouch for by hand, without going through "
+"node self-registration. Added as trusted immediately."
+msgstr "Для не-Agnosis актора Федиверса (акаунт куратора, конкретный экземпляр, которому вы уже доверяете), за которого вы хотите поручиться вручную, не проходя через саморегистрацию узла. Добавляется как доверенный немедленно."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:259
+msgid "Actor URL"
+msgstr "URL актора"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:263
+msgid "Inbox URL"
+msgstr "URL входящих сообщений"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:267
+msgid "Label (optional)"
+msgstr "Метка (необязательно)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:271
+msgid "Description (optional)"
+msgstr "Описание (необязательно)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:277
+msgid "Actor only (recommended for a third-party server)"
+msgstr "Только актор (рекомендуется для стороннего сервера)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:278
+msgid "Domain (every actor on that server)"
+msgstr "Домен (каждый актор на этом сервере)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:281
+msgid "Add Trusted Peer"
+msgstr "Добавить доверенного участника"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:290
+msgid ""
+"Could not reach this peer's node-discovery endpoint. It may be offline or "
+"not running Agnosis."
+msgstr "Не удалось достучаться до конечной точки обнаружения узла этого участника. Он может быть offline или не запущен Agnosis."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:291
+#: includes/Network/Node.php:248
+msgid ""
+"This peer's node-discovery response did not include a node card endpoint."
+msgstr "Ответ на запрос обнаружения узла этого участника не включал конечную точку карточки узла."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:292
+#: includes/Network/Node.php:254
+msgid "Could not fetch this peer's node card."
+msgstr "Не удалось получить карточку узла этого участника."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:293
+#: includes/Network/Node.php:262
+msgid "This peer's node card is missing an actor id or inbox URL."
+msgstr "В карточке узла этого участника отсутствует идентификатор актора или URL входящих сообщений."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:294
+msgid "Actor URL and inbox URL are both required."
+msgstr "URL актора и URL входящих сообщений обязательны."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:295
+msgid ""
+"Could not check reciprocity right now — this peer's own peer list was "
+"unreachable or not in the expected format."
+msgstr "Не удалось проверить взаимность прямо сейчас — собственный список участников этого участника был недоступен или не в ожидаемом формате."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:305
+msgid "Done."
+msgstr "Готово."
 
 #: includes/Admin/Deliverability.php:445
 msgid "Mail from (workflow)"
@@ -1296,7 +1484,7 @@ msgstr "Тема"
 msgid "Endpoint"
 msgstr "Конечная точка"
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:608
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:611
 msgid "Files"
 msgstr "Файлы"
 
@@ -1317,7 +1505,8 @@ msgstr ""
 msgid "Attachment viewer"
 msgstr "Просмотр вложения"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3045
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3407
+#: includes/Network/ActivityPub.php:3564
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1353,10 +1542,6 @@ msgstr ""
 #, php-format
 msgid "Processed %d pending item(s)."
 msgstr "Обработано %d ожидающ(ий/их) элемент(ов)."
-
-#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
-msgid "Pending"
-msgstr "В ожидании"
 
 #: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:721
 msgid "Processing"
@@ -1413,7 +1598,7 @@ msgstr "Обработать все ожидающие"
 msgid "Goodbye"
 msgstr "До свидания"
 
-#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:308
+#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:311
 #: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "Сообщество"
@@ -1522,11 +1707,6 @@ msgstr[0] "%d заявка"
 msgstr[1] "%d заявка"
 msgstr[2] "%d заявки"
 
-#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4369
-msgid "Approve"
-msgstr "Одобрить"
-
 #: includes/Admin/MediumProposals.php:166
 msgid ""
 "Reject this proposal for all matching submissions? This cannot be undone."
@@ -1558,12 +1738,12 @@ msgstr[2] "Предложение о среде отклонено для %d р�
 msgid "Could not approve this proposal: %s"
 msgstr "Не удалось одобрить это предложение: %s"
 
-#: includes/Admin/Settings.php:50 includes/Admin/Settings.php:51
+#: includes/Admin/Settings.php:52 includes/Admin/Settings.php:53
 msgid "Configuration"
 msgstr "Конфигурация"
 
 #. translators: 1: queue rows reset, 2: messages newly enqueued
-#: includes/Admin/Settings.php:103
+#: includes/Admin/Settings.php:105
 #, php-format
 msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
@@ -1573,12 +1753,12 @@ msgstr ""
 "в очередь добавлено новых сообщений — %2$d. Нажмите \"Обработать ожидающую "
 "очередь\", чтобы запустить конвейер ИИ."
 
-#: includes/Admin/Settings.php:111
+#: includes/Admin/Settings.php:113
 msgid "Log cleared."
 msgstr "Журнал очищен."
 
 #. translators: %d: number of debug files removed
-#: includes/Admin/Settings.php:119
+#: includes/Admin/Settings.php:121
 #, php-format
 msgid "Debug files cleared. %d file was removed."
 msgid_plural "Debug files cleared. %d files were removed."
@@ -1586,7 +1766,7 @@ msgstr[0] "Файлы отладки очищены. Удалён %d файл."
 msgstr[1] "Файлы отладки очищены. Удалено %d файлов."
 msgstr[2] "Файлы отладки очищены. Удалено %d файлов."
 
-#: includes/Admin/Settings.php:126
+#: includes/Admin/Settings.php:128
 msgid ""
 "Term translation cache cleared. Terms will be re-translated the next time "
 "they're needed."
@@ -1595,7 +1775,7 @@ msgstr ""
 "обращении к ним."
 
 #. translators: %d: number of queue items processed
-#: includes/Admin/Settings.php:134
+#: includes/Admin/Settings.php:136
 #, php-format
 msgid "Processed %d pending queue item(s). Check the Logs tab for details."
 msgstr ""
@@ -1603,7 +1783,7 @@ msgstr ""
 "«Журнал»."
 
 #. translators: %d: number of new messages enqueued
-#: includes/Admin/Settings.php:144
+#: includes/Admin/Settings.php:146
 #, php-format
 msgid ""
 "Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
@@ -1612,71 +1792,71 @@ msgstr ""
 "Опрос завершён. В очередь добавлено %d новое сообщение(я). Подробности "
 "смотрите на вкладке «Журнал», затем нажмите «Обработать ожидающую очередь»."
 
-#: includes/Admin/Settings.php:160
+#: includes/Admin/Settings.php:162
 msgid "Applicant admitted. A welcome email has been sent."
 msgstr "Заявитель принят. Приветственное письмо отправлено."
 
-#: includes/Admin/Settings.php:161
+#: includes/Admin/Settings.php:163
 msgid "Could not admit — the application may no longer be pending."
 msgstr "Не удалось принять — возможно, заявка уже не ожидает рассмотрения."
 
-#: includes/Admin/Settings.php:162
+#: includes/Admin/Settings.php:164
 msgid "Application rejected."
 msgstr "Заявка отклонена."
 
-#: includes/Admin/Settings.php:163
+#: includes/Admin/Settings.php:165
 msgid "Could not reject — the application may no longer be pending."
 msgstr "Не удалось отклонить — возможно, заявка уже не ожидает рассмотрения."
 
-#: includes/Admin/Settings.php:164
+#: includes/Admin/Settings.php:166
 msgid "Artist suspended. A notification email has been sent."
 msgstr "Художник приостановлен. Уведомление отправлено по электронной почте."
 
-#: includes/Admin/Settings.php:165
+#: includes/Admin/Settings.php:167
 msgid "Could not suspend the artist — they may no longer be active."
 msgstr "Не удалось приостановить художника — возможно, он уже не активен."
 
-#: includes/Admin/Settings.php:166
+#: includes/Admin/Settings.php:168
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
 msgstr "Художник навсегда удалён. Его аккаунт и весь контент удалены."
 
-#: includes/Admin/Settings.php:167
+#: includes/Admin/Settings.php:169
 msgid "Could not delete the artist — please try again."
 msgstr "Не удалось удалить художника — попробуйте ещё раз."
 
-#: includes/Admin/Settings.php:168
+#: includes/Admin/Settings.php:170
 msgid "Community removal vote opened. All artists have been emailed."
 msgstr ""
 "Открыто голосование за удаление из сообщества. Всем художникам отправлены "
 "письма."
 
-#: includes/Admin/Settings.php:169
+#: includes/Admin/Settings.php:171
 msgid ""
 "Could not open a removal vote — one may already be active for this artist."
 msgstr ""
 "Не удалось открыть голосование за удаление — возможно, для этого художника "
 "оно уже активно."
 
-#: includes/Admin/Settings.php:170
+#: includes/Admin/Settings.php:172
 msgid ""
 "Issue prepared and queued — it will go out over the next few cron cycles."
 msgstr ""
 "Выпуск подготовлен и поставлен в очередь — он выйдет в течение следующих "
 "нескольких циклов cron."
 
-#: includes/Admin/Settings.php:171
+#: includes/Admin/Settings.php:173
 msgid "Could not start this issue — a previous one may still be sending."
 msgstr ""
 "Не удалось запустить этот выпуск — возможно, предыдущий всё ещё отправляется."
 
-#: includes/Admin/Settings.php:172
+#: includes/Admin/Settings.php:174
 msgid "Test email sent — check the inbox you sent it to."
 msgstr ""
 "Тестовое письмо отправлено — проверьте почтовый ящик, на который вы его "
 "отправили."
 
-#: includes/Admin/Settings.php:173 includes/Admin/Settings.php:179
+#: includes/Admin/Settings.php:175 includes/Admin/Settings.php:181
 msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
@@ -1684,11 +1864,11 @@ msgstr ""
 "Не удалось отправить тестовое письмо — проверьте адрес и конфигурацию "
 "исходящей почты вашего сайта."
 
-#: includes/Admin/Settings.php:174
+#: includes/Admin/Settings.php:176
 msgid "Invitation sent."
 msgstr "Приглашение отправлено."
 
-#: includes/Admin/Settings.php:175
+#: includes/Admin/Settings.php:177
 msgid ""
 "Could not send the invitation — check the address and your site's outgoing "
 "mail configuration."
@@ -1696,13 +1876,13 @@ msgstr ""
 "Не удалось отправить приглашение — проверьте адрес и конфигурацию исходящей "
 "почты вашего сайта."
 
-#: includes/Admin/Settings.php:176
+#: includes/Admin/Settings.php:178
 msgid "Test invitation sent — check the inbox you sent it to."
 msgstr ""
 "Тестовое приглашение отправлено — проверьте почтовый ящик, на который вы его "
 "отправили."
 
-#: includes/Admin/Settings.php:177
+#: includes/Admin/Settings.php:179
 msgid ""
 "Could not send the test invitation — check the address and your site's "
 "outgoing mail configuration."
@@ -1710,20 +1890,20 @@ msgstr ""
 "Не удалось отправить тестовое приглашение — проверьте адрес и конфигурацию "
 "исходящей почты вашего сайта."
 
-#: includes/Admin/Settings.php:178
+#: includes/Admin/Settings.php:180
 msgid ""
 "Test email sent — check whether it lands in your inbox or your spam folder."
 msgstr ""
 "Тестовое письмо отправлено — проверьте, попадёт ли оно в ваш почтовый ящик "
 "или в папку со спамом."
 
-#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:182
 msgid "Branding preview sent — check the inbox you sent it to."
 msgstr ""
 "Предпросмотр фирменного оформления отправлен — проверьте почтовый ящик, на "
 "который вы его отправили."
 
-#: includes/Admin/Settings.php:181
+#: includes/Admin/Settings.php:183
 msgid ""
 "Could not send the branding preview — check the address and your site's "
 "outgoing mail configuration."
@@ -1731,7 +1911,7 @@ msgstr ""
 "Не удалось отправить предпросмотр фирменного оформления — проверьте адрес и "
 "настройки исходящей почты вашего сайта."
 
-#: includes/Admin/Settings.php:182
+#: includes/Admin/Settings.php:184
 msgid ""
 "Failed recipients reset to pending — they will be retried on the next few "
 "cron cycles."
@@ -1739,60 +1919,64 @@ msgstr ""
 "Неудачные получатели сброшены в состояние ожидания — попытка повторной "
 "отправки будет выполнена в течение следующих нескольких циклов cron."
 
-#: includes/Admin/Settings.php:183
+#: includes/Admin/Settings.php:185
 msgid "No failed recipients to retry for this newsletter."
 msgstr "Для этой рассылки нет неудачных получателей для повторной попытки."
 
-#: includes/Admin/Settings.php:197
+#: includes/Admin/Settings.php:199
 msgid "Art blooming out of oblivion"
 msgstr "Искусство, расцветающее из забвения"
 
-#: includes/Admin/Settings.php:221 includes/Admin/Settings.php:288
+#: includes/Admin/Settings.php:223 includes/Admin/Settings.php:290
 msgid "Save Changes"
 msgstr "Сохранить изменения"
 
-#: includes/Admin/Settings.php:246
+#: includes/Admin/Settings.php:248
 msgid "Rules"
 msgstr "Правила"
 
-#: includes/Admin/Settings.php:302
+#: includes/Admin/Settings.php:304
 msgid "General"
 msgstr "Общее"
 
-#: includes/Admin/Settings.php:303
+#: includes/Admin/Settings.php:305
 msgid "Branding"
 msgstr "Фирменное оформление"
 
-#: includes/Admin/Settings.php:304
+#: includes/Admin/Settings.php:306
 msgid "Email Inbox"
 msgstr "Почтовый ящик"
 
-#: includes/Admin/Settings.php:305
+#: includes/Admin/Settings.php:307
 msgid "AI Providers"
 msgstr "Провайдеры ИИ"
 
-#: includes/Admin/Settings.php:306
+#: includes/Admin/Settings.php:308
 msgid "Behavior"
 msgstr "Поведение"
 
-#: includes/Admin/Settings.php:307
+#: includes/Admin/Settings.php:309
 msgid "Network"
 msgstr "Сеть"
 
-#: includes/Admin/Settings.php:309 includes/Admin/Settings.php:491
+#: includes/Admin/Settings.php:310
+msgid "Rhizome"
+msgstr "Ризома"
+
+#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:494
 msgid "Donations"
 msgstr "Пожертвования"
 
-#: includes/Admin/Settings.php:311
+#: includes/Admin/Settings.php:314
 msgid "Logs"
 msgstr "Журналы"
 
-#: includes/Admin/Settings.php:343
+#: includes/Admin/Settings.php:346
 msgid "••••••••  (defined in wp-config.php)"
 msgstr "••••••••  (определено в wp-config.php)"
 
 #. translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in <code>
-#: includes/Admin/Settings.php:346
+#: includes/Admin/Settings.php:349
 #, php-format
 msgid ""
 "Set via the %s constant in wp-config.php — this field is inert until that "
@@ -1801,15 +1985,15 @@ msgstr ""
 "Установлено через константу %s в wp-config.php — это поле остаётся "
 "неактивным до удаления константы."
 
-#: includes/Admin/Settings.php:380
+#: includes/Admin/Settings.php:383
 msgid "— None (inline message only) —"
 msgstr "— Нет (только встроенное сообщение) —"
 
-#: includes/Admin/Settings.php:389 includes/Admin/Settings.php:400
+#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:403
 msgid "Reset to default"
 msgstr "Сбросить к значениям по умолчанию"
 
-#: includes/Admin/Settings.php:390
+#: includes/Admin/Settings.php:393
 msgid ""
 "Replaces the text above with the plugin's built-in default — click Save "
 "Changes below to keep it."
@@ -1817,19 +2001,19 @@ msgstr ""
 "Заменяет текст выше встроенным стандартным текстом плагина — нажмите "
 "«Сохранить изменения» ниже, чтобы оставить его."
 
-#: includes/Admin/Settings.php:413
+#: includes/Admin/Settings.php:416
 msgid "Select Image"
 msgstr "Выбрать изображение"
 
-#: includes/Admin/Settings.php:464
+#: includes/Admin/Settings.php:467
 msgid "Bot Protection"
 msgstr "Защита от ботов"
 
-#: includes/Admin/Settings.php:467
+#: includes/Admin/Settings.php:470
 msgid "Turnstile is configured."
 msgstr "Turnstile настроен."
 
-#: includes/Admin/Settings.php:468
+#: includes/Admin/Settings.php:471
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
@@ -1837,11 +2021,11 @@ msgstr ""
 "Форма заявки Join и форма подписки на рассылку требуют проверки человеком "
 "перед отправкой."
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:476
 msgid "Turnstile is not configured."
 msgstr "Turnstile не настроен."
 
-#: includes/Admin/Settings.php:474
+#: includes/Admin/Settings.php:477
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -1860,7 +2044,7 @@ msgstr ""
 "требовать проверку человеком и для формы Join, и для формы подписки на "
 "рассылку."
 
-#: includes/Admin/Settings.php:493
+#: includes/Admin/Settings.php:496
 msgid ""
 "A simple way for visitors to support an artist directly is planned, with no "
 "platform fee. That feature hasn't been built yet, so there is nothing to "
@@ -1870,7 +2054,7 @@ msgstr ""
 "без комиссии платформы. Эта функция ещё не реализована, поэтому сейчас здесь "
 "нечего настраивать."
 
-#: includes/Admin/Settings.php:496
+#: includes/Admin/Settings.php:499
 msgid ""
 "Agnosis is not a marketplace. Art sales, checkout, and other commerce "
 "functionality are left to dedicated plugins."
@@ -1878,24 +2062,24 @@ msgstr ""
 "Agnosis — это не маркетплейс. Продажи работ, оформление заказов и другие "
 "коммерческие функции предоставляются специализированными плагинами."
 
-#: includes/Admin/Settings.php:521
+#: includes/Admin/Settings.php:524
 msgid "OpenAI"
 msgstr "OpenAI"
 
-#: includes/Admin/Settings.php:522
+#: includes/Admin/Settings.php:525
 msgid "Anthropic"
 msgstr "Anthropic"
 
-#: includes/Admin/Settings.php:529
+#: includes/Admin/Settings.php:532
 msgid "AI Processing & Privacy Policy"
 msgstr "Политика конфиденциальности для обработки ИИ и данных"
 
-#: includes/Admin/Settings.php:532
+#: includes/Admin/Settings.php:535
 msgid "A Privacy Policy page is set."
 msgstr "Страница политики конфиденциальности установлена."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:536
+#: includes/Admin/Settings.php:539
 #, php-format
 msgid ""
 "Suggested wording covering %s and public federation was added to it "
@@ -1909,12 +2093,12 @@ msgstr ""
 "соглашение об обработке данных (DPA) в рамках ваших обязательств по "
 "соблюдению требований."
 
-#: includes/Admin/Settings.php:544
+#: includes/Admin/Settings.php:547
 msgid "No Privacy Policy page is set."
 msgstr "Страница политики конфиденциальности не установлена."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:548
+#: includes/Admin/Settings.php:551
 #, php-format
 msgid ""
 "Submitted artwork, text, and visitor contact messages are sent to %s for "
@@ -1930,19 +2114,19 @@ msgstr ""
 "потребоваться ознакомиться с соглашением об обработке данных (DPA) этого "
 "провайдера для выполнения собственных обязательств по соблюдению требований."
 
-#: includes/Admin/Settings.php:552
+#: includes/Admin/Settings.php:555
 msgid "Go to Settings → Privacy"
 msgstr "Перейти в Настройки → Конфиденциальность"
 
-#: includes/Admin/Settings.php:576
+#: includes/Admin/Settings.php:579
 msgid "Debug Files"
 msgstr "Отладочные файлы"
 
-#: includes/Admin/Settings.php:580
+#: includes/Admin/Settings.php:583
 msgid "Currently"
 msgstr "Текущее"
 
-#: includes/Admin/Settings.php:591
+#: includes/Admin/Settings.php:594
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1950,7 +2134,7 @@ msgstr ""
 "Принудительно ВКЛЮЧЕНО константой AGNOSIS_DEBUG в wp-config.php — флажок "
 "выше не будет иметь эффекта, пока эта строка не будет удалена."
 
-#: includes/Admin/Settings.php:593
+#: includes/Admin/Settings.php:596
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1958,21 +2142,21 @@ msgstr ""
 "Принудительно ВЫКЛЮЧЕНО константой AGNOSIS_DEBUG в wp-config.php — флажок "
 "выше не будет иметь эффекта, пока эта строка не будет удалена."
 
-#: includes/Admin/Settings.php:601
+#: includes/Admin/Settings.php:604
 msgid "Directory"
 msgstr "Каталог"
 
-#: includes/Admin/Settings.php:604
+#: includes/Admin/Settings.php:607
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Отфильтруйте с помощью agnosis_debug_dir, чтобы перенаправить отладочный "
 "вывод в другое место."
 
-#: includes/Admin/Settings.php:611
+#: includes/Admin/Settings.php:614
 msgid ".txt file(s) in the directory"
 msgstr ".txt файл(ы) в каталоге"
 
-#: includes/Admin/Settings.php:617
+#: includes/Admin/Settings.php:620
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1980,19 +2164,19 @@ msgstr ""
 "Удалить все файлы .txt в каталоге отладки? Сам каталог останется на месте, "
 "чтобы будущие отладочные записи по-прежнему сохранялись корректно."
 
-#: includes/Admin/Settings.php:622
+#: includes/Admin/Settings.php:625
 msgid "Clear Debug Files"
 msgstr "Очистить отладочные файлы"
 
-#: includes/Admin/Settings.php:653
+#: includes/Admin/Settings.php:656
 msgid "Term Translation Cache"
 msgstr "Кэш переводов терминов"
 
-#: includes/Admin/Settings.php:657
+#: includes/Admin/Settings.php:660
 msgid "Cached translations"
 msgstr "Кэшированные переводы"
 
-#: includes/Admin/Settings.php:660
+#: includes/Admin/Settings.php:663
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -2005,7 +2189,7 @@ msgstr ""
 "термина его собственная кэшированная запись уже очищается автоматически; "
 "используйте кнопку ниже только если сам кэшированный перевод неверен."
 
-#: includes/Admin/Settings.php:666
+#: includes/Admin/Settings.php:669
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
@@ -2013,23 +2197,23 @@ msgstr ""
 "Очистить кэш всех переводов терминов? Ничего не будет удалено с вашего сайта "
 "— термины просто будут переведены ИИ заново при следующей необходимости."
 
-#: includes/Admin/Settings.php:671
+#: includes/Admin/Settings.php:674
 msgid "Clear Term Translation Cache"
 msgstr "Очистить кэш переводов терминов"
 
-#: includes/Admin/Settings.php:721
+#: includes/Admin/Settings.php:728
 msgid "Inbox Tools"
 msgstr "Инструменты почтового ящика"
 
-#: includes/Admin/Settings.php:725
+#: includes/Admin/Settings.php:732
 msgid "Test connection"
 msgstr "Проверить соединение"
 
-#: includes/Admin/Settings.php:730
+#: includes/Admin/Settings.php:737
 msgid "Test IMAP Connection"
 msgstr "Проверить IMAP-соединение"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:739
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -2037,15 +2221,15 @@ msgstr ""
 "Подключается к настроенному почтовому ящику и сообщает общее количество "
 "сообщений и количество непрочитанных."
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:743
 msgid "Poll inbox now"
 msgstr "Проверить почтовый ящик сейчас"
 
-#: includes/Admin/Settings.php:741
+#: includes/Admin/Settings.php:748
 msgid "Poll Inbox Now"
 msgstr "Проверить почтовый ящик сейчас"
 
-#: includes/Admin/Settings.php:743
+#: includes/Admin/Settings.php:750
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -2053,15 +2237,15 @@ msgstr ""
 "Немедленно получает непрочитанные сообщения, не дожидаясь WP-Cron. Затем "
 "нажмите «Обработать ожидающую очередь», чтобы запустить ИИ-пайплайн."
 
-#: includes/Admin/Settings.php:747
+#: includes/Admin/Settings.php:754
 msgid "Process queue"
 msgstr "Обработать очередь"
 
-#: includes/Admin/Settings.php:752
+#: includes/Admin/Settings.php:759
 msgid "Process Pending Queue"
 msgstr "Обработать ожидающую очередь"
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:761
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -2070,15 +2254,15 @@ msgstr ""
 "дожидаясь WP-Cron. Используйте это, чтобы проверить полный поток после "
 "проверки почты."
 
-#: includes/Admin/Settings.php:758
+#: includes/Admin/Settings.php:765
 msgid "Force reprocess"
 msgstr "Принудительно повторно обработать"
 
-#: includes/Admin/Settings.php:763
+#: includes/Admin/Settings.php:770
 msgid "Force Reprocess Inbox"
 msgstr "Принудительно повторно обработать почтовый ящик"
 
-#: includes/Admin/Settings.php:765
+#: includes/Admin/Settings.php:772
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -3459,10 +3643,22 @@ msgstr ""
 "лимит ответов. Значение по умолчанию: 1 (т.е. 2 ответа в час на актера)."
 
 #: includes/Admin/SettingsFields.php:940
+msgid "Allow manually trusting non-Agnosis Fediverse actors"
+msgstr "Разрешить ручное доверие не-Agnosis акторов Федиверса"
+
+#: includes/Admin/SettingsFields.php:945
+msgid ""
+"When enabled, the Partner Nodes panel below gains a form to directly add a "
+"trusted third-party Fediverse actor (a curator account, a specific instance) "
+"by pasting its actor and inbox URLs — no self-registration round trip. Leave "
+"this off if you only want to trust other Agnosis instances."
+msgstr "Когда включено, панель Партнёрских узлов ниже получает форму для прямого добавления доверенного стороннего актора Федиверса (акаунт куратора, конкретный экземпляр) путём вставки его URL актора и URL входящих сообщений — без саморегистрации. Оставьте это отключённым, если вы хотите доверять только другим экземплярам Agnosis."
+
+#: includes/Admin/SettingsFields.php:955
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "Запросы на самоудаление (прощание) на одного отправителя в день"
 
-#: includes/Admin/SettingsFields.php:946
+#: includes/Admin/SettingsFields.php:961
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3475,11 +3671,11 @@ msgstr ""
 "писем можно отправить реальному художнику с поддельного или повторяющегося "
 "From. По умолчанию: 3."
 
-#: includes/Admin/SettingsFields.php:950
+#: includes/Admin/SettingsFields.php:965
 msgid "Community broadcasts per artist per day"
 msgstr "Количество общинных рассылок на одного художника в день"
 
-#: includes/Admin/SettingsFields.php:956
+#: includes/Admin/SettingsFields.php:971
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3490,11 +3686,11 @@ msgstr ""
 "один участник заваливал почтовые ящики всех остальных участников. По "
 "умолчанию: 3."
 
-#: includes/Admin/SettingsFields.php:960
+#: includes/Admin/SettingsFields.php:975
 msgid "Community broadcast max length (characters)"
 msgstr "Максимальная длина общинной рассылки (символов)"
 
-#: includes/Admin/SettingsFields.php:967
+#: includes/Admin/SettingsFields.php:982
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3513,11 +3709,11 @@ msgstr ""
 "стоить в вызовах AI-перевода. По умолчанию: 2000. Жёсткий максимум: 20000, "
 "независимо от этой настройки."
 
-#: includes/Admin/SettingsFields.php:998
+#: includes/Admin/SettingsFields.php:1013
 msgid "Admin approval only (disable community voting)"
 msgstr "Только одобрение администратором (отключить голосование сообщества)"
 
-#: includes/Admin/SettingsFields.php:1003
+#: includes/Admin/SettingsFields.php:1018
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3538,11 +3734,11 @@ msgstr ""
 "нового голосования. Отключено по умолчанию — большинству сообществ подходит "
 "существующая система рекомендаций/голосования."
 
-#: includes/Admin/SettingsFields.php:1008
+#: includes/Admin/SettingsFields.php:1023
 msgid "Admission vote threshold (%)"
 msgstr "Порог голосования за приём (%)"
 
-#: includes/Admin/SettingsFields.php:1013
+#: includes/Admin/SettingsFields.php:1028
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3550,22 +3746,22 @@ msgstr ""
 "Процент активных художников, которые должны проголосовать «за» приём. "
 "Учитывается вместе с минимальным порогом ниже."
 
-#: includes/Admin/SettingsFields.php:1017
+#: includes/Admin/SettingsFields.php:1032
 msgid "Admission minimum votes"
 msgstr "Минимум голосов за приём"
 
-#: includes/Admin/SettingsFields.php:1021
+#: includes/Admin/SettingsFields.php:1036
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Абсолютный минимальный уровень положительных голосов, требуемый независимо "
 "от процента выше."
 
-#: includes/Admin/SettingsFields.php:1025
+#: includes/Admin/SettingsFields.php:1040
 msgid "Voting window (days)"
 msgstr "Окно голосования (дни)"
 
-#: includes/Admin/SettingsFields.php:1029
+#: includes/Admin/SettingsFields.php:1044
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3573,11 +3769,11 @@ msgstr ""
 "Сколько дней заявка остаётся открытой. Если порог не достигнут в течение "
 "этого окна, заявка отклоняется."
 
-#: includes/Admin/SettingsFields.php:1033
+#: includes/Admin/SettingsFields.php:1048
 msgid "Resolved application retention (days)"
 msgstr "Срок хранения рассмотренных заявок (дни)"
 
-#: includes/Admin/SettingsFields.php:1039
+#: includes/Admin/SettingsFields.php:1054
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3593,11 +3789,11 @@ msgstr ""
 "анонимизируются по тому же расписанию, но его email намеренно сохраняется, "
 "чтобы бан оставался действующим. По умолчанию: 180 дней."
 
-#: includes/Admin/SettingsFields.php:1043
+#: includes/Admin/SettingsFields.php:1058
 msgid "After applying, send artists to"
 msgstr "После подачи заявки отправлять художников на"
 
-#: includes/Admin/SettingsFields.php:1047
+#: includes/Admin/SettingsFields.php:1062
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3609,11 +3805,11 @@ msgstr ""
 "туда вместо показа встроенного сообщения о подтверждении. Оставьте «Нет», "
 "чтобы показывать только встроенное сообщение."
 
-#: includes/Admin/SettingsFields.php:1051
+#: includes/Admin/SettingsFields.php:1066
 msgid "Community size cap"
 msgstr "Лимит размера сообщества"
 
-#: includes/Admin/SettingsFields.php:1055
+#: includes/Admin/SettingsFields.php:1070
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3624,11 +3820,11 @@ msgstr ""
 "принимает следующего по очереди. Установите 0 для отсутствия лимита. "
 "Сообщество также может проголосовать за изменение этого значения."
 
-#: includes/Admin/SettingsFields.php:1059
+#: includes/Admin/SettingsFields.php:1074
 msgid "Cap-change co-signers required"
 msgstr "Требуемое число со-подписантов для изменения лимита"
 
-#: includes/Admin/SettingsFields.php:1063
+#: includes/Admin/SettingsFields.php:1078
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3637,11 +3833,11 @@ msgstr ""
 "размера сообщества, прежде чем оно будет вынесено на полноценное голосование "
 "сообщества."
 
-#: includes/Admin/SettingsFields.php:1067
+#: includes/Admin/SettingsFields.php:1082
 msgid "Cap-change vote window (days)"
 msgstr "Окно голосования по изменению лимита (дни)"
 
-#: includes/Admin/SettingsFields.php:1071
+#: includes/Admin/SettingsFields.php:1086
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3650,11 +3846,11 @@ msgstr ""
 "Новое значение лимита принимается простым большинством активных художников, "
 "проголосовавших «за»."
 
-#: includes/Admin/SettingsFields.php:1075
+#: includes/Admin/SettingsFields.php:1090
 msgid "Removal nominations required"
 msgstr "Требуемое число номинаций для удаления"
 
-#: includes/Admin/SettingsFields.php:1081
+#: includes/Admin/SettingsFields.php:1096
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3662,11 +3858,11 @@ msgstr ""
 "Количество номинаций художников, необходимых для открытия голосования "
 "сообщества за удаление. Администраторы могут обойти этот порог."
 
-#: includes/Admin/SettingsFields.php:1085
+#: includes/Admin/SettingsFields.php:1100
 msgid "Removal vote window (days)"
 msgstr "Окно голосования за удаление (дни)"
 
-#: includes/Admin/SettingsFields.php:1091
+#: includes/Admin/SettingsFields.php:1106
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3674,11 +3870,11 @@ msgstr ""
 "Сколько дней голосование сообщества за удаление остаётся открытым. Для "
 "удаления должно проголосовать «за» большинство (>50%) активных художников."
 
-#: includes/Admin/SettingsFields.php:1095
+#: includes/Admin/SettingsFields.php:1110
 msgid "Invitation intro"
 msgstr "Вступительное слово для приглашения"
 
-#: includes/Admin/SettingsFields.php:1099
+#: includes/Admin/SettingsFields.php:1114
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3709,7 +3905,7 @@ msgstr ""
 "работы тоже, отправив письмо. Больше информации можно найти на сайте agnosis."
 "art."
 
-#: includes/Admin/SettingsFields.php:1104
+#: includes/Admin/SettingsFields.php:1119
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3726,22 +3922,22 @@ msgstr ""
 "удерживаемый этим узлом с пожертвований и продаж работ. Художники ничего не "
 "платят заранее."
 
-#: includes/Admin/SettingsFields.php:1123
+#: includes/Admin/SettingsFields.php:1138
 msgid "Sender name"
 msgstr "Имя отправителя"
 
-#: includes/Admin/SettingsFields.php:1124
+#: includes/Admin/SettingsFields.php:1139
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "Имя, отображаемое как отправитель сводных писем. Оставьте пустым, чтобы "
 "использовать имя сайта."
 
-#: includes/Admin/SettingsFields.php:1128
+#: includes/Admin/SettingsFields.php:1143
 msgid "Sender email address"
 msgstr "Адрес электронной почты отправителя"
 
-#: includes/Admin/SettingsFields.php:1130
+#: includes/Admin/SettingsFields.php:1145
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3756,11 +3952,11 @@ msgstr ""
 "доступным для доставки адресом в вашем домене (SPF/DKIM настроены), иначе "
 "сообщения могут быть помечены как спам."
 
-#: includes/Admin/SettingsFields.php:1134
+#: includes/Admin/SettingsFields.php:1149
 msgid "Auto-draft newsletter intros"
 msgstr "Автоматически создавать черновик вступления к рассылке"
 
-#: includes/Admin/SettingsFields.php:1139
+#: includes/Admin/SettingsFields.php:1154
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3773,11 +3969,11 @@ msgstr ""
 "вы уже не написали его для этого цикла. Отключите, чтобы оба поля вступления "
 "всегда оставались ровно такими, как вы их оставили."
 
-#: includes/Admin/SettingsFields.php:1143
+#: includes/Admin/SettingsFields.php:1158
 msgid "Draft intro this many hours ahead"
 msgstr "За сколько часов до этого создавать черновик вступления"
 
-#: includes/Admin/SettingsFields.php:1149
+#: includes/Admin/SettingsFields.php:1164
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3786,11 +3982,11 @@ msgstr ""
 "ИИ. Действует только когда включено автосоздание черновиков (см. выше). По "
 "умолчанию: 24."
 
-#: includes/Admin/SettingsFields.php:1153 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1168 includes/Newsletter/Scheduler.php:400
 msgid "Artist newsletter"
 msgstr "Рассылка для художников"
 
-#: includes/Admin/SettingsFields.php:1156
+#: includes/Admin/SettingsFields.php:1171
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3799,11 +3995,11 @@ msgstr ""
 "отписаться от любого выпуска одним кликом). Дайджест сообщества: недавняя "
 "активность, новые участники, открытые голосования."
 
-#: includes/Admin/SettingsFields.php:1160
+#: includes/Admin/SettingsFields.php:1175
 msgid "Artist newsletter frequency (days)"
 msgstr "Частота рассылки для художников (в днях)"
 
-#: includes/Admin/SettingsFields.php:1166
+#: includes/Admin/SettingsFields.php:1181
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -3811,11 +4007,11 @@ msgstr ""
 "По умолчанию 30 ≈ раз в месяц. Новый выпуск готовится, когда с момента "
 "отправки предыдущего проходит столько дней."
 
-#: includes/Admin/SettingsFields.php:1170
+#: includes/Admin/SettingsFields.php:1185
 msgid "Artist newsletter intro"
 msgstr "Вступление к рассылке для художников"
 
-#: includes/Admin/SettingsFields.php:1174
+#: includes/Admin/SettingsFields.php:1189
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3830,11 +4026,11 @@ msgstr ""
 "примерно за день до отправки выпуска и сначала отправит вам письмо для "
 "проверки — чтобы пропустить это, введите здесь свой текст в любое время."
 
-#: includes/Admin/SettingsFields.php:1178 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1193 includes/Newsletter/Scheduler.php:400
 msgid "Public newsletter"
 msgstr "Публичная рассылка"
 
-#: includes/Admin/SettingsFields.php:1181
+#: includes/Admin/SettingsFields.php:1196
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3843,19 +4039,19 @@ msgstr ""
 "подтверждение). Дайджест: новые работы и события, опубликованные с момента "
 "последнего выпуска."
 
-#: includes/Admin/SettingsFields.php:1185
+#: includes/Admin/SettingsFields.php:1200
 msgid "Public newsletter frequency (days)"
 msgstr "Частота публичной рассылки (дней)"
 
-#: includes/Admin/SettingsFields.php:1191
+#: includes/Admin/SettingsFields.php:1206
 msgid "Default 30 ≈ monthly."
 msgstr "По умолчанию 30 ≈ ежемесячно."
 
-#: includes/Admin/SettingsFields.php:1195
+#: includes/Admin/SettingsFields.php:1210
 msgid "Public newsletter intro"
 msgstr "Вступление к публичной рассылке"
 
-#: includes/Admin/SettingsFields.php:1199
+#: includes/Admin/SettingsFields.php:1214
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3869,11 +4065,11 @@ msgstr ""
 "примерно за день до отправки выпуска и сначала отправит вам письмо для "
 "проверки — чтобы пропустить это, введите здесь свой текст в любое время."
 
-#: includes/Admin/SettingsFields.php:1203
+#: includes/Admin/SettingsFields.php:1218
 msgid "Send batch size"
 msgstr "Размер партии отправки"
 
-#: includes/Admin/SettingsFields.php:1209
+#: includes/Admin/SettingsFields.php:1224
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3882,11 +4078,11 @@ msgstr ""
 "cron. Уменьшите это, если ваш хост ограничивает исходящую почту; увеличьте "
 "для более быстрой доставки на хостингах с щедрыми лимитами."
 
-#: includes/Admin/SettingsFields.php:1213
+#: includes/Admin/SettingsFields.php:1228
 msgid "Self-hosting comfort threshold"
 msgstr "Порог комфортной саморазвёртки"
 
-#: includes/Admin/SettingsFields.php:1219
+#: includes/Admin/SettingsFields.php:1234
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -4054,7 +4250,7 @@ msgstr "Заявление"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3380
+#: includes/Network/ActivityPub.php:3899
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s должно быть не более %2$d символов."
@@ -4150,9 +4346,9 @@ msgstr "Спасибо, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
-#: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:4270 includes/Network/ActivityPub.php:4277
-#: includes/Network/ActivityPub.php:4284 includes/Network/ActivityPub.php:4392
+#: includes/Artist/NotificationPreferences.php:367
+#: includes/Network/ActivityPub.php:4789 includes/Network/ActivityPub.php:4796
+#: includes/Network/ActivityPub.php:4803 includes/Network/ActivityPub.php:4911
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Ошибка ссылки"
@@ -4202,8 +4398,8 @@ msgstr "Мы получили вашу заявку в %s"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3946
-#: includes/Network/ActivityPub.php:4065
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4465
+#: includes/Network/ActivityPub.php:4584
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4701,7 +4897,7 @@ msgstr "Нет активного предложения, к которому м
 msgid "Proposal not found."
 msgstr "Предложение не найдено."
 
-#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:613
+#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:630
 msgid "This vote is not currently open."
 msgstr "Это голосование сейчас не открыто."
 
@@ -4721,7 +4917,7 @@ msgstr ""
 "Спам, мошенничество или нежелательная коммерческая реклама, не связанная с "
 "реальным обращением к художнику по поводу его работ"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:3593
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4112
 msgid "Flagged by automatic content review."
 msgstr "Помечено автоматической проверкой содержимого."
 
@@ -4756,12 +4952,12 @@ msgid "Reply (translated automatically)"
 msgstr "Ответ (переведено автоматически)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4153 includes/Network/ActivityPub.php:4269
-#: includes/Network/ActivityPub.php:4391
+#: includes/Network/ActivityPub.php:4672 includes/Network/ActivityPub.php:4788
+#: includes/Network/ActivityPub.php:4910
 msgid "This link is invalid or has already expired."
 msgstr "Эта ссылка недействительна или уже истекла."
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4158
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4677
 msgid "This link has expired."
 msgstr "Эта ссылка истекла."
 
@@ -4769,15 +4965,15 @@ msgstr "Эта ссылка истекла."
 msgid "This conversation no longer exists."
 msgstr "Этот разговор больше не существует."
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4326
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4845
 msgid "Original"
 msgstr "Оригинал"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4332
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4851
 msgid "Translated"
 msgstr "Переведено"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4335
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4854
 msgid "Translation pending…"
 msgstr "Перевод в ожидании…"
 
@@ -4797,8 +4993,8 @@ msgstr "Ответить на этот разговор"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "Ваш ответ (он будет переведен автоматически, если потребуется)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3012
-#: includes/Network/ActivityPub.php:3079
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3531
+#: includes/Network/ActivityPub.php:3598
 msgid "Send reply"
 msgstr "Отправить ответ"
 
@@ -4844,7 +5040,7 @@ msgid "Original message, as written"
 msgstr "Оригинальное сообщение, как было написано"
 
 #: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:449
-#: includes/Network/ActivityPub.php:3025
+#: includes/Network/ActivityPub.php:3544
 msgid "Reply"
 msgstr "Ответить"
 
@@ -5005,12 +5201,12 @@ msgstr "Восстановить более раннее фото"
 msgid "Restoring…"
 msgstr "Восстановление…"
 
-#: includes/Artist/Departure.php:111
+#: includes/Artist/Departure.php:124
 msgid "You have left"
 msgstr "Вы покинули проект"
 
 #. translators: %s: site name
-#: includes/Artist/Departure.php:114
+#: includes/Artist/Departure.php:127
 #, php-format
 msgid ""
 "Your account and everything you published on %s have been permanently "
@@ -5019,11 +5215,11 @@ msgstr ""
 "Ваша учётная запись и всё, что вы опубликовали на %s, были навсегда удалены. "
 "Здесь больше не хранится ничего, что связано с вами."
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:327
+#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:327
 msgid "Link expired or already used"
 msgstr "Ссылка истекла или уже использована"
 
-#: includes/Artist/Departure.php:122
+#: includes/Artist/Departure.php:135
 msgid ""
 "This confirmation link has already been used or is no longer valid. If you "
 "still want to leave, please request removal again from your account."
@@ -5032,28 +5228,28 @@ msgstr ""
 "недействительна. Если вы всё ещё хотите уйти, пожалуйста, снова запросите "
 "удаление в своей учётной записи."
 
-#: includes/Artist/Departure.php:186
+#: includes/Artist/Departure.php:199
 #: includes/Publishing/SubmissionsPage.php:163
 msgid "You must be logged in."
 msgstr "Вы должны войти в систему."
 
-#: includes/Artist/Departure.php:190
+#: includes/Artist/Departure.php:203
 msgid "Artist access required."
 msgstr "Требуется доступ художника."
 
-#: includes/Artist/Departure.php:214
+#: includes/Artist/Departure.php:227
 msgid "No active membership found for this account."
 msgstr "Для этой учётной записи не найдено активного членства."
 
-#: includes/Artist/Departure.php:486
+#: includes/Artist/Departure.php:503
 msgid "You cannot nominate yourself for removal."
 msgstr "Вы не можете подать заявку на удаление сами себе."
 
-#: includes/Artist/Departure.php:496
+#: includes/Artist/Departure.php:513
 msgid "Artist not found."
 msgstr "Художник не найден."
 
-#: includes/Artist/Departure.php:528
+#: includes/Artist/Departure.php:545
 msgid ""
 "Community voting is disabled on this site. Contact an admin to request "
 "removal review."
@@ -5061,11 +5257,11 @@ msgstr ""
 "На этом сайте голосование сообщества отключено. Для запроса рассмотрения "
 "удаления обратитесь к администратору."
 
-#: includes/Artist/Departure.php:609
+#: includes/Artist/Departure.php:626
 msgid "Removal request not found."
 msgstr "Запрос на удаление не найден."
 
-#: includes/Artist/Departure.php:617
+#: includes/Artist/Departure.php:634
 msgid "You cannot vote on your own removal."
 msgstr "Вы не можете голосовать за своё собственное удаление."
 
@@ -5278,7 +5474,7 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr "Пожалуйста, введите действительный адрес электронной почты."
 
-#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:147
+#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:161
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
@@ -5292,7 +5488,7 @@ msgid "You're invited to join %s"
 msgstr "Вас приглашают присоединиться к %s"
 
 #. translators: %s: the actual (non-test) subject line
-#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:140
+#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:154
 #, php-format
 msgid "[TEST] %s"
 msgstr "[ТЕСТ] %s"
@@ -5373,46 +5569,46 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "Пожалуйста, заполните все обязательные поля."
 
-#: includes/Artist/NotificationPreferences.php:144
+#: includes/Artist/NotificationPreferences.php:165
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "Эта ссылка на настройки недействительна или была изменена."
 
-#: includes/Artist/NotificationPreferences.php:150
+#: includes/Artist/NotificationPreferences.php:171
 msgid "This preferences link is no longer valid for this account."
 msgstr "Эта ссылка на настройки больше не действительна для этого аккаунта."
 
-#: includes/Artist/NotificationPreferences.php:279
-#: includes/Artist/NotificationPreferences.php:299
+#: includes/Artist/NotificationPreferences.php:312
+#: includes/Artist/NotificationPreferences.php:334
 msgid "Notification preferences"
 msgstr "Настройки уведомлений"
 
-#: includes/Artist/NotificationPreferences.php:284
+#: includes/Artist/NotificationPreferences.php:317
 msgid "Mute community broadcast messages from other artists."
 msgstr "Отключить массовые сообщения сообщества от других художников."
 
-#: includes/Artist/NotificationPreferences.php:285
+#: includes/Artist/NotificationPreferences.php:318
 msgid "Application vote emails"
 msgstr "Письма с голосованием по заявкам"
 
-#: includes/Artist/NotificationPreferences.php:287
+#: includes/Artist/NotificationPreferences.php:320
 msgid "Instantly, one email per application (default)."
 msgstr "Сразу, по одному письму на каждую заявку (по умолчанию)."
 
-#: includes/Artist/NotificationPreferences.php:289
+#: includes/Artist/NotificationPreferences.php:322
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr ""
 "Раз в день — одно сводное письмо со всеми заявками, которые всё ещё ожидают "
 "моего голоса."
 
-#: includes/Artist/NotificationPreferences.php:291
+#: includes/Artist/NotificationPreferences.php:324
 msgid ""
 "Turn off the contact form on my page — visitors won't be able to message me."
 msgstr ""
 "Отключить контактную форму на моей странице — посетители не смогут мне "
 "написать."
 
-#: includes/Artist/NotificationPreferences.php:293
+#: includes/Artist/NotificationPreferences.php:326
 msgid ""
 "Turn off federated replies on my artworks entirely — no new reply will be "
 "accepted from the Fediverse (this doesn't affect replies already showing)."
@@ -5421,7 +5617,7 @@ msgstr ""
 "новые ответы не будут приниматься из федерального универсума (это не "
 "повлияет на уже отображаемые ответы)."
 
-#: includes/Artist/NotificationPreferences.php:295
+#: includes/Artist/NotificationPreferences.php:328
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just one piece."
@@ -5430,43 +5626,49 @@ msgstr ""
 "это относится ко всему моему профилю и всему, что я публикую здесь, а не "
 "только к одному произведению."
 
-#: includes/Artist/NotificationPreferences.php:296
+#: includes/Artist/NotificationPreferences.php:330
+msgid ""
+"Turn off the personal \"likes and boosts on your work\" line in your "
+"newsletter digest."
+msgstr "Выключить личную линию \"лайки и увеличения на вашу работу\" в вашем дайджесте новостей."
+
+#: includes/Artist/NotificationPreferences.php:331
 msgid "Save preferences"
 msgstr "Сохранить настройки"
 
-#: includes/Artist/NotificationPreferences.php:309
+#: includes/Artist/NotificationPreferences.php:344
 msgid "Community broadcasts are now muted."
 msgstr "Массовые сообщения сообщества теперь отключены."
 
-#: includes/Artist/NotificationPreferences.php:310
+#: includes/Artist/NotificationPreferences.php:345
 msgid "You'll continue to receive community broadcasts."
 msgstr "Вы продолжите получать массовые сообщения сообщества."
 
-#: includes/Artist/NotificationPreferences.php:312
+#: includes/Artist/NotificationPreferences.php:347
 msgid "You'll receive one daily digest of applications awaiting your vote."
 msgstr ""
 "Вы будете получать одно ежедневное сводное письмо с заявками, ожидающими "
 "вашего голоса."
 
-#: includes/Artist/NotificationPreferences.php:313
+#: includes/Artist/NotificationPreferences.php:348
 msgid "You'll receive an email as soon as each new application arrives."
 msgstr "Вы будете получать письмо сразу после поступления каждой новой заявки."
 
-#: includes/Artist/NotificationPreferences.php:315
+#: includes/Artist/NotificationPreferences.php:350
 msgid "The contact form on your page is now turned off."
 msgstr "Контактная форма на вашей странице теперь отключена."
 
-#: includes/Artist/NotificationPreferences.php:316
+#: includes/Artist/NotificationPreferences.php:351
 msgid "Visitors can still reach you through the contact form on your page."
 msgstr ""
 "Посетители по-прежнему могут связаться с вами через контактную форму на "
 "вашей странице."
 
-#: includes/Artist/NotificationPreferences.php:318
+#: includes/Artist/NotificationPreferences.php:353
 msgid "Federated replies on your artworks are now turned off."
 msgstr "Федеративные ответы на ваши произведения искусства теперь отключены."
 
-#: includes/Artist/NotificationPreferences.php:319
+#: includes/Artist/NotificationPreferences.php:354
 msgid ""
 "You'll continue to receive federated replies (and their notification emails) "
 "on your artworks."
@@ -5474,7 +5676,7 @@ msgstr ""
 "Вы по-прежнему будете получать федеративные ответы (и их уведомляющие "
 "письма) на ваши произведения искусства."
 
-#: includes/Artist/NotificationPreferences.php:321
+#: includes/Artist/NotificationPreferences.php:356
 msgid ""
 "Search engines and Fediverse discovery services will no longer be told to "
 "index your profile or your work."
@@ -5482,7 +5684,7 @@ msgstr ""
 "Поисковым системам и службам обнаружения Fediverse больше не будет "
 "сообщаться об индексации вашего профиля или вашей работы."
 
-#: includes/Artist/NotificationPreferences.php:322
+#: includes/Artist/NotificationPreferences.php:357
 msgid ""
 "Search engines and Fediverse discovery services may continue indexing your "
 "profile and your work."
@@ -5490,7 +5692,17 @@ msgstr ""
 "Поисковые системы и службы обнаружения Fediverse могут продолжать индексацию "
 "вашего профиля и вашей работы."
 
-#: includes/Artist/NotificationPreferences.php:325
+#: includes/Artist/NotificationPreferences.php:359
+msgid "The personal likes/boosts line is now off in your newsletter digest."
+msgstr "Строка личных лайков/поддержки теперь отключена в вашем дайджесте новостей."
+
+#: includes/Artist/NotificationPreferences.php:360
+msgid ""
+"You'll continue to see a personal likes/boosts line in your newsletter "
+"digest."
+msgstr "Вы по-прежнему будете видеть строку личных лайков/поддержки в вашем дайджесте новостей."
+
+#: includes/Artist/NotificationPreferences.php:363
 msgid "Preferences saved"
 msgstr "Настройки сохранены"
 
@@ -5818,7 +6030,7 @@ msgstr[0] "Пока учтён %d положительный голос."
 msgstr[1] "Пока учтено %d положительных голосов."
 msgstr[2] "Пока учтено %d положительных голосов."
 
-#: includes/Compat/LinguaForge.php:1784
+#: includes/Compat/LinguaForge.php:1844
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -5828,19 +6040,19 @@ msgstr ""
 "этого термина. Отредактируйте название, чтобы указать правильный перевод, "
 "затем удалите это примечание."
 
-#: includes/Compat/LinguaForge.php:3546
+#: includes/Compat/LinguaForge.php:3714
 msgid "is active and configured for"
 msgstr "активен и настроен для"
 
-#: includes/Compat/LinguaForge.php:3547
+#: includes/Compat/LinguaForge.php:3715
 msgid "Subdomain"
 msgstr "Поддомен"
 
-#: includes/Compat/LinguaForge.php:3548
+#: includes/Compat/LinguaForge.php:3716
 msgid "routing mode"
 msgstr "режим маршрутизации"
 
-#: includes/Compat/LinguaForge.php:3550
+#: includes/Compat/LinguaForge.php:3718
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5848,39 +6060,39 @@ msgstr ""
 "Это конфликтует с поддоменами художников Agnosis — оба плагина будут "
 "претендовать на одно и то же пространство поддоменов."
 
-#: includes/Compat/LinguaForge.php:3551
+#: includes/Compat/LinguaForge.php:3719
 msgid "Artist subdomain routing is"
 msgstr "Маршрутизация поддоменов художников"
 
-#: includes/Compat/LinguaForge.php:3552
+#: includes/Compat/LinguaForge.php:3720
 msgid "completely inactive"
 msgstr "полностью неактивна"
 
-#: includes/Compat/LinguaForge.php:3553
+#: includes/Compat/LinguaForge.php:3721
 msgid "until this is resolved."
 msgstr "пока это не будет решено."
 
-#: includes/Compat/LinguaForge.php:3555
+#: includes/Compat/LinguaForge.php:3723
 msgid "Fix: open"
 msgstr "Исправление: откройте"
 
-#: includes/Compat/LinguaForge.php:3556
+#: includes/Compat/LinguaForge.php:3724
 msgid "Settings"
 msgstr "Настройки"
 
-#: includes/Compat/LinguaForge.php:3556
+#: includes/Compat/LinguaForge.php:3724
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:3557
+#: includes/Compat/LinguaForge.php:3725
 msgid "and switch the URL strategy to"
 msgstr "и переключите стратегию URL на"
 
-#: includes/Compat/LinguaForge.php:3558
+#: includes/Compat/LinguaForge.php:3726
 msgid "Path prefix (subfolder)"
 msgstr "Префикс пути (подпапка)"
 
-#: includes/Compat/LinguaForge.php:3559
+#: includes/Compat/LinguaForge.php:3727
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5888,23 +6100,23 @@ msgstr ""
 "Это значение по умолчанию в LinguaForge и позволяет поддоменам художников "
 "сосуществовать с языковыми подпапками"
 
-#: includes/Compat/LinguaForge.php:3564
+#: includes/Compat/LinguaForge.php:3732
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — маршрутизация поддоменов художников отключена"
 
-#: includes/Compat/LinguaForge.php:3574
+#: includes/Compat/LinguaForge.php:3742
 msgid "Open LinguaForge Settings"
 msgstr "Открыть настройки LinguaForge"
 
-#: includes/Core/Activator.php:1055 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1164 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Художник Agnosis"
 
-#: includes/Core/Activator.php:1184 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1293 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "Мои материалы"
 
-#: includes/Core/Activator.php:1374
+#: includes/Core/Activator.php:1483
 msgid "Join"
 msgstr "Присоединиться"
 
@@ -6408,7 +6620,7 @@ msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1064 includes/Network/ActivityPub.php:1081
+#: includes/Network/ActivityPub.php:1112 includes/Network/ActivityPub.php:1129
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6417,17 +6629,17 @@ msgstr[1] "♥ %d лайк"
 msgstr[2] "♥ %d лайк"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1066
+#: includes/Network/ActivityPub.php:1114
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d лайков"
 
-#: includes/Network/ActivityPub.php:1067
+#: includes/Network/ActivityPub.php:1115
 msgid "Could not update like."
 msgstr "Не удалось обновить лайк."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1091
+#: includes/Network/ActivityPub.php:1139
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
@@ -6435,54 +6647,95 @@ msgstr[0] "⟲ %d буст"
 msgstr[1] "⟲ %d буст"
 msgstr[2] "⟲ %d буст"
 
-#: includes/Network/ActivityPub.php:2019
+#: includes/Network/ActivityPub.php:2067
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2184
+#: includes/Network/ActivityPub.php:2232
 #, php-format
 msgid "Also available in: %s"
 msgstr "Также доступно на: %s"
 
-#: includes/Network/ActivityPub.php:2582
+#: includes/Network/ActivityPub.php:2975
 msgid "No such artwork."
 msgstr "Такое произведение не найдено."
 
-#: includes/Network/ActivityPub.php:2983
+#: includes/Network/ActivityPub.php:3381
+msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
+msgstr "Введите домен вашей инстанции Fediverse (например, mastodon.social)."
+
+#: includes/Network/ActivityPub.php:3382
+msgid "Copied!"
+msgstr "Скопировано!"
+
+#: includes/Network/ActivityPub.php:3398 includes/Network/ActivityPub.php:3441
+#: blocks/follow-overlay/editor.js:21
+msgid "Follow"
+msgstr "Следить"
+
+#: includes/Network/ActivityPub.php:3415
+msgid ""
+"This artist publishes to the Fediverse — the open, decentralized social "
+"network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
+"them from your own account on any of those, no Agnosis account needed."
+msgstr "Этот артист публикует в Fediverse — открытая, децентрализованная социальная сеть, стоящая за Mastodon, Pixelfed и другими приложениями на базе ActivityPub. Следите за ним из своего аккаунта на любой из этих платформ, учетная запись Agnosis не требуется."
+
+#: includes/Network/ActivityPub.php:3418
+msgid "Their handle:"
+msgstr "Его ник:"
+
+#: includes/Network/ActivityPub.php:3422
+msgid "Copy"
+msgstr "Копировать"
+
+#: includes/Network/ActivityPub.php:3425
+msgid ""
+"Paste it into the search bar of your own Fediverse app to follow directly."
+msgstr "Вставьте это в строку поиска вашего собственного приложения Fediverse, чтобы подписаться напрямую."
+
+#: includes/Network/ActivityPub.php:3429
+msgid "Or enter your instance to follow with one click:"
+msgstr "Или введите вашу инстанцию, чтобы подписаться одним нажатием:"
+
+#: includes/Network/ActivityPub.php:3436
+msgid "yourinstance.social"
+msgstr "вашаинстанция.social"
+
+#: includes/Network/ActivityPub.php:3502
 msgid "0 replies"
 msgstr "0 ответов"
 
-#: includes/Network/ActivityPub.php:3004
+#: includes/Network/ActivityPub.php:3523
 msgid "Loading replies…"
 msgstr "Загрузка ответов..."
 
-#: includes/Network/ActivityPub.php:3005
+#: includes/Network/ActivityPub.php:3524
 msgid "Could not load replies."
 msgstr "Не удалось загрузить ответы."
 
-#: includes/Network/ActivityPub.php:3007 includes/Network/ActivityPub.php:3449
+#: includes/Network/ActivityPub.php:3526 includes/Network/ActivityPub.php:3968
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Спасибо — ваш ответ был отправлен и ожидает одобрения."
 
-#: includes/Network/ActivityPub.php:3008
+#: includes/Network/ActivityPub.php:3527
 msgid "Could not send your reply. Please try again."
 msgstr "Не удалось отправить ваш ответ. Пожалуйста, попробуйте снова."
 
-#: includes/Network/ActivityPub.php:3009 includes/Network/ActivityPub.php:3075
+#: includes/Network/ActivityPub.php:3528 includes/Network/ActivityPub.php:3594
 msgid "Name (optional)"
 msgstr "Имя (необязательно)"
 
-#: includes/Network/ActivityPub.php:3010 includes/Network/ActivityPub.php:3076
+#: includes/Network/ActivityPub.php:3529 includes/Network/ActivityPub.php:3595
 msgid "Your email"
 msgstr "Ваш email"
 
-#: includes/Network/ActivityPub.php:3011 includes/Network/ActivityPub.php:3073
+#: includes/Network/ActivityPub.php:3530 includes/Network/ActivityPub.php:3592
 msgid "Write a reply…"
 msgstr "Написать ответ…"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3022
+#: includes/Network/ActivityPub.php:3541
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
@@ -6490,11 +6743,11 @@ msgstr[0] "%d ответ"
 msgstr[1] "%d ответа"
 msgstr[2] "%d ответов"
 
-#: includes/Network/ActivityPub.php:3519
+#: includes/Network/ActivityPub.php:4038
 msgid "Replies aren't open on this artwork right now."
 msgstr "Ответы на это произведение сейчас недоступны."
 
-#: includes/Network/ActivityPub.php:3587
+#: includes/Network/ActivityPub.php:4106
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6503,20 +6756,20 @@ msgstr ""
 "искренним взаимодействием с художником по поводу его работы"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3919
+#: includes/Network/ActivityPub.php:4438
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Новый ответ на \"%s\""
 
-#: includes/Network/ActivityPub.php:3930
+#: includes/Network/ActivityPub.php:4449
 msgid "Someone left a reply on your artwork:"
 msgstr "Кто-то оставил ответ на ваше произведение:"
 
-#: includes/Network/ActivityPub.php:3931
+#: includes/Network/ActivityPub.php:4450
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Кто-то ответил на ваше произведение из Федиверса:"
 
-#: includes/Network/ActivityPub.php:3958
+#: includes/Network/ActivityPub.php:4477
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6524,13 +6777,13 @@ msgstr ""
 "Он удерживается до тех пор, пока вы не одобрите или не отклоните его — вы "
 "также можете написать свой собственный ответ с той же страницы."
 
-#: includes/Network/ActivityPub.php:3962 includes/Network/ActivityPub.php:4361
-#: includes/Network/ActivityPub.php:4373
+#: includes/Network/ActivityPub.php:4481 includes/Network/ActivityPub.php:4880
+#: includes/Network/ActivityPub.php:4892
 msgid "Review this reply"
 msgstr "Просмотреть этот ответ"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:3970
+#: includes/Network/ActivityPub.php:4489
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6539,12 +6792,12 @@ msgstr[1] "Срок действия этой ссылки истекает че
 msgstr[2] "Срок действия этой ссылки истекает через %d день."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4055
+#: includes/Network/ActivityPub.php:4574
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr "Ответ на \"%s\" пришёл на языке, который мы не смогли идентифицировать"
 
-#: includes/Network/ActivityPub.php:4071
+#: includes/Network/ActivityPub.php:4590
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6555,7 +6808,7 @@ msgstr ""
 "поэтому мы не можем предложить перевод или обычную страницу ответа/одобрения "
 "для него."
 
-#: includes/Network/ActivityPub.php:4077
+#: includes/Network/ActivityPub.php:4596
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6565,44 +6818,44 @@ msgstr ""
 "вы хотите с этим что-то сделать, вы можете сделать это из своей панели "
 "управления WordPress."
 
-#: includes/Network/ActivityPub.php:4188
+#: includes/Network/ActivityPub.php:4707
 msgid "Fediverse replies"
 msgstr "Ответы из Федиверса"
 
-#: includes/Network/ActivityPub.php:4189
+#: includes/Network/ActivityPub.php:4708
 msgid "Site replies"
 msgstr "Ответы сайта"
 
-#: includes/Network/ActivityPub.php:4283
+#: includes/Network/ActivityPub.php:4802
 msgid "This reply no longer exists."
 msgstr "Этот ответ больше не существует."
 
-#: includes/Network/ActivityPub.php:4340
+#: includes/Network/ActivityPub.php:4859
 msgid "Also post my reply to the Fediverse."
 msgstr "Также опубликовать мой ответ в Федиверсе."
 
-#: includes/Network/ActivityPub.php:4367
+#: includes/Network/ActivityPub.php:4886
 msgid "Write your own reply (optional)"
 msgstr "Написать свой собственный ответ (необязательно)"
 
-#: includes/Network/ActivityPub.php:4399
+#: includes/Network/ActivityPub.php:4918
 msgid "Reply approved — it now appears on your artwork."
 msgstr ""
 "Ответ одобрен — он теперь отображается на вашем произведении искусства."
 
-#: includes/Network/ActivityPub.php:4402
+#: includes/Network/ActivityPub.php:4921
 msgid "Reply rejected — it will not be shown."
 msgstr "Ответ отклонен — он не будет показан."
 
-#: includes/Network/ActivityPub.php:4413
+#: includes/Network/ActivityPub.php:4932
 msgid "Your reply has been posted."
 msgstr "Ваш ответ был опубликован."
 
-#: includes/Network/ActivityPub.php:4416
+#: includes/Network/ActivityPub.php:4935
 msgid "Reply moderated"
 msgstr "Ответ модерации"
 
-#: includes/Network/ActivityPub.php:4442
+#: includes/Network/ActivityPub.php:4961
 msgid "No such reply."
 msgstr "Нет такого ответа."
 
@@ -6712,13 +6965,25 @@ msgstr "Заголовок Content-Digest не содержит значения
 msgid "Content-Digest header does not match the request body."
 msgstr "Заголовок Content-Digest не соответствует телу запроса."
 
-#: includes/Network/Node.php:116
+#: includes/Network/Node.php:130
 msgid "Node URL is required."
 msgstr "Требуется URL узла."
 
-#: includes/Network/Node.php:120
+#: includes/Network/Node.php:134
 msgid "A public key is required to register a peer."
 msgstr "Для регистрации узла требуется открытый ключ."
+
+#: includes/Network/Node.php:241
+msgid "Could not reach this peer's node-discovery endpoint."
+msgstr "Не удалось добраться до конечной точки обнаружения узла этого партнёра."
+
+#: includes/Network/Node.php:313
+msgid "Could not reach this peer's own peer list."
+msgstr "Не удалось добраться до списка партнёров этого узла."
+
+#: includes/Network/Node.php:320
+msgid "This peer's peer list response was not in the expected format."
+msgstr "Ответ списка партнёров этого узла не соответствует ожидаемому формату."
 
 #. translators: %s: artist display name
 #: includes/Network/SubdomainNavigation.php:458
@@ -6745,6 +7010,18 @@ msgstr "Связаться"
 #, php-format
 msgid "View this in %s"
 msgstr "Просмотреть на %s"
+
+#. translators: 1: current year, 2: artist name, 3: Fediverse handle (already includes an "@").
+#: includes/Network/SubdomainNavigation.php:802
+#, php-format
+msgid "© %1$s %2$s (@%3$s)"
+msgstr "© %1$s %2$s (@%3$s)"
+
+#. translators: 1: current year, 2: Fediverse handle (already includes an "@").
+#: includes/Network/SubdomainNavigation.php:811
+#, php-format
+msgid "© %1$s Agnosis (@%2$s)"
+msgstr "© %1$s Agnosis (@%2$s)"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."
@@ -6794,7 +7071,7 @@ msgstr "%1$s Newsletter — %2$s"
 msgid "%s Newsletter"
 msgstr "Newsletter %s"
 
-#: includes/Newsletter/Digest.php:49
+#: includes/Newsletter/Digest.php:62
 msgid ""
 "Nothing new to report this time — but the community is still here, and the "
 "next issue will have more."
@@ -6802,16 +7079,16 @@ msgstr ""
 "На этот раз сообщить особо нечего — но сообщество всё ещё здесь, и в "
 "следующем выпуске будет больше."
 
-#: includes/Newsletter/Digest.php:56
+#: includes/Newsletter/Digest.php:69
 msgid "New artwork"
 msgstr "Новые работы"
 
-#: includes/Newsletter/Digest.php:64
+#: includes/Newsletter/Digest.php:77
 msgid "Upcoming events"
 msgstr "Предстоящие события"
 
 #. translators: %d: number of new artworks published
-#: includes/Newsletter/Digest.php:89
+#: includes/Newsletter/Digest.php:103
 #, php-format
 msgid "%d new artwork published"
 msgid_plural "%d new artworks published"
@@ -6820,7 +7097,7 @@ msgstr[1] "Опубликовано %d новых работ"
 msgstr[2] "Опубликовано %d новых работ"
 
 #. translators: %d: number of new events announced
-#: includes/Newsletter/Digest.php:94
+#: includes/Newsletter/Digest.php:108
 #, php-format
 msgid "%d new event announced"
 msgid_plural "%d new events announced"
@@ -6829,7 +7106,7 @@ msgstr[1] "Анонсировано %d новых событий"
 msgstr[2] "Анонсировано %d новых событий"
 
 #. translators: %s: comma-separated list of new members' display names
-#: includes/Newsletter/Digest.php:101
+#: includes/Newsletter/Digest.php:115
 #, php-format
 msgid "Welcome to our newest member: %s"
 msgid_plural "Welcome to our newest members: %s"
@@ -6838,7 +7115,7 @@ msgstr[1] "Добро пожаловать нашим новым участни�
 msgstr[2] "Добро пожаловать нашим новым участникам: %s"
 
 #. translators: %d: number of open community votes
-#: includes/Newsletter/Digest.php:109
+#: includes/Newsletter/Digest.php:123
 #, php-format
 msgid ""
 "%d community vote is open — check your email for your personal voting link."
@@ -6855,12 +7132,48 @@ msgstr[2] ""
 "Открыто %d голосование сообщества — проверьте свою почту, чтобы перейти по "
 "персональной ссылке для голосования."
 
-#: includes/Newsletter/Digest.php:117
+#. translators: %d: number of pieces relayed across the rhizome
+#: includes/Newsletter/Digest.php:137
+#, php-format
+msgid "%d piece relayed across the rhizome."
+msgid_plural "%d pieces relayed across the rhizome."
+msgstr[0] "%d произведение, переданное по ризоме."
+msgstr[1] "%d произведение, переданное по ризоме."
+msgstr[2] "%d произведение, переданное по ризоме."
+
+#. translators: %d: number of trusted partner nodes that relayed activity
+#: includes/Newsletter/Digest.php:142
+#, php-format
+msgid "From %d trusted partner node."
+msgid_plural "From %d trusted partner nodes."
+msgstr[0] "От %d доверенного партнёрского узла."
+msgstr[1] "От %d доверенных партнёрских узлов."
+msgstr[2] "От %d доверенных партнёрских узлов."
+
+#: includes/Newsletter/Digest.php:157
 msgid "Recent work from the community"
 msgstr "Недавние работы сообщества"
 
+#. translators: %d: number of likes received on the recipient's own work
+#: includes/Newsletter/Digest.php:244
+#, php-format
+msgid "%d like on your work since your last digest."
+msgid_plural "%d likes on your work since your last digest."
+msgstr[0] "%d лайк(ов) на вашу работу с момента последнего дайджеста."
+msgstr[1] "%d лайк на вашу работу с тех пор, как вы получили последний дайджест."
+msgstr[2] "%d лайка на вашу работу с тех пор, как вы получили последний дайджест."
+
+#. translators: %d: number of boosts received on the recipient's own work
+#: includes/Newsletter/Digest.php:251
+#, php-format
+msgid "%d boost on your work since your last digest."
+msgid_plural "%d boosts on your work since your last digest."
+msgstr[0] "%d буст на вашу работу с тех пор, как вы получили последний дайджест."
+msgstr[1] "%d буста на вашу работу с тех пор, как вы получили последний дайджест."
+msgstr[2] "%d бустов на вашу работу с тех пор, как вы получили последний дайджест."
+
 #. translators: %d: number of additional items not individually listed
-#: includes/Newsletter/Digest.php:317
+#: includes/Newsletter/Digest.php:418
 #, php-format
 msgid "…and %d more."
 msgid_plural "…and %d more."
@@ -7000,7 +7313,7 @@ msgstr ""
 "Пожалуйста, введите действительный адрес электронной почты, чтобы отправить "
 "тестовое письмо."
 
-#: includes/Newsletter/Scheduler.php:123
+#: includes/Newsletter/Scheduler.php:137
 msgid ""
 "This is a TEST send — it previews the next issue using the current draft "
 "intro and recent activity. It was not counted as a real send and no "
@@ -7013,7 +7326,7 @@ msgstr ""
 "Ссылка для отписки ниже — нерабочая заглушка."
 
 #. translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name
-#: includes/Newsletter/Scheduler.php:391
+#: includes/Newsletter/Scheduler.php:405
 #, php-format
 msgid ""
 "The %1$s at %2$s is due to send in about a day. Agnosis drafted an intro "
@@ -7022,7 +7335,7 @@ msgstr ""
 "%1$s в %2$s будет отправлен примерно через день. Agnosis подготовил "
 "вступление на основе того, что появилось нового с прошлого выпуска:"
 
-#: includes/Newsletter/Scheduler.php:396
+#: includes/Newsletter/Scheduler.php:410
 msgid ""
 "It's already saved and will be used as-is if you don't act — review it, "
 "rewrite it, or clear it back to blank here:"
@@ -7031,7 +7344,7 @@ msgstr ""
 "просмотрите его, перепишите или очистите здесь до пустого состояния:"
 
 #. translators: 1: newsletter label, 2: site name
-#: includes/Newsletter/Scheduler.php:403
+#: includes/Newsletter/Scheduler.php:417
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "Для %2$s подготовлено вступление для %1$s — проверьте перед отправкой"
@@ -8544,6 +8857,10 @@ msgstr ""
 msgid "3 replies"
 msgstr "3 ответа"
 
+#: blocks/site-copyright/editor.js:21
+msgid "© 2026 Agnosis (@agnosis@agnosis.art)"
+msgstr "© 2026 Agnosis (@agnosis@agnosis.art)"
+
 #: blocks/artist-breadcrumb/block.json
 msgctxt "block title"
 msgid "Artist Breadcrumb"
@@ -8577,9 +8894,10 @@ msgstr "поддомен"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
 #: blocks/artwork-copyright/block.json blocks/breadcrumb-icon-link/block.json
-#: blocks/contact-form/block.json blocks/interaction-counts/block.json
-#: blocks/join/block.json blocks/newsletter-popover/block.json
-#: blocks/newsletter-signup/block.json blocks/reply-overlay/block.json
+#: blocks/contact-form/block.json blocks/follow-overlay/block.json
+#: blocks/interaction-counts/block.json blocks/join/block.json
+#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
+#: blocks/reply-overlay/block.json blocks/site-copyright/block.json
 #: blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
@@ -8616,7 +8934,7 @@ msgstr ""
 "имя — из его автора. Для записи, не относящейся к произведению, ничего не "
 "выводит."
 
-#: blocks/artwork-copyright/block.json
+#: blocks/artwork-copyright/block.json blocks/site-copyright/block.json
 msgctxt "block keyword"
 msgid "copyright"
 msgstr "авторские права"
@@ -8704,6 +9022,42 @@ msgctxt "block keyword"
 msgid "email"
 msgstr "электронная почта"
 
+#: blocks/follow-overlay/block.json
+msgctxt "block title"
+msgid "Follow Overlay"
+msgstr "Подписаться на Overlay"
+
+#: blocks/follow-overlay/block.json
+msgctxt "block description"
+msgid ""
+"Trigger next to the reply button that opens a popover explaining the "
+"Fediverse/ActivityPub, showing this artwork's artist's copyable @handle, and "
+"a remote-follow form that redirects a visitor to their own instance's "
+"authorize_interaction screen. Renders nothing off an agnosis_artwork post, "
+"or when its author no longer resolves to a real artist actor."
+msgstr "Элемент, расположенный рядом с кнопкой ответа, открывающий всплывающее окно с объяснением Fediverse/ActivityPub, показывающее копируемый @handle художника данного произведения и форму удаленной подписки, которая перенаправляет посетителя на экран авторизации взаимодействия своего экземпляра. Ничего не отображает с поста agnosis_artwork или когда его автор больше не соответствует реальному действующему лицу художника."
+
+#: blocks/follow-overlay/block.json
+msgctxt "block keyword"
+msgid "follow"
+msgstr "подписаться"
+
+#: blocks/follow-overlay/block.json blocks/site-copyright/block.json
+msgctxt "block keyword"
+msgid "fediverse"
+msgstr "fediverse"
+
+#: blocks/follow-overlay/block.json
+msgctxt "block keyword"
+msgid "mastodon"
+msgstr "mastodon"
+
+#: blocks/follow-overlay/block.json blocks/interaction-counts/block.json
+#: blocks/reply-overlay/block.json
+msgctxt "block keyword"
+msgid "activitypub"
+msgstr "activitypub"
+
 #: blocks/gallery-overview/block.json
 msgctxt "block title"
 msgid "Agnosis Gallery Overview"
@@ -8784,11 +9138,6 @@ msgctxt "block keyword"
 msgid "federation"
 msgstr "федерация"
 
-#: blocks/interaction-counts/block.json blocks/reply-overlay/block.json
-msgctxt "block keyword"
-msgid "activitypub"
-msgstr "activitypub"
-
 #: blocks/join/block.json
 msgctxt "block title"
 msgid "Join Agnosis"
@@ -8857,7 +9206,7 @@ msgctxt "block keyword"
 msgid "popover"
 msgstr "поповер"
 
-#: blocks/newsletter-popover/block.json
+#: blocks/newsletter-popover/block.json blocks/site-copyright/block.json
 msgctxt "block keyword"
 msgid "footer"
 msgstr "подвал"
@@ -8915,6 +9264,26 @@ msgstr "ответы"
 msgctxt "block keyword"
 msgid "comments"
 msgstr "комментарии"
+
+#: blocks/site-copyright/block.json
+msgctxt "block title"
+msgid "Site Copyright"
+msgstr "Авторские права сайта"
+
+#: blocks/site-copyright/block.json
+msgctxt "block description"
+msgid ""
+"Footer copyright line — \"© {year} Agnosis (@agnosis@host)\" on the main "
+"site, \"© {year} {Artist Name} (@artistname@host)\" on an artist's own "
+"subdomain — the parenthetical is always that actor's real Fediverse handle, "
+"so a visitor always has a copyable handle to follow from their own Fediverse "
+"client."
+msgstr "Строка авторских прав в подвале — \"© {year} Agnosis (@agnosis@host)\" на основном сайте, \"© {year} {Artist Name} (@artistname@host)\" на собственном поддомене художника — в скобках всегда указан реальный handle действующего лица в Fediverse, чтобы у посетителя всегда был копируемый handle для подписки из его клиента Fediverse."
+
+#: blocks/site-copyright/block.json
+msgctxt "block keyword"
+msgid "handle"
+msgstr "handle"
 
 #: blocks/submissions/block.json
 msgctxt "block title"

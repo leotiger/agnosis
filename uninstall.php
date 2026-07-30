@@ -5,11 +5,11 @@
  * Runs only when the plugin is *deleted* (not on deactivate). It removes
  * everything Agnosis creates that the operator would not expect to linger:
  *
- *   • the 17 custom tables (queue, applications, contact_messages, vouches,
+ *   • the 18 custom tables (queue, applications, contact_messages, vouches,
  *     application_vouches, nodes, removal_requests, removal_votes,
  *     cap_proposals, cap_votes, log, newsletter_subscribers,
  *     newsletter_issues, newsletter_queue, followers, ap_delivery_queue,
- *     interactions) —
+ *     interactions, rhizome_relay_log) —
  *     `agnosis_transactions` no longer exists at all: C-1 was decided
  *     against for 1.0.0 and the table itself is dropped by
  *     `Activator::maybe_upgrade()`, so there's nothing left here to drop it;
@@ -68,6 +68,7 @@ function agnosis_uninstall_site(): void {
 		'agnosis_followers',
 		'agnosis_ap_delivery_queue',
 		'agnosis_interactions',
+		'agnosis_rhizome_relay_log',
 	];
 
 	foreach ( $tables as $table ) {

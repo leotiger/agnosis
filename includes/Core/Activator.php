@@ -545,16 +545,58 @@ class Activator {
 		) $charset_collate;";
 
 		// Rhizome peers — known Agnosis (or ActivityPub) nodes.
+		//
+		// description/trust_scope/actor_id/inbox_url (RHIZOME-NETWORK-ROADMAP.md
+		// §4/§8, RN1/RN2, 2026-07-30) — added on top of the original 0.9.28
+		// columns above. This table has never used IF NOT EXISTS, so — same as
+		// agnosis_interactions' own origin column (see that table's comment
+		// below) — a plain dbDelta() re-run against the version bump that ships
+		// this change is enough to ADD COLUMN on an existing live table; no
+		// separate SHOW COLUMNS/ALTER TABLE migration block is needed the way
+		// agnosis_queue's historical columns above required.
+		// - description: human-readable text a peer supplies at registration
+		//   (register_peer()'s new optional param) or an admin types for a
+		//   manually-added third-party actor — shown in the approval UI so a
+		//   pending row reads as more than a bare URL.
+		// - trust_scope: per-row, switchable after approval — 'domain' trusts
+		//   every actor on that URL's host, 'actor' trusts only the one
+		//   resolved actor_id below. Default 'domain' matches §4's own
+		//   ANSWERED default.
+		// - actor_id/inbox_url: resolved at approval time from the peer's own
+		//   node card (Node::resolve_peer_node_card(), a two-hop
+		//   .well-known/agnosis-node → REST node-card fetch) for a
+		//   self-registered Agnosis peer, or filled directly from what an
+		//   admin pastes for a manually-added third-party Fediverse actor.
+		//   NULL until a pending row is actually approved.
+		// - reciprocal/reciprocity_checked_at (RN4, RHIZOME-NETWORK-ROADMAP.md
+		//   §4/§8, 2026-07-30): whether this trusted peer trusts THIS node
+		//   back, per Ulises's own confirmed mechanism — querying the peer's
+		//   own GET {peer_url}/wp-json/agnosis/v1/node/peers and looking for
+		//   this node's own home_url() in the result (Node::check_reciprocity()).
+		//   Stored rather than computed live on every admin page load, same
+		//   on-demand-fetch precedent RN1's own "Approve" button already set
+		//   for resolve_peer_node_card() — a per-row "Check reciprocity"
+		//   admin-post action (RhizomeManager::handle_check_reciprocity())
+		//   updates both columns; nothing else does. Default 'unknown' covers
+		//   both a genuinely-never-checked row and a peer whose own peers
+		//   endpoint couldn't be reached — the UI shows the same badge for
+		//   both rather than a third state nobody asked for.
 		$sql_nodes = "CREATE TABLE {$wpdb->prefix}agnosis_nodes (
-			id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-			url          VARCHAR(512)    NOT NULL,
-			public_key   TEXT            DEFAULT NULL,
-			label        VARCHAR(255)    DEFAULT NULL,
-			status       ENUM('pending','trusted','blocked') NOT NULL DEFAULT 'pending',
-			last_seen    DATETIME        DEFAULT NULL,
-			created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY  (id),
-			UNIQUE KEY   uq_url (url)
+			id                     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			url                    VARCHAR(512)    NOT NULL,
+			public_key             TEXT            DEFAULT NULL,
+			label                  VARCHAR(255)    DEFAULT NULL,
+			description            TEXT            DEFAULT NULL,
+			trust_scope            ENUM('domain','actor') NOT NULL DEFAULT 'domain',
+			actor_id               VARCHAR(512)    DEFAULT NULL,
+			inbox_url              VARCHAR(512)    DEFAULT NULL,
+			status                 ENUM('pending','trusted','blocked') NOT NULL DEFAULT 'pending',
+			reciprocal             ENUM('unknown','mutual','one_directional') NOT NULL DEFAULT 'unknown',
+			reciprocity_checked_at DATETIME        DEFAULT NULL,
+			last_seen              DATETIME        DEFAULT NULL,
+			created_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY            (id),
+			UNIQUE KEY             uq_url (url)
 		) $charset_collate;";
 
 		// Vouching / admission log.
@@ -722,6 +764,22 @@ class Activator {
 		// (not per recipient) and reused for everyone sharing that locale, so what
 		// was queued is exactly what goes out even if posts change while sending
 		// is in progress.
+		//
+		// digest_since (NL1, RHIZOME-NETWORK-ROADMAP.md §11a, 2026-07-30) — the
+		// exact Scheduler::since_window() value used to build THIS issue's shared
+		// digest_html/locale_content, persisted explicitly rather than relying on
+		// re-deriving an equivalent value at send time. QueueProcessor::send_one()
+		// reads it back to compute each artist recipient's own personal
+		// interaction-summary counts (ActivityPub::personal_interaction_counts())
+		// over the SAME window the rest of the issue's content was built from —
+		// storing it explicitly avoids depending on Scheduler::last_sent_at()
+		// happening to still return the same value hours or days later, which
+		// holds today only because has_issue_in_flight() prevents a second issue
+		// of the same type completing mid-send, but is not something this column
+		// needs to depend on at all. Added via plain dbDelta() ADD COLUMN — this
+		// table has never used IF NOT EXISTS, same convention as every other
+		// column added to an existing table this way in this file (see e.g.
+		// agnosis_nodes'/agnosis_interactions' own comments above).
 		$sql_newsletter_issues = "CREATE TABLE {$wpdb->prefix}agnosis_newsletter_issues (
 			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			newsletter_type ENUM('artist','public') NOT NULL,
@@ -729,6 +787,7 @@ class Activator {
 			intro           TEXT            DEFAULT NULL,
 			digest_html     LONGTEXT        DEFAULT NULL,
 			locale_content  LONGTEXT        DEFAULT NULL,
+			digest_since    DATETIME        DEFAULT NULL,
 			recipient_count INT UNSIGNED    NOT NULL DEFAULT 0,
 			scheduled_at    DATETIME        DEFAULT NULL,
 			sent_at         DATETIME        DEFAULT NULL,
@@ -942,6 +1001,55 @@ class Activator {
 			KEY            idx_post_type (post_id, activity_type)
 		) $charset_collate;";
 
+		// Rhizome relay log (RHIZOME-NETWORK-ROADMAP.md §11b/§12, RN3b,
+		// 2026-07-30) — one row per trusted peer's Announce that
+		// ActivityPub::relay_trusted_announce() actually recognized as a
+		// relay-worthy event (i.e. passed the trust-match and
+		// redelivery-idempotency checks), independent of whether this node
+		// currently has any local followers to receive it. This table
+		// answers "what happened on the rhizome" for a future community-
+		// activity newsletter digest (§11b/NL2, not yet built); it is NOT
+		// the same question agnosis_ap_delivery_queue answers (which tracks
+		// per-inbox delivery attempts/outcomes, not rhizome-level activity).
+		// Deliberately its own small table rather than extending
+		// agnosis_interactions: that table's post_id column is NOT NULL and
+		// its whole shape (one row per local-artwork interaction) assumes a
+		// local post exists to attach to — a relayed peer boost has no such
+		// post by definition (relay_trusted_announce() only ever fires when
+		// the object does NOT resolve locally).
+		// - peer_node_id/peer_url: the trusted agnosis_nodes row that
+		//   governed this relay at the time. peer_url is denormalized
+		//   (copied, not just referenced by id) so a later admin removal of
+		//   that peer (RhizomeManager::handle_remove()) doesn't orphan this
+		//   row's own historical readability.
+		// - announcing_actor_id: the actual actor that sent the Announce —
+		//   NOT always the same as agnosis_nodes.actor_id (which can be
+		//   NULL for a 'domain'-scoped row, or simply a different actor on
+		//   that same trusted domain); kept separately so a domain-trust
+		//   relay's log entry still shows who specifically boosted, not
+		//   just which node's trust decision allowed it through.
+		// - relay_activity_id: the same deterministic id
+		//   relay_announce_activity() computes (peer actor + object hash) —
+		//   UNIQUE here for exactly the reason relay_already_queued() checks
+		//   it against the delivery queue: a redelivered/retried inbound
+		//   Announce must not double-log either.
+		// - object_url: the boosted piece's own URL, forwarded exactly as
+		//   the peer sent it — this node never touches or rehosts it (§3's
+		//   "Vital clarification").
+		$sql_rhizome_relay_log = "CREATE TABLE {$wpdb->prefix}agnosis_rhizome_relay_log (
+			id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			peer_node_id        BIGINT UNSIGNED NOT NULL,
+			peer_url            VARCHAR(512)    NOT NULL,
+			announcing_actor_id VARCHAR(512)    NOT NULL,
+			object_url          VARCHAR(512)    NOT NULL,
+			relay_activity_id   VARCHAR(768)    NOT NULL,
+			relayed_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY         (id),
+			UNIQUE KEY          uq_relay_activity_id (relay_activity_id),
+			KEY                 idx_peer_node (peer_node_id),
+			KEY                 idx_relayed_at (relayed_at)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql_queue );
 		dbDelta( $sql_nodes );
@@ -960,6 +1068,7 @@ class Activator {
 		dbDelta( $sql_followers );
 		dbDelta( $sql_ap_delivery_queue );
 		dbDelta( $sql_interactions );
+		dbDelta( $sql_rhizome_relay_log );
 
 		update_option( 'agnosis_db_version', AGNOSIS_VERSION );
 	}

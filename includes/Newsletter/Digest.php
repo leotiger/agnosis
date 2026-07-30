@@ -24,12 +24,25 @@ declare(strict_types=1);
 
 namespace Agnosis\Newsletter;
 
+use Agnosis\Artist\NotificationPreferences;
+use Agnosis\Network\ActivityPub;
 use Agnosis\Network\FederationSettlement;
 
 class Digest {
 
 	/** Maximum items listed per section before collapsing to "and N more". */
 	private const MAX_ITEMS = 8;
+
+	/**
+	 * NL1 (RHIZOME-NETWORK-ROADMAP.md §11a, 2026-07-30) — embedded once in
+	 * build_artist()'s shared, per-locale `<ul>`. A per-artist like/boost
+	 * count can't be known at render time (this HTML is rendered ONCE per
+	 * locale and shared by every recipient in it, same constraint
+	 * render_post_list()'s own `{{AGNOSIS_LIKE:<id>}}`/`{{AGNOSIS_BOOST:<id>}}`
+	 * placeholders exist for) — substitute_interaction_summary() resolves it
+	 * later, per recipient, at actual send time (QueueProcessor::send_one()).
+	 */
+	public const INTERACTION_SUMMARY_PLACEHOLDER = '{{AGNOSIS_INTERACTION_SUMMARY}}';
 
 	/**
 	 * Build the public-newsletter digest: new artwork and events published
@@ -78,10 +91,11 @@ class Digest {
 	 *                        to its translated counterpart if one exists.
 	 */
 	public static function build_artist( string $since, string $lf_lang = '' ): string {
-		$artworks     = self::recent_posts( 'agnosis_artwork', $since );
-		$events       = self::recent_posts( 'agnosis_event', $since );
-		$new_members  = self::newly_admitted_artists( $since );
-		$open_votes   = self::open_vote_count();
+		$artworks         = self::recent_posts( 'agnosis_artwork', $since );
+		$events           = self::recent_posts( 'agnosis_event', $since );
+		$new_members      = self::newly_admitted_artists( $since );
+		$open_votes       = self::open_vote_count();
+		$rhizome_activity = self::rhizome_activity_summary( $since );
 
 		$html = '<ul style="margin:0 0 20px;padding-left:20px;font-size:17px;line-height:1.8;color:#444;">';
 		$html .= '<li>' . sprintf(
@@ -110,6 +124,32 @@ class Digest {
 				$open_votes
 			) . '</li>';
 		}
+
+		// NL2 (RHIZOME-NETWORK-ROADMAP.md §11b, 2026-07-30) — community-wide,
+		// not personalized to any one artist, same shape as the new_members/
+		// open_votes bullets just above: how much of the rhizome's activity
+		// this node relayed to its own followers since $since, reading rows
+		// RN3b's log_relay_activity() already writes. Omitted entirely when
+		// there's nothing to report, same gate as new_members/open_votes.
+		if ( $rhizome_activity['relays'] > 0 ) {
+			$html .= '<li>' . sprintf(
+				/* translators: %d: number of pieces relayed across the rhizome */
+				esc_html( _n( '%d piece relayed across the rhizome.', '%d pieces relayed across the rhizome.', $rhizome_activity['relays'], 'agnosis' ) ),
+				$rhizome_activity['relays']
+			) . '</li>';
+			$html .= '<li>' . sprintf(
+				/* translators: %d: number of trusted partner nodes that relayed activity */
+				esc_html( _n( 'From %d trusted partner node.', 'From %d trusted partner nodes.', $rhizome_activity['partners'], 'agnosis' ) ),
+				$rhizome_activity['partners']
+			) . '</li>';
+		}
+
+		// NL1 (§11a) — see this class's own INTERACTION_SUMMARY_PLACEHOLDER
+		// docblock. Resolves to zero, one, or two <li> bullets per recipient at
+		// send time; a bare no-op string here for a public-newsletter or
+		// zero-count recipient, so it's always safe to leave in the markup
+		// unconditionally.
+		$html .= self::INTERACTION_SUMMARY_PLACEHOLDER;
 
 		$html .= '</ul>';
 
@@ -153,6 +193,67 @@ class Digest {
 		}
 
 		return $context;
+	}
+
+	/**
+	 * Resolve INTERACTION_SUMMARY_PLACEHOLDER (NL1, §11a) with this specific
+	 * recipient's own personal like/boost counts since the digest window —
+	 * called from QueueProcessor::send_one(), the same per-recipient send-time
+	 * stage that already resolves the LIKE/BOOST link placeholders.
+	 *
+	 * Disclosure depth: aggregate counts only, per §11a's own ANSWERED
+	 * resolution — never names the liking/boosting actor or instance, matching
+	 * the existing on-site "⟲ N boosts" count's own anonymity
+	 * (ActivityPub::render_interaction_counts()). Cadence: digest-only, no
+	 * instant option — this method is only ever called once, at the shared
+	 * digest's own send time, never on any separate schedule.
+	 *
+	 * $recipient_artist_id of 0 (a public-newsletter recipient) always yields
+	 * an empty replacement — a public recipient has no artwork of their own to
+	 * summarize, and the placeholder never legitimately appears in
+	 * build_public()'s own output anyway (defensive, not an expected path,
+	 * same posture InteractionGateway::substitute_boost_links() takes for its
+	 * own artist-only placeholder).
+	 */
+	public static function substitute_interaction_summary( string $html, int $recipient_artist_id, string $since ): string {
+		// An empty $since means this issue predates the digest_since column
+		// (NL1 added it; a row inserted before that and still mid-send when
+		// this ships has it NULL, which QueueProcessor::send_one() coalesces
+		// to ''). It must NOT be passed through to the query: MySQL coerces
+		// '' to a zero-date in `received_at > %s`, so every interaction the
+		// artist has ever received would match and a "since your last digest"
+		// line would silently report an all-time total (§13 F4, 2026-07-30).
+		// Omitting the section entirely for that one transitional issue is
+		// the honest answer — the same thing a zero count already does.
+		if ( $recipient_artist_id <= 0 || '' === trim( $since ) || NotificationPreferences::is_interaction_summary_opted_out( $recipient_artist_id ) ) {
+			return str_replace( self::INTERACTION_SUMMARY_PLACEHOLDER, '', $html );
+		}
+
+		$counts = ( new ActivityPub() )->personal_interaction_counts( $recipient_artist_id, $since );
+		$likes  = $counts['like'];
+		$boosts = $counts['announce'];
+
+		if ( 0 === $likes && 0 === $boosts ) {
+			return str_replace( self::INTERACTION_SUMMARY_PLACEHOLDER, '', $html );
+		}
+
+		$bullets = '';
+		if ( $likes > 0 ) {
+			$bullets .= '<li>' . sprintf(
+				/* translators: %d: number of likes received on the recipient's own work */
+				esc_html( _n( '%d like on your work since your last digest.', '%d likes on your work since your last digest.', $likes, 'agnosis' ) ),
+				$likes
+			) . '</li>';
+		}
+		if ( $boosts > 0 ) {
+			$bullets .= '<li>' . sprintf(
+				/* translators: %d: number of boosts received on the recipient's own work */
+				esc_html( _n( '%d boost on your work since your last digest.', '%d boosts on your work since your last digest.', $boosts, 'agnosis' ) ),
+				$boosts
+			) . '</li>';
+		}
+
+		return str_replace( self::INTERACTION_SUMMARY_PLACEHOLDER, $bullets, $html );
 	}
 
 	// -------------------------------------------------------------------------
@@ -351,5 +452,32 @@ class Digest {
 		$caps     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_cap_proposals WHERE status = 'open'" );
 
 		return $removals + $caps;
+	}
+
+	/**
+	 * NL2 (§11b) — how much of the rhizome's activity this node relayed to
+	 * its own followers since $since, reading RN3b's own log
+	 * (`agnosis_rhizome_relay_log`, written by `ActivityPub::log_relay_activity()`
+	 * from `relay_trusted_announce()`). `partners` counts distinct
+	 * `peer_node_id`s, not rows — three relays from the same partner count as
+	 * one partner, not three.
+	 *
+	 * @return array{relays: int, partners: int}
+	 */
+	private static function rhizome_activity_summary( string $since ): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$relays = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}agnosis_rhizome_relay_log WHERE relayed_at > %s",
+			$since
+		) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$partners = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT peer_node_id) FROM {$wpdb->prefix}agnosis_rhizome_relay_log WHERE relayed_at > %s",
+			$since
+		) );
+
+		return [ 'relays' => $relays, 'partners' => $partners ];
 	}
 }

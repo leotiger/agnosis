@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.64
+Stable tag: 0.9.65
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,12 +91,20 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.65 =
+* Added: A new "Partner Nodes" panel (Settings → Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.
+* Added: Trusted rhizome peers' boosts are now actually relayed to your own followers, with a per-peer badge showing whether the trust is mutual and a log of what's been relayed.
+* Added: Your artist newsletter digest now includes a personal summary of likes and boosts on your work since your last digest (can be turned off in your notification preferences).
+* Added: Your artist newsletter digest now also includes a community-wide summary of rhizome activity — how much got relayed, and from how many trusted partner nodes.
+* Fixed: The Partner Nodes panel's "manually trust an actor" form always failed with a "link expired" error instead of saving.
+* Fixed: A relayed peer boost could be sent to your followers twice when a partner redelivered the same boost.
+* Fixed: A test send of the artist newsletter showed raw placeholder text where the like, boost, and interaction-summary lines should have been.
+* Fixed: The new personal likes/boosts summary could show an all-time total instead of just the period since your last digest.
+* Fixed: A partner node that trusts you back could still show as one-directional if you had been added to their list by hand.
+
 = 0.9.64 =
 * Added: An artist's subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap's cache.
 * Added: Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.
-
-= 0.9.63 =
-* Added: The footer copyright line now shows a copyable Fediverse handle in parentheses (yours, or an artist's own on their subdomain), and every artwork gets a new "Follow" button next to "Reply" — opens a popover explaining the Fediverse, the artist's handle, and a one-click "remote follow" redirect to your own instance.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

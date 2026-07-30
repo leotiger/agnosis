@@ -142,4 +142,65 @@ class SchedulerSendTestTest extends \WP_UnitTestCase {
 		$this->assertNull( $this->scheduler->last_sent_at( 'public' ) );
 		$this->assertFalse( $this->scheduler->has_issue_in_flight( 'public' ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// §13 F5 (2026-07-30) — deferred placeholders must never survive a preview.
+	//
+	// The artist digest carries three markers that are only ever resolved per
+	// recipient, in QueueProcessor::send_one(): {{AGNOSIS_LIKE:<id>}} and
+	// {{AGNOSIS_BOOST:<id>}} (WP2/WP5, since 0.9.59) and, as of this release,
+	// {{AGNOSIS_INTERACTION_SUMMARY}} (NL1). A test send has no recipient row
+	// at all and never reaches that stage, so all three were being emailed as
+	// literal text. send_test() now neutralizes them the same way
+	// Newsletter\Archive already does for its own no-recipient rendering.
+	// -------------------------------------------------------------------------
+
+	/** @return string[] */
+	private function placeholder_fragments(): array {
+		return [ '{{AGNOSIS_LIKE', '{{AGNOSIS_BOOST', '{{AGNOSIS_INTERACTION_SUMMARY' ];
+	}
+
+	public function test_artist_preview_body_contains_no_raw_placeholders(): void {
+		// A published artwork is what makes build_artist() emit the per-post
+		// like/boost placeholders in the first place — without one, only the
+		// interaction-summary marker would be present and this would pass for
+		// the wrong reason.
+		$artist_id = self::factory()->user->create( [ 'role' => 'agnosis_artist' ] );
+		self::factory()->post->create( [
+			'post_type'   => 'agnosis_artwork',
+			'post_status' => 'publish',
+			'post_author' => $artist_id,
+			'post_title'  => 'A Piece To Boost',
+		] );
+
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->scheduler->send_test( 'artist', 'preview@example.com' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		foreach ( $this->placeholder_fragments() as $fragment ) {
+			$this->assertStringNotContainsString(
+				$fragment,
+				$captured['message'],
+				"A test send must never email the raw {$fragment}…}} marker — it has no recipient to resolve it against."
+			);
+		}
+	}
+
+	public function test_public_preview_body_contains_no_raw_placeholders(): void {
+		$captured = null;
+		$filter   = $this->capture_mail( $captured );
+
+		$this->scheduler->send_test( 'public', 'preview@example.com' );
+
+		remove_filter( 'pre_wp_mail', $filter, 10 );
+
+		$this->assertNotNull( $captured );
+		foreach ( $this->placeholder_fragments() as $fragment ) {
+			$this->assertStringNotContainsString( $fragment, $captured['message'] );
+		}
+	}
 }

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-28T23:20+00:00\n"
+"POT-Creation-Date: 2026-07-30T20:58+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:57+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Hindi\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Loco-Version: 2.8.7; wp-7.0.2; php-8.5.8\n"
 
 #. Plugin Name of the plugin
-#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:196
+#: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:198
 #: includes/Core/Privacy.php:730 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "एग्नोसिस"
@@ -156,12 +156,18 @@ msgstr "अनुवादों के लिए टैग्स को सम�
 #: includes/Admin/Dashboards/RelayManager.php:125
 #: includes/Admin/Dashboards/RelayManager.php:148
 #: includes/Admin/Dashboards/RelayManager.php:174
+#: includes/Admin/Dashboards/RhizomeManager.php:319
+#: includes/Admin/Dashboards/RhizomeManager.php:379
+#: includes/Admin/Dashboards/RhizomeManager.php:395
+#: includes/Admin/Dashboards/RhizomeManager.php:426
+#: includes/Admin/Dashboards/RhizomeManager.php:464
+#: includes/Admin/Dashboards/RhizomeManager.php:508
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:903
-#: includes/Admin/Settings.php:922 includes/Admin/TagProposals.php:238
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:910
+#: includes/Admin/Settings.php:929 includes/Admin/TagProposals.php:238
 #: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
@@ -346,6 +352,7 @@ msgstr "संदेश"
 #: includes/Admin/Dashboards/MembersDashboard.php:56
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/Dashboards/RelayManager.php:69
+#: includes/Admin/Dashboards/RhizomeManager.php:79
 #: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:182
 #: includes/Core/Privacy.php:315 includes/Core/Privacy.php:351
 #: includes/Core/Privacy.php:387
@@ -505,7 +512,7 @@ msgstr "स्वीकार करें"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4370
+#: includes/Network/ActivityPub.php:4889
 msgid "Reject"
 msgstr "अस्वीकार करें"
 
@@ -633,6 +640,7 @@ msgid "Not yet translated — leave blank to let AI translate automatically"
 msgstr "अभी तक अनुवादित नहीं — AI को स्वचालित रूप से अनुवाद करने देने के लिए खाली छोड़ें"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:106
+#: includes/Admin/Dashboards/RhizomeManager.php:205
 #: includes/Artist/ContentEditor.php:1454
 msgid "Save"
 msgstr "सहेजें"
@@ -936,7 +944,7 @@ msgid "Context"
 msgstr "संदर्भ"
 
 #: includes/Admin/Dashboards/MembersDashboard.php:41
-#: includes/Admin/Settings.php:245
+#: includes/Admin/Settings.php:247
 msgid "Members"
 msgstr "सदस्य"
 
@@ -1056,7 +1064,7 @@ msgstr ""
 "चाह सकते हैं।"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:84
-#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:310
+#: includes/Admin/Deliverability.php:446 includes/Admin/Settings.php:313
 #: includes/Newsletter/Mailer.php:76
 msgid "Newsletter"
 msgstr "न्यूज़लेटर"
@@ -1089,7 +1097,7 @@ msgstr "%1$d शामिल किए गए (%2$d ने ऑप्ट आउ�
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3006
+#: includes/Network/ActivityPub.php:3525
 msgid "Sending…"
 msgstr "भेजा जा रहा है…"
 
@@ -1135,6 +1143,7 @@ msgid "Never"
 msgstr "कभी नहीं"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:208
+#: includes/Admin/Dashboards/RhizomeManager.php:154
 #: includes/Publishing/PostCreator.php:1044
 msgid "Unknown"
 msgstr "अज्ञात"
@@ -1185,12 +1194,12 @@ msgid "Relay actor URL"
 msgstr "रिले अभिनेता का URL"
 
 #: includes/Admin/Dashboards/RelayManager.php:79
-#: includes/Admin/Settings.php:583
+#: includes/Admin/Settings.php:586
 msgid "Enabled"
 msgstr "सक्षम"
 
 #: includes/Admin/Dashboards/RelayManager.php:81
-#: includes/Admin/Settings.php:585
+#: includes/Admin/Settings.php:588
 msgid "Disabled"
 msgstr "अक्षम"
 
@@ -1211,7 +1220,8 @@ msgstr ""
 "Undo{Follow} भेजा जाएगा ताकि रिले इस नोड को डिलीवर करना बंद कर दे।"
 
 #: includes/Admin/Dashboards/RelayManager.php:96
-#: includes/Admin/Settings.php:414 includes/Core/EmailFooter.php:85
+#: includes/Admin/Dashboards/RhizomeManager.php:222
+#: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "हटाएँ"
@@ -1219,6 +1229,184 @@ msgstr "हटाएँ"
 #: includes/Admin/Dashboards/RelayManager.php:110
 msgid "Add Relay"
 msgstr "रिले जोड़ें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:65
+msgid "Partner Nodes"
+msgstr "साझेदार नोड"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:67
+msgid ""
+"A trusted partner’s boosts also reach this node’s own followers, extending "
+"its reach through your node the same way one artist can already boost "
+"another’s work. Nothing here shows another instance’s content on your own "
+"site — it only affects what leaves this node toward the wider Fediverse. "
+"Every peer starts here as \"Pending\" until approved."
+msgstr "एकtrusted साझेदार के बूस्ट भी इस नोड के अपने अनुयायियों तक पहुँचते हैं, आपके नोड के माध्यम से इसकी पहुँच को बढ़ाते हैं जैसे एक कलाकार पहले से ही दूसरे के काम को बूस्ट कर सकता है। यहाँ कुछ भी आपके अपने साइट पर किसी अन्य उदाहरण की सामग्री नहीं दिखाता है - यह केवल प्रभावित करता है कि क्या इस नोड से बाहर निकलता है व्यापक Fediverse की ओर। हर साथीयार यहाँ \"लंबित\" के रूप में शुरू होता है जब तक कि अनुमोदित न हो।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:73
+msgid "No peers have registered or been added yet."
+msgstr "अभी तक कोई साथी पंजीकृत या जोड़ा गया है।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:78
+msgid "Peer"
+msgstr "साथी"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:80
+#: includes/Admin/Dashboards/RhizomeManager.php:275
+msgid "Trust scope"
+msgstr "विश्वास क्षेत्र"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:81
+msgid "Reciprocal?"
+msgstr "आवर्ती?"
+
+#. translators: %s: link to the Rhizome settings toggle
+#: includes/Admin/Dashboards/RhizomeManager.php:100
+#, php-format
+msgid ""
+"Manually adding a non-Agnosis Fediverse actor as a trusted peer is currently "
+"off. Enable \"Allow manually trusting non-Agnosis Fediverse actors\" %s to "
+"add one directly."
+msgstr "एक गैर-Agnosis Fediverse अभिनेता कोtrusted साथी के रूप में मैन्युअल रूप से जोड़ना वर्तमान में बंद है। इसे सीधे जोड़ने के लिए \"गैर-Agnosis Fediverse अभिनेताओं पर मैन्युअली विश्वास करने की अनुमति दें\" %s सक्षम करें।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:101
+msgid "above"
+msgstr "ऊपर"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:123
+msgid "Resolved actor:"
+msgstr "हल किया गया अभिनेता:"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:152
+msgid "Mutual"
+msgstr "आपसी"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:153
+msgid "One-directional"
+msgstr "एक-तरफा"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:166
+msgid "Checked:"
+msgstr "जांच की गई:"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:175
+msgid "Check"
+msgstr "जांचें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:182
+#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
+msgid "Pending"
+msgstr "लंबित"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:183
+msgid "Trusted"
+msgstr "विश्वसनीय"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:184
+msgid "Blocked"
+msgstr "रुका हुआ"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:202
+msgid "Domain"
+msgstr "डोमेन"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:203
+msgid "Actor only"
+msgstr "केवल अभिनेता"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:212
+#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
+#: includes/Network/ActivityPub.php:4888
+msgid "Approve"
+msgstr "स्वीकृत करें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:213
+#: includes/Admin/Dashboards/RhizomeManager.php:215
+msgid "Block"
+msgstr "रोकें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:217
+msgid "Unblock"
+msgstr "अनब्लॉक करें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:224
+msgid "Remove this peer entirely? It will need to register again from scratch."
+msgstr "क्या इस साथी को पूरी तरह से हटा दें? इसे फिर से शुरू से पंजीकरण कराने की आवश्यकता होगी।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:251
+msgid "Add a trusted peer directly"
+msgstr "एकtrusted साथी को सीधे जोड़ें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:253
+msgid ""
+"For a non-Agnosis Fediverse actor (a curator account, a specific instance "
+"you already trust) that you want to vouch for by hand, without going through "
+"node self-registration. Added as trusted immediately."
+msgstr "एक गैर-Agnosis Fediverse अभिनेता (एक क्यूरेटर खाता, एक विशिष्ट उदाहरण जिस पर आपने पहले से ही विश्वास किया है) जिसे आप हाथ से गारंटी देना चाहते हैं, बिना नोड स्व-पंजीकरण के। तुरंतtrusted के रूप में जोड़ा गया।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:259
+msgid "Actor URL"
+msgstr "अभिनेता URL"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:263
+msgid "Inbox URL"
+msgstr "इनबॉक्स URL"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:267
+msgid "Label (optional)"
+msgstr "लेबल (वैकल्पिक)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:271
+msgid "Description (optional)"
+msgstr "विवरण (वैकल्पिक)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:277
+msgid "Actor only (recommended for a third-party server)"
+msgstr "केवल अभिनेता (तीसरे पक्ष के सर्वर के लिए अनुशंसित)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:278
+msgid "Domain (every actor on that server)"
+msgstr "डोमेन (उस सर्वर पर हर अभिनेता)"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:281
+msgid "Add Trusted Peer"
+msgstr "विश्वसनीय साथी जोड़ें"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:290
+msgid ""
+"Could not reach this peer's node-discovery endpoint. It may be offline or "
+"not running Agnosis."
+msgstr "इस साथी के नोड-खोज अंत बिंदु तक पहुँच नहीं सका। यह ऑफ़लाइन हो सकता है या Agnosis नहीं चला रहा है।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:291
+#: includes/Network/Node.php:248
+msgid ""
+"This peer's node-discovery response did not include a node card endpoint."
+msgstr "इस साथी के नोड-कार्ड प्रतिक्रिया में नोड कार्ड अंत बिंदु शामिल नहीं था।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:292
+#: includes/Network/Node.php:254
+msgid "Could not fetch this peer's node card."
+msgstr "इस साथी का नोड कार्ड प्राप्त नहीं कर सका।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:293
+#: includes/Network/Node.php:262
+msgid "This peer's node card is missing an actor id or inbox URL."
+msgstr "इस साथी के नोड कार्ड में अभिनेता आईडी या इनबॉक्स URL गायब है।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:294
+msgid "Actor URL and inbox URL are both required."
+msgstr "अभिनेता URL और इनबॉक्स URL दोनों आवश्यक हैं।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:295
+msgid ""
+"Could not check reciprocity right now — this peer's own peer list was "
+"unreachable or not in the expected format."
+msgstr "अभी आपसीता की समीक्षा नहीं कर सका - इस साथी की अपनी साथी सूची पहुँच योग्य नहीं थी या अपेक्षित प्रारूप में नहीं थी।"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:305
+msgid "Done."
+msgstr "पूर्ण।"
 
 #: includes/Admin/Deliverability.php:445
 msgid "Mail from (workflow)"
@@ -1253,7 +1441,7 @@ msgstr "विषय"
 msgid "Endpoint"
 msgstr "एंडपॉइंट"
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:608
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:611
 msgid "Files"
 msgstr "फ़ाइलें"
 
@@ -1273,7 +1461,8 @@ msgstr "पुरानी पंक्ति — पूर्वावलोक
 msgid "Attachment viewer"
 msgstr "अटैचमेंट दर्शक"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3045
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3407
+#: includes/Network/ActivityPub.php:3564
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1306,10 +1495,6 @@ msgstr "फोर्स-रीप्रोसेस: %1$d पंक्ति(य
 #, php-format
 msgid "Processed %d pending item(s)."
 msgstr "%d लंबित आइटम(ों) को संसाधित किया गया।"
-
-#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
-msgid "Pending"
-msgstr "लंबित"
 
 #: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:721
 msgid "Processing"
@@ -1361,7 +1546,7 @@ msgstr "सभी लंबित को संसाधित करें"
 msgid "Goodbye"
 msgstr "अलविदा"
 
-#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:308
+#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:311
 #: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "समुदाय"
@@ -1468,11 +1653,6 @@ msgid_plural "%d submissions"
 msgstr[0] "%d सबमिशन"
 msgstr[1] "%d सबमिशन"
 
-#: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4369
-msgid "Approve"
-msgstr "स्वीकृत करें"
-
 #: includes/Admin/MediumProposals.php:166
 msgid ""
 "Reject this proposal for all matching submissions? This cannot be undone."
@@ -1501,12 +1681,12 @@ msgstr[1] "माध्यम प्रस्ताव %d सबमिशन क
 msgid "Could not approve this proposal: %s"
 msgstr "इस प्रस्ताव को स्वीकृत नहीं कर सकते: %s"
 
-#: includes/Admin/Settings.php:50 includes/Admin/Settings.php:51
+#: includes/Admin/Settings.php:52 includes/Admin/Settings.php:53
 msgid "Configuration"
 msgstr "कॉन्फ़िगरेशन"
 
 #. translators: 1: queue rows reset, 2: messages newly enqueued
-#: includes/Admin/Settings.php:103
+#: includes/Admin/Settings.php:105
 #, php-format
 msgid ""
 "Force-reprocess complete. %1$d queue row(s) reset, %2$d new message(s) "
@@ -1515,19 +1695,19 @@ msgstr ""
 "फोर्स-रीप्रोसेस पूर्ण। %1$d क्यू पंक्ति(याँ) रीसेट, %2$d नया संदेश क्यू में जोड़ा गया। AI "
 "पाइपलाइन चलाने के लिए \"लंबित क्यू को संसाधित करें\" पर क्लिक करें।"
 
-#: includes/Admin/Settings.php:111
+#: includes/Admin/Settings.php:113
 msgid "Log cleared."
 msgstr "लॉग साफ़ किया गया।"
 
 #. translators: %d: number of debug files removed
-#: includes/Admin/Settings.php:119
+#: includes/Admin/Settings.php:121
 #, php-format
 msgid "Debug files cleared. %d file was removed."
 msgid_plural "Debug files cleared. %d files were removed."
 msgstr[0] "डिबग फ़ाइलें साफ़ कर दी गईं। %d फ़ाइल हटाई गई।"
 msgstr[1] "डिबग फ़ाइलें साफ़ कर दी गईं। %d फ़ाइलें हटाई गईं।"
 
-#: includes/Admin/Settings.php:126
+#: includes/Admin/Settings.php:128
 msgid ""
 "Term translation cache cleared. Terms will be re-translated the next time "
 "they're needed."
@@ -1536,13 +1716,13 @@ msgstr ""
 "अनुवाद किया जाएगा।"
 
 #. translators: %d: number of queue items processed
-#: includes/Admin/Settings.php:134
+#: includes/Admin/Settings.php:136
 #, php-format
 msgid "Processed %d pending queue item(s). Check the Logs tab for details."
 msgstr "%d लंबित क्यू आइटम(ों) को संसाधित किया गया। विवरण के लिए लॉग्स टैब देखें।"
 
 #. translators: %d: number of new messages enqueued
-#: includes/Admin/Settings.php:144
+#: includes/Admin/Settings.php:146
 #, php-format
 msgid ""
 "Poll complete. %d new message(s) enqueued. Check the Logs tab, then click "
@@ -1551,112 +1731,112 @@ msgstr ""
 "पोल पूरा हुआ। %d नया संदेश क्यू में जोड़ा गया। विवरण के लिए लॉग्स टैब देखें, फिर लंबित क्यू को "
 "संसाधित करें पर क्लिक करें।"
 
-#: includes/Admin/Settings.php:160
+#: includes/Admin/Settings.php:162
 msgid "Applicant admitted. A welcome email has been sent."
 msgstr "आवेदक को स्वीकार कर लिया गया। एक स्वागत ईमेल भेजा गया है।"
 
-#: includes/Admin/Settings.php:161
+#: includes/Admin/Settings.php:163
 msgid "Could not admit — the application may no longer be pending."
 msgstr "स्वीकार नहीं किया जा सका — आवेदन अब लंबित न रहा हो सकता है।"
 
-#: includes/Admin/Settings.php:162
+#: includes/Admin/Settings.php:164
 msgid "Application rejected."
 msgstr "आवेदन अस्वीकृत किया गया।"
 
-#: includes/Admin/Settings.php:163
+#: includes/Admin/Settings.php:165
 msgid "Could not reject — the application may no longer be pending."
 msgstr "अस्वीकृत नहीं किया जा सका — आवेदन अब लंबित न रहा हो सकता है।"
 
-#: includes/Admin/Settings.php:164
+#: includes/Admin/Settings.php:166
 msgid "Artist suspended. A notification email has been sent."
 msgstr "कलाकार निलंबित कर दिया गया। एक सूचना ईमेल भेजी गई है।"
 
-#: includes/Admin/Settings.php:165
+#: includes/Admin/Settings.php:167
 msgid "Could not suspend the artist — they may no longer be active."
 msgstr "कलाकार को निलंबित नहीं किया जा सका — वे अब सक्रिय न हों।"
 
-#: includes/Admin/Settings.php:166
+#: includes/Admin/Settings.php:168
 msgid ""
 "Artist permanently deleted. Their account and all content have been removed."
 msgstr ""
 "कलाकार को स्थायी रूप से हटा दिया गया। उनका खाता और सभी सामग्री हटा दी गई हैं।"
 
-#: includes/Admin/Settings.php:167
+#: includes/Admin/Settings.php:169
 msgid "Could not delete the artist — please try again."
 msgstr "कलाकार को हटाया नहीं जा सका — कृपया पुनः प्रयास करें।"
 
-#: includes/Admin/Settings.php:168
+#: includes/Admin/Settings.php:170
 msgid "Community removal vote opened. All artists have been emailed."
 msgstr "समुदाय हटाने का वोट खोल दिया गया। सभी कलाकारों को ईमेल भेजा गया है।"
 
-#: includes/Admin/Settings.php:169
+#: includes/Admin/Settings.php:171
 msgid ""
 "Could not open a removal vote — one may already be active for this artist."
 msgstr ""
 "हटाने के लिए वोट नहीं खोला जा सका — संभव है कि इस कलाकार के लिए पहले से ही एक सक्रिय "
 "हो।"
 
-#: includes/Admin/Settings.php:170
+#: includes/Admin/Settings.php:172
 msgid ""
 "Issue prepared and queued — it will go out over the next few cron cycles."
 msgstr ""
 "इश्यू तैयार होकर कतार में लगा दिया गया है — यह अगले कुछ क्रॉन चक्रों में भेज दिया जाएगा।"
 
-#: includes/Admin/Settings.php:171
+#: includes/Admin/Settings.php:173
 msgid "Could not start this issue — a previous one may still be sending."
 msgstr ""
 "यह इश्यू शुरू नहीं किया जा सका — हो सकता है कि पिछला वाला अभी भी भेजा जा रहा हो।"
 
-#: includes/Admin/Settings.php:172
+#: includes/Admin/Settings.php:174
 msgid "Test email sent — check the inbox you sent it to."
 msgstr "परीक्षण ईमेल भेज दिया गया है — जिस इनबॉक्स पर आपने इसे भेजा था, उसे जाँचें।"
 
-#: includes/Admin/Settings.php:173 includes/Admin/Settings.php:179
+#: includes/Admin/Settings.php:175 includes/Admin/Settings.php:181
 msgid ""
 "Could not send the test email — check the address and your site's outgoing "
 "mail configuration."
 msgstr ""
 "परीक्षण ईमेल भेजा नहीं जा सका — पता और आपकी साइट की आउटगोइंग मेल कॉन्फ़िगरेशन जाँचें।"
 
-#: includes/Admin/Settings.php:174
+#: includes/Admin/Settings.php:176
 msgid "Invitation sent."
 msgstr "आमंत्रण भेज दिया गया।"
 
-#: includes/Admin/Settings.php:175
+#: includes/Admin/Settings.php:177
 msgid ""
 "Could not send the invitation — check the address and your site's outgoing "
 "mail configuration."
 msgstr "आमंत्रण भेजा नहीं जा सका — पता और आपकी साइट की आउटगोइंग मेल कॉन्फ़िगरेशन जाँचें।"
 
-#: includes/Admin/Settings.php:176
+#: includes/Admin/Settings.php:178
 msgid "Test invitation sent — check the inbox you sent it to."
 msgstr "परीक्षण आमंत्रण भेज दिया गया है — जिस इनबॉक्स पर आपने इसे भेजा था, उसे जाँचें।"
 
-#: includes/Admin/Settings.php:177
+#: includes/Admin/Settings.php:179
 msgid ""
 "Could not send the test invitation — check the address and your site's "
 "outgoing mail configuration."
 msgstr ""
 "परीक्षण आमंत्रण भेजा नहीं जा सका — पता और आपकी साइट की आउटगोइंग मेल कॉन्फ़िगरेशन जाँचें।"
 
-#: includes/Admin/Settings.php:178
+#: includes/Admin/Settings.php:180
 msgid ""
 "Test email sent — check whether it lands in your inbox or your spam folder."
 msgstr ""
 "परीक्षण ईमेल भेज दिया गया है — जाँचें कि यह आपके इनबॉक्स में जाता है या स्पैम फ़ोल्डर में।"
 
-#: includes/Admin/Settings.php:180
+#: includes/Admin/Settings.php:182
 msgid "Branding preview sent — check the inbox you sent it to."
 msgstr "ब्रांडिंग प्रीव्यू भेज दिया गया — जिस इनबॉक्स पर आपने भेजा था, उसे जाँचें।"
 
-#: includes/Admin/Settings.php:181
+#: includes/Admin/Settings.php:183
 msgid ""
 "Could not send the branding preview — check the address and your site's "
 "outgoing mail configuration."
 msgstr ""
 "ब्रांडिंग प्रीव्यू भेजा नहीं जा सका — पता और आपकी साइट की आउटगोइंग मेल कॉन्फ़िगरेशन जाँचें।"
 
-#: includes/Admin/Settings.php:182
+#: includes/Admin/Settings.php:184
 msgid ""
 "Failed recipients reset to pending — they will be retried on the next few "
 "cron cycles."
@@ -1664,60 +1844,64 @@ msgstr ""
 "विफल प्राप्तकर्ताओं को फिर से लंबित पर रीसेट कर दिया गया है — अगले कुछ क्रॉन चक्रों में उन्हें "
 "दोबारा प्रयास किया जाएगा।"
 
-#: includes/Admin/Settings.php:183
+#: includes/Admin/Settings.php:185
 msgid "No failed recipients to retry for this newsletter."
 msgstr "इस न्यूज़लेटर के लिए पुनः प्रयास करने हेतु कोई विफल प्राप्तकर्ता नहीं हैं।"
 
-#: includes/Admin/Settings.php:197
+#: includes/Admin/Settings.php:199
 msgid "Art blooming out of oblivion"
 msgstr "विस्मृति से खिलती कला"
 
-#: includes/Admin/Settings.php:221 includes/Admin/Settings.php:288
+#: includes/Admin/Settings.php:223 includes/Admin/Settings.php:290
 msgid "Save Changes"
 msgstr "परिवर्तन सहेजें"
 
-#: includes/Admin/Settings.php:246
+#: includes/Admin/Settings.php:248
 msgid "Rules"
 msgstr "नियम"
 
-#: includes/Admin/Settings.php:302
+#: includes/Admin/Settings.php:304
 msgid "General"
 msgstr "सामान्य"
 
-#: includes/Admin/Settings.php:303
+#: includes/Admin/Settings.php:305
 msgid "Branding"
 msgstr "ब्रांडिंग"
 
-#: includes/Admin/Settings.php:304
+#: includes/Admin/Settings.php:306
 msgid "Email Inbox"
 msgstr "ईमेल इनबॉक्स"
 
-#: includes/Admin/Settings.php:305
+#: includes/Admin/Settings.php:307
 msgid "AI Providers"
 msgstr "एआई प्रदाता"
 
-#: includes/Admin/Settings.php:306
+#: includes/Admin/Settings.php:308
 msgid "Behavior"
 msgstr "व्यवहार"
 
-#: includes/Admin/Settings.php:307
+#: includes/Admin/Settings.php:309
 msgid "Network"
 msgstr "नेटवर्क"
 
-#: includes/Admin/Settings.php:309 includes/Admin/Settings.php:491
+#: includes/Admin/Settings.php:310
+msgid "Rhizome"
+msgstr "राइजोम"
+
+#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:494
 msgid "Donations"
 msgstr "दान"
 
-#: includes/Admin/Settings.php:311
+#: includes/Admin/Settings.php:314
 msgid "Logs"
 msgstr "लॉग्स"
 
-#: includes/Admin/Settings.php:343
+#: includes/Admin/Settings.php:346
 msgid "••••••••  (defined in wp-config.php)"
 msgstr "••••••••  (wp-config.php में परिभाषित)"
 
 #. translators: %s: PHP constant name, e.g. AGNOSIS_OPENAI_KEY, wrapped in <code>
-#: includes/Admin/Settings.php:346
+#: includes/Admin/Settings.php:349
 #, php-format
 msgid ""
 "Set via the %s constant in wp-config.php — this field is inert until that "
@@ -1726,15 +1910,15 @@ msgstr ""
 "wp-config.php में %s स्थिरांक के माध्यम से सेट किया गया — यह फ़ील्ड तब तक निष्क्रिय रहता "
 "है जब तक वह स्थिरांक हटाया न जाए।"
 
-#: includes/Admin/Settings.php:380
+#: includes/Admin/Settings.php:383
 msgid "— None (inline message only) —"
 msgstr "— कोई नहीं (केवल इनलाइन संदेश) —"
 
-#: includes/Admin/Settings.php:389 includes/Admin/Settings.php:400
+#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:403
 msgid "Reset to default"
 msgstr "डिफ़ॉल्ट पर रीसेट करें"
 
-#: includes/Admin/Settings.php:390
+#: includes/Admin/Settings.php:393
 msgid ""
 "Replaces the text above with the plugin's built-in default — click Save "
 "Changes below to keep it."
@@ -1742,19 +1926,19 @@ msgstr ""
 "ऊपर दिए गए पाठ को प्लगइन के अंतर्निर्मित डिफ़ॉल्ट से बदलता है — इसे रखने के लिए नीचे "
 "'परिवर्तन सहेजें' पर क्लिक करें।"
 
-#: includes/Admin/Settings.php:413
+#: includes/Admin/Settings.php:416
 msgid "Select Image"
 msgstr "छवि चुनें"
 
-#: includes/Admin/Settings.php:464
+#: includes/Admin/Settings.php:467
 msgid "Bot Protection"
 msgstr "बॉट सुरक्षा"
 
-#: includes/Admin/Settings.php:467
+#: includes/Admin/Settings.php:470
 msgid "Turnstile is configured."
 msgstr "Turnstile कॉन्फ़िगर है।"
 
-#: includes/Admin/Settings.php:468
+#: includes/Admin/Settings.php:471
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
@@ -1762,11 +1946,11 @@ msgstr ""
 "Join आवेदन फ़ॉर्म और Newsletter Subscribe फ़ॉर्म, दोनों किसी भी सबमिशन को स्वीकार "
 "करने से पहले मानव सत्यापन की आवश्यकता रखते हैं।"
 
-#: includes/Admin/Settings.php:473
+#: includes/Admin/Settings.php:476
 msgid "Turnstile is not configured."
 msgstr "Turnstile कॉन्फ़िगर नहीं है।"
 
-#: includes/Admin/Settings.php:474
+#: includes/Admin/Settings.php:477
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -1783,7 +1967,7 @@ msgstr ""
 "और गुप्त कुंजी जोड़ें ताकि Join फ़ॉर्म और Newsletter Subscribe फ़ॉर्म, दोनों पर मानव "
 "सत्यापन आवश्यक हो सके।"
 
-#: includes/Admin/Settings.php:493
+#: includes/Admin/Settings.php:496
 msgid ""
 "A simple way for visitors to support an artist directly is planned, with no "
 "platform fee. That feature hasn't been built yet, so there is nothing to "
@@ -1793,7 +1977,7 @@ msgstr ""
 "में है, कोई प्लेटफॉर्म शुल्क नहीं। यह सुविधा अभी तक बनाई नहीं गई है, इसलिए आज यहाँ कुछ भी "
 "कॉन्फ़िगर करने के लिए नहीं है।"
 
-#: includes/Admin/Settings.php:496
+#: includes/Admin/Settings.php:499
 msgid ""
 "Agnosis is not a marketplace. Art sales, checkout, and other commerce "
 "functionality are left to dedicated plugins."
@@ -1801,24 +1985,24 @@ msgstr ""
 "Agnosis एक बाजार नहीं है। कला बिक्री, चेकआउट, और अन्य वाणिज्य कार्यक्षमता समर्पित "
 "प्लगइन पर छोड़ दी जाती है।"
 
-#: includes/Admin/Settings.php:521
+#: includes/Admin/Settings.php:524
 msgid "OpenAI"
 msgstr "OpenAI"
 
-#: includes/Admin/Settings.php:522
+#: includes/Admin/Settings.php:525
 msgid "Anthropic"
 msgstr "Anthropic"
 
-#: includes/Admin/Settings.php:529
+#: includes/Admin/Settings.php:532
 msgid "AI Processing & Privacy Policy"
 msgstr "AI प्रसंस्करण एवं गोपनीयता नीति"
 
-#: includes/Admin/Settings.php:532
+#: includes/Admin/Settings.php:535
 msgid "A Privacy Policy page is set."
 msgstr "एक गोपनीयता नीति पृष्ठ सेट है।"
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:536
+#: includes/Admin/Settings.php:539
 #, php-format
 msgid ""
 "Suggested wording covering %s and public federation was added to it "
@@ -1830,12 +2014,12 @@ msgstr ""
 "प्रकाशित करने से पहले इसे Settings → Privacy → \"Guide\" में समीक्षा करें, और अपनी "
 "अनुपालन ज़िम्मेदारियों के लिए अपने प्रदाता(ओं) के डेटा प्रसंस्करण समझौते (DPA) की भी जाँच करें।"
 
-#: includes/Admin/Settings.php:544
+#: includes/Admin/Settings.php:547
 msgid "No Privacy Policy page is set."
 msgstr "कोई गोपनीयता नीति पृष्ठ सेट नहीं है।"
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:548
+#: includes/Admin/Settings.php:551
 #, php-format
 msgid ""
 "Submitted artwork, text, and visitor contact messages are sent to %s for "
@@ -1849,19 +2033,19 @@ msgstr ""
 "तैयार कर दी है, जो आपको वहाँ \"Guide\" के अंतर्गत मिलेगी। अपनी अनुपालन ज़िम्मेदारियों के "
 "लिए आप उस प्रदाता के डेटा प्रसंस्करण समझौते (DPA) की समीक्षा भी करना चाह सकते हैं।"
 
-#: includes/Admin/Settings.php:552
+#: includes/Admin/Settings.php:555
 msgid "Go to Settings → Privacy"
 msgstr "Settings → Privacy पर जाएँ"
 
-#: includes/Admin/Settings.php:576
+#: includes/Admin/Settings.php:579
 msgid "Debug Files"
 msgstr "डीबग फ़ाइलें"
 
-#: includes/Admin/Settings.php:580
+#: includes/Admin/Settings.php:583
 msgid "Currently"
 msgstr "वर्तमान में"
 
-#: includes/Admin/Settings.php:591
+#: includes/Admin/Settings.php:594
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1869,7 +2053,7 @@ msgstr ""
 "wp-config.php में AGNOSIS_DEBUG कॉन्स्टेंट द्वारा ज़बरदस्ती ON किया गया है — ऊपर वाले "
 "चेकबॉक्स का तब तक कोई प्रभाव नहीं होगा जब तक वह पंक्ति हटा नहीं दी जाती।"
 
-#: includes/Admin/Settings.php:593
+#: includes/Admin/Settings.php:596
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -1877,19 +2061,19 @@ msgstr ""
 "wp-config.php में AGNOSIS_DEBUG कॉन्स्टेंट द्वारा ज़बरदस्ती OFF किया गया है — ऊपर वाले "
 "चेकबॉक्स का तब तक कोई प्रभाव नहीं होगा जब तक वह पंक्ति हटा नहीं दी जाती।"
 
-#: includes/Admin/Settings.php:601
+#: includes/Admin/Settings.php:604
 msgid "Directory"
 msgstr "निर्देशिका"
 
-#: includes/Admin/Settings.php:604
+#: includes/Admin/Settings.php:607
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr "डीबग आउटपुट को कहीं और मोड़ने के लिए agnosis_debug_dir से फ़िल्टर करें।"
 
-#: includes/Admin/Settings.php:611
+#: includes/Admin/Settings.php:614
 msgid ".txt file(s) in the directory"
 msgstr "निर्देशिका में .txt फ़ाइल(ें)"
 
-#: includes/Admin/Settings.php:617
+#: includes/Admin/Settings.php:620
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -1897,19 +2081,19 @@ msgstr ""
 "क्या डीबग निर्देशिका में मौजूद सभी .txt फ़ाइलें हटानी हैं? निर्देशिका स्वयं बनी रहती है ताकि "
 "भविष्य के डीबग लेखन साफ़-सुथरे ढंग से वहीं पहुँचें।"
 
-#: includes/Admin/Settings.php:622
+#: includes/Admin/Settings.php:625
 msgid "Clear Debug Files"
 msgstr "डीबग फ़ाइलें साफ़ करें"
 
-#: includes/Admin/Settings.php:653
+#: includes/Admin/Settings.php:656
 msgid "Term Translation Cache"
 msgstr "टर्म अनुवाद कैश"
 
-#: includes/Admin/Settings.php:657
+#: includes/Admin/Settings.php:660
 msgid "Cached translations"
 msgstr "कैश किए गए अनुवाद"
 
-#: includes/Admin/Settings.php:660
+#: includes/Admin/Settings.php:663
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -1921,7 +2105,7 @@ msgstr ""
 "बदलने पर उसकी अपनी कैश प्रविष्टि अपने-आप साफ़ हो जाती है; नीचे दिया गया बटन केवल तभी "
 "उपयोग करें जब कैश किया गया अनुवाद स्वयं गलत हो।"
 
-#: includes/Admin/Settings.php:666
+#: includes/Admin/Settings.php:669
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
@@ -1929,37 +2113,37 @@ msgstr ""
 "क्या हर कैश किया गया टर्म अनुवाद साफ़ कर दें? आपकी साइट से कुछ भी हटाया नहीं जाएगा — "
 "अगली बार ज़रूरत पड़ने पर शब्दों का AI द्वारा फिर से अनुवाद किया जाएगा।"
 
-#: includes/Admin/Settings.php:671
+#: includes/Admin/Settings.php:674
 msgid "Clear Term Translation Cache"
 msgstr "टर्म अनुवाद कैश साफ़ करें"
 
-#: includes/Admin/Settings.php:721
+#: includes/Admin/Settings.php:728
 msgid "Inbox Tools"
 msgstr "इनबॉक्स टूल्स"
 
-#: includes/Admin/Settings.php:725
+#: includes/Admin/Settings.php:732
 msgid "Test connection"
 msgstr "कनेक्शन का परीक्षण करें"
 
-#: includes/Admin/Settings.php:730
+#: includes/Admin/Settings.php:737
 msgid "Test IMAP Connection"
 msgstr "IMAP कनेक्शन का परीक्षण करें"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:739
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
 msgstr "कॉन्फ़िगर किए गए मेलबॉक्स से जुड़ता है और कुल तथा अपठित संदेशों की संख्या बताता है।"
 
-#: includes/Admin/Settings.php:736
+#: includes/Admin/Settings.php:743
 msgid "Poll inbox now"
 msgstr "अभी इनबॉक्स पोल करें"
 
-#: includes/Admin/Settings.php:741
+#: includes/Admin/Settings.php:748
 msgid "Poll Inbox Now"
 msgstr "इनबॉक्स अभी पोल करें"
 
-#: includes/Admin/Settings.php:743
+#: includes/Admin/Settings.php:750
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -1967,15 +2151,15 @@ msgstr ""
 "WP-Cron की प्रतीक्षा किए बिना अपठित संदेश तुरंत प्राप्त करता है। फिर AI पाइपलाइन चलाने "
 "के लिए \"प्रतीक्षारत कतार प्रक्रिया करें\" पर क्लिक करें।"
 
-#: includes/Admin/Settings.php:747
+#: includes/Admin/Settings.php:754
 msgid "Process queue"
 msgstr "कतार प्रक्रिया करें"
 
-#: includes/Admin/Settings.php:752
+#: includes/Admin/Settings.php:759
 msgid "Process Pending Queue"
 msgstr "प्रतीक्षारत कतार प्रक्रिया करें"
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:761
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -1983,15 +2167,15 @@ msgstr ""
 "WP-Cron की प्रतीक्षा किए बिना सभी प्रतीक्षारत कतार आइटम्स पर तुरंत AI पाइपलाइन "
 "चलाता है। पोल के बाद एंड-टू-एंड प्रवाह का परीक्षण करने के लिए इसका उपयोग करें।"
 
-#: includes/Admin/Settings.php:758
+#: includes/Admin/Settings.php:765
 msgid "Force reprocess"
 msgstr "पुनःप्रसंस्करण बाध्य करें"
 
-#: includes/Admin/Settings.php:763
+#: includes/Admin/Settings.php:770
 msgid "Force Reprocess Inbox"
 msgstr "इनबॉक्स का पुनःप्रसंस्करण बाध्य करें"
 
-#: includes/Admin/Settings.php:765
+#: includes/Admin/Settings.php:772
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -3298,10 +3482,22 @@ msgstr ""
 "अभिनेता 2 उत्तर)।"
 
 #: includes/Admin/SettingsFields.php:940
+msgid "Allow manually trusting non-Agnosis Fediverse actors"
+msgstr "गैर-Agnosis Fediverse अभिनेताओं पर मैन्युअली विश्वास करने की अनुमति दें"
+
+#: includes/Admin/SettingsFields.php:945
+msgid ""
+"When enabled, the Partner Nodes panel below gains a form to directly add a "
+"trusted third-party Fediverse actor (a curator account, a specific instance) "
+"by pasting its actor and inbox URLs — no self-registration round trip. Leave "
+"this off if you only want to trust other Agnosis instances."
+msgstr "जब सक्षम किया जाता है, तो नीचे दिया गया साझेदार नोड पैनलtrusted तीसरे पक्ष के Fediverse अभिनेता (एक क्यूरेटर खाता, एक विशिष्ट उदाहरण) को सीधे जोड़ने के लिए एक फॉर्म प्राप्त करता है, इसके अभिनेता और इनबॉक्स URLs को चिपकाने के द्वारा - कोई स्व-पंजीकरण राउंड ट्रिप नहीं। यदि आप केवल अन्य Agnosis उदाहरणों पर विश्वास करना चाहते हैं तो इसे बंद रखें।"
+
+#: includes/Admin/SettingsFields.php:955
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "एक प्रेषक प्रति दिन स्व-हटाने (विदाई) अनुरोध"
 
-#: includes/Admin/SettingsFields.php:946
+#: includes/Admin/SettingsFields.php:961
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3313,11 +3509,11 @@ msgstr ""
 "यह इस बात की सीमा तय करता है कि स्पूफ किए गए या बार-बार From के जरिए किसी "
 "वास्तविक कलाकार को कितने पुष्टि ईमेल भेजकर स्पैम किया जा सकता है। डिफ़ॉल्ट: 3."
 
-#: includes/Admin/SettingsFields.php:950
+#: includes/Admin/SettingsFields.php:965
 msgid "Community broadcasts per artist per day"
 msgstr "प्रति कलाकार प्रति दिन सामुदायिक प्रसारण"
 
-#: includes/Admin/SettingsFields.php:956
+#: includes/Admin/SettingsFields.php:971
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3327,11 +3523,11 @@ msgstr ""
 "दिन भेजे जा सकने वाले संदेशों की अधिकतम संख्या। इससे एक सदस्य अन्य सभी सदस्यों के इनबॉक्स को "
 "भर नहीं सकता। डिफ़ॉल्ट: 3."
 
-#: includes/Admin/SettingsFields.php:960
+#: includes/Admin/SettingsFields.php:975
 msgid "Community broadcast max length (characters)"
 msgstr "सामुदायिक प्रसारण अधिकतम लंबाई (अक्षरों में)"
 
-#: includes/Admin/SettingsFields.php:967
+#: includes/Admin/SettingsFields.php:982
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3349,11 +3545,11 @@ msgstr ""
 "है कि एक संदेश AI अनुवाद कॉल्स में कितना खर्च कर सकता है। डिफ़ॉल्ट: 2000. कठोर अधिकतम: "
 "20000, इस सेटिंग की परवाह किए बिना।"
 
-#: includes/Admin/SettingsFields.php:998
+#: includes/Admin/SettingsFields.php:1013
 msgid "Admin approval only (disable community voting)"
 msgstr "केवल व्यवस्थापक अनुमोदन (सामुदायिक मतदान अक्षम करें)"
 
-#: includes/Admin/SettingsFields.php:1003
+#: includes/Admin/SettingsFields.php:1018
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3372,11 +3568,11 @@ msgstr ""
 "से खुला है, तो वह अपनी सामान्य समाप्ति तक चलता रहेगा; केवल नया मतदान शुरू करना रोका "
 "जाता है। डिफ़ॉल्ट रूप से बंद — अधिकांश समुदाय मौजूदा समर्थन/मतदान प्रणाली चाहते हैं।"
 
-#: includes/Admin/SettingsFields.php:1008
+#: includes/Admin/SettingsFields.php:1023
 msgid "Admission vote threshold (%)"
 msgstr "प्रवेश मतदान सीमा (%)"
 
-#: includes/Admin/SettingsFields.php:1013
+#: includes/Admin/SettingsFields.php:1028
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3384,21 +3580,21 @@ msgstr ""
 "सक्रिय कलाकारों का वह प्रतिशत जिन्हें प्रवेश के लिए हाँ में वोट करना होगा। नीचे दिए गए "
 "न्यूनतम फ़्लोर के साथ मिलकर।"
 
-#: includes/Admin/SettingsFields.php:1017
+#: includes/Admin/SettingsFields.php:1032
 msgid "Admission minimum votes"
 msgstr "प्रवेश न्यूनतम वोट"
 
-#: includes/Admin/SettingsFields.php:1021
+#: includes/Admin/SettingsFields.php:1036
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "ऊपर दिए गए प्रतिशत की परवाह किए बिना आवश्यक सकारात्मक वोटों की पूर्ण न्यूनतम संख्या।"
 
-#: includes/Admin/SettingsFields.php:1025
+#: includes/Admin/SettingsFields.php:1040
 msgid "Voting window (days)"
 msgstr "मतदान विंडो (दिन)"
 
-#: includes/Admin/SettingsFields.php:1029
+#: includes/Admin/SettingsFields.php:1044
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3406,11 +3602,11 @@ msgstr ""
 "दिन जिन तक एक आवेदन खुला रहता है। यदि इस अवधि में सीमा पूरी नहीं होती, तो आवेदन "
 "अस्वीकृत कर दिया जाता है।"
 
-#: includes/Admin/SettingsFields.php:1033
+#: includes/Admin/SettingsFields.php:1048
 msgid "Resolved application retention (days)"
 msgstr "सुलझाए गए आवेदन की अवधारण अवधि (दिन)"
 
-#: includes/Admin/SettingsFields.php:1039
+#: includes/Admin/SettingsFields.php:1054
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3425,11 +3621,11 @@ msgstr ""
 "की जीवनी/वक्तव्य/पोर्टफोलियो भी उसी अनुसूची पर अनाम किए जाते हैं, लेकिन प्रतिबंध को लागू "
 "बनाए रखने के लिए उनका ईमेल जानबूझकर रखा जाता है। डिफ़ॉल्ट: 180 दिन."
 
-#: includes/Admin/SettingsFields.php:1043
+#: includes/Admin/SettingsFields.php:1058
 msgid "After applying, send artists to"
 msgstr "आवेदन करने के बाद, कलाकारों को भेजें"
 
-#: includes/Admin/SettingsFields.php:1047
+#: includes/Admin/SettingsFields.php:1062
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3440,11 +3636,11 @@ msgstr ""
 "सफलतापूर्वक जमा हो जाता है, तो कलाकार को केवल इनलाइन पुष्टि संदेश देखने के बजाय वहाँ "
 "पुनर्निर्देशित किया जाता है। केवल इनलाइन संदेश रखने के लिए इसे \"None\" पर छोड़ दें।"
 
-#: includes/Admin/SettingsFields.php:1051
+#: includes/Admin/SettingsFields.php:1066
 msgid "Community size cap"
 msgstr "सामुदायिक आकार सीमा"
 
-#: includes/Admin/SettingsFields.php:1055
+#: includes/Admin/SettingsFields.php:1070
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3454,11 +3650,11 @@ msgstr ""
 "प्रतीक्षा सूची में जुड़ते हैं, और खाली हुई जगह सूची में अगले व्यक्ति को प्रवेश देती है। बिना किसी "
 "सीमा के लिए 0 पर सेट करें। समुदाय इसे बदलने के लिए वोट भी कर सकता है।"
 
-#: includes/Admin/SettingsFields.php:1059
+#: includes/Admin/SettingsFields.php:1074
 msgid "Cap-change co-signers required"
 msgstr "सीमा-परिवर्तन सह-हस्ताक्षरकर्ता आवश्यक"
 
-#: includes/Admin/SettingsFields.php:1063
+#: includes/Admin/SettingsFields.php:1078
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3466,11 +3662,11 @@ msgstr ""
 "सामुदायिक आकार सीमा बदलने के प्रस्ताव को पूर्ण समुदाय मतदान के रूप में खुलने से पहले कितने "
 "कलाकारों को सह-हस्ताक्षर करना होगा।"
 
-#: includes/Admin/SettingsFields.php:1067
+#: includes/Admin/SettingsFields.php:1082
 msgid "Cap-change vote window (days)"
 msgstr "सीमा-परिवर्तन मतदान विंडो (दिन)"
 
-#: includes/Admin/SettingsFields.php:1071
+#: includes/Admin/SettingsFields.php:1086
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3478,11 +3674,11 @@ msgstr ""
 "सामुदायिक सीमा-परिवर्तन मतदान कितने दिनों तक खुला रहता है। सक्रिय कलाकारों के साधारण "
 "बहुमत द्वारा हाँ में वोट करने पर नई सीमा अपनाई जाती है।"
 
-#: includes/Admin/SettingsFields.php:1075
+#: includes/Admin/SettingsFields.php:1090
 msgid "Removal nominations required"
 msgstr "हटाने के लिए आवश्यक नामांकन"
 
-#: includes/Admin/SettingsFields.php:1081
+#: includes/Admin/SettingsFields.php:1096
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3490,11 +3686,11 @@ msgstr ""
 "सामुदायिक हटाने का मतदान खुलने से पहले कितने कलाकार नामांकनों की आवश्यकता है। एडमिन इस "
 "सीमा को बायपास कर सकते हैं।"
 
-#: includes/Admin/SettingsFields.php:1085
+#: includes/Admin/SettingsFields.php:1100
 msgid "Removal vote window (days)"
 msgstr "हटाने का मतदान विंडो (दिन)"
 
-#: includes/Admin/SettingsFields.php:1091
+#: includes/Admin/SettingsFields.php:1106
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3502,11 +3698,11 @@ msgstr ""
 "सामुदायिक हटाने का मतदान कितने दिनों तक खुला रहता है। हटाने के लिए सक्रिय कलाकारों के "
 "बहुमत (>50%) को हाँ में वोट करना होगा।"
 
-#: includes/Admin/SettingsFields.php:1095
+#: includes/Admin/SettingsFields.php:1110
 msgid "Invitation intro"
 msgstr "निमंत्रण परिचय"
 
-#: includes/Admin/SettingsFields.php:1099
+#: includes/Admin/SettingsFields.php:1114
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3534,7 +3730,7 @@ msgstr ""
 "फ़ॉर्म नहीं, और आप ईमेल भेजकर अपनी कलाकृति अपडेट, प्रचारित या हट भी कर सकते हैं। अधिक "
 "जानकारी agnosis.art वेबसाइट पर मिल सकती है।"
 
-#: includes/Admin/SettingsFields.php:1104
+#: includes/Admin/SettingsFields.php:1119
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3549,22 +3745,22 @@ msgstr ""
 "जाता है तो इसे स्वतः अनुवादित किया जाता है।दान और कला बिक्री पर इस नोड द्वारा रखा "
 "गया प्रतिशत। कलाकारों को अग्रिम में कुछ नहीं देना पड़ता।"
 
-#: includes/Admin/SettingsFields.php:1123
+#: includes/Admin/SettingsFields.php:1138
 msgid "Sender name"
 msgstr "प्रेषक का नाम"
 
-#: includes/Admin/SettingsFields.php:1124
+#: includes/Admin/SettingsFields.php:1139
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "डाइजेस्ट ईमेल के प्रेषक के रूप में दिखाया जाने वाला नाम। साइट नाम का उपयोग करने के लिए "
 "खाली छोड़ें।"
 
-#: includes/Admin/SettingsFields.php:1128
+#: includes/Admin/SettingsFields.php:1143
 msgid "Sender email address"
 msgstr "प्रेषक का ईमेल पता"
 
-#: includes/Admin/SettingsFields.php:1130
+#: includes/Admin/SettingsFields.php:1145
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3578,11 +3774,11 @@ msgstr ""
 "डिलीवर होने योग्य पता होना चाहिए (SPF/DKIM कॉन्फ़िगर किया हुआ), अन्यथा संदेश स्पैम के "
 "रूप में चिह्नित किए जा सकते हैं।"
 
-#: includes/Admin/SettingsFields.php:1134
+#: includes/Admin/SettingsFields.php:1149
 msgid "Auto-draft newsletter intros"
 msgstr "न्यूज़लेटर के परिचय के ऑटो-ड्राफ्ट"
 
-#: includes/Admin/SettingsFields.php:1139
+#: includes/Admin/SettingsFields.php:1154
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3594,11 +3790,11 @@ msgstr ""
 "उसकी समीक्षा करने के लिए ईमेल करता है — जब तक कि आपने उस चक्र के लिए पहले से एक नहीं "
 "लिखा हो। दोनों परिचय फ़ील्ड को हमेशा वैसे ही छोड़ने के लिए अक्षम करें जैसे आपने उन्हें छोड़ा था।"
 
-#: includes/Admin/SettingsFields.php:1143
+#: includes/Admin/SettingsFields.php:1158
 msgid "Draft intro this many hours ahead"
 msgstr "परिचय का मसौदा इतने घंटे पहले तैयार करें"
 
-#: includes/Admin/SettingsFields.php:1149
+#: includes/Admin/SettingsFields.php:1164
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3606,11 +3802,11 @@ msgstr ""
 "किसी अंक के देय होने से कितने समय पहले Agnosis AI-जनित परिचय प्रस्तावित करे। यह केवल तब "
 "प्रभावी होता है जब ऊपर दिया गया ऑटो-ड्राफ्टिंग सक्षम हो। डिफ़ॉल्ट: 24."
 
-#: includes/Admin/SettingsFields.php:1153 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1168 includes/Newsletter/Scheduler.php:400
 msgid "Artist newsletter"
 msgstr "कलाकार न्यूज़लेटर"
 
-#: includes/Admin/SettingsFields.php:1156
+#: includes/Admin/SettingsFields.php:1171
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3618,11 +3814,11 @@ msgstr ""
 "स्वीकृत कलाकारों को स्वतः नामांकित किया जाता है (वे किसी भी अंक से एक क्लिक में सदस्यता "
 "समाप्त कर सकते हैं)। समुदाय डाइजेस्ट: हालिया गतिविधि, नए सदस्य, खुले मतदान।"
 
-#: includes/Admin/SettingsFields.php:1160
+#: includes/Admin/SettingsFields.php:1175
 msgid "Artist newsletter frequency (days)"
 msgstr "कलाकार न्यूज़लेटर की आवृत्ति (दिनों में)"
 
-#: includes/Admin/SettingsFields.php:1166
+#: includes/Admin/SettingsFields.php:1181
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -3630,11 +3826,11 @@ msgstr ""
 "डिफ़ॉल्ट 30 ≈ मासिक। पिछला अंक भेजे जाने के बाद इतने दिन बीतने पर नया अंक तैयार किया "
 "जाता है।"
 
-#: includes/Admin/SettingsFields.php:1170
+#: includes/Admin/SettingsFields.php:1185
 msgid "Artist newsletter intro"
 msgstr "कलाकार न्यूज़लेटर का परिचय"
 
-#: includes/Admin/SettingsFields.php:1174
+#: includes/Admin/SettingsFields.php:1189
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3648,11 +3844,11 @@ msgstr ""
 "आधार पर अपने-आप एक मसौदा तैयार करता है, और पहले आपको उसकी समीक्षा करने के लिए ईमेल "
 "करता है — इसे छोड़ने के लिए यहाँ कभी भी अपना नोट लिखें।"
 
-#: includes/Admin/SettingsFields.php:1178 includes/Newsletter/Scheduler.php:386
+#: includes/Admin/SettingsFields.php:1193 includes/Newsletter/Scheduler.php:400
 msgid "Public newsletter"
 msgstr "सार्वजनिक न्यूज़लेटर"
 
-#: includes/Admin/SettingsFields.php:1181
+#: includes/Admin/SettingsFields.php:1196
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3660,19 +3856,19 @@ msgstr ""
 "आगंतुक agnosis/newsletter-signup ब्लॉक के माध्यम से सदस्यता लेते हैं (डबल ऑप्ट-इन)। "
 "डाइजेस्ट: पिछले अंक के बाद से प्रकाशित नई कलाकृतियाँ और कार्यक्रम।"
 
-#: includes/Admin/SettingsFields.php:1185
+#: includes/Admin/SettingsFields.php:1200
 msgid "Public newsletter frequency (days)"
 msgstr "सार्वजनिक न्यूज़लेटर आवृत्ति (दिनों में)"
 
-#: includes/Admin/SettingsFields.php:1191
+#: includes/Admin/SettingsFields.php:1206
 msgid "Default 30 ≈ monthly."
 msgstr "डिफ़ॉल्ट 30 ≈ मासिक."
 
-#: includes/Admin/SettingsFields.php:1195
+#: includes/Admin/SettingsFields.php:1210
 msgid "Public newsletter intro"
 msgstr "सार्वजनिक न्यूज़लेटर परिचय"
 
-#: includes/Admin/SettingsFields.php:1199
+#: includes/Admin/SettingsFields.php:1214
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3684,11 +3880,11 @@ msgstr ""
 "पहले उसमें नया क्या है, उसके आधार पर अपने-आप एक मसौदा तैयार करता है, और पहले आपको उसकी "
 "समीक्षा करने के लिए ईमेल करता है — इसे छोड़ने के लिए यहाँ कभी भी अपना नोट लिखें।"
 
-#: includes/Admin/SettingsFields.php:1203
+#: includes/Admin/SettingsFields.php:1218
 msgid "Send batch size"
 msgstr "प्रति बैच भेजने का आकार"
 
-#: includes/Admin/SettingsFields.php:1209
+#: includes/Admin/SettingsFields.php:1224
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3697,11 +3893,11 @@ msgstr ""
 "पर थ्रॉटल लगाता है, तो इसे कम करें; और यदि होस्ट की सीमाएँ उदार हैं, तो तेज़ डिलीवरी के "
 "लिए इसे बढ़ाएँ।"
 
-#: includes/Admin/SettingsFields.php:1213
+#: includes/Admin/SettingsFields.php:1228
 msgid "Self-hosting comfort threshold"
 msgstr "स्व-होस्टिंग आराम सीमा"
 
-#: includes/Admin/SettingsFields.php:1219
+#: includes/Admin/SettingsFields.php:1234
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -3859,7 +4055,7 @@ msgstr "विवरण"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3380
+#: includes/Network/ActivityPub.php:3899
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s %2$d वर्णों या उससे कम होना चाहिए।"
@@ -3953,9 +4149,9 @@ msgstr "धन्यवाद, %s!"
 
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
-#: includes/Artist/NotificationPreferences.php:329
-#: includes/Network/ActivityPub.php:4270 includes/Network/ActivityPub.php:4277
-#: includes/Network/ActivityPub.php:4284 includes/Network/ActivityPub.php:4392
+#: includes/Artist/NotificationPreferences.php:367
+#: includes/Network/ActivityPub.php:4789 includes/Network/ActivityPub.php:4796
+#: includes/Network/ActivityPub.php:4803 includes/Network/ActivityPub.php:4911
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "लिंक त्रुटि"
@@ -4005,8 +4201,8 @@ msgstr "हमें %s के लिए आपका आवेदन प्र�
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:3946
-#: includes/Network/ActivityPub.php:4065
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4465
+#: includes/Network/ActivityPub.php:4584
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4493,7 +4689,7 @@ msgstr "सह-समर्थन करने के लिए कोई सक
 msgid "Proposal not found."
 msgstr "प्रस्ताव नहीं मिला।"
 
-#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:613
+#: includes/Artist/CommunityCapVote.php:202 includes/Artist/Departure.php:630
 msgid "This vote is not currently open."
 msgstr "यह मतदान वर्तमान में खुला नहीं है।"
 
@@ -4513,7 +4709,7 @@ msgstr ""
 "स्पैम, धोखाधड़ी, या अवांछित व्यावसायिक विज्ञापन जो कलाकार से उनके काम के बारे में वास्तव "
 "में संपर्क करने से असंबंधित हो"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:3593
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4112
 msgid "Flagged by automatic content review."
 msgstr "स्वचालित सामग्री समीक्षा द्वारा चिह्नित किया गया।"
 
@@ -4548,12 +4744,12 @@ msgid "Reply (translated automatically)"
 msgstr "उत्तर (स्वत: अनुवादित)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4153 includes/Network/ActivityPub.php:4269
-#: includes/Network/ActivityPub.php:4391
+#: includes/Network/ActivityPub.php:4672 includes/Network/ActivityPub.php:4788
+#: includes/Network/ActivityPub.php:4910
 msgid "This link is invalid or has already expired."
 msgstr "यह लिंक अव्यवस्थित है या पहले ही समाप्त हो चुका है।"
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4158
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4677
 msgid "This link has expired."
 msgstr "यह लिंक समाप्त हो गया है।"
 
@@ -4561,15 +4757,15 @@ msgstr "यह लिंक समाप्त हो गया है।"
 msgid "This conversation no longer exists."
 msgstr "यह बातचीत अब मौजूद नहीं है।"
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4326
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4845
 msgid "Original"
 msgstr "मूल"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4332
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4851
 msgid "Translated"
 msgstr "अनुवादित"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4335
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4854
 msgid "Translation pending…"
 msgstr "अनुवाद लंबित है…"
 
@@ -4589,8 +4785,8 @@ msgstr "इस बातचीत का उत्तर दें"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "आपका उत्तर (यदि आवश्यक हो तो इसे स्वत: अनुवादित किया जाएगा)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3012
-#: includes/Network/ActivityPub.php:3079
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3531
+#: includes/Network/ActivityPub.php:3598
 msgid "Send reply"
 msgstr "उत्तर भेजें"
 
@@ -4634,7 +4830,7 @@ msgid "Original message, as written"
 msgstr "मूल संदेश, जैसा लिखा गया"
 
 #: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:449
-#: includes/Network/ActivityPub.php:3025
+#: includes/Network/ActivityPub.php:3544
 msgid "Reply"
 msgstr "उत्तर दें"
 
@@ -4792,12 +4988,12 @@ msgstr "पहली वाली फ़ोटो पुनर्स्थाप
 msgid "Restoring…"
 msgstr "पुनर्स्थापित किया जा रहा है…"
 
-#: includes/Artist/Departure.php:111
+#: includes/Artist/Departure.php:124
 msgid "You have left"
 msgstr "आप जा चुके हैं"
 
 #. translators: %s: site name
-#: includes/Artist/Departure.php:114
+#: includes/Artist/Departure.php:127
 #, php-format
 msgid ""
 "Your account and everything you published on %s have been permanently "
@@ -4806,11 +5002,11 @@ msgstr ""
 "आपका खाता और %s पर आपके द्वारा प्रकाशित सब कुछ स्थायी रूप से हटा दिया गया है। आपसे "
 "जुड़ी अब यहाँ कोई भी चीज़ संग्रहीत नहीं है।"
 
-#: includes/Artist/Departure.php:121 includes/Publishing/ReviewConfirm.php:327
+#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:327
 msgid "Link expired or already used"
 msgstr "लिंक की समय-सीमा समाप्त हो गई है या पहले ही उपयोग हो चुका है"
 
-#: includes/Artist/Departure.php:122
+#: includes/Artist/Departure.php:135
 msgid ""
 "This confirmation link has already been used or is no longer valid. If you "
 "still want to leave, please request removal again from your account."
@@ -4818,28 +5014,28 @@ msgstr ""
 "इस पुष्टि लिंक का पहले ही उपयोग हो चुका है या यह अब मान्य नहीं है। यदि आप फिर भी "
 "छोड़ना चाहते हैं, तो कृपया अपने खाते से हटाने का अनुरोध फिर से करें।"
 
-#: includes/Artist/Departure.php:186
+#: includes/Artist/Departure.php:199
 #: includes/Publishing/SubmissionsPage.php:163
 msgid "You must be logged in."
 msgstr "आपको लॉग इन होना चाहिए।"
 
-#: includes/Artist/Departure.php:190
+#: includes/Artist/Departure.php:203
 msgid "Artist access required."
 msgstr "कलाकार पहुँच आवश्यक है।"
 
-#: includes/Artist/Departure.php:214
+#: includes/Artist/Departure.php:227
 msgid "No active membership found for this account."
 msgstr "इस खाते के लिए कोई सक्रिय सदस्यता नहीं मिली।"
 
-#: includes/Artist/Departure.php:486
+#: includes/Artist/Departure.php:503
 msgid "You cannot nominate yourself for removal."
 msgstr "आप स्वयं को हटाने के लिए नामांकित नहीं कर सकते।"
 
-#: includes/Artist/Departure.php:496
+#: includes/Artist/Departure.php:513
 msgid "Artist not found."
 msgstr "कलाकार नहीं मिला।"
 
-#: includes/Artist/Departure.php:528
+#: includes/Artist/Departure.php:545
 msgid ""
 "Community voting is disabled on this site. Contact an admin to request "
 "removal review."
@@ -4847,11 +5043,11 @@ msgstr ""
 "इस साइट पर सामुदायिक मतदान अक्षम है। हटाने की समीक्षा का अनुरोध करने के लिए किसी "
 "व्यवस्थापक से संपर्क करें।"
 
-#: includes/Artist/Departure.php:609
+#: includes/Artist/Departure.php:626
 msgid "Removal request not found."
 msgstr "हटाने का अनुरोध नहीं मिला।"
 
-#: includes/Artist/Departure.php:617
+#: includes/Artist/Departure.php:634
 msgid "You cannot vote on your own removal."
 msgstr "आप अपनी ही हटाने की प्रक्रिया पर वोट नहीं कर सकते।"
 
@@ -5053,7 +5249,7 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr "कृपया एक मान्य ईमेल पता दर्ज करें।"
 
-#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:147
+#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:161
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
@@ -5066,7 +5262,7 @@ msgid "You're invited to join %s"
 msgstr "आपको %s से जुड़ने के लिए आमंत्रित किया गया है"
 
 #. translators: %s: the actual (non-test) subject line
-#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:140
+#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:154
 #, php-format
 msgid "[TEST] %s"
 msgstr "[परीक्षण] %s"
@@ -5147,42 +5343,42 @@ msgstr ""
 msgid "Please fill in all required fields."
 msgstr "कृपया सभी आवश्यक फ़ील्ड भरें।"
 
-#: includes/Artist/NotificationPreferences.php:144
+#: includes/Artist/NotificationPreferences.php:165
 msgid "This preferences link is invalid or has been tampered with."
 msgstr "यह प्राथमिकताएँ लिंक अमान्य है या इसमें छेड़छाड़ की गई है।"
 
-#: includes/Artist/NotificationPreferences.php:150
+#: includes/Artist/NotificationPreferences.php:171
 msgid "This preferences link is no longer valid for this account."
 msgstr "यह प्राथमिकताएँ लिंक अब इस खाते के लिए मान्य नहीं है।"
 
-#: includes/Artist/NotificationPreferences.php:279
-#: includes/Artist/NotificationPreferences.php:299
+#: includes/Artist/NotificationPreferences.php:312
+#: includes/Artist/NotificationPreferences.php:334
 msgid "Notification preferences"
 msgstr "सूचना प्राथमिकताएँ"
 
-#: includes/Artist/NotificationPreferences.php:284
+#: includes/Artist/NotificationPreferences.php:317
 msgid "Mute community broadcast messages from other artists."
 msgstr "अन्य कलाकारों से आने वाले समुदाय प्रसारण संदेशों को म्यूट करें।"
 
-#: includes/Artist/NotificationPreferences.php:285
+#: includes/Artist/NotificationPreferences.php:318
 msgid "Application vote emails"
 msgstr "आवेदन मतदान ईमेल"
 
-#: includes/Artist/NotificationPreferences.php:287
+#: includes/Artist/NotificationPreferences.php:320
 msgid "Instantly, one email per application (default)."
 msgstr "तुरंत, प्रति आवेदन एक ईमेल (डिफ़ॉल्ट)।"
 
-#: includes/Artist/NotificationPreferences.php:289
+#: includes/Artist/NotificationPreferences.php:322
 msgid ""
 "Once a day, a single digest of every application still awaiting my vote."
 msgstr "दिन में एक बार, मेरे वोट की प्रतीक्षा कर रहे हर आवेदन का एक संयुक्त सारांश।"
 
-#: includes/Artist/NotificationPreferences.php:291
+#: includes/Artist/NotificationPreferences.php:324
 msgid ""
 "Turn off the contact form on my page — visitors won't be able to message me."
 msgstr "मेरे पेज पर संपर्क फ़ॉर्म बंद कर दें — आगंतुक मुझे संदेश नहीं भेज पाएँगे।"
 
-#: includes/Artist/NotificationPreferences.php:293
+#: includes/Artist/NotificationPreferences.php:326
 msgid ""
 "Turn off federated replies on my artworks entirely — no new reply will be "
 "accepted from the Fediverse (this doesn't affect replies already showing)."
@@ -5190,7 +5386,7 @@ msgstr ""
 "मेरी कलाकृतियों पर पूरी तरह से संबद्ध उत्तर बंद करें — फेडीवर्स से कोई नया उत्तर स्वीकार नहीं "
 "किया जाएगा (यह पहले से दिखाए जा रहे उत्तरों को प्रभावित नहीं करता)।"
 
-#: includes/Artist/NotificationPreferences.php:295
+#: includes/Artist/NotificationPreferences.php:328
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just one piece."
@@ -5198,45 +5394,51 @@ msgstr ""
 "खोज इंजन और Fediverse खोज अनुक्रमण बंद करें — यह मेरे पूरे प्रोफ़ाइल और यहां प्रकाशित हर "
 "चीज़ पर लागू होता है, केवल एक टुकड़े पर नहीं।"
 
-#: includes/Artist/NotificationPreferences.php:296
+#: includes/Artist/NotificationPreferences.php:330
+msgid ""
+"Turn off the personal \"likes and boosts on your work\" line in your "
+"newsletter digest."
+msgstr "अपने न्यूज़लेटर डाइजेस्ट में व्यक्तिगत \"आपके काम पर पसंद और बूस्ट बंद करें\" लाइन बंद करें।"
+
+#: includes/Artist/NotificationPreferences.php:331
 msgid "Save preferences"
 msgstr "प्राथमिकताएँ सहेजें"
 
-#: includes/Artist/NotificationPreferences.php:309
+#: includes/Artist/NotificationPreferences.php:344
 msgid "Community broadcasts are now muted."
 msgstr "समुदाय प्रसारण अब म्यूट कर दिए गए हैं।"
 
-#: includes/Artist/NotificationPreferences.php:310
+#: includes/Artist/NotificationPreferences.php:345
 msgid "You'll continue to receive community broadcasts."
 msgstr "आपको समुदाय प्रसारण मिलते रहेंगे।"
 
-#: includes/Artist/NotificationPreferences.php:312
+#: includes/Artist/NotificationPreferences.php:347
 msgid "You'll receive one daily digest of applications awaiting your vote."
 msgstr "आपको आपके वोट की प्रतीक्षा कर रहे आवेदनों का एक दैनिक सारांश मिलेगा।"
 
-#: includes/Artist/NotificationPreferences.php:313
+#: includes/Artist/NotificationPreferences.php:348
 msgid "You'll receive an email as soon as each new application arrives."
 msgstr "जैसे ही प्रत्येक नया आवेदन आएगा, आपको एक ईमेल मिलेगा।"
 
-#: includes/Artist/NotificationPreferences.php:315
+#: includes/Artist/NotificationPreferences.php:350
 msgid "The contact form on your page is now turned off."
 msgstr "आपके पेज पर संपर्क फ़ॉर्म अब बंद कर दिया गया है।"
 
-#: includes/Artist/NotificationPreferences.php:316
+#: includes/Artist/NotificationPreferences.php:351
 msgid "Visitors can still reach you through the contact form on your page."
 msgstr "आगंतुक अभी भी आपके पेज पर संपर्क फ़ॉर्म के माध्यम से आप तक पहुँच सकते हैं।"
 
-#: includes/Artist/NotificationPreferences.php:318
+#: includes/Artist/NotificationPreferences.php:353
 msgid "Federated replies on your artworks are now turned off."
 msgstr "आपकी कलाकृतियों पर संबद्ध उत्तर अब बंद कर दिए गए हैं।"
 
-#: includes/Artist/NotificationPreferences.php:319
+#: includes/Artist/NotificationPreferences.php:354
 msgid ""
 "You'll continue to receive federated replies (and their notification emails) "
 "on your artworks."
 msgstr "आप अपनी कलाकृतियों पर संबद्ध उत्तर (और उनके सूचना ईमेल) प्राप्त करना जारी रखेंगे।"
 
-#: includes/Artist/NotificationPreferences.php:321
+#: includes/Artist/NotificationPreferences.php:356
 msgid ""
 "Search engines and Fediverse discovery services will no longer be told to "
 "index your profile or your work."
@@ -5244,7 +5446,7 @@ msgstr ""
 "खोज इंजन और Fediverse खोज सेवाओं को अब आपके प्रोफ़ाइल या आपके कार्य को अनुक्रमित करने के "
 "लिए नहीं कहा जाएगा।"
 
-#: includes/Artist/NotificationPreferences.php:322
+#: includes/Artist/NotificationPreferences.php:357
 msgid ""
 "Search engines and Fediverse discovery services may continue indexing your "
 "profile and your work."
@@ -5252,7 +5454,17 @@ msgstr ""
 "खोज इंजन और Fediverse खोज सेवाएं आपके प्रोफ़ाइल और आपके कार्य को अनुक्रमित करना जारी "
 "रख सकती हैं।"
 
-#: includes/Artist/NotificationPreferences.php:325
+#: includes/Artist/NotificationPreferences.php:359
+msgid "The personal likes/boosts line is now off in your newsletter digest."
+msgstr "आपके न्यूज़लेटर डाइजेस्ट में व्यक्तिगत पसंद/बूस्ट लाइन अब बंद है।"
+
+#: includes/Artist/NotificationPreferences.php:360
+msgid ""
+"You'll continue to see a personal likes/boosts line in your newsletter "
+"digest."
+msgstr "आपके न्यूज़लेटर डाइजेस्ट में व्यक्तिगत पसंद/बूस्ट लाइन बने रहेंगे।"
+
+#: includes/Artist/NotificationPreferences.php:363
 msgid "Preferences saved"
 msgstr "प्राथमिकताएँ सहेजी गईं"
 
@@ -5576,7 +5788,7 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "अब तक %d सकारात्मक वोट दर्ज हो चुके हैं।"
 msgstr[1] "अब तक %d सकारात्मक वोट दर्ज हो चुके हैं।"
 
-#: includes/Compat/LinguaForge.php:1784
+#: includes/Compat/LinguaForge.php:1844
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -5585,19 +5797,19 @@ msgstr ""
 "प्लेसहोल्डर — इस पद के बनाए जाने पर AI अनुवाद अनुपलब्ध था या विफल हो गया। सही अनुवाद "
 "देने के लिए नाम संपादित करें, फिर यह नोट साफ़ करें।"
 
-#: includes/Compat/LinguaForge.php:3546
+#: includes/Compat/LinguaForge.php:3714
 msgid "is active and configured for"
 msgstr "सक्रिय है और इसके लिए कॉन्फ़िगर किया गया है"
 
-#: includes/Compat/LinguaForge.php:3547
+#: includes/Compat/LinguaForge.php:3715
 msgid "Subdomain"
 msgstr "उपडोमेन"
 
-#: includes/Compat/LinguaForge.php:3548
+#: includes/Compat/LinguaForge.php:3716
 msgid "routing mode"
 msgstr "रूटिंग मोड"
 
-#: includes/Compat/LinguaForge.php:3550
+#: includes/Compat/LinguaForge.php:3718
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5605,39 +5817,39 @@ msgstr ""
 "यह Agnosis कलाकार उपडोमेन के साथ टकराता है — दोनों प्लगइन्स एक ही उपडोमेन नामस्थान "
 "पर दावा करेंगे।"
 
-#: includes/Compat/LinguaForge.php:3551
+#: includes/Compat/LinguaForge.php:3719
 msgid "Artist subdomain routing is"
 msgstr "कलाकार उपडोमेन रूटिंग"
 
-#: includes/Compat/LinguaForge.php:3552
+#: includes/Compat/LinguaForge.php:3720
 msgid "completely inactive"
 msgstr "पूरी तरह निष्क्रिय"
 
-#: includes/Compat/LinguaForge.php:3553
+#: includes/Compat/LinguaForge.php:3721
 msgid "until this is resolved."
 msgstr "जब तक यह हल नहीं हो जाता।"
 
-#: includes/Compat/LinguaForge.php:3555
+#: includes/Compat/LinguaForge.php:3723
 msgid "Fix: open"
 msgstr "समाधान: खोलें"
 
-#: includes/Compat/LinguaForge.php:3556
+#: includes/Compat/LinguaForge.php:3724
 msgid "Settings"
 msgstr "सेटिंग्स"
 
-#: includes/Compat/LinguaForge.php:3556
+#: includes/Compat/LinguaForge.php:3724
 msgid "Language Router"
 msgstr "भाषा राउटर"
 
-#: includes/Compat/LinguaForge.php:3557
+#: includes/Compat/LinguaForge.php:3725
 msgid "and switch the URL strategy to"
 msgstr "और URL रणनीति को इसमें बदलें"
 
-#: includes/Compat/LinguaForge.php:3558
+#: includes/Compat/LinguaForge.php:3726
 msgid "Path prefix (subfolder)"
 msgstr "पथ उपसर्ग (उपफ़ोल्डर)"
 
-#: includes/Compat/LinguaForge.php:3559
+#: includes/Compat/LinguaForge.php:3727
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5645,23 +5857,23 @@ msgstr ""
 "यह LinguaForge का डिफ़ॉल्ट है और कलाकार उपडोमेन को भाषा उपफ़ोल्डर के साथ सह-अस्तित्व "
 "की अनुमति देता है"
 
-#: includes/Compat/LinguaForge.php:3564
+#: includes/Compat/LinguaForge.php:3732
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — कलाकार उपडोमेन रूटिंग निष्क्रिय है"
 
-#: includes/Compat/LinguaForge.php:3574
+#: includes/Compat/LinguaForge.php:3742
 msgid "Open LinguaForge Settings"
 msgstr "LinguaForge सेटिंग्स खोलें"
 
-#: includes/Core/Activator.php:1055 includes/Core/Roles.php:27
+#: includes/Core/Activator.php:1164 includes/Core/Roles.php:27
 msgid "Agnosis Artist"
 msgstr "Agnosis कलाकार"
 
-#: includes/Core/Activator.php:1184 blocks/submissions/editor.js:37
+#: includes/Core/Activator.php:1293 blocks/submissions/editor.js:37
 msgid "My Submissions"
 msgstr "मेरे सबमिशन"
 
-#: includes/Core/Activator.php:1374
+#: includes/Core/Activator.php:1483
 msgid "Join"
 msgstr "शामिल हों"
 
@@ -6148,7 +6360,7 @@ msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1064 includes/Network/ActivityPub.php:1081
+#: includes/Network/ActivityPub.php:1112 includes/Network/ActivityPub.php:1129
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6156,82 +6368,123 @@ msgstr[0] "♥ %d लाइक"
 msgstr[1] "♥ %d लाइक"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1066
+#: includes/Network/ActivityPub.php:1114
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d लाइक्स"
 
-#: includes/Network/ActivityPub.php:1067
+#: includes/Network/ActivityPub.php:1115
 msgid "Could not update like."
 msgstr "लाइक अपडेट नहीं कर सका।"
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1091
+#: includes/Network/ActivityPub.php:1139
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d बूस्ट"
 msgstr[1] "⟲ %d बूस्ट"
 
-#: includes/Network/ActivityPub.php:2019
+#: includes/Network/ActivityPub.php:2067
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2184
+#: includes/Network/ActivityPub.php:2232
 #, php-format
 msgid "Also available in: %s"
 msgstr "यहाँ भी उपलब्ध है: %s"
 
-#: includes/Network/ActivityPub.php:2582
+#: includes/Network/ActivityPub.php:2975
 msgid "No such artwork."
 msgstr "ऐसा कोई कला作品 नहीं है।"
 
-#: includes/Network/ActivityPub.php:2983
+#: includes/Network/ActivityPub.php:3381
+msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
+msgstr "अपने फेडिवर्स उदाहरण डोमेन दर्ज करें (जैसे mastodon.social)।"
+
+#: includes/Network/ActivityPub.php:3382
+msgid "Copied!"
+msgstr "कॉपी किया गया!"
+
+#: includes/Network/ActivityPub.php:3398 includes/Network/ActivityPub.php:3441
+#: blocks/follow-overlay/editor.js:21
+msgid "Follow"
+msgstr "अनुकरण करें"
+
+#: includes/Network/ActivityPub.php:3415
+msgid ""
+"This artist publishes to the Fediverse — the open, decentralized social "
+"network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
+"them from your own account on any of those, no Agnosis account needed."
+msgstr "यह कलाकार फेडिवर्स पर प्रकाशित करता है - खुला, विकेंद्रीकृत सामाजिक नेटवर्क जो मस्टोडोन, पिक्सेलफेड और अन्य एक्टिविटीपब-आधारित ऐप्स के पीछे है। उन्हें उन सभी में से किसी भी खाते से अनुगमन करें, किसी Agnosis खाते की आवश्यकता नहीं।"
+
+#: includes/Network/ActivityPub.php:3418
+msgid "Their handle:"
+msgstr "उनका हैंडल:"
+
+#: includes/Network/ActivityPub.php:3422
+msgid "Copy"
+msgstr "कॉपी करें"
+
+#: includes/Network/ActivityPub.php:3425
+msgid ""
+"Paste it into the search bar of your own Fediverse app to follow directly."
+msgstr "सीधे अनुसरण करने के लिए इसे अपने फेडिवर्स ऐप के खोज बार में पेस्ट करें।"
+
+#: includes/Network/ActivityPub.php:3429
+msgid "Or enter your instance to follow with one click:"
+msgstr "या एक क्लिक में अनुसरण करने के लिए अपना उदाहरण दर्ज करें:"
+
+#: includes/Network/ActivityPub.php:3436
+msgid "yourinstance.social"
+msgstr "yourinstance.social"
+
+#: includes/Network/ActivityPub.php:3502
 msgid "0 replies"
 msgstr "0 उत्तर"
 
-#: includes/Network/ActivityPub.php:3004
+#: includes/Network/ActivityPub.php:3523
 msgid "Loading replies…"
 msgstr "उत्तर लोड हो रहे हैं…"
 
-#: includes/Network/ActivityPub.php:3005
+#: includes/Network/ActivityPub.php:3524
 msgid "Could not load replies."
 msgstr "उत्तर लोड नहीं किया जा सका।"
 
-#: includes/Network/ActivityPub.php:3007 includes/Network/ActivityPub.php:3449
+#: includes/Network/ActivityPub.php:3526 includes/Network/ActivityPub.php:3968
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "धन्यवाद — आपका उत्तर सबमिट किया गया है और स्वीकृति की प्रतीक्षा कर रहा है।"
 
-#: includes/Network/ActivityPub.php:3008
+#: includes/Network/ActivityPub.php:3527
 msgid "Could not send your reply. Please try again."
 msgstr "आपका उत्तर भेजा नहीं जा सका। कृपया फिर से प्रयास करें।"
 
-#: includes/Network/ActivityPub.php:3009 includes/Network/ActivityPub.php:3075
+#: includes/Network/ActivityPub.php:3528 includes/Network/ActivityPub.php:3594
 msgid "Name (optional)"
 msgstr "नाम (वैकल्पिक)"
 
-#: includes/Network/ActivityPub.php:3010 includes/Network/ActivityPub.php:3076
+#: includes/Network/ActivityPub.php:3529 includes/Network/ActivityPub.php:3595
 msgid "Your email"
 msgstr "आपका ईमेल"
 
-#: includes/Network/ActivityPub.php:3011 includes/Network/ActivityPub.php:3073
+#: includes/Network/ActivityPub.php:3530 includes/Network/ActivityPub.php:3592
 msgid "Write a reply…"
 msgstr "उत्तर लिखें…"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3022
+#: includes/Network/ActivityPub.php:3541
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d उत्तर"
 msgstr[1] "%d उत्तर"
 
-#: includes/Network/ActivityPub.php:3519
+#: includes/Network/ActivityPub.php:4038
 msgid "Replies aren't open on this artwork right now."
 msgstr "अभी इस Artwork पर उत्तर खोलें नहीं हैं।"
 
-#: includes/Network/ActivityPub.php:3587
+#: includes/Network/ActivityPub.php:4106
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6240,20 +6493,20 @@ msgstr ""
 "हुए वाणिज्यिक विज्ञापन।"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:3919
+#: includes/Network/ActivityPub.php:4438
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "“%s” पर नया उत्तर"
 
-#: includes/Network/ActivityPub.php:3930
+#: includes/Network/ActivityPub.php:4449
 msgid "Someone left a reply on your artwork:"
 msgstr "किसी ने आपके Artwork पर एक उत्तर छोड़ा है:"
 
-#: includes/Network/ActivityPub.php:3931
+#: includes/Network/ActivityPub.php:4450
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "किसी ने फेडिवर्स से आपके Artwork पर उत्तर दिया है:"
 
-#: includes/Network/ActivityPub.php:3958
+#: includes/Network/ActivityPub.php:4477
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6261,13 +6514,13 @@ msgstr ""
 "यह आपको स्वीकृत या अस्वीकृत करने के लिए रोका गया है — आप उसी पृष्ठ से अपना उत्तर भी लिख "
 "सकते हैं।"
 
-#: includes/Network/ActivityPub.php:3962 includes/Network/ActivityPub.php:4361
-#: includes/Network/ActivityPub.php:4373
+#: includes/Network/ActivityPub.php:4481 includes/Network/ActivityPub.php:4880
+#: includes/Network/ActivityPub.php:4892
 msgid "Review this reply"
 msgstr "इस उत्तर की समीक्षा करें"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:3970
+#: includes/Network/ActivityPub.php:4489
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6275,12 +6528,12 @@ msgstr[0] "यह लिंक %d दिन में समाप्त हो 
 msgstr[1] "यह पुष्टि लिंक %d दिनों में समाप्त हो जाएगा।"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4055
+#: includes/Network/ActivityPub.php:4574
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr "%s पर एक उत्तर एक ऐसी भाषा में आया है, जिसे हम पहचान नहीं सके"
 
-#: includes/Network/ActivityPub.php:4071
+#: includes/Network/ActivityPub.php:4590
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6289,7 +6542,7 @@ msgstr ""
 "किसी ने आपके कला कार्य पर फेडिवर्स से उत्तर दिया, लेकिन हम उसकी भाषा की पहचान नहीं कर "
 "सके, इसलिए हम इसका अनुवाद या सामान्य उत्तर/अनुमोदन पृष्ठ प्रदान नहीं कर सकते।"
 
-#: includes/Network/ActivityPub.php:4077
+#: includes/Network/ActivityPub.php:4596
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6298,43 +6551,43 @@ msgstr ""
 "यह सिर्फ आपकी जानकारी के लिए है — यहाँ कुछ अनुमोदित करने या अस्वीकृत करने के लिए नहीं है। "
 "यदि आप इस पर कार्रवाई करना चाहते हैं, तो आप इसे अपने वर्डप्रेस डैशबोर्ड से कर सकते हैं।"
 
-#: includes/Network/ActivityPub.php:4188
+#: includes/Network/ActivityPub.php:4707
 msgid "Fediverse replies"
 msgstr "फेडिवर्स उत्तर"
 
-#: includes/Network/ActivityPub.php:4189
+#: includes/Network/ActivityPub.php:4708
 msgid "Site replies"
 msgstr "साइट उत्तर"
 
-#: includes/Network/ActivityPub.php:4283
+#: includes/Network/ActivityPub.php:4802
 msgid "This reply no longer exists."
 msgstr "यह उत्तर अब अस्तित्व में नहीं है।"
 
-#: includes/Network/ActivityPub.php:4340
+#: includes/Network/ActivityPub.php:4859
 msgid "Also post my reply to the Fediverse."
 msgstr "मेरे उत्तर को फेडिवर्स पर भी पोस्ट करें।"
 
-#: includes/Network/ActivityPub.php:4367
+#: includes/Network/ActivityPub.php:4886
 msgid "Write your own reply (optional)"
 msgstr "अपना उत्तर लिखें (वैकल्पिक)"
 
-#: includes/Network/ActivityPub.php:4399
+#: includes/Network/ActivityPub.php:4918
 msgid "Reply approved — it now appears on your artwork."
 msgstr "उत्तर स्वीकृत — यह अब आपकी कलाकृति पर दिखाई देता है।"
 
-#: includes/Network/ActivityPub.php:4402
+#: includes/Network/ActivityPub.php:4921
 msgid "Reply rejected — it will not be shown."
 msgstr "उत्तर अस्वीकृत — इसे नहीं दिखाया जाएगा।"
 
-#: includes/Network/ActivityPub.php:4413
+#: includes/Network/ActivityPub.php:4932
 msgid "Your reply has been posted."
 msgstr "आपका उत्तर पोस्ट किया गया है।"
 
-#: includes/Network/ActivityPub.php:4416
+#: includes/Network/ActivityPub.php:4935
 msgid "Reply moderated"
 msgstr "उत्तर मॉडरेटेड"
 
-#: includes/Network/ActivityPub.php:4442
+#: includes/Network/ActivityPub.php:4961
 msgid "No such reply."
 msgstr "ऐसा कोई उत्तर नहीं है।"
 
@@ -6442,13 +6695,25 @@ msgstr "Content-Digest हेडर में कोई sha-256 मान नह
 msgid "Content-Digest header does not match the request body."
 msgstr "Content-Digest हेडर अनुरोध के शरीर से मेल नहीं खाता।"
 
-#: includes/Network/Node.php:116
+#: includes/Network/Node.php:130
 msgid "Node URL is required."
 msgstr "Node URL आवश्यक है।"
 
-#: includes/Network/Node.php:120
+#: includes/Network/Node.php:134
 msgid "A public key is required to register a peer."
 msgstr "एक पीयर को पंजीकृत करने के लिए एक सार्वजनिक कुंजी आवश्यक है।"
+
+#: includes/Network/Node.php:241
+msgid "Could not reach this peer's node-discovery endpoint."
+msgstr "इस साथी के नोड-खोज अंत बिंदु तक नहीं पहुँच सका।"
+
+#: includes/Network/Node.php:313
+msgid "Could not reach this peer's own peer list."
+msgstr "इस साथी की अपनी साथी सूची तक नहीं पहुँच सका।"
+
+#: includes/Network/Node.php:320
+msgid "This peer's peer list response was not in the expected format."
+msgstr "इस साथी की साथी सूची प्रतिक्रिया अपेक्षित प्रारूप में नहीं थी।"
 
 #. translators: %s: artist display name
 #: includes/Network/SubdomainNavigation.php:458
@@ -6475,6 +6740,18 @@ msgstr "संपर्क करें"
 #, php-format
 msgid "View this in %s"
 msgstr "इसे %s में देखें"
+
+#. translators: 1: current year, 2: artist name, 3: Fediverse handle (already includes an "@").
+#: includes/Network/SubdomainNavigation.php:802
+#, php-format
+msgid "© %1$s %2$s (@%3$s)"
+msgstr "© %1$s %2$s (@%3$s)"
+
+#. translators: 1: current year, 2: Fediverse handle (already includes an "@").
+#: includes/Network/SubdomainNavigation.php:811
+#, php-format
+msgid "© %1$s Agnosis (@%2$s)"
+msgstr "© %1$s Agnosis (@%2$s)"
 
 #: includes/Newsletter/Archive.php:112
 msgid "This newsletter issue could not be found."
@@ -6524,7 +6801,7 @@ msgstr "%1$s न्यूज़लेटर — %2$s"
 msgid "%s Newsletter"
 msgstr "%s न्यूज़लेटर"
 
-#: includes/Newsletter/Digest.php:49
+#: includes/Newsletter/Digest.php:62
 msgid ""
 "Nothing new to report this time — but the community is still here, and the "
 "next issue will have more."
@@ -6532,16 +6809,16 @@ msgstr ""
 "इस बार रिपोर्ट करने के लिए कुछ नया नहीं है — लेकिन समुदाय अभी भी यहाँ है, और अगले अंक में "
 "और होगा।"
 
-#: includes/Newsletter/Digest.php:56
+#: includes/Newsletter/Digest.php:69
 msgid "New artwork"
 msgstr "नई कलाकृति"
 
-#: includes/Newsletter/Digest.php:64
+#: includes/Newsletter/Digest.php:77
 msgid "Upcoming events"
 msgstr "आगामी कार्यक्रम"
 
 #. translators: %d: number of new artworks published
-#: includes/Newsletter/Digest.php:89
+#: includes/Newsletter/Digest.php:103
 #, php-format
 msgid "%d new artwork published"
 msgid_plural "%d new artworks published"
@@ -6549,7 +6826,7 @@ msgstr[0] "%d नई कलाकृति प्रकाशित हुई"
 msgstr[1] "%d नई कलाकृतियाँ प्रकाशित हुईं"
 
 #. translators: %d: number of new events announced
-#: includes/Newsletter/Digest.php:94
+#: includes/Newsletter/Digest.php:108
 #, php-format
 msgid "%d new event announced"
 msgid_plural "%d new events announced"
@@ -6557,7 +6834,7 @@ msgstr[0] "%d नया कार्यक्रम घोषित किया
 msgstr[1] "%d नए कार्यक्रम घोषित किए गए"
 
 #. translators: %s: comma-separated list of new members' display names
-#: includes/Newsletter/Digest.php:101
+#: includes/Newsletter/Digest.php:115
 #, php-format
 msgid "Welcome to our newest member: %s"
 msgid_plural "Welcome to our newest members: %s"
@@ -6565,7 +6842,7 @@ msgstr[0] "हमारे नए सदस्य का स्वागत ह�
 msgstr[1] "हमारे नए सदस्यों का स्वागत है: %s"
 
 #. translators: %d: number of open community votes
-#: includes/Newsletter/Digest.php:109
+#: includes/Newsletter/Digest.php:123
 #, php-format
 msgid ""
 "%d community vote is open — check your email for your personal voting link."
@@ -6576,12 +6853,44 @@ msgstr[0] ""
 "%d सामुदायिक वोट खुला है — अपना व्यक्तिगत मतदान लिंक देखने के लिए अपना ईमेल जाँचें।"
 msgstr[1] "%d सामुदायिक वोट खुले हैं — अपने व्यक्तिगत वोटिंग लिंक के लिए अपना ईमेल देखें।"
 
-#: includes/Newsletter/Digest.php:117
+#. translators: %d: number of pieces relayed across the rhizome
+#: includes/Newsletter/Digest.php:137
+#, php-format
+msgid "%d piece relayed across the rhizome."
+msgid_plural "%d pieces relayed across the rhizome."
+msgstr[0] "%d टुकड़ा राइज़ोम के माध्यम से भेजा गया।"
+msgstr[1] "%d टुकड़े राइज़ोम के माध्यम से भेजे गए।"
+
+#. translators: %d: number of trusted partner nodes that relayed activity
+#: includes/Newsletter/Digest.php:142
+#, php-format
+msgid "From %d trusted partner node."
+msgid_plural "From %d trusted partner nodes."
+msgstr[0] "%d विश्वसनीय साझेदार नोड से।"
+msgstr[1] "%d विश्वसनीय साझेदार नोड से।"
+
+#: includes/Newsletter/Digest.php:157
 msgid "Recent work from the community"
 msgstr "समुदाय का हाल का काम"
 
+#. translators: %d: number of likes received on the recipient's own work
+#: includes/Newsletter/Digest.php:244
+#, php-format
+msgid "%d like on your work since your last digest."
+msgid_plural "%d likes on your work since your last digest."
+msgstr[0] "आपके काम पर पिछले डाइजेस्ट के बाद %d पसंद।"
+msgstr[1] "आपके काम पर पिछले डाइजेस्ट के बाद %d पसंद।"
+
+#. translators: %d: number of boosts received on the recipient's own work
+#: includes/Newsletter/Digest.php:251
+#, php-format
+msgid "%d boost on your work since your last digest."
+msgid_plural "%d boosts on your work since your last digest."
+msgstr[0] "आपके काम पर पिछले डाइजेस्ट के बाद %d बूस्ट।"
+msgstr[1] "आपके काम पर पिछले डाइजेस्ट के बाद %d बूस्ट।"
+
 #. translators: %d: number of additional items not individually listed
-#: includes/Newsletter/Digest.php:317
+#: includes/Newsletter/Digest.php:418
 #, php-format
 msgid "…and %d more."
 msgid_plural "…and %d more."
@@ -6711,7 +7020,7 @@ msgstr "एक पिछला अंक अभी भी भेजा जा �
 msgid "Please enter a valid email address to send the test to."
 msgstr "कृपया टेस्ट भेजने के लिए एक मान्य ईमेल पता दर्ज करें।"
 
-#: includes/Newsletter/Scheduler.php:123
+#: includes/Newsletter/Scheduler.php:137
 msgid ""
 "This is a TEST send — it previews the next issue using the current draft "
 "intro and recent activity. It was not counted as a real send and no "
@@ -6723,7 +7032,7 @@ msgstr ""
 "को ईमेल नहीं भेजा गया। नीचे दिया गया सदस्यता समाप्ति लिंक एक निष्क्रिय प्लेसहोल्डर है।"
 
 #. translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name
-#: includes/Newsletter/Scheduler.php:391
+#: includes/Newsletter/Scheduler.php:405
 #, php-format
 msgid ""
 "The %1$s at %2$s is due to send in about a day. Agnosis drafted an intro "
@@ -6732,7 +7041,7 @@ msgstr ""
 "%2$s पर %1$s लगभग एक दिन में भेजा जाना है। Agnosis ने पिछले अंक के बाद से नई चीज़ों के "
 "आधार पर एक परिचय तैयार किया है:"
 
-#: includes/Newsletter/Scheduler.php:396
+#: includes/Newsletter/Scheduler.php:410
 msgid ""
 "It's already saved and will be used as-is if you don't act — review it, "
 "rewrite it, or clear it back to blank here:"
@@ -6741,7 +7050,7 @@ msgstr ""
 "इसे यहाँ समीक्षा करें, फिर से लिखें, या वापस खाली करें:"
 
 #. translators: 1: newsletter label, 2: site name
-#: includes/Newsletter/Scheduler.php:403
+#: includes/Newsletter/Scheduler.php:417
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "%2$s के लिए %1$s परिचय तैयार किया गया — भेजने से पहले समीक्षा करें"
@@ -8214,6 +8523,10 @@ msgstr ""
 msgid "3 replies"
 msgstr "3 उत्तर"
 
+#: blocks/site-copyright/editor.js:21
+msgid "© 2026 Agnosis (@agnosis@agnosis.art)"
+msgstr "© 2026 Agnosis (@agnosis@agnosis.art)"
+
 #: blocks/artist-breadcrumb/block.json
 msgctxt "block title"
 msgid "Artist Breadcrumb"
@@ -8247,9 +8560,10 @@ msgstr "सबडोमेन"
 
 #: blocks/artist-breadcrumb/block.json blocks/artist-name-link/block.json
 #: blocks/artwork-copyright/block.json blocks/breadcrumb-icon-link/block.json
-#: blocks/contact-form/block.json blocks/interaction-counts/block.json
-#: blocks/join/block.json blocks/newsletter-popover/block.json
-#: blocks/newsletter-signup/block.json blocks/reply-overlay/block.json
+#: blocks/contact-form/block.json blocks/follow-overlay/block.json
+#: blocks/interaction-counts/block.json blocks/join/block.json
+#: blocks/newsletter-popover/block.json blocks/newsletter-signup/block.json
+#: blocks/reply-overlay/block.json blocks/site-copyright/block.json
 #: blocks/submissions/block.json
 msgctxt "block keyword"
 msgid "agnosis"
@@ -8285,7 +8599,7 @@ msgstr ""
 "करता है — वर्ष कलाकृति की अपनी प्रकाशन तिथि से आता है, नाम उसके लेखक से। कलाकृति पोस्ट "
 "के बाहर कुछ नहीं दिखाता।"
 
-#: blocks/artwork-copyright/block.json
+#: blocks/artwork-copyright/block.json blocks/site-copyright/block.json
 msgctxt "block keyword"
 msgid "copyright"
 msgstr "कॉपीराइट"
@@ -8372,6 +8686,42 @@ msgctxt "block keyword"
 msgid "email"
 msgstr "ईमेल"
 
+#: blocks/follow-overlay/block.json
+msgctxt "block title"
+msgid "Follow Overlay"
+msgstr "अनुकरण ओवरले"
+
+#: blocks/follow-overlay/block.json
+msgctxt "block description"
+msgid ""
+"Trigger next to the reply button that opens a popover explaining the "
+"Fediverse/ActivityPub, showing this artwork's artist's copyable @handle, and "
+"a remote-follow form that redirects a visitor to their own instance's "
+"authorize_interaction screen. Renders nothing off an agnosis_artwork post, "
+"or when its author no longer resolves to a real artist actor."
+msgstr "जवाब बटन के बगल में एक ट्रिगर जो एक पॉपओवर खोलता है जो Fediverse/ActivityPub के बारे में व्याख्या करता है, इस कला कार्य के कलाकार का कॉपी करने योग्य @handle दिखाता है, और एक रिमोट-फॉलो फॉर्म जो एक आगंतुक को उनके अपने इंस्टेंस के authorize_interaction स्क्रीन पर पुनः निर्देशित करता है। यह agnosis_artwork पोस्ट से कुछ भी नहीं दिखाता है, या जब इसका लेखक अब किसी वास्तविक कलाकार अभिनेता के रूप में स्पष्ट नहीं होता है।"
+
+#: blocks/follow-overlay/block.json
+msgctxt "block keyword"
+msgid "follow"
+msgstr "फॉलो करें"
+
+#: blocks/follow-overlay/block.json blocks/site-copyright/block.json
+msgctxt "block keyword"
+msgid "fediverse"
+msgstr "फेडिवर्स"
+
+#: blocks/follow-overlay/block.json
+msgctxt "block keyword"
+msgid "mastodon"
+msgstr "मास्टोडन"
+
+#: blocks/follow-overlay/block.json blocks/interaction-counts/block.json
+#: blocks/reply-overlay/block.json
+msgctxt "block keyword"
+msgid "activitypub"
+msgstr "क्रियाकलापपब"
+
 #: blocks/gallery-overview/block.json
 msgctxt "block title"
 msgid "Agnosis Gallery Overview"
@@ -8450,11 +8800,6 @@ msgctxt "block keyword"
 msgid "federation"
 msgstr "संघ"
 
-#: blocks/interaction-counts/block.json blocks/reply-overlay/block.json
-msgctxt "block keyword"
-msgid "activitypub"
-msgstr "क्रियाकलापपब"
-
 #: blocks/join/block.json
 msgctxt "block title"
 msgid "Join Agnosis"
@@ -8521,7 +8866,7 @@ msgctxt "block keyword"
 msgid "popover"
 msgstr "पॉपओवर"
 
-#: blocks/newsletter-popover/block.json
+#: blocks/newsletter-popover/block.json blocks/site-copyright/block.json
 msgctxt "block keyword"
 msgid "footer"
 msgstr "फ़ूटर"
@@ -8578,6 +8923,26 @@ msgstr "उत्तर"
 msgctxt "block keyword"
 msgid "comments"
 msgstr "टिप्पणियाँ"
+
+#: blocks/site-copyright/block.json
+msgctxt "block title"
+msgid "Site Copyright"
+msgstr "साइट कॉपीराइट"
+
+#: blocks/site-copyright/block.json
+msgctxt "block description"
+msgid ""
+"Footer copyright line — \"© {year} Agnosis (@agnosis@host)\" on the main "
+"site, \"© {year} {Artist Name} (@artistname@host)\" on an artist's own "
+"subdomain — the parenthetical is always that actor's real Fediverse handle, "
+"so a visitor always has a copyable handle to follow from their own Fediverse "
+"client."
+msgstr "फुटर कॉपीराइट लाइन — \"© {year} Agnosis (@agnosis@host)\" मुख्य साइट पर, \"© {year} {Artist Name} (@artistname@host)\" एक कलाकार के अपने सबडोमेन पर — कोष्ठक में हमेशा उस अभिनेता का वास्तविक Fediverse हैंडल होता है, ताकि एक आगंतुक हमेशा अपने Fediverse क्लाइंट से फॉलो करने के लिए एक कॉपी करने योग्य हैंडल रख सके।"
+
+#: blocks/site-copyright/block.json
+msgctxt "block keyword"
+msgid "handle"
+msgstr "हैंडल"
 
 #: blocks/submissions/block.json
 msgctxt "block title"

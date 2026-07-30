@@ -134,7 +134,7 @@ class NodeTest extends \WP_UnitTestCase {
 		return $request;
 	}
 
-	/** @return array{status: string, url: string, public_key: string, label: string}|null */
+	/** @return array{status: string, url: string, public_key: string, label: string, description: string|null, trust_scope: string, actor_id: string|null, inbox_url: string|null}|null */
 	private function get_node_row( string $url ): ?array {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test setup/assertion against a custom table.
@@ -288,6 +288,321 @@ class NodeTest extends \WP_UnitTestCase {
 		$this->assertNull( $this->get_node_row( 'https://filler-0.example/' ), 'The single oldest pending row must be pruned to make room.' );
 		$this->assertNotNull( $this->get_node_row( 'https://filler-1.example/' ), 'The next-oldest row must survive — only one row is pruned per registration.' );
 		$this->assertNotNull( $this->get_node_row( $new_url ), 'The new registration itself must be written.' );
+	}
+
+	// -------------------------------------------------------------------------
+	// RN1/RN2 (RHIZOME-NETWORK-ROADMAP.md §8, 2026-07-30): re-registration
+	// must not silently wipe an already-decided trust state.
+	// -------------------------------------------------------------------------
+
+	public function test_register_peer_reregistering_a_trusted_peer_preserves_status_and_resolved_identity(): void {
+		global $wpdb;
+		$wpdb->insert( $wpdb->prefix . 'agnosis_nodes', [ // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test setup.
+			'url'         => 'https://trusted-peer.example/',
+			'public_key'  => 'old-key',
+			'label'       => 'Old Label',
+			'description' => 'Old description.',
+			'trust_scope' => 'actor',
+			'actor_id'    => 'https://trusted-peer.example/wp-json/agnosis/v1/activitypub/actor',
+			'inbox_url'   => 'https://trusted-peer.example/wp-json/agnosis/v1/activitypub/inbox',
+			'status'      => 'trusted',
+		] );
+
+		$request  = $this->build_peer_request( [ 'url' => 'https://trusted-peer.example/', 'label' => 'New Label' ] );
+		$response = ( new Node() )->register_peer( $request );
+
+		$this->assertInstanceOf( \WP_REST_Response::class, $response );
+		$this->assertSame( 201, $response->get_status() );
+
+		$row = $this->get_node_row( 'https://trusted-peer.example/' );
+		$this->assertSame( 'trusted', $row['status'], 'Re-registration must never reset an already-trusted peer back to pending.' );
+		$this->assertSame( 'actor', $row['trust_scope'], 'Re-registration must not disturb the admin\'s chosen trust scope.' );
+		$this->assertSame( 'https://trusted-peer.example/wp-json/agnosis/v1/activitypub/actor', $row['actor_id'], 'Re-registration must not disturb the resolved actor id.' );
+		$this->assertSame( 'https://trusted-peer.example/wp-json/agnosis/v1/activitypub/inbox', $row['inbox_url'], 'Re-registration must not disturb the resolved inbox url.' );
+		$this->assertSame( 'New Label', $row['label'], 'Label/description/public_key/last_seen must still refresh on re-registration.' );
+	}
+
+	public function test_register_peer_reregistering_a_blocked_peer_preserves_blocked_status(): void {
+		global $wpdb;
+		$wpdb->insert( $wpdb->prefix . 'agnosis_nodes', [ // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test setup.
+			'url'        => 'https://blocked-peer.example/',
+			'public_key' => 'old-key',
+			'status'     => 'blocked',
+		] );
+
+		$request  = $this->build_peer_request( [ 'url' => 'https://blocked-peer.example/' ] );
+		$response = ( new Node() )->register_peer( $request );
+
+		$this->assertInstanceOf( \WP_REST_Response::class, $response );
+		$this->assertSame( 201, $response->get_status(), 'The endpoint itself still accepts the request — blocking is enforced at relay time (RN3), not at registration.' );
+
+		$row = $this->get_node_row( 'https://blocked-peer.example/' );
+		$this->assertSame( 'blocked', $row['status'], 'A blocked peer re-registering must not un-block itself.' );
+	}
+
+	public function test_register_peer_reregistering_a_pending_peer_still_refreshes_it_normally(): void {
+		global $wpdb;
+		$wpdb->insert( $wpdb->prefix . 'agnosis_nodes', [ // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test setup.
+			'url'        => 'https://pending-peer.example/',
+			'public_key' => 'old-key',
+			'label'      => 'Old Label',
+			'status'     => 'pending',
+		] );
+
+		$request  = $this->build_peer_request( [ 'url' => 'https://pending-peer.example/', 'label' => 'Refreshed Label' ] );
+		$response = ( new Node() )->register_peer( $request );
+
+		$this->assertInstanceOf( \WP_REST_Response::class, $response );
+		$this->assertSame( 201, $response->get_status() );
+
+		$row = $this->get_node_row( 'https://pending-peer.example/' );
+		$this->assertSame( 'pending', $row['status'] );
+		$this->assertSame( 'Refreshed Label', $row['label'] );
+	}
+
+	// -------------------------------------------------------------------------
+	// RN2: resolve_peer_node_card()
+	// -------------------------------------------------------------------------
+
+	public function test_resolve_peer_node_card_returns_actor_and_inbox_on_success(): void {
+		add_filter( 'pre_http_request', [ $this, 'mock_full_node_card_chain' ], 10, 3 );
+
+		$result = ( new Node() )->resolve_peer_node_card( 'https://card-peer.example/' );
+
+		$this->assertIsArray( $result );
+		$this->assertSame( 'https://card-peer.example/wp-json/agnosis/v1/activitypub/actor', $result['actor_id'] );
+		$this->assertSame( 'https://card-peer.example/wp-json/agnosis/v1/activitypub/inbox', $result['inbox_url'] );
+	}
+
+	public function test_resolve_peer_node_card_returns_wp_error_when_wellknown_unreachable(): void {
+		add_filter( 'pre_http_request', static fn () => new \WP_Error( 'http_request_failed', 'Could not resolve host' ) );
+
+		$result = ( new Node() )->resolve_peer_node_card( 'https://unreachable-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_peer_unreachable', $result->get_error_code() );
+	}
+
+	public function test_resolve_peer_node_card_returns_wp_error_when_endpoint_field_missing(): void {
+		add_filter( 'pre_http_request', static function () {
+			return [ 'response' => [ 'code' => 200, 'message' => 'OK' ], 'headers' => [], 'body' => '{}', 'cookies' => [], 'filename' => '' ];
+		} );
+
+		$result = ( new Node() )->resolve_peer_node_card( 'https://no-endpoint-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_peer_no_endpoint', $result->get_error_code() );
+	}
+
+	public function test_resolve_peer_node_card_returns_wp_error_when_card_missing_actor_or_inbox(): void {
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) {
+				if ( str_contains( $url, '.well-known/agnosis-node' ) ) {
+					return [
+						'response' => [ 'code' => 200, 'message' => 'OK' ],
+						'headers'  => [],
+						'body'     => (string) wp_json_encode( [ 'endpoint' => 'https://incomplete-peer.example/wp-json/agnosis/v1/node' ] ),
+						'cookies'  => [],
+						'filename' => '',
+					];
+				}
+				// Node card with no 'actor'/'inbox' fields at all.
+				return [ 'response' => [ 'code' => 200, 'message' => 'OK' ], 'headers' => [], 'body' => '{"label":"Incomplete"}', 'cookies' => [], 'filename' => '' ];
+			},
+			10,
+			3
+		);
+
+		$result = ( new Node() )->resolve_peer_node_card( 'https://incomplete-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_peer_card_incomplete', $result->get_error_code() );
+	}
+
+	// -------------------------------------------------------------------------
+	// RN4 (RHIZOME-NETWORK-ROADMAP.md §4/§8, 2026-07-30): check_reciprocity()
+	// -------------------------------------------------------------------------
+
+	public function test_check_reciprocity_returns_true_when_this_nodes_url_is_in_the_peers_list(): void {
+		add_filter( 'pre_http_request', function () {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [
+					'peers' => [
+						[ 'url' => home_url(), 'label' => 'This Node', 'status' => 'trusted', 'last_seen' => null ],
+						[ 'url' => 'https://someone-else.example/', 'label' => 'Someone Else', 'status' => 'trusted', 'last_seen' => null ],
+					],
+					'count' => 2,
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://mutual-peer.example/' );
+
+		$this->assertTrue( $result );
+	}
+
+	public function test_check_reciprocity_returns_false_when_this_nodes_url_is_not_in_the_peers_list(): void {
+		add_filter( 'pre_http_request', static function () {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [
+					'peers' => [
+						[ 'url' => 'https://someone-else.example/', 'label' => 'Someone Else', 'status' => 'trusted', 'last_seen' => null ],
+					],
+					'count' => 1,
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://one-directional-peer.example/' );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * §13 F6 (2026-07-30). A peer that trusted this node through RN1's
+	 * manual-add path has a row whose `url` is this node's ACTOR url —
+	 * RhizomeManager::handle_add_manual() writes the pasted actor value to
+	 * both `url` and `actor_id`, where self-registration only ever captures
+	 * a site root. Comparing against home_url() alone therefore reported a
+	 * genuinely mutual pair as one-directional.
+	 */
+	public function test_check_reciprocity_returns_true_when_the_peer_lists_this_nodes_actor_url_instead_of_its_site_url(): void {
+		$node_actor = ( new \Agnosis\Network\ActivityPub() )->actor_url_for( 'node', 0 );
+
+		add_filter( 'pre_http_request', static function () use ( $node_actor ) {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [
+					'peers' => [
+						[ 'url' => $node_actor, 'label' => 'This Node (added by hand)', 'status' => 'trusted', 'last_seen' => null ],
+					],
+					'count' => 1,
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://manually-mutual-peer.example/' );
+
+		$this->assertTrue( $result, 'A peer listing this node by its actor URL trusts this node just as much as one listing it by its site URL.' );
+	}
+
+	public function test_check_reciprocity_returns_false_when_the_peer_lists_a_different_actor_on_this_same_domain(): void {
+		add_filter( 'pre_http_request', static function () {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [
+					'peers' => [
+						[ 'url' => home_url( '/wp-json/agnosis/v1/activitypub/actor/4242' ), 'label' => 'Some Artist Here', 'status' => 'trusted', 'last_seen' => null ],
+					],
+					'count' => 1,
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://host-matching-peer.example/' );
+
+		$this->assertFalse( $result, 'Matching on bare host would call this mutual; trusting one artist actor on this domain is not the same as trusting this node.' );
+	}
+
+	public function test_check_reciprocity_returns_true_when_this_nodes_url_matches_ignoring_a_trailing_slash(): void {
+		add_filter( 'pre_http_request', function () {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				// The peer's own stored copy of this node's URL, with a trailing slash difference from home_url().
+				'body'     => (string) wp_json_encode( [
+					'peers' => [ [ 'url' => untrailingslashit( home_url() ) . '/', 'label' => '', 'status' => 'trusted', 'last_seen' => null ] ],
+					'count' => 1,
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://mutual-peer-2.example/' );
+
+		$this->assertTrue( $result );
+	}
+
+	public function test_check_reciprocity_returns_wp_error_when_peer_is_unreachable(): void {
+		add_filter( 'pre_http_request', static fn () => new \WP_Error( 'http_request_failed', 'Could not resolve host' ) );
+
+		$result = ( new Node() )->check_reciprocity( 'https://unreachable-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_reciprocity_unreachable', $result->get_error_code() );
+	}
+
+	public function test_check_reciprocity_returns_wp_error_when_response_has_no_peers_array(): void {
+		// A manually-added third-party (non-Agnosis) peer, or any server with no such endpoint —
+		// resolve_peer_node_card()'s own docblock makes the same point about this case.
+		add_filter( 'pre_http_request', static function () {
+			return [ 'response' => [ 'code' => 404, 'message' => 'Not Found' ], 'headers' => [], 'body' => '', 'cookies' => [], 'filename' => '' ];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://non-agnosis-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_reciprocity_unreachable', $result->get_error_code() );
+	}
+
+	public function test_check_reciprocity_returns_wp_error_when_response_body_is_malformed(): void {
+		add_filter( 'pre_http_request', static function () {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => '{"not_peers_at_all": true}',
+				'cookies'  => [],
+				'filename' => '',
+			];
+		} );
+
+		$result = ( new Node() )->check_reciprocity( 'https://malformed-peer.example/' );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_reciprocity_malformed', $result->get_error_code() );
+	}
+
+	/** @return array<string, mixed> */
+	public function mock_full_node_card_chain( $preempt, array $args, string $url ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- add_filter callback signature.
+		if ( str_contains( $url, '.well-known/agnosis-node' ) ) {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [ 'endpoint' => 'https://card-peer.example/wp-json/agnosis/v1/node' ] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		}
+		if ( 'https://card-peer.example/wp-json/agnosis/v1/node' === $url ) {
+			return [
+				'response' => [ 'code' => 200, 'message' => 'OK' ],
+				'headers'  => [],
+				'body'     => (string) wp_json_encode( [
+					'actor' => 'https://card-peer.example/wp-json/agnosis/v1/activitypub/actor',
+					'inbox' => 'https://card-peer.example/wp-json/agnosis/v1/activitypub/inbox',
+					'label' => 'Card Peer',
+				] ),
+				'cookies'  => [],
+				'filename' => '',
+			];
+		}
+		return $preempt;
 	}
 
 	/**

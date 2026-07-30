@@ -950,6 +950,16 @@ class ActivityPub {
 				// persistence so any future listener (e.g. a notification)
 				// still has a hook to attach to.
 				$this->record_interaction( $body, strtolower( $type ) );
+				if ( 'Announce' === $type ) {
+					// RN3 (RHIZOME-NETWORK-ROADMAP.md §3/§8, 2026-07-30): a
+					// trusted peer's Announce of something NOT local to this
+					// node — previously silently discarded by
+					// record_interaction() above finding nothing to attach
+					// it to — is now relayed onward to this node's own
+					// followers. No-op for every other case (see
+					// relay_trusted_announce()'s own docblock).
+					$this->relay_trusted_announce( $body );
+				}
 				do_action( 'agnosis_activity_received', $body );
 				return new WP_REST_Response( [ 'status' => 'accepted' ], 200 );
 			case 'Undo':
@@ -2504,6 +2514,310 @@ class ActivityPub {
 		);
 	}
 
+	// -------------------------------------------------------------------------
+	// RN3 — inbound relay-boost (RHIZOME-NETWORK-ROADMAP.md §3/§5/§8, 2026-07-30)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A trusted peer's Announce of something NOT already local to this node
+	 * (§3) — the actual missing "relay" half §2 identified: previously
+	 * discarded entirely once record_interaction() (above) found
+	 * resolve_local_post_id() came back empty for it. Scoped to Announce
+	 * only (§3, §7 non-goals) and always enqueued rather than attempted live
+	 * (§5, ANSWERED) — a trusted peer's boost isn't this node's own content
+	 * and isn't time-critical the way a live visitor action is.
+	 *
+	 * Deliberately a no-op when: ActivityPub federation itself is off; the
+	 * activity carries no actor or resolvable object; the object DOES
+	 * resolve locally (already fully handled by record_interaction() as an
+	 * ordinary local interaction — relaying it again would just echo this
+	 * node's own content back at its own followers); or the signing actor
+	 * doesn't match any `trusted`, non-`blocked` `agnosis_nodes` row.
+	 *
+	 * Persists a record of what it relayed to `agnosis_rhizome_relay_log`
+	 * (RHIZOME-NETWORK-ROADMAP.md §11b/§12, RN3b, 2026-07-30) — one row per
+	 * recognized relay event, independent of whether this node currently
+	 * has any local followers to actually receive it. RN3's own original
+	 * §8 scope never called for this; §11b flagged it afterward as a
+	 * required (not deferrable) follow-up, and NL2 (Digest::
+	 * rhizome_activity_summary()) now reads it.
+	 *
+	 * Two idempotency checks, not one, and deliberately in this order
+	 * (§13 F3, 2026-07-30 — the log-based one is the fix; the queue-based
+	 * one was originally the only guard and is far weaker than §8 claimed):
+	 * relay_already_queued() catches a redelivery that arrives while the
+	 * previous relay's per-follower rows are still sitting unsent, and
+	 * log_relay_activity()'s own UNIQUE relay_activity_id catches one that
+	 * arrives after they've been delivered and deleted (dispatch_queue()
+	 * removes a row on success, so the queue-based window is only as long
+	 * as the next agnosis_ap_retry_deliveries tick — minutes, where an
+	 * inbound Announce can legitimately be redelivered for days). The log
+	 * check has to come SECOND because it writes: only reach it once the
+	 * cheap read-only check has already passed.
+	 *
+	 * @param array<string, mixed> $body Raw Announce activity payload.
+	 */
+	private function relay_trusted_announce( array $body ): void {
+		if ( ! (bool) get_option( 'agnosis_activitypub_enabled', true ) ) {
+			return;
+		}
+
+		$actor_id = is_string( $body['actor'] ?? null ) ? $body['actor'] : '';
+		if ( '' === $actor_id ) {
+			return;
+		}
+
+		$object     = $body['object'] ?? '';
+		$object_url = is_array( $object )
+			? ( is_string( $object['id'] ?? null ) ? $object['id'] : '' )
+			: ( is_string( $object ) ? $object : '' );
+
+		if ( '' === $object_url || $this->resolve_local_post_id( $object_url ) > 0 ) {
+			return;
+		}
+
+		$peer = $this->matching_trusted_peer( $actor_id );
+		if ( null === $peer ) {
+			return;
+		}
+
+		$relay = $this->relay_announce_activity( $actor_id, $object );
+
+		if ( $this->relay_already_queued( $relay['id'] ) ) {
+			return;
+		}
+
+		if ( ! $this->log_relay_activity( $peer, $actor_id, $object_url, $relay['id'] ) ) {
+			// Duplicate relay_activity_id — this exact peer boost was already
+			// relayed and its queue rows have since been delivered and
+			// cleared. Nothing more to do; re-queueing here is precisely the
+			// double-delivery this check exists to prevent.
+			return;
+		}
+
+		$this->enqueue_relay_to_followers( $relay );
+	}
+
+	/**
+	 * The `trusted`, non-`blocked` agnosis_nodes row governing $actor_id, or
+	 * null if none — checked by exact `actor_id` (`trust_scope = 'actor'`)
+	 * or by host match against the row's own site `url` (`trust_scope =
+	 * 'domain'`), per that row's own per-row choice (§4, ANSWERED). A plain
+	 * `WHERE status = 'trusted'` full scan, not indexed further — this table
+	 * is explicitly single-digit-peer/node-scale throughout this roadmap
+	 * (§2, §5), the same assumption `deliver_to_followers()`'s own
+	 * `agnosis_followers` queries already make.
+	 *
+	 * @return object{id: string, url: string, trust_scope: string, actor_id: string|null}|null
+	 */
+	private function matching_trusted_peer( string $actor_id ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- single-digit-peer-scale table (RHIZOME-NETWORK-ROADMAP.md §5); no caching layer for it exists.
+		$peers = $wpdb->get_results( "SELECT id, url, trust_scope, actor_id FROM {$wpdb->prefix}agnosis_nodes WHERE status = 'trusted'" );
+
+		$actor_host = (string) wp_parse_url( $actor_id, PHP_URL_HOST );
+
+		foreach ( $peers as $peer ) {
+			if ( 'actor' === $peer->trust_scope ) {
+				if ( null !== $peer->actor_id && $peer->actor_id === $actor_id ) {
+					return $peer;
+				}
+				continue;
+			}
+
+			// 'domain' scope.
+			if ( '' !== $actor_host && $actor_host === (string) wp_parse_url( $peer->url, PHP_URL_HOST ) ) {
+				return $peer;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Build the re-wrapped Announce this node sends to its OWN followers
+	 * when relaying a trusted peer's boost — same shape federate_boost()
+	 * builds for a local artist's boost, attributed to this NODE's own
+	 * actor instead (a node-level relay-boost, not any one artist's).
+	 * `object` is forwarded exactly as the peer's own Announce carried it —
+	 * §3's own "Vital clarification" applies here too: relaying amplifies
+	 * *reach*, it never rewrites, re-hosts, or otherwise touches the
+	 * content itself.
+	 *
+	 * `id` is deterministic — derived from the peer actor plus the object —
+	 * so a redelivered/retried inbound Announce always resolves to the SAME
+	 * relay activity id, which relay_already_queued() depends on for
+	 * idempotency.
+	 *
+	 * @param array<string, mixed>|string $announce_object The peer's own Announce's `object` field, forwarded as-is.
+	 * @return array<string, mixed>
+	 */
+	private function relay_announce_activity( string $peer_actor_id, $announce_object ): array {
+		$node_actor = $this->actor_url_for( 'node', 0 );
+		$object_key = is_string( $announce_object )
+			? $announce_object
+			: ( is_string( $announce_object['id'] ?? null ) ? $announce_object['id'] : (string) wp_json_encode( $announce_object ) );
+
+		return [
+			'@context' => self::CONTEXT,
+			'type'     => 'Announce',
+			'id'       => $node_actor . '#relay-' . md5( $peer_actor_id . '|' . $object_key ),
+			'actor'    => $node_actor,
+			'object'   => $announce_object,
+			'to'       => [ 'https://www.w3.org/ns/activitystreams#Public' ],
+			'cc'       => array_values( array_unique( [ $node_actor . '/followers', $peer_actor_id ] ) ),
+		];
+	}
+
+	/**
+	 * Whether a relay Announce with this exact `id` is CURRENTLY SITTING in
+	 * the delivery queue — cheap `LIKE` match against
+	 * `agnosis_ap_delivery_queue.activity_json` (no dedicated index;
+	 * acceptable at the single-digit-peer scale this table is already sized
+	 * for, same as matching_trusted_peer() above).
+	 *
+	 * Only half of RN3's idempotency, and the shorter-lived half: a queue
+	 * row is DELETED once its delivery succeeds (see dispatch_queue()), so
+	 * this check stops seeing a relay a few minutes after it went out. It
+	 * exists to stop a redelivery arriving mid-flight from doubling the
+	 * pending per-follower rows; `log_relay_activity()`'s own UNIQUE
+	 * `relay_activity_id` is what covers everything after that (§13 F3).
+	 */
+	private function relay_already_queued( string $relay_id ): bool {
+		global $wpdb;
+
+		// wp_json_encode() escapes forward slashes by default (no JSON_UNESCAPED_SLASHES
+		// flag anywhere in this class) — a raw "id":"http://..." needle built from the
+		// literal $relay_id would never match the stored "id":"http:\/\/..." bytes.
+		// Encoding the id the same way it was encoded when written keeps this in sync.
+		$needle = '"id":' . (string) wp_json_encode( $relay_id );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- single-digit-peer-scale table; LIKE is checking for one specific already-built activity id, not a user-facing search.
+		$existing = $wpdb->get_var( $wpdb->prepare(
+			"SELECT id FROM {$wpdb->prefix}agnosis_ap_delivery_queue WHERE owner_type = 'node' AND owner_id = 0 AND activity_json LIKE %s LIMIT 1",
+			'%' . $wpdb->esc_like( $needle ) . '%'
+		) );
+
+		return null !== $existing;
+	}
+
+	/**
+	 * Write one `agnosis_ap_delivery_queue` row per this node's own
+	 * follower, for a relay Announce — always queued, never attempted live
+	 * (§5, ANSWERED), unlike every other delivery in this class (deliver(),
+	 * via deliver_to_followers()), which tries live delivery first and only
+	 * falls back to the queue on failure. `next_attempt_at` is left at the
+	 * column's own `DEFAULT CURRENT_TIMESTAMP` rather than
+	 * `RETRY_INTERVALS[0]`'s delayed backoff — that backoff is FAILURE-retry
+	 * timing, not appropriate for a delivery that was never attempted live
+	 * at all — so the very next `agnosis_ap_retry_deliveries` cron tick
+	 * picks these rows straight up.
+	 *
+	 * @param array<string, mixed> $activity
+	 */
+	private function enqueue_relay_to_followers( array $activity ): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- small, node-scale table (audit §3g note iii); no caching layer for it exists.
+		$inbox_urls = $wpdb->get_col( "SELECT inbox_url FROM {$wpdb->prefix}agnosis_followers WHERE owner_type = 'node' AND owner_id = 0 ORDER BY id ASC" );
+
+		if ( empty( $inbox_urls ) ) {
+			return;
+		}
+
+		$body = wp_json_encode( $activity );
+		if ( false === $body ) {
+			return;
+		}
+
+		foreach ( $inbox_urls as $inbox_url ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->insert() parameterizes every value.
+			$wpdb->insert(
+				$wpdb->prefix . 'agnosis_ap_delivery_queue',
+				[
+					'inbox_url'     => $inbox_url,
+					'activity_type' => 'Announce',
+					'activity_json' => $body,
+					'owner_type'    => 'node',
+					'owner_id'      => 0,
+				],
+				[ '%s', '%s', '%s', '%s', '%d' ]
+			);
+		}
+	}
+
+	/**
+	 * Writes one `agnosis_rhizome_relay_log` row for a recognized relay
+	 * event (RN3b, RHIZOME-NETWORK-ROADMAP.md §11b/§12) — called once trust
+	 * and redelivery-idempotency have both already passed, regardless of
+	 * whether this node currently has any local followers to actually fan
+	 * the relay out to; this table answers "what happened on the rhizome,"
+	 * not "what got delivered" (agnosis_ap_delivery_queue already answers
+	 * that, per-inbox).
+	 *
+	 * `peer_url` is copied here rather than only referenced by
+	 * `peer_node_id`, so a later admin removal of that peer
+	 * (`RhizomeManager::handle_remove()`) doesn't orphan this row's own
+	 * historical readability.
+	 *
+	 * `relay_activity_id` is the DURABLE half of RN3's idempotency, and this
+	 * method's return value is what makes it load-bearing (§13 F3,
+	 * 2026-07-30 — previously the return was discarded and the caller
+	 * enqueued regardless, so the UNIQUE key rejected the log row and
+	 * nothing else, leaving the whole guarantee resting on
+	 * `relay_already_queued()`'s minutes-long window against a queue that
+	 * deletes its rows on successful delivery).
+	 *
+	 * Checked with an explicit SELECT rather than by letting the UNIQUE key
+	 * reject the INSERT, even though the latter is one query fewer. A
+	 * redelivered Announce is ORDINARY, expected ActivityPub traffic, and a
+	 * rejected insert makes `wpdb::print_error()` emit a "WordPress database
+	 * error: Duplicate entry …" block — visible output on any site running
+	 * `WP_DEBUG_DISPLAY`, and noise in the error log everywhere else. Routine
+	 * behavior must not look like a fault. The UNIQUE key stays as the
+	 * backstop for the genuine race (two inbox requests for the same
+	 * Announce in flight at once, where both SELECTs miss), and the insert
+	 * is wrapped in `suppress_errors()` so that rare loser also fails
+	 * quietly — `$wpdb->insert()` returns false on a key violation rather
+	 * than throwing, which is exactly the answer this method wants anyway.
+	 *
+	 * @param object{id: string, url: string, trust_scope: string, actor_id: string|null} $peer The trusted agnosis_nodes row that governed this relay.
+	 * @return bool True when this is the first time this relay activity has been logged; false when it's a duplicate (or the write failed).
+	 */
+	private function log_relay_activity( object $peer, string $announcing_actor_id, string $object_url, string $relay_id ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- indexed lookup on a UNIQUE key; single-digit-peer-scale table (RHIZOME-NETWORK-ROADMAP.md §5), no caching layer for it exists.
+		$already = $wpdb->get_var( $wpdb->prepare(
+			"SELECT id FROM {$wpdb->prefix}agnosis_rhizome_relay_log WHERE relay_activity_id = %s LIMIT 1",
+			$relay_id
+		) );
+
+		if ( null !== $already ) {
+			return false;
+		}
+
+		$was_suppressed = $wpdb->suppress_errors( true );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $wpdb->insert() parameterizes every value; single-digit-peer-scale table (RHIZOME-NETWORK-ROADMAP.md §5).
+		$inserted = $wpdb->insert(
+			$wpdb->prefix . 'agnosis_rhizome_relay_log',
+			[
+				'peer_node_id'        => (int) $peer->id,
+				'peer_url'            => $peer->url,
+				'announcing_actor_id' => $announcing_actor_id,
+				'object_url'          => $object_url,
+				'relay_activity_id'   => $relay_id,
+			],
+			[ '%d', '%s', '%s', '%s', '%s' ]
+		);
+
+		$wpdb->suppress_errors( $was_suppressed );
+
+		return false !== $inserted;
+	}
+
 	/**
 	 * Like/boost counts for one artwork (interaction-surface roadmap, Phase
 	 * 1). Used both by the on-site agnosis/interaction-counts display block
@@ -2520,6 +2834,47 @@ class ActivityPub {
 			$wpdb->prepare(
 				"SELECT activity_type, COUNT(*) AS c FROM {$wpdb->prefix}agnosis_interactions WHERE post_id = %d GROUP BY activity_type",
 				$post_id
+			)
+		);
+
+		$counts = [ 'like' => 0, 'announce' => 0 ];
+		foreach ( (array) $rows as $row ) {
+			if ( isset( $counts[ $row->activity_type ] ) ) {
+				$counts[ $row->activity_type ] = (int) $row->c;
+			}
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * Aggregate like/boost counts across ALL of one artist's own artwork,
+	 * since a given digest window — NL1 (RHIZOME-NETWORK-ROADMAP.md §11a,
+	 * 2026-07-30). Unlike interaction_counts() above (one post, all time),
+	 * this is one artist across every post they own, scoped to a time
+	 * window — the per-recipient personalization
+	 * Newsletter\Digest::build_artist()'s shared, once-per-locale render
+	 * can't compute itself (see that class's own
+	 * `{{AGNOSIS_INTERACTION_SUMMARY}}` placeholder note); resolved later,
+	 * per recipient, at actual send time
+	 * (Digest::substitute_interaction_summary(), called from
+	 * QueueProcessor::send_one()).
+	 *
+	 * @return array{like: int, announce: int}
+	 */
+	public function personal_interaction_counts( int $artist_id, string $since ): array {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- read-only aggregate, one query per artist recipient at send time; small per-artist interaction volume.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT i.activity_type, COUNT(*) AS c
+				 FROM {$wpdb->prefix}agnosis_interactions i
+				 INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id
+				 WHERE p.post_author = %d AND i.received_at > %s
+				 GROUP BY i.activity_type",
+				$artist_id,
+				$since
 			)
 		);
 

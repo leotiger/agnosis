@@ -159,6 +159,16 @@ class Plugin {
 			$this->loader->add_action( 'admin_post_agnosis_toggle_relay', $relay_manager, 'handle_toggle' );
 			$this->loader->add_action( 'admin_post_agnosis_remove_relay', $relay_manager, 'handle_remove' );
 
+			// Partner Nodes (Rhizome tab) — RN1, RHIZOME-NETWORK-ROADMAP.md §8.
+			$rhizome_manager = new Dashboards\RhizomeManager();
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_approve',         $rhizome_manager, 'handle_approve' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_block',           $rhizome_manager, 'handle_block' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_unblock',         $rhizome_manager, 'handle_unblock' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_remove',          $rhizome_manager, 'handle_remove' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_set_trust_scope', $rhizome_manager, 'handle_set_trust_scope' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_check_reciprocity', $rhizome_manager, 'handle_check_reciprocity' );
+			$this->loader->add_action( 'admin_post_agnosis_rhizome_add_manual',      $rhizome_manager, 'handle_add_manual' );
+
 			// Tags/Mediums admin screens: language filter dropdown, on-demand
 			// per-term "Sync translations" row action, and a one-click "Sync
 			// all translations" button — all apply to BOTH taxonomies, see

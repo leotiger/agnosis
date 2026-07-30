@@ -60,8 +60,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.64';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.64/agnosis-0.9.64.zip';
+	$version      = '0.9.65';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.65/agnosis-0.9.65.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -113,8 +113,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '72408564249c6140d37e11da7572ce9a538c1f8eb9b552e01690522b9a5de387'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-30 for agnosis-0.9.64.zip.';
+	$sha256       = 'fba61ee47083496a216b9c03fbda01ed89b0479035c8dd5661e97de3cb24fa48'; // Verified — see $sha256_note above for build date/version.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-30 for agnosis-0.9.65.zip.';
 	$last_updated = '2026-07-30';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -127,14 +127,20 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.65</h4>' .
+		'<ul>' .
+			'<li><strong>Added:</strong> A new &#8220;Partner Nodes&#8221; panel (Settings &#8594; Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.</li>' .
+			'<li><strong>Added:</strong> Trusted rhizome peers&#8217; boosts are now actually relayed to your own followers, with a per-peer badge showing whether the trust is mutual and a log of what&#8217;s been relayed.</li>' .
+			'<li><strong>Added:</strong> Your artist newsletter digest now includes a personal summary of likes and boosts on your work since your last digest (can be turned off in your notification preferences).</li>' .
+			'<li><strong>Added:</strong> Your artist newsletter digest now also includes a community-wide summary of rhizome activity &#8212; how much got relayed, and from how many trusted partner nodes.</li>' .
+			'<li><strong>Fixed:</strong> The Partner Nodes panel&#8217;s &#8220;manually trust an actor&#8221; form always failed with a &#8220;link expired&#8221; error instead of saving.</li>' .
+			'<li><strong>Fixed:</strong> A relayed peer boost could be sent to your followers twice when a partner redelivered the same boost.</li>' .
+			'<li><strong>Fixed:</strong> A test send of the artist newsletter showed raw placeholder text where the like, boost, and interaction-summary lines should have been.</li>' .
+		'</ul>' .
 		'<h4>0.9.64</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> An artist&#8217;s subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap&#8217;s cache.</li>' .
 			'<li><strong>Added:</strong> Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.</li>' .
-		'</ul>' .
-		'<h4>0.9.63</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> The footer copyright line now shows a copyable Fediverse handle in parentheses (yours, or an artist&#8217;s own on their subdomain), and every artwork gets a new &#8220;Follow&#8221; button next to &#8220;Reply&#8221; &#8212; opens a popover explaining the Fediverse, the artist&#8217;s handle, and a one-click &#8220;remote follow&#8221; redirect to your own instance.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

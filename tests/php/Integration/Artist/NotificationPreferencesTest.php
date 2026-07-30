@@ -53,8 +53,8 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 	}
 
 	protected function tearDown(): void {
-		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'], $_GET['contact_optout'], $_GET['replies_optout'], $_GET['discovery_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'], $_POST['contact_optout'], $_POST['replies_optout'], $_POST['discovery_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_GET['agnosis_prefs'], $_GET['artist'], $_GET['token'], $_GET['mute_broadcasts'], $_GET['vote_mode'], $_GET['contact_optout'], $_GET['replies_optout'], $_GET['discovery_optout'], $_GET['interaction_summary_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		unset( $_POST['agnosis_prefs'], $_POST['artist'], $_POST['token'], $_POST['mute_broadcasts'], $_POST['vote_mode'], $_POST['contact_optout'], $_POST['replies_optout'], $_POST['discovery_optout'], $_POST['interaction_summary_optout'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $_SERVER['REQUEST_METHOD'] );
 		parent::tearDown();
 	}
@@ -183,6 +183,7 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		update_user_meta( $artist, '_agnosis_vote_email_mode', 'digest' );
 		update_user_meta( $artist, '_agnosis_contact_optout', '1' );
 		update_user_meta( $artist, '_agnosis_discovery_optout', '1' );
+		update_user_meta( $artist, '_agnosis_interaction_summary_optout', '1' );
 
 		// setUp()'s interceptor runs $message through wp_strip_all_tags(), which
 		// discards the checked/unchecked attribute this test needs to inspect.
@@ -224,6 +225,7 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		$this->assertStringContainsString( 'name="vote_mode" value="digest"  checked=\'checked\'', $raw_html );
 		$this->assertStringContainsString( 'name="contact_optout" value="1"  checked=\'checked\'', $raw_html );
 		$this->assertStringContainsString( 'name="discovery_optout" value="1"  checked=\'checked\'', $raw_html );
+		$this->assertStringContainsString( 'name="interaction_summary_optout" value="1"  checked=\'checked\'', $raw_html );
 	}
 
 	// =========================================================================
@@ -373,6 +375,49 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 
 		$this->assertSame( '', get_user_meta( $artist, '_agnosis_discovery_optout', true ) );
 		$this->assertFalse( NotificationPreferences::is_discovery_opted_out( $artist ) );
+	}
+
+	// NL1 (RHIZOME-NETWORK-ROADMAP.md §11a, 2026-07-30) — same on/off shape as
+	// discovery_optout above, default ON (no meta row = receiving the summary).
+	public function test_post_saves_interaction_summary_optout(): void {
+		$artist = $this->create_artist( 'save-interaction-summary-optout@example.com' );
+
+		$_SERVER['REQUEST_METHOD']            = 'POST';
+		$_POST['agnosis_prefs']               = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']                      = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']                       = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']                   = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['interaction_summary_optout']  = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		try {
+			$this->prefs->handle();
+			$this->fail( 'Expected the saved page (wp_die).' );
+		} catch ( DieCapture $e ) {
+			$this->assertSame( 200, $e->http_status );
+		}
+
+		$this->assertSame( '1', get_user_meta( $artist, '_agnosis_interaction_summary_optout', true ) );
+		$this->assertTrue( NotificationPreferences::is_interaction_summary_opted_out( $artist ) );
+	}
+
+	public function test_post_omitting_interaction_summary_optout_clears_it(): void {
+		$artist = $this->create_artist( 'clear-interaction-summary-optout@example.com' );
+		update_user_meta( $artist, '_agnosis_interaction_summary_optout', '1' );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['agnosis_prefs']    = '1'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['artist']           = (string) $artist; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['token']            = $this->valid_token( $artist ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_POST['vote_mode']        = 'instant'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// interaction_summary_optout deliberately absent — an unchecked checkbox submits nothing.
+
+		try {
+			$this->prefs->handle();
+		} catch ( DieCapture $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- expected: handle() always wp_die()s on a successful save, nothing to assert on the exception itself here.
+		}
+
+		$this->assertSame( '', get_user_meta( $artist, '_agnosis_interaction_summary_optout', true ) );
+		$this->assertFalse( NotificationPreferences::is_interaction_summary_opted_out( $artist ) );
 	}
 
 	public function test_post_omitting_mute_broadcasts_clears_the_mute(): void {

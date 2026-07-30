@@ -3,7 +3,7 @@
  * Admin settings page.
  *
  * Single settings screen under Settings → Agnosis.
- * Tabbed: General | Email | AI Providers | Network | Donations.
+ * Tabbed: General | Email | AI Providers | Network | Rhizome | Donations.
  *
  * @package Agnosis\Admin
  */
@@ -22,6 +22,7 @@ use Agnosis\Admin\Dashboards\LogsTab;
 use Agnosis\Admin\Dashboards\MembersDashboard;
 use Agnosis\Admin\Dashboards\NewsletterDashboard;
 use Agnosis\Admin\Dashboards\RelayManager;
+use Agnosis\Admin\Dashboards\RhizomeManager;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Core\Debug;
 use Agnosis\Core\Secrets;
@@ -39,6 +40,7 @@ class Settings {
 		'ai'          => 'agnosis_ai_options',
 		'behavior'    => 'agnosis_behavior_options',
 		'network'     => 'agnosis_network_options',
+		'rhizome'     => 'agnosis_rhizome_options',
 		'community'   => 'agnosis_community_options',
 		'donations'   => 'agnosis_donations_options',
 		'newsletter'  => 'agnosis_newsletter_options',
@@ -305,6 +307,7 @@ class Settings {
 			'ai'         => __( 'AI Providers', 'agnosis' ),
 			'behavior'   => __( 'Behavior',     'agnosis' ),
 			'network'    => __( 'Network',      'agnosis' ),
+			'rhizome'    => __( 'Rhizome',      'agnosis' ),
 			'community'  => __( 'Community',    'agnosis' ),
 			'donations'  => __( 'Donations',    'agnosis' ),
 			'newsletter' => __( 'Newsletter',   'agnosis' ),
@@ -703,6 +706,10 @@ class Settings {
 		}
 		if ( 'network' === $tab ) {
 			( new RelayManager() )->render();
+			return;
+		}
+		if ( 'rhizome' === $tab ) {
+			( new RhizomeManager() )->render();
 			return;
 		}
 		if ( 'branding' === $tab ) {
