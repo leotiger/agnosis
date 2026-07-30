@@ -641,6 +641,44 @@ class ActivityPub {
 	}
 
 	/**
+	 * The Fediverse handle string ("nicename@host" / "agnosis@host") for the
+	 * node or one specific artist — the display counterpart to
+	 * actor_url_for() (which returns the machine id/URL, not something a
+	 * person reads or types).
+	 *
+	 * Always resolves the base/apex domain (`agnosis_base_domain`, falling
+	 * back to home_url()'s host exactly like SubdomainRouter::url_for_artist()
+	 * does), never the CURRENT request's possibly-rewritten subdomain host —
+	 * SubdomainRouter::rewrite_home() repoints home_url() (and everything
+	 * derived from it, rest_url() included) at an artist's own subdomain for
+	 * the whole request, but per-artist actors deliberately share the node's
+	 * own host, not a subdomain (see resolve_webfinger_subject()'s own
+	 * docblock: "@artistname@agnosis.art" is what a fediverse user actually
+	 * follows). Calling this from a block rendered ON an artist's own
+	 * subdomain page (agnosis/site-copyright, agnosis/follow-overlay) would
+	 * otherwise silently print a handle that doesn't match what WebFinger
+	 * resolves.
+	 *
+	 * Returns '' when $owner_type is 'artist' and $owner_id doesn't resolve
+	 * to a real user.
+	 */
+	public function handle_for( string $owner_type, int $owner_id = 0 ): string {
+		$base = (string) get_option( 'agnosis_base_domain', '' );
+		$host = $base ?: (string) wp_parse_url( home_url(), PHP_URL_HOST );
+
+		if ( 'artist' === $owner_type ) {
+			$user = get_userdata( $owner_id );
+			if ( ! $user ) {
+				return '';
+			}
+			$username = $user->user_nicename ?: $user->user_login;
+			return $username . '@' . $host;
+		}
+
+		return 'agnosis@' . $host;
+	}
+
+	/**
 	 * Which local actor a post's Create/Update/Delete is attributed to and
 	 * delivered as (audit §3h). An artwork's post_author is the submitting
 	 * artist's real WP user id (Publishing\PostCreator sets it directly, not
@@ -2928,6 +2966,132 @@ class ActivityPub {
 
 		$artist_translation = (string) get_comment_meta( $comment_id, self::REPLY_TRANSLATED_CONTENT_META, true );
 		return '' !== $artist_translation ? $artist_translation : $comment->comment_content;
+	}
+
+	/**
+	 * Register the agnosis/follow-overlay dynamic block — a "Follow" trigger
+	 * that sits next to agnosis/reply-overlay's own "Reply" trigger, opening
+	 * a native-Popover-API panel (same mechanism, no bespoke modal JS/CSS)
+	 * with plain-language Fediverse/ActivityPub instructions, this artwork's
+	 * artist's copyable @handle, and a "remote follow" form.
+	 *
+	 * There is no single URL a browser can open to complete a follow across
+	 * two different, independent Fediverse servers — the follow has to be
+	 * authorized FROM the visitor's own instance, not this one.
+	 * `authorize_interaction` is the de-facto standard endpoint Mastodon
+	 * (and most compatible software) exposes for exactly this: given
+	 * `?uri=<actor URL>`, the visitor's own instance resolves it and shows
+	 * them a normal in-app follow confirmation. The copyable handle is the
+	 * fallback for any visitor whose own app doesn't support that redirect.
+	 */
+	public function register_follow_overlay_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/follow-overlay',
+			[ 'render_callback' => [ $this, 'render_follow_overlay' ] ]
+		);
+	}
+
+	/**
+	 * Render callback for agnosis/follow-overlay. Renders nothing on a
+	 * non-artwork post, or when the artwork's author account no longer
+	 * resolves to a real (still-admitted) artist — same "empty string takes
+	 * no space" convention as render_artwork_copyright().
+	 *
+	 * @param array<string, mixed> $attrs   Block attributes (unused).
+	 * @param string               $content Inner block content (unused).
+	 * @param \WP_Block            $block   Block instance (provides postId context).
+	 */
+	public function render_follow_overlay( array $attrs, string $content, \WP_Block $block ): string {
+		$post_id = (int) ( $block->context['postId'] ?? get_the_ID() );
+		$post    = get_post( $post_id );
+
+		if ( ! $post || 'agnosis_artwork' !== $post->post_type ) {
+			return '';
+		}
+
+		$artist_id = (int) $post->post_author;
+		$handle    = $this->handle_for( 'artist', $artist_id );
+
+		if ( '' === $handle ) {
+			return '';
+		}
+
+		$actor_url = $this->actor_url_for( 'artist', $artist_id );
+
+		wp_enqueue_style( 'agnosis-follow-overlay', \AGNOSIS_URL . 'blocks/follow-overlay/frontend.css', [], \AGNOSIS_VERSION );
+		wp_enqueue_script( 'agnosis-follow-overlay', \AGNOSIS_URL . 'blocks/follow-overlay/frontend.js', [], \AGNOSIS_VERSION, [ 'in_footer' => true ] );
+		wp_localize_script( 'agnosis-follow-overlay', 'agnosisFollowOverlay', [
+			'actorUrl' => $actor_url,
+			'i18n'     => [
+				'invalidInstance' => __( 'Enter your Fediverse instance domain (e.g. mastodon.social).', 'agnosis' ),
+				'copied'          => __( 'Copied!', 'agnosis' ),
+			],
+		] );
+
+		$panel_id           = 'agnosis-follow-overlay-' . $post_id;
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'agnosis-follow-overlay' ] );
+
+		ob_start();
+		?>
+		<div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() output is already escaped. ?>>
+			<button
+				type="button"
+				class="agnosis-follow-overlay__trigger"
+				popovertarget="<?php echo esc_attr( $panel_id ); ?>"
+				popovertargetaction="show"
+			>
+				<?php esc_html_e( 'Follow', 'agnosis' ); ?>
+			</button>
+
+			<div id="<?php echo esc_attr( $panel_id ); ?>" class="agnosis-follow-overlay__panel" popover="auto">
+				<button
+					type="button"
+					class="lf-icon-btn lf-popover-close"
+					popovertarget="<?php echo esc_attr( $panel_id ); ?>"
+					popovertargetaction="hide"
+					aria-label="<?php esc_attr_e( 'Close', 'agnosis' ); ?>"
+				>
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false">
+						<path d="M4 4l16 16M20 4 4 20"></path>
+					</svg>
+				</button>
+				<div class="agnosis-follow-overlay__inner">
+					<p class="agnosis-follow-overlay__intro">
+						<?php esc_html_e( 'This artist publishes to the Fediverse — the open, decentralized social network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow them from your own account on any of those, no Agnosis account needed.', 'agnosis' ); ?>
+					</p>
+
+					<p class="agnosis-follow-overlay__handle-label"><?php esc_html_e( 'Their handle:', 'agnosis' ); ?></p>
+					<div class="agnosis-follow-overlay__handle-row">
+						<code class="agnosis-follow-overlay__handle"><?php echo esc_html( '@' . $handle ); ?></code>
+						<button type="button" class="agnosis-follow-overlay__copy" data-agnosis-copy-handle="<?php echo esc_attr( '@' . $handle ); ?>">
+							<?php esc_html_e( 'Copy', 'agnosis' ); ?>
+						</button>
+					</div>
+					<p class="agnosis-follow-overlay__hint"><?php esc_html_e( 'Paste it into the search bar of your own Fediverse app to follow directly.', 'agnosis' ); ?></p>
+
+					<form class="agnosis-follow-overlay__form" data-agnosis-follow-form>
+						<label class="agnosis-follow-overlay__form-label" for="<?php echo esc_attr( $panel_id ); ?>-instance">
+							<?php esc_html_e( 'Or enter your instance to follow with one click:', 'agnosis' ); ?>
+						</label>
+						<div class="agnosis-follow-overlay__form-row">
+							<input
+								type="text"
+								id="<?php echo esc_attr( $panel_id ); ?>-instance"
+								name="instance"
+								placeholder="<?php esc_attr_e( 'yourinstance.social', 'agnosis' ); ?>"
+								autocomplete="off"
+								autocapitalize="off"
+								spellcheck="false"
+							/>
+							<button type="submit" class="agnosis-follow-overlay__form-submit"><?php esc_html_e( 'Follow', 'agnosis' ); ?></button>
+						</div>
+						<p class="agnosis-follow-overlay__form-status" data-agnosis-follow-status></p>
+					</form>
+				</div>
+			</div>
+		</div>
+		<?php
+		return (string) ob_get_clean();
 	}
 
 	/**

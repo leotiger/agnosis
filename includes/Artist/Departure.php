@@ -12,7 +12,12 @@
  *
  *  2. ADMIN REVOCATION — two actions:
  *     • Temporary ban  — removes role, sets status='banned', records banned_until
- *       (NULL = indefinite). A daily cron reinstates artists whose ban has expired.
+ *       (NULL = indefinite), and PRIVATIZES every one of the artist's published
+ *       Agnosis CPT posts (plus every Lingua Forge translated sibling) so their
+ *       content becomes publicly invisible without being deleted — see
+ *       hide_artist_content()'s own docblock for why 'private' rather than
+ *       'draft'. A daily cron reinstates artists whose ban has expired,
+ *       restoring both the role and exactly the content this action hid.
  *     • Permanent delete — deletes content + WP account, sets status='left'.
  *
  *  3. COMMUNITY REMOVAL VOTE — any artist can nominate another for removal.
@@ -60,6 +65,14 @@ class Departure {
 		'agnosis_biography',
 		'agnosis_event',
 	];
+
+	/**
+	 * Post meta flag marking a post privatized by hide_artist_content() (an
+	 * active ban) — restore_artist_content() only ever republishes a post
+	 * carrying this flag, never a post an admin separately, deliberately set
+	 * to 'private' for some unrelated reason.
+	 */
+	private const HIDDEN_FOR_BAN_META = '_agnosis_hidden_for_ban';
 
 	// -------------------------------------------------------------------------
 	// Frontend shim — self-removal confirmation
@@ -368,6 +381,8 @@ class Departure {
 			$user->remove_role( 'agnosis_artist' );
 		}
 
+		$this->hide_artist_content( $user_id );
+
 		/**
 		 * Fires after an admin bans an artist.
 		 *
@@ -456,6 +471,8 @@ class Departure {
 			if ( $user ) {
 				$user->add_role( 'agnosis_artist' );
 			}
+
+			$this->restore_artist_content( $user_id );
 
 			/** @param int $user_id  WP user ID. */
 			do_action( 'agnosis_artist_reinstated', $user_id );
@@ -804,6 +821,127 @@ class Departure {
 
 		foreach ( $posts as $post_id ) {
 			wp_delete_post( (int) $post_id, true ); // force_delete = true (bypass trash).
+		}
+	}
+
+	/**
+	 * Make a banned artist's published content publicly invisible — every one
+	 * of their own published Agnosis CPT posts, plus every Lingua Forge
+	 * translated sibling reachable from each via its TRID group
+	 * (`linguaforge_get_translations()`), the same per-language cascade
+	 * `Compat\LinguaForge::sync_native_sibling()`/`trash_orphaned_native_sibling()`
+	 * already use elsewhere in this codebase.
+	 *
+	 * 'private' rather than 'draft'/'pending': those two already mean
+	 * something specific in this plugin — an unreviewed submission awaiting
+	 * its first approval (`Publishing\PostCreator`'s own intake pipeline) —
+	 * reusing either for "banned" would surface banned-artist content inside
+	 * the admin's pending-review queue, which has nothing to do with a fresh
+	 * submission. 'private' is otherwise unused by this plugin, is
+	 * WordPress's own standard "not public, still administratively visible
+	 * and recoverable" status, and needs no change anywhere content is
+	 * already queried for admin/moderation purposes (`delete_artist_content()`
+	 * above already includes it in its own status list).
+	 *
+	 * HIDDEN_FOR_BAN_META marks exactly which posts THIS action privatized, so
+	 * restore_artist_content() only ever republishes what a ban actually hid.
+	 */
+	private function hide_artist_content( int $user_id ): void {
+		$posts = get_posts( [
+			'post_type'      => self::AGNOSIS_POST_TYPES,
+			'author'         => $user_id,
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+		] );
+
+		foreach ( $posts as $post_id ) {
+			$this->privatize_with_siblings( (int) $post_id );
+		}
+	}
+
+	/**
+	 * Reverse of hide_artist_content() — called once a ban ends (today: only
+	 * from check_expired_bans(); a future manual "lift ban early" admin action
+	 * would call this the same way). Only ever touches a post carrying
+	 * HIDDEN_FOR_BAN_META, so a post an admin separately, deliberately made
+	 * 'private' for an unrelated reason is left exactly as it is.
+	 */
+	private function restore_artist_content( int $user_id ): void {
+		$posts = get_posts( [
+			'post_type'      => self::AGNOSIS_POST_TYPES,
+			'author'         => $user_id,
+			'post_status'    => 'private',
+			'posts_per_page' => -1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+			'meta_key'       => self::HIDDEN_FOR_BAN_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- small, per-artist result set, not a site-wide query.
+		] );
+
+		foreach ( $posts as $post_id ) {
+			$this->publish_with_siblings( (int) $post_id );
+		}
+	}
+
+	/**
+	 * Set $post_id (already confirmed 'publish') and every currently-'publish'
+	 * Lingua Forge sibling of it to 'private', tagging each with
+	 * HIDDEN_FOR_BAN_META so restore_artist_content() can find them again.
+	 * No-ops the sibling cascade when Lingua Forge isn't active — there is no
+	 * translation group to walk in that case.
+	 */
+	private function privatize_with_siblings( int $post_id ): void {
+		wp_update_post( [ 'ID' => $post_id, 'post_status' => 'private' ] );
+		update_post_meta( $post_id, self::HIDDEN_FOR_BAN_META, '1' );
+
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		foreach ( linguaforge_get_translations( $post_id ) as $sibling_id ) {
+			$sibling_id = (int) $sibling_id;
+			if ( $sibling_id === $post_id || $sibling_id <= 0 ) {
+				continue;
+			}
+
+			$sibling = get_post( $sibling_id );
+			if ( ! $sibling instanceof \WP_Post || 'publish' !== $sibling->post_status ) {
+				continue; // Not currently public — nothing to hide.
+			}
+
+			wp_update_post( [ 'ID' => $sibling_id, 'post_status' => 'private' ] );
+			update_post_meta( $sibling_id, self::HIDDEN_FOR_BAN_META, '1' );
+		}
+	}
+
+	/**
+	 * Reverse of privatize_with_siblings() — restores $post_id and every
+	 * HIDDEN_FOR_BAN_META-flagged Lingua Forge sibling of it back to
+	 * 'publish', clearing the flag from each.
+	 */
+	private function publish_with_siblings( int $post_id ): void {
+		wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ] );
+		delete_post_meta( $post_id, self::HIDDEN_FOR_BAN_META );
+
+		if ( ! function_exists( 'linguaforge_get_translations' ) ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		foreach ( linguaforge_get_translations( $post_id ) as $sibling_id ) {
+			$sibling_id = (int) $sibling_id;
+			if ( $sibling_id === $post_id || $sibling_id <= 0 ) {
+				continue;
+			}
+
+			if ( '1' !== get_post_meta( $sibling_id, self::HIDDEN_FOR_BAN_META, true ) ) {
+				continue; // Wasn't hidden by this mechanism — leave it exactly as it is.
+			}
+
+			wp_update_post( [ 'ID' => $sibling_id, 'post_status' => 'publish' ] );
+			delete_post_meta( $sibling_id, self::HIDDEN_FOR_BAN_META );
 		}
 	}
 

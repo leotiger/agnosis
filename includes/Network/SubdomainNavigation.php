@@ -752,6 +752,82 @@ class SubdomainNavigation {
 	}
 
 	// -------------------------------------------------------------------------
+	// Block: agnosis/site-copyright
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Register the agnosis/site-copyright dynamic block.
+	 *
+	 * block.json lives in blocks/site-copyright/ relative to the plugin root.
+	 */
+	public function register_copyright_block(): void {
+		register_block_type(
+			\AGNOSIS_DIR . 'blocks/site-copyright',
+			[ 'render_callback' => [ $this, 'render_copyright_block' ] ]
+		);
+	}
+
+	/**
+	 * PHP render_callback for the agnosis/site-copyright block — the footer
+	 * copyright line. "© {year} Agnosis (@agnosis@host)" on the main site,
+	 * "© {year} {Artist Name} (@artistname@host)" on an artist's own
+	 * subdomain — the parenthetical is always that actor's real Fediverse
+	 * handle (ActivityPub::handle_for()), so a visitor can copy it straight
+	 * into their own Fediverse client's search bar without hunting for it
+	 * (agnosis/follow-overlay covers the same need on an individual artwork;
+	 * this is the site-wide/every-page counterpart).
+	 *
+	 * Deliberately ALWAYS renders something, unlike render_block() above —
+	 * a copyright line belongs on every page (main site included), unlike a
+	 * breadcrumb that only makes sense once an artist is actually in view.
+	 *
+	 * Color/Typography/Spacing/Align are ordinary block *supports*
+	 * (block.json), so get_block_wrapper_attributes() alone carries whatever
+	 * the Inspector's standard panels picked.
+	 *
+	 * @param array<string, mixed> $attrs Block attributes (unused).
+	 * @return string
+	 */
+	public function render_copyright_block( array $attrs = [] ): string {
+		$artist_id   = SubdomainRouter::current_artist_id();
+		$activitypub = new ActivityPub();
+		$year        = gmdate( 'Y' );
+
+		$name = $artist_id ? $this->artist_name( $artist_id ) : '';
+
+		if ( '' !== $name ) {
+			$handle = $activitypub->handle_for( 'artist', $artist_id );
+			$label  = sprintf(
+				/* translators: 1: current year, 2: artist name, 3: Fediverse handle (already includes an "@"). */
+				__( '© %1$s %2$s (@%3$s)', 'agnosis' ),
+				$year,
+				$name,
+				$handle
+			);
+		} else {
+			$handle = $activitypub->handle_for( 'site' );
+			$label  = sprintf(
+				/* translators: 1: current year, 2: Fediverse handle (already includes an "@"). */
+				__( '© %1$s Agnosis (@%2$s)', 'agnosis' ),
+				$year,
+				$handle
+			);
+		}
+
+		// opacity:0.35 matches the faint treatment the hand-authored
+		// `lf-copyright` paragraph this block replaces always had — not a
+		// standard block *support*, so it can't come from the JSON attrs the
+		// way color/typography do; baked in here instead so any theme using
+		// this block gets the same subdued footer line with zero extra CSS.
+		$wrapper_attributes = get_block_wrapper_attributes( [
+			'class' => 'agnosis-site-copyright',
+			'style' => 'opacity:0.35',
+		] );
+
+		return sprintf( '<p %s>%s</p>', $wrapper_attributes, esc_html( $label ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
 

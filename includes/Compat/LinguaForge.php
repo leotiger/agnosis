@@ -94,6 +94,41 @@
  *      an instruction, which a stronger model at a lower temperature does more
  *      reliably than a cheaper/faster one at LF's own default settings.
  *
+ *  11. SITEMAP AWARENESS FOR ARTIST SUBDOMAINS — LF >= 2.7.1 only. An artist's
+ *      own subdomain root (`artistx.{base_domain}`, `Network\SubdomainRouter`)
+ *      is a synthetic listing page with no `WP_Post` behind it — LF's own
+ *      sitemap query (keyed on `_lf_trid`/`_lf_lang` post meta) has no way to
+ *      discover it, exactly the gap LF's own `linguaforge_sitemap_extra_urls`
+ *      filter (`SitemapManager`) exists for. `sitemap_extra_urls()` emits one
+ *      group per artist who both still holds the `agnosis_artist` role (so a
+ *      banned or departed artist's subdomain drops out) and has at least one
+ *      published artwork/biography/event, with one row per LF-configured
+ *      language via `SubdomainRouter::url_for_artist()`'s new `$lang`
+ *      parameter. Coherent with `Artist\Departure::hide_artist_content()`
+ *      (a ban also privatizes the artist's own content, not just their
+ *      subdomain's sitemap entry — see that method's own docblock), so a
+ *      banned artist's individual artwork/biography/event permalinks also
+ *      stop resolving publicly, not only their subdomain root.
+ *
+ *      The cache-invalidation half of this is a separate gap: LF's own
+ *      `SitemapManager::flush_on_save()` only hooks `save_post`, which never
+ *      fires for `Artist\Departure::delete_artist_content()`'s
+ *      `wp_delete_post( $id, true )` force-delete (self-removal / admin
+ *      permanent delete both go through it) — the exact same class of miss
+ *      `Network\ActivityPub::federate_force_delete()` already hooks
+ *      `before_delete_post` to close for federation. `flush_sitemap_cache()`
+ *      calls LF's `SitemapManager::flush_cache()` directly, hooked on
+ *      `agnosis_artist_admitted` (join — a no-op today, since admission never
+ *      auto-creates a published post, but cheap and future-proof),
+ *      `agnosis_artist_left` / `agnosis_artist_deleted_by_admin` (leave — both
+ *      fire AFTER content is already force-deleted, so cache state is correct
+ *      at flush time), `agnosis_post_published` (an artist's first publish is
+ *      the only moment their own group starts existing at all), and
+ *      `agnosis_artist_banned` / `agnosis_artist_reinstated` (defense-in-depth
+ *      only — `hide_artist_content()`/`restore_artist_content()` already
+ *      trigger LF's own `save_post`-hooked flush per post they touch, since
+ *      every one of them carries `_lf_trid`).
+ *
  * Since 0.9.22, agnosis.php declares `Requires Plugins: lingua-forge` —
  * WordPress itself now refuses to install or activate Agnosis at all until
  * Lingua Forge is installed and active (and, symmetrically, refuses to let an
@@ -592,6 +627,31 @@ class LinguaForge {
 
 		// Schema.org type override.
 		add_filter( 'linguaforge_seo_schema_data',   [ $this, 'filter_schema_type'    ], 10, 2 );
+
+		// Sitemap awareness for artist subdomains — LF >= 2.7.1 only (concern
+		// #11 above). Both the extra-URL supply and the cache-flush calls
+		// depend on classes/filters that don't exist before 2.7.1.
+		if (
+			defined( 'LINGUAFORGE_VERSION' )
+			&& version_compare( (string) LINGUAFORGE_VERSION, '2.7.1', '>=' )
+		) {
+			add_filter( 'linguaforge_sitemap_extra_urls', [ $this, 'sitemap_extra_urls' ], 10, 1 );
+
+			add_action( 'agnosis_artist_admitted',        [ $this, 'flush_sitemap_cache' ], 10, 0 );
+			add_action( 'agnosis_artist_left',            [ $this, 'flush_sitemap_cache' ], 10, 0 );
+			add_action( 'agnosis_artist_deleted_by_admin', [ $this, 'flush_sitemap_cache' ], 10, 0 );
+			add_action( 'agnosis_post_published',         [ $this, 'flush_sitemap_cache' ], 30, 0 );
+
+			// A ban privatizes the artist's content (Artist\Departure::
+			// hide_artist_content()) and drops them from sitemap_extra_urls()
+			// (role-gated) at once; reinstatement reverses both. LF's own
+			// save_post-hooked flush already fires per privatized/republished
+			// post (each carries _lf_trid), so this is defense-in-depth rather
+			// than the only thing keeping the cache correct — same reasoning
+			// as the other four hooks just above.
+			add_action( 'agnosis_artist_banned',          [ $this, 'flush_sitemap_cache' ], 10, 0 );
+			add_action( 'agnosis_artist_reinstated',      [ $this, 'flush_sitemap_cache' ], 10, 0 );
+		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -3501,6 +3561,114 @@ class LinguaForge {
 	public static function locale_to_lang( string $locale ): string {
 		// LF typically uses two-letter primary subtags ("en", "de", "es", "fr"…).
 		return strtolower( explode( '_', $locale )[0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Sitemap awareness for artist subdomains (concern #11 above)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Supply one sitemap group per artist whose subdomain root LF's own
+	 * `_lf_trid`/`_lf_lang` query has no way to discover (see concern #11's
+	 * docblock above for why). Hooked on `linguaforge_sitemap_extra_urls`.
+	 *
+	 * Gated on the `agnosis_artist` role (not merely "has published content")
+	 * so a banned artist's subdomain drops out of the sitemap even though
+	 * `Artist\Departure::admin_ban()` leaves their content itself published —
+	 * a deliberate deindex-on-ban decision, distinct from a departed artist
+	 * whose content and account are both already gone by the time this would
+	 * run anyway.
+	 *
+	 * @param array<string, array<int, array<string, string>>> $groups Existing
+	 *   extra-URL groups from any other registered callback.
+	 * @return array<string, array<int, array<string, string>>>
+	 */
+	public function sitemap_extra_urls( array $groups ): array {
+		if ( ! (bool) get_option( 'agnosis_base_domain', '' ) || ! function_exists( 'linguaforge_languages' ) ) {
+			return $groups; // Artist subdomains not configured, or LF's language list unavailable.
+		}
+
+		// Same conflict guard as SubdomainRouter::boot(): in LF subdomain routing
+		// mode, 'artistx.{base_domain}' would be interpreted as a LANGUAGE
+		// subdomain by LF's own router, not an artist subdomain — Agnosis's own
+		// artist-subdomain routing never activates in that configuration, so
+		// there is nothing real for these URLs to point at.
+		if ( 'subdomain' === (string) get_option( 'linguaforge_routing_mode', 'path' ) ) {
+			return $groups;
+		}
+
+		/** @var string[] $languages */
+		$languages = linguaforge_languages();
+		if ( empty( $languages ) ) {
+			return $groups;
+		}
+
+		$artists = get_users( [
+			'role'   => 'agnosis_artist',
+			'fields' => 'ID',
+		] );
+
+		foreach ( $artists as $artist_id ) {
+			$artist_id = (int) $artist_id;
+
+			if ( ! self::has_published_content( $artist_id ) ) {
+				continue;
+			}
+
+			$rows = [];
+			foreach ( $languages as $lang ) {
+				$rows[] = [
+					'url'  => \Agnosis\Network\SubdomainRouter::url_for_artist( $artist_id, $lang ),
+					'lang' => $lang,
+				];
+			}
+
+			$groups[ 'agnosis_artist_' . $artist_id ] = $rows;
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Whether an artist has at least one published Agnosis CPT post — the
+	 * "with published content" gate `sitemap_extra_urls()` applies before
+	 * including a group for that artist.
+	 */
+	private static function has_published_content( int $artist_id ): bool {
+		$posts = get_posts( [
+			'post_type'      => self::AGNOSIS_POST_TYPES,
+			'author'         => $artist_id,
+			'post_status'    => 'publish',
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+		] );
+
+		return ! empty( $posts );
+	}
+
+	/**
+	 * Flush LF's own sitemap cache directly — the artist-lifecycle half of
+	 * concern #11's cache-invalidation gap (see class docblock): LF's
+	 * `SitemapManager::flush_on_save()` only hooks `save_post`, which never
+	 * fires for a force-deleted post (`Artist\Departure::
+	 * delete_artist_content()`'s `wp_delete_post( $id, true )`), so a
+	 * departed artist's now-dead subdomain group could otherwise sit cached
+	 * for up to 24h with nothing to invalidate it. Registered with
+	 * accepted_args 0 — every hook this is attached to (`agnosis_artist_admitted`,
+	 * `agnosis_artist_left`, `agnosis_artist_deleted_by_admin`,
+	 * `agnosis_post_published`) fires with different argument shapes, none of
+	 * which this method needs.
+	 */
+	public function flush_sitemap_cache(): void {
+		if ( ! class_exists( '\LinguaForge\Router\Router' ) ) {
+			return;
+		}
+
+		$router = \LinguaForge\Router\Router::get_instance();
+		if ( isset( $router->sitemap_manager ) ) {
+			$router->sitemap_manager->flush_cache();
+		}
 	}
 
 	// -------------------------------------------------------------------------

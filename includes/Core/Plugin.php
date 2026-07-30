@@ -535,6 +535,10 @@ class Plugin {
 		// alongside FederationSettlement's own cron wiring.
 		$this->loader->add_action( 'init',                   $activitypub, 'register_reply_overlay_block' );
 		$activitypub->register_reply_moderation_handler();
+		// Follow amplification (2026-07-30): agnosis/follow-overlay, the
+		// "Follow" popover next to reply-overlay's own "Reply" trigger — see
+		// ActivityPub::register_follow_overlay_block()'s own docblock.
+		$this->loader->add_action( 'init',                   $activitypub, 'register_follow_overlay_block' );
 		// Interaction-surface roadmap, Phase 3, WP4 (2026-07-27): local
 		// (visitor) replies. POST content/{id}/replies is registered inside
 		// register_routes() above (already wired); this is only the admin
@@ -647,6 +651,11 @@ class Plugin {
 		$subdomain_nav = new SubdomainNavigation();
 		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_block' );
 		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_artist_name_link_block' );
+		// Follow amplification (2026-07-30): agnosis/site-copyright, the
+		// footer copyright line carrying the site's or artist's Fediverse
+		// handle in parentheses — see SubdomainNavigation::register_copyright_block()'s
+		// own docblock.
+		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_copyright_block' );
 		$this->loader->add_action( 'init',                       $subdomain_nav, 'register_breadcrumb_icon_link_block' );
 		$this->loader->add_filter( 'render_block_core/group',       $subdomain_nav, 'hide_empty_breadcrumb_group', 10, 2 );
 		$this->loader->add_filter( 'render_block_core/site-logo',  $subdomain_nav, 'link_to_portal' );

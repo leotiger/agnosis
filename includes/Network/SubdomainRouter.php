@@ -207,14 +207,23 @@ class SubdomainRouter {
 	 * Prefers `user_nicename` (already URL-safe) over `user_login`.
 	 * Falls back to `home_url()` when no base domain is configured.
 	 *
-	 * Carries the CURRENT request's language (via
-	 * `Compat\LinguaForge::current_lang_path_prefix()`) so that following this
-	 * link from a translated page (e.g. a visitor on `/fr/`) lands on the
-	 * artist's `/fr/` home rather than always dropping back to their
-	 * source-language root — '' when LF isn't active or the current language
-	 * already IS the source language, so the common case is unaffected.
+	 * @param int         $user_id  Artist WP user ID.
+	 * @param string|null $lang     Explicit BCP-47 language code to build the
+	 *                               URL for, or null (default) to carry the
+	 *                               CURRENT request's language instead (via
+	 *                               `Compat\LinguaForge::current_lang_path_prefix()`)
+	 *                               so that following this link from a translated
+	 *                               page (e.g. a visitor on `/fr/`) lands on the
+	 *                               artist's `/fr/` home rather than always
+	 *                               dropping back to their source-language root.
+	 *                               Passing an explicit $lang is for callers that
+	 *                               need EVERY language at once regardless of the
+	 *                               current request — e.g.
+	 *                               `Compat\LinguaForge::sitemap_extra_urls()`,
+	 *                               which has no "current request" at all when
+	 *                               run from cron/sitemap generation.
 	 */
-	public static function url_for_artist( int $user_id ): string {
+	public static function url_for_artist( int $user_id, ?string $lang = null ): string {
 		$base = (string) get_option( 'agnosis_base_domain', '' );
 		if ( ! $base ) {
 			return home_url();
@@ -227,12 +236,36 @@ class SubdomainRouter {
 
 		$slug   = $user->user_nicename ?: $user->user_login;
 		$scheme = is_ssl() ? 'https' : 'http';
-		$prefix = \Agnosis\Compat\LinguaForge::current_lang_path_prefix();
+		$prefix = null !== $lang
+			? self::lang_path_prefix_for( $lang )
+			: \Agnosis\Compat\LinguaForge::current_lang_path_prefix();
 
 		// Trailing slash only when a language prefix is actually appended — the
 		// bare-domain case matches WordPress's own home_url() convention (no
 		// trailing slash), while '/fr' must become '/fr/' to be a well-formed
 		// terminal URL and avoid a needless 301 to the slashed form.
 		return $scheme . '://' . $slug . '.' . $base . $prefix . ( '' !== $prefix ? '/' : '' );
+	}
+
+	/**
+	 * Path prefix for an EXPLICIT language code — '' for the site's configured
+	 * source language (a source-language URL never gets a redundant prefix),
+	 * '/xx' for any other active language.
+	 *
+	 * Same rule `Compat\LinguaForge::current_lang_path_prefix()` applies to the
+	 * CURRENT request's language, parameterized so a caller building URLs for
+	 * every configured language at once (sitemap generation, which has no
+	 * single "current" language to read from `LF_LANG`) can reuse the identical
+	 * logic instead of duplicating it.
+	 */
+	private static function lang_path_prefix_for( string $lang ): string {
+		if ( ! \Agnosis\Compat\LinguaForge::is_active() || '' === $lang ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- calling Lingua Forge's public API; prefix belongs to that plugin.
+		$source = function_exists( 'linguaforge_source_language' ) ? linguaforge_source_language() : '';
+
+		return ( $lang === $source ) ? '' : '/' . $lang;
 	}
 }

@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/follow-overlay",
+	"version": "0.9.63",
+	"title": "Follow Overlay",
+	"category": "agnosis",
+	"icon": "networking",
+	"description": "Trigger next to the reply button that opens a popover explaining the Fediverse/ActivityPub, showing this artwork's artist's copyable @handle, and a remote-follow form that redirects a visitor to their own instance's authorize_interaction screen. Renders nothing off an agnosis_artwork post, or when its author no longer resolves to a real artist actor.",
+	"keywords": [ "follow", "fediverse", "mastodon", "activitypub", "agnosis" ],
+	"textdomain": "agnosis",
+	"usesContext": [ "postId" ],
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": false
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}

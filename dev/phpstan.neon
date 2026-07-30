@@ -13,6 +13,7 @@ parameters:
         - ../blocks/
         - ../tests/php/
         - ../docs/agnosis-update-manifest.php
+        - ../docs/agnosis-manifest-includes/
 
     excludePaths:
         - ../dev/

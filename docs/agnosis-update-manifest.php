@@ -21,10 +21,20 @@
  * docs/lf-update-manifest.php (deployed the same way to lingua-forge.com),
  * so both self-hosted plugins are administered identically.
  *
+ * Instance check-in telemetry (which sites are polling this endpoint, and
+ * what version they're running) is NOT implemented in this file — it lives
+ * in agnosis-manifest-includes/telemetry.php, required below, so this file
+ * stays exactly what its own docblock says it is: a short "what to edit on
+ * every release" document. See that file's own docblock, and
+ * RHIZOME-NETWORK-ROADMAP.md §9/§12 (TEL1) in the agnosis-audit repo, for
+ * the full design and privacy reasoning.
+ *
  * @package Agnosis
  */
 
 defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/agnosis-manifest-includes/telemetry.php';
 
 add_action( 'rest_api_init', function () {
 	register_rest_route(
@@ -38,14 +48,20 @@ add_action( 'rest_api_init', function () {
 	);
 } );
 
-function agnosis_update_manifest_endpoint(): WP_REST_Response {
+function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_Response {
+
+	// Record this check-in (site URL, WP version, Agnosis version — parsed
+	// from the request's own User-Agent) before anything else. Never allowed
+	// to affect or slow the actual manifest response below; see
+	// agnosis_manifest_telemetry_record()'s own docblock.
+	agnosis_manifest_telemetry_record( $request );
 
 	// -------------------------------------------------------------------------
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.62';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.62/agnosis-0.9.62.zip';
+	$version      = '0.9.64';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.64/agnosis-0.9.64.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -97,9 +113,9 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '14fd49cb5c606d9a74e64a58e42ee8b44b86d87bc291e731d5fd189fc34780ee'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-28 for agnosis-0.9.62.zip.';
-	$last_updated = '2026-07-28';
+	$sha256       = '72408564249c6140d37e11da7572ce9a538c1f8eb9b552e01690522b9a5de387'; // Verified — see $sha256_note above for build date/version.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-30 for agnosis-0.9.64.zip.';
+	$last_updated = '2026-07-30';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -111,14 +127,14 @@ function agnosis_update_manifest_endpoint(): WP_REST_Response {
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
-		'<h4>0.9.62</h4>' .
+		'<h4>0.9.64</h4>' .
 		'<ul>' .
-			'<li><strong>Added:</strong> An approved reply to an artwork now also appears on that artwork&#8217;s other translated versions &#8212; specifically the reply&#8217;s own language, the site&#8217;s primary language, and the artist&#8217;s native language &#8212; wherever a real translated version already exists. Nested replies (including an artist&#8217;s own reply to a reply) are mirrored too, editing an already-mirrored reply updates every copy, and a reply is backfilled onto a translated version created afterward.</li>' .
-			'<li><strong>Fixed:</strong> Replying to an artwork could send an artist a second, plain, unbranded &#8220;new comment&#8221; email from WordPress itself, in addition to (and before) our own branded notification. That extra email is now suppressed for artwork replies.</li>' .
+			'<li><strong>Added:</strong> An artist&#8217;s subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap&#8217;s cache.</li>' .
+			'<li><strong>Added:</strong> Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.</li>' .
 		'</ul>' .
-		'<h4>0.9.61</h4>' .
+		'<h4>0.9.63</h4>' .
 		'<ul>' .
-			'<li><strong>Fixed:</strong> Several background tasks (reply/translation queues, the retry queue, the newsletter sender) could stop running on their own after being scheduled, with no artist- or admin-visible error &#8212; for example, a visitor&#8217;s reply would be stored but the artist would never get notified. These now automatically re-check and re-register themselves on every site visit, so they can no longer silently go missing.</li>' .
+			'<li><strong>Added:</strong> The footer copyright line now shows a copyable Fediverse handle in parentheses (yours, or an artist&#8217;s own on their subdomain), and every artwork gets a new &#8220;Follow&#8221; button next to &#8220;Reply&#8221; &#8212; opens a popover explaining the Fediverse, the artist&#8217;s handle, and a one-click &#8220;remote follow&#8221; redirect to your own instance.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

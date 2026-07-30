@@ -9,6 +9,7 @@
     <file>../blocks/</file>
     <file>../tests/php/</file>
     <file>../docs/agnosis-update-manifest.php</file>
+    <file>../docs/agnosis-manifest-includes/</file>
 
     <!-- Exclude generated / vendored / non-PHP trees. -->
     <exclude-pattern>*/vendor/*</exclude-pattern>

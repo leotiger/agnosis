@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.62
+Stable tag: 0.9.64
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,12 +91,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
-= 0.9.62 =
-* Added: An approved reply to an artwork now also appears on that artwork's other translated versions — specifically the reply's own language, the site's primary language, and the artist's native language — wherever a real translated version already exists. Nested replies (including an artist's own reply to a reply) are mirrored too, editing an already-mirrored reply updates every copy, and a reply is backfilled onto a translated version created afterward.
-* Fixed: Replying to an artwork could send an artist a second, plain, unbranded "new comment" email from WordPress itself, in addition to (and before) our own branded notification. That extra email is now suppressed for artwork replies.
+= 0.9.64 =
+* Added: An artist's subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap's cache.
+* Added: Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.
 
-= 0.9.61 =
-* Fixed: Several background tasks (reply/translation queues, the retry queue, the newsletter sender) could stop running on their own after being scheduled, with no artist- or admin-visible error — for example, a visitor's reply would be stored but the artist would never get notified. These now automatically re-check and re-register themselves on every site visit, so they can no longer silently go missing.
+= 0.9.63 =
+* Added: The footer copyright line now shows a copyable Fediverse handle in parentheses (yours, or an artist's own on their subdomain), and every artwork gets a new "Follow" button next to "Reply" — opens a popover explaining the Fediverse, the artist's handle, and a one-click "remote follow" redirect to your own instance.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

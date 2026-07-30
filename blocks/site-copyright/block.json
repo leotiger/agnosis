@@ -1,0 +1,33 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agnosis/site-copyright",
+	"version": "0.9.63",
+	"title": "Site Copyright",
+	"category": "agnosis",
+	"icon": "id-alt",
+	"description": "Footer copyright line — \"© {year} Agnosis (@agnosis@host)\" on the main site, \"© {year} {Artist Name} (@artistname@host)\" on an artist's own subdomain — the parenthetical is always that actor's real Fediverse handle, so a visitor always has a copyable handle to follow from their own Fediverse client.",
+	"keywords": [ "copyright", "footer", "fediverse", "handle", "agnosis" ],
+	"textdomain": "agnosis",
+	"editorScript": "file:editor.js",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"align": [ "left", "center", "right" ],
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": false
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalFontWeight": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalFontFamily": true
+		}
+	},
+	"example": {}
+}
