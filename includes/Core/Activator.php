@@ -1503,13 +1503,31 @@ class Activator {
 	 *
 	 * Deliberately excludes `agnosis_poll_inbox`, `agnosis_cleanup_inbox`,
 	 * `agnosis_tag_proposal_ttl_sweep`, `agnosis_medium_proposal_ttl_sweep`,
-	 * and `agnosis_federation_tag_wait_sweep` — those five already self-heal
-	 * on every request via their own class's `init`-hooked scheduling method
-	 * (Email\Inbox::schedule_poll()/schedule_cleanup(),
-	 * Admin\TagProposals::schedule_ttl_sweep(),
-	 * Admin\MediumProposals::schedule_ttl_sweep(),
-	 * Network\FederationSettlement::schedule_fallback_sweep()), so listing
-	 * them here too would just be redundant, not more correct.
+	 * **Sixteenth audit, Q-3 (2026-07-31): this list is now COMPLETE — all 18
+	 * recurring hooks, i.e. exactly `CRON_HOOKS` minus its three single-event
+	 * entries, and `CronHookParityTest` now asserts that equality so it cannot
+	 * silently drift again.**
+	 *
+	 * It previously held 13 of 18. `agnosis_poll_inbox`, `agnosis_cleanup_inbox`,
+	 * both proposal TTL sweeps and `agnosis_federation_tag_wait_sweep` were
+	 * omitted on the reasoning that each already self-healed via its own
+	 * class's `init`-hooked scheduler, so listing them here would be
+	 * "redundant, not more correct". That was true of the runtime behaviour and
+	 * wrong about the risk: it left a const whose name and docblock read as the
+	 * authoritative inventory of recurring crons while being a partial one, so
+	 * the obvious next step for anyone adding a recurring cron — add it here —
+	 * was correct, while the equally obvious audit ("is every recurring cron
+	 * covered? yes, they're all in the map") was not. `agnosis_poll_inbox` is
+	 * the entire email intake pipeline; a reader talked out of checking it is
+	 * exactly the 2026-07-28 incident repeating with a different hook.
+	 *
+	 * The five per-class schedulers those hooks used to rely on are gone with
+	 * this change (`Email\Inbox::schedule_poll()`/`schedule_cleanup()`,
+	 * `Admin\TagProposals::schedule_ttl_sweep()`,
+	 * `Admin\MediumProposals::schedule_ttl_sweep()`,
+	 * `Network\FederationSettlement::schedule_fallback_sweep()`), as is
+	 * `schedule_events()`'s own hand-maintained third copy of most of this
+	 * list. One list, one scheduler.
 	 *
 	 * Found 2026-07-28: on a live, up-to-date, already-tested install,
 	 * `wp cron event list` showed every hook below MISSING — while every
@@ -1529,18 +1547,55 @@ class Activator {
 	 * page, and no manual `wp cron event schedule` required; the very next
 	 * request after this fix ships re-registers whatever is missing.
 	 */
-	private const RECURRING_CRON_SCHEDULE = [
+	public const RECURRING_CRON_SCHEDULE = [
+		// Email intake. The 5-minute poll is the front door of the whole
+		// platform — if it stops, artists' submissions simply never arrive.
+		'agnosis_poll_inbox'                    => 'every_five_minutes',
+		// Daily housekeeping: purges old IMAP messages, stale queue rows,
+		// expired debug dumps, AND runs Logger::prune() and the relay-log
+		// retention sweep, so its absence is a data-retention problem, not
+		// just a tidiness one.
+		'agnosis_cleanup_inbox'                 => 'daily',
+
 		'agnosis_check_admissions'              => 'daily',
 		'agnosis_check_bans'                    => 'daily',
 		'agnosis_check_removal_votes'           => 'daily',
 		'agnosis_check_cap_votes'               => 'daily',
+		// Daily vote-email digest for artists in digest mode (security audit
+		// §5b/§4a) — see Artist\VoteDigest's own docblock.
 		'agnosis_vote_digest'                   => 'daily',
+		// Anonymous-like salt rotation (interaction-surface roadmap, WP2) —
+		// the rotation IS the privacy guarantee, so a missing event silently
+		// makes yesterday's like fingerprints re-derivable.
 		'agnosis_rotate_like_salt'              => 'daily',
+		// Proposal expiry sweeps (TAG-REDESIGN.md T5(b)) — both taxonomies,
+		// same daily cadence, sharing the agnosis_proposal_ttl setting.
+		'agnosis_tag_proposal_ttl_sweep'        => 'daily',
+		'agnosis_medium_proposal_ttl_sweep'     => 'daily',
+
 		'agnosis_prepare_newsletters'           => 'daily',
 		'agnosis_send_newsletter_queue'         => 'every_five_minutes',
+
+		// Federation tag-wait safety valve (TAG-REDESIGN.md F3). Hourly rather
+		// than daily because its own setting is measured in hours: a daily
+		// cadence could let a post wait up to 47 hours against a 24-hour
+		// setting instead of the ~25 an hourly tick bounds it to.
+		'agnosis_federation_tag_wait_sweep'     => 'hourly',
+
+		// ActivityPub delivery retry queue (audit §3g note iv) — same 5-minute
+		// tick as the email poll; most ticks are a cheap no-op empty-queue
+		// SELECT, since a row's next_attempt_at is usually well in the future.
 		'agnosis_ap_retry_deliveries'           => 'every_five_minutes',
+		// Term auto-translation queue drain (TAG-REDESIGN.md T3(b)), and the
+		// rename-retranslation drain below it (T5(c)). Both scheduled
+		// unconditionally regardless of whether Lingua Forge is active or
+		// configured yet — each drain no-ops internally when it isn't, the
+		// same convention agnosis_ap_retry_deliveries above follows.
 		'agnosis_drain_translation_queue'       => 'every_five_minutes',
 		'agnosis_drain_rename_queue'            => 'every_five_minutes',
+		// Reply-translation drain (interaction-surface roadmap, Phase 2) and
+		// contact-thread reply drain (CONTACT-FORM-TRANSLATION-ROADMAP.md CF7)
+		// — same tick, same returns-immediately-when-empty convention.
 		'agnosis_drain_reply_translation_queue' => 'every_five_minutes',
 		'agnosis_drain_contact_reply_queue'     => 'every_five_minutes',
 	];
@@ -1585,80 +1640,25 @@ class Activator {
 		return $rescheduled;
 	}
 
+	/**
+	 * Schedule every recurring event at activation / upgrade.
+	 *
+	 * Sixteenth audit, Q-3 (2026-07-31): this used to be a hand-maintained
+	 * third copy of the recurring-cron list — twelve inline
+	 * `wp_next_scheduled()`/`wp_schedule_event()` pairs plus a delegation for
+	 * the newsletter pair — sitting alongside RECURRING_CRON_SCHEDULE and the
+	 * five per-class schedulers, each list a separate place to forget a hook.
+	 * It now delegates to the single source of truth. The per-hook reasoning
+	 * that used to live in the comments here moved onto the const's own
+	 * entries; nothing was dropped.
+	 *
+	 * ensure_recurring_crons_scheduled() is idempotent (each hook is guarded by
+	 * its own `wp_next_scheduled()` check), so calling it here as well as on
+	 * every `init` is free — this call simply means a fresh activation has its
+	 * events before the first `init` of the next request rather than after.
+	 */
 	private static function schedule_events(): void {
-		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_poll_inbox' );
-		}
-		if ( ! wp_next_scheduled( 'agnosis_check_admissions' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_check_admissions' );
-		}
-		if ( ! wp_next_scheduled( 'agnosis_check_bans' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_check_bans' );
-		}
-		if ( ! wp_next_scheduled( 'agnosis_check_removal_votes' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_check_removal_votes' );
-		}
-		if ( ! wp_next_scheduled( 'agnosis_check_cap_votes' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_check_cap_votes' );
-		}
-		// Daily vote-email digest for artists in digest mode (security audit
-		// §5b/§4a) — see Artist\VoteDigest's own docblock.
-		if ( ! wp_next_scheduled( 'agnosis_vote_digest' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_vote_digest' );
-		}
-		// ActivityPub delivery retry queue (audit §3g note iv) — same 5-minute
-		// tick as the email poll; most ticks are a cheap no-op empty-queue
-		// SELECT, since a row's next_attempt_at is usually well in the future.
-		if ( ! wp_next_scheduled( 'agnosis_ap_retry_deliveries' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_ap_retry_deliveries' );
-		}
-		// Term auto-translation queue drain (TAG-REDESIGN.md T3(b)) — same
-		// 5-minute tick; a no-op the vast majority of ticks (no term
-		// currently carries LinguaForge::TERM_PENDING_TRANSLATION_META),
-		// scheduled unconditionally like every other recurring cron here
-		// regardless of whether Lingua Forge itself is active/configured yet
-		// (LinguaForge::drain_translation_queue() no-ops internally when it
-		// isn't — same convention as agnosis_ap_retry_deliveries above).
-		if ( ! wp_next_scheduled( 'agnosis_drain_translation_queue' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_translation_queue' );
-		}
-		// Rename-retranslation queue drain (TAG-REDESIGN.md T5(c)) — same
-		// interval/no-op-when-inactive convention as the translation queue
-		// just above.
-		if ( ! wp_next_scheduled( 'agnosis_drain_rename_queue' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_rename_queue' );
-		}
-		// Federated-reply translation queue drain (interaction-surface
-		// roadmap, Phase 2) — same 5-minute tick, same no-op-when-empty
-		// convention (ActivityPub::drain_reply_translation_queue() returns
-		// immediately when no comment currently carries the pending-
-		// translation meta).
-		if ( ! wp_next_scheduled( 'agnosis_drain_reply_translation_queue' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_reply_translation_queue' );
-		}
-		// Contact-form thread reply queue drain (CONTACT-FORM-TRANSLATION-
-		// ROADMAP.md §3/CF7) — same 5-minute tick, same no-op-when-empty
-		// convention as every other drain cron above (ContactForm::
-		// drain_reply_queue() returns immediately when no row currently has
-		// delivered_at IS NULL).
-		if ( ! wp_next_scheduled( 'agnosis_drain_contact_reply_queue' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_drain_contact_reply_queue' );
-		}
-		// On-site like anonymous identity salt rotation (interaction-surface
-		// roadmap, Phase 3, WP2, §7 Q5) — daily, so a same-day repeat visitor
-		// hashes to the same actor_id (dedup + able to unlike same-day), while
-		// no salt is ever retained past its own day (ActivityPub::rotate_
-		// like_salt() overwrites the option outright, nothing kept to
-		// re-derive a past day's hash). seed_options() above already seeds a
-		// real value at first activation so this cron's own first tick isn't
-		// load-bearing for day-one likes to work.
-		if ( ! wp_next_scheduled( 'agnosis_rotate_like_salt' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_rotate_like_salt' );
-		}
-		self::ensure_newsletter_cron_scheduled();
-		// The cron_schedules filter that defines 'every_five_minutes' must be
-		// registered on every request, not just on activation. It lives in
-		// Inbox::register_interval() and is wired via Plugin::register_services().
+		self::ensure_recurring_crons_scheduled();
 	}
 
 	/**

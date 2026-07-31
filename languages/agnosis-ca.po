@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-30T20:58+00:00\n"
+"POT-Creation-Date: 2026-07-31T15:52+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:54+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Catalan\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:198
-#: includes/Core/Privacy.php:730 includes/Publishing/SubmissionsPage.php:63
+#: includes/Core/Privacy.php:969 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -45,16 +45,26 @@ msgid "Uli Hake"
 msgstr "Uli Hake"
 
 #. translators: %s: required PHP version
-#: agnosis.php:75
+#: agnosis.php:89
 #, php-format
 msgid "Agnosis requires PHP %s or higher."
 msgstr "Agnosis requereix PHP %s o superior."
 
 #. translators: %s: required WP version
-#: agnosis.php:91
+#: agnosis.php:105
 #, php-format
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "Agnosis requereix WordPress %s o superior."
+
+#. translators: 1: required Lingua Forge version, 2: currently installed Lingua Forge version
+#: agnosis.php:155
+#, php-format
+msgid ""
+"Agnosis is written against Lingua Forge %1$s or newer; this site has %2$s. "
+"Agnosis keeps working — features that need the newer version simply stay "
+"inactive, currently the artist-subdomain entries in the multilingual "
+"sitemap. Updating Lingua Forge enables them."
+msgstr "Agnosis està escrit contra Lingua Forge %1$s o una versió més nova; aquest lloc té %2$s. Agnosis continua funcionant — les funcions que necessiten la versió més nova simplement es mantenen inactives, actualment les entrades de subdomini d'artista en el mapa del lloc multilingüe. Actualitzar Lingua Forge les habilita."
 
 #: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
@@ -161,12 +171,12 @@ msgstr "Sincronitzar etiquetes amb les traduccions"
 #: includes/Admin/Dashboards/RelayManager.php:125
 #: includes/Admin/Dashboards/RelayManager.php:148
 #: includes/Admin/Dashboards/RelayManager.php:174
-#: includes/Admin/Dashboards/RhizomeManager.php:319
-#: includes/Admin/Dashboards/RhizomeManager.php:379
-#: includes/Admin/Dashboards/RhizomeManager.php:395
-#: includes/Admin/Dashboards/RhizomeManager.php:426
-#: includes/Admin/Dashboards/RhizomeManager.php:464
-#: includes/Admin/Dashboards/RhizomeManager.php:508
+#: includes/Admin/Dashboards/RhizomeManager.php:346
+#: includes/Admin/Dashboards/RhizomeManager.php:406
+#: includes/Admin/Dashboards/RhizomeManager.php:422
+#: includes/Admin/Dashboards/RhizomeManager.php:453
+#: includes/Admin/Dashboards/RhizomeManager.php:491
+#: includes/Admin/Dashboards/RhizomeManager.php:535
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
@@ -351,8 +361,8 @@ msgstr "De"
 
 #: includes/Admin/ContactMessagesPage.php:99
 #: includes/Admin/Dashboards/LogsTab.php:81 includes/Artist/ContactForm.php:176
-#: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:227
-#: includes/Core/Privacy.php:245 includes/Core/Privacy.php:385
+#: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:233
+#: includes/Core/Privacy.php:251 includes/Core/Privacy.php:403
 msgid "Message"
 msgstr "Missatge"
 
@@ -362,9 +372,9 @@ msgstr "Missatge"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/Dashboards/RelayManager.php:69
 #: includes/Admin/Dashboards/RhizomeManager.php:79
-#: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:182
-#: includes/Core/Privacy.php:315 includes/Core/Privacy.php:351
-#: includes/Core/Privacy.php:387
+#: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:188
+#: includes/Core/Privacy.php:321 includes/Core/Privacy.php:357
+#: includes/Core/Privacy.php:405
 msgid "Status"
 msgstr "Estat"
 
@@ -525,7 +535,7 @@ msgstr "Admet"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4889
+#: includes/Network/ActivityPub.php:4954
 msgid "Reject"
 msgstr "Rebutja"
 
@@ -635,7 +645,7 @@ msgid ""
 msgstr "No hi ha cap altre idioma configurat a Lingua Forge — res per traduir."
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:76
-#: includes/Core/Privacy.php:181 includes/Newsletter/SignupBlock.php:71
+#: includes/Core/Privacy.php:187 includes/Newsletter/SignupBlock.php:71
 #: blocks/breadcrumb-icon-link/editor.js:92
 #: blocks/breadcrumb-icon-link/editor.js:135
 msgid "Language"
@@ -658,7 +668,7 @@ msgstr ""
 "automàticament"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:106
-#: includes/Admin/Dashboards/RhizomeManager.php:205
+#: includes/Admin/Dashboards/RhizomeManager.php:232
 #: includes/Artist/ContentEditor.php:1454
 msgid "Save"
 msgstr "Desa"
@@ -1133,7 +1143,7 @@ msgstr "%1$d admesos (%2$d han optat per no participar)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3525
+#: includes/Network/ActivityPub.php:3565
 msgid "Sending…"
 msgstr "Enviant…"
 
@@ -1258,7 +1268,7 @@ msgstr ""
 "Undo{Follow} perquè el relay deixi de lliurar a aquest node."
 
 #: includes/Admin/Dashboards/RelayManager.php:96
-#: includes/Admin/Dashboards/RhizomeManager.php:222
+#: includes/Admin/Dashboards/RhizomeManager.php:249
 #: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
@@ -1279,7 +1289,13 @@ msgid ""
 "another’s work. Nothing here shows another instance’s content on your own "
 "site — it only affects what leaves this node toward the wider Fediverse. "
 "Every peer starts here as \"Pending\" until approved."
-msgstr "Els impulsos d'un soci de confiança també arriben als seguidors d'aquest node, ampliant el seu abast a través del teu node de la mateixa manera que un artista ja pot impulsar la feina d'un altre. Res aquí mostra el contingut d'una altra instància al teu propi lloc — només afecta el que surt d'aquest node cap al Fediverse més ampli. Cada parell comença aquí com a \"Pendent\" fins a ser aprovat."
+msgstr ""
+"Els impulsos d'un soci de confiança també arriben als seguidors d'aquest "
+"node, ampliant el seu abast a través del teu node de la mateixa manera que "
+"un artista ja pot impulsar la feina d'un altre. Res aquí mostra el contingut "
+"d'una altra instància al teu propi lloc — només afecta el que surt d'aquest "
+"node cap al Fediverse més ampli. Cada parell comença aquí com a \"Pendent\" "
+"fins a ser aprovat."
 
 #: includes/Admin/Dashboards/RhizomeManager.php:73
 msgid "No peers have registered or been added yet."
@@ -1290,7 +1306,8 @@ msgid "Peer"
 msgstr "Parell"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:80
-#: includes/Admin/Dashboards/RhizomeManager.php:275
+#: includes/Admin/Dashboards/RhizomeManager.php:224
+#: includes/Admin/Dashboards/RhizomeManager.php:302
 msgid "Trust scope"
 msgstr "Àmbit de confiança"
 
@@ -1305,7 +1322,10 @@ msgid ""
 "Manually adding a non-Agnosis Fediverse actor as a trusted peer is currently "
 "off. Enable \"Allow manually trusting non-Agnosis Fediverse actors\" %s to "
 "add one directly."
-msgstr "Afegir manualment un actor del Fediverse no-Agnosis com a parell de confiança actualment està desactivat. Activa \"Permetre confiar manualment en actors del Fediverse no-Agnosis\" %s per afegir-ne un directament."
+msgstr ""
+"Afegir manualment un actor del Fediverse no-Agnosis com a parell de "
+"confiança actualment està desactivat. Activa \"Permetre confiar manualment "
+"en actors del Fediverse no-Agnosis\" %s per afegir-ne un directament."
 
 #: includes/Admin/Dashboards/RhizomeManager.php:101
 msgid "above"
@@ -1344,105 +1364,123 @@ msgstr "Confiat"
 msgid "Blocked"
 msgstr "Bloquejat"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:202
+#. translators: %s: the partner node's own name or URL.
+#: includes/Admin/Dashboards/RhizomeManager.php:220
+#, php-format
+msgid "Trust scope for %s"
+msgstr "Àmbit de confiança per a %s"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:229
 msgid "Domain"
 msgstr "Domini"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:203
+#: includes/Admin/Dashboards/RhizomeManager.php:230
 msgid "Actor only"
 msgstr "Només actor"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:212
+#: includes/Admin/Dashboards/RhizomeManager.php:239
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4888
+#: includes/Network/ActivityPub.php:4953
 msgid "Approve"
 msgstr "Aprovar"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:213
-#: includes/Admin/Dashboards/RhizomeManager.php:215
+#: includes/Admin/Dashboards/RhizomeManager.php:240
+#: includes/Admin/Dashboards/RhizomeManager.php:242
 msgid "Block"
 msgstr "Bloquejar"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:217
+#: includes/Admin/Dashboards/RhizomeManager.php:244
 msgid "Unblock"
 msgstr "Desbloquejar"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:224
-msgid "Remove this peer entirely? It will need to register again from scratch."
-msgstr "Eliminar completament aquest parell? Haurà de registrar-se novament des de zero."
-
 #: includes/Admin/Dashboards/RhizomeManager.php:251
+msgid "Remove this peer entirely? It will need to register again from scratch."
+msgstr ""
+"Eliminar completament aquest parell? Haurà de registrar-se novament des de "
+"zero."
+
+#: includes/Admin/Dashboards/RhizomeManager.php:278
 msgid "Add a trusted peer directly"
 msgstr "Afegir un parell de confiança directament"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:253
+#: includes/Admin/Dashboards/RhizomeManager.php:280
 msgid ""
 "For a non-Agnosis Fediverse actor (a curator account, a specific instance "
 "you already trust) that you want to vouch for by hand, without going through "
 "node self-registration. Added as trusted immediately."
-msgstr "Per a un actor del Fediverse no-Agnosis (un compte de comissari, una instància específica a la qual ja confies) que vols avalar manualment, sense passar per l'auto-registre del node. Afegit com a de confiança immediatament."
+msgstr ""
+"Per a un actor del Fediverse no-Agnosis (un compte de comissari, una "
+"instància específica a la qual ja confies) que vols avalar manualment, sense "
+"passar per l'auto-registre del node. Afegit com a de confiança immediatament."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:259
+#: includes/Admin/Dashboards/RhizomeManager.php:286
 msgid "Actor URL"
 msgstr "URL de l'actor"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:263
+#: includes/Admin/Dashboards/RhizomeManager.php:290
 msgid "Inbox URL"
 msgstr "URL d'entrada"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:267
+#: includes/Admin/Dashboards/RhizomeManager.php:294
 msgid "Label (optional)"
 msgstr "Etiqueta (opcional)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:271
+#: includes/Admin/Dashboards/RhizomeManager.php:298
 msgid "Description (optional)"
 msgstr "Descripció (opcional)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:277
+#: includes/Admin/Dashboards/RhizomeManager.php:304
 msgid "Actor only (recommended for a third-party server)"
 msgstr "Només actor (recomanat per a un servidor de tercers)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:278
+#: includes/Admin/Dashboards/RhizomeManager.php:305
 msgid "Domain (every actor on that server)"
 msgstr "Domini (cada actor en aquest servidor)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:281
+#: includes/Admin/Dashboards/RhizomeManager.php:308
 msgid "Add Trusted Peer"
 msgstr "Afegir parell de confiança"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:290
+#: includes/Admin/Dashboards/RhizomeManager.php:317
 msgid ""
 "Could not reach this peer's node-discovery endpoint. It may be offline or "
 "not running Agnosis."
-msgstr "No es va poder accedir a l'endpoint de descoberta de node d'aquest parell. Pot estar fora de línia o no estar executant Agnosis."
+msgstr ""
+"No es va poder accedir a l'endpoint de descoberta de node d'aquest parell. "
+"Pot estar fora de línia o no estar executant Agnosis."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:291
-#: includes/Network/Node.php:248
+#: includes/Admin/Dashboards/RhizomeManager.php:318
+#: includes/Network/Node.php:301
 msgid ""
 "This peer's node-discovery response did not include a node card endpoint."
-msgstr "La resposta de descoberta de node d'aquest parell no incloïa un endpoint de targeta de node."
+msgstr ""
+"La resposta de descoberta de node d'aquest parell no incloïa un endpoint de "
+"targeta de node."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:292
-#: includes/Network/Node.php:254
+#: includes/Admin/Dashboards/RhizomeManager.php:319
+#: includes/Network/Node.php:312
 msgid "Could not fetch this peer's node card."
 msgstr "No es va poder obtenir la targeta de node d'aquest parell."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:293
-#: includes/Network/Node.php:262
+#: includes/Admin/Dashboards/RhizomeManager.php:320
+#: includes/Network/Node.php:320
 msgid "This peer's node card is missing an actor id or inbox URL."
-msgstr "La targeta de node d'aquest parell falta un id d'actor o una URL d'entrada."
+msgstr ""
+"La targeta de node d'aquest parell falta un id d'actor o una URL d'entrada."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:294
+#: includes/Admin/Dashboards/RhizomeManager.php:321
 msgid "Actor URL and inbox URL are both required."
 msgstr "Són necessàries tant la URL de l'actor com la URL d'entrada."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:295
+#: includes/Admin/Dashboards/RhizomeManager.php:322
 msgid ""
 "Could not check reciprocity right now — this peer's own peer list was "
 "unreachable or not in the expected format."
-msgstr "No es va poder comprovar la reciprocitat ara mateix — la llista de parells del propi parell no era accessible o no estava en el format esperat."
+msgstr ""
+"No es va poder comprovar la reciprocitat ara mateix — la llista de parells "
+"del propi parell no era accessible o no estava en el format esperat."
 
-#: includes/Admin/Dashboards/RhizomeManager.php:305
+#: includes/Admin/Dashboards/RhizomeManager.php:332
 msgid "Done."
 msgstr "Fet."
 
@@ -1499,8 +1537,8 @@ msgstr "Fila antiga — elimina-la i torna a fer el sondatge per previsualitzar"
 msgid "Attachment viewer"
 msgstr "Visor de fitxers adjunts"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3407
-#: includes/Network/ActivityPub.php:3564
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3446
+#: includes/Network/ActivityPub.php:3604
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1543,7 +1581,7 @@ msgstr "S'han processat %d element(s) pendents."
 msgid "Processing"
 msgstr "Processant"
 
-#: includes/Admin/InboxPage.php:512
+#: includes/Admin/InboxPage.php:512 includes/Core/Privacy.php:596
 msgid "Published"
 msgstr "Publicat"
 
@@ -1706,7 +1744,7 @@ msgstr ""
 "pot desfer."
 
 #. translators: %d: number of submissions the approved medium was assigned to
-#: includes/Admin/MediumProposals.php:469
+#: includes/Admin/MediumProposals.php:458
 #, php-format
 msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
@@ -1714,7 +1752,7 @@ msgstr[0] "Proposta de medium aprovada i assignada a %d tramesa."
 msgstr[1] "Proposta de medium aprovada i assignada a %d trameses."
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/MediumProposals.php:482
+#: includes/Admin/MediumProposals.php:471
 #, php-format
 msgid "Medium proposal rejected for %d submission."
 msgid_plural "Medium proposal rejected for %d submissions."
@@ -1722,7 +1760,7 @@ msgstr[0] "Proposta de medium rebutjada per a %d tramesa."
 msgstr[1] "Proposta de medium rebutjada per a %d trameses."
 
 #. translators: %s: the underlying WP_Error message from wp_insert_term()
-#: includes/Admin/MediumProposals.php:494 includes/Admin/TagProposals.php:478
+#: includes/Admin/MediumProposals.php:483 includes/Admin/TagProposals.php:466
 #, php-format
 msgid "Could not approve this proposal: %s"
 msgstr "No s'ha pogut aprovar aquesta proposta: %s"
@@ -2909,11 +2947,24 @@ msgstr ""
 "aquesta configuració, un cop ja no sigui útil per a la investigació "
 "d'abusos. Per defecte: 90 dies."
 
-#: includes/Admin/SettingsFields.php:392
+#: includes/Admin/SettingsFields.php:393
+msgid "Rhizome relay log retention (days)"
+msgstr "Retenció del registre de relés de Rhizome (dies)"
+
+#: includes/Admin/SettingsFields.php:399
+msgid ""
+"Records of what trusted partner nodes relayed through this one — including "
+"the remote account that boosted it — older than this are permanently deleted "
+"by the daily cleanup. Only the newsletter's rhizome activity summary reads "
+"this log, and only within one digest period, so a value comfortably above "
+"your digest frequency loses nothing. Default: 90 days."
+msgstr "Registres del que els nodes de confiança han rellevat a través d'aquest — incloent el compte remot que ho va impulsar — més antics que això es fan eliminar de manera permanent per la neteja diària. Només el resum d'activitats de rhizome del butlletí llegeix aquest registre, i només dins d'un període de digest, per tant, un valor còmodament superior a la freqüència del seu digest no perd res. Per defecte: 90 dies."
+
+#: includes/Admin/SettingsFields.php:405
 msgid "Per-sender hourly submission limit"
 msgstr "Límit horari de trameses per remitent"
 
-#: includes/Admin/SettingsFields.php:399
+#: includes/Admin/SettingsFields.php:412
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -2923,11 +2974,11 @@ msgstr ""
 "com per ingesta per webhook. Superar aquest límit descarta el missatge en "
 "silenci (sense reintent per part dels ESP). Per defecte: 5."
 
-#: includes/Admin/SettingsFields.php:404
+#: includes/Admin/SettingsFields.php:417
 msgid "Per-artist contact limit"
 msgstr "Límit de contacte per artista"
 
-#: includes/Admin/SettingsFields.php:411
+#: includes/Admin/SettingsFields.php:424
 msgid ""
 "Maximum messages the same visitor (by email address) can send to a single "
 "artist within the window below — applies across every language version of "
@@ -2937,11 +2988,11 @@ msgstr ""
 "pot enviar a un sol artista dins la finestra següent — s'aplica a totes les "
 "versions lingüístiques de la pàgina d'aquest artista. Per defecte: 2."
 
-#: includes/Admin/SettingsFields.php:415
+#: includes/Admin/SettingsFields.php:428
 msgid "Per-artist contact limit window (hours)"
 msgstr "Finestra del límit de contacte per artista (hores)"
 
-#: includes/Admin/SettingsFields.php:422
+#: includes/Admin/SettingsFields.php:435
 msgid ""
 "Time window, in hours, the per-artist contact limit above applies over. Also "
 "controls how long a visitor sees the \"already contacted\" notice instead of "
@@ -2952,11 +3003,11 @@ msgstr ""
 "l'avís \"ja contactat\" en lloc del formulari després de contactar amb un "
 "artista. Per defecte: 1 (una hora)."
 
-#: includes/Admin/SettingsFields.php:434
+#: includes/Admin/SettingsFields.php:447
 msgid "Contact thread reply depth"
 msgstr "Profunditat de resposta del fil de contacte"
 
-#: includes/Admin/SettingsFields.php:441
+#: includes/Admin/SettingsFields.php:454
 msgid ""
 "Maximum number of messages a visitor may send in one contact-form "
 "conversation (their original message, plus any replies to the artist's "
@@ -2972,11 +3023,11 @@ msgstr ""
 "intercanvis (l'artista pot respondre una vegada, però el visitant no pot "
 "respondre novament). Per defecte: 2 (el visitant pot respondre una vegada)."
 
-#: includes/Admin/SettingsFields.php:446
+#: includes/Admin/SettingsFields.php:459
 msgid "Require SPF/DKIM authentication"
 msgstr "Requereix autenticació SPF/DKIM"
 
-#: includes/Admin/SettingsFields.php:449
+#: includes/Admin/SettingsFields.php:462
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -2991,11 +3042,11 @@ msgstr ""
 "ho desactivat si no n'esteu segur — el correu legítim rebutjat és silenciós. "
 "Per defecte: desactivat."
 
-#: includes/Admin/SettingsFields.php:455
+#: includes/Admin/SettingsFields.php:468
 msgid "Description provider"
 msgstr "Proveïdor de descripció"
 
-#: includes/Admin/SettingsFields.php:463
+#: includes/Admin/SettingsFields.php:476
 msgid ""
 "Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -3005,11 +3056,11 @@ msgstr ""
 "text alternatiu. WordPress AI Services delega en el proveïdor que el lloc "
 "tingui configurat mitjançant el connector AI Services."
 
-#: includes/Admin/SettingsFields.php:467
+#: includes/Admin/SettingsFields.php:480
 msgid "OpenAI vision model"
 msgstr "Model de visió d'OpenAI"
 
-#: includes/Admin/SettingsFields.php:469
+#: includes/Admin/SettingsFields.php:482
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -3017,11 +3068,11 @@ msgstr ""
 "Model utilitzat per descriure l'obra quan OpenAI és el proveïdor de "
 "descripció. Ha de suportar entrada de visió."
 
-#: includes/Admin/SettingsFields.php:473
+#: includes/Admin/SettingsFields.php:486
 msgid "Anthropic model"
 msgstr "Model d'Anthropic"
 
-#: includes/Admin/SettingsFields.php:475
+#: includes/Admin/SettingsFields.php:488
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -3029,11 +3080,11 @@ msgstr ""
 "Model utilitzat per a la descripció de l’obra quan Anthropic és el proveïdor "
 "de descripcions. Ha de suportar entrada de visió."
 
-#: includes/Admin/SettingsFields.php:495
+#: includes/Admin/SettingsFields.php:508
 msgid "OpenAI text model"
 msgstr "OpenAI text model"
 
-#: includes/Admin/SettingsFields.php:497
+#: includes/Admin/SettingsFields.php:510
 msgid ""
 "Cheap, fast model used for classification tasks when OpenAI is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -3048,11 +3099,11 @@ msgstr ""
 "traduir les presentacions a l'idioma principal del lloc, consulteu «Model de "
 "traducció d'OpenAI» més avall."
 
-#: includes/Admin/SettingsFields.php:501
+#: includes/Admin/SettingsFields.php:514
 msgid "Anthropic text model"
 msgstr "Anthropic text model"
 
-#: includes/Admin/SettingsFields.php:503
+#: includes/Admin/SettingsFields.php:516
 msgid ""
 "Cheap, fast model used for classification tasks when Anthropic is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -3067,11 +3118,11 @@ msgstr ""
 "traduir les presentacions a l'idioma principal del lloc, consulteu «Model de "
 "traducció d'Anthropic» més avall."
 
-#: includes/Admin/SettingsFields.php:520
+#: includes/Admin/SettingsFields.php:533
 msgid "OpenAI translation model"
 msgstr "Model de traducció d'OpenAI"
 
-#: includes/Admin/SettingsFields.php:522
+#: includes/Admin/SettingsFields.php:535
 msgid ""
 "Model used when OpenAI is the AI provider for translating a submission into "
 "the site's primary language, and for the embedded-other-language detection "
@@ -3090,11 +3141,11 @@ msgstr ""
 "mereix un model més robust que el cheap de classificació anterior. No "
 "necessita suport de visió."
 
-#: includes/Admin/SettingsFields.php:526
+#: includes/Admin/SettingsFields.php:539
 msgid "Anthropic translation model"
 msgstr "Model de traducció d'Anthropic"
 
-#: includes/Admin/SettingsFields.php:528
+#: includes/Admin/SettingsFields.php:541
 msgid ""
 "Model used when Anthropic is the AI provider for translating a submission "
 "into the site's primary language, and for the embedded-other-language "
@@ -3113,11 +3164,11 @@ msgstr ""
 "esdeveniment — mereix un model més robust que el cheap de classificació "
 "anterior. No necessita suport de visió."
 
-#: includes/Admin/SettingsFields.php:546
+#: includes/Admin/SettingsFields.php:559
 msgid "Max AI response tokens (chat/translation)"
 msgstr "Màxim de tokens de resposta de l'IA (xat/traducció)"
 
-#: includes/Admin/SettingsFields.php:553
+#: includes/Admin/SettingsFields.php:566
 msgid ""
 "Ceiling for chat/translation AI responses (submission translation, medium "
 "classification, contact-message moderation, and similar text-only tasks — "
@@ -3139,11 +3190,11 @@ msgstr ""
 "traduïda per idioma en una única resposta. Els límits del compte o model del "
 "teu proveïdor d'IA segueixen aplicant-se. Per defecte: 8192."
 
-#: includes/Admin/SettingsFields.php:557
+#: includes/Admin/SettingsFields.php:570
 msgid "Vision image max width (px)"
 msgstr "Amplada màxima de la imatge de visió (px)"
 
-#: includes/Admin/SettingsFields.php:563
+#: includes/Admin/SettingsFields.php:576
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -3165,19 +3216,19 @@ msgstr ""
 "independentment d’aquesta configuració quan no està disponible. Per defecte: "
 "800."
 
-#: includes/Admin/SettingsFields.php:569
+#: includes/Admin/SettingsFields.php:582
 msgid "Enhancement provider"
 msgstr "Proveïdor de millora"
 
-#: includes/Admin/SettingsFields.php:572
+#: includes/Admin/SettingsFields.php:585
 msgid "Auto (OpenAI if key is set)"
 msgstr "Automàtic (OpenAI si la clau està definida)"
 
-#: includes/Admin/SettingsFields.php:574
+#: includes/Admin/SettingsFields.php:587
 msgid "Disabled — use original image"
 msgstr "Desactivat — usa la imatge original"
 
-#: includes/Admin/SettingsFields.php:577
+#: includes/Admin/SettingsFields.php:590
 msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
@@ -3188,22 +3239,22 @@ msgstr ""
 "image-1, gpt-image-2). Establiu-la com a Desactivada per ometre la millora i "
 "publicar l'original."
 
-#: includes/Admin/SettingsFields.php:581
+#: includes/Admin/SettingsFields.php:594
 msgid "OpenAI image model"
 msgstr "Model d’imatge d’OpenAI"
 
-#: includes/Admin/SettingsFields.php:583
+#: includes/Admin/SettingsFields.php:596
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "Model utilitzat per a la millora d'imatges quan OpenAI és el proveïdor de "
 "millora."
 
-#: includes/Admin/SettingsFields.php:589
+#: includes/Admin/SettingsFields.php:602
 msgid "Polish biography with AI"
 msgstr "Polir la biografia amb IA"
 
-#: includes/Admin/SettingsFields.php:592
+#: includes/Admin/SettingsFields.php:605
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -3211,11 +3262,11 @@ msgstr ""
 "Quan està activat, els enviaments de biografia passen per la IA per corregir "
 "l'ortografia i fer petites millores del text abans de desar-los."
 
-#: includes/Admin/SettingsFields.php:596
+#: includes/Admin/SettingsFields.php:609
 msgid "Polish events with AI"
 msgstr "Polir els esdeveniments amb IA"
 
-#: includes/Admin/SettingsFields.php:599
+#: includes/Admin/SettingsFields.php:612
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -3223,11 +3274,11 @@ msgstr ""
 "Quan està activat, els enviaments d'esdeveniments passen per la IA per "
 "corregir l'ortografia i fer petites millores del text abans de desar-los."
 
-#: includes/Admin/SettingsFields.php:605
+#: includes/Admin/SettingsFields.php:618
 msgid "Merge biography updates with AI"
 msgstr "Combinar les actualitzacions de biografia amb IA"
 
-#: includes/Admin/SettingsFields.php:608
+#: includes/Admin/SettingsFields.php:621
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -3242,11 +3293,11 @@ msgstr ""
 "biografia completa. Desactiva-ho per substituir sempre la biografia amb "
 "l'últim enviament."
 
-#: includes/Admin/SettingsFields.php:614
+#: includes/Admin/SettingsFields.php:627
 msgid "Rejection threshold (quality score)"
 msgstr "Llindar de rebuig (puntuació de qualitat)"
 
-#: includes/Admin/SettingsFields.php:622
+#: includes/Admin/SettingsFields.php:635
 msgid ""
 "Photos scoring at or below this agnosis_vendor_value (1–10) are "
 "automatically rejected — the artist receives a friendly email explaining the "
@@ -3259,11 +3310,11 @@ msgstr ""
 "desactiva el rebuig automàtic. Ha de ser inferior al llindar de millora. "
 "Valor per defecte: 3."
 
-#: includes/Admin/SettingsFields.php:627
+#: includes/Admin/SettingsFields.php:640
 msgid "Enhancement threshold (quality score)"
 msgstr "Llindar de millora (puntuació de qualitat)"
 
-#: includes/Admin/SettingsFields.php:635
+#: includes/Admin/SettingsFields.php:648
 msgid ""
 "Photos scoring below this agnosis_vendor_value (1–10) are automatically "
 "enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: "
@@ -3276,27 +3327,27 @@ msgstr ""
 "visiblement problemàtiques. Establiu-ho a 1 per desactivar completament la "
 "millora automàtica."
 
-#: includes/Admin/SettingsFields.php:641
+#: includes/Admin/SettingsFields.php:654
 msgid "OpenAI API key"
 msgstr "Clau de l'API d'OpenAI"
 
-#: includes/Admin/SettingsFields.php:644
+#: includes/Admin/SettingsFields.php:657
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "Obligatòria quan OpenAI és el proveïdor de descripció o de millora."
 
-#: includes/Admin/SettingsFields.php:648
+#: includes/Admin/SettingsFields.php:661
 msgid "Anthropic API key"
 msgstr "Clau de l'API d'Anthropic"
 
-#: includes/Admin/SettingsFields.php:651
+#: includes/Admin/SettingsFields.php:664
 msgid "Required when Anthropic is the description provider."
 msgstr "Obligatòria quan Anthropic és el proveïdor de descripció."
 
-#: includes/Admin/SettingsFields.php:657
+#: includes/Admin/SettingsFields.php:670
 msgid "Artwork display width (px)"
 msgstr "Amplada de visualització de l'obra (px)"
 
-#: includes/Admin/SettingsFields.php:663
+#: includes/Admin/SettingsFields.php:676
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -3307,11 +3358,11 @@ msgstr ""
 "Valor per defecte: 1920. Les imatges existents s'han de tornar a generar "
 "després de canviar aquest valor."
 
-#: includes/Admin/SettingsFields.php:667
+#: includes/Admin/SettingsFields.php:680
 msgid "Thumbnail size (px)"
 msgstr "Mida de la miniatura (px)"
 
-#: includes/Admin/SettingsFields.php:673
+#: includes/Admin/SettingsFields.php:686
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -3321,11 +3372,11 @@ msgstr ""
 "d'enviament i al tauler. Valor per defecte: 512. Les imatges existents s'han "
 "de tornar a generar després de canviar aquest valor."
 
-#: includes/Admin/SettingsFields.php:677
+#: includes/Admin/SettingsFields.php:690
 msgid "Email image width (px)"
 msgstr "Amplada de la imatge per al correu electrònic (px)"
 
-#: includes/Admin/SettingsFields.php:683
+#: includes/Admin/SettingsFields.php:696
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -3336,11 +3387,11 @@ msgstr ""
 "retall. Valor per defecte: 420. Les imatges existents s'han de tornar a "
 "generar després de canviar aquest valor."
 
-#: includes/Admin/SettingsFields.php:689
+#: includes/Admin/SettingsFields.php:702
 msgid "Gallery overview — items per page"
 msgstr "Resum de la galeria — elements per pàgina"
 
-#: includes/Admin/SettingsFields.php:695
+#: includes/Admin/SettingsFields.php:708
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -3350,11 +3401,11 @@ msgstr ""
 "conjunt es construeix proporcionalment entre tots els artistes; es "
 "prioritzen les obres destacades. Valor per defecte: 12."
 
-#: includes/Admin/SettingsFields.php:701
+#: includes/Admin/SettingsFields.php:714
 msgid "Review link expiry (days)"
 msgstr "Caducitat de l'enllaç de revisió (dies)"
 
-#: includes/Admin/SettingsFields.php:707
+#: includes/Admin/SettingsFields.php:720
 msgid ""
 "How long the Approve & Publish / Discard links in a submission review email "
 "stay valid before an artist has to log in to manage the item instead. "
@@ -3366,11 +3417,11 @@ msgstr ""
 "uniformement als esborranys d'obres, biografies i esdeveniments. Valor per "
 "defecte: 7."
 
-#: includes/Admin/SettingsFields.php:718
+#: includes/Admin/SettingsFields.php:731
 msgid "Tag / medium proposal expiry (days)"
 msgstr "Caducitat de la proposta d'etiqueta / mitjà (dies)"
 
-#: includes/Admin/SettingsFields.php:724
+#: includes/Admin/SettingsFields.php:737
 msgid ""
 "How long an AI-proposed tag or medium category can sit unreviewed on the "
 "Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same "
@@ -3381,11 +3432,11 @@ msgstr ""
 "que una neteja diària l'auto-rebutgi (mateix efecte que fer clic a "
 "Rebutjar). Per defecte: 7."
 
-#: includes/Admin/SettingsFields.php:730
+#: includes/Admin/SettingsFields.php:743
 msgid "System prompt"
 msgstr "Indicació del sistema"
 
-#: includes/Admin/SettingsFields.php:736
+#: includes/Admin/SettingsFields.php:749
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -3393,11 +3444,11 @@ msgstr ""
 "Enviada a la IA com a instrucció del sistema. Utilitza {tag_count} i "
 "{excerpt_words} com a tokens — es substitueixen pels valors de més avall."
 
-#: includes/Admin/SettingsFields.php:740
+#: includes/Admin/SettingsFields.php:753
 msgid "Artist prompt template"
 msgstr "Plantilla de l'indicació de l'artista"
 
-#: includes/Admin/SettingsFields.php:746
+#: includes/Admin/SettingsFields.php:759
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -3405,11 +3456,11 @@ msgstr ""
 "Missatge d'usuari enviat juntament amb la imatge de l'obra. Utilitza "
 "{artist_prompt} allà on hauria d'aparèixer la descripció pròpia de l'artista."
 
-#: includes/Admin/SettingsFields.php:750
+#: includes/Admin/SettingsFields.php:763
 msgid "Enhancement instructions"
 msgstr "Instruccions de millora"
 
-#: includes/Admin/SettingsFields.php:756
+#: includes/Admin/SettingsFields.php:769
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -3417,11 +3468,11 @@ msgstr ""
 "Instruccions transmeses al proveïdor de millora d'imatges. La descripció de "
 "l'obra generada per la IA s'afegeix automàticament com a context."
 
-#: includes/Admin/SettingsFields.php:760
+#: includes/Admin/SettingsFields.php:773
 msgid "Number of tags"
 msgstr "Nombre d'etiquetes"
 
-#: includes/Admin/SettingsFields.php:766
+#: includes/Admin/SettingsFields.php:779
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -3429,11 +3480,11 @@ msgstr ""
 "Quantes etiquetes ha de generar la IA per obra. Es referencia com a "
 "{tag_count} a la indicació del sistema."
 
-#: includes/Admin/SettingsFields.php:770
+#: includes/Admin/SettingsFields.php:783
 msgid "Excerpt word limit"
 msgstr "Límit de paraules de l'extracte"
 
-#: includes/Admin/SettingsFields.php:776
+#: includes/Admin/SettingsFields.php:789
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -3441,13 +3492,13 @@ msgstr ""
 "Nombre màxim de paraules per a l'extracte d'una sola frase. Es referencia "
 "com a {excerpt_words} a la indicació del sistema."
 
-#: includes/Admin/SettingsFields.php:789
+#: includes/Admin/SettingsFields.php:802
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr ""
 "Confiar en tots els artistes admesos (omet completament la revisió "
 "d'enllaços)"
 
-#: includes/Admin/SettingsFields.php:794
+#: includes/Admin/SettingsFields.php:807
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -3464,11 +3515,11 @@ msgstr ""
 "sents còmode amb la idea que un actor dolent que hagi passat l'admissió "
 "pugui incrustar un enllaç a qualsevol cosa."
 
-#: includes/Admin/SettingsFields.php:798
+#: includes/Admin/SettingsFields.php:811
 msgid "Trusted embed platforms"
 msgstr "Plataformes d'incrustació de confiança"
 
-#: includes/Admin/SettingsFields.php:804
+#: includes/Admin/SettingsFields.php:817
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -3479,11 +3530,11 @@ msgstr ""
 "d'aquests) — no cal revisió per IA ni es fa cap sol·licitud de xarxa al "
 "mateix enllaç."
 
-#: includes/Admin/SettingsFields.php:808
+#: includes/Admin/SettingsFields.php:821
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr "Permet que els artistes també enviïn altres enllaços (revisats per IA)"
 
-#: includes/Admin/SettingsFields.php:813
+#: includes/Admin/SettingsFields.php:826
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -3502,19 +3553,19 @@ msgstr ""
 "manera segura. Quan està desactivat (el valor per defecte), només "
 "s'incrusten les plataformes de confiança anteriors."
 
-#: includes/Admin/SettingsFields.php:817
+#: includes/Admin/SettingsFields.php:830
 msgid "Block pornographic / sexually explicit content"
 msgstr "Bloqueja el contingut pornogràfic / sexualment explícit"
 
-#: includes/Admin/SettingsFields.php:822 includes/Admin/SettingsFields.php:840
+#: includes/Admin/SettingsFields.php:835 includes/Admin/SettingsFields.php:853
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "Només té efecte quan la revisió per IA (a dalt) està activada."
 
-#: includes/Admin/SettingsFields.php:826
+#: includes/Admin/SettingsFields.php:839
 msgid "Block primarily commercial / promotional sites"
 msgstr "Bloqueja els llocs principalment comercials / promocionals"
 
-#: includes/Admin/SettingsFields.php:831
+#: includes/Admin/SettingsFields.php:844
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -3525,15 +3576,15 @@ msgstr ""
 "seves pròpies impressions i no és inherentment indesitjable. Només té efecte "
 "quan la revisió per IA (a dalt) està activada."
 
-#: includes/Admin/SettingsFields.php:835
+#: includes/Admin/SettingsFields.php:848
 msgid "Block gambling / betting sites"
 msgstr "Bloqueja els llocs de joc / apostes"
 
-#: includes/Admin/SettingsFields.php:844
+#: includes/Admin/SettingsFields.php:857
 msgid "Additional disallowed categories"
 msgstr "Categories addicionals no permeses"
 
-#: includes/Admin/SettingsFields.php:849
+#: includes/Admin/SettingsFields.php:862
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -3544,46 +3595,46 @@ msgstr ""
 "extremista violent\", \"pàgines de phishing o d'estafa\"). Només té efecte "
 "quan la revisió per IA (a dalt) està activada."
 
-#: includes/Admin/SettingsFields.php:855
+#: includes/Admin/SettingsFields.php:868
 msgid "Node label"
 msgstr "Etiqueta del node"
 
-#: includes/Admin/SettingsFields.php:856
+#: includes/Admin/SettingsFields.php:869
 msgid "How this node introduces itself to the network."
 msgstr "Com es presenta aquest node a la xarxa."
 
-#: includes/Admin/SettingsFields.php:861
+#: includes/Admin/SettingsFields.php:874
 msgid "Enable ActivityPub federation"
 msgstr "Habilita la federació ActivityPub"
 
-#: includes/Admin/SettingsFields.php:865
+#: includes/Admin/SettingsFields.php:878
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "Difon les noves obres a Mastodon, Pixelfed i el Fediverse."
 
-#: includes/Admin/SettingsFields.php:870
+#: includes/Admin/SettingsFields.php:883
 msgid "Node public key"
 msgstr "Clau pública del node"
 
-#: includes/Admin/SettingsFields.php:872
+#: includes/Admin/SettingsFields.php:885
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "Clau pública RSA generada automàticament per a aquest node. Comparteix-la "
 "amb nodes companys."
 
-#: includes/Admin/SettingsFields.php:884
+#: includes/Admin/SettingsFields.php:897
 msgid "Federate which languages"
 msgstr "Federar quines llengües"
 
-#: includes/Admin/SettingsFields.php:887
+#: includes/Admin/SettingsFields.php:900
 msgid "Primary language only (default)"
 msgstr "Només llengua primària (per defecte)"
 
-#: includes/Admin/SettingsFields.php:888
+#: includes/Admin/SettingsFields.php:901
 msgid "All active languages"
 msgstr "Totes les llengües actiu"
 
-#: includes/Admin/SettingsFields.php:891
+#: includes/Admin/SettingsFields.php:904
 msgid ""
 "Whether a language sibling's Note is actively pushed to followers once it's "
 "tag-settled and ready. \"Primary language only\" sends one Fediverse post "
@@ -3604,11 +3655,11 @@ msgstr ""
 "que s'estableixin a partir d'aquest moment; no reenvia mai retroactivament "
 "res ja publicat."
 
-#: includes/Admin/SettingsFields.php:899
+#: includes/Admin/SettingsFields.php:912
 msgid "Federation tag-wait timeout (hours)"
 msgstr "Temps d'espera de l'etiqueta de federació (hores)"
 
-#: includes/Admin/SettingsFields.php:905
+#: includes/Admin/SettingsFields.php:918
 msgid ""
 "A published artwork with a new tag or medium category awaiting admin review "
 "normally federates to the Fediverse only once that proposal is resolved (so "
@@ -3624,11 +3675,11 @@ msgstr ""
 "aprovació posterior actualitza encara la publicació federada. Per defecte: "
 "24."
 
-#: includes/Admin/SettingsFields.php:914
+#: includes/Admin/SettingsFields.php:927
 msgid "Federated reply limit (per actor)"
 msgstr " límit de respostes federades (per actor)"
 
-#: includes/Admin/SettingsFields.php:920
+#: includes/Admin/SettingsFields.php:933
 msgid ""
 "Maximum number of federated replies a single remote fediverse account can "
 "leave across all your artworks per window (below). A reply beyond this limit "
@@ -3641,11 +3692,11 @@ msgstr ""
 "silenciosament; el servidor remot rep una resposta acceptada ordinària, no "
 "un error. Per defecte: 2."
 
-#: includes/Admin/SettingsFields.php:924
+#: includes/Admin/SettingsFields.php:937
 msgid "Federated reply limit window (hours)"
 msgstr " finestra de límit de respostes federades (hores)"
 
-#: includes/Admin/SettingsFields.php:930
+#: includes/Admin/SettingsFields.php:943
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
@@ -3653,23 +3704,28 @@ msgstr ""
 " Durada de la finestra a la qual s'aplica el límit de respostes anterior. "
 "Per defecte: 1 (és a dir, 2 respostes per hora per actor)."
 
-#: includes/Admin/SettingsFields.php:940
+#: includes/Admin/SettingsFields.php:953
 msgid "Allow manually trusting non-Agnosis Fediverse actors"
 msgstr "Permetre confiar manualment en actors del Fediverse no-Agnosis"
 
-#: includes/Admin/SettingsFields.php:945
+#: includes/Admin/SettingsFields.php:958
 msgid ""
 "When enabled, the Partner Nodes panel below gains a form to directly add a "
 "trusted third-party Fediverse actor (a curator account, a specific instance) "
 "by pasting its actor and inbox URLs — no self-registration round trip. Leave "
 "this off if you only want to trust other Agnosis instances."
-msgstr "Quan està activat, el panell de Nodes associats a continuació guanya un formulari per afegir directament un actor del Fediverse de confiança (un compte de comissari, una instància específica) enganxant les seves URLs d'actor i d'entrada — sense necessitat d'un viatge d'auto-registre. Deixa-ho desactivat si només vols confiar en altres instàncies d'Agnosis."
+msgstr ""
+"Quan està activat, el panell de Nodes associats a continuació guanya un "
+"formulari per afegir directament un actor del Fediverse de confiança (un "
+"compte de comissari, una instància específica) enganxant les seves URLs "
+"d'actor i d'entrada — sense necessitat d'un viatge d'auto-registre. Deixa-ho "
+"desactivat si només vols confiar en altres instàncies d'Agnosis."
 
-#: includes/Admin/SettingsFields.php:955
+#: includes/Admin/SettingsFields.php:968
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "Sol·licituds d'autodetirada (adeu) per remitent i dia"
 
-#: includes/Admin/SettingsFields.php:961
+#: includes/Admin/SettingsFields.php:974
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3682,11 +3738,11 @@ msgstr ""
 "confirmació es poden enviar a un artista real mitjançant un From falsificat "
 "o repetit. Valor per defecte: 3."
 
-#: includes/Admin/SettingsFields.php:965
+#: includes/Admin/SettingsFields.php:978
 msgid "Community broadcasts per artist per day"
 msgstr "Difusions comunitàries per artista i dia"
 
-#: includes/Admin/SettingsFields.php:971
+#: includes/Admin/SettingsFields.php:984
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3697,11 +3753,11 @@ msgstr ""
 "membre inundi la safata d'entrada de tots els altres membres. Valor per "
 "defecte: 3."
 
-#: includes/Admin/SettingsFields.php:975
+#: includes/Admin/SettingsFields.php:988
 msgid "Community broadcast max length (characters)"
 msgstr "Límit màxim de llargada de la difusió comunitària (caràcters)"
 
-#: includes/Admin/SettingsFields.php:982
+#: includes/Admin/SettingsFields.php:995
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3720,11 +3776,11 @@ msgstr ""
 "missatge en crides de traducció d'IA. Valor per defecte: 2000. Màxim "
 "absolut: 20000, independentment d'aquesta configuració."
 
-#: includes/Admin/SettingsFields.php:1013
+#: includes/Admin/SettingsFields.php:1026
 msgid "Admin approval only (disable community voting)"
 msgstr "Només aprovació d'administrador (desactiva la votació de la comunitat)"
 
-#: includes/Admin/SettingsFields.php:1018
+#: includes/Admin/SettingsFields.php:1031
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3745,11 +3801,11 @@ msgstr ""
 "nova. Desactivat per defecte — la majoria de comunitats volen mantenir el "
 "sistema existent d'aval/votació."
 
-#: includes/Admin/SettingsFields.php:1023
+#: includes/Admin/SettingsFields.php:1036
 msgid "Admission vote threshold (%)"
 msgstr "Llindar de votació d'admissió (%)"
 
-#: includes/Admin/SettingsFields.php:1028
+#: includes/Admin/SettingsFields.php:1041
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3757,22 +3813,22 @@ msgstr ""
 "Percentatge d'artistes actius que han de votar sí per a l'admissió. Combinat "
 "amb el mínim inferior."
 
-#: includes/Admin/SettingsFields.php:1032
+#: includes/Admin/SettingsFields.php:1045
 msgid "Admission minimum votes"
 msgstr "Vots mínims d'admissió"
 
-#: includes/Admin/SettingsFields.php:1036
+#: includes/Admin/SettingsFields.php:1049
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr ""
 "Nombre mínim absolut de vots positius requerits independentment del "
 "percentatge anterior."
 
-#: includes/Admin/SettingsFields.php:1040
+#: includes/Admin/SettingsFields.php:1053
 msgid "Voting window (days)"
 msgstr "Finestra de votació (dies)"
 
-#: includes/Admin/SettingsFields.php:1044
+#: includes/Admin/SettingsFields.php:1057
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3780,11 +3836,11 @@ msgstr ""
 "Dies que una sol·licitud roman oberta. Si el llindar no s'assoleix dins "
 "d'aquesta finestra, la sol·licitud es rebutja."
 
-#: includes/Admin/SettingsFields.php:1048
+#: includes/Admin/SettingsFields.php:1061
 msgid "Resolved application retention (days)"
 msgstr "Retenció de sol·licituds resoltes (dies)"
 
-#: includes/Admin/SettingsFields.php:1054
+#: includes/Admin/SettingsFields.php:1067
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3801,11 +3857,11 @@ msgstr ""
 "programació, però el seu correu electrònic es conserva deliberadament perquè "
 "el vet continuï sent aplicable. Valor per defecte: 180 dies."
 
-#: includes/Admin/SettingsFields.php:1058
+#: includes/Admin/SettingsFields.php:1071
 msgid "After applying, send artists to"
 msgstr "Després de presentar la sol·licitud, envia els artistes a"
 
-#: includes/Admin/SettingsFields.php:1062
+#: includes/Admin/SettingsFields.php:1075
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3817,11 +3873,11 @@ msgstr ""
 "allí en lloc de veure només un missatge de confirmació en línia. Deixa-ho "
 "com a \"Cap\" per mantenir només el missatge en línia."
 
-#: includes/Admin/SettingsFields.php:1066
+#: includes/Admin/SettingsFields.php:1079
 msgid "Community size cap"
 msgstr "Límit de mida de la comunitat"
 
-#: includes/Admin/SettingsFields.php:1070
+#: includes/Admin/SettingsFields.php:1083
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3832,11 +3888,11 @@ msgstr ""
 "admet la següent persona de la llista. Defineix-ho a 0 per no tenir límit. "
 "La comunitat també pot votar per canviar això."
 
-#: includes/Admin/SettingsFields.php:1074
+#: includes/Admin/SettingsFields.php:1087
 msgid "Cap-change co-signers required"
 msgstr "Co-signants requerits per al canvi del límit"
 
-#: includes/Admin/SettingsFields.php:1078
+#: includes/Admin/SettingsFields.php:1091
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3844,11 +3900,11 @@ msgstr ""
 "Quants artistes han de co-signar una proposta per canviar el límit de mida "
 "de la comunitat abans que s'obri com una votació comunitària completa."
 
-#: includes/Admin/SettingsFields.php:1082
+#: includes/Admin/SettingsFields.php:1095
 msgid "Cap-change vote window (days)"
 msgstr "Finestra de votació per al canvi del límit (dies)"
 
-#: includes/Admin/SettingsFields.php:1086
+#: includes/Admin/SettingsFields.php:1099
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3856,11 +3912,11 @@ msgstr ""
 "Dies que una votació de canvi del límit comunitari roman oberta. Una majoria "
 "estricta d'artistes actius votant sí adopta el nou límit."
 
-#: includes/Admin/SettingsFields.php:1090
+#: includes/Admin/SettingsFields.php:1103
 msgid "Removal nominations required"
 msgstr "Nominacions de retirada requerides"
 
-#: includes/Admin/SettingsFields.php:1096
+#: includes/Admin/SettingsFields.php:1109
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3868,11 +3924,11 @@ msgstr ""
 "Nombre de nominacions d'artistes necessàries abans que s'obri una votació "
 "comunitària de retirada. Els administradors poden saltar-se aquest llindar."
 
-#: includes/Admin/SettingsFields.php:1100
+#: includes/Admin/SettingsFields.php:1113
 msgid "Removal vote window (days)"
 msgstr "Finestra de votació de retirada (dies)"
 
-#: includes/Admin/SettingsFields.php:1106
+#: includes/Admin/SettingsFields.php:1119
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3880,11 +3936,11 @@ msgstr ""
 "Dies que una votació comunitària de retirada roman oberta. Una majoria "
 "(>50%) dels artistes actius ha de votar sí perquè la retirada tiri endavant."
 
-#: includes/Admin/SettingsFields.php:1110
+#: includes/Admin/SettingsFields.php:1123
 msgid "Invitation intro"
 msgstr "Introducció de la invitació"
 
-#: includes/Admin/SettingsFields.php:1114
+#: includes/Admin/SettingsFields.php:1127
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3914,7 +3970,7 @@ msgstr ""
 "la teva obra simplement enviant un correu electrònic. Pots trobar més "
 "informació visitant el web agnosis.art."
 
-#: includes/Admin/SettingsFields.php:1119
+#: includes/Admin/SettingsFields.php:1132
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3931,22 +3987,22 @@ msgstr ""
 "del lloc.Percentatge retingut per aquest node sobre les donacions i les "
 "vendes d'art. Els artistes no paguen res per avançat."
 
-#: includes/Admin/SettingsFields.php:1138
+#: includes/Admin/SettingsFields.php:1151
 msgid "Sender name"
 msgstr "Nom del remitent"
 
-#: includes/Admin/SettingsFields.php:1139
+#: includes/Admin/SettingsFields.php:1152
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "Nom mostrat com a remitent dels correus electrònics de resum. Deixa-ho en "
 "blanc per utilitzar el nom del lloc."
 
-#: includes/Admin/SettingsFields.php:1143
+#: includes/Admin/SettingsFields.php:1156
 msgid "Sender email address"
 msgstr "Adreça de correu electrònic del remitent"
 
-#: includes/Admin/SettingsFields.php:1145
+#: includes/Admin/SettingsFields.php:1158
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3961,11 +4017,11 @@ msgstr ""
 "de ser una adreça vàlida i entregable del teu domini (SPF/DKIM configurats) "
 "o els missatges poden ser marcats com a correu brossa."
 
-#: includes/Admin/SettingsFields.php:1149
+#: includes/Admin/SettingsFields.php:1162
 msgid "Auto-draft newsletter intros"
 msgstr "Genera automàticament esborranys d'introduccions del butlletí"
 
-#: includes/Admin/SettingsFields.php:1154
+#: includes/Admin/SettingsFields.php:1167
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3978,11 +4034,11 @@ msgstr ""
 "n'hagis escrit una per a aquell cicle. Desactiva-ho per deixar tots dos "
 "camps d'introducció exactament com els vas deixar, sempre."
 
-#: includes/Admin/SettingsFields.php:1158
+#: includes/Admin/SettingsFields.php:1171
 msgid "Draft intro this many hours ahead"
 msgstr "Redacta l'esborrany d'aquesta introducció amb tantes hores d'antelació"
 
-#: includes/Admin/SettingsFields.php:1164
+#: includes/Admin/SettingsFields.php:1177
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3991,11 +4047,11 @@ msgstr ""
 "redactada per IA. Només té efecte quan la generació automàtica d'esborranys "
 "(a dalt) està activada. Per defecte: 24."
 
-#: includes/Admin/SettingsFields.php:1168 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:400
 msgid "Artist newsletter"
 msgstr "Butlletí dels artistes"
 
-#: includes/Admin/SettingsFields.php:1171
+#: includes/Admin/SettingsFields.php:1184
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -4004,11 +4060,11 @@ msgstr ""
 "de qualsevol número amb un sol clic). Resum de la comunitat: activitat "
 "recent, nous membres, vots oberts."
 
-#: includes/Admin/SettingsFields.php:1175
+#: includes/Admin/SettingsFields.php:1188
 msgid "Artist newsletter frequency (days)"
 msgstr "Freqüència del butlletí dels artistes (dies)"
 
-#: includes/Admin/SettingsFields.php:1181
+#: includes/Admin/SettingsFields.php:1194
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -4016,11 +4072,11 @@ msgstr ""
 "Per defecte 30 ≈ mensual. Es prepara un número nou quan han passat tants "
 "dies des de l'enviament de l'últim."
 
-#: includes/Admin/SettingsFields.php:1185
+#: includes/Admin/SettingsFields.php:1198
 msgid "Artist newsletter intro"
 msgstr "Introducció del butlletí dels artistes"
 
-#: includes/Admin/SettingsFields.php:1189
+#: includes/Admin/SettingsFields.php:1202
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -4035,11 +4091,11 @@ msgstr ""
 "que s’enviï el número, i t’envia un correu perquè el revisis primer — escriu "
 "el teu propi text aquí en qualsevol moment per ometre-ho."
 
-#: includes/Admin/SettingsFields.php:1193 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:400
 msgid "Public newsletter"
 msgstr "Butlletí públic"
 
-#: includes/Admin/SettingsFields.php:1196
+#: includes/Admin/SettingsFields.php:1209
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -4048,19 +4104,19 @@ msgstr ""
 "(doble opt-in). Resum: obres noves i esdeveniments publicats des de l’últim "
 "número."
 
-#: includes/Admin/SettingsFields.php:1200
+#: includes/Admin/SettingsFields.php:1213
 msgid "Public newsletter frequency (days)"
 msgstr "Freqüència del butlletí públic (dies)"
 
-#: includes/Admin/SettingsFields.php:1206
+#: includes/Admin/SettingsFields.php:1219
 msgid "Default 30 ≈ monthly."
 msgstr "Per defecte, 30 ≈ mensual."
 
-#: includes/Admin/SettingsFields.php:1210
+#: includes/Admin/SettingsFields.php:1223
 msgid "Public newsletter intro"
 msgstr "Introducció del butlletí públic"
 
-#: includes/Admin/SettingsFields.php:1214
+#: includes/Admin/SettingsFields.php:1227
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -4073,11 +4129,11 @@ msgstr ""
 "abans que s’enviï el número, i t’envia un correu perquè el revisis primer — "
 "escriu el teu propi text aquí en qualsevol moment per ometre-ho."
 
-#: includes/Admin/SettingsFields.php:1218
+#: includes/Admin/SettingsFields.php:1231
 msgid "Send batch size"
 msgstr "Mida del lot d’enviament"
 
-#: includes/Admin/SettingsFields.php:1224
+#: includes/Admin/SettingsFields.php:1237
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -4086,11 +4142,11 @@ msgstr ""
 "allotjament limita el correu sortint; augmenta-ho per a un lliurament més "
 "ràpid en allotjaments amb límits generosos."
 
-#: includes/Admin/SettingsFields.php:1228
+#: includes/Admin/SettingsFields.php:1241
 msgid "Self-hosting comfort threshold"
 msgstr "Llindar de comoditat per a l’allotjament propi"
 
-#: includes/Admin/SettingsFields.php:1234
+#: includes/Admin/SettingsFields.php:1247
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -4118,7 +4174,7 @@ msgstr ""
 "coincideixin? Això no es pot desfer."
 
 #. translators: %d: number of submissions the approved tag was assigned to
-#: includes/Admin/TagProposals.php:453
+#: includes/Admin/TagProposals.php:441
 #, php-format
 msgid "Tag proposal approved and assigned to %d submission."
 msgid_plural "Tag proposal approved and assigned to %d submissions."
@@ -4126,7 +4182,7 @@ msgstr[0] "Proposta d'etiqueta aprovada i assignada a %d tramesa."
 msgstr[1] "Proposta de medium aprovada i assignada a %d trameses."
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/TagProposals.php:466
+#: includes/Admin/TagProposals.php:454
 #, php-format
 msgid "Tag proposal rejected for %d submission."
 msgid_plural "Tag proposal rejected for %d submissions."
@@ -4241,7 +4297,7 @@ msgstr ""
 "que la imatge parli completament per si mateixa."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
-#: includes/Network/ActivityPub.php:437
+#: includes/Network/ActivityPub.php:442
 msgid "Name"
 msgstr "Nom"
 
@@ -4259,7 +4315,7 @@ msgstr "Declaració"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3899
+#: includes/Network/ActivityPub.php:3964
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s ha de tenir %2$d caràcters o menys."
@@ -4358,8 +4414,8 @@ msgstr "Gràcies, %s!"
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:367
-#: includes/Network/ActivityPub.php:4789 includes/Network/ActivityPub.php:4796
-#: includes/Network/ActivityPub.php:4803 includes/Network/ActivityPub.php:4911
+#: includes/Network/ActivityPub.php:4854 includes/Network/ActivityPub.php:4861
+#: includes/Network/ActivityPub.php:4868 includes/Network/ActivityPub.php:4976
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Error de l’enllaç"
@@ -4409,8 +4465,8 @@ msgstr "Hem rebut la teva sol·licitud a %s"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4465
-#: includes/Network/ActivityPub.php:4584
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4530
+#: includes/Network/ActivityPub.php:4649
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4931,7 +4987,7 @@ msgstr ""
 "Correu brossa, estafes o publicitat comercial no sol·licitada no relacionada "
 "amb contactar genuïnament amb l’artista sobre la seva obra"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4112
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4177
 msgid "Flagged by automatic content review."
 msgstr "Marcat per la revisió automàtica del contingut."
 
@@ -4966,12 +5022,12 @@ msgid "Reply (translated automatically)"
 msgstr "Respondre (traduit automàticament)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4672 includes/Network/ActivityPub.php:4788
-#: includes/Network/ActivityPub.php:4910
+#: includes/Network/ActivityPub.php:4737 includes/Network/ActivityPub.php:4853
+#: includes/Network/ActivityPub.php:4975
 msgid "This link is invalid or has already expired."
 msgstr "Aquest enllaç no és vàlid o ja ha caducat."
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4677
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4742
 msgid "This link has expired."
 msgstr "Aquest enllaç ha caducat."
 
@@ -4979,15 +5035,15 @@ msgstr "Aquest enllaç ha caducat."
 msgid "This conversation no longer exists."
 msgstr "Aquesta conversa ja no existeix."
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4845
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4910
 msgid "Original"
 msgstr "Original"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4851
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4916
 msgid "Translated"
 msgstr "Traduït"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4854
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4919
 msgid "Translation pending…"
 msgstr "Traducció pendent…"
 
@@ -5007,8 +5063,8 @@ msgstr "Respondre a aquesta conversa"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "La teva resposta (es traduirà automàticament, si és necessari)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3531
-#: includes/Network/ActivityPub.php:3598
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3571
+#: includes/Network/ActivityPub.php:3663
 msgid "Send reply"
 msgstr "Enviar resposta"
 
@@ -5053,8 +5109,8 @@ msgstr "Tens una nova resposta al teu missatge:"
 msgid "Original message, as written"
 msgstr "Missatge original, tal com s'ha escrit"
 
-#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:449
-#: includes/Network/ActivityPub.php:3544
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:454
+#: includes/Network/ActivityPub.php:3584
 msgid "Reply"
 msgstr "Respondre"
 
@@ -5063,10 +5119,12 @@ msgid "You've used all of your replies for this conversation."
 msgstr "Has utilitzat totes les teves respostes per a aquesta conversa."
 
 #: includes/Artist/ContactFormBlock.php:102
+#: includes/Network/ActivityPub.php:3653
 msgid "Your name (optional)"
 msgstr "El teu nom (opcional)"
 
 #: includes/Artist/ContactFormBlock.php:113
+#: includes/Network/ActivityPub.php:3655
 msgid "Your email address"
 msgstr "La teva adreça electrònica"
 
@@ -5524,7 +5582,7 @@ msgstr ""
 msgid "You are already an admitted Agnosis artist."
 msgstr "Ja ets un artista admès d'Agnosis."
 
-#: includes/Artist/JoinPage.php:71 includes/Core/Privacy.php:384
+#: includes/Artist/JoinPage.php:71 includes/Core/Privacy.php:402
 msgid "Your name"
 msgstr "El teu nom"
 
@@ -5544,7 +5602,7 @@ msgstr "Breu biografia"
 msgid "A few sentences about your practice, medium, and background."
 msgstr "Unes quantes frases sobre la teva pràctica, mitjà i trajectòria."
 
-#: includes/Artist/JoinPage.php:112 includes/Core/Privacy.php:179
+#: includes/Artist/JoinPage.php:112 includes/Core/Privacy.php:185
 msgid "Portfolio URL"
 msgstr "URL del portafolis"
 
@@ -5642,7 +5700,9 @@ msgstr ""
 msgid ""
 "Turn off the personal \"likes and boosts on your work\" line in your "
 "newsletter digest."
-msgstr "Desactivar la línia personal \"m'agraden i impulso la teva feina\" al teu resum de newsletter."
+msgstr ""
+"Desactivar la línia personal \"m'agraden i impulso la teva feina\" al teu "
+"resum de newsletter."
 
 #: includes/Artist/NotificationPreferences.php:331
 msgid "Save preferences"
@@ -5705,13 +5765,17 @@ msgstr ""
 
 #: includes/Artist/NotificationPreferences.php:359
 msgid "The personal likes/boosts line is now off in your newsletter digest."
-msgstr "La línia de likes/impulsos personals ara està apagada al teu resum del butlletí."
+msgstr ""
+"La línia de likes/impulsos personals ara està apagada al teu resum del "
+"butlletí."
 
 #: includes/Artist/NotificationPreferences.php:360
 msgid ""
 "You'll continue to see a personal likes/boosts line in your newsletter "
 "digest."
-msgstr "Continuaràs veient una línia de likes/impulsos personals al teu resum del butlletí."
+msgstr ""
+"Continuaràs veient una línia de likes/impulsos personals al teu resum del "
+"butlletí."
 
 #: includes/Artist/NotificationPreferences.php:363
 msgid "Preferences saved"
@@ -5732,7 +5796,7 @@ msgid "Biographies"
 msgstr "Biografies"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
-#: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:178
+#: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:184
 #: includes/Network/SubdomainNavigation.php:135
 #: includes/Network/SubdomainNavigation.php:364
 #: includes/Publishing/PostCreator.php:1055
@@ -6039,7 +6103,7 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "S'ha registrat %d vot positiu fins ara."
 msgstr[1] "S'han registrat %d vots positius fins ara."
 
-#: includes/Compat/LinguaForge.php:1844
+#: includes/Compat/LinguaForge.php:1863
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -6049,19 +6113,19 @@ msgstr ""
 "quan es va crear aquest terme. Edita el nom per proporcionar la traducció "
 "correcta i després esborra aquesta nota."
 
-#: includes/Compat/LinguaForge.php:3714
+#: includes/Compat/LinguaForge.php:3767
 msgid "is active and configured for"
 msgstr "està actiu i configurat per a"
 
-#: includes/Compat/LinguaForge.php:3715
+#: includes/Compat/LinguaForge.php:3768
 msgid "Subdomain"
 msgstr "Subdomini"
 
-#: includes/Compat/LinguaForge.php:3716
+#: includes/Compat/LinguaForge.php:3769
 msgid "routing mode"
 msgstr "mode d'encaminament"
 
-#: includes/Compat/LinguaForge.php:3718
+#: includes/Compat/LinguaForge.php:3771
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -6069,39 +6133,39 @@ msgstr ""
 "Això entra en conflicte amb els subdominis d'artista d'Agnosis: tots dos "
 "connectors reclamarien el mateix espai de noms de subdomini."
 
-#: includes/Compat/LinguaForge.php:3719
+#: includes/Compat/LinguaForge.php:3772
 msgid "Artist subdomain routing is"
 msgstr "L'encaminament de subdomini d'artista és"
 
-#: includes/Compat/LinguaForge.php:3720
+#: includes/Compat/LinguaForge.php:3773
 msgid "completely inactive"
 msgstr "completament inactiu"
 
-#: includes/Compat/LinguaForge.php:3721
+#: includes/Compat/LinguaForge.php:3774
 msgid "until this is resolved."
 msgstr "fins que això es resolgui."
 
-#: includes/Compat/LinguaForge.php:3723
+#: includes/Compat/LinguaForge.php:3776
 msgid "Fix: open"
 msgstr "Solució: obre"
 
-#: includes/Compat/LinguaForge.php:3724
+#: includes/Compat/LinguaForge.php:3777
 msgid "Settings"
 msgstr "Configuració"
 
-#: includes/Compat/LinguaForge.php:3724
+#: includes/Compat/LinguaForge.php:3777
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:3725
+#: includes/Compat/LinguaForge.php:3778
 msgid "and switch the URL strategy to"
 msgstr "i canvia l'estratègia d'URL a"
 
-#: includes/Compat/LinguaForge.php:3726
+#: includes/Compat/LinguaForge.php:3779
 msgid "Path prefix (subfolder)"
 msgstr "Prefix de ruta (subcarpeta)"
 
-#: includes/Compat/LinguaForge.php:3727
+#: includes/Compat/LinguaForge.php:3780
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -6109,11 +6173,11 @@ msgstr ""
 "Aquesta és la configuració predeterminada de LinguaForge i permet que els "
 "subdominis d'artista coexisteixin amb subcarpetes d'idioma"
 
-#: includes/Compat/LinguaForge.php:3732
+#: includes/Compat/LinguaForge.php:3785
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — l'encaminament de subdomini d'artista està desactivat"
 
-#: includes/Compat/LinguaForge.php:3742
+#: includes/Compat/LinguaForge.php:3795
 msgid "Open LinguaForge Settings"
 msgstr "Obre la configuració de LinguaForge"
 
@@ -6228,133 +6292,186 @@ msgstr "Gestiona les preferències de notificacions"
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — art florint fora de l’oblit"
 
-#: includes/Core/Privacy.php:129 includes/Core/Privacy.php:191
-#: includes/Core/Privacy.php:445
+#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:197
+#: includes/Core/Privacy.php:491
 msgid "Agnosis Membership Application"
 msgstr "Sol·licitud de pertinença a Agnosis"
 
-#: includes/Core/Privacy.php:133 includes/Core/Privacy.php:223
-#: includes/Core/Privacy.php:241 includes/Core/Privacy.php:259
-#: includes/Core/Privacy.php:277 includes/Core/Privacy.php:449
+#: includes/Core/Privacy.php:135 includes/Core/Privacy.php:229
+#: includes/Core/Privacy.php:247 includes/Core/Privacy.php:265
+#: includes/Core/Privacy.php:283 includes/Core/Privacy.php:495
 msgid "Agnosis Governance Participation"
 msgstr "Participació en la governança d’Agnosis"
 
-#: includes/Core/Privacy.php:137 includes/Core/Privacy.php:312
-#: includes/Core/Privacy.php:453
+#: includes/Core/Privacy.php:139 includes/Core/Privacy.php:318
+#: includes/Core/Privacy.php:499
 msgid "Agnosis Newsletter Subscription"
 msgstr "Subscripció al butlletí d’Agnosis"
 
-#: includes/Core/Privacy.php:141 includes/Core/Privacy.php:345
-#: includes/Core/Privacy.php:457
+#: includes/Core/Privacy.php:143 includes/Core/Privacy.php:351
+#: includes/Core/Privacy.php:503
 msgid "Agnosis Newsletter Delivery History"
 msgstr "Historial d’entrega del butlletí d’Agnosis"
 
-#: includes/Core/Privacy.php:145 includes/Core/Privacy.php:380
-#: includes/Core/Privacy.php:461
+#: includes/Core/Privacy.php:147 includes/Core/Privacy.php:435
+#: includes/Core/Privacy.php:507
 msgid "Agnosis Contact Messages Sent"
 msgstr "Missatges de contacte d’Agnosis enviats"
 
-#: includes/Core/Privacy.php:149 includes/Core/Privacy.php:426
-#: includes/Core/Privacy.php:465
+#: includes/Core/Privacy.php:151 includes/Core/Privacy.php:472
+#: includes/Core/Privacy.php:511
 msgid "Agnosis Notification Preferences"
 msgstr "Preferències de notificació d’Agnosis"
 
-#: includes/Core/Privacy.php:177
+#: includes/Core/Privacy.php:155 includes/Core/Privacy.php:515
+#: includes/Core/Privacy.php:601
+msgid "Agnosis Reply Translations"
+msgstr "Traduccions de resposta d'Agnosis"
+
+#: includes/Core/Privacy.php:183
 msgid "Display name"
 msgstr "Nom visible"
 
-#: includes/Core/Privacy.php:180
+#: includes/Core/Privacy.php:186
 msgid "Application statement"
 msgstr "Declaració de la sol·licitud"
 
-#: includes/Core/Privacy.php:183
+#: includes/Core/Privacy.php:189
 msgid "Applied at"
 msgstr "Sol·licitada el"
 
-#: includes/Core/Privacy.php:184 includes/Core/Privacy.php:353
+#: includes/Core/Privacy.php:190 includes/Core/Privacy.php:359
 msgid "Resolved at"
 msgstr "Resolta el"
 
-#: includes/Core/Privacy.php:226 includes/Core/Privacy.php:244
-#: includes/Core/Privacy.php:262 includes/Core/Privacy.php:280
+#: includes/Core/Privacy.php:232 includes/Core/Privacy.php:250
+#: includes/Core/Privacy.php:268 includes/Core/Privacy.php:286
 msgid "Type"
 msgstr "Tipus"
 
-#: includes/Core/Privacy.php:226
+#: includes/Core/Privacy.php:232
 msgid "Community vouch given"
 msgstr "Avaluació de la comunitat concedida"
 
-#: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
-#: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
+#: includes/Core/Privacy.php:234 includes/Core/Privacy.php:252
+#: includes/Core/Privacy.php:270 includes/Core/Privacy.php:288
 #: includes/Publishing/ReviewConfirm.php:972
 msgid "Date"
 msgstr "Data"
 
-#: includes/Core/Privacy.php:244
+#: includes/Core/Privacy.php:250
 msgid "Admission vouch given"
 msgstr "Avaluació d’admissió concedida"
 
-#: includes/Core/Privacy.php:262
+#: includes/Core/Privacy.php:268
 msgid "Community removal vote"
 msgstr "Vot de retirada de la comunitat"
 
-#: includes/Core/Privacy.php:263 includes/Core/Privacy.php:281
+#: includes/Core/Privacy.php:269 includes/Core/Privacy.php:287
 msgid "Vote"
 msgstr "Vot"
 
-#: includes/Core/Privacy.php:280
+#: includes/Core/Privacy.php:286
 msgid "Community size-cap vote"
 msgstr "Vot del límit de mida de la comunitat"
 
-#: includes/Core/Privacy.php:316 includes/Core/Privacy.php:350
+#: includes/Core/Privacy.php:322 includes/Core/Privacy.php:356
 msgid "Locale"
 msgstr "Local"
 
-#: includes/Core/Privacy.php:317
+#: includes/Core/Privacy.php:323
 msgid "Subscribed at"
 msgstr "Subscrit el"
 
-#: includes/Core/Privacy.php:318
+#: includes/Core/Privacy.php:324
 msgid "Confirmed at"
 msgstr "Confirmat el"
 
-#: includes/Core/Privacy.php:319
+#: includes/Core/Privacy.php:325
 msgid "Unsubscribed at"
 msgstr "Donat de baixa el"
 
-#: includes/Core/Privacy.php:348
+#: includes/Core/Privacy.php:354
 msgid "Issue"
 msgstr "Incidència"
 
-#: includes/Core/Privacy.php:349
+#: includes/Core/Privacy.php:355
 msgid "Recipient type"
 msgstr "Tipus de destinatari"
 
-#: includes/Core/Privacy.php:352
+#: includes/Core/Privacy.php:358
 msgid "Queued at"
 msgstr "En cua el"
 
-#: includes/Core/Privacy.php:383
+#: includes/Core/Privacy.php:401
 msgid "Sent to artist"
 msgstr "Enviat a l’artista"
 
-#: includes/Core/Privacy.php:386
+#: includes/Core/Privacy.php:404
 msgid "Translated message"
 msgstr "Missatge traduït"
 
-#: includes/Core/Privacy.php:388
+#: includes/Core/Privacy.php:406
 msgid "Rejection reason"
 msgstr "Motiu del rebuig"
 
-#: includes/Core/Privacy.php:389
+#: includes/Core/Privacy.php:407
 msgid "IP address"
 msgstr "Adreça IP"
 
-#: includes/Core/Privacy.php:390
+#: includes/Core/Privacy.php:408 includes/Core/Privacy.php:597
 msgid "Sent at"
 msgstr "Enviat el"
 
-#: includes/Core/Privacy.php:493
+#: includes/Core/Privacy.php:419
+msgid "Conversation"
+msgstr "Conversa"
+
+#: includes/Core/Privacy.php:421
+msgid "Message type"
+msgstr "Tipus de missatge"
+
+#: includes/Core/Privacy.php:422
+msgid "Follow-up in an existing conversation"
+msgstr "Seguiment d'una conversa existent"
+
+#: includes/Core/Privacy.php:422
+msgid "First message"
+msgstr "Primer missatge"
+
+#: includes/Core/Privacy.php:426 includes/Core/Privacy.php:583
+msgid "Detected language"
+msgstr "Idioma detectat"
+
+#: includes/Core/Privacy.php:430
+msgid "Delivered at"
+msgstr "Lliurat a"
+
+#: includes/Core/Privacy.php:577
+msgid "On artwork"
+msgstr "Sobre l'artwork"
+
+#: includes/Core/Privacy.php:578 includes/Network/ActivityPub.php:3650
+msgid "Your reply"
+msgstr "La teva resposta"
+
+#: includes/Core/Privacy.php:588
+msgid "Translation shown to the artist"
+msgstr "Traducció mostrada a l'artista"
+
+#: includes/Core/Privacy.php:593
+msgid "Translation shown on the site"
+msgstr "Traducció mostrada al lloc"
+
+#: includes/Core/Privacy.php:596
+msgid "Yes"
+msgstr "Sí"
+
+#: includes/Core/Privacy.php:596
+msgid "No — awaiting or declined by the artist"
+msgstr "No — esperant o rebutjada per l'artista"
+
+#: includes/Core/Privacy.php:669
 msgid ""
 "Your membership application/account is still active. To remove this data, "
 "use the \"leave the network\" link from any Agnosis email, or ask an "
@@ -6364,7 +6481,7 @@ msgstr ""
 "aquestes dades, fes servir l’enllaç \"deixar la xarxa\" de qualsevol correu "
 "electrònic d’Agnosis, o demana-ho a un administrador."
 
-#: includes/Core/Privacy.php:513
+#: includes/Core/Privacy.php:689
 msgid ""
 "Your biography, statement, and portfolio link were erased. Your email "
 "address was kept on file — your account is currently banned, and it's the "
@@ -6374,11 +6491,11 @@ msgstr ""
 "La teva adreça electrònica s’ha conservat — el teu compte està actualment "
 "blocat, i és l’única manera que aquest lloc pot continuar aplicant-ho."
 
-#: includes/Core/Privacy.php:587 includes/Core/Privacy.php:659
+#: includes/Core/Privacy.php:763 includes/Core/Privacy.php:847
 msgid "[message removed]"
 msgstr "[missatge eliminat]"
 
-#: includes/Core/Privacy.php:598
+#: includes/Core/Privacy.php:774
 msgid ""
 "Vouch messages you wrote were redacted. Governance votes you cast were kept "
 "as-is — a vote is a community record, not personal data, and removing it "
@@ -6389,7 +6506,7 @@ msgstr ""
 "registre de la comunitat, no una dada personal, i eliminar-lo canviaria "
 "silenciosament una decisió ja presa."
 
-#: includes/Core/Privacy.php:641
+#: includes/Core/Privacy.php:817
 msgid ""
 "Past newsletter delivery records were anonymized; per-issue delivery counts "
 "were kept for statistics."
@@ -6397,7 +6514,14 @@ msgstr ""
 "Els registres antics d’entrega del butlletí s’han anonimitzat; els recomptes "
 "d’entregues per número s’han conservat per a les estadístiques."
 
-#: includes/Core/Privacy.php:708
+#: includes/Core/Privacy.php:886
+msgid ""
+"Replies written by the artist in these conversations were kept, as they are "
+"the artist's own content; your name, email address and IP have been removed "
+"from them."
+msgstr "Les respostes escrites per l'artista en aquestes converses es van mantenir, ja que són contingut propi de l'artista; el teu nom, adreça de correu electrònic i IP han estat eliminats d'elles."
+
+#: includes/Core/Privacy.php:924
 msgid ""
 "Agnosis is a federated art-publishing plugin. The following is a starting "
 "point for describing what it collects — review and adapt it to your site's "
@@ -6407,11 +6531,11 @@ msgstr ""
 "un punt de partida per descriure què recull — revisa’l i adapta’l a la "
 "configuració real del teu lloc abans de publicar-lo."
 
-#: includes/Core/Privacy.php:709
+#: includes/Core/Privacy.php:925
 msgid "What personal data we collect and why"
 msgstr "Quines dades personals recopilem i per què"
 
-#: includes/Core/Privacy.php:710
+#: includes/Core/Privacy.php:926
 msgid ""
 "When you apply to join, we store your email address, display name, "
 "biography, statement, and portfolio link to run the community vouching "
@@ -6431,11 +6555,32 @@ msgstr ""
 "dels missatges de contacte, també la teva adreça IP) per lliurar aquest "
 "missatge o enviar-te futurs números."
 
-#: includes/Core/Privacy.php:711
+#: includes/Core/Privacy.php:934
+msgid ""
+"When you reply to an artwork on this site, we store your reply, the name you "
+"give, your email address, your IP address and your browser's user agent. A "
+"reply is only published once the artist approves it; once published it is "
+"visible to anyone and is also sent out across the Fediverse to other "
+"servers, which we cannot recall it from. Your reply is also machine-"
+"translated so it can be read on this site's other language versions and by "
+"the artist in their own language, and those translations are stored "
+"alongside it."
+msgstr "Quan responents a un artwork en aquest lloc, emmagatzemem la teva resposta, el nom que dones, la teva adreça de correu electrònic, la teva adreça IP i l'agent d'usuari del teu navegador. Una resposta només es publica un cop l'artista l'aprova; un cop publicada és visible per a tothom i també s'envia a través del Fediverse a altres servidors, dels quals no podem recuperar-la. La teva resposta també es tradueix automàticament perquè es pugui llegir en les altres versions idiomàtiques d'aquest lloc i per l'artista en el seu propi idioma, i aquestes traduccions s'emmagatzemen al costat d'ella."
+
+#: includes/Core/Privacy.php:935
+msgid ""
+"When you \"like\" an artwork without being logged in, we do not store your "
+"IP address. We store only a one-way fingerprint derived from it together "
+"with a secret that is replaced every day — enough to stop the same like "
+"being counted twice on the same day, and deliberately impossible to trace "
+"back to you or to undo once the day's secret has been replaced."
+msgstr "Quan \"t'agrada\" un artwork sense estar connectat, no emmagatzemem la teva adreça IP. Només emmagatzemem una empremta digital d'una sola direcció derivada d'ella juntament amb un secret que es reemplaça cada dia — prou per evitar que el mateix m'agrada es compti dues vegades el mateix dia, i deliberadament impossible de rastrejar fins a tu o desfer un cop el secret del dia ha estat reemplaçat."
+
+#: includes/Core/Privacy.php:936
 msgid "Who we share it with"
 msgstr "Amb qui ho compartim"
 
-#: includes/Core/Privacy.php:712
+#: includes/Core/Privacy.php:937
 msgid ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
@@ -6443,36 +6588,36 @@ msgid ""
 "WordPress's own built-in AI Client (configured under Settings → Connectors), "
 "submitted content is sent to whichever AI service that connector points to "
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
-"Fediverse) as part of this plugin's core federation feature."
-msgstr ""
-"Submitted artwork descriptions and images may be sent to a third-party AI "
-"provider (OpenAI or Anthropic, depending on this site's configuration) to "
-"help write publication text and enhance images. If this site instead uses "
-"WordPress's own built-in AI Client (configured under Settings → Connectors), "
-"submitted content is sent to whichever AI service that connector points to "
-"instead. Approved posts are also broadcast publicly over ActivityPub (the "
-"Fediverse) as part of this plugin's core federation feature."
+"Fediverse) as part of this plugin's core federation feature. Replies and "
+"contact messages are sent to the same AI provider for translation, and "
+"approved replies are federated outward in the same way approved posts are."
+msgstr "Les descripcions i imatges d'artworks presentades poden ser enviades a un proveïdor d'IA de tercers (OpenAI o Anthropic, depenent de la configuració d'aquest lloc) per ajudar a escriure el text de publicació i millorar les imatges. Si aquest lloc utilitza en canvi el Client d'IA integrat de WordPress (configurat a Configuració → Connectors), el contingut presentat s'envia al servei d'IA al qual apunta aquell connector. Els textos aprovats també es difonen públicament a través d'ActivityPub (el Fediverse) com a part de la característica de federació bàsica d'aquest plugin. Les respostes i missatges de contacte es poden enviar al mateix proveïdor d'IA per a traducció, i les respostes aprovades es federen de la mateixa manera que els textos aprovats."
 
-#: includes/Core/Privacy.php:721
+#: includes/Core/Privacy.php:942
+msgid ""
+"If this site is connected to other Agnosis nodes, a record is kept of which "
+"artworks those partner nodes shared through this one, including the "
+"identifier of the remote account that shared each one. This is used only to "
+"report how active the network has been."
+msgstr "Si aquest lloc està connectat a altres nodes d'Agnosis, es manté un registre de quins artworks han compartit aquests nodes socis a través d'aquest, incloent l'identificador del compte remot que ha compartit cadascun. Això s'utilitza només per informar sobre quina activitat ha tingut la xarxa."
+
+#: includes/Core/Privacy.php:953
 msgid "Security check (Cloudflare Turnstile)"
 msgstr "Verificació de seguretat (Cloudflare Turnstile)"
 
-#: includes/Core/Privacy.php:722
+#: includes/Core/Privacy.php:954
 msgid ""
 "This site uses Cloudflare Turnstile, an automated security check, on its "
-"Join, contact, and newsletter-signup forms to block spam submissions. "
-"Completing it sends your IP address to Cloudflare for verification."
-msgstr ""
-"Aquest lloc utilitza Cloudflare Turnstile, una verificació de seguretat "
-"automatitzada, als seus formularis d'Unir-se, contacte i inscripció a "
-"butlletí per bloquejar trameses de correu brossa. Completar-la envia la teva "
-"adreça IP a Cloudflare per a verificació."
+"Join, contact, newsletter-signup and artwork reply forms to block spam "
+"submissions. Completing it sends your IP address to Cloudflare for "
+"verification."
+msgstr "Aquest lloc utilitza Cloudflare Turnstile, una comprovació de seguretat automatitzada, als seus formularis d'unió, contacte, subscripció a butlletins i resposta d'artwork per bloquejar l'enviament de spam. Completar-lo envia la seva adreça IP a Cloudflare per a verificació."
 
-#: includes/Core/Privacy.php:725
+#: includes/Core/Privacy.php:957
 msgid "Software updates"
 msgstr "Actualitzacions de programari"
 
-#: includes/Core/Privacy.php:726
+#: includes/Core/Privacy.php:958
 msgid ""
 "This site checks agnosis.art roughly every 12 hours for available plugin "
 "updates. That check includes this site's own web address so the update "
@@ -6483,35 +6628,43 @@ msgstr ""
 "web del lloc perquè el servidor d'actualització pugui confirmar la "
 "compatibilitat; no hi ha dades de visitants implicades."
 
-#: includes/Core/Privacy.php:727
+#: includes/Core/Privacy.php:959
 msgid "How long we retain your data"
 msgstr "Durant quant de temps conservem les teves dades"
 
-#: includes/Core/Privacy.php:728
+#: includes/Core/Privacy.php:960
 msgid ""
 "By default: contact-form messages are kept for 90 days, and the sender's IP "
 "address on them is cleared sooner, after 30 days. Membership applications "
 "that are rejected, withdrawn, or leave the network are anonymized after 180 "
 "days. Raw submission emails are deleted from the processing queue after 7 "
 "days, and diagnostic copies kept only if this site's administrator has debug "
-"logging turned on are deleted after 14 days. This site's administrator can "
-"adjust each of these periods under Settings. You can request a copy of, or "
-"the erasure of, the personal data described above at any time using this "
-"site's standard WordPress data request tools."
-msgstr ""
-"Per defecte: els missatges del formulari de contacte es mantenen durant 90 "
-"dies, i l'adreça IP del remitent es neteja més aviat, després de 30 dies. "
-"Les sol·licituds d'adhesió que es rebutgen, es retiren o abandonen la xarxa "
-"s'anonimitzen després de 180 dies. Els correus electrònics de tramesa sense "
-"procesar s'eliminen de la cua de processament després de 7 dies, i les "
-"còpies de diagnòstic que es mantenen només si l'administrador d'aquest lloc "
-"té registre de depuració activat s'eliminen després de 14 dies. "
-"L'administrador d'aquest lloc pot ajustar cadascun d'aquests períodes a "
-"Configuració. Pots sol·licitar una còpia de, o l'eliminació de, les dades "
-"personals descrites anteriorment en qualsevol moment utilitzant les eines "
-"estàndard de sol·licitud de dades de WordPress d'aquest lloc."
+"logging turned on are deleted after 14 days. Records of what partner nodes "
+"shared through this site are kept for 90 days. This site's administrator can "
+"adjust each of these periods under Settings."
+msgstr "Per defecte: els missatges del formulari de contacte es conserven durant 90 dies, i l'adreça IP del remitent es neteja abans, després de 30 dies. Les sol·licituds d'adhesió que són rebutjades, retirades o que abandonen la xarxa són anonimitzades després de 180 dies. Els correus electrònics de presentació en brut es cancel·len de la cua de processament després de 7 dies, i les còpies de diagnòstic mantingudes només si l'administrador d'aquest lloc té activat el registre de depuració es cancel·len després de 14 dies. Es mantenen registres del que els nodes socis han compartit a través d'aquest lloc durant 90 dies. L'administrador d'aquest lloc pot ajustar cadascun d'aquests períodes a Configuració."
 
-#: includes/Core/Privacy.php:756
+#: includes/Core/Privacy.php:966
+msgid ""
+"Replies you have published are kept for as long as the artwork they belong "
+"to, like any other comment on a website — you can ask us to remove yours at "
+"any time. Likes are not kept against you at all: the daily fingerprint "
+"described above expires on its own within a day and cannot be linked back to "
+"you afterwards."
+msgstr "Les respostes que has publicat es mantenen durant tant temps com l'artwork al qual pertanyen, com qualsevol altre comentari en un lloc web — pots demanar que eliminem la teva en qualsevol moment. Els 'likes' no es mantenen contra teu en absolut: la empremta diària esmentada anteriorment expira per si sola en un dia i no pot ser enllaçada de nou a tu després."
+
+#: includes/Core/Privacy.php:967
+msgid ""
+"You can request a copy of, or the erasure of, the personal data described "
+"above at any time using this site's standard WordPress data request tools. "
+"Note that a reply which has already been sent out across the Fediverse "
+"cannot be recalled from other servers, and that replies written by an artist "
+"in a conversation with you are the artist's own words: we will remove your "
+"name, email address and IP address from them, but not the messages "
+"themselves."
+msgstr "Pots sol·licitar una còpia de, o l'esborrament de, les dades personals descrites anteriorment en qualsevol moment utilitzant les eines estàndard de sol·licitud de dades de WordPress d'aquest lloc. Tingues en compte que una resposta que ja s'ha enviat a través del Fediverse no es pot recuperar d'altres servidors, i que les respostes escrites per un artista en una conversa amb tu són les seves pròpies paraules: eliminarem el teu nom, adreça de correu electrònic i adreça IP d'elles, però no els missatges mateixos."
+
+#: includes/Core/Privacy.php:1006
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
 "Approved posts are published publicly and shared across the Fediverse — this "
@@ -6521,7 +6674,14 @@ msgstr ""
 "extern d’IA. Les publicacions aprovades es publiquen públicament i es "
 "comparteixen a tot el Fediverse — això no es pot desfer completament després."
 
-#: includes/Core/Privacy.php:757
+#: includes/Core/Privacy.php:1007
+msgid ""
+"Your reply is reviewed by the artist before it appears. Once published it is "
+"public, machine-translated into this site's other languages, and shared "
+"across the Fediverse — which cannot be fully undone later."
+msgstr "La teva resposta és revisada per l'artista abans que aparegui. Un cop publicada, és pública, traduïda automàticament a altres idiomes d'aquest lloc, i compartida a través del Fediverse — la qual cosa no es pot desfer completament després."
+
+#: includes/Core/Privacy.php:1008
 msgid ""
 "Your message may be reviewed by an automated content filter before being "
 "sent to the artist."
@@ -6530,12 +6690,12 @@ msgstr ""
 "d’enviar-se a l’artista."
 
 #. translators: %s: link to the site's Privacy Policy page
-#: includes/Core/Privacy.php:765
+#: includes/Core/Privacy.php:1017
 #, php-format
 msgid "See our %s for details."
 msgstr "Consulteu la nostra %s per obtenir més detalls."
 
-#: includes/Core/Privacy.php:766
+#: includes/Core/Privacy.php:1018
 msgid "Privacy Policy"
 msgstr "Política de privadesa"
 
@@ -6597,12 +6757,12 @@ msgstr ""
 msgid "Every 5 minutes"
 msgstr "Cada 5 minuts"
 
-#: includes/Email/Inbox.php:186
+#: includes/Email/Inbox.php:172
 msgid "IMAP credentials are not configured."
 msgstr "Les credencials IMAP no estan configurades."
 
 #. translators: 1: total message count, 2: unseen message count
-#: includes/Email/Inbox.php:213
+#: includes/Email/Inbox.php:199
 #, php-format
 msgid "Connected successfully. %1$d message(s) in inbox, %2$d unseen."
 msgstr ""
@@ -6627,12 +6787,12 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Aquesta sol·licitud de webhook ja s'ha processat."
 
-#: includes/Network/ActivityPub.php:624
+#: includes/Network/ActivityPub.php:629
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1112 includes/Network/ActivityPub.php:1129
+#: includes/Network/ActivityPub.php:1117 includes/Network/ActivityPub.php:1134
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6640,123 +6800,131 @@ msgstr[0] "♥ %d m'agrada"
 msgstr[1] "♥ %d m'agrada"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1114
+#: includes/Network/ActivityPub.php:1119
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d m'agrada"
 
-#: includes/Network/ActivityPub.php:1115
+#: includes/Network/ActivityPub.php:1120
 msgid "Could not update like."
 msgstr "No s'ha pogut actualitzar el m'agrada."
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1139
+#: includes/Network/ActivityPub.php:1144
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d impulsos"
 msgstr[1] "⟲ %d impulsos"
 
-#: includes/Network/ActivityPub.php:2067
+#: includes/Network/ActivityPub.php:2072
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2232
+#: includes/Network/ActivityPub.php:2237
 #, php-format
 msgid "Also available in: %s"
 msgstr "També disponible en: %s"
 
-#: includes/Network/ActivityPub.php:2975
+#: includes/Network/ActivityPub.php:3014
 msgid "No such artwork."
 msgstr "No existeix tal obra."
 
-#: includes/Network/ActivityPub.php:3381
+#: includes/Network/ActivityPub.php:3420
 msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
-msgstr "Introdueix el domini de la teva instància Fediverse (per exemple, mastodon.social)."
+msgstr ""
+"Introdueix el domini de la teva instància Fediverse (per exemple, mastodon."
+"social)."
 
-#: includes/Network/ActivityPub.php:3382
+#: includes/Network/ActivityPub.php:3421
 msgid "Copied!"
 msgstr "Copiat!"
 
-#: includes/Network/ActivityPub.php:3398 includes/Network/ActivityPub.php:3441
+#: includes/Network/ActivityPub.php:3437 includes/Network/ActivityPub.php:3480
 #: blocks/follow-overlay/editor.js:21
 msgid "Follow"
 msgstr "Segueix"
 
-#: includes/Network/ActivityPub.php:3415
+#: includes/Network/ActivityPub.php:3454
 msgid ""
 "This artist publishes to the Fediverse — the open, decentralized social "
 "network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
 "them from your own account on any of those, no Agnosis account needed."
-msgstr "Aquest artista publica al Fediverse — la xarxa social oberta i descentralitzada darrere de Mastodon, Pixelfed i altres aplicacions basades en ActivityPub. Segueix-lo des del teu propi compte en qualsevol d'aquestes, no cal cap compte d'Agnosis."
+msgstr ""
+"Aquest artista publica al Fediverse — la xarxa social oberta i "
+"descentralitzada darrere de Mastodon, Pixelfed i altres aplicacions basades "
+"en ActivityPub. Segueix-lo des del teu propi compte en qualsevol d'aquestes, "
+"no cal cap compte d'Agnosis."
 
-#: includes/Network/ActivityPub.php:3418
+#: includes/Network/ActivityPub.php:3457
 msgid "Their handle:"
 msgstr "El seu identificador:"
 
-#: includes/Network/ActivityPub.php:3422
+#: includes/Network/ActivityPub.php:3461
 msgid "Copy"
 msgstr "Copia"
 
-#: includes/Network/ActivityPub.php:3425
+#: includes/Network/ActivityPub.php:3464
 msgid ""
 "Paste it into the search bar of your own Fediverse app to follow directly."
-msgstr "Enganxa-ho a la barra de cerca de la teva pròpia aplicació Fediverse per seguir directament."
+msgstr ""
+"Enganxa-ho a la barra de cerca de la teva pròpia aplicació Fediverse per "
+"seguir directament."
 
-#: includes/Network/ActivityPub.php:3429
+#: includes/Network/ActivityPub.php:3468
 msgid "Or enter your instance to follow with one click:"
 msgstr "O introdueix la teva instància per seguir amb un clic:"
 
-#: includes/Network/ActivityPub.php:3436
+#: includes/Network/ActivityPub.php:3475
 msgid "yourinstance.social"
 msgstr "yourinstance.social"
 
-#: includes/Network/ActivityPub.php:3502
+#: includes/Network/ActivityPub.php:3542
 msgid "0 replies"
 msgstr "0 respostes"
 
-#: includes/Network/ActivityPub.php:3523
+#: includes/Network/ActivityPub.php:3563
 msgid "Loading replies…"
 msgstr "Carregant respostes…"
 
-#: includes/Network/ActivityPub.php:3524
+#: includes/Network/ActivityPub.php:3564
 msgid "Could not load replies."
 msgstr "No s'han pogut carregar les respostes."
 
-#: includes/Network/ActivityPub.php:3526 includes/Network/ActivityPub.php:3968
+#: includes/Network/ActivityPub.php:3566 includes/Network/ActivityPub.php:4033
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "Gràcies — la teva resposta s'ha enviat i està a l'espera d'aprovació."
 
-#: includes/Network/ActivityPub.php:3527
+#: includes/Network/ActivityPub.php:3567
 msgid "Could not send your reply. Please try again."
 msgstr "No s'ha pogut enviar la teva resposta. Siusplau, torna-ho a intentar."
 
-#: includes/Network/ActivityPub.php:3528 includes/Network/ActivityPub.php:3594
+#: includes/Network/ActivityPub.php:3568 includes/Network/ActivityPub.php:3654
 msgid "Name (optional)"
 msgstr "Nom (opcional)"
 
-#: includes/Network/ActivityPub.php:3529 includes/Network/ActivityPub.php:3595
+#: includes/Network/ActivityPub.php:3569 includes/Network/ActivityPub.php:3656
 msgid "Your email"
 msgstr "El teu correu electrònic"
 
-#: includes/Network/ActivityPub.php:3530 includes/Network/ActivityPub.php:3592
+#: includes/Network/ActivityPub.php:3570 includes/Network/ActivityPub.php:3651
 msgid "Write a reply…"
 msgstr "Escriu una resposta…"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3541
+#: includes/Network/ActivityPub.php:3581
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d resposta"
 msgstr[1] "%d resposta"
 
-#: includes/Network/ActivityPub.php:4038
+#: includes/Network/ActivityPub.php:4103
 msgid "Replies aren't open on this artwork right now."
 msgstr "Les respostes no estan obertes en aquesta obra d'art en aquest moment."
 
-#: includes/Network/ActivityPub.php:4106
+#: includes/Network/ActivityPub.php:4171
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6765,20 +6933,20 @@ msgstr ""
 "comprometre's genuïnament amb l'artista sobre la seva feina"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4438
+#: includes/Network/ActivityPub.php:4503
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Nova resposta a \"%s\""
 
-#: includes/Network/ActivityPub.php:4449
+#: includes/Network/ActivityPub.php:4514
 msgid "Someone left a reply on your artwork:"
 msgstr "Algú ha deixat una resposta a la teva obra d'art:"
 
-#: includes/Network/ActivityPub.php:4450
+#: includes/Network/ActivityPub.php:4515
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Algú ha respost a la teva obra d'art des del Fediverse:"
 
-#: includes/Network/ActivityPub.php:4477
+#: includes/Network/ActivityPub.php:4542
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6786,13 +6954,13 @@ msgstr ""
 "S'està mantenint fins que ho aprovis o rebutgis — també hi pots escriure la "
 "teva pròpia resposta des de la mateixa pàgina."
 
-#: includes/Network/ActivityPub.php:4481 includes/Network/ActivityPub.php:4880
-#: includes/Network/ActivityPub.php:4892
+#: includes/Network/ActivityPub.php:4546 includes/Network/ActivityPub.php:4945
+#: includes/Network/ActivityPub.php:4957
 msgid "Review this reply"
 msgstr "Revisar aquesta resposta"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:4489
+#: includes/Network/ActivityPub.php:4554
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6800,13 +6968,13 @@ msgstr[0] "Aquest enllaç caduca en %d dia."
 msgstr[1] "Aquest enllaç caduca en %d dies."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4574
+#: includes/Network/ActivityPub.php:4639
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr ""
 "Una resposta a \"%s\" ha arribat en un idioma que no hem pogut identificar."
 
-#: includes/Network/ActivityPub.php:4590
+#: includes/Network/ActivityPub.php:4655
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6816,7 +6984,7 @@ msgstr ""
 "identificar l'idioma en què està escrit, així que no podem oferir una "
 "traducció ni la pàgina de resposta/aprovació habitual."
 
-#: includes/Network/ActivityPub.php:4596
+#: includes/Network/ActivityPub.php:4661
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6825,43 +6993,43 @@ msgstr ""
 "Això és només per a la teva informació — no hi ha res a aprovar o rebutjar "
 "aquí. Si vols actuar-hi, ho pots fer des del teu tauler de WordPress."
 
-#: includes/Network/ActivityPub.php:4707
+#: includes/Network/ActivityPub.php:4772
 msgid "Fediverse replies"
 msgstr "Respostes del Fediverse"
 
-#: includes/Network/ActivityPub.php:4708
+#: includes/Network/ActivityPub.php:4773
 msgid "Site replies"
 msgstr "Respostes del lloc"
 
-#: includes/Network/ActivityPub.php:4802
+#: includes/Network/ActivityPub.php:4867
 msgid "This reply no longer exists."
 msgstr "Aquesta resposta ja no existeix."
 
-#: includes/Network/ActivityPub.php:4859
+#: includes/Network/ActivityPub.php:4924
 msgid "Also post my reply to the Fediverse."
 msgstr "També publica la meva resposta al Fediverse."
 
-#: includes/Network/ActivityPub.php:4886
+#: includes/Network/ActivityPub.php:4951
 msgid "Write your own reply (optional)"
 msgstr "Escriu la teva pròpia resposta (opcional)"
 
-#: includes/Network/ActivityPub.php:4918
+#: includes/Network/ActivityPub.php:4983
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Resposta aprovada — ara apareix a la teva obra d'art."
 
-#: includes/Network/ActivityPub.php:4921
+#: includes/Network/ActivityPub.php:4986
 msgid "Reply rejected — it will not be shown."
 msgstr "Resposta rebutjada — no es mostrarà."
 
-#: includes/Network/ActivityPub.php:4932
+#: includes/Network/ActivityPub.php:4997
 msgid "Your reply has been posted."
 msgstr "La teva resposta s'ha publicat."
 
-#: includes/Network/ActivityPub.php:4935
+#: includes/Network/ActivityPub.php:5000
 msgid "Reply moderated"
 msgstr "Resposta moderada"
 
-#: includes/Network/ActivityPub.php:4961
+#: includes/Network/ActivityPub.php:5026
 msgid "No such reply."
 msgstr "No hi ha tal resposta."
 
@@ -6980,21 +7148,28 @@ msgstr ""
 msgid "Node URL is required."
 msgstr "L'URL del node és necessària."
 
-#: includes/Network/Node.php:134
+#: includes/Network/Node.php:170
+msgid "Node URL must be a public http(s) address."
+msgstr "El URL del node ha de ser una adreça http(s) pública."
+
+#: includes/Network/Node.php:176
 msgid "A public key is required to register a peer."
 msgstr "Cal una clau pública per registrar un peer."
 
-#: includes/Network/Node.php:241
+#: includes/Network/Node.php:294
 msgid "Could not reach this peer's node-discovery endpoint."
-msgstr "No s'ha pogut accedir al punt final de descoberta de nodes d'aquest company."
+msgstr ""
+"No s'ha pogut accedir al punt final de descoberta de nodes d'aquest company."
 
-#: includes/Network/Node.php:313
+#: includes/Network/Node.php:376
 msgid "Could not reach this peer's own peer list."
 msgstr "No s'ha pogut accedir a la pròpia llista de companys d'aquest company."
 
-#: includes/Network/Node.php:320
+#: includes/Network/Node.php:383
 msgid "This peer's peer list response was not in the expected format."
-msgstr "La resposta de la llista de companys d'aquest company no estava en el format esperat."
+msgstr ""
+"La resposta de la llista de companys d'aquest company no estava en el format "
+"esperat."
 
 #. translators: %s: artist display name
 #: includes/Network/SubdomainNavigation.php:458
@@ -9040,7 +9215,13 @@ msgid ""
 "a remote-follow form that redirects a visitor to their own instance's "
 "authorize_interaction screen. Renders nothing off an agnosis_artwork post, "
 "or when its author no longer resolves to a real artist actor."
-msgstr "Activa al costat del botó de resposta que obre un desplegable explicant el Fediverse/ActivityPub, mostrant el @handle copiable de l'artista d'aquesta obra d'art, i un formulari de seguiment remot que redirigeix un visitant a la pantalla d'autorització d'interacció de la seva pròpia instància. No mostra res d'una publicació d'agnosis_artwork, o quan el seu autor ja no es resol a un actor d'artista real."
+msgstr ""
+"Activa al costat del botó de resposta que obre un desplegable explicant el "
+"Fediverse/ActivityPub, mostrant el @handle copiable de l'artista d'aquesta "
+"obra d'art, i un formulari de seguiment remot que redirigeix un visitant a "
+"la pantalla d'autorització d'interacció de la seva pròpia instància. No "
+"mostra res d'una publicació d'agnosis_artwork, o quan el seu autor ja no es "
+"resol a un actor d'artista real."
 
 #: blocks/follow-overlay/block.json
 msgctxt "block keyword"
@@ -9284,7 +9465,13 @@ msgid ""
 "subdomain — the parenthetical is always that actor's real Fediverse handle, "
 "so a visitor always has a copyable handle to follow from their own Fediverse "
 "client."
-msgstr "Línia de drets d'autor en el peu de pàgina — \"© {year} Agnosis (@agnosis@host)\" al lloc principal, \"© {year} {Artist Name} (@artistname@host)\" en el subdomini d'un artista — el que s'indica entre parèntesis és sempre el veritable @handle del Fediverse d'aquest actor, de manera que un visitant sempre té un @handle copiable per seguir des del seu propi client del Fediverse."
+msgstr ""
+"Línia de drets d'autor en el peu de pàgina — \"© {year} Agnosis "
+"(@agnosis@host)\" al lloc principal, \"© {year} {Artist Name} "
+"(@artistname@host)\" en el subdomini d'un artista — el que s'indica entre "
+"parèntesis és sempre el veritable @handle del Fediverse d'aquest actor, de "
+"manera que un visitant sempre té un @handle copiable per seguir des del seu "
+"propi client del Fediverse."
 
 #: blocks/site-copyright/block.json
 msgctxt "block keyword"

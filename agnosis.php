@@ -3,7 +3,7 @@
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
  * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
- * Version:           0.9.65
+ * Version:           0.9.66
  * Requires at least: 6.6
  * Requires PHP:      8.2
  * Requires Plugins:  lingua-forge
@@ -27,13 +27,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AGNOSIS_VERSION', '0.9.65' );
+define( 'AGNOSIS_VERSION', '0.9.66' );
 define( 'AGNOSIS_FILE', __FILE__ );
 define( 'AGNOSIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGNOSIS_URL', plugin_dir_url( __FILE__ ) );
 define( 'AGNOSIS_BASENAME', plugin_basename( __FILE__ ) );
 define( 'AGNOSIS_MIN_PHP', '8.2' );
 define( 'AGNOSIS_MIN_WP', '6.6' );
+
+/**
+ * Oldest Lingua Forge this version of Agnosis is written against — sixteenth
+ * audit, L-1 (2026-07-31).
+ *
+ * 2.7.1 is where `linguaforge_sitemap_extra_urls` landed, which 0.9.64's
+ * artist-subdomain sitemap integration consumes. WordPress's own
+ * `Requires Plugins:` header (declared above) enforces that Lingua Forge is
+ * INSTALLED AND ACTIVE, but core has no version syntax for it, so nothing
+ * previously noticed an install running an older LF.
+ *
+ * Deliberately advisory, NOT a hard gate — see agnosis_lingua_forge_notice().
+ */
+define( 'AGNOSIS_MIN_LF', '2.7.1' );
 
 // Autoloader.
 if ( file_exists( AGNOSIS_DIR . 'vendor/autoload.php' ) ) {
@@ -98,6 +112,58 @@ function agnosis_requirements_check(): bool {
 	}
 	return true;
 }
+
+/**
+ * Advisory notice when Lingua Forge is older than AGNOSIS_MIN_LF — sixteenth
+ * audit, L-1 (2026-07-31).
+ *
+ * **Deliberately not part of agnosis_requirements_check(), and this is the
+ * whole design decision.** That function is a hard gate: a false return stops
+ * Core\Plugin::run() from ever executing, which unregisters ~195 hooks — all
+ * three custom post types, every cron, every REST route. Applying it to a
+ * Lingua Forge version mismatch would take a working public site down (every
+ * artwork URL 404s, intake and federation stop) in response to a dependency
+ * being a point release behind. The audit that raised L-1 suggested reusing
+ * that machinery; on reading what bailing actually costs, that is the wrong
+ * trade.
+ *
+ * It is also unnecessary, which is the deciding half: EVERY Lingua Forge call
+ * site in this plugin is already individually guarded by `function_exists()`
+ * or `class_exists()` — 28 of them across 6 files, re-counted for this fix —
+ * so on an older LF the affected features simply do not run. The plugin
+ * already degrades gracefully; what it could not do before was TELL anyone.
+ * That is exactly what a notice is for, and all this adds.
+ *
+ * Runs on `admin_notices`, which fires long after every plugin file is loaded,
+ * so LINGUAFORGE_VERSION is reliably defined by then regardless of plugin
+ * load order (Agnosis sorts before lingua-forge and is therefore included
+ * first).
+ */
+function agnosis_lingua_forge_notice(): void {
+	if ( ! defined( 'LINGUAFORGE_VERSION' ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( version_compare( (string) LINGUAFORGE_VERSION, AGNOSIS_MIN_LF, '>=' ) ) {
+		return;
+	}
+
+	printf(
+		'<div class="notice notice-warning"><p>%s</p></div>',
+		sprintf(
+			/* translators: 1: required Lingua Forge version, 2: currently installed Lingua Forge version */
+			esc_html__( 'Agnosis is written against Lingua Forge %1$s or newer; this site has %2$s. Agnosis keeps working — features that need the newer version simply stay inactive, currently the artist-subdomain entries in the multilingual sitemap. Updating Lingua Forge enables them.', 'agnosis' ),
+			esc_html( AGNOSIS_MIN_LF ),
+			esc_html( (string) LINGUAFORGE_VERSION )
+		)
+	);
+}
+add_action(
+	'admin_notices',
+	static function (): void {
+		agnosis_lingua_forge_notice();
+	}
+);
 
 // Activation / deactivation hooks — register before any early returns.
 register_activation_hook( __FILE__, [ Core\Activator::class, 'activate' ] );

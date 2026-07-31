@@ -362,18 +362,6 @@ class TagProposals {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Idempotent scheduler — hooked on `init` (Email\Inbox's own cron
-	 * pattern). `wp_next_scheduled()` guards against re-scheduling on every
-	 * request; 'daily' is a WP-core-built-in interval, no custom
-	 * `cron_schedules` filter needed.
-	 */
-	public function schedule_ttl_sweep(): void {
-		if ( ! wp_next_scheduled( 'agnosis_tag_proposal_ttl_sweep' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_tag_proposal_ttl_sweep' );
-		}
-	}
-
-	/**
 	 * Auto-reject any pending proposal older than `agnosis_proposal_ttl` days
 	 * (default 7; TAG-REDESIGN.md T5(b) — shared with
 	 * Admin\MediumProposals::sweep_expired(), renamed from the tag-only

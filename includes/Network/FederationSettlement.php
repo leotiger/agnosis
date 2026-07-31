@@ -302,20 +302,6 @@ class FederationSettlement {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Idempotent scheduler — same `init`-hooked, `wp_next_scheduled()`-guarded
-	 * pattern as `Admin\TagProposals::schedule_ttl_sweep()`. Hourly (rather
-	 * than the proposal sweeps' daily) since `agnosis_federation_tag_wait`'s
-	 * own unit is hours, not days — a daily cadence could let a post wait up
-	 * to 47 hours against a 24-hour setting instead of the ~25 an hourly
-	 * cadence bounds it to.
-	 */
-	public function schedule_fallback_sweep(): void {
-		if ( ! wp_next_scheduled( 'agnosis_federation_tag_wait_sweep' ) ) {
-			wp_schedule_event( time(), 'hourly', 'agnosis_federation_tag_wait_sweep' );
-		}
-	}
-
-	/**
 	 * Force-settle any published artwork still `pending-tags` past
 	 * `agnosis_federation_tag_wait` hours (default 24) — federates with
 	 * whatever tags/medium it currently has; a proposal that resolves later

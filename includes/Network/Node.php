@@ -130,6 +130,48 @@ class Node {
 			return new WP_Error( 'agnosis_missing_url', __( 'Node URL is required.', 'agnosis' ), [ 'status' => 400 ] );
 		}
 
+		// Sixteenth audit, S-1 (2026-07-31): refuse an obviously-unsafe peer URL
+		// at the point it would be STORED, not only where it is fetched.
+		//
+		// resolve_peer_node_card() and check_reciprocity() now both use
+		// wp_safe_remote_get(), which is the authoritative control — it
+		// revalidates at request time and is what actually stops the fetch.
+		// This check is the cheap structural half: without it, anyone can still
+		// plant a `pending` row pointing at http://127.0.0.1:9200/ or a cloud
+		// metadata address and leave it sitting in the Partner Nodes panel as a
+		// standing invitation for an admin to click Approve on. The signature
+		// check below proves possession of a self-minted keypair, never domain
+		// ownership, so such a row costs an attacker nothing to create.
+		//
+		// Deliberately NOT wp_http_validate_url(), despite that being the
+		// predicate wp_safe_remote_*() applies internally, for two reasons that
+		// both matter more than the extra strictness it would add here:
+		//
+		//   1. It calls gethostbyname(). On an unauthenticated, public POST
+		//      endpoint that hands any caller a way to make this server perform
+		//      arbitrary DNS resolutions — a lookup-triggering side channel and
+		//      a blocking network round-trip, on the very endpoint we are
+		//      trying to make cheaper to abuse, not more expensive.
+		//   2. Resolution-time validation is TOCTOU regardless: a host that
+		//      resolves publicly at registration can resolve to 127.0.0.1 by
+		//      approval time (classic DNS rebinding), so it buys little real
+		//      security while costing (1). The authoritative check belongs at
+		//      fetch time, and that is exactly where wp_safe_remote_get() puts
+		//      it.
+		//
+		// So this stays DNS-free and structural: scheme, credentials, literal
+		// private/loopback/link-local addresses, and port. A hostname that only
+		// resolves privately still gets through here and is still refused by
+		// wp_safe_remote_get() at approval — which is the correct division of
+		// labour, not a gap.
+		if ( ! self::is_structurally_safe_peer_url( $peer_url ) ) {
+			return new WP_Error(
+				'agnosis_unsafe_url',
+				__( 'Node URL must be a public http(s) address.', 'agnosis' ),
+				[ 'status' => 400 ]
+			);
+		}
+
 		if ( empty( $public_key ) ) {
 			return new WP_Error( 'agnosis_missing_public_key', __( 'A public key is required to register a peer.', 'agnosis' ), [ 'status' => 400 ] );
 		}
@@ -232,7 +274,18 @@ class Node {
 	 * @return array{actor_id: string, inbox_url: string, label: string}|WP_Error
 	 */
 	public function resolve_peer_node_card( string $peer_url ) {
-		$wellknown = wp_remote_get(
+		// wp_safe_remote_get(), not wp_remote_get() — sixteenth audit, S-1
+		// (2026-07-31). $peer_url is whatever an unauthenticated caller put in
+		// its register_peer() request; the signature check there proves only
+		// possession of a self-minted keypair, never domain ownership. Both
+		// hops below are therefore attacker-chosen destinations reached by an
+		// administrator's own click, i.e. a semi-blind SSRF, and the safe_*
+		// variant is what routes them through wp_http_validate_url() and
+		// refuses loopback/private/reserved addresses. This restores the rule
+		// the rest of the plugin already follows everywhere an attacker can
+		// influence a URL (ActivityPub::resolve_inbox(), attempt_send(),
+		// HttpSignature's actor fetch, EmbedPolicy).
+		$wellknown = wp_safe_remote_get(
 			trailingslashit( $peer_url ) . '.well-known/agnosis-node',
 			[ 'timeout' => 10, 'sslverify' => true ]
 		);
@@ -248,7 +301,12 @@ class Node {
 			return new WP_Error( 'agnosis_peer_no_endpoint', __( 'This peer\'s node-discovery response did not include a node card endpoint.', 'agnosis' ) );
 		}
 
-		$card_response = wp_remote_get( $endpoint, [ 'timeout' => 10, 'sslverify' => true ] );
+		// Second hop, and the more dangerous of the two: $endpoint is read
+		// verbatim out of the JSON body the peer's own server just returned,
+		// so it is fully attacker-chosen regardless of how the first hop's URL
+		// was vetted. esc_url_raw() above normalises it; only wp_safe_remote_*
+		// refuses to fetch a private address with it.
+		$card_response = wp_safe_remote_get( $endpoint, [ 'timeout' => 10, 'sslverify' => true ] );
 
 		if ( is_wp_error( $card_response ) || 200 !== wp_remote_retrieve_response_code( $card_response ) ) {
 			return new WP_Error( 'agnosis_peer_card_unreachable', __( 'Could not fetch this peer\'s node card.', 'agnosis' ) );
@@ -304,7 +362,12 @@ class Node {
 	 * @return bool|WP_Error True if mutual, false if one-directional, WP_Error if the peer's own peer list couldn't be reached or read.
 	 */
 	public function check_reciprocity( string $peer_url ) {
-		$response = wp_remote_get(
+		// wp_safe_remote_get() — same S-1 reasoning as resolve_peer_node_card()
+		// above: $peer_url is peer-supplied and this fires on an admin's own
+		// "Check" click. An unreachable or refused address already returns the
+		// same "unknown" state this method's docblock describes for any other
+		// network failure, so the safe variant needs no new branch here.
+		$response = wp_safe_remote_get(
 			trailingslashit( $peer_url ) . 'wp-json/agnosis/v1/node/peers',
 			[ 'timeout' => 10, 'sslverify' => true ]
 		);
@@ -336,6 +399,79 @@ class Node {
 	}
 
 	// -------------------------------------------------------------------------
+
+	/**
+	 * DNS-free structural safety check for a peer-supplied URL — sixteenth
+	 * audit, S-1 (2026-07-31). See register_peer()'s own comment for why this
+	 * exists rather than a wp_http_validate_url() call, and why it is only the
+	 * cheap half of the fix (wp_safe_remote_get() at fetch time is the
+	 * authoritative one).
+	 *
+	 * Rejects, without resolving anything:
+	 *  - any scheme other than http/https;
+	 *  - embedded credentials (`http://user:pass@host/`);
+	 *  - a host carrying `:`, `#`, `?` or `[`/`]` — which also excludes IPv6
+	 *    literals, matching what core's own wp_http_validate_url() refuses, so
+	 *    this can never accept a host wp_safe_remote_get() would then reject;
+	 *  - bare `localhost` (and any `*.localhost`);
+	 *  - literal IPv4 addresses in loopback, private, link-local (including the
+	 *    169.254.169.254 cloud-metadata address), CGNAT, broadcast/multicast
+	 *    and 0.0.0.0/8 ranges;
+	 *  - any port outside core's own default safe set (80, 443, 8080).
+	 */
+	private static function is_structurally_safe_peer_url( string $url ): bool {
+		$parts = wp_parse_url( $url );
+
+		if ( ! is_array( $parts ) || empty( $parts['host'] ) ) {
+			return false;
+		}
+
+		if ( ! in_array( strtolower( (string) ( $parts['scheme'] ?? '' ) ), [ 'http', 'https' ], true ) ) {
+			return false;
+		}
+
+		if ( isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
+			return false;
+		}
+
+		$host = strtolower( trim( (string) $parts['host'], '.' ) );
+
+		if ( '' === $host || false !== strpbrk( $host, ':#?[]' ) ) {
+			return false;
+		}
+
+		if ( 'localhost' === $host || str_ends_with( $host, '.localhost' ) ) {
+			return false;
+		}
+
+		// Port: core's own default allowlist (see the `http_allowed_safe_ports`
+		// filter's documented default in wp-includes/http.php).
+		if ( isset( $parts['port'] ) && ! in_array( (int) $parts['port'], [ 80, 443, 8080 ], true ) ) {
+			return false;
+		}
+
+		// Literal IPv4 only — a hostname is deliberately left to fetch-time
+		// validation rather than resolved here.
+		if ( ! filter_var( $host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+			return true;
+		}
+
+		// CGNAT (100.64.0.0/10, RFC 6598) is covered by NEITHER of PHP's
+		// filter flags below nor by core's own wp_http_validate_url() — checked
+		// against both rather than assumed — so it gets an explicit test. It is
+		// carrier-NAT and internal-cloud space, exactly the kind of address an
+		// SSRF wants to reach.
+		$octets = array_map( 'intval', explode( '.', $host ) );
+		if ( 100 === $octets[0] && $octets[1] >= 64 && $octets[1] <= 127 ) {
+			return false;
+		}
+
+		return (bool) filter_var(
+			$host,
+			FILTER_VALIDATE_IP,
+			FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+		);
+	}
 
 	/**
 	 * Prune the oldest `status = 'pending'` rows once the table has reached

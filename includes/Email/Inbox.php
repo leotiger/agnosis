@@ -60,20 +60,6 @@ class Inbox {
 		return $schedules;
 	}
 
-	/** Schedule the cron poll if not already scheduled (idempotent). */
-	public function schedule_poll(): void {
-		if ( ! wp_next_scheduled( 'agnosis_poll_inbox' ) ) {
-			wp_schedule_event( time(), 'every_five_minutes', 'agnosis_poll_inbox' );
-		}
-	}
-
-	/** Schedule the daily inbox/queue cleanup if not already scheduled (idempotent). */
-	public function schedule_cleanup(): void {
-		if ( ! wp_next_scheduled( 'agnosis_cleanup_inbox' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_cleanup_inbox' );
-		}
-	}
-
 	/**
 	 * Cron callback — purge old IMAP messages, stale queue rows, old log
 	 * entries, and expired debug-tracing dumps.

@@ -438,14 +438,12 @@ class Plugin {
 		// fire. A second, throwaway TagProposals instance — the class is
 		// stateless, so this costs nothing beyond the one extra object.
 		$tag_proposal_sweep = new TagProposals();
-		$this->loader->add_action( 'init',                          $tag_proposal_sweep, 'schedule_ttl_sweep' );
 		$this->loader->add_action( 'agnosis_tag_proposal_ttl_sweep', $tag_proposal_sweep, 'sweep_expired' );
 
 		// Medium-proposal TTL sweep (TAG-REDESIGN.md T5(b)) — same
 		// unconditional-registration reasoning as the tag sweep just above,
 		// and the same shared `agnosis_proposal_ttl` setting.
 		$medium_proposal_sweep = new MediumProposals();
-		$this->loader->add_action( 'init',                             $medium_proposal_sweep, 'schedule_ttl_sweep' );
 		$this->loader->add_action( 'agnosis_medium_proposal_ttl_sweep', $medium_proposal_sweep, 'sweep_expired' );
 
 		// Email ingestion — IMAP scheduled poll + daily cleanup.
@@ -453,8 +451,6 @@ class Plugin {
 		$this->loader->add_filter( 'cron_schedules',        $inbox, 'register_interval' );
 		$this->loader->add_action( 'agnosis_poll_inbox',    $inbox, 'poll' );
 		$this->loader->add_action( 'agnosis_cleanup_inbox', $inbox, 'cleanup' );
-		$this->loader->add_action( 'init',                  $inbox, 'schedule_poll' );
-		$this->loader->add_action( 'init',                  $inbox, 'schedule_cleanup' );
 
 		// Email ingestion — webhook endpoint.
 		$webhook = new Webhook();
@@ -592,6 +588,11 @@ class Plugin {
 		// Interaction-surface roadmap, Phase 3, WP2 — daily anonymous-like
 		// salt rotation (ActivityPub::rotate_like_salt()'s own docblock).
 		$this->loader->add_action( 'agnosis_rotate_like_salt', $activitypub, 'rotate_like_salt' );
+		// Sixteenth audit, G-4 — retention sweep for RN3b's relay log,
+		// piggybacked on the existing daily inbox-cleanup cron exactly as
+		// ContactForm::prune_old_messages() and Logger::prune() already are,
+		// rather than a new scheduled event. See prune_relay_log()'s docblock.
+		$this->loader->add_action( 'agnosis_cleanup_inbox', $activitypub, 'prune_relay_log' );
 		// Interaction-surface roadmap, Phase 3, WP6 (2026-07-27): federating
 		// artist replies outward. store_artist_gateway_reply() already
 		// triggers the outbound Create{Note} inline (no hook needed there —
@@ -647,7 +648,6 @@ class Plugin {
 		$this->loader->add_action( 'linguaforge_translation_complete', $federation_settlement, 'on_translation_complete', 20, 3 );
 		// Safety valve — force-settles any published artwork still waiting
 		// on a tag/medium proposal past agnosis_federation_tag_wait hours.
-		$this->loader->add_action( 'init',                              $federation_settlement, 'schedule_fallback_sweep' );
 		$this->loader->add_action( 'agnosis_federation_tag_wait_sweep', $federation_settlement, 'sweep_timed_out' );
 
 		// Subdomain navigation — artist-breadcrumb block, plus pointing the Site

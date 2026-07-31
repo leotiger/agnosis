@@ -361,6 +361,120 @@ class NodeTest extends \WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// Sixteenth audit, S-1: SSRF hardening (plugin 0.9.66)
+	//
+	// Two independent halves, tested separately because they fail differently:
+	//   (a) register_peer() refuses to STORE a structurally unsafe URL, so a
+	//       hostile row never reaches the Partner Nodes panel for an admin to
+	//       click Approve on;
+	//   (b) both outbound peer fetches go through wp_safe_remote_get(), which
+	//       is the authoritative control — asserted by checking that the HTTP
+	//       args actually carry `reject_unsafe_urls`, rather than by trusting
+	//       the function name at the call site.
+	// -------------------------------------------------------------------------
+
+	/** @return array<string, array{0: string}> */
+	public static function unsafe_peer_url_provider(): array {
+		return [
+			'loopback'            => [ 'http://127.0.0.1:9200/' ],
+			'localhost'          => [ 'http://localhost/' ],
+			'localhost subdomain' => [ 'https://internal.localhost/' ],
+			'cloud metadata'      => [ 'http://169.254.169.254/latest/meta-data/' ],
+			'private 192.168'     => [ 'http://192.168.1.10/' ],
+			'private 10.x'        => [ 'http://10.0.0.5/' ],
+			'private 172.16'      => [ 'http://172.16.4.4/' ],
+			'cgnat 100.64'        => [ 'http://100.64.0.1/' ],
+			'unspecified 0.0.0.0' => [ 'http://0.0.0.0/' ],
+			'ipv6 loopback'       => [ 'http://[::1]/' ],
+			'non-http scheme'     => [ 'ftp://peer.example/' ],
+			'embedded creds'      => [ 'http://user:pass@peer.example/' ],
+			'unsafe port'         => [ 'http://peer.example:22/' ],
+		];
+	}
+
+	/** @dataProvider unsafe_peer_url_provider */
+	public function test_register_peer_refuses_to_store_a_structurally_unsafe_url( string $url ): void {
+		$request = $this->build_peer_request( [ 'url' => $url ] );
+
+		$result = ( new Node() )->register_peer( $request );
+
+		$this->assertInstanceOf( \WP_Error::class, $result );
+		$this->assertSame( 'agnosis_unsafe_url', $result->get_error_code() );
+		$this->assertSame( 400, $result->get_error_data()['status'] );
+		$this->assertNull( $this->get_node_row( $url ), 'An unsafe peer URL must never reach agnosis_nodes.' );
+	}
+
+	/**
+	 * Regression guard for the check itself: an ordinary public URL — including
+	 * a non-resolving `.example` host, which is what every other test in this
+	 * file uses — must still register normally. This is the assertion that
+	 * keeps the S-1 fix from being tightened into a DNS-resolving check later
+	 * (see is_structurally_safe_peer_url()'s docblock for why it must not be).
+	 */
+	public function test_register_peer_still_accepts_an_ordinary_public_url(): void {
+		$request = $this->build_peer_request( [ 'url' => 'https://ordinary-peer.example/' ] );
+
+		$result = ( new Node() )->register_peer( $request );
+
+		$this->assertNotInstanceOf( \WP_Error::class, $result );
+		$row = $this->get_node_row( 'https://ordinary-peer.example/' );
+		$this->assertIsArray( $row );
+		$this->assertSame( 'pending', $row['status'] );
+	}
+
+	public function test_resolve_peer_node_card_rejects_unsafe_urls_at_fetch_time(): void {
+		$seen = [];
+		add_filter( 'pre_http_request', static function ( $pre, $args ) use ( &$seen ) {
+			$seen[] = ! empty( $args['reject_unsafe_urls'] );
+			return new \WP_Error( 'http_request_failed', 'stopped' );
+		}, 10, 2 );
+
+		( new Node() )->resolve_peer_node_card( 'https://card-peer.example/' );
+
+		$this->assertNotEmpty( $seen, 'resolve_peer_node_card() made no HTTP request.' );
+		$this->assertTrue( $seen[0], 'The .well-known hop must use wp_safe_remote_get() (reject_unsafe_urls).' );
+	}
+
+	public function test_resolve_peer_node_card_second_hop_also_rejects_unsafe_urls(): void {
+		$seen = [];
+		add_filter( 'pre_http_request', static function ( $pre, $args, $url ) use ( &$seen ) {
+			$seen[] = ! empty( $args['reject_unsafe_urls'] );
+
+			// First hop: hand back a pointer at an attacker-chosen internal
+			// address, which is the shape that makes the second hop dangerous.
+			if ( str_contains( (string) $url, '.well-known/agnosis-node' ) ) {
+				return [
+					'response' => [ 'code' => 200, 'message' => 'OK' ],
+					'headers'  => [],
+					'body'     => (string) wp_json_encode( [ 'endpoint' => 'http://169.254.169.254/latest/meta-data/' ] ),
+					'cookies'  => [],
+					'filename' => '',
+				];
+			}
+
+			return new \WP_Error( 'http_request_failed', 'stopped' );
+		}, 10, 3 );
+
+		( new Node() )->resolve_peer_node_card( 'https://card-peer.example/' );
+
+		$this->assertCount( 2, $seen, 'Expected both hops to be attempted.' );
+		$this->assertTrue( $seen[1], 'The node-card hop must use wp_safe_remote_get() (reject_unsafe_urls).' );
+	}
+
+	public function test_check_reciprocity_rejects_unsafe_urls_at_fetch_time(): void {
+		$seen = [];
+		add_filter( 'pre_http_request', static function ( $pre, $args ) use ( &$seen ) {
+			$seen[] = ! empty( $args['reject_unsafe_urls'] );
+			return new \WP_Error( 'http_request_failed', 'stopped' );
+		}, 10, 2 );
+
+		( new Node() )->check_reciprocity( 'https://recip-peer.example/' );
+
+		$this->assertNotEmpty( $seen, 'check_reciprocity() made no HTTP request.' );
+		$this->assertTrue( $seen[0], 'check_reciprocity() must use wp_safe_remote_get() (reject_unsafe_urls).' );
+	}
+
+	// -------------------------------------------------------------------------
 	// RN2: resolve_peer_node_card()
 	// -------------------------------------------------------------------------
 

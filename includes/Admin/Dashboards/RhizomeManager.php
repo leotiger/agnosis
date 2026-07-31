@@ -127,7 +127,7 @@ class RhizomeManager {
 			<td><?php $this->render_status_badge( $peer->status ); ?></td>
 			<td>
 				<?php if ( 'trusted' === $peer->status ) : ?>
-					<?php $this->render_trust_scope_form( $id, $peer->trust_scope ); ?>
+					<?php $this->render_trust_scope_form( $id, $peer->trust_scope, (string) ( $peer->label ?: $peer->url ) ); ?>
 				<?php else : ?>
 					<span style="color:#999">&mdash;</span>
 				<?php endif; ?>
@@ -192,13 +192,40 @@ class RhizomeManager {
 		);
 	}
 
-	private function render_trust_scope_form( int $id, string $current_scope ): void {
+	/**
+	 * @param string $peer_name This peer's own display name, used to give the
+	 *                          select a distinct accessible name per row —
+	 *                          sixteenth audit, A-2 (2026-07-31).
+	 */
+	private function render_trust_scope_form( int $id, string $current_scope, string $peer_name = '' ): void {
+		// A-2: the control had no accessible name at all — no id, no <label>, no
+		// aria-label — so a screen-reader user in this table heard "combo box,
+		// Domain" with nothing to say WHICH peer's trust scope it governs, on a
+		// screen whose whole purpose is per-peer trust decisions. Same per-row
+		// shape the fifteenth audit's own A-2 solved for MembersDashboard's
+		// banned_until and BiographyTitleCache's translation field: a real
+		// visually-hidden <label> (not aria-label — see that finding for why),
+		// with an id unique per row and a name that identifies the peer.
+		$select_id = 'agnosis-rhizome-trust-scope-' . $id;
 		?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex;gap:4px;align-items:center">
 			<input type="hidden" name="action" value="agnosis_rhizome_set_trust_scope">
 			<input type="hidden" name="peer_id" value="<?php echo esc_attr( (string) $id ); ?>">
 			<?php wp_nonce_field( 'agnosis_rhizome_set_trust_scope_' . $id, 'agnosis_nonce' ); ?>
-			<select name="trust_scope" style="font-size:12px">
+			<label class="screen-reader-text" for="<?php echo esc_attr( $select_id ); ?>">
+				<?php
+				if ( '' !== $peer_name ) {
+					printf(
+						/* translators: %s: the partner node's own name or URL. */
+						esc_html__( 'Trust scope for %s', 'agnosis' ),
+						esc_html( $peer_name )
+					);
+				} else {
+					esc_html_e( 'Trust scope', 'agnosis' );
+				}
+				?>
+			</label>
+			<select id="<?php echo esc_attr( $select_id ); ?>" name="trust_scope" style="font-size:12px">
 				<option value="domain" <?php selected( $current_scope, 'domain' ); ?>><?php esc_html_e( 'Domain', 'agnosis' ); ?></option>
 				<option value="actor" <?php selected( $current_scope, 'actor' ); ?>><?php esc_html_e( 'Actor only', 'agnosis' ); ?></option>
 			</select>

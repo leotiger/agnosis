@@ -1066,6 +1066,29 @@ foreach ($work as $locale => $w) {
                 continue;
             }
 
+            // Third defense in depth, same family (sixteenth audit, I-1): a
+            // response that escapes a real placeholder into a literal by
+            // doubling its percent — "%%s" where the source has "%s". Found in
+            // agnosis-hi_IN.po, live in a shipped transactional email: sprintf()
+            // renders "%%s" as the two characters "%s", so the artist's name was
+            // replaced by literal punctuation in every Hindi-locale send.
+            //
+            // This one is invisible to BOTH existing guards and to msgfmt -c:
+            // "%%" is a valid literal-percent escape, so the file is formally
+            // correct; and a naive placeholder scan counts "%%s" as one "%s",
+            // so the count matches and the guard above passes. It has to be
+            // checked as its own shape.
+            //
+            // Only rejected when the SOURCE has no "%%" of its own — a string
+            // that legitimately displays a percent sign (e.g. "50%% off") must
+            // still be allowed to carry one through.
+            $sourceHasLiteralPercent = str_contains((string) ($it['payload']['source_singular'] ?? ''), '%%')
+                || str_contains((string) ($it['payload']['source_plural'] ?? ''), '%%');
+            if (!$sourceHasLiteralPercent && preg_match('/%%[a-zA-Z\d]/', $translated) === 1) {
+                fwrite(STDERR, "  [{$locale}] response for {$id} escapes a placeholder as '%%' — would render as literal text, not a substitution — skipped: " . mb_substr($translated, 0, 120) . "\n");
+                continue;
+            }
+
             $apply = $it['apply'];
 
             if (isset($apply['slot'])) {

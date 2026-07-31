@@ -614,29 +614,20 @@ class ActivatorTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * Literal copy of Activator::RECURRING_CRON_SCHEDULE's keys, since the
-	 * const itself is private. Kept as a single small helper (rather than
-	 * inlining this list in all three tests above) so there's exactly one
-	 * place to update if that const's own hook set ever changes.
+	 * The recurring-cron map, read straight from the const.
+	 *
+	 * This used to be a hand-maintained literal copy of those 13 entries,
+	 * because RECURRING_CRON_SCHEDULE was `private` — a duplicate that would
+	 * have gone stale the moment the const changed, which is exactly what
+	 * happened when the sixteenth audit's Q-3 fix grew it from 13 hooks to 18.
+	 * The const is `public` as of 0.9.66 (`CronHookParityTest` needs to read it
+	 * too, to assert it covers every recurring hook in CRON_HOOKS), so these
+	 * tests now follow the real thing instead of a snapshot of it.
 	 *
 	 * @return array<string, string>
 	 */
 	private static function recurring_cron_schedule_for_test(): array {
-		return [
-			'agnosis_check_admissions'              => 'daily',
-			'agnosis_check_bans'                    => 'daily',
-			'agnosis_check_removal_votes'           => 'daily',
-			'agnosis_check_cap_votes'               => 'daily',
-			'agnosis_vote_digest'                   => 'daily',
-			'agnosis_rotate_like_salt'              => 'daily',
-			'agnosis_prepare_newsletters'           => 'daily',
-			'agnosis_send_newsletter_queue'         => 'every_five_minutes',
-			'agnosis_ap_retry_deliveries'           => 'every_five_minutes',
-			'agnosis_drain_translation_queue'       => 'every_five_minutes',
-			'agnosis_drain_rename_queue'            => 'every_five_minutes',
-			'agnosis_drain_reply_translation_queue' => 'every_five_minutes',
-			'agnosis_drain_contact_reply_queue'     => 'every_five_minutes',
-		];
+		return Activator::RECURRING_CRON_SCHEDULE;
 	}
 
 	// =========================================================================

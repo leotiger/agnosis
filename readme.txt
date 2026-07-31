@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.6
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.65
+Stable tag: 0.9.66
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,6 +91,22 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.66 =
+* Changed: The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13 — including the email inbox poll, which is how artwork submissions arrive. No change in normal operation; it means fewer ways for a scheduled task to go missing unnoticed.
+* Added: Agnosis now warns in the admin when Lingua Forge is older than the version it was written against, instead of the affected feature just silently not appearing. Agnosis keeps working either way.
+* Added: Agnosis posts are now explicitly excluded from Lingua Forge 2.7.0's own comment translation, so replies can never be mirrored twice by both plugins.
+* Fixed: The reply form on an artwork had no field labels, only placeholder text, making it hard to use with a screen reader or voice control. Same for the Partner Nodes trust-scope dropdown, which didn't say which peer it belonged to.
+* Fixed: The "Follow" popover's error message ("enter your instance domain") was never announced to screen readers.
+* Fixed: Hindi-speaking artists received a contact-reply email showing the characters "%s" instead of the sender's name.
+* Fixed: The Arabic translation of the open-community-votes line left out the number for counts between 11 and 99.
+* Fixed: The artist newsletter read "1 likes on your work" and "From 1 trusted partner nodes" instead of the singular. The English plural forms were wrong in the translation catalog.
+* Security: The Partner Nodes panel's "Approve" and "Check" buttons could be used to make your own server contact addresses inside your private network, because anyone can register themselves as a pending peer with any address they like. Those requests now refuse private and loopback addresses, and an unsafe address is rejected at registration so it never appears in the panel at all.
+* Fixed: A visitor asking you to erase their data also wiped the artist's own replies to them, and a visitor's data export included those replies as though the visitor had written them. Erasure now keeps the artist's words while removing the visitor's details from them, and reports the result honestly as a partial erasure.
+* Fixed: The reply form asked for an email address without showing any privacy notice, unlike the join and contact forms. It now explains that a reply is reviewed by the artist, then published, translated and shared across the Fediverse.
+* Added: Data exports and erasure requests now also cover the automatic translations made of a visitor's own reply, which WordPress's built-in comment tools cannot see.
+* Added: Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings → Network.
+* Changed: The suggested privacy-policy text (Settings → Privacy → Policy Guide) now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms that use the Cloudflare Turnstile check.
+
 = 0.9.65 =
 * Added: A new "Partner Nodes" panel (Settings → Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.
 * Added: Trusted rhizome peers' boosts are now actually relayed to your own followers, with a per-peer badge showing whether the trust is mutual and a log of what's been relayed.
@@ -102,13 +118,12 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Fixed: The new personal likes/boosts summary could show an all-time total instead of just the period since your last digest.
 * Fixed: A partner node that trusts you back could still show as one-directional if you had been added to their list by hand.
 
-= 0.9.64 =
-* Added: An artist's subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap's cache.
-* Added: Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.
-
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 
 == Upgrade Notice ==
+
+= 0.9.66 =
+Security fix for the new Partner Nodes panel: approving or checking a peer could reach addresses inside your own network. Update if you use Settings → Rhizome.
 
 = 0.9.57 =
 Security fix: an email scanner's link prefetch could silently approve or discard a Fediverse reply before you saw it. No action needed.

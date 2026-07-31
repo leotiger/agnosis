@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-30T20:58+00:00\n"
+"POT-Creation-Date: 2026-07-31T15:52+00:00\n"
 "PO-Revision-Date: 2026-07-19 17:01+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Urdu\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: agnosis.php includes/Admin/InboxPage.php:78 includes/Admin/Settings.php:198
-#: includes/Core/Privacy.php:730 includes/Publishing/SubmissionsPage.php:63
+#: includes/Core/Privacy.php:969 includes/Publishing/SubmissionsPage.php:63
 msgid "Agnosis"
 msgstr "Agnosis"
 
@@ -44,16 +44,26 @@ msgid "Uli Hake"
 msgstr "Uli Hake"
 
 #. translators: %s: required PHP version
-#: agnosis.php:75
+#: agnosis.php:89
 #, php-format
 msgid "Agnosis requires PHP %s or higher."
 msgstr "Agnosis کو PHP %s یا اس سے اعلیٰ درکار ہے۔"
 
 #. translators: %s: required WP version
-#: agnosis.php:91
+#: agnosis.php:105
 #, php-format
 msgid "Agnosis requires WordPress %s or higher."
 msgstr "Agnosis کو WordPress %s یا اس سے اعلیٰ درکار ہے۔"
+
+#. translators: 1: required Lingua Forge version, 2: currently installed Lingua Forge version
+#: agnosis.php:155
+#, php-format
+msgid ""
+"Agnosis is written against Lingua Forge %1$s or newer; this site has %2$s. "
+"Agnosis keeps working — features that need the newer version simply stay "
+"inactive, currently the artist-subdomain entries in the multilingual "
+"sitemap. Updating Lingua Forge enables them."
+msgstr "Agnosis Lingua Forge %1$s یا اس کے بعد کے لئے لکھا گیا ہے؛ اس سائٹ پر %2$s موجود ہے۔ Agnosis کام کرتا رہتا ہے — جو خصوصیات نئے ورژن کی ضرورت رکھتی ہیں وہ غیر فعال رہ جاتی ہیں، فی الحال فنکار-ذیلی ڈومین کے اندراجات ملٹی لنگوئل سائٹ میپ میں۔ Lingua Forge کو اپ ڈیٹ کرنے سے یہ فعال ہوجاتے ہیں۔"
 
 #: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
@@ -156,12 +166,12 @@ msgstr "ترجمے کے ٹیگ کو ہم آہنگ کریں"
 #: includes/Admin/Dashboards/RelayManager.php:125
 #: includes/Admin/Dashboards/RelayManager.php:148
 #: includes/Admin/Dashboards/RelayManager.php:174
-#: includes/Admin/Dashboards/RhizomeManager.php:319
-#: includes/Admin/Dashboards/RhizomeManager.php:379
-#: includes/Admin/Dashboards/RhizomeManager.php:395
-#: includes/Admin/Dashboards/RhizomeManager.php:426
-#: includes/Admin/Dashboards/RhizomeManager.php:464
-#: includes/Admin/Dashboards/RhizomeManager.php:508
+#: includes/Admin/Dashboards/RhizomeManager.php:346
+#: includes/Admin/Dashboards/RhizomeManager.php:406
+#: includes/Admin/Dashboards/RhizomeManager.php:422
+#: includes/Admin/Dashboards/RhizomeManager.php:453
+#: includes/Admin/Dashboards/RhizomeManager.php:491
+#: includes/Admin/Dashboards/RhizomeManager.php:535
 #: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
@@ -345,8 +355,8 @@ msgstr "منجانب"
 
 #: includes/Admin/ContactMessagesPage.php:99
 #: includes/Admin/Dashboards/LogsTab.php:81 includes/Artist/ContactForm.php:176
-#: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:227
-#: includes/Core/Privacy.php:245 includes/Core/Privacy.php:385
+#: includes/Artist/ContactFormBlock.php:126 includes/Core/Privacy.php:233
+#: includes/Core/Privacy.php:251 includes/Core/Privacy.php:403
 msgid "Message"
 msgstr "پیغام"
 
@@ -356,9 +366,9 @@ msgstr "پیغام"
 #: includes/Admin/Dashboards/NewsletterDashboard.php:87
 #: includes/Admin/Dashboards/RelayManager.php:69
 #: includes/Admin/Dashboards/RhizomeManager.php:79
-#: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:182
-#: includes/Core/Privacy.php:315 includes/Core/Privacy.php:351
-#: includes/Core/Privacy.php:387
+#: includes/Admin/InboxPage.php:167 includes/Core/Privacy.php:188
+#: includes/Core/Privacy.php:321 includes/Core/Privacy.php:357
+#: includes/Core/Privacy.php:405
 msgid "Status"
 msgstr "حالت"
 
@@ -518,7 +528,7 @@ msgstr "داخل کریں"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4889
+#: includes/Network/ActivityPub.php:4954
 msgid "Reject"
 msgstr "مسترد کریں"
 
@@ -630,7 +640,7 @@ msgstr ""
 "کچھ نہیں۔"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:76
-#: includes/Core/Privacy.php:181 includes/Newsletter/SignupBlock.php:71
+#: includes/Core/Privacy.php:187 includes/Newsletter/SignupBlock.php:71
 #: blocks/breadcrumb-icon-link/editor.js:92
 #: blocks/breadcrumb-icon-link/editor.js:135
 msgid "Language"
@@ -652,7 +662,7 @@ msgstr ""
 "ابھی ترجمہ نہیں ہوا — AI کو خودکار ترجمہ کرنے دینے کے لیے خالی چھوڑ دیں"
 
 #: includes/Admin/Dashboards/BiographyTitleCache.php:106
-#: includes/Admin/Dashboards/RhizomeManager.php:205
+#: includes/Admin/Dashboards/RhizomeManager.php:232
 #: includes/Artist/ContentEditor.php:1454
 msgid "Save"
 msgstr "محفوظ کریں"
@@ -1121,7 +1131,7 @@ msgstr "%1$d شامل کیے گئے (%2$d نے دستبرداری اختیار �
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3525
+#: includes/Network/ActivityPub.php:3565
 msgid "Sending…"
 msgstr "بھیجا جا رہا ہے…"
 
@@ -1245,7 +1255,7 @@ msgstr ""
 "Undo{Follow} بھیجا جاتا ہے تاکہ ریلی اس نوڈ کو مواد فراہم کرنا بند کر دے۔"
 
 #: includes/Admin/Dashboards/RelayManager.php:96
-#: includes/Admin/Dashboards/RhizomeManager.php:222
+#: includes/Admin/Dashboards/RhizomeManager.php:249
 #: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
@@ -1266,7 +1276,13 @@ msgid ""
 "another’s work. Nothing here shows another instance’s content on your own "
 "site — it only affects what leaves this node toward the wider Fediverse. "
 "Every peer starts here as \"Pending\" until approved."
-msgstr "ایک معتبر ساتھی کی بڑھوتریوں کا اثر اس نوڈ کے اپنے پیروکاروں تک بھی پہنچتا ہے، اس کے دائرے کو آپ کے نوڈ کے ذریعے بڑھاتا ہے جس طرح ایک فنکار پہلے سے دوسرے کے کام کو بڑھا سکتا ہے۔ یہاں کچھ بھی دوسرے مثال کا مواد آپ کی اپنی سائٹ پر ظاہر نہیں ہوتا — یہ صرف اس نوڈ سے وسیع Fediverse کی طرف جانے والے مواد کو متاثر کرتا ہے۔ ہر ہم منصب یہاں \"زیر غور\" کے طور پر شروع ہوتا ہے جب تک کہ اسے منظور نہ کیا جائے۔"
+msgstr ""
+"ایک معتبر ساتھی کی بڑھوتریوں کا اثر اس نوڈ کے اپنے پیروکاروں تک بھی پہنچتا "
+"ہے، اس کے دائرے کو آپ کے نوڈ کے ذریعے بڑھاتا ہے جس طرح ایک فنکار پہلے سے "
+"دوسرے کے کام کو بڑھا سکتا ہے۔ یہاں کچھ بھی دوسرے مثال کا مواد آپ کی اپنی "
+"سائٹ پر ظاہر نہیں ہوتا — یہ صرف اس نوڈ سے وسیع Fediverse کی طرف جانے والے "
+"مواد کو متاثر کرتا ہے۔ ہر ہم منصب یہاں \"زیر غور\" کے طور پر شروع ہوتا ہے جب "
+"تک کہ اسے منظور نہ کیا جائے۔"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:73
 msgid "No peers have registered or been added yet."
@@ -1277,7 +1293,8 @@ msgid "Peer"
 msgstr "ہم منصب"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:80
-#: includes/Admin/Dashboards/RhizomeManager.php:275
+#: includes/Admin/Dashboards/RhizomeManager.php:224
+#: includes/Admin/Dashboards/RhizomeManager.php:302
 msgid "Trust scope"
 msgstr "اعتماد کا دائرہ"
 
@@ -1292,7 +1309,9 @@ msgid ""
 "Manually adding a non-Agnosis Fediverse actor as a trusted peer is currently "
 "off. Enable \"Allow manually trusting non-Agnosis Fediverse actors\" %s to "
 "add one directly."
-msgstr "غیر-Agnosis Fediverse اداکار کو ایک معتبر ہم منصب کے طور پر دستی طور پر شامل کرنا فی الحال بند ہے۔ ایک کو براہ راست شامل کرنے کے لیے \"%s\" کو اہل کریں۔"
+msgstr ""
+"غیر-Agnosis Fediverse اداکار کو ایک معتبر ہم منصب کے طور پر دستی طور پر شامل "
+"کرنا فی الحال بند ہے۔ ایک کو براہ راست شامل کرنے کے لیے \"%s\" کو اہل کریں۔"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:101
 msgid "above"
@@ -1331,105 +1350,120 @@ msgstr "معتبر"
 msgid "Blocked"
 msgstr "روکا ہوا"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:202
+#. translators: %s: the partner node's own name or URL.
+#: includes/Admin/Dashboards/RhizomeManager.php:220
+#, php-format
+msgid "Trust scope for %s"
+msgstr "%s کے لئے اعتماد کا دائرہ"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:229
 msgid "Domain"
 msgstr "ڈومین"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:203
+#: includes/Admin/Dashboards/RhizomeManager.php:230
 msgid "Actor only"
 msgstr "صرف اداکار"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:212
+#: includes/Admin/Dashboards/RhizomeManager.php:239
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4888
+#: includes/Network/ActivityPub.php:4953
 msgid "Approve"
 msgstr "منظور کریں"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:213
-#: includes/Admin/Dashboards/RhizomeManager.php:215
+#: includes/Admin/Dashboards/RhizomeManager.php:240
+#: includes/Admin/Dashboards/RhizomeManager.php:242
 msgid "Block"
 msgstr "بند کریں"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:217
+#: includes/Admin/Dashboards/RhizomeManager.php:244
 msgid "Unblock"
 msgstr "کھولیں"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:224
-msgid "Remove this peer entirely? It will need to register again from scratch."
-msgstr "کیا اس ہم منصب کو مکمل طور پر ہٹائیں؟ اسے دوبارہ صفر سے رجسٹر ہونا پڑے گا۔"
-
 #: includes/Admin/Dashboards/RhizomeManager.php:251
+msgid "Remove this peer entirely? It will need to register again from scratch."
+msgstr ""
+"کیا اس ہم منصب کو مکمل طور پر ہٹائیں؟ اسے دوبارہ صفر سے رجسٹر ہونا پڑے گا۔"
+
+#: includes/Admin/Dashboards/RhizomeManager.php:278
 msgid "Add a trusted peer directly"
 msgstr "براہ راست ایک معتبر ہم منصب شامل کریں"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:253
+#: includes/Admin/Dashboards/RhizomeManager.php:280
 msgid ""
 "For a non-Agnosis Fediverse actor (a curator account, a specific instance "
 "you already trust) that you want to vouch for by hand, without going through "
 "node self-registration. Added as trusted immediately."
-msgstr "ایک غیر-Agnosis Fediverse اداکار (ایک کیوریٹر اکاؤنٹ، ایک مخصوص مثال جس پر آپ پہلے ہی بھروسہ کرتے ہیں) کے لیے جس کی آپ دستی طور پر توثیق کرنا چاہتے ہیں، بغیر نوڈ کی خود رجسٹریشن کے۔ فوراً معتبر طور پر شامل کیا گیا۔"
+msgstr ""
+"ایک غیر-Agnosis Fediverse اداکار (ایک کیوریٹر اکاؤنٹ، ایک مخصوص مثال جس پر "
+"آپ پہلے ہی بھروسہ کرتے ہیں) کے لیے جس کی آپ دستی طور پر توثیق کرنا چاہتے "
+"ہیں، بغیر نوڈ کی خود رجسٹریشن کے۔ فوراً معتبر طور پر شامل کیا گیا۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:259
+#: includes/Admin/Dashboards/RhizomeManager.php:286
 msgid "Actor URL"
 msgstr "اداکار کا URL"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:263
+#: includes/Admin/Dashboards/RhizomeManager.php:290
 msgid "Inbox URL"
 msgstr "ان باکس کا URL"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:267
+#: includes/Admin/Dashboards/RhizomeManager.php:294
 msgid "Label (optional)"
 msgstr "لیبل (اختیاری)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:271
+#: includes/Admin/Dashboards/RhizomeManager.php:298
 msgid "Description (optional)"
 msgstr "تفصیل (اختیاری)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:277
+#: includes/Admin/Dashboards/RhizomeManager.php:304
 msgid "Actor only (recommended for a third-party server)"
 msgstr "صرف اداکار (تیسرے فریق کے سرور کے لیے تجویز کردہ)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:278
+#: includes/Admin/Dashboards/RhizomeManager.php:305
 msgid "Domain (every actor on that server)"
 msgstr "ڈومین (اس سرور پر ہر اداکار)"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:281
+#: includes/Admin/Dashboards/RhizomeManager.php:308
 msgid "Add Trusted Peer"
 msgstr "معتبر ہم منصب شامل کریں"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:290
+#: includes/Admin/Dashboards/RhizomeManager.php:317
 msgid ""
 "Could not reach this peer's node-discovery endpoint. It may be offline or "
 "not running Agnosis."
-msgstr "اس ہم منصب کی نوڈ-دریافت کے نقطے تک پہنچنے میں ناکام رہے۔ یہ آف لائن ہو سکتا ہے یا Agnosis نہیں چلا رہا۔"
+msgstr ""
+"اس ہم منصب کی نوڈ-دریافت کے نقطے تک پہنچنے میں ناکام رہے۔ یہ آف لائن ہو سکتا "
+"ہے یا Agnosis نہیں چلا رہا۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:291
-#: includes/Network/Node.php:248
+#: includes/Admin/Dashboards/RhizomeManager.php:318
+#: includes/Network/Node.php:301
 msgid ""
 "This peer's node-discovery response did not include a node card endpoint."
-msgstr "اس ہم منصب کا نوڈ-دریافت کا جواب ایک نوڈ کارڈ کے نقطے کو شامل نہیں کرتا۔"
+msgstr ""
+"اس ہم منصب کا نوڈ-دریافت کا جواب ایک نوڈ کارڈ کے نقطے کو شامل نہیں کرتا۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:292
-#: includes/Network/Node.php:254
+#: includes/Admin/Dashboards/RhizomeManager.php:319
+#: includes/Network/Node.php:312
 msgid "Could not fetch this peer's node card."
 msgstr "اس ہم منصب کا نوڈ کارڈ حاصل کرنے میں ناکام رہے۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:293
-#: includes/Network/Node.php:262
+#: includes/Admin/Dashboards/RhizomeManager.php:320
+#: includes/Network/Node.php:320
 msgid "This peer's node card is missing an actor id or inbox URL."
 msgstr "اس ہم منصب کا نوڈ کارڈ میں اداکار کا ID یا ان باکس کا URL غائب ہے۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:294
+#: includes/Admin/Dashboards/RhizomeManager.php:321
 msgid "Actor URL and inbox URL are both required."
 msgstr "اداکار کا URL اور ان باکس کا URL دونوں ضروری ہیں۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:295
+#: includes/Admin/Dashboards/RhizomeManager.php:322
 msgid ""
 "Could not check reciprocity right now — this peer's own peer list was "
 "unreachable or not in the expected format."
-msgstr "ابھی باہمی تعلقات چیک کرنے میں ناکام رہے — اس ہم منصب کی اپنی ہم منصب کی فہرست غیر قابل رسائی تھی یا متوقع شکل میں نہیں تھی۔"
+msgstr ""
+"ابھی باہمی تعلقات چیک کرنے میں ناکام رہے — اس ہم منصب کی اپنی ہم منصب کی "
+"فہرست غیر قابل رسائی تھی یا متوقع شکل میں نہیں تھی۔"
 
-#: includes/Admin/Dashboards/RhizomeManager.php:305
+#: includes/Admin/Dashboards/RhizomeManager.php:332
 msgid "Done."
 msgstr "ہو گیا۔"
 
@@ -1486,8 +1520,8 @@ msgstr "پرانی قطار — پیش نظارہ کے لیے حذف کریں ا
 msgid "Attachment viewer"
 msgstr "منسلکہ دیکھنے والا"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3407
-#: includes/Network/ActivityPub.php:3564
+#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3446
+#: includes/Network/ActivityPub.php:3604
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1528,7 +1562,7 @@ msgstr "%d زیرِ التوا آئٹم(ز) پر کارروائی ہو گئی۔"
 msgid "Processing"
 msgstr "زیرِ کارروائی"
 
-#: includes/Admin/InboxPage.php:512
+#: includes/Admin/InboxPage.php:512 includes/Core/Privacy.php:596
 msgid "Published"
 msgstr "شائع شدہ"
 
@@ -1691,7 +1725,7 @@ msgstr ""
 "کیا جا سکتا۔"
 
 #. translators: %d: number of submissions the approved medium was assigned to
-#: includes/Admin/MediumProposals.php:469
+#: includes/Admin/MediumProposals.php:458
 #, php-format
 msgid "Medium proposal approved and assigned to %d submission."
 msgid_plural "Medium proposal approved and assigned to %d submissions."
@@ -1699,7 +1733,7 @@ msgstr[0] "درمیانہ تجویز منظور ہو گئی اور %d گذارش
 msgstr[1] "درمیانہ تجویز منظور ہو گئی اور %d گذارشات کو تفویض کی گئیں۔"
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/MediumProposals.php:482
+#: includes/Admin/MediumProposals.php:471
 #, php-format
 msgid "Medium proposal rejected for %d submission."
 msgid_plural "Medium proposal rejected for %d submissions."
@@ -1707,7 +1741,7 @@ msgstr[0] "درمیانہ تجویز %d گذارش کے لیے مسترد کر �
 msgstr[1] "درمیانہ تجویز %d گذارشات کے لیے مسترد کر دی گئی۔"
 
 #. translators: %s: the underlying WP_Error message from wp_insert_term()
-#: includes/Admin/MediumProposals.php:494 includes/Admin/TagProposals.php:478
+#: includes/Admin/MediumProposals.php:483 includes/Admin/TagProposals.php:466
 #, php-format
 msgid "Could not approve this proposal: %s"
 msgstr "اس تجویز کو منظور نہ کر سکے: %s"
@@ -2847,11 +2881,24 @@ msgstr ""
 "دن بعد، اس ترتیب سے قطع نظر، الگ سے صاف کر دیا جاتا ہے، جب وہ اب بدسلوکی کی "
 "تحقیق کے لیے مفید نہ رہے۔ طے شدہ: 90 دن۔"
 
-#: includes/Admin/SettingsFields.php:392
+#: includes/Admin/SettingsFields.php:393
+msgid "Rhizome relay log retention (days)"
+msgstr "Rhizome ریلی لاگ برقرار رکھنے کی مدت (دن)"
+
+#: includes/Admin/SettingsFields.php:399
+msgid ""
+"Records of what trusted partner nodes relayed through this one — including "
+"the remote account that boosted it — older than this are permanently deleted "
+"by the daily cleanup. Only the newsletter's rhizome activity summary reads "
+"this log, and only within one digest period, so a value comfortably above "
+"your digest frequency loses nothing. Default: 90 days."
+msgstr "وہ ریکارڈ جو بااعتماد شراکتی نوڈز نے اس نوڈ کے ذریعے منتقل کئے — بشمول وہی ریموٹ اکاؤنٹ جس نے اسے بڑھایا — اس سے پرانے روزانہ کی صفائی کے ذریعہ مستقل طور پر حذف کر دیے جاتے ہیں۔ صرف نیوزلیٹر کی rhizome سرگرمی کا خلاصہ اس لاگ کو پڑھتا ہے، اور صرف ایک ڈائجسٹ مدت میں، لہذا آپ کی ڈائجسٹ کی تعدد سے آرام سے اوپر کی ویلیو کچھ بھی نہیں کھوئے گی۔ ڈیفالٹ: 90 دن۔"
+
+#: includes/Admin/SettingsFields.php:405
 msgid "Per-sender hourly submission limit"
 msgstr "فی بھیجنے والے فی گھنٹہ سبمیشن حد"
 
-#: includes/Admin/SettingsFields.php:399
+#: includes/Admin/SettingsFields.php:412
 msgid ""
 "Maximum submissions accepted from a single artist per hour, across both IMAP "
 "and webhook intake. Exceeding this limit silently drops the message (no "
@@ -2861,11 +2908,11 @@ msgstr ""
 "اور webhook intake دونوں میں۔ اس حد سے تجاوز کرنے پر پیغام خاموشی سے رد ہو "
 "جاتا ہے (ESPs کی طرف سے کوئی retry نہیں)۔ طے شدہ: 5۔"
 
-#: includes/Admin/SettingsFields.php:404
+#: includes/Admin/SettingsFields.php:417
 msgid "Per-artist contact limit"
 msgstr "فی فنکار رابطہ حد"
 
-#: includes/Admin/SettingsFields.php:411
+#: includes/Admin/SettingsFields.php:424
 msgid ""
 "Maximum messages the same visitor (by email address) can send to a single "
 "artist within the window below — applies across every language version of "
@@ -2875,11 +2922,11 @@ msgstr ""
 "کے اندر بھیجے جانے والے زیادہ سے زیادہ پیغامات — اس فنکار کے صفحے کے ہر زبان "
 "والے ورژن پر لاگو ہوتا ہے۔ طے شدہ: 2۔"
 
-#: includes/Admin/SettingsFields.php:415
+#: includes/Admin/SettingsFields.php:428
 msgid "Per-artist contact limit window (hours)"
 msgstr "فی فنکار رابطہ حد کی مدت (گھنٹے)"
 
-#: includes/Admin/SettingsFields.php:422
+#: includes/Admin/SettingsFields.php:435
 msgid ""
 "Time window, in hours, the per-artist contact limit above applies over. Also "
 "controls how long a visitor sees the \"already contacted\" notice instead of "
@@ -2889,11 +2936,11 @@ msgstr ""
 "کنٹرول کرتی ہے کہ کسی فنکار کو پیغام بھیجنے کے بعد وزیٹر کب تک فارم کی بجائے "
 "\"already contacted\" اطلاع دیکھتا ہے۔ طے شدہ: 1 (ایک گھنٹہ)۔"
 
-#: includes/Admin/SettingsFields.php:434
+#: includes/Admin/SettingsFields.php:447
 msgid "Contact thread reply depth"
 msgstr "رابطہ دھاگے کا جواب دینے کی گہرائی"
 
-#: includes/Admin/SettingsFields.php:441
+#: includes/Admin/SettingsFields.php:454
 msgid ""
 "Maximum number of messages a visitor may send in one contact-form "
 "conversation (their original message, plus any replies to the artist's "
@@ -2909,11 +2956,11 @@ msgstr ""
 "بار جواب دے سکتا ہے، لیکن زائر دوبارہ جواب نہیں دے سکتا)۔ ڈیفالٹ: 2 (زائر "
 "ایک بار جواب دے سکتا ہے)۔"
 
-#: includes/Admin/SettingsFields.php:446
+#: includes/Admin/SettingsFields.php:459
 msgid "Require SPF/DKIM authentication"
 msgstr "SPF/DKIM تصدیق درکار کریں"
 
-#: includes/Admin/SettingsFields.php:449
+#: includes/Admin/SettingsFields.php:462
 msgid ""
 "When enabled, intake messages must pass SPF or DKIM authentication (via the "
 "Authentication-Results header). Prevents spoofed From: addresses. Requires "
@@ -2927,11 +2974,11 @@ msgstr ""
 "ڈومین پر SPF/DKIM records configured ہوں۔ اگر یقین نہ ہو تو اسے بند رکھیں — "
 "درست میل کا مسترد ہونا خاموش ہوتا ہے۔ طے شدہ: بند۔"
 
-#: includes/Admin/SettingsFields.php:455
+#: includes/Admin/SettingsFields.php:468
 msgid "Description provider"
 msgstr "وضاحت فراہم کنندہ"
 
-#: includes/Admin/SettingsFields.php:463
+#: includes/Admin/SettingsFields.php:476
 msgid ""
 "Analyzes the artwork image and writes the title, body, tags and alt text. "
 "WordPress AI Services delegates to whichever provider the site has "
@@ -2941,11 +2988,11 @@ msgstr ""
 "ہے۔ WordPress AI Services اسی فراہم کنندہ کو delegation دیتا ہے جو سائٹ نے "
 "AI Services plugin کے ذریعے configure کیا ہو۔"
 
-#: includes/Admin/SettingsFields.php:467
+#: includes/Admin/SettingsFields.php:480
 msgid "OpenAI vision model"
 msgstr "OpenAI وژن ماڈل"
 
-#: includes/Admin/SettingsFields.php:469
+#: includes/Admin/SettingsFields.php:482
 msgid ""
 "Model used for artwork description when OpenAI is the description provider. "
 "Must support vision input."
@@ -2953,11 +3000,11 @@ msgstr ""
 "جب OpenAI وضاحت فراہم کنندہ ہو تو آرٹ ورک کی وضاحت کے لیے استعمال ہونے والا "
 "ماڈل۔ اسے vision input کی حمایت کرنی چاہیے۔"
 
-#: includes/Admin/SettingsFields.php:473
+#: includes/Admin/SettingsFields.php:486
 msgid "Anthropic model"
 msgstr "Anthropic ماڈل"
 
-#: includes/Admin/SettingsFields.php:475
+#: includes/Admin/SettingsFields.php:488
 msgid ""
 "Model used for artwork description when Anthropic is the description "
 "provider. Must support vision input."
@@ -2965,11 +3012,11 @@ msgstr ""
 "Anthropic کو جب وضاحتی فراہم کنندہ کے طور پر استعمال کیا جائے تو فن پارے کی "
 "وضاحت کے لیے استعمال ہونے والا ماڈل۔ ویژن اِن پٹ کو سپورٹ کرنا ضروری ہے۔"
 
-#: includes/Admin/SettingsFields.php:495
+#: includes/Admin/SettingsFields.php:508
 msgid "OpenAI text model"
 msgstr "OpenAI text model"
 
-#: includes/Admin/SettingsFields.php:497
+#: includes/Admin/SettingsFields.php:510
 msgid ""
 "Cheap, fast model used for classification tasks when OpenAI is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -2983,11 +3030,11 @@ msgstr ""
 "بنیادی زبان میں ترجمہ کرنے کے لیے استعمال ہونے والے ماڈل کے لیے، نیچے "
 "\"OpenAI ترجمہ ماڈل\" دیکھیں۔"
 
-#: includes/Admin/SettingsFields.php:501
+#: includes/Admin/SettingsFields.php:514
 msgid "Anthropic text model"
 msgstr "Anthropic text model"
 
-#: includes/Admin/SettingsFields.php:503
+#: includes/Admin/SettingsFields.php:516
 msgid ""
 "Cheap, fast model used for classification tasks when Anthropic is the "
 "description provider — medium/tag classification for text-only (pure@) "
@@ -3001,11 +3048,11 @@ msgstr ""
 "کی بنیادی زبان میں ترجمہ کرنے کے لیے استعمال ہونے والے ماڈل کے لیے، نیچے "
 "\"Anthropic ترجمہ ماڈل\" دیکھیں۔"
 
-#: includes/Admin/SettingsFields.php:520
+#: includes/Admin/SettingsFields.php:533
 msgid "OpenAI translation model"
 msgstr "OpenAI ترجمہ ماڈل"
 
-#: includes/Admin/SettingsFields.php:522
+#: includes/Admin/SettingsFields.php:535
 msgid ""
 "Model used when OpenAI is the AI provider for translating a submission into "
 "the site's primary language, and for the embedded-other-language detection "
@@ -3023,11 +3070,11 @@ msgstr ""
 "— سستے درجہ بندی والے ماڈل سے زیادہ مضبوط ماڈل کے قابل ہے۔ بصری معاونت کی "
 "ضرورت نہیں۔"
 
-#: includes/Admin/SettingsFields.php:526
+#: includes/Admin/SettingsFields.php:539
 msgid "Anthropic translation model"
 msgstr "Anthropic ترجمہ ماڈل"
 
-#: includes/Admin/SettingsFields.php:528
+#: includes/Admin/SettingsFields.php:541
 msgid ""
 "Model used when Anthropic is the AI provider for translating a submission "
 "into the site's primary language, and for the embedded-other-language "
@@ -3045,11 +3092,11 @@ msgstr ""
 "ہے — سستے درجہ بندی والے ماڈل سے زیادہ مضبوط ماڈل کے قابل ہے۔ بصری معاونت کی "
 "ضرورت نہیں۔"
 
-#: includes/Admin/SettingsFields.php:546
+#: includes/Admin/SettingsFields.php:559
 msgid "Max AI response tokens (chat/translation)"
 msgstr "AI ردعمل کے ٹوکن کی زیادہ سے زیادہ تعداد (چیٹ/ترجمہ)"
 
-#: includes/Admin/SettingsFields.php:553
+#: includes/Admin/SettingsFields.php:566
 msgid ""
 "Ceiling for chat/translation AI responses (submission translation, medium "
 "classification, contact-message moderation, and similar text-only tasks — "
@@ -3070,11 +3117,11 @@ msgstr ""
 "لیے ایک مکمل ترجمہ شدہ کاپی کی ضرورت ہے۔ آپ کے AI فراہم کار کی اپنی اکاؤنٹ "
 "یا ماڈل کی حدود اب بھی اس کے اوپر لاگو ہوتی ہے۔ ڈیفالٹ: 8192۔"
 
-#: includes/Admin/SettingsFields.php:557
+#: includes/Admin/SettingsFields.php:570
 msgid "Vision image max width (px)"
 msgstr "ویژن امیج کی زیادہ سے زیادہ چوڑائی (px)"
 
-#: includes/Admin/SettingsFields.php:563
+#: includes/Admin/SettingsFields.php:576
 msgid ""
 "Images are downscaled proportionally to this width before being sent to the "
 "AI for description — vision token cost scales with resolution, and a "
@@ -3094,19 +3141,19 @@ msgstr ""
 "Imagick PHP extension درکار ہے؛ جب یہ دستیاب نہ ہو تو تصاویر اس ترتیب سے قطع "
 "نظر اپنی اصل سائز میں بھیجی جاتی ہیں۔ طے شدہ: 800."
 
-#: includes/Admin/SettingsFields.php:569
+#: includes/Admin/SettingsFields.php:582
 msgid "Enhancement provider"
 msgstr "بہتری فراہم کرنے والا"
 
-#: includes/Admin/SettingsFields.php:572
+#: includes/Admin/SettingsFields.php:585
 msgid "Auto (OpenAI if key is set)"
 msgstr "خودکار (اگر کی موجود ہو تو OpenAI)"
 
-#: includes/Admin/SettingsFields.php:574
+#: includes/Admin/SettingsFields.php:587
 msgid "Disabled — use original image"
 msgstr "غیر فعال — اصل تصویر استعمال کریں"
 
-#: includes/Admin/SettingsFields.php:577
+#: includes/Admin/SettingsFields.php:590
 msgid ""
 "Enhances the artwork image before publishing, using the OpenAI image model "
 "set below (e.g. gpt-image-1, gpt-image-2). Set to Disabled to skip "
@@ -3116,22 +3163,22 @@ msgstr ""
 "تصویر ماڈل استعمال کرتے ہوئے (مثال کے طور پر gpt-image-1, gpt-image-2)۔ "
 "بہتری کو چھوڑنے اور اصل کو شائع کرنے کے لیے Disabled پر سیٹ کریں۔"
 
-#: includes/Admin/SettingsFields.php:581
+#: includes/Admin/SettingsFields.php:594
 msgid "OpenAI image model"
 msgstr "OpenAI امیج ماڈل"
 
-#: includes/Admin/SettingsFields.php:583
+#: includes/Admin/SettingsFields.php:596
 msgid ""
 "Model used for image enhancement when OpenAI is the enhancement provider."
 msgstr ""
 "OpenAI کو امیج اینہانسمنٹ فراہم کنندہ کے طور پر استعمال کرنے کی صورت میں "
 "تصویر بہتر بنانے کے لیے استعمال ہونے والا ماڈل۔"
 
-#: includes/Admin/SettingsFields.php:589
+#: includes/Admin/SettingsFields.php:602
 msgid "Polish biography with AI"
 msgstr "AI کے ساتھ سوانحِ حیات کو درست و بہتر بنائیں"
 
-#: includes/Admin/SettingsFields.php:592
+#: includes/Admin/SettingsFields.php:605
 msgid ""
 "When enabled, biography submissions are passed through the AI to fix "
 "spelling and make minor text improvements before saving."
@@ -3139,11 +3186,11 @@ msgstr ""
 "جب یہ فعال ہو، سوانحِ حیات کی گذارشات کو محفوظ کرنے سے پہلے AI کے ذریعے گزارا "
 "جاتا ہے تاکہ املا درست ہو جائے اور متن میں معمولی بہتری آ جائے۔"
 
-#: includes/Admin/SettingsFields.php:596
+#: includes/Admin/SettingsFields.php:609
 msgid "Polish events with AI"
 msgstr "AI کے ساتھ ایونٹس کو درست و بہتر بنائیں"
 
-#: includes/Admin/SettingsFields.php:599
+#: includes/Admin/SettingsFields.php:612
 msgid ""
 "When enabled, event submissions are passed through the AI to fix spelling "
 "and make minor text improvements before saving."
@@ -3151,11 +3198,11 @@ msgstr ""
 "جب یہ فعال ہو، ایونٹ کی گذارشات کو محفوظ کرنے سے پہلے AI کے ذریعے گزارا جاتا "
 "ہے تاکہ املا درست ہو جائے اور متن میں معمولی بہتری آ جائے۔"
 
-#: includes/Admin/SettingsFields.php:605
+#: includes/Admin/SettingsFields.php:618
 msgid "Merge biography updates with AI"
 msgstr "AI کے ساتھ سوانحِ حیات کی تازہ کاریوں کو ضم کریں"
 
-#: includes/Admin/SettingsFields.php:608
+#: includes/Admin/SettingsFields.php:621
 msgid ""
 "When enabled, biography updates are merged with the existing biography using "
 "AI — new information is integrated rather than replacing everything. "
@@ -3169,11 +3216,11 @@ msgstr ""
 "ہے\") بغیر اپنی پوری بایو دوبارہ جمع کرائے۔ اگر ہمیشہ سوانحِ حیات کو تازہ "
 "ترین گذارش سے بدلنا ہو تو اسے غیر فعال کریں۔"
 
-#: includes/Admin/SettingsFields.php:614
+#: includes/Admin/SettingsFields.php:627
 msgid "Rejection threshold (quality score)"
 msgstr "رد کرنے کی حد (کوالٹی اسکور)"
 
-#: includes/Admin/SettingsFields.php:622
+#: includes/Admin/SettingsFields.php:635
 msgid ""
 "Photos scoring at or below this agnosis_vendor_value (1–10) are "
 "automatically rejected — the artist receives a friendly email explaining the "
@@ -3186,11 +3233,11 @@ msgstr ""
 "خودکار مستردی کو غیر فعال کر دیتا ہے۔ یہ اضافہ کی حد سے کم ہونا چاہیے۔ طے "
 "شدہ: 3۔"
 
-#: includes/Admin/SettingsFields.php:627
+#: includes/Admin/SettingsFields.php:640
 msgid "Enhancement threshold (quality score)"
 msgstr "بہتری کی حد (کوالٹی اسکور)"
 
-#: includes/Admin/SettingsFields.php:635
+#: includes/Admin/SettingsFields.php:648
 msgid ""
 "Photos scoring below this agnosis_vendor_value (1–10) are automatically "
 "enhanced. Score 10 = perfect photograph, 1 = technically unusable. Default: "
@@ -3202,27 +3249,27 @@ msgstr ""
 "طے شدہ: 7 — صرف واضح طور پر مسئلہ والی تصاویر پر کارروائی کی جاتی ہے۔ خودکار "
 "بہتری مکمل طور پر غیر فعال کرنے کے لیے 1 مقرر کریں۔"
 
-#: includes/Admin/SettingsFields.php:641
+#: includes/Admin/SettingsFields.php:654
 msgid "OpenAI API key"
 msgstr "OpenAI API کلید"
 
-#: includes/Admin/SettingsFields.php:644
+#: includes/Admin/SettingsFields.php:657
 msgid "Required when OpenAI is the description or enhancement provider."
 msgstr "جب OpenAI وضاحت یا اینہانسمنٹ فراہم کنندہ ہو تو درکار ہے۔"
 
-#: includes/Admin/SettingsFields.php:648
+#: includes/Admin/SettingsFields.php:661
 msgid "Anthropic API key"
 msgstr "Anthropic API کلید"
 
-#: includes/Admin/SettingsFields.php:651
+#: includes/Admin/SettingsFields.php:664
 msgid "Required when Anthropic is the description provider."
 msgstr "جب Anthropic وضاحت فراہم کنندہ ہو تو درکار ہے۔"
 
-#: includes/Admin/SettingsFields.php:657
+#: includes/Admin/SettingsFields.php:670
 msgid "Artwork display width (px)"
 msgstr "آرٹ ورک ڈسپلے چوڑائی (px)"
 
-#: includes/Admin/SettingsFields.php:663
+#: includes/Admin/SettingsFields.php:676
 msgid ""
 "Width of the agnosis-artwork image size used in post content and lightbox. "
 "Height scales proportionally. Default: 1920. Existing images need to be "
@@ -3232,11 +3279,11 @@ msgstr ""
 "چوڑائی۔ اونچائی تناسب کے مطابق بدلتی ہے۔ طے شدہ: 1920۔ یہ قدر بدلنے کے بعد "
 "موجودہ تصاویر کو دوبارہ جنریٹ کرنا ہوگا۔"
 
-#: includes/Admin/SettingsFields.php:667
+#: includes/Admin/SettingsFields.php:680
 msgid "Thumbnail size (px)"
 msgstr "تھمب نیل سائز (px)"
 
-#: includes/Admin/SettingsFields.php:673
+#: includes/Admin/SettingsFields.php:686
 msgid ""
 "Side length of the square agnosis-thumb size used in submission cards and "
 "dashboard. Default: 512. Existing images need to be regenerated after "
@@ -3246,11 +3293,11 @@ msgstr ""
 "ہر طرف کی لمبائی۔ طے شدہ: 512۔ یہ قدر بدلنے کے بعد موجودہ تصاویر کو دوبارہ "
 "جنریٹ کرنا ہوگا۔"
 
-#: includes/Admin/SettingsFields.php:677
+#: includes/Admin/SettingsFields.php:690
 msgid "Email image width (px)"
 msgstr "ای میل تصویر چوڑائی (px)"
 
-#: includes/Admin/SettingsFields.php:683
+#: includes/Admin/SettingsFields.php:696
 msgid ""
 "Width of the agnosis-email size used in artist notification emails. Height "
 "scales proportionally — no cropping. Default: 420. Existing images need to "
@@ -3260,11 +3307,11 @@ msgstr ""
 "چوڑائی۔ اونچائی تناسب کے مطابق بدلتی ہے — کوئی کراپنگ نہیں۔ طے شدہ: 420۔ یہ "
 "قدر بدلنے کے بعد موجودہ تصاویر کو دوبارہ جنریٹ کرنا ہوگا۔"
 
-#: includes/Admin/SettingsFields.php:689
+#: includes/Admin/SettingsFields.php:702
 msgid "Gallery overview — items per page"
 msgstr "گیلری جائزہ — فی صفحہ آئٹمز"
 
-#: includes/Admin/SettingsFields.php:695
+#: includes/Admin/SettingsFields.php:708
 msgid ""
 "How many artwork cards the gallery overview shows per page. Pool is built "
 "proportionally across all artists; featured artworks are preferred. Default: "
@@ -3273,11 +3320,11 @@ msgstr ""
 "گیلری جائزہ فی صفحہ کتنے آرٹ ورک کارڈز دکھاتا ہے۔ پول تمام فنکاروں میں "
 "متناسب طور پر بنایا جاتا ہے؛ نمایاں آرٹ ورکس کو ترجیح دی جاتی ہے۔ طے شدہ: 12۔"
 
-#: includes/Admin/SettingsFields.php:701
+#: includes/Admin/SettingsFields.php:714
 msgid "Review link expiry (days)"
 msgstr "جائزہ لنک کی میعاد ختم ہونے کی مدت (دن)"
 
-#: includes/Admin/SettingsFields.php:707
+#: includes/Admin/SettingsFields.php:720
 msgid ""
 "How long the Approve & Publish / Discard links in a submission review email "
 "stay valid before an artist has to log in to manage the item instead. "
@@ -3288,11 +3335,11 @@ msgstr ""
 "لاگ اِن کرنا پڑے۔ یہ آرٹ ورک، سوانحِ حیات، اور ایونٹ ڈرافٹس سب پر یکساں لاگو "
 "ہوتا ہے۔ طے شدہ: 7۔"
 
-#: includes/Admin/SettingsFields.php:718
+#: includes/Admin/SettingsFields.php:731
 msgid "Tag / medium proposal expiry (days)"
 msgstr "ٹیگ / medium تجویز کی میعاد ختم ہونے کی مدت (دن)"
 
-#: includes/Admin/SettingsFields.php:724
+#: includes/Admin/SettingsFields.php:737
 msgid ""
 "How long an AI-proposed tag or medium category can sit unreviewed on the "
 "Tags / Artwork → Mediums screen before a daily sweep auto-rejects it (same "
@@ -3302,11 +3349,11 @@ msgstr ""
 "اسکرین پر بغیر جانچے بیٹھا رہ سکتا ہے قبل اس کے کہ روزانہ کی صفائی اس کو "
 "خودکار طور پر مسترد کر دے (رد کرنے پر کلک کرنے کا وہی اثر)۔ ڈیفالٹ: 7۔"
 
-#: includes/Admin/SettingsFields.php:730
+#: includes/Admin/SettingsFields.php:743
 msgid "System prompt"
 msgstr "سسٹم پرامپٹ"
 
-#: includes/Admin/SettingsFields.php:736
+#: includes/Admin/SettingsFields.php:749
 msgid ""
 "Sent to the AI as the system instruction. Use {tag_count} and "
 "{excerpt_words} as tokens — they are replaced with the values below."
@@ -3314,11 +3361,11 @@ msgstr ""
 "AI کو سسٹم ہدایت کے طور پر بھیجا جاتا ہے۔ {tag_count} اور {excerpt_words} کو "
 "ٹوکنز کے طور پر استعمال کریں — ان کی جگہ نیچے دی گئی قدریں لے لی جاتی ہیں۔"
 
-#: includes/Admin/SettingsFields.php:740
+#: includes/Admin/SettingsFields.php:753
 msgid "Artist prompt template"
 msgstr "فنکار پرامپٹ ٹیمپلیٹ"
 
-#: includes/Admin/SettingsFields.php:746
+#: includes/Admin/SettingsFields.php:759
 msgid ""
 "User message sent alongside the artwork image. Use {artist_prompt} where the "
 "artist's own description should appear."
@@ -3326,11 +3373,11 @@ msgstr ""
 "آرٹ ورک تصویر کے ساتھ بھیجا جانے والا یوزر میسج۔ جہاں فنکار کی اپنی وضاحت "
 "ہونی چاہیے وہاں {artist_prompt} استعمال کریں۔"
 
-#: includes/Admin/SettingsFields.php:750
+#: includes/Admin/SettingsFields.php:763
 msgid "Enhancement instructions"
 msgstr "بہتری کی ہدایات"
 
-#: includes/Admin/SettingsFields.php:756
+#: includes/Admin/SettingsFields.php:769
 msgid ""
 "Instructions passed to the image enhancement provider. The AI-generated "
 "artwork description is appended automatically as context."
@@ -3338,11 +3385,11 @@ msgstr ""
 "امیج اینہانسمنٹ فراہم کنندہ کو بھیجی جانے والی ہدایات۔ AI سے تیار کردہ آرٹ "
 "ورک کی وضاحت خودکار طور پر سیاق و سباق کے طور پر شامل کر دی جاتی ہے۔"
 
-#: includes/Admin/SettingsFields.php:760
+#: includes/Admin/SettingsFields.php:773
 msgid "Number of tags"
 msgstr "ٹیگز کی تعداد"
 
-#: includes/Admin/SettingsFields.php:766
+#: includes/Admin/SettingsFields.php:779
 msgid ""
 "How many tags the AI should generate per artwork. Referenced as {tag_count} "
 "in the system prompt."
@@ -3350,11 +3397,11 @@ msgstr ""
 "AI کو ہر آرٹ ورک کے لیے کتنے ٹیگز بنانے چاہییں۔ سسٹم پرامپٹ میں اسے "
 "{tag_count} کے طور پر استعمال کیا جاتا ہے۔"
 
-#: includes/Admin/SettingsFields.php:770
+#: includes/Admin/SettingsFields.php:783
 msgid "Excerpt word limit"
 msgstr "اقتباس کے الفاظ کی حد"
 
-#: includes/Admin/SettingsFields.php:776
+#: includes/Admin/SettingsFields.php:789
 msgid ""
 "Maximum words for the one-sentence excerpt. Referenced as {excerpt_words} in "
 "the system prompt."
@@ -3362,11 +3409,11 @@ msgstr ""
 "ایک جملے والے اقتباس کے لیے زیادہ سے زیادہ الفاظ۔ سسٹم پرامپٹ میں اسے "
 "{excerpt_words} کے طور پر استعمال کیا جاتا ہے۔"
 
-#: includes/Admin/SettingsFields.php:789
+#: includes/Admin/SettingsFields.php:802
 msgid "Trust all admitted artists (skip link review entirely)"
 msgstr "تمام منظور شدہ فنکاروں پر اعتماد کریں (لنک ریویو مکمل طور پر چھوڑ دیں)"
 
-#: includes/Admin/SettingsFields.php:794
+#: includes/Admin/SettingsFields.php:807
 msgid ""
 "Every artist here was already vouched in by the community — if that trust is "
 "enough for you, turn this on to embed any link an artist submits, "
@@ -3382,11 +3429,11 @@ msgstr ""
 "صورت میں فعال کریں جب آپ اس بات پر مطمئن ہوں کہ داخلہ حاصل کر لینے والا کوئی "
 "بد نیت شخص کسی بھی چیز کا لنک ایمبیڈ کر سکتا ہے۔"
 
-#: includes/Admin/SettingsFields.php:798
+#: includes/Admin/SettingsFields.php:811
 msgid "Trusted embed platforms"
 msgstr "قابلِ اعتماد ایمبیڈ پلیٹ فارم"
 
-#: includes/Admin/SettingsFields.php:804
+#: includes/Admin/SettingsFields.php:817
 msgid ""
 "One hostname per line. A submitted link becomes a rich embed immediately if "
 "it matches one of these (or a subdomain of one) — no AI review needed, no "
@@ -3396,11 +3443,11 @@ msgstr ""
 "ان میں سے کسی سے (یا اس کے subdomain سے) میل کھائے — AI ریویو کی ضرورت نہیں، "
 "اور خود لنک پر کوئی نیٹ ورک درخواست نہیں کی جاتی۔"
 
-#: includes/Admin/SettingsFields.php:808
+#: includes/Admin/SettingsFields.php:821
 msgid "Let artists submit other links too (AI-reviewed)"
 msgstr "فنکاروں کو دوسرے لنکس بھی جمع کرانے دیں (AI ریویو کے ساتھ)"
 
-#: includes/Admin/SettingsFields.php:813
+#: includes/Admin/SettingsFields.php:826
 msgid ""
 "When enabled, a link to a site not on the trusted list above is not simply "
 "discarded: the destination page is fetched and reviewed by your configured "
@@ -3419,19 +3466,19 @@ msgstr ""
 "غیر فعال ہو (ڈیفالٹ)، صرف اوپر دیے گئے قابلِ اعتماد پلیٹ فارمز ہی ایمبیڈ ہوتے "
 "ہیں۔"
 
-#: includes/Admin/SettingsFields.php:817
+#: includes/Admin/SettingsFields.php:830
 msgid "Block pornographic / sexually explicit content"
 msgstr "فحش / جنسی طور پر واضح مواد کو بلاک کریں"
 
-#: includes/Admin/SettingsFields.php:822 includes/Admin/SettingsFields.php:840
+#: includes/Admin/SettingsFields.php:835 includes/Admin/SettingsFields.php:853
 msgid "Only takes effect when AI review (above) is enabled."
 msgstr "صرف تب مؤثر ہوتا ہے جب AI ریویو (اوپر) فعال ہو۔"
 
-#: includes/Admin/SettingsFields.php:826
+#: includes/Admin/SettingsFields.php:839
 msgid "Block primarily commercial / promotional sites"
 msgstr "زیادہ تر تجارتی / پروموشنل سائٹس کو بلاک کریں"
 
-#: includes/Admin/SettingsFields.php:831
+#: includes/Admin/SettingsFields.php:844
 msgid ""
 "Online stores, advertising, marketing landing pages. Off by default — an "
 "artist linking to a shop selling their own prints is common and not "
@@ -3441,15 +3488,15 @@ msgstr ""
 "اپنی پرنٹس بیچنے والی دکان کا لنک دینا عام بات ہے اور خود میں ناپسندیدہ "
 "نہیں۔ صرف تب مؤثر ہوتا ہے جب AI ریویو (اوپر) فعال ہو۔"
 
-#: includes/Admin/SettingsFields.php:835
+#: includes/Admin/SettingsFields.php:848
 msgid "Block gambling / betting sites"
 msgstr "جوا / شرط لگانے والی سائٹس کو بلاک کریں"
 
-#: includes/Admin/SettingsFields.php:844
+#: includes/Admin/SettingsFields.php:857
 msgid "Additional disallowed categories"
 msgstr "اضافی ممنوعہ زمرے"
 
-#: includes/Admin/SettingsFields.php:849
+#: includes/Admin/SettingsFields.php:862
 msgid ""
 "Optional — describe any other kind of content the AI should reject, in plain "
 "language (e.g. \"hate speech or violent extremist content\", \"phishing or "
@@ -3459,46 +3506,46 @@ msgstr ""
 "چاہیے (مثلاً \"نفرت انگیز تقریر یا پرتشدد انتہاپسندانہ مواد\"، \"فِشنگ یا "
 "اسکام صفحات\")۔ صرف تب مؤثر ہوتا ہے جب AI ریویو (اوپر) فعال ہو۔"
 
-#: includes/Admin/SettingsFields.php:855
+#: includes/Admin/SettingsFields.php:868
 msgid "Node label"
 msgstr "نوڈ لیبل"
 
-#: includes/Admin/SettingsFields.php:856
+#: includes/Admin/SettingsFields.php:869
 msgid "How this node introduces itself to the network."
 msgstr "یہ نوڈ نیٹ ورک کے سامنے خود کو کیسے متعارف کراتا ہے۔"
 
-#: includes/Admin/SettingsFields.php:861
+#: includes/Admin/SettingsFields.php:874
 msgid "Enable ActivityPub federation"
 msgstr "ActivityPub فیڈریشن کو فعال کریں"
 
-#: includes/Admin/SettingsFields.php:865
+#: includes/Admin/SettingsFields.php:878
 msgid "Broadcast new artworks to Mastodon, Pixelfed and the Fediverse."
 msgstr "نئے فن پارے Mastodon، Pixelfed اور Fediverse پر نشر کریں۔"
 
-#: includes/Admin/SettingsFields.php:870
+#: includes/Admin/SettingsFields.php:883
 msgid "Node public key"
 msgstr "نوڈ کی عوامی کلید"
 
-#: includes/Admin/SettingsFields.php:872
+#: includes/Admin/SettingsFields.php:885
 msgid ""
 "Auto-generated RSA public key for this node. Share this with peer nodes."
 msgstr ""
 "اس نوڈ کے لیے خودکار طور پر بنائی گئی RSA عوامی کلید۔ اسے ہم منصب نوڈز کے "
 "ساتھ شیئر کریں۔"
 
-#: includes/Admin/SettingsFields.php:884
+#: includes/Admin/SettingsFields.php:897
 msgid "Federate which languages"
 msgstr "کون سی زبانوں کو فیڈریٹ کریں"
 
-#: includes/Admin/SettingsFields.php:887
+#: includes/Admin/SettingsFields.php:900
 msgid "Primary language only (default)"
 msgstr "صرف بنیادی زبان (ڈیفالٹ)"
 
-#: includes/Admin/SettingsFields.php:888
+#: includes/Admin/SettingsFields.php:901
 msgid "All active languages"
 msgstr "تمام فعال زبانیں"
 
-#: includes/Admin/SettingsFields.php:891
+#: includes/Admin/SettingsFields.php:904
 msgid ""
 "Whether a language sibling's Note is actively pushed to followers once it's "
 "tag-settled and ready. \"Primary language only\" sends one Fediverse post "
@@ -3517,11 +3564,11 @@ msgstr ""
 "\" پر سوئچ کرنا صرف ان فن پاروں پر اثر انداز ہوتا ہے جو اس نقطے سے آگے سیٹ "
 "ہوتے ہیں؛ یہ پہلے سے شائع کردہ کسی بھی چیز کو کبھی بھی دوبارہ نہیں بھیجتا۔"
 
-#: includes/Admin/SettingsFields.php:899
+#: includes/Admin/SettingsFields.php:912
 msgid "Federation tag-wait timeout (hours)"
 msgstr "فیڈریشن ٹیگ کے انتظار کا وقت ختم (گھنٹوں میں)"
 
-#: includes/Admin/SettingsFields.php:905
+#: includes/Admin/SettingsFields.php:918
 msgid ""
 "A published artwork with a new tag or medium category awaiting admin review "
 "normally federates to the Fediverse only once that proposal is resolved (so "
@@ -3535,11 +3582,11 @@ msgstr ""
 "ہو جاتا ہے جو بھی ٹیگ اس کے پاس اب ہے — بعد کے منظور ہونے پر فیڈریٹ کردہ "
 "پوسٹ کو ابھی بھی اپ ڈیٹ کرتا ہے۔ ڈیfault: 24."
 
-#: includes/Admin/SettingsFields.php:914
+#: includes/Admin/SettingsFields.php:927
 msgid "Federated reply limit (per actor)"
 msgstr "فدرٹیڈ جواب کی حد (فی اداکار)"
 
-#: includes/Admin/SettingsFields.php:920
+#: includes/Admin/SettingsFields.php:933
 msgid ""
 "Maximum number of federated replies a single remote fediverse account can "
 "leave across all your artworks per window (below). A reply beyond this limit "
@@ -3551,11 +3598,11 @@ msgstr ""
 "تجاوز کرنے والے جواب کو خاموشی سے مسترد کر دیا گیا ہے — دور دراز کا سرور "
 "ابھی بھی ایک عام قبول کردہ جواب حاصل کرتا ہے، نہ کہ ایک خرابی۔ ڈیفالٹ: 2۔"
 
-#: includes/Admin/SettingsFields.php:924
+#: includes/Admin/SettingsFields.php:937
 msgid "Federated reply limit window (hours)"
 msgstr "فدرٹیڈ جواب کی حد کی ونڈو (گھنٹے)"
 
-#: includes/Admin/SettingsFields.php:930
+#: includes/Admin/SettingsFields.php:943
 msgid ""
 "Length of the window the reply limit above applies to. Default: 1 (i.e. 2 "
 "replies per hour per actor)."
@@ -3563,23 +3610,28 @@ msgstr ""
 "وہ ونڈو کی لمبائی جس پر اوپر دی گئی جواب کی حد لاگو ہوتی ہے۔ ڈیفالٹ: 1 (یعنی "
 "ہر اداکار کے لیے ہر گھنٹے میں 2 جواب)۔"
 
-#: includes/Admin/SettingsFields.php:940
+#: includes/Admin/SettingsFields.php:953
 msgid "Allow manually trusting non-Agnosis Fediverse actors"
 msgstr "غیر-Agnosis Fediverse اداکاروں کو دستی طور پر قابل اعتماد بنائیں"
 
-#: includes/Admin/SettingsFields.php:945
+#: includes/Admin/SettingsFields.php:958
 msgid ""
 "When enabled, the Partner Nodes panel below gains a form to directly add a "
 "trusted third-party Fediverse actor (a curator account, a specific instance) "
 "by pasting its actor and inbox URLs — no self-registration round trip. Leave "
 "this off if you only want to trust other Agnosis instances."
-msgstr "جب یہ فعال ہو جائے تو نیچے ساتھی نوڈز پانل ایک فارم حاصل کرتا ہے تاکہ براہ راست ایک معتبر تیسری پارٹی کے Fediverse اداکار (ایک کیوریٹر اکاؤنٹ، ایک مخصوص مثال) کو ان کے اداکار اور ان باکس URL کو پیسٹ کرکے شامل کیا جا سکے — کوئی خود رجسٹریشن کا سفر نہیں۔ اگر آپ صرف دوسرے Agnosis مثالوں پر بھروسہ کرنا چاہتے ہیں تو اسے بند رکھیں۔"
+msgstr ""
+"جب یہ فعال ہو جائے تو نیچے ساتھی نوڈز پانل ایک فارم حاصل کرتا ہے تاکہ براہ "
+"راست ایک معتبر تیسری پارٹی کے Fediverse اداکار (ایک کیوریٹر اکاؤنٹ، ایک "
+"مخصوص مثال) کو ان کے اداکار اور ان باکس URL کو پیسٹ کرکے شامل کیا جا سکے — "
+"کوئی خود رجسٹریشن کا سفر نہیں۔ اگر آپ صرف دوسرے Agnosis مثالوں پر بھروسہ "
+"کرنا چاہتے ہیں تو اسے بند رکھیں۔"
 
-#: includes/Admin/SettingsFields.php:955
+#: includes/Admin/SettingsFields.php:968
 msgid "Self-removal (goodbye) requests per sender per day"
 msgstr "ہر بھیجنے والے کے لیے فی دن خود-اخراج (الوداع) درخواستیں"
 
-#: includes/Admin/SettingsFields.php:961
+#: includes/Admin/SettingsFields.php:974
 msgid ""
 "Maximum number of self-removal (\"goodbye\") confirmation emails a single "
 "sender address can trigger per day. A genuine self-removal only ever needs "
@@ -3592,11 +3644,11 @@ msgstr ""
 "From کے ذریعے کسی حقیقی فنکار کو کتنی تصدیقی ای میلز سے اسپام کیا جا سکتا "
 "ہے۔ پہلے سے طے شدہ: 3۔"
 
-#: includes/Admin/SettingsFields.php:965
+#: includes/Admin/SettingsFields.php:978
 msgid "Community broadcasts per artist per day"
 msgstr "فی فنکار فی دن کمیونٹی براڈکاسٹس"
 
-#: includes/Admin/SettingsFields.php:971
+#: includes/Admin/SettingsFields.php:984
 msgid ""
 "Maximum number of messages a single artist can send to the Community "
 "announcement address (Settings → Email) per day. Prevents one member from "
@@ -3606,11 +3658,11 @@ msgstr ""
 "پر زیادہ سے زیادہ کتنے پیغامات بھیج سکتا ہے۔ یہ ایک رکن کو باقی تمام ارکان "
 "کے ان باکس بھرنے سے روکتا ہے۔ پہلے سے طے شدہ: 3۔"
 
-#: includes/Admin/SettingsFields.php:975
+#: includes/Admin/SettingsFields.php:988
 msgid "Community broadcast max length (characters)"
 msgstr "کمیونٹی براڈکاسٹ کی زیادہ سے زیادہ لمبائی (حروف)"
 
-#: includes/Admin/SettingsFields.php:982
+#: includes/Admin/SettingsFields.php:995
 msgid ""
 "Longer messages to the Community announcement address are bounced back to "
 "the sender instead of being broadcast — the sender is told to shorten it and "
@@ -3629,11 +3681,11 @@ msgstr ""
 "پیغام AI ترجمہ کالز میں کتنا خرچ کرا سکتا ہے۔ پہلے سے طے شدہ: 2000۔ سخت "
 "زیادہ سے زیادہ: 20000، اس ترتیب سے قطع نظر۔"
 
-#: includes/Admin/SettingsFields.php:1013
+#: includes/Admin/SettingsFields.php:1026
 msgid "Admin approval only (disable community voting)"
 msgstr "صرف ایڈمن منظوری (کمیونٹی ووٹنگ غیر فعال کریں)"
 
-#: includes/Admin/SettingsFields.php:1018
+#: includes/Admin/SettingsFields.php:1031
 msgid ""
 "When enabled, artists can no longer vouch new applicants in or vote to "
 "remove a member — every admission and removal decision is made directly by "
@@ -3653,11 +3705,11 @@ msgstr ""
 "صرف نیا ووٹ شروع کرنا بلاک ہوتا ہے۔ بطورِ ڈیفالٹ بند — زیادہ تر کمیونٹیز "
 "موجودہ تائیدی/ووٹنگ نظام چاہتی ہیں۔"
 
-#: includes/Admin/SettingsFields.php:1023
+#: includes/Admin/SettingsFields.php:1036
 msgid "Admission vote threshold (%)"
 msgstr "داخلہ ووٹ کی حد (%)"
 
-#: includes/Admin/SettingsFields.php:1028
+#: includes/Admin/SettingsFields.php:1041
 msgid ""
 "Percentage of active artists that must vote yes for admission. Combined with "
 "the minimum floor below."
@@ -3665,20 +3717,20 @@ msgstr ""
 "فعال فنکاروں کا وہ فیصد جن کا داخلے کے حق میں ہاں میں ووٹ دینا ضروری ہے۔ ذیل "
 "میں دی گئی کم از کم حد کے ساتھ مل کر۔"
 
-#: includes/Admin/SettingsFields.php:1032
+#: includes/Admin/SettingsFields.php:1045
 msgid "Admission minimum votes"
 msgstr "داخلے کے لیے کم از کم ووٹ"
 
-#: includes/Admin/SettingsFields.php:1036
+#: includes/Admin/SettingsFields.php:1049
 msgid ""
 "Absolute minimum positive votes required regardless of the percentage above."
 msgstr "اوپر دیے گئے فیصد سے قطع نظر درکار مثبت ووٹوں کی قطعی کم از کم تعداد۔"
 
-#: includes/Admin/SettingsFields.php:1040
+#: includes/Admin/SettingsFields.php:1053
 msgid "Voting window (days)"
 msgstr "ووٹنگ کی مدت (دن)"
 
-#: includes/Admin/SettingsFields.php:1044
+#: includes/Admin/SettingsFields.php:1057
 msgid ""
 "Days an application stays open. If the threshold is not reached within this "
 "window the application is rejected."
@@ -3686,11 +3738,11 @@ msgstr ""
 "درخواست جتنے دن کھلی رہتی ہے۔ اگر اس مدت کے اندر حد پوری نہ ہو تو درخواست "
 "مسترد کر دی جاتی ہے۔"
 
-#: includes/Admin/SettingsFields.php:1048
+#: includes/Admin/SettingsFields.php:1061
 msgid "Resolved application retention (days)"
 msgstr "حل شدہ درخواست کی برقراری (دن)"
 
-#: includes/Admin/SettingsFields.php:1054
+#: includes/Admin/SettingsFields.php:1067
 msgid ""
 "A rejected, withdrawn, or left application's email, name, biography, "
 "statement, and portfolio link are anonymized by the daily cleanup after this "
@@ -3706,11 +3758,11 @@ msgstr ""
 "کیے جاتے ہیں، لیکن ان کی ای میل جان بوجھ کر محفوظ رکھی جاتی ہے تاکہ پابندی "
 "نافذ رہ سکے۔ پہلے سے طے شدہ: 180 دن۔"
 
-#: includes/Admin/SettingsFields.php:1058
+#: includes/Admin/SettingsFields.php:1071
 msgid "After applying, send artists to"
 msgstr "درخواست دینے کے بعد فنکاروں کو بھیجیں"
 
-#: includes/Admin/SettingsFields.php:1062
+#: includes/Admin/SettingsFields.php:1075
 msgid ""
 "Optional — pick a page explaining the vouching process and what happens "
 "next. When the application is submitted successfully, the artist is "
@@ -3722,11 +3774,11 @@ msgstr ""
 "پیغام دیکھنے کے بجائے وہاں منتقل کر دیا جاتا ہے۔ صرف اندرونی پیغام برقرار "
 "رکھنے کے لیے \"None\" ہی رہنے دیں۔"
 
-#: includes/Admin/SettingsFields.php:1066
+#: includes/Admin/SettingsFields.php:1079
 msgid "Community size cap"
 msgstr "کمیونٹی سائز کی حد"
 
-#: includes/Admin/SettingsFields.php:1070
+#: includes/Admin/SettingsFields.php:1083
 msgid ""
 "Maximum number of admitted artists. When full, new applications join a "
 "waitlist instead of being rejected, and a freed slot admits the next in "
@@ -3737,11 +3789,11 @@ msgstr ""
 "والی جگہ پر اگلا منتظر شخص شامل ہو جاتا ہے۔ بغیر حد کے لیے 0 مقرر کریں۔ "
 "کمیونٹی اسے بدلنے کے لیے ووٹ بھی دے سکتی ہے۔"
 
-#: includes/Admin/SettingsFields.php:1074
+#: includes/Admin/SettingsFields.php:1087
 msgid "Cap-change co-signers required"
 msgstr "حد بدلنے کے لیے مطلوبہ کو-سائنرز"
 
-#: includes/Admin/SettingsFields.php:1078
+#: includes/Admin/SettingsFields.php:1091
 msgid ""
 "How many artists must co-sign a proposal to change the community size cap "
 "before it opens as a full community vote."
@@ -3749,11 +3801,11 @@ msgstr ""
 "کمیونٹی سائز کی حد تبدیل کرنے کی تجویز کو مکمل کمیونٹی ووٹ بننے سے پہلے کتنے "
 "فنکاروں کو اس کی مشترکہ توثیق کرنی ہوگی۔"
 
-#: includes/Admin/SettingsFields.php:1082
+#: includes/Admin/SettingsFields.php:1095
 msgid "Cap-change vote window (days)"
 msgstr "حد بدلنے کے ووٹ کی مدت (دن)"
 
-#: includes/Admin/SettingsFields.php:1086
+#: includes/Admin/SettingsFields.php:1099
 msgid ""
 "Days a community cap-change vote stays open. A strict majority of active "
 "artists voting yes adopts the new cap."
@@ -3761,11 +3813,11 @@ msgstr ""
 "کمیونٹی کی حد بدلنے کے ووٹ کے کھلے رہنے کے دن۔ فعال فنکاروں کی سادہ اکثریت "
 "کے ہاں ووٹ دینے پر نئی حد نافذ ہو جاتی ہے۔"
 
-#: includes/Admin/SettingsFields.php:1090
+#: includes/Admin/SettingsFields.php:1103
 msgid "Removal nominations required"
 msgstr "اخراج کے لیے درکار نامزدگیاں"
 
-#: includes/Admin/SettingsFields.php:1096
+#: includes/Admin/SettingsFields.php:1109
 msgid ""
 "Number of artist nominations needed before a community removal vote opens. "
 "Admins can bypass this threshold."
@@ -3773,11 +3825,11 @@ msgstr ""
 "کمیونٹی اخراج کے ووٹ کے آغاز سے پہلے کتنی فنکار نامزدگیاں درکار ہیں۔ منتظمین "
 "اس حد کو نظر انداز کر سکتے ہیں۔"
 
-#: includes/Admin/SettingsFields.php:1100
+#: includes/Admin/SettingsFields.php:1113
 msgid "Removal vote window (days)"
 msgstr "اخراج کے ووٹ کی مدت (دن)"
 
-#: includes/Admin/SettingsFields.php:1106
+#: includes/Admin/SettingsFields.php:1119
 msgid ""
 "Days a community removal vote stays open. A majority (>50%) of active "
 "artists must vote yes for removal to proceed."
@@ -3785,11 +3837,11 @@ msgstr ""
 "کمیونٹی اخراج کے ووٹ کے کھلے رہنے کے دن۔ اخراج کے لیے فعال فنکاروں کی اکثریت "
 "(>50%) کا ہاں میں ووٹ دینا ضروری ہے۔"
 
-#: includes/Admin/SettingsFields.php:1110
+#: includes/Admin/SettingsFields.php:1123
 msgid "Invitation intro"
 msgstr "دعوت کا تعارفی متن"
 
-#: includes/Admin/SettingsFields.php:1114
+#: includes/Admin/SettingsFields.php:1127
 msgid ""
 "Agnosis is a small, self-hosted home for artists who'd rather make work than "
 "manage a platform. There's no algorithm deciding who sees your art, no "
@@ -3818,7 +3870,7 @@ msgstr ""
 "ڈیش بورڈ، نہ فارم، اور آپ ای میل بھیج کر اپنے فن پارے کو اپ ڈیٹ، پروموٹ یا "
 "ہٹا بھی سکتے ہیں۔ مزید معلومات کے لیے آپ agnosis.art ویب سائٹ پر جا سکتے ہیں۔"
 
-#: includes/Admin/SettingsFields.php:1119
+#: includes/Admin/SettingsFields.php:1132
 msgid ""
 "Shown near the top of the \"Send Invitation\" email below (an \"Apply to join"
 "\" link and site name follow automatically — no need to add either here). "
@@ -3834,22 +3886,22 @@ msgstr ""
 "یہ خودکار طور پر ترجمہ ہو جاتی ہے۔عطیات اور فن پاروں کی فروخت پر اس نوڈ کے "
 "پاس رکھی جانے والی فیصد۔ فنکار پیشگی کچھ ادا نہیں کرتے۔"
 
-#: includes/Admin/SettingsFields.php:1138
+#: includes/Admin/SettingsFields.php:1151
 msgid "Sender name"
 msgstr "بھیجنے والے کا نام"
 
-#: includes/Admin/SettingsFields.php:1139
+#: includes/Admin/SettingsFields.php:1152
 msgid ""
 "Name shown as the sender of digest emails. Leave blank to use the site name."
 msgstr ""
 "ڈائجسٹ ای میلز کے بھیجنے والے کے طور پر دکھایا جانے والا نام۔ سائٹ کا نام "
 "استعمال کرنے کے لیے خالی چھوڑ دیں۔"
 
-#: includes/Admin/SettingsFields.php:1143
+#: includes/Admin/SettingsFields.php:1156
 msgid "Sender email address"
 msgstr "بھیجنے والے کا ای میل پتہ"
 
-#: includes/Admin/SettingsFields.php:1145
+#: includes/Admin/SettingsFields.php:1158
 msgid ""
 "Dedicated From: address for both newsletters, e.g. newsletter@agnosis.art — "
 "keeps digest mail separate from the site's admin email for deliverability "
@@ -3863,11 +3915,11 @@ msgstr ""
 "ڈومین پر ایک درست، قابلِ ترسیل پتہ ہونا چاہیے (SPF/DKIM کنفیگرڈ) ورنہ پیغامات "
 "اسپیم کے طور پر نشان زد ہو سکتے ہیں۔"
 
-#: includes/Admin/SettingsFields.php:1149
+#: includes/Admin/SettingsFields.php:1162
 msgid "Auto-draft newsletter intros"
 msgstr "نیوزلیٹر کے تعارفی متن کی خودکار ڈرافٹنگ"
 
-#: includes/Admin/SettingsFields.php:1154
+#: includes/Admin/SettingsFields.php:1167
 msgid ""
 "When enabled, Agnosis drafts an intro via AI ahead of each issue (see the "
 "lead time below), saves it to that newsletter's intro field, and emails you "
@@ -3880,11 +3932,11 @@ msgstr ""
 "نہیں جب آپ نے پہلے ہی اس چکر کے لیے ایک لکھ رکھا ہو۔ اسے غیر فعال کریں تاکہ "
 "دونوں intro فیلڈز بالکل ویسے ہی رہیں جیسے آپ نے انہیں چھوڑا تھا، ہمیشہ۔"
 
-#: includes/Admin/SettingsFields.php:1158
+#: includes/Admin/SettingsFields.php:1171
 msgid "Draft intro this many hours ahead"
 msgstr "یہ تعارفی مسودہ کتنے گھنٹے پہلے تیار کیا جائے"
 
-#: includes/Admin/SettingsFields.php:1164
+#: includes/Admin/SettingsFields.php:1177
 msgid ""
 "How long before an issue is due Agnosis proposes an AI-drafted intro. Only "
 "takes effect when auto-drafting (above) is enabled. Default: 24."
@@ -3893,11 +3945,11 @@ msgstr ""
 "کرے۔ یہ صرف تب مؤثر ہوتا ہے جب اوپر والا خودکار ڈرافٹنگ فعال ہو۔ پہلے سے طے "
 "شدہ: 24۔"
 
-#: includes/Admin/SettingsFields.php:1168 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:400
 msgid "Artist newsletter"
 msgstr "فنکاروں کا نیوزلیٹر"
 
-#: includes/Admin/SettingsFields.php:1171
+#: includes/Admin/SettingsFields.php:1184
 msgid ""
 "Admitted artists are auto-enrolled (they can unsubscribe from any issue with "
 "one click). Community digest: recent activity, new members, open votes."
@@ -3906,11 +3958,11 @@ msgstr ""
 "کسی بھی شمارے سے ایک کلک میں ان سبسکرائب کر سکتے ہیں)۔ کمیونٹی ڈائجسٹ: حالیہ "
 "سرگرمی، نئے اراکین، کھلی ووٹنگز۔"
 
-#: includes/Admin/SettingsFields.php:1175
+#: includes/Admin/SettingsFields.php:1188
 msgid "Artist newsletter frequency (days)"
 msgstr "فنکاروں کے نیوزلیٹر کی فریکوئنسی (دن)"
 
-#: includes/Admin/SettingsFields.php:1181
+#: includes/Admin/SettingsFields.php:1194
 msgid ""
 "Default 30 ≈ monthly. A new issue is prepared once this many days have "
 "passed since the last one was sent."
@@ -3918,11 +3970,11 @@ msgstr ""
 "پہلے سے طے شدہ 30 ≈ ماہانہ۔ جب پچھلا شمارہ بھیجے جانے کے بعد اتنے دن گزر "
 "جاتے ہیں تو نیا شمارہ تیار کیا جاتا ہے۔"
 
-#: includes/Admin/SettingsFields.php:1185
+#: includes/Admin/SettingsFields.php:1198
 msgid "Artist newsletter intro"
 msgstr "فنکاروں کے نیوزلیٹر کا تعارف"
 
-#: includes/Admin/SettingsFields.php:1189
+#: includes/Admin/SettingsFields.php:1202
 msgid ""
 "Optional note prepended to the next artist issue only — cleared "
 "automatically once that issue is queued. Leave blank to send the auto-digest "
@@ -3937,11 +3989,11 @@ msgstr ""
 "اور پہلے اسے جانچنے کے لیے آپ کو ای میل بھی کرتا ہے — اسے چھوڑنے کے لیے یہاں "
 "کبھی بھی اپنا نوٹ لکھ دیں۔"
 
-#: includes/Admin/SettingsFields.php:1193 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:400
 msgid "Public newsletter"
 msgstr "عوامی نیوز لیٹر"
 
-#: includes/Admin/SettingsFields.php:1196
+#: includes/Admin/SettingsFields.php:1209
 msgid ""
 "Visitors subscribe via the agnosis/newsletter-signup block (double opt-in). "
 "Digest: new artwork and events published since the last issue."
@@ -3949,19 +4001,19 @@ msgstr ""
 "زائرین agnosis/newsletter-signup بلاک کے ذریعے سبسکرائب کرتے ہیں (ڈبل آپٹ "
 "اِن)۔ ڈائجسٹ: پچھلے شمارے کے بعد شائع ہونے والی نئی تخلیقات اور تقریبات۔"
 
-#: includes/Admin/SettingsFields.php:1200
+#: includes/Admin/SettingsFields.php:1213
 msgid "Public newsletter frequency (days)"
 msgstr "عوامی نیوز لیٹر کی فریکوئنسی (دن)"
 
-#: includes/Admin/SettingsFields.php:1206
+#: includes/Admin/SettingsFields.php:1219
 msgid "Default 30 ≈ monthly."
 msgstr "ڈیفالٹ 30 ≈ ماہانہ۔"
 
-#: includes/Admin/SettingsFields.php:1210
+#: includes/Admin/SettingsFields.php:1223
 msgid "Public newsletter intro"
 msgstr "عوامی نیوز لیٹر کا تعارف"
 
-#: includes/Admin/SettingsFields.php:1214
+#: includes/Admin/SettingsFields.php:1227
 msgid ""
 "Optional note prepended to the next public issue only — cleared "
 "automatically once that issue is queued. If left blank, Agnosis drafts one "
@@ -3975,11 +4027,11 @@ msgstr ""
 "اور پہلے اسے جانچنے کے لیے آپ کو ای میل بھی کرتا ہے — اسے چھوڑنے کے لیے یہاں "
 "کبھی بھی اپنا نوٹ لکھ دیں۔"
 
-#: includes/Admin/SettingsFields.php:1218
+#: includes/Admin/SettingsFields.php:1231
 msgid "Send batch size"
 msgstr "بھیجنے کے بیچ کا سائز"
 
-#: includes/Admin/SettingsFields.php:1224
+#: includes/Admin/SettingsFields.php:1237
 msgid ""
 "Recipients emailed per 5-minute cron tick. Lower this if your host throttles "
 "outbound mail; raise it for faster delivery on hosts with generous limits."
@@ -3988,11 +4040,11 @@ msgstr ""
 "میل کو محدود کرتا ہے تو اسے کم کریں؛ اور اگر ہوسٹس کی حدیں زیادہ فراخ ہیں تو "
 "تیز تر ترسیل کے لیے اسے بڑھا دیں۔"
 
-#: includes/Admin/SettingsFields.php:1228
+#: includes/Admin/SettingsFields.php:1241
 msgid "Self-hosting comfort threshold"
 msgstr "خود ہوسٹنگ سہولت کی حد"
 
-#: includes/Admin/SettingsFields.php:1234
+#: includes/Admin/SettingsFields.php:1247
 msgid ""
 "Advisory only — self-hosted sending keeps working above this count. Once "
 "confirmed public subscribers pass it, this page shows a reminder to consider "
@@ -4019,7 +4071,7 @@ msgstr ""
 "یہ واپس نہیں لیا جا سکتا۔"
 
 #. translators: %d: number of submissions the approved tag was assigned to
-#: includes/Admin/TagProposals.php:453
+#: includes/Admin/TagProposals.php:441
 #, php-format
 msgid "Tag proposal approved and assigned to %d submission."
 msgid_plural "Tag proposal approved and assigned to %d submissions."
@@ -4027,7 +4079,7 @@ msgstr[0] "ٹیگ کی تجویز منظور ہو گئی اور %d گذارشا�
 msgstr[1] "درمیانہ تجویز منظور ہو گئی اور %d گذارشات کو تفویض کی گئیں۔"
 
 #. translators: %d: number of submissions the rejected proposal was cleared from
-#: includes/Admin/TagProposals.php:466
+#: includes/Admin/TagProposals.php:454
 #, php-format
 msgid "Tag proposal rejected for %d submission."
 msgid_plural "Tag proposal rejected for %d submissions."
@@ -4139,7 +4191,7 @@ msgstr ""
 "اپنی بات کہنے دیں۔"
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
-#: includes/Network/ActivityPub.php:437
+#: includes/Network/ActivityPub.php:442
 msgid "Name"
 msgstr "نام"
 
@@ -4157,7 +4209,7 @@ msgstr "بیان"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3899
+#: includes/Network/ActivityPub.php:3964
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s %2$d حروف یا اس سے کم ہونا چاہیے۔"
@@ -4255,8 +4307,8 @@ msgstr "شکریہ، %s!"
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:367
-#: includes/Network/ActivityPub.php:4789 includes/Network/ActivityPub.php:4796
-#: includes/Network/ActivityPub.php:4803 includes/Network/ActivityPub.php:4911
+#: includes/Network/ActivityPub.php:4854 includes/Network/ActivityPub.php:4861
+#: includes/Network/ActivityPub.php:4868 includes/Network/ActivityPub.php:4976
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "لنک میں خرابی"
@@ -4306,8 +4358,8 @@ msgstr "ہم نے %s کے لیے آپ کی درخواست موصول کر لی �
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4465
-#: includes/Network/ActivityPub.php:4584
+#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4530
+#: includes/Network/ActivityPub.php:4649
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4822,7 +4874,7 @@ msgstr ""
 "اسپام، دھوکہ دہی، یا غیر مطلوب تجارتی اشتہارات جو فنکار سے اس کے کام کے بارے "
 "میں حقیقی طور پر رابطہ کرنے سے غیر متعلق ہوں"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4112
+#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4177
 msgid "Flagged by automatic content review."
 msgstr "خودکار مواد کے جائزے کے ذریعے نشان زد کیا گیا۔"
 
@@ -4857,12 +4909,12 @@ msgid "Reply (translated automatically)"
 msgstr "جواب دیں (خودکار طور پر ترجمہ کیا جائے گا)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4672 includes/Network/ActivityPub.php:4788
-#: includes/Network/ActivityPub.php:4910
+#: includes/Network/ActivityPub.php:4737 includes/Network/ActivityPub.php:4853
+#: includes/Network/ActivityPub.php:4975
 msgid "This link is invalid or has already expired."
 msgstr "یہ لنک درست نہیں ہے یا پہلے ہی ختم ہو چکا ہے۔"
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4677
+#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4742
 msgid "This link has expired."
 msgstr "یہ لنک ختم ہو چکا ہے۔"
 
@@ -4870,15 +4922,15 @@ msgstr "یہ لنک ختم ہو چکا ہے۔"
 msgid "This conversation no longer exists."
 msgstr "یہ گفتگو اب موجود نہیں ہے۔"
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4845
+#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4910
 msgid "Original"
 msgstr "اصلی"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4851
+#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4916
 msgid "Translated"
 msgstr "ترجمہ شدہ"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4854
+#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4919
 msgid "Translation pending…"
 msgstr "ترجمہ زیر التوا ہے…"
 
@@ -4898,8 +4950,8 @@ msgstr "اس گفتگو کا جواب دیں"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "آپ کا جواب (اگر ضرورت ہو تو یہ خودکار طور پر ترجمہ کیا جائے گا)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3531
-#: includes/Network/ActivityPub.php:3598
+#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3571
+#: includes/Network/ActivityPub.php:3663
 msgid "Send reply"
 msgstr "جواب بھیجیں"
 
@@ -4942,8 +4994,8 @@ msgstr "آپ کے پیغام کا نیا جواب ہے:"
 msgid "Original message, as written"
 msgstr "اصل پیغام، جیسا لکھا گیا"
 
-#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:449
-#: includes/Network/ActivityPub.php:3544
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:454
+#: includes/Network/ActivityPub.php:3584
 msgid "Reply"
 msgstr "جواب دیں"
 
@@ -4952,10 +5004,12 @@ msgid "You've used all of your replies for this conversation."
 msgstr "آپ نے اس گفتگو کے لیے اپنے تمام جوابات استعمال کر لیے ہیں."
 
 #: includes/Artist/ContactFormBlock.php:102
+#: includes/Network/ActivityPub.php:3653
 msgid "Your name (optional)"
 msgstr "آپ کا نام (اختیاری)"
 
 #: includes/Artist/ContactFormBlock.php:113
+#: includes/Network/ActivityPub.php:3655
 msgid "Your email address"
 msgstr "آپ کا ای میل پتہ"
 
@@ -5409,7 +5463,7 @@ msgstr ""
 msgid "You are already an admitted Agnosis artist."
 msgstr "آپ پہلے ہی ایک منظور شدہ Agnosis فنکار ہیں۔"
 
-#: includes/Artist/JoinPage.php:71 includes/Core/Privacy.php:384
+#: includes/Artist/JoinPage.php:71 includes/Core/Privacy.php:402
 msgid "Your name"
 msgstr "آپ کا نام"
 
@@ -5429,7 +5483,7 @@ msgstr "مختصر تعارف"
 msgid "A few sentences about your practice, medium, and background."
 msgstr "اپنی مشق، میڈیم، اور پس منظر کے بارے میں چند جملے۔"
 
-#: includes/Artist/JoinPage.php:112 includes/Core/Privacy.php:179
+#: includes/Artist/JoinPage.php:112 includes/Core/Privacy.php:185
 msgid "Portfolio URL"
 msgstr "پورٹ فولیو URL"
 
@@ -5522,7 +5576,9 @@ msgstr ""
 msgid ""
 "Turn off the personal \"likes and boosts on your work\" line in your "
 "newsletter digest."
-msgstr "اپنی خبرنامه کے خلاصے میں ذاتی \"آپ کے کام پر پسندیدگی اور بڑھوتری\" کی لائن بند کریں۔"
+msgstr ""
+"اپنی خبرنامه کے خلاصے میں ذاتی \"آپ کے کام پر پسندیدگی اور بڑھوتری\" کی لائن "
+"بند کریں۔"
 
 #: includes/Artist/NotificationPreferences.php:331
 msgid "Save preferences"
@@ -5609,7 +5665,7 @@ msgid "Biographies"
 msgstr "سوانح حیاتیں"
 
 #: includes/Artist/Profile.php:58 includes/Artist/Profile.php:68
-#: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:178
+#: includes/Core/EmailFooter.php:73 includes/Core/Privacy.php:184
 #: includes/Network/SubdomainNavigation.php:135
 #: includes/Network/SubdomainNavigation.php:364
 #: includes/Publishing/PostCreator.php:1055
@@ -5914,7 +5970,7 @@ msgid_plural "%d positive votes recorded so far."
 msgstr[0] "اب تک %d مثبت ووٹ ریکارڈ ہو چکے ہیں۔"
 msgstr[1] "اب تک %d مثبت ووٹ ریکارڈ ہو چکے ہیں۔"
 
-#: includes/Compat/LinguaForge.php:1844
+#: includes/Compat/LinguaForge.php:1863
 msgid ""
 "Placeholder — AI translation was unavailable or failed when this term was "
 "created. Edit the name to provide the correct translation, then clear this "
@@ -5923,19 +5979,19 @@ msgstr ""
 "پلیس ہولڈر — یہ اصطلاح بناتے وقت AI ترجمہ دستیاب نہیں تھا یا ناکام ہو گیا "
 "تھا۔ درست ترجمہ فراہم کرنے کے لیے نام میں ترمیم کریں، پھر یہ نوٹ صاف کریں۔"
 
-#: includes/Compat/LinguaForge.php:3714
+#: includes/Compat/LinguaForge.php:3767
 msgid "is active and configured for"
 msgstr "فعال ہے اور اس کے لیے ترتیب دیا گیا ہے"
 
-#: includes/Compat/LinguaForge.php:3715
+#: includes/Compat/LinguaForge.php:3768
 msgid "Subdomain"
 msgstr "ذیلی ڈومین"
 
-#: includes/Compat/LinguaForge.php:3716
+#: includes/Compat/LinguaForge.php:3769
 msgid "routing mode"
 msgstr "روٹنگ موڈ"
 
-#: includes/Compat/LinguaForge.php:3718
+#: includes/Compat/LinguaForge.php:3771
 msgid ""
 "This conflicts with Agnosis artist subdomains — both plugins would claim the "
 "same subdomain namespace."
@@ -5943,39 +5999,39 @@ msgstr ""
 "یہ Agnosis کے فنکار ذیلی ڈومینز سے ٹکراتا ہے — دونوں پلگ اِن ایک ہی ذیلی "
 "ڈومین نامی جگہ کا دعویٰ کریں گے۔"
 
-#: includes/Compat/LinguaForge.php:3719
+#: includes/Compat/LinguaForge.php:3772
 msgid "Artist subdomain routing is"
 msgstr "فنکار ذیلی ڈومین روٹنگ"
 
-#: includes/Compat/LinguaForge.php:3720
+#: includes/Compat/LinguaForge.php:3773
 msgid "completely inactive"
 msgstr "مکمل طور پر غیر فعال ہے"
 
-#: includes/Compat/LinguaForge.php:3721
+#: includes/Compat/LinguaForge.php:3774
 msgid "until this is resolved."
 msgstr "جب تک یہ حل نہ ہو جائے۔"
 
-#: includes/Compat/LinguaForge.php:3723
+#: includes/Compat/LinguaForge.php:3776
 msgid "Fix: open"
 msgstr "درست کریں: کھولیں"
 
-#: includes/Compat/LinguaForge.php:3724
+#: includes/Compat/LinguaForge.php:3777
 msgid "Settings"
 msgstr "ترتیبات"
 
-#: includes/Compat/LinguaForge.php:3724
+#: includes/Compat/LinguaForge.php:3777
 msgid "Language Router"
 msgstr "Language Router"
 
-#: includes/Compat/LinguaForge.php:3725
+#: includes/Compat/LinguaForge.php:3778
 msgid "and switch the URL strategy to"
 msgstr "اور URL حکمتِ عملی کو تبدیل کریں"
 
-#: includes/Compat/LinguaForge.php:3726
+#: includes/Compat/LinguaForge.php:3779
 msgid "Path prefix (subfolder)"
 msgstr "پاتھ پریفکس (سب فولڈر)"
 
-#: includes/Compat/LinguaForge.php:3727
+#: includes/Compat/LinguaForge.php:3780
 msgid ""
 "This is the LinguaForge default and allows artist subdomains to coexist with "
 "language subfolders"
@@ -5983,11 +6039,11 @@ msgstr ""
 "یہ LinguaForge کی ڈیفالٹ ہے اور فنکار ذیلی ڈومینز کو زبان کے سب فولڈرز کے "
 "ساتھ ساتھ موجود رہنے کی اجازت دیتی ہے"
 
-#: includes/Compat/LinguaForge.php:3732
+#: includes/Compat/LinguaForge.php:3785
 msgid "Agnosis — Artist Subdomain Routing is disabled"
 msgstr "Agnosis — Artist Subdomain Routing غیر فعال ہے"
 
-#: includes/Compat/LinguaForge.php:3742
+#: includes/Compat/LinguaForge.php:3795
 msgid "Open LinguaForge Settings"
 msgstr "LinguaForge ترتیبات کھولیں"
 
@@ -6100,133 +6156,186 @@ msgstr "نوٹیفکیشن ترجیحات کا انتظام کریں"
 msgid "%s — art blooming out of oblivion"
 msgstr "%s — فراموشی سے ابھرتا ہوا فن"
 
-#: includes/Core/Privacy.php:129 includes/Core/Privacy.php:191
-#: includes/Core/Privacy.php:445
+#: includes/Core/Privacy.php:131 includes/Core/Privacy.php:197
+#: includes/Core/Privacy.php:491
 msgid "Agnosis Membership Application"
 msgstr "ایگنوسِس رکنیت کی درخواست"
 
-#: includes/Core/Privacy.php:133 includes/Core/Privacy.php:223
-#: includes/Core/Privacy.php:241 includes/Core/Privacy.php:259
-#: includes/Core/Privacy.php:277 includes/Core/Privacy.php:449
+#: includes/Core/Privacy.php:135 includes/Core/Privacy.php:229
+#: includes/Core/Privacy.php:247 includes/Core/Privacy.php:265
+#: includes/Core/Privacy.php:283 includes/Core/Privacy.php:495
 msgid "Agnosis Governance Participation"
 msgstr "ایگنوسِس حکمرانی میں شرکت"
 
-#: includes/Core/Privacy.php:137 includes/Core/Privacy.php:312
-#: includes/Core/Privacy.php:453
+#: includes/Core/Privacy.php:139 includes/Core/Privacy.php:318
+#: includes/Core/Privacy.php:499
 msgid "Agnosis Newsletter Subscription"
 msgstr "ایگنوسِس نیوز لیٹر کی رکنیت"
 
-#: includes/Core/Privacy.php:141 includes/Core/Privacy.php:345
-#: includes/Core/Privacy.php:457
+#: includes/Core/Privacy.php:143 includes/Core/Privacy.php:351
+#: includes/Core/Privacy.php:503
 msgid "Agnosis Newsletter Delivery History"
 msgstr "ایگنوسِس نیوز لیٹر کی ترسیل کی تاریخ"
 
-#: includes/Core/Privacy.php:145 includes/Core/Privacy.php:380
-#: includes/Core/Privacy.php:461
+#: includes/Core/Privacy.php:147 includes/Core/Privacy.php:435
+#: includes/Core/Privacy.php:507
 msgid "Agnosis Contact Messages Sent"
 msgstr "ایگنوسِس رابطہ پیغامات بھیجے گئے"
 
-#: includes/Core/Privacy.php:149 includes/Core/Privacy.php:426
-#: includes/Core/Privacy.php:465
+#: includes/Core/Privacy.php:151 includes/Core/Privacy.php:472
+#: includes/Core/Privacy.php:511
 msgid "Agnosis Notification Preferences"
 msgstr "ایگنوسِس اطلاع کی ترجیحات"
 
-#: includes/Core/Privacy.php:177
+#: includes/Core/Privacy.php:155 includes/Core/Privacy.php:515
+#: includes/Core/Privacy.php:601
+msgid "Agnosis Reply Translations"
+msgstr "Agnosis جواب ترجمے"
+
+#: includes/Core/Privacy.php:183
 msgid "Display name"
 msgstr "ظاہری نام"
 
-#: includes/Core/Privacy.php:180
+#: includes/Core/Privacy.php:186
 msgid "Application statement"
 msgstr "درخواست کا بیان"
 
-#: includes/Core/Privacy.php:183
+#: includes/Core/Privacy.php:189
 msgid "Applied at"
 msgstr "درخواست دی گئی"
 
-#: includes/Core/Privacy.php:184 includes/Core/Privacy.php:353
+#: includes/Core/Privacy.php:190 includes/Core/Privacy.php:359
 msgid "Resolved at"
 msgstr "حل کیا گیا"
 
-#: includes/Core/Privacy.php:226 includes/Core/Privacy.php:244
-#: includes/Core/Privacy.php:262 includes/Core/Privacy.php:280
+#: includes/Core/Privacy.php:232 includes/Core/Privacy.php:250
+#: includes/Core/Privacy.php:268 includes/Core/Privacy.php:286
 msgid "Type"
 msgstr "قسم"
 
-#: includes/Core/Privacy.php:226
+#: includes/Core/Privacy.php:232
 msgid "Community vouch given"
 msgstr "کمیونٹی واؤچ دیا گیا"
 
-#: includes/Core/Privacy.php:228 includes/Core/Privacy.php:246
-#: includes/Core/Privacy.php:264 includes/Core/Privacy.php:282
+#: includes/Core/Privacy.php:234 includes/Core/Privacy.php:252
+#: includes/Core/Privacy.php:270 includes/Core/Privacy.php:288
 #: includes/Publishing/ReviewConfirm.php:972
 msgid "Date"
 msgstr "تاریخ"
 
-#: includes/Core/Privacy.php:244
+#: includes/Core/Privacy.php:250
 msgid "Admission vouch given"
 msgstr "داخلے کا واؤچ دیا گیا"
 
-#: includes/Core/Privacy.php:262
+#: includes/Core/Privacy.php:268
 msgid "Community removal vote"
 msgstr "کمیونٹی اخراج ووٹ"
 
-#: includes/Core/Privacy.php:263 includes/Core/Privacy.php:281
+#: includes/Core/Privacy.php:269 includes/Core/Privacy.php:287
 msgid "Vote"
 msgstr "ووٹ"
 
-#: includes/Core/Privacy.php:280
+#: includes/Core/Privacy.php:286
 msgid "Community size-cap vote"
 msgstr "کمیونٹی سائز کی حد کا ووٹ"
 
-#: includes/Core/Privacy.php:316 includes/Core/Privacy.php:350
+#: includes/Core/Privacy.php:322 includes/Core/Privacy.php:356
 msgid "Locale"
 msgstr "لوکیل"
 
-#: includes/Core/Privacy.php:317
+#: includes/Core/Privacy.php:323
 msgid "Subscribed at"
 msgstr "سبسکرائب کیا گیا"
 
-#: includes/Core/Privacy.php:318
+#: includes/Core/Privacy.php:324
 msgid "Confirmed at"
 msgstr "تصدیق کی گئی"
 
-#: includes/Core/Privacy.php:319
+#: includes/Core/Privacy.php:325
 msgid "Unsubscribed at"
 msgstr "ان سبسکرائب کیا گیا"
 
-#: includes/Core/Privacy.php:348
+#: includes/Core/Privacy.php:354
 msgid "Issue"
 msgstr "مسئلہ"
 
-#: includes/Core/Privacy.php:349
+#: includes/Core/Privacy.php:355
 msgid "Recipient type"
 msgstr "وصول کنندہ کی قسم"
 
-#: includes/Core/Privacy.php:352
+#: includes/Core/Privacy.php:358
 msgid "Queued at"
 msgstr "قطار میں شامل کیا گیا"
 
-#: includes/Core/Privacy.php:383
+#: includes/Core/Privacy.php:401
 msgid "Sent to artist"
 msgstr "فنکار کو بھیجا گیا"
 
-#: includes/Core/Privacy.php:386
+#: includes/Core/Privacy.php:404
 msgid "Translated message"
 msgstr "ترجمہ شدہ پیغام"
 
-#: includes/Core/Privacy.php:388
+#: includes/Core/Privacy.php:406
 msgid "Rejection reason"
 msgstr "رد کرنے کی وجہ"
 
-#: includes/Core/Privacy.php:389
+#: includes/Core/Privacy.php:407
 msgid "IP address"
 msgstr "آئی پی پتہ"
 
-#: includes/Core/Privacy.php:390
+#: includes/Core/Privacy.php:408 includes/Core/Privacy.php:597
 msgid "Sent at"
 msgstr "بھیجا گیا"
 
-#: includes/Core/Privacy.php:493
+#: includes/Core/Privacy.php:419
+msgid "Conversation"
+msgstr "بات چیت"
+
+#: includes/Core/Privacy.php:421
+msgid "Message type"
+msgstr "پیغام کی نوعیت"
+
+#: includes/Core/Privacy.php:422
+msgid "Follow-up in an existing conversation"
+msgstr "موجودہ گفتگو میں پیروی کریں"
+
+#: includes/Core/Privacy.php:422
+msgid "First message"
+msgstr "پہلا پیغام"
+
+#: includes/Core/Privacy.php:426 includes/Core/Privacy.php:583
+msgid "Detected language"
+msgstr "پہچانی گئی زبان"
+
+#: includes/Core/Privacy.php:430
+msgid "Delivered at"
+msgstr " پہنچایا گیا"
+
+#: includes/Core/Privacy.php:577
+msgid "On artwork"
+msgstr "فن پارے پر"
+
+#: includes/Core/Privacy.php:578 includes/Network/ActivityPub.php:3650
+msgid "Your reply"
+msgstr "آپ کا جواب"
+
+#: includes/Core/Privacy.php:588
+msgid "Translation shown to the artist"
+msgstr "فنکار کے سامنے دکھایا گیا ترجمہ"
+
+#: includes/Core/Privacy.php:593
+msgid "Translation shown on the site"
+msgstr "سائٹ پر دکھایا گیا ترجمہ"
+
+#: includes/Core/Privacy.php:596
+msgid "Yes"
+msgstr "جی ہاں"
+
+#: includes/Core/Privacy.php:596
+msgid "No — awaiting or declined by the artist"
+msgstr "نہیں — فنکار کی طرف سے انتظار یا انکار"
+
+#: includes/Core/Privacy.php:669
 msgid ""
 "Your membership application/account is still active. To remove this data, "
 "use the \"leave the network\" link from any Agnosis email, or ask an "
@@ -6236,7 +6345,7 @@ msgstr ""
 "ایگنوسِس ای میل میں موجود \"نیٹ ورک چھوڑیں\" لنک استعمال کریں، یا کسی منتظم "
 "سے کہیں۔"
 
-#: includes/Core/Privacy.php:513
+#: includes/Core/Privacy.php:689
 msgid ""
 "Your biography, statement, and portfolio link were erased. Your email "
 "address was kept on file — your account is currently banned, and it's the "
@@ -6246,11 +6355,11 @@ msgstr ""
 "رکھا گیا — آپ کا اکاؤنٹ فی الحال ممنوع ہے، اور اسی واحد طریقے سے یہ سائٹ اس "
 "پابندی کو نافذ رکھ سکتی ہے۔"
 
-#: includes/Core/Privacy.php:587 includes/Core/Privacy.php:659
+#: includes/Core/Privacy.php:763 includes/Core/Privacy.php:847
 msgid "[message removed]"
 msgstr "[پیغام ہٹا دیا گیا]"
 
-#: includes/Core/Privacy.php:598
+#: includes/Core/Privacy.php:774
 msgid ""
 "Vouch messages you wrote were redacted. Governance votes you cast were kept "
 "as-is — a vote is a community record, not personal data, and removing it "
@@ -6260,7 +6369,7 @@ msgstr ""
 "اصل حالت میں رکھے گئے — ووٹ کمیونٹی کا ریکارڈ ہے، ذاتی ڈیٹا نہیں، اور اسے "
 "ہٹانے سے طے شدہ فیصلے میں خاموشی سے تبدیلی آ جائے گی۔"
 
-#: includes/Core/Privacy.php:641
+#: includes/Core/Privacy.php:817
 msgid ""
 "Past newsletter delivery records were anonymized; per-issue delivery counts "
 "were kept for statistics."
@@ -6268,7 +6377,14 @@ msgstr ""
 "گزشتہ نیوز لیٹر کی ترسیل کے ریکارڈ بے نام کر دیے گئے؛ ہر شمارے کی ترسیل کی "
 "تعداد اعدادوشمار کے لیے برقرار رکھی گئی۔"
 
-#: includes/Core/Privacy.php:708
+#: includes/Core/Privacy.php:886
+msgid ""
+"Replies written by the artist in these conversations were kept, as they are "
+"the artist's own content; your name, email address and IP have been removed "
+"from them."
+msgstr "ان گفتگوؤں میں فنکار کے ذریعہ لکھے گئے جوابات محفوظ کیے گئے، کیونکہ یہ فنکار کا اپنا مواد ہے؛ آپ کا نام، ای میل پتہ اور IP ان سے ہٹا دیے گئے ہیں۔"
+
+#: includes/Core/Privacy.php:924
 msgid ""
 "Agnosis is a federated art-publishing plugin. The following is a starting "
 "point for describing what it collects — review and adapt it to your site's "
@@ -6278,11 +6394,11 @@ msgstr ""
 "ابتدائی متن دیا گیا ہے کہ یہ کیا جمع کرتا ہے — شائع کرنے سے پہلے اسے اپنی "
 "سائٹ کی اصل ترتیب کے مطابق جانچیں اور ڈھالیں۔"
 
-#: includes/Core/Privacy.php:709
+#: includes/Core/Privacy.php:925
 msgid "What personal data we collect and why"
 msgstr "ہم کون سا ذاتی ڈیٹا جمع کرتے ہیں اور کیوں"
 
-#: includes/Core/Privacy.php:710
+#: includes/Core/Privacy.php:926
 msgid ""
 "When you apply to join, we store your email address, display name, "
 "biography, statement, and portfolio link to run the community vouching "
@@ -6301,11 +6417,32 @@ msgstr ""
 "آئندہ شمارے بھیجنے کے لیے آپ کا ای میل پتہ (اور رابطہ پیغامات کے لیے، آپ کا "
 "آئی پی پتہ) محفوظ کرتے ہیں۔"
 
-#: includes/Core/Privacy.php:711
+#: includes/Core/Privacy.php:934
+msgid ""
+"When you reply to an artwork on this site, we store your reply, the name you "
+"give, your email address, your IP address and your browser's user agent. A "
+"reply is only published once the artist approves it; once published it is "
+"visible to anyone and is also sent out across the Fediverse to other "
+"servers, which we cannot recall it from. Your reply is also machine-"
+"translated so it can be read on this site's other language versions and by "
+"the artist in their own language, and those translations are stored "
+"alongside it."
+msgstr "جب آپ اس سائٹ پر فن پارے کا جواب دیتے ہیں تو ہم آپ کا جواب، آپ کا دیا ہوا نام، آپ کا ای میل پتہ، آپ کا IP پتہ اور آپ کے براؤزر کا صارف ایجنٹ محفوظ کرتے ہیں۔ ایک جواب صرف جب فنکار اسے منظور کرتا ہے تو شائع ہوتا ہے؛ ایک بار شائع ہونے پر یہ ہر ایک کے لئے نظر آتا ہے اور فیڈورویس کے دوسرے سرورز پر بھی بھیجا جاتا ہے، جسے ہم واپس نہیں لے سکتے۔ آپ کا جواب بھی مشین کے ذریعے ترجمہ ہوتا ہے تاکہ اسے اس سائٹ کے دوسرے زبانوں کے ورژن میں پڑھا جا سکے اور فنکار اپنی زبان میں پڑھ سکے، اور وہ ترجمے اس کے ساتھ محفوظ ہوتے ہیں۔"
+
+#: includes/Core/Privacy.php:935
+msgid ""
+"When you \"like\" an artwork without being logged in, we do not store your "
+"IP address. We store only a one-way fingerprint derived from it together "
+"with a secret that is replaced every day — enough to stop the same like "
+"being counted twice on the same day, and deliberately impossible to trace "
+"back to you or to undo once the day's secret has been replaced."
+msgstr "جب آپ لاگ ان ہوئے بغیر ایک فن پارے کو \"پسند\" کرتے ہیں تو ہم آپ کا IP پتہ محفوظ نہیں کرتے۔ ہم صرف اس سے حاصل کردہ ایک یک رخی فنگر پرنٹ محفوظ کرتے ہیں جس کے ساتھ ایک راز شامل ہے جو ہر روز تبدیل ہوتا ہے — اس قدر کافی ہے کہ اسی دن میں ایک ہی پسند کو دو بار شمار ہونے سے روکے، اور دانستہ طور پر آپ کی طرف سے واپس ٹریس ہونا ناممکن یا اس دن کے راز کے تبدیل ہونے کے بعد اسے الٹانے کے لیے ناممکن ہے۔"
+
+#: includes/Core/Privacy.php:936
 msgid "Who we share it with"
 msgstr "ہم اسے کس کے ساتھ شیئر کرتے ہیں"
 
-#: includes/Core/Privacy.php:712
+#: includes/Core/Privacy.php:937
 msgid ""
 "Submitted artwork descriptions and images may be sent to a third-party AI "
 "provider (OpenAI or Anthropic, depending on this site's configuration) to "
@@ -6313,36 +6450,36 @@ msgid ""
 "WordPress's own built-in AI Client (configured under Settings → Connectors), "
 "submitted content is sent to whichever AI service that connector points to "
 "instead. Approved posts are also broadcast publicly over ActivityPub (the "
-"Fediverse) as part of this plugin's core federation feature."
-msgstr ""
-"Submitted artwork descriptions and images may be sent to a third-party AI "
-"provider (OpenAI or Anthropic, depending on this site's configuration) to "
-"help write publication text and enhance images. If this site instead uses "
-"WordPress's own built-in AI Client (configured under Settings → Connectors), "
-"submitted content is sent to whichever AI service that connector points to "
-"instead. Approved posts are also broadcast publicly over ActivityPub (the "
-"Fediverse) as part of this plugin's core federation feature."
+"Fediverse) as part of this plugin's core federation feature. Replies and "
+"contact messages are sent to the same AI provider for translation, and "
+"approved replies are federated outward in the same way approved posts are."
+msgstr "جمع کرائی گئیArtwork کی تفصیلات اور تصاویر تیسرے فریق AI فراہم کنندہ (OpenAI یا Anthropic، اس سائٹ کی ترتیب کے لحاظ سے) کو بھیجی جا سکتی ہیں تاکہ اشاعت کا متن لکھنے اور تصاویر کو بہتر بنانے میں مدد ملے۔ اگر یہ سائٹ ورڈپریس کے اپنے بلٹ ان AI کلائنٹ کا استعمال کرتی ہے (جو کہ Settings → Connectors کے تحت ترتیب دیا گیا ہے)، تو جمع کرائی گئی معلومات اس کنیکٹر کی طرف اشارہ کرنے والی AI سروس کو بھیجی جاتی ہیں۔ منظور شدہ پوسٹس کو اس پلگ ان کی بنیادی فیڈریشن کی خصوصیت کے حصے کے طور پر ActivityPub (فیڈوروس) کے ذریعے عوامی طور پر نشر کیا جاتا ہے۔ جوابات اور رابطے کے پیغامات ترجمے کے لیے اسی AI فراہم کنندہ کو بھیجے جاتے ہیں، اور منظور شدہ جوابات کو اسی طرح فیڈریٹ کیا جاتا ہے جیسے منظور شدہ پوسٹس۔"
 
-#: includes/Core/Privacy.php:721
+#: includes/Core/Privacy.php:942
+msgid ""
+"If this site is connected to other Agnosis nodes, a record is kept of which "
+"artworks those partner nodes shared through this one, including the "
+"identifier of the remote account that shared each one. This is used only to "
+"report how active the network has been."
+msgstr "اگر یہ سائٹ دوسرے Agnosis نوڈز سے منسلک ہے، تو اس کا ریکارڈ رکھا جاتا ہے کہ کون سیArtwork ان شراکتی نوڈز نے اس نوڈ کے ذریعے شیئر کی، بشمول ہر ایک کو شیئر کرنے والے دور دراز اکاؤنٹ کی شناخت کنندہ۔ یہ صرف اس بات کی رپورٹ کرنے کے لیے استعمال ہوتا ہے کہ نیٹ ورک کتنا فعال رہا ہے۔"
+
+#: includes/Core/Privacy.php:953
 msgid "Security check (Cloudflare Turnstile)"
 msgstr "سیکیورٹی چیک (Cloudflare Turnstile)"
 
-#: includes/Core/Privacy.php:722
+#: includes/Core/Privacy.php:954
 msgid ""
 "This site uses Cloudflare Turnstile, an automated security check, on its "
-"Join, contact, and newsletter-signup forms to block spam submissions. "
-"Completing it sends your IP address to Cloudflare for verification."
-msgstr ""
-"یہ سائٹ اپنی Join، رابطہ، اور newsletter کے سائن اپ فارمز پر Cloudflare "
-"Turnstile، ایک خودکار سیکیورٹی چیک، استعمال کرتی ہے تاکہ اسپیم جمع کرنے والے "
-"کو روکا جا سکے۔ اسے مکمل کرنے سے آپ کے IP پتے کو Cloudflare کو تصدیق کے لیے "
-"بھیجا جاتا ہے۔"
+"Join, contact, newsletter-signup and artwork reply forms to block spam "
+"submissions. Completing it sends your IP address to Cloudflare for "
+"verification."
+msgstr "یہ سائٹ Cloudflare Turnstile، ایک خودکار سیکیورٹی چیک، اپنے Join، رابطہ، نیوزلیٹر سائن اپ اور Artwork جواب کے فارم پر اسپیم کی جمع کرائیوں کو روکے گی۔ اسے مکمل کرنے سے آپ کا IP ایڈریس تصدیق کے لیے Cloudflare کو بھیجا جاتا ہے۔"
 
-#: includes/Core/Privacy.php:725
+#: includes/Core/Privacy.php:957
 msgid "Software updates"
 msgstr "سافٹ ویئر کی اپڈیٹس"
 
-#: includes/Core/Privacy.php:726
+#: includes/Core/Privacy.php:958
 msgid ""
 "This site checks agnosis.art roughly every 12 hours for available plugin "
 "updates. That check includes this site's own web address so the update "
@@ -6352,33 +6489,43 @@ msgstr ""
 "کرتی ہے۔ اس چیک میں اس سائٹ کا اپنا ویب ایڈریس شامل ہے تاکہ اپڈیٹ سرور "
 "مطابقت کی تصدیق کر سکے؛ کوئی زائر ڈیٹا شامل نہیں۔"
 
-#: includes/Core/Privacy.php:727
+#: includes/Core/Privacy.php:959
 msgid "How long we retain your data"
 msgstr "ہم آپ کا ڈیٹا کتنی مدت تک محفوظ رکھتے ہیں"
 
-#: includes/Core/Privacy.php:728
+#: includes/Core/Privacy.php:960
 msgid ""
 "By default: contact-form messages are kept for 90 days, and the sender's IP "
 "address on them is cleared sooner, after 30 days. Membership applications "
 "that are rejected, withdrawn, or leave the network are anonymized after 180 "
 "days. Raw submission emails are deleted from the processing queue after 7 "
 "days, and diagnostic copies kept only if this site's administrator has debug "
-"logging turned on are deleted after 14 days. This site's administrator can "
-"adjust each of these periods under Settings. You can request a copy of, or "
-"the erasure of, the personal data described above at any time using this "
-"site's standard WordPress data request tools."
-msgstr ""
-"ڈیفالٹ رูپ میں: رابطہ کے پیغام 90 دن کے لیے رکھے جاتے ہیں، اور بھیجنے والے کے "
-"IP پتے کو ان پر جلدی صاف کیا جاتا ہے، 30 دن کے بعد۔ رکنیت کی درخواستیں جو "
-"مسترد، منسوخ، یا نیٹ ورک سے نکل جاتی ہیں 180 دن کے بعد نام سے محروم کر دی "
-"جاتی ہیں۔ خام گذارش کے ای میلز کو پروسیسنگ قطار سے 7 دن کے بعد حذف کیا جاتا "
-"ہے، اور تشخیصی کاپی صرف اگر اس سائٹ کے منتظم کے پاس ڈیبگ لاگنگ چالو ہے تو 14 "
-"دن کے بعد حذف کر دی جاتی ہیں۔ اس سائٹ کے منتظم ہر ایک اعدادوشمار کو Settings "
-"کے تحت ایڈجسٹ کر سکتے ہیں۔ آپ اپنے ذاتی ڈیٹا کی کاپی یا اس کی حذفی کی "
-"درخواست کسی بھی وقت اس سائٹ کے معیاری WordPress ڈیٹا کی درخواست کے اوزار "
-"استعمال کرتے ہوئے کر سکتے ہیں۔"
+"logging turned on are deleted after 14 days. Records of what partner nodes "
+"shared through this site are kept for 90 days. This site's administrator can "
+"adjust each of these periods under Settings."
+msgstr "ڈیفالٹ کے طور پر: رابطہ فارم کے پیغامات 90 دن تک محفوظ رکھے جاتے ہیں، اور ان پر بھیجنے والے کا IP ایڈریس 30 دن کے بعد جلدی صاف کر دیا جاتا ہے۔ وہ رکنیت کی درخواستیں جو مسترد، واپس لی گئی ہوں، یا نیٹ ورک چھوڑ گئی ہوں 180 دن بعد گمنام کر دی جاتی ہیں۔ خام جمع کرائی جانے والی ای میلز 7 دن کے بعد پروسیسنگ کی قطار سے حذف کر دی جاتی ہیں، اور تشخیصی کاپی صرف اسی صورت میں رکھی جاتی ہیں جب اس سائٹ کے ایڈمنسٹریٹر نے ڈیبگ لاگنگ کو فعال کر رکھا ہو، انہیں 14 دن کے بعد حذف کر دیا جاتا ہے۔  اس سائٹ کے ذریعے شراکت دار نوڈز کی طرف سے مشترکہ معلومات 90 دن تک رکھی جاتی ہیں۔ اس سائٹ کے ایڈمنسٹریٹر ان میں سے ہر ایک مدت کو Settings کے تحت ایڈجسٹ کر سکتا ہے۔"
 
-#: includes/Core/Privacy.php:756
+#: includes/Core/Privacy.php:966
+msgid ""
+"Replies you have published are kept for as long as the artwork they belong "
+"to, like any other comment on a website — you can ask us to remove yours at "
+"any time. Likes are not kept against you at all: the daily fingerprint "
+"described above expires on its own within a day and cannot be linked back to "
+"you afterwards."
+msgstr "آپ نے جو جوابات شائع کیے ہیں وہ اسArtwork کے لیے اتنی ہی دیر تک رکھے جاتے ہیں جس کے ساتھ وہ تعلق رکھتے ہیں، جیسے کسی ویب سائٹ پر کوئی اور تبصرہ — آپ کسی بھی وقت ہم سے اپنی چیز ہٹانے کی درخواست کر سکتے ہیں۔ پسندیدگیاں آپ کے خلاف بالکل نہیں رکھی جاتی ہیں: اوپر بیان کردہ روزانہ کی انگلی کا نشان ایک دن کے اندر خود بخود ختم ہو جاتا ہے اور اس کے بعد آپ سے منسلک نہیں کیا جا سکتا۔"
+
+#: includes/Core/Privacy.php:967
+msgid ""
+"You can request a copy of, or the erasure of, the personal data described "
+"above at any time using this site's standard WordPress data request tools. "
+"Note that a reply which has already been sent out across the Fediverse "
+"cannot be recalled from other servers, and that replies written by an artist "
+"in a conversation with you are the artist's own words: we will remove your "
+"name, email address and IP address from them, but not the messages "
+"themselves."
+msgstr "آپ کسی بھی وقت اس سائٹ کے معیاری WordPress ڈیٹا درخواست کے ٹولز کا استعمال کرتے ہوئے اوپر بیان کردہ ذاتی معلومات کی ایک کاپی یا اس کے مٹانے کا مطالبہ کر سکتے ہیں۔ یہ نوٹ کریں کہ ایک جواب جو فیڈوروس کے ذریعے پہلے ہی بھیجا جا چکا ہے اسے دوسرے سرورز سے واپس نہیں لیا جا سکتا، اور کہ آپ کے ساتھ گفتگو میں ایک آرٹسٹ کی طرف سے لکھے گئے جوابات آرٹسٹ کے اپنے الفاظ ہیں: ہم ان سے آپ کا نام، ای میل ایڈریس اور IP ایڈریس ہٹا دیں گے، لیکن خود پیغامات نہیں۔"
+
+#: includes/Core/Privacy.php:1006
 msgid ""
 "Submitted text and images may be processed by a third-party AI provider. "
 "Approved posts are published publicly and shared across the Fediverse — this "
@@ -6388,7 +6535,14 @@ msgstr ""
 "پروسیس کی جا سکتی ہیں۔ منظور شدہ پوسٹس عوامی طور پر شائع کی جاتی ہیں اور "
 "فیڈیورس میں شیئر کی جاتی ہیں — بعد میں اسے مکمل طور پر واپس نہیں لیا جا سکتا۔"
 
-#: includes/Core/Privacy.php:757
+#: includes/Core/Privacy.php:1007
+msgid ""
+"Your reply is reviewed by the artist before it appears. Once published it is "
+"public, machine-translated into this site's other languages, and shared "
+"across the Fediverse — which cannot be fully undone later."
+msgstr "آپ کا جواب شائع ہونے سے پہلے فنکار کے ذریعہ جائزہ لیا جائے گا۔ ایک بار جب یہ شائع ہو جائے تو یہ عوامی ہے، اس سائٹ کی دوسری زبانوں میں مشین کے ذریعہ ترجمہ کیا جاتا ہے، اور فیڈیورس میں شیئر کیا جاتا ہے — جسے بعد میں مکمل طور پر واپس نہیں لیا جا سکتا۔"
+
+#: includes/Core/Privacy.php:1008
 msgid ""
 "Your message may be reviewed by an automated content filter before being "
 "sent to the artist."
@@ -6397,12 +6551,12 @@ msgstr ""
 "جا سکتا ہے۔"
 
 #. translators: %s: link to the site's Privacy Policy page
-#: includes/Core/Privacy.php:765
+#: includes/Core/Privacy.php:1017
 #, php-format
 msgid "See our %s for details."
 msgstr "تفصیلات کے لیے ہماری %s دیکھیں۔"
 
-#: includes/Core/Privacy.php:766
+#: includes/Core/Privacy.php:1018
 msgid "Privacy Policy"
 msgstr "رازداری کی پالیسی"
 
@@ -6465,12 +6619,12 @@ msgstr ""
 msgid "Every 5 minutes"
 msgstr "ہر 5 منٹ بعد"
 
-#: includes/Email/Inbox.php:186
+#: includes/Email/Inbox.php:172
 msgid "IMAP credentials are not configured."
 msgstr "IMAP اسناد ترتیب نہیں دی گئیں۔"
 
 #. translators: 1: total message count, 2: unseen message count
-#: includes/Email/Inbox.php:213
+#: includes/Email/Inbox.php:199
 #, php-format
 msgid "Connected successfully. %1$d message(s) in inbox, %2$d unseen."
 msgstr "کامیابی سے جڑ گیا۔ ان باکس میں %1$d پیغام، %2$d غیر دیکھی ہوئی۔"
@@ -6491,12 +6645,12 @@ msgstr "Webhook درخواست کا وقت موجود نہیں، غلط شکل �
 msgid "This webhook request has already been processed."
 msgstr "یہ webhook درخواست پہلے ہی پراسیس کی جا چکی ہے۔"
 
-#: includes/Network/ActivityPub.php:624
+#: includes/Network/ActivityPub.php:629
 msgid "No such artist actor."
 msgstr "No such artist actor."
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1112 includes/Network/ActivityPub.php:1129
+#: includes/Network/ActivityPub.php:1117 includes/Network/ActivityPub.php:1134
 #, php-format
 msgid "♥ %d like"
 msgid_plural "♥ %d likes"
@@ -6504,123 +6658,129 @@ msgstr[0] "♥ %d پسند"
 msgstr[1] "♥ %d پسند"
 
 #. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1114
+#: includes/Network/ActivityPub.php:1119
 #, php-format
 msgid "♥ %d likes"
 msgstr "♥ %d پسند"
 
-#: includes/Network/ActivityPub.php:1115
+#: includes/Network/ActivityPub.php:1120
 msgid "Could not update like."
 msgstr "پسند کو اپ ڈیٹ نہیں کر سکا۔"
 
 #. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1139
+#: includes/Network/ActivityPub.php:1144
 #, php-format
 msgid "⟲ %d boost"
 msgid_plural "⟲ %d boosts"
 msgstr[0] "⟲ %d بوسٹ"
 msgstr[1] "⟲ %d بوسٹ"
 
-#: includes/Network/ActivityPub.php:2067
+#: includes/Network/ActivityPub.php:2072
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2232
+#: includes/Network/ActivityPub.php:2237
 #, php-format
 msgid "Also available in: %s"
 msgstr "یہ بھی دستیاب ہے: %s"
 
-#: includes/Network/ActivityPub.php:2975
+#: includes/Network/ActivityPub.php:3014
 msgid "No such artwork."
 msgstr "ایسی کوئی آرٹ ورک نہیں۔"
 
-#: includes/Network/ActivityPub.php:3381
+#: includes/Network/ActivityPub.php:3420
 msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
 msgstr "اپنے فیڈیورس کا انسٹینس ڈومین درج کریں (جیسے mastodon.social)۔"
 
-#: includes/Network/ActivityPub.php:3382
+#: includes/Network/ActivityPub.php:3421
 msgid "Copied!"
 msgstr "کاپی کر لیا!"
 
-#: includes/Network/ActivityPub.php:3398 includes/Network/ActivityPub.php:3441
+#: includes/Network/ActivityPub.php:3437 includes/Network/ActivityPub.php:3480
 #: blocks/follow-overlay/editor.js:21
 msgid "Follow"
 msgstr "دریافت کریں"
 
-#: includes/Network/ActivityPub.php:3415
+#: includes/Network/ActivityPub.php:3454
 msgid ""
 "This artist publishes to the Fediverse — the open, decentralized social "
 "network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
 "them from your own account on any of those, no Agnosis account needed."
-msgstr "یہ فنکار فیڈیورس پر شائع کرتے ہیں — یہ اوپن، غیر مرکزی سوشل نیٹ ورک ہے جو ماسٹودن، پکسل فیڈ، اور دیگر ActivityPub پر مبنی ایپس کے پیچھے ہے۔ آپ کسی بھی جگہ سے انہیں اپنے اکاؤنٹ سے فالو کر سکتے ہیں، بغیر کسی Agnosis اکاؤنٹ کی ضرورت کے۔"
+msgstr ""
+"یہ فنکار فیڈیورس پر شائع کرتے ہیں — یہ اوپن، غیر مرکزی سوشل نیٹ ورک ہے جو "
+"ماسٹودن، پکسل فیڈ، اور دیگر ActivityPub پر مبنی ایپس کے پیچھے ہے۔ آپ کسی بھی "
+"جگہ سے انہیں اپنے اکاؤنٹ سے فالو کر سکتے ہیں، بغیر کسی Agnosis اکاؤنٹ کی "
+"ضرورت کے۔"
 
-#: includes/Network/ActivityPub.php:3418
+#: includes/Network/ActivityPub.php:3457
 msgid "Their handle:"
 msgstr "ان کا ہینڈل:"
 
-#: includes/Network/ActivityPub.php:3422
+#: includes/Network/ActivityPub.php:3461
 msgid "Copy"
 msgstr "کاپی کریں"
 
-#: includes/Network/ActivityPub.php:3425
+#: includes/Network/ActivityPub.php:3464
 msgid ""
 "Paste it into the search bar of your own Fediverse app to follow directly."
-msgstr "براہ راست فالو کرنے کے لیے اپنے فیڈیورس ایپ کے تلاش کے بار میں اسے چسپاں کریں۔"
+msgstr ""
+"براہ راست فالو کرنے کے لیے اپنے فیڈیورس ایپ کے تلاش کے بار میں اسے چسپاں "
+"کریں۔"
 
-#: includes/Network/ActivityPub.php:3429
+#: includes/Network/ActivityPub.php:3468
 msgid "Or enter your instance to follow with one click:"
 msgstr "یا ایک کلک میں فالو کرنے کے لیے اپنے انسٹینس درج کریں:"
 
-#: includes/Network/ActivityPub.php:3436
+#: includes/Network/ActivityPub.php:3475
 msgid "yourinstance.social"
 msgstr "yourinstance.social"
 
-#: includes/Network/ActivityPub.php:3502
+#: includes/Network/ActivityPub.php:3542
 msgid "0 replies"
 msgstr "0 جوابات"
 
-#: includes/Network/ActivityPub.php:3523
+#: includes/Network/ActivityPub.php:3563
 msgid "Loading replies…"
 msgstr "جواب لوڈ ہو رہے ہیں…"
 
-#: includes/Network/ActivityPub.php:3524
+#: includes/Network/ActivityPub.php:3564
 msgid "Could not load replies."
 msgstr "جواب لوڈ نہیں کیے جا سکے۔"
 
-#: includes/Network/ActivityPub.php:3526 includes/Network/ActivityPub.php:3968
+#: includes/Network/ActivityPub.php:3566 includes/Network/ActivityPub.php:4033
 msgid "Thanks — your reply has been submitted and is awaiting approval."
 msgstr "شکریہ — آپ کا جواب جمع کیا گیا ہے اور منظوری کا منتظر ہے۔"
 
-#: includes/Network/ActivityPub.php:3527
+#: includes/Network/ActivityPub.php:3567
 msgid "Could not send your reply. Please try again."
 msgstr "آپ کا جواب بھیجنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔"
 
-#: includes/Network/ActivityPub.php:3528 includes/Network/ActivityPub.php:3594
+#: includes/Network/ActivityPub.php:3568 includes/Network/ActivityPub.php:3654
 msgid "Name (optional)"
 msgstr "نام (اختیاری)"
 
-#: includes/Network/ActivityPub.php:3529 includes/Network/ActivityPub.php:3595
+#: includes/Network/ActivityPub.php:3569 includes/Network/ActivityPub.php:3656
 msgid "Your email"
 msgstr "آپ کا ای میل"
 
-#: includes/Network/ActivityPub.php:3530 includes/Network/ActivityPub.php:3592
+#: includes/Network/ActivityPub.php:3570 includes/Network/ActivityPub.php:3651
 msgid "Write a reply…"
 msgstr "ایک جواب لکھیں…"
 
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3541
+#: includes/Network/ActivityPub.php:3581
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d جواب"
 msgstr[1] "%d جواب"
 
-#: includes/Network/ActivityPub.php:4038
+#: includes/Network/ActivityPub.php:4103
 msgid "Replies aren't open on this artwork right now."
 msgstr "فی الحال اس فن پارے پر جوابات کھلے نہیں ہیں۔"
 
-#: includes/Network/ActivityPub.php:4106
+#: includes/Network/ActivityPub.php:4171
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6629,20 +6789,20 @@ msgstr ""
 "کی کام پر بات چیت کرنے سے منسلک نہیں ہے۔"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4438
+#: includes/Network/ActivityPub.php:4503
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "\"%s\" پر نیا جواب"
 
-#: includes/Network/ActivityPub.php:4449
+#: includes/Network/ActivityPub.php:4514
 msgid "Someone left a reply on your artwork:"
 msgstr "کسی نے آپ کے فن پارے پر ایک جواب چھوڑا ہے:"
 
-#: includes/Network/ActivityPub.php:4450
+#: includes/Network/ActivityPub.php:4515
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "کسی نے فیڈیورس سے آپ کے فن پارے پر جواب دیا:"
 
-#: includes/Network/ActivityPub.php:4477
+#: includes/Network/ActivityPub.php:4542
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6650,13 +6810,13 @@ msgstr ""
 "یہ آپ کی منظوری یا مسترد کرنے تک روک رکھا گیا ہے — آپ اسی صفحے سے اپنا جواب "
 "بھی لکھ سکتے ہیں۔"
 
-#: includes/Network/ActivityPub.php:4481 includes/Network/ActivityPub.php:4880
-#: includes/Network/ActivityPub.php:4892
+#: includes/Network/ActivityPub.php:4546 includes/Network/ActivityPub.php:4945
+#: includes/Network/ActivityPub.php:4957
 msgid "Review this reply"
 msgstr "اس جواب کا جائزہ لیں"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:4489
+#: includes/Network/ActivityPub.php:4554
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6664,12 +6824,12 @@ msgstr[0] "یہ لنک %d دن میں ختم ہو جائے گا۔"
 msgstr[1] "یہ لنک %d دن میں ختم ہو جائے گا۔"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4574
+#: includes/Network/ActivityPub.php:4639
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr "ایک جواب \"%s\" پر آیا ہے، لیکن ہم اس زبان کی شناخت نہیں کر سکے۔"
 
-#: includes/Network/ActivityPub.php:4590
+#: includes/Network/ActivityPub.php:4655
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6679,7 +6839,7 @@ msgstr ""
 "کر سکے جس میں یہ لکھا گیا ہے، اس لیے ہم اس کا ترجمہ یا عام جواب/منظوری کا "
 "صفحہ فراہم نہیں کر سکتے۔"
 
-#: includes/Network/ActivityPub.php:4596
+#: includes/Network/ActivityPub.php:4661
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6689,43 +6849,43 @@ msgstr ""
 "ہے۔ اگر آپ اس پر عمل کرنا چاہتے ہیں، تو آپ اپنے ورڈپریس ڈیش بورڈ سے ایسا کر "
 "سکتے ہیں۔"
 
-#: includes/Network/ActivityPub.php:4707
+#: includes/Network/ActivityPub.php:4772
 msgid "Fediverse replies"
 msgstr "فیڈیورس جوابات"
 
-#: includes/Network/ActivityPub.php:4708
+#: includes/Network/ActivityPub.php:4773
 msgid "Site replies"
 msgstr "سائٹ کے جوابات"
 
-#: includes/Network/ActivityPub.php:4802
+#: includes/Network/ActivityPub.php:4867
 msgid "This reply no longer exists."
 msgstr "یہ جواب اب موجود نہیں ہے۔"
 
-#: includes/Network/ActivityPub.php:4859
+#: includes/Network/ActivityPub.php:4924
 msgid "Also post my reply to the Fediverse."
 msgstr "میرا جواب فیڈیورس پر بھی شائع करें۔"
 
-#: includes/Network/ActivityPub.php:4886
+#: includes/Network/ActivityPub.php:4951
 msgid "Write your own reply (optional)"
 msgstr "اپنا جواب لکھیں (اختیاری)"
 
-#: includes/Network/ActivityPub.php:4918
+#: includes/Network/ActivityPub.php:4983
 msgid "Reply approved — it now appears on your artwork."
 msgstr "جواب کی منظوری دی گئی — یہ اب آپ کے فن پارے پر ظاہر ہوتا ہے۔"
 
-#: includes/Network/ActivityPub.php:4921
+#: includes/Network/ActivityPub.php:4986
 msgid "Reply rejected — it will not be shown."
 msgstr "جواب مسترد کر دیا گیا — یہ ظاہر نہیں ہوگا۔"
 
-#: includes/Network/ActivityPub.php:4932
+#: includes/Network/ActivityPub.php:4997
 msgid "Your reply has been posted."
 msgstr "آپ کا جواب شائع ہو چکا ہے۔"
 
-#: includes/Network/ActivityPub.php:4935
+#: includes/Network/ActivityPub.php:5000
 msgid "Reply moderated"
 msgstr "جواب معدلت کیا گیا"
 
-#: includes/Network/ActivityPub.php:4961
+#: includes/Network/ActivityPub.php:5026
 msgid "No such reply."
 msgstr "ایسا جواب نہیں ہے۔"
 
@@ -6838,19 +6998,23 @@ msgstr "مواد-جانچ ہیڈر درخواست کے جسم سے مطابقت 
 msgid "Node URL is required."
 msgstr "Node URL درکار ہے۔"
 
-#: includes/Network/Node.php:134
+#: includes/Network/Node.php:170
+msgid "Node URL must be a public http(s) address."
+msgstr "نوڈ کا URL عوامی http(s) ایڈریس ہونا ضروری ہے۔"
+
+#: includes/Network/Node.php:176
 msgid "A public key is required to register a peer."
 msgstr "ایک پیئر کو رجسٹر کرنے کے لیے پبلک کی درکار ہے۔"
 
-#: includes/Network/Node.php:241
+#: includes/Network/Node.php:294
 msgid "Could not reach this peer's node-discovery endpoint."
 msgstr "اس ساتھی کے نوڈ کی دریافت کرنے والے اینڈپوائنٹ تک پہنچنے میں ناکام۔"
 
-#: includes/Network/Node.php:313
+#: includes/Network/Node.php:376
 msgid "Could not reach this peer's own peer list."
 msgstr "اس ساتھی کی اپنی ساتھی فہرست تک پہنچنے میں ناکام۔"
 
-#: includes/Network/Node.php:320
+#: includes/Network/Node.php:383
 msgid "This peer's peer list response was not in the expected format."
 msgstr "اس ساتھی کی ساتھی فہرست کا جواب متوقع شکل میں نہیں تھا۔"
 
@@ -8869,7 +9033,13 @@ msgid ""
 "a remote-follow form that redirects a visitor to their own instance's "
 "authorize_interaction screen. Renders nothing off an agnosis_artwork post, "
 "or when its author no longer resolves to a real artist actor."
-msgstr "جواب دینے کے بٹن کے ساتھ ایک ٹرگر جو ایک پوپ اوور کھولتا ہے جو Fediverse/ActivityPub کی وضاحت کرتا ہے، اس آرٹ ورک کے فنکار کا کاپی کرنے کے قابل @handle دکھاتا ہے، اور ایک ریموٹ فالو فارم جو ایک وزیٹر کو اپنے انستنس کے authorize_interaction اسکرین کی طرف ری ڈائریکٹ کرتا ہے۔ agnosis_artwork پوسٹ سے کچھ نہیں پیدا کرتا، یا جب اس کا مصنف اب ایک حقیقی فنکار اداکار میں تبدیل نہیں ہوتا۔"
+msgstr ""
+"جواب دینے کے بٹن کے ساتھ ایک ٹرگر جو ایک پوپ اوور کھولتا ہے جو Fediverse/"
+"ActivityPub کی وضاحت کرتا ہے، اس آرٹ ورک کے فنکار کا کاپی کرنے کے قابل "
+"@handle دکھاتا ہے، اور ایک ریموٹ فالو فارم جو ایک وزیٹر کو اپنے انستنس کے "
+"authorize_interaction اسکرین کی طرف ری ڈائریکٹ کرتا ہے۔ agnosis_artwork پوسٹ "
+"سے کچھ نہیں پیدا کرتا، یا جب اس کا مصنف اب ایک حقیقی فنکار اداکار میں تبدیل "
+"نہیں ہوتا۔"
 
 #: blocks/follow-overlay/block.json
 msgctxt "block keyword"
@@ -9109,7 +9279,12 @@ msgid ""
 "subdomain — the parenthetical is always that actor's real Fediverse handle, "
 "so a visitor always has a copyable handle to follow from their own Fediverse "
 "client."
-msgstr "فوٹیر کا کاپی رائٹ لائن — \"© {year} Agnosis (@agnosis@host)\" مرکزی سائٹ پر، \"© {year} {Artist Name} (@artistname@host)\" ایک فنکار کی اپنی ذیلی ڈومین پر — قوسین میں ہمیشہ اس اداکار کا حقیقی فیڈیورز ہینڈل ہوتا ہے، تاکہ ایک وزیٹر ہمیشہ اپنے فیڈیورز کلائنٹ سے پیچھے جانے کے قابل ہینڈل کی نقل کر سکے۔"
+msgstr ""
+"فوٹیر کا کاپی رائٹ لائن — \"© {year} Agnosis (@agnosis@host)\" مرکزی سائٹ "
+"پر، \"© {year} {Artist Name} (@artistname@host)\" ایک فنکار کی اپنی ذیلی "
+"ڈومین پر — قوسین میں ہمیشہ اس اداکار کا حقیقی فیڈیورز ہینڈل ہوتا ہے، تاکہ "
+"ایک وزیٹر ہمیشہ اپنے فیڈیورز کلائنٹ سے پیچھے جانے کے قابل ہینڈل کی نقل کر "
+"سکے۔"
 
 #: blocks/site-copyright/block.json
 msgctxt "block keyword"

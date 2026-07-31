@@ -383,17 +383,6 @@ class MediumProposals {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Idempotent scheduler — identical pattern to
-	 * Admin\TagProposals::schedule_ttl_sweep() (hooked on `init`,
-	 * `wp_next_scheduled()` guard, core's built-in 'daily' interval).
-	 */
-	public function schedule_ttl_sweep(): void {
-		if ( ! wp_next_scheduled( 'agnosis_medium_proposal_ttl_sweep' ) ) {
-			wp_schedule_event( time(), 'daily', 'agnosis_medium_proposal_ttl_sweep' );
-		}
-	}
-
-	/**
 	 * Auto-reject any pending medium proposal older than
 	 * `agnosis_proposal_ttl` days (default 7 — the SAME option
 	 * Admin\TagProposals::sweep_expired() reads; TAG-REDESIGN.md T5(b):

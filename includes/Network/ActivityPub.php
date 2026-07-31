@@ -94,6 +94,7 @@ use Agnosis\Core\CommunityMailer;
 use Agnosis\Core\EmailFooter;
 use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
+use Agnosis\Core\Privacy;
 use Agnosis\Core\RateLimiter;
 use Agnosis\Core\Turnstile;
 use Agnosis\Publishing\EmbedPolicy;
@@ -153,7 +154,8 @@ class ActivityPub {
 	public const LOCAL_REPLY_COMMENT_TYPE = 'agnosis_reply';
 
 	/** Both reply comment types — the allowlist every reply-agnostic query below now matches against. */
-	private const REPLY_COMMENT_TYPES = [ self::REPLY_COMMENT_TYPE, self::LOCAL_REPLY_COMMENT_TYPE ];
+	/** Widened from private for Core\Privacy's own reply exporter/eraser (sixteenth audit, G-5) — same reuse-not-duplicate reasoning as actor_url_for()/like_identity() in 0.9.58. */
+	public const REPLY_COMMENT_TYPES = [ self::REPLY_COMMENT_TYPE, self::LOCAL_REPLY_COMMENT_TYPE ];
 
 	/** Comment meta: the Note's own AS2 id — idempotent redelivery + the anchor Delete{object} matches against. Federated replies only — a local reply has no inbound activity id. */
 	private const REPLY_ACTIVITY_ID_META = '_agnosis_reply_activity_id';
@@ -172,7 +174,8 @@ class ActivityPub {
 	 * fields first and falls back to comment_content only while translation is
 	 * still pending. Shared by both reply types.
 	 */
-	private const REPLY_TRANSLATED_CONTENT_META = '_agnosis_reply_translated_content';
+	/** Widened from private for Core\Privacy's reply exporter/eraser (sixteenth audit, G-5). */
+	public const REPLY_TRANSLATED_CONTENT_META = '_agnosis_reply_translated_content';
 
 	/**
 	 * Comment meta: the SITE'S PRIMARY-LANGUAGE translation (WP4, §4 Phase 3A
@@ -188,7 +191,8 @@ class ActivityPub {
 	 * to REPLY_TRANSLATED_CONTENT_META, then to the untouched original, same
 	 * fallback order as before this field existed.
 	 */
-	private const REPLY_TRANSLATED_PRIMARY_META = '_agnosis_reply_translated_primary';
+	/** Widened from private for Core\Privacy's reply exporter/eraser (sixteenth audit, G-5). */
+	public const REPLY_TRANSLATED_PRIMARY_META = '_agnosis_reply_translated_primary';
 
 	/**
 	 * Comment meta: the reply's own known written language — direction- and
@@ -218,7 +222,8 @@ class ActivityPub {
 	 * directly as "the original commenter's language" — detection only ever
 	 * runs once, at inbound time, never re-run when the artist later replies.
 	 */
-	private const REPLY_SOURCE_LANG_META = '_agnosis_reply_source_lang';
+	/** Widened from private for Core\Privacy's reply exporter/eraser (sixteenth audit, G-5). */
+	public const REPLY_SOURCE_LANG_META = '_agnosis_reply_source_lang';
 
 	/**
 	 * Comment meta: '1' when a federated (remote) reply's own language could
@@ -2819,6 +2824,40 @@ class ActivityPub {
 	}
 
 	/**
+	 * Retention sweep for `agnosis_rhizome_relay_log` — sixteenth audit, G-4
+	 * (2026-07-31). Hooked to the existing daily `agnosis_cleanup_inbox`, the
+	 * same cron `Logger::prune()` and `ContactForm::prune_old_messages()`
+	 * already run on, rather than adding a fifteenth cron hook for one DELETE.
+	 *
+	 * RN3b's log records the *announcing remote actor's id* on every relayed
+	 * peer boost — a direct identifier of a natural person in most cases — and
+	 * shipped in 0.9.65 with no pruning, no cap and no retention statement,
+	 * the only content- or identity-bearing table in the plugin without one
+	 * (`agnosis_log` is pruned here, `agnosis_queue` at 7 days, contact
+	 * messages at 90). It is also unbounded operationally: the roadmap sized
+	 * the rhizome as single-digit-peer-scale, which bounds the number of
+	 * PEERS, not the number of relays a busy peer generates.
+	 *
+	 * The default is deliberately 90 days rather than something tighter: the
+	 * only reader is `Newsletter\Digest::rhizome_activity_summary()`, which
+	 * only ever queries `relayed_at > $since` for one digest window, so 90
+	 * days covers the default 30-day artist-digest cadence three times over
+	 * and pruning past it costs the digest nothing.
+	 */
+	public function prune_relay_log(): void {
+		global $wpdb;
+
+		$days   = max( 1, (int) get_option( 'agnosis_relay_log_retention_days', 90 ) );
+		$cutoff = gmdate( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- daily cron housekeeping on a custom table, not a per-request query.
+		$wpdb->query( $wpdb->prepare(
+			"DELETE FROM {$wpdb->prefix}agnosis_rhizome_relay_log WHERE relayed_at < %s",
+			$cutoff
+		) );
+	}
+
+	/**
 	 * Like/boost counts for one artwork (interaction-surface roadmap, Phase
 	 * 1). Used both by the on-site agnosis/interaction-counts display block
 	 * and by post_to_note()'s outbound likesCount/sharesCount.
@@ -3440,7 +3479,8 @@ class ActivityPub {
 							/>
 							<button type="submit" class="agnosis-follow-overlay__form-submit"><?php esc_html_e( 'Follow', 'agnosis' ); ?></button>
 						</div>
-						<p class="agnosis-follow-overlay__form-status" data-agnosis-follow-status></p>
+						<?php // Sixteenth audit, A-3: frontend.js writes the "enter your instance domain" validation error into this paragraph, so it must be a live region or a screen-reader user gets no feedback at all on a failed submit. The reply form's own status paragraph one method away already carries this; the newer block simply didn't inherit it. ?>
+						<p class="agnosis-follow-overlay__form-status" data-agnosis-follow-status aria-live="polite"></p>
 					</form>
 				</div>
 			</div>
@@ -3586,15 +3626,40 @@ class ActivityPub {
 	 * yet regardless — see submit_reply()'s own docblock.
 	 */
 	private function render_reply_form( int $post_id ): string {
+		// Sixteenth audit, A-1 (2026-07-31): every field carries a real, visually
+		// hidden <label for>, not just a placeholder. This was the only
+		// front-end form in the plugin without them — join, contact, newsletter
+		// signup and notification preferences all associate labels, and the
+		// fifteenth audit's A-2 established this exact pattern (a real
+		// screen-reader-text <label> rather than aria-label, so the label text
+		// IS the accessible name: voice control works, and translation tooling
+		// that walks element text rather than ARIA attributes sees it).
+		// Placeholders alone fail WCAG 3.3.2 and 4.1.2, and vanish the moment
+		// the user types — on a three-field form that is precisely when the
+		// labelling is needed.
+		//
+		// Ids are scoped by $post_id for the same reason render_reply_overlay()
+		// scopes its own $panel_id: an archive or feed can legitimately render
+		// this block for several artworks in one document, and duplicate ids
+		// would silently point every label at the first form on the page.
+		$field_id = 'agnosis-reply-' . $post_id;
+
 		ob_start();
 		?>
 		<form class="agnosis-reply-overlay__form" data-agnosis-reply-form data-agnosis-post-id="<?php echo esc_attr( (string) $post_id ); ?>">
-			<textarea name="message" class="agnosis-reply-overlay__form-message" rows="4" placeholder="<?php esc_attr_e( 'Write a reply…', 'agnosis' ); ?>" required></textarea>
+			<label class="screen-reader-text" for="<?php echo esc_attr( $field_id ); ?>-message"><?php esc_html_e( 'Your reply', 'agnosis' ); ?></label>
+			<textarea id="<?php echo esc_attr( $field_id ); ?>-message" name="message" class="agnosis-reply-overlay__form-message" rows="4" placeholder="<?php esc_attr_e( 'Write a reply…', 'agnosis' ); ?>" required></textarea>
 			<div class="agnosis-reply-overlay__form-row">
-				<input type="text" name="name" placeholder="<?php esc_attr_e( 'Name (optional)', 'agnosis' ); ?>">
-				<input type="email" name="email" placeholder="<?php esc_attr_e( 'Your email', 'agnosis' ); ?>" required>
+				<label class="screen-reader-text" for="<?php echo esc_attr( $field_id ); ?>-name"><?php esc_html_e( 'Your name (optional)', 'agnosis' ); ?></label>
+				<input type="text" id="<?php echo esc_attr( $field_id ); ?>-name" name="name" placeholder="<?php esc_attr_e( 'Name (optional)', 'agnosis' ); ?>">
+				<label class="screen-reader-text" for="<?php echo esc_attr( $field_id ); ?>-email"><?php esc_html_e( 'Your email address', 'agnosis' ); ?></label>
+				<input type="email" id="<?php echo esc_attr( $field_id ); ?>-email" name="email" placeholder="<?php esc_attr_e( 'Your email', 'agnosis' ); ?>" required>
 			</div>
 			<?php echo Turnstile::render_widget(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Turnstile::render_widget() escapes its own output and returns '' when not configured. ?>
+			<?php // Sixteenth audit, G-3: this form does strictly MORE with a visitor's data than the join or contact forms, both of which have carried a notice since the seventh audit's §4d, and it had none. Same element, class suffix and position (after Turnstile, before submit) as JoinPage and ContactFormBlock, so the three read identically. ?>
+			<p class="agnosis-reply-overlay__privacy-notice">
+				<?php echo Privacy::consent_notice_html( 'reply' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- consent_notice_html() escapes internally. ?>
+			</p>
 			<button type="submit" class="agnosis-reply-overlay__form-submit"><?php esc_html_e( 'Send reply', 'agnosis' ); ?></button>
 			<p class="agnosis-reply-overlay__form-status" aria-live="polite"></p>
 		</form>

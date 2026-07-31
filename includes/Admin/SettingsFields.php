@@ -385,6 +385,19 @@ class SettingsFields {
 				'sanitize' => fn( $v ) => max( 1, (int) $v ),
 				'desc'     => __( 'Visitor-to-artist contact messages (sent or rejected) older than this are permanently deleted by the daily cleanup. The visitor\'s IP address is cleared independently after 30 days regardless of this setting, once it\'s no longer useful for abuse investigation. Default: 90 days.', 'agnosis' ),
 			],
+			// Sixteenth audit, G-4. Lives on the Network tab, next to the
+			// rhizome/relay settings it belongs with, rather than on Email
+			// beside its retention sibling above.
+			'agnosis_relay_log_retention_days' => [
+				'tab'      => 'network',
+				'label'    => __( 'Rhizome relay log retention (days)', 'agnosis' ),
+				'input'    => 'number',
+				'default'  => 90,
+				'min'      => 1,
+				'type'     => 'integer',
+				'sanitize' => fn( $v ) => max( 1, (int) $v ),
+				'desc'     => __( 'Records of what trusted partner nodes relayed through this one — including the remote account that boosted it — older than this are permanently deleted by the daily cleanup. Only the newsletter\'s rhizome activity summary reads this log, and only within one digest period, so a value comfortably above your digest frequency loses nothing. Default: 90 days.', 'agnosis' ),
+			],
 
 			// --- Email: Security ---
 			'agnosis_intake_per_sender_limit' => [

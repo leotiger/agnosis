@@ -185,6 +185,37 @@
 	cursor: wait;
 }
 
+/* Visually-hidden labels for the reply form's fields (sixteenth audit, A-1).
+   Core defines .screen-reader-text in wp-block-library's common.css, but this
+   block ships its own copy deliberately: an unstyled .screen-reader-text does
+   not degrade quietly — it renders the label text VISIBLY, breaking the form's
+   layout — so depending on another stylesheet being present is the wrong
+   trade here. Same "duplicate rather than share" convention this block's CSS
+   already follows, and the same clip-path implementation core itself uses. */
+.agnosis-reply-overlay__form .screen-reader-text {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	word-wrap: normal !important;
+}
+
+/* Consent notice (sixteenth audit, G-3) — sits between the Turnstile widget
+   and the submit button, same as the join and contact forms. Muted via the
+   theme's own `muted` palette slot rather than opacity: the fifteenth audit's
+   T-1 established that opacity-dimmed text fails WCAG AA contrast on every
+   style variation, and this is small text, the strictest case. */
+.agnosis-reply-overlay__privacy-notice {
+	margin: 0.75em 0;
+	font-size: 0.85em;
+	line-height: 1.5;
+	color: var(--wp--preset--color--muted, currentColor);
+}
+
 .agnosis-reply-overlay__form-status {
 	margin: 0.75em 0 0;
 	font-size: 0.9em;

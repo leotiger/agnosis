@@ -110,4 +110,74 @@ class CronHookParityTest extends \WP_UnitTestCase {
 
 		$this->assertSame( $uninstall_hooks, array_unique( $uninstall_hooks ), "uninstall.php's \$cron_hooks array must not list the same hook twice." );
 	}
+
+	// =========================================================================
+	// RECURRING_CRON_SCHEDULE parity — sixteenth audit, Q-3 (2026-07-31)
+	// =========================================================================
+
+	/**
+	 * The single-event hooks, which are in CRON_HOOKS but deliberately NOT in
+	 * RECURRING_CRON_SCHEDULE: each is scheduled per-call with its own
+	 * arguments (a queue id, a translation dispatch payload) rather than on a
+	 * recurrence, so there is no interval to give them.
+	 */
+	private const SINGLE_EVENT_HOOKS = [
+		'agnosis_publish_submission',
+		'agnosis_dispatch_lf_translations',
+		'agnosis_flush_permalinks',
+	];
+
+	/**
+	 * RECURRING_CRON_SCHEDULE must cover every recurring hook in CRON_HOOKS —
+	 * no more, no fewer.
+	 *
+	 * Q-3: that map used to hold 13 of the 18, on the reasoning that the other
+	 * five self-healed via their own classes' `init`-hooked schedulers. The
+	 * runtime behaviour was fine; the risk was that a const named
+	 * RECURRING_CRON_SCHEDULE, whose docblock reads as the authoritative
+	 * inventory, was a partial one — so "is every recurring cron self-healing?
+	 * yes, they're all in the map" was a reasonable check that returned the
+	 * wrong answer. `agnosis_poll_inbox` — the entire email intake pipeline —
+	 * was one of the five it silently didn't cover.
+	 *
+	 * 0.9.66 folded all five in and deleted the per-class schedulers. This
+	 * test is what stops the split reappearing: add a recurring hook to
+	 * CRON_HOOKS without giving it an interval here and it fails immediately,
+	 * naming the hook.
+	 */
+	public function test_recurring_cron_schedule_covers_every_recurring_hook(): void {
+		$recurring = array_values( array_diff( Activator::CRON_HOOKS, self::SINGLE_EVENT_HOOKS ) );
+
+		$this->assertEqualsCanonicalizing(
+			$recurring,
+			array_keys( Activator::RECURRING_CRON_SCHEDULE ),
+			'Activator::RECURRING_CRON_SCHEDULE has drifted from CRON_HOOKS. Every recurring hook needs an interval there, or it will only ever be scheduled once — at the single request where a version bump makes maybe_upgrade() run — and nothing will bring it back if anything clears it. That is the 2026-07-28 incident.'
+		);
+	}
+
+	/** Every interval must be one WordPress can actually schedule. */
+	public function test_recurring_cron_schedule_uses_only_known_intervals(): void {
+		// 'every_five_minutes' is this plugin's own, registered via the
+		// cron_schedules filter in Email\Inbox; the rest are WP core built-ins.
+		$known = [ 'every_five_minutes', 'hourly', 'twicedaily', 'daily', 'weekly' ];
+
+		foreach ( Activator::RECURRING_CRON_SCHEDULE as $hook => $recurrence ) {
+			$this->assertContains(
+				$recurrence,
+				$known,
+				"{$hook} is scheduled with an unknown recurrence '{$recurrence}' — wp_schedule_event() validates the recurrence against wp_get_schedules() and silently refuses to schedule anything it doesn't recognise."
+			);
+		}
+	}
+
+	/** The single-event hooks must stay OUT of the recurrence map. */
+	public function test_single_event_hooks_are_not_in_the_recurring_schedule(): void {
+		foreach ( self::SINGLE_EVENT_HOOKS as $hook ) {
+			$this->assertArrayNotHasKey(
+				$hook,
+				Activator::RECURRING_CRON_SCHEDULE,
+				"{$hook} is scheduled per-call with its own arguments; giving it a recurrence would have ensure_recurring_crons_scheduled() register an argument-less repeating copy of it."
+			);
+		}
+	}
 }

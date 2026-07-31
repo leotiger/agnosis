@@ -455,6 +455,25 @@ class LinguaForge {
 		// LF's normal title translation.
 		add_filter( 'linguaforge_translation_content', [ $this, 'hold_artist_title' ], 10, 3 );
 
+		// Comment translation (LF 2.7.0) — sixteenth audit, L-2 (2026-07-31).
+		// Agnosis owns reply translation for its own post types end to end:
+		// ActivityPub's three-version model produces the strings, and
+		// mirror_reply_across_languages() places them on the real sibling posts.
+		// LF 2.7.0 shipped a generic version of that same idea — derived from
+		// this plugin's own design, per LF's changelog — and if it ever ran over
+		// an Agnosis artwork the reply would be mirrored TWICE: once by us under
+		// _agnosis_reply_group_id, once by LF under _lf_comment_group_id, with
+		// our mirrors then eligible as inputs to its own pass. Duplicate rows on
+		// every sibling and doubled AI spend, silently.
+		//
+		// There is no collision today, but only because of three separate LF
+		// defaults: the feature is off, its mode is 'manual', and its
+		// `eligible_types` defaults to ['comment'] while our replies are
+		// 'agnosis_reply'/'agnosis_ap_reply'. Depending on three defaults held
+		// by another plugin is not a decision, it is a coincidence — so state
+		// the boundary explicitly and stop depending on any of them.
+		add_filter( 'linguaforge_comment_translation_excluded_types', [ $this, 'exclude_agnosis_types_from_lf_comment_translation' ] );
+
 		// Translated-post meta propagation. Without this, a translated artwork /
 		// biography / event post is created with translated text but none of the
 		// source's images, so the page renders empty. We copy a language-neutral
@@ -3660,13 +3679,47 @@ class LinguaForge {
 	 * `agnosis_post_published`) fires with different argument shapes, none of
 	 * which this method needs.
 	 */
+	/**
+	 * Keep Lingua Forge's own comment translation (LF 2.7.0) off Agnosis post
+	 * types — sixteenth audit, L-2 (2026-07-31). See the filter registration in
+	 * __construct() for the full reasoning; in short, Agnosis already owns
+	 * reply translation and mirroring for these post types, and two systems
+	 * doing it would duplicate every mirrored reply rather than conflict
+	 * loudly.
+	 *
+	 * Additive, never destructive: whatever another caller has already excluded
+	 * stays excluded.
+	 *
+	 * @param string[] $excluded Post types LF has been asked to skip.
+	 * @return string[]
+	 */
+	public function exclude_agnosis_types_from_lf_comment_translation( array $excluded ): array {
+		return array_values( array_unique( array_merge( $excluded, self::AGNOSIS_POST_TYPES ) ) );
+	}
+
 	public function flush_sitemap_cache(): void {
 		if ( ! class_exists( '\LinguaForge\Router\Router' ) ) {
 			return;
 		}
 
 		$router = \LinguaForge\Router\Router::get_instance();
-		if ( isset( $router->sitemap_manager ) ) {
+
+		// method_exists(), not just isset() — sixteenth audit, L-1 (2026-07-31).
+		// The property check alone confirmed there was *something* there to call
+		// into, not that it answered to flush_cache(); on a Lingua Forge older
+		// than AGNOSIS_MIN_LF that is the difference between this feature
+		// quietly not running and a fatal error on artist join, departure, ban
+		// and first publish — the four lifecycle events this is hooked to.
+		// Every other LF call site in this plugin already guards to this
+		// standard; this one was the outlier.
+		// is_object() as well as method_exists(): method_exists() also accepts a
+		// class-STRING, so on its own it would still let a string property
+		// through to a `->` call. Caught by PHPStan while building this fix.
+		if (
+			isset( $router->sitemap_manager )
+			&& is_object( $router->sitemap_manager )
+			&& method_exists( $router->sitemap_manager, 'flush_cache' )
+		) {
 			$router->sitemap_manager->flush_cache();
 		}
 	}

@@ -84,6 +84,8 @@ declare(strict_types=1);
 
 namespace Agnosis\Core;
 
+use Agnosis\Network\ActivityPub;
+
 class Privacy {
 
 	/** User meta keys read/written by Artist\NotificationPreferences and Newsletter\SubscriptionConfirm. */
@@ -148,6 +150,10 @@ class Privacy {
 		$exporters['agnosis-preferences'] = [
 			'exporter_friendly_name' => __( 'Agnosis Notification Preferences', 'agnosis' ),
 			'callback'                => [ $this, 'export_preferences' ],
+		];
+		$exporters['agnosis-replies'] = [
+			'exporter_friendly_name' => __( 'Agnosis Reply Translations', 'agnosis' ),
+			'callback'                => [ $this, 'export_replies' ],
 		];
 		return $exporters;
 	}
@@ -365,30 +371,70 @@ class Privacy {
 		}
 
 		global $wpdb;
+
+		// `sender = 'visitor'` is load-bearing (sixteenth audit, G-1,
+		// 2026-07-31). Since 0.9.60 this table is a TWO-PARTY thread: an
+		// artist's own reply is stored with `sender = 'artist'` and — by
+		// design, so the thread can be delivered and continued — the SAME
+		// `visitor_email` as the message it answers. Keying on that column
+		// alone therefore returned the artist's private replies as part of the
+		// visitor's own subject-access export, rendered under this method's
+		// "Your name"/"Message" labels as though the visitor had written them.
+		// Beyond mislabelling authorship, that discloses a third party's
+		// correspondence into a data-subject export, which GDPR Art. 15(4)
+		// specifically says must not adversely affect the rights of others.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- privacy exporter, bounded to one visitor's own rows.
 		$rows = $wpdb->get_results( $wpdb->prepare(
-			"SELECT artist_id, visitor_name, message, translated_message, status, rejection_reason, ip, created_at
-			 FROM {$wpdb->prefix}agnosis_contact_messages WHERE visitor_email = %s",
+			"SELECT id, artist_id, visitor_name, message, translated_message, status, rejection_reason, ip, created_at,
+			        thread_root_id, parent_id, sender_lang_name, delivered_at
+			 FROM {$wpdb->prefix}agnosis_contact_messages
+			 WHERE visitor_email = %s AND sender = 'visitor'
+			 ORDER BY id ASC",
 			$email_address
 		) );
 
 		$data = [];
 		foreach ( $rows as $i => $row ) {
 			$artist = get_userdata( (int) $row->artist_id );
+
+			$fields = [
+				$this->item( __( 'Sent to artist', 'agnosis' ), $artist ? $artist->display_name : (string) $row->artist_id ),
+				$this->item( __( 'Your name', 'agnosis' ), (string) $row->visitor_name ),
+				$this->item( __( 'Message', 'agnosis' ), (string) $row->message ),
+				$this->item( __( 'Translated message', 'agnosis' ), (string) $row->translated_message ),
+				$this->item( __( 'Status', 'agnosis' ), (string) $row->status ),
+				$this->item( __( 'Rejection reason', 'agnosis' ), (string) $row->rejection_reason ),
+				$this->item( __( 'IP address', 'agnosis' ), (string) $row->ip ),
+				$this->item( __( 'Sent at', 'agnosis' ), (string) $row->created_at ),
+			];
+
+			// 0.9.60's thread columns, surfaced so the export actually
+			// describes the conversation this message belonged to rather than
+			// presenting every message as an isolated one-shot (G-1's second
+			// half). The artist's own replies are deliberately still absent —
+			// they are the artist's data, not this visitor's — so the thread id
+			// is what lets a reader see that a follow-up belonged to an earlier
+			// exchange at all.
+			$thread_id = (int) ( $row->thread_root_id ?: $row->id );
+			$fields[]  = $this->item( __( 'Conversation', 'agnosis' ), '#' . $thread_id );
+			$fields[]  = $this->item(
+				__( 'Message type', 'agnosis' ),
+				$row->parent_id ? __( 'Follow-up in an existing conversation', 'agnosis' ) : __( 'First message', 'agnosis' )
+			);
+
+			if ( ! empty( $row->sender_lang_name ) ) {
+				$fields[] = $this->item( __( 'Detected language', 'agnosis' ), (string) $row->sender_lang_name );
+			}
+
+			if ( ! empty( $row->delivered_at ) ) {
+				$fields[] = $this->item( __( 'Delivered at', 'agnosis' ), (string) $row->delivered_at );
+			}
+
 			$data[] = [
 				'group_id'    => 'agnosis-contact-messages',
 				'group_label' => __( 'Agnosis Contact Messages Sent', 'agnosis' ),
 				'item_id'     => 'agnosis-contact-message-' . $i,
-				'data'        => [
-					$this->item( __( 'Sent to artist', 'agnosis' ), $artist ? $artist->display_name : (string) $row->artist_id ),
-					$this->item( __( 'Your name', 'agnosis' ), (string) $row->visitor_name ),
-					$this->item( __( 'Message', 'agnosis' ), (string) $row->message ),
-					$this->item( __( 'Translated message', 'agnosis' ), (string) $row->translated_message ),
-					$this->item( __( 'Status', 'agnosis' ), (string) $row->status ),
-					$this->item( __( 'Rejection reason', 'agnosis' ), (string) $row->rejection_reason ),
-					$this->item( __( 'IP address', 'agnosis' ), (string) $row->ip ),
-					$this->item( __( 'Sent at', 'agnosis' ), (string) $row->created_at ),
-				],
+				'data'        => $fields,
 			];
 		}
 
@@ -465,7 +511,137 @@ class Privacy {
 			'eraser_friendly_name' => __( 'Agnosis Notification Preferences', 'agnosis' ),
 			'callback'              => [ $this, 'erase_preferences' ],
 		];
+		$erasers['agnosis-replies'] = [
+			'eraser_friendly_name' => __( 'Agnosis Reply Translations', 'agnosis' ),
+			'callback'              => [ $this, 'erase_replies' ],
+		];
 		return $erasers;
+	}
+
+	/**
+	 * Reply translations — sixteenth audit, G-5 (2026-07-31).
+	 *
+	 * WordPress core's own comment exporter/eraser already reaches Agnosis's
+	 * reply comments: `wp_comments_personal_data_exporter()` queries by
+	 * `author_email` with NO `type` restriction (verified at source in
+	 * wp-includes/comment.php), so the custom `agnosis_reply`/`agnosis_ap_reply`
+	 * types are included, and because mirror_reply_across_languages() copies
+	 * `comment_author_email` onto every language mirror, the mirrors are
+	 * reached too.
+	 *
+	 * What core does NOT touch is comment META. Its exporter passes
+	 * `update_comment_meta_cache => false` and exports none; its eraser
+	 * anonymises the author columns and leaves meta alone. Agnosis stores up
+	 * to two AI-generated translations of the visitor's own words there, plus
+	 * the language it detected them in — copies of the data subject's personal
+	 * data that this plugin created and holds. So an export was incomplete and
+	 * an erasure left machine translations of an "erased" person's message
+	 * being served by display_reply_content().
+	 *
+	 * This pair covers exactly that gap and nothing else: core keeps owning the
+	 * comment rows themselves, this owns the meta the plugin put on them.
+	 *
+	 * @return array<int, \WP_Comment>
+	 */
+	private function reply_comments_for( string $email_address ): array {
+		$comments = get_comments( [
+			'author_email' => $email_address,
+			'type__in'     => ActivityPub::REPLY_COMMENT_TYPES,
+			'status'       => 'any',
+			'orderby'      => 'comment_ID',
+			'order'        => 'ASC',
+		] );
+
+		// get_comments() only returns an int when 'count' => true (not passed
+		// here) — this guard is for the generic stub, not a runtime branch,
+		// matching every other get_comments() call site in this codebase.
+		if ( ! is_array( $comments ) ) {
+			return [];
+		}
+
+		return array_values( array_filter( $comments, static fn ( $c ) => $c instanceof \WP_Comment ) );
+	}
+
+	/** @return array{data: array<int, array{group_id: string, group_label: string, item_id: string, data: array<int, array{name: string, value: string}>}>, done: bool} */
+	public function export_replies( string $email_address, int $page = 1 ): array {
+		if ( $page > 1 ) {
+			return $this->done();
+		}
+
+		$data = [];
+
+		foreach ( $this->reply_comments_for( $email_address ) as $comment ) {
+			$comment_id = (int) $comment->comment_ID;
+
+			$fields = [
+				$this->item( __( 'On artwork', 'agnosis' ), get_the_title( (int) $comment->comment_post_ID ) ),
+				$this->item( __( 'Your reply', 'agnosis' ), (string) $comment->comment_content ),
+			];
+
+			$source_lang = (string) get_comment_meta( $comment_id, ActivityPub::REPLY_SOURCE_LANG_META, true );
+			if ( '' !== $source_lang ) {
+				$fields[] = $this->item( __( 'Detected language', 'agnosis' ), $source_lang );
+			}
+
+			$artist_translation = (string) get_comment_meta( $comment_id, ActivityPub::REPLY_TRANSLATED_CONTENT_META, true );
+			if ( '' !== $artist_translation ) {
+				$fields[] = $this->item( __( 'Translation shown to the artist', 'agnosis' ), $artist_translation );
+			}
+
+			$primary_translation = (string) get_comment_meta( $comment_id, ActivityPub::REPLY_TRANSLATED_PRIMARY_META, true );
+			if ( '' !== $primary_translation ) {
+				$fields[] = $this->item( __( 'Translation shown on the site', 'agnosis' ), $primary_translation );
+			}
+
+			$fields[] = $this->item( __( 'Published', 'agnosis' ), '1' === (string) $comment->comment_approved ? __( 'Yes', 'agnosis' ) : __( 'No — awaiting or declined by the artist', 'agnosis' ) );
+			$fields[] = $this->item( __( 'Sent at', 'agnosis' ), (string) $comment->comment_date_gmt );
+
+			$data[] = [
+				'group_id'    => 'agnosis-replies',
+				'group_label' => __( 'Agnosis Reply Translations', 'agnosis' ),
+				'item_id'     => 'agnosis-reply-' . $comment_id,
+				'data'        => $fields,
+			];
+		}
+
+		return [ 'data' => $data, 'done' => true ];
+	}
+
+	/** @return array{items_removed: bool, items_retained: bool, messages: array<int, string>, done: bool} */
+	public function erase_replies( string $email_address, int $page = 1 ): array {
+		if ( $page > 1 ) {
+			return $this->erased();
+		}
+
+		$removed = false;
+
+		foreach ( $this->reply_comments_for( $email_address ) as $comment ) {
+			$comment_id = (int) $comment->comment_ID;
+
+			// Only the plugin's own derived copies. The comment row and its
+			// `comment_content` stay for core's eraser to anonymise, which is
+			// core's documented posture for all comments (author identity is
+			// removed, the words remain) — deliberately not overridden here for
+			// one comment type, since doing so would make Agnosis replies
+			// behave differently from every other comment on the site.
+			foreach ( [
+				ActivityPub::REPLY_TRANSLATED_CONTENT_META,
+				ActivityPub::REPLY_TRANSLATED_PRIMARY_META,
+				ActivityPub::REPLY_SOURCE_LANG_META,
+			] as $meta_key ) {
+				if ( '' !== (string) get_comment_meta( $comment_id, $meta_key, true ) ) {
+					delete_comment_meta( $comment_id, $meta_key );
+					$removed = true;
+				}
+			}
+		}
+
+		return [
+			'items_removed'  => $removed,
+			'items_retained' => false,
+			'messages'       => [],
+			'done'           => true,
+		];
 	}
 
 	/** @return array{items_removed: bool, items_retained: bool, messages: array<int, string>, done: bool} */
@@ -650,6 +826,18 @@ class Privacy {
 		}
 
 		global $wpdb;
+
+		// Two separate writes, and the split is the whole point of G-1
+		// (sixteenth audit, 2026-07-31). This used to be ONE update keyed on
+		// `visitor_email` alone, which — since 0.9.60 made this a two-party
+		// thread table where an artist's reply carries the visitor's email too
+		// — blanked the ARTIST's own reply text on a visitor's erasure
+		// request. That is irreversible destruction of a third party's content
+		// in the only place it is stored, which is a worse failure than the
+		// export's mislabelling: an export can be re-run, this could not be
+		// undone.
+		//
+		// 1. The visitor's own messages: redact content and identity, as before.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- privacy eraser, redacts only this visitor's own messages.
 		$updated = $wpdb->update(
 			$wpdb->prefix . 'agnosis_contact_messages',
@@ -659,16 +847,44 @@ class Privacy {
 				'message'            => __( '[message removed]', 'agnosis' ),
 				'translated_message' => '',
 				'ip'                 => '',
+				'sender_lang'        => null,
+				'sender_lang_name'   => null,
 			],
-			[ 'visitor_email' => $email_address ],
-			[ '%s', '%s', '%s', '%s', '%s' ],
-			[ '%s' ]
+			[ 'visitor_email' => $email_address, 'sender' => 'visitor' ],
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ],
+			[ '%s', '%s' ]
+		);
+
+		// 2. The ARTIST's replies in those same threads: the artist's words are
+		//    the artist's own data and stay, but this visitor's email must not
+		//    remain on them as a routing address, and the reply token that
+		//    would let anyone continue the thread must die with the erasure.
+		//    Detaching the address is what actually severs the link between the
+		//    surviving reply text and the erased person.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- privacy eraser; detaches the erased visitor from the artist's own retained replies.
+		$detached = $wpdb->update(
+			$wpdb->prefix . 'agnosis_contact_messages',
+			[
+				'visitor_name'           => '',
+				'visitor_email'          => 'erased@erased.invalid',
+				'ip'                     => '',
+				'reply_token_expires_at' => null,
+			],
+			[ 'visitor_email' => $email_address, 'sender' => 'artist' ],
+			[ '%s', '%s', '%s', '%s' ],
+			[ '%s', '%s' ]
 		);
 
 		return [
 			'items_removed'  => (bool) $updated,
-			'items_retained' => false,
-			'messages'       => [],
+			// The artist's reply text is deliberately kept — it is a third
+			// party's content, not this data subject's — so when any such row
+			// existed, this is a partial erasure and WordPress's own report
+			// should say so rather than claim a clean sweep.
+			'items_retained' => (bool) $detached,
+			'messages'       => $detached
+				? [ __( 'Replies written by the artist in these conversations were kept, as they are the artist\'s own content; your name, email address and IP have been removed from them.', 'agnosis' ) ]
+				: [],
 			'done'           => true,
 		];
 	}
@@ -708,24 +924,47 @@ class Privacy {
 		$content = '<p class="privacy-policy-tutorial">' . esc_html__( 'Agnosis is a federated art-publishing plugin. The following is a starting point for describing what it collects — review and adapt it to your site\'s actual configuration before publishing.', 'agnosis' ) . '</p>'
 			. '<h2>' . esc_html__( 'What personal data we collect and why', 'agnosis' ) . '</h2>'
 			. '<p>' . esc_html__( 'When you apply to join, we store your email address, display name, biography, statement, and portfolio link to run the community vouching process. When you email us artwork, a biography, or an event, the content of that email (including your address) is stored while it is processed and reviewed. When you subscribe to our newsletter or message an artist through their contact form, we store your email address (and, for contact messages, your IP address) to deliver that message or send you future issues.', 'agnosis' ) . '</p>'
+			// Sixteenth audit, G-2 (2026-07-31): replies and likes were entirely
+			// absent from this section, having arrived across 0.9.51-0.9.63
+			// without anyone walking back through this file. Replies are the
+			// most consequential thing this plugin does to a NON-member's data
+			// — a required email, a public post, AI translation, and an
+			// irreversible push to remote servers — so they get their own
+			// paragraph rather than a clause.
+			. '<p>' . esc_html__( 'When you reply to an artwork on this site, we store your reply, the name you give, your email address, your IP address and your browser\'s user agent. A reply is only published once the artist approves it; once published it is visible to anyone and is also sent out across the Fediverse to other servers, which we cannot recall it from. Your reply is also machine-translated so it can be read on this site\'s other language versions and by the artist in their own language, and those translations are stored alongside it.', 'agnosis' ) . '</p>'
+			. '<p>' . esc_html__( 'When you "like" an artwork without being logged in, we do not store your IP address. We store only a one-way fingerprint derived from it together with a secret that is replaced every day — enough to stop the same like being counted twice on the same day, and deliberately impossible to trace back to you or to undo once the day\'s secret has been replaced.', 'agnosis' ) . '</p>'
 			. '<h2>' . esc_html__( 'Who we share it with', 'agnosis' ) . '</h2>'
-			. '<p>' . esc_html__( 'Submitted artwork descriptions and images may be sent to a third-party AI provider (OpenAI or Anthropic, depending on this site\'s configuration) to help write publication text and enhance images. If this site instead uses WordPress\'s own built-in AI Client (configured under Settings → Connectors), submitted content is sent to whichever AI service that connector points to instead. Approved posts are also broadcast publicly over ActivityPub (the Fediverse) as part of this plugin\'s core federation feature.', 'agnosis' ) . '</p>';
+			. '<p>' . esc_html__( 'Submitted artwork descriptions and images may be sent to a third-party AI provider (OpenAI or Anthropic, depending on this site\'s configuration) to help write publication text and enhance images. If this site instead uses WordPress\'s own built-in AI Client (configured under Settings → Connectors), submitted content is sent to whichever AI service that connector points to instead. Approved posts are also broadcast publicly over ActivityPub (the Fediverse) as part of this plugin\'s core federation feature. Replies and contact messages are sent to the same AI provider for translation, and approved replies are federated outward in the same way approved posts are.', 'agnosis' ) . '</p>'
+			// G-2: this site federating with OTHER Agnosis nodes means remote
+			// accounts' identifiers land in a local table. Disclosed because it
+			// is a real store of third-party personal data, and because it now
+			// has a retention period (G-4) worth stating.
+			. '<p>' . esc_html__( 'If this site is connected to other Agnosis nodes, a record is kept of which artworks those partner nodes shared through this one, including the identifier of the remote account that shared each one. This is used only to report how active the network has been.', 'agnosis' ) . '</p>';
 
 		// Turnstile is an opt-in, config-gated security check (both a site key
 		// and a secret key must be set) — only disclose it when it's actually
 		// live on this install (privacy audit P-1, AUDIT-0.9.39.md §3c). When
-		// enabled it loads on the Join, contact-form, and newsletter-signup
-		// forms, and sends the visitor's IP to Cloudflare on every completed
+		// enabled it loads on the Join, contact-form, newsletter-signup and —
+		// since 0.9.59's WP4 (and named here from the sixteenth audit's G-2,
+		// which caught this sentence still listing three) — artwork reply
+		// forms, sending the visitor's IP to Cloudflare on every completed
 		// submission (Turnstile::verify(), Turnstile.php).
 		if ( Turnstile::is_enabled() ) {
 			$content .= '<h2>' . esc_html__( 'Security check (Cloudflare Turnstile)', 'agnosis' ) . '</h2>'
-				. '<p>' . esc_html__( 'This site uses Cloudflare Turnstile, an automated security check, on its Join, contact, and newsletter-signup forms to block spam submissions. Completing it sends your IP address to Cloudflare for verification.', 'agnosis' ) . '</p>';
+				. '<p>' . esc_html__( 'This site uses Cloudflare Turnstile, an automated security check, on its Join, contact, newsletter-signup and artwork reply forms to block spam submissions. Completing it sends your IP address to Cloudflare for verification.', 'agnosis' ) . '</p>';
 		}
 
 		$content .= '<h2>' . esc_html__( 'Software updates', 'agnosis' ) . '</h2>'
 			. '<p>' . esc_html__( 'This site checks agnosis.art roughly every 12 hours for available plugin updates. That check includes this site\'s own web address so the update server can confirm compatibility; no visitor data is involved.', 'agnosis' ) . '</p>'
 			. '<h2>' . esc_html__( 'How long we retain your data', 'agnosis' ) . '</h2>'
-			. '<p>' . esc_html__( 'By default: contact-form messages are kept for 90 days, and the sender\'s IP address on them is cleared sooner, after 30 days. Membership applications that are rejected, withdrawn, or leave the network are anonymized after 180 days. Raw submission emails are deleted from the processing queue after 7 days, and diagnostic copies kept only if this site\'s administrator has debug logging turned on are deleted after 14 days. This site\'s administrator can adjust each of these periods under Settings. You can request a copy of, or the erasure of, the personal data described above at any time using this site\'s standard WordPress data request tools.', 'agnosis' ) . '</p>';
+			. '<p>' . esc_html__( 'By default: contact-form messages are kept for 90 days, and the sender\'s IP address on them is cleared sooner, after 30 days. Membership applications that are rejected, withdrawn, or leave the network are anonymized after 180 days. Raw submission emails are deleted from the processing queue after 7 days, and diagnostic copies kept only if this site\'s administrator has debug logging turned on are deleted after 14 days. Records of what partner nodes shared through this site are kept for 90 days. This site\'s administrator can adjust each of these periods under Settings.', 'agnosis' ) . '</p>'
+			// G-2: the two stores that deliberately have NO expiry, said plainly
+			// rather than left as a silence. A published reply is content, not a
+			// log, and is kept like any other published comment; a like is
+			// already unlinkable from anyone by design (see above), so there is
+			// nothing about a person left in it to expire.
+			. '<p>' . esc_html__( 'Replies you have published are kept for as long as the artwork they belong to, like any other comment on a website — you can ask us to remove yours at any time. Likes are not kept against you at all: the daily fingerprint described above expires on its own within a day and cannot be linked back to you afterwards.', 'agnosis' ) . '</p>'
+			. '<p>' . esc_html__( 'You can request a copy of, or the erasure of, the personal data described above at any time using this site\'s standard WordPress data request tools. Note that a reply which has already been sent out across the Fediverse cannot be recalled from other servers, and that replies written by an artist in a conversation with you are the artist\'s own words: we will remove your name, email address and IP address from them, but not the messages themselves.', 'agnosis' ) . '</p>';
 
 		wp_add_privacy_policy_content( __( 'Agnosis', 'agnosis' ), wp_kses_post( $content ) );
 	}
@@ -747,14 +986,27 @@ class Privacy {
 	 *
 	 * @param string $context 'join' (mentions AI processing and that
 	 *                        approved posts are published publicly and
-	 *                        federated) or 'contact' (mentions automated
+	 *                        federated), 'contact' (mentions automated
 	 *                        content review and that the message is sent to
-	 *                        the artist).
+	 *                        the artist), or 'reply' (sixteenth audit, G-3 —
+	 *                        publication, translation and irreversible
+	 *                        federation).
 	 */
 	public static function consent_notice_html( string $context ): string {
-		$text = 'join' === $context
-			? __( 'Submitted text and images may be processed by a third-party AI provider. Approved posts are published publicly and shared across the Fediverse — this cannot be fully undone later.', 'agnosis' )
-			: __( 'Your message may be reviewed by an automated content filter before being sent to the artist.', 'agnosis' );
+		// 'reply' added by the sixteenth audit's G-3 (2026-07-31). The reply
+		// form was the only public form in the plugin rendering no notice at
+		// all, while doing strictly MORE with a visitor's data than either of
+		// the two that did: a required email address, an IP sent to Cloudflare
+		// when Turnstile is on, machine translation by a third-party AI
+		// provider, publication once the artist approves, mirroring onto other
+		// language versions, and an outbound push to remote servers that
+		// cannot be recalled. Every clause of the join notice was already true
+		// of a reply; this wording is that notice, made specific.
+		$text = match ( $context ) {
+			'join'  => __( 'Submitted text and images may be processed by a third-party AI provider. Approved posts are published publicly and shared across the Fediverse — this cannot be fully undone later.', 'agnosis' ),
+			'reply' => __( 'Your reply is reviewed by the artist before it appears. Once published it is public, machine-translated into this site\'s other languages, and shared across the Fediverse — which cannot be fully undone later.', 'agnosis' ),
+			default => __( 'Your message may be reviewed by an automated content filter before being sent to the artist.', 'agnosis' ),
+		};
 
 		$html = esc_html( $text );
 

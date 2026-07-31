@@ -60,8 +60,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.65';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.65/agnosis-0.9.65.zip';
+	$version      = '0.9.66';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.66/agnosis-0.9.66.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -113,9 +113,9 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = 'fba61ee47083496a216b9c03fbda01ed89b0479035c8dd5661e97de3cb24fa48'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-30 for agnosis-0.9.65.zip.';
-	$last_updated = '2026-07-30';
+	$sha256       = '76c5c99ae4525204ecb7e6f975d7a463d00e06b8372c353d3fb77fda0d332c99'; // Verified — see $sha256_note above for build date/version.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-31 for agnosis-0.9.66.zip.';
+	$last_updated = '2026-07-31';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
@@ -127,6 +127,22 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.66</h4>' .
+		'<ul>' .
+			'<li><strong>Changed:</strong> The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13, including the email inbox poll that artwork submissions arrive through.</li>' .
+			'<li><strong>Added:</strong> Agnosis now warns in the admin when Lingua Forge is older than the version it was written against, instead of the affected feature silently not appearing.</li>' .
+			'<li><strong>Added:</strong> Agnosis posts are excluded from Lingua Forge 2.7.0&#8217;s own comment translation, so replies can never be mirrored twice by both plugins.</li>' .
+			'<li><strong>Fixed:</strong> The reply form on an artwork had no field labels, only placeholder text, making it hard to use with a screen reader or voice control &#8212; as did the Partner Nodes trust-scope dropdown, and the &#8220;Follow&#8221; popover never announced its error message.</li>' .
+			'<li><strong>Fixed:</strong> Hindi-speaking artists received a contact-reply email showing the characters &#8220;%s&#8221; instead of the sender&#8217;s name.</li>' .
+			'<li><strong>Fixed:</strong> The Arabic translation of the open-community-votes line left out the number for counts between 11 and 99.</li>' .
+			'<li><strong>Fixed:</strong> The artist newsletter read &#8220;1 likes on your work&#8221; instead of the singular; the English plural forms were wrong in the translation catalog.</li>' .
+			'<li><strong>Security:</strong> The Partner Nodes panel&#8217;s &#8220;Approve&#8221; and &#8220;Check&#8221; buttons could be used to make your own server contact addresses inside your private network, because anyone can register themselves as a pending peer with any address they like. Those requests now refuse private and loopback addresses, and an unsafe address is rejected at registration so it never appears in the panel at all.</li>' .
+			'<li><strong>Fixed:</strong> A visitor asking you to erase their data also wiped the artist&#8217;s own replies to them, and a visitor&#8217;s data export included those replies as though the visitor had written them. Erasure now keeps the artist&#8217;s words while removing the visitor&#8217;s details from them.</li>' .
+			'<li><strong>Fixed:</strong> The reply form asked for an email address without showing any privacy notice, unlike the join and contact forms.</li>' .
+			'<li><strong>Added:</strong> Data exports and erasure requests now also cover the automatic translations made of a visitor&#8217;s own reply, which WordPress&#8217;s built-in comment tools cannot see.</li>' .
+			'<li><strong>Added:</strong> Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings &#8594; Network.</li>' .
+			'<li><strong>Changed:</strong> The suggested privacy-policy text now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms using the Cloudflare Turnstile check.</li>' .
+		'</ul>' .
 		'<h4>0.9.65</h4>' .
 		'<ul>' .
 			'<li><strong>Added:</strong> A new &#8220;Partner Nodes&#8221; panel (Settings &#8594; Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.</li>' .
@@ -136,11 +152,6 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 			'<li><strong>Fixed:</strong> The Partner Nodes panel&#8217;s &#8220;manually trust an actor&#8221; form always failed with a &#8220;link expired&#8221; error instead of saving.</li>' .
 			'<li><strong>Fixed:</strong> A relayed peer boost could be sent to your followers twice when a partner redelivered the same boost.</li>' .
 			'<li><strong>Fixed:</strong> A test send of the artist newsletter showed raw placeholder text where the like, boost, and interaction-summary lines should have been.</li>' .
-		'</ul>' .
-		'<h4>0.9.64</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> An artist&#8217;s subdomain now appears in the multilingual sitemap (one entry per artist with published work, per configured language), and leaving/joining/publishing/banning now correctly refreshes that sitemap&#8217;s cache.</li>' .
-			'<li><strong>Added:</strong> Banning an artist now also hides their published content (not just their sitemap entry) until the ban is lifted or expires.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 
