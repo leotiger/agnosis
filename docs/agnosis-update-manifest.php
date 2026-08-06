@@ -114,7 +114,7 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
 	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Not yet built for this version — dev/bin/build-zip.sh writes this at release time.';
+	$sha256_note  = 'Build started 2026-08-06T23:37:57Z by build-zip.sh for v0.9.67 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
 	$last_updated = '2026-07-31';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -129,6 +129,7 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	$changelog =
 		'<h4>0.9.67</h4>' .
 		'<ul>' .
+			'<li><strong>Fixed:</strong> The &#8220;Follow&#8221; button on an artwork could show a Fediverse handle that doesn&#8217;t resolve &#8212; on artworks published by an admin, or by someone who is no longer an artist. The button no longer appears in those cases.</li>' .
 			'<li><strong>Fixed:</strong> A review link for a submission that no longer exists silently dropped the artist on the home page. It now explains what happened &#8212; as does a link that arrives incomplete because a mail app cut it in half.</li>' .
 			'<li><strong>Fixed:</strong> The email asking you to review the AI-drafted newsletter intro was plain, unstyled text. It now uses the same branded layout as every other Agnosis message.</li>' .
 			'<li><strong>Fixed:</strong> The deliverability test email is now sent in the same branded HTML as real messages, so what arrives is what your artists and subscribers receive.</li>' .

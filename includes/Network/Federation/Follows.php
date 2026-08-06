@@ -231,7 +231,23 @@ class Follows {
 		}
 
 		$artist_id = (int) $post->post_author;
-		$handle    = $this->identity->handle_for( 'artist', $artist_id );
+
+		// The author must actually be an admitted artist, not merely an existing
+		// WP user (0.9.67). `handle_for()` alone only proves `get_userdata()`
+		// resolved, so an artwork authored by an admin, or by someone whose role
+		// was removed outside the Departure flow, used to render a Follow button
+		// and a copyable `@handle` whose actor document 404s — `artist_actor()`
+		// gates on exactly this check one class away. A handle that looks live,
+		// copies cleanly and resolves to nothing is worse than no button at all,
+		// and block.json has always documented this guard ("Renders nothing …
+		// when its author no longer resolves to a real artist actor") without it
+		// existing. The common departure paths hid it: leaving deletes the WP
+		// account outright, and a ban privatizes the artist's posts.
+		if ( is_wp_error( $this->identity->require_artist( $artist_id ) ) ) {
+			return '';
+		}
+
+		$handle = $this->identity->handle_for( 'artist', $artist_id );
 
 		if ( '' === $handle ) {
 			return '';

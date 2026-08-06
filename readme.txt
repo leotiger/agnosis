@@ -92,6 +92,7 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 == Changelog ==
 
 = 0.9.67 =
+* Fixed: The "Follow" button on an artwork could show a Fediverse handle that doesn't work — on artworks published by an admin, or by someone who is no longer an artist on your site. The handle looked correct and copied cleanly, but wouldn't resolve in anyone's Fediverse app. The button now doesn't appear at all in those cases.
 * Fixed: Clicking a review link for a submission that no longer exists — already published, discarded, or replaced by a newer version — silently dropped the artist on the home page with no explanation. It now says what happened and that nothing went wrong on their side. Same for a link that arrives incomplete because a mail app cut it in half.
 * Fixed: The email asking you to review the AI-drafted newsletter intro was plain, unstyled text, unlike every other message Agnosis sends. It now uses the same branded layout, with the draft shown as a quotation and a button to review it.
 * Fixed: The deliverability test email (Settings → Email Inbox) is now sent in the same branded HTML as real messages, so what arrives in your inbox is what your artists and subscribers actually receive.

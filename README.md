@@ -172,7 +172,9 @@ composer coverage
 # → coverage/combined/summary.txt
 ```
 
-Combined unit + integration coverage is 69.15% (13,341 / 19,292 statements) as of 2026-07-23 — re-run `composer coverage` locally for the current, exact figure rather than trusting this line as it ages.
+Combined unit + integration coverage is 72.77% (17,126 / 23,535 statements) as of 2026-08-07 — re-run `composer coverage` locally for the current, exact figure rather than trusting this line as it ages.
+
+Worth reading alongside the raw percentage: the codebase grew from 19,292 to 23,535 statements over that period, so the ratio rose while the denominator gained about 4,200 statements. The figure is also not evenly distributed by design — the paths where a failure is *silent* are covered far more heavily than the ones where it is obvious. The unauthenticated email-link handlers (`ReviewConfirm`, `AdmissionConfirm`, `VouchConfirm`, `RemovalVoteConfirm`, `CommunityCapVote`, `SubscriptionConfirm`, `NotificationPreferences`, `InteractionGateway`) all sit in the high eighties or above, as do the federation units under `Network\Federation\`. The admin dashboards, which mostly render HTML behind a `manage_options` check and break visibly to the one person who can see them, are deliberately much lower.
 
 Coverage is collected with pcov and merged from unit + integration Clover XMLs via `phpunit/phpcov`. `composer coverage` needs pcov in **two** places:
 

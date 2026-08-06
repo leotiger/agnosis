@@ -67,6 +67,47 @@ class ActivatorTest extends \WP_UnitTestCase {
 
 		delete_option( 'agnosis_submissions_page_id' );
 		remove_role( 'agnosis_artist' );
+
+		$this->clear_leaked_fixture_rows();
+	}
+
+	/**
+	 * Delete the custom-table rows this suite creates, because
+	 * WP_UnitTestCase's own rollback cannot.
+	 *
+	 * **Why this is needed at all.** `WP_UnitTestCase::setUp()` opens a
+	 * transaction and `tearDown()` rolls it back, which is what normally keeps
+	 * one test's writes invisible to the next. MySQL cannot roll back DDL:
+	 * `ALTER TABLE`, `CREATE TABLE` and friends each force an implicit COMMIT
+	 * before they run. This suite is *about* schema, so it runs DDL constantly —
+	 * both directly (`simulate_legacy_sent_at_column()`) and through
+	 * `Activator::maybe_upgrade()`. The moment the first `ALTER` executes, the
+	 * surrounding transaction is gone, every subsequent INSERT lands in
+	 * autocommit, and the eventual ROLLBACK silently rolls back nothing.
+	 *
+	 * The rows therefore survive into every later test in the same run (though
+	 * not between runs — WordPress's PHPUnit bootstrap rebuilds the wptests_
+	 * schema each time). This was found when
+	 * `PrivacyErasureTest` asserted on the first row of
+	 * `agnosis_newsletter_queue` and got this suite's `legacy@example.com`
+	 * fixture instead of its own (2026-08-07).
+	 *
+	 * Deliberately a blanket delete rather than a list of specific fixture rows:
+	 * a list would need updating every time a fixture is added here, and would
+	 * fail silently when someone forgot. Nothing else may rely on rows in these
+	 * tables outliving their own test — see CONTRIBUTING.md's testing section.
+	 *
+	 * Note this cannot undo *schema* changes, only data. A test that leaves a
+	 * table in a legacy shape still leaves it that way; `maybe_upgrade()` is
+	 * idempotent and re-normalises it, which is what keeps that survivable.
+	 */
+	private function clear_leaked_fixture_rows(): void {
+		global $wpdb;
+
+		foreach ( [ 'agnosis_newsletter_queue', 'agnosis_followers' ] as $table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- fixed table names, test cleanup only.
+			$wpdb->query( "DELETE FROM {$wpdb->prefix}{$table}" );
+		}
 	}
 
 	// -------------------------------------------------------------------------

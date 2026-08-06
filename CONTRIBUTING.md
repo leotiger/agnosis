@@ -102,6 +102,32 @@ See the [Architecture](README.md#architecture) section of the README for the `in
 - If your change fixes a bug, add a regression test for it where practical — several classes in this codebase (`ContactForm`, `PostCreator`, `ReviewEndpoints`) have gaps that were only found because a *previous* fix lacked one.
 - `composer coverage` needs `pcov` installed both inside the `tests-wordpress` container (`composer coverage:setup` does this automatically) and on your host PHP — see the [Coverage](README.md#coverage) section of the README for platform-specific install notes.
 
+### Never assume a custom table is empty
+
+`WP_UnitTestCase` isolates tests by opening a transaction in `setUp()` and rolling it back in `tearDown()`. **That guarantee does not hold once a test runs DDL.** MySQL cannot roll back `ALTER TABLE` / `CREATE TABLE` / `DROP` — each forces an implicit `COMMIT` first. So a test that changes schema (directly, or via `Activator::activate()` / `Activator::maybe_upgrade()`) ends its own transaction, and everything it writes afterwards is committed permanently — surviving into every later test **in the same run**. (It does not survive between runs: WordPress's PHPUnit bootstrap rebuilds the `wptests_` schema each time.)
+
+Two rules follow.
+
+**1. Scope every assertion to rows your own test created.** Key on an identifier you supplied — an email, a token, a post id you just made:
+
+```php
+// Good — independent of whatever else is in the table.
+$row = $wpdb->get_row( $wpdb->prepare(
+    "SELECT … FROM {$wpdb->prefix}agnosis_newsletter_queue WHERE recipient_email = %s",
+    self::SUBJECT
+) );
+
+// Fragile — assumes the table is empty and that ordering is yours to predict.
+$rows = $wpdb->get_results( "SELECT … FROM {$wpdb->prefix}agnosis_newsletter_queue ORDER BY id ASC" );
+$this->assertSame( 'expected', $rows[0]->recipient_email );
+```
+
+Avoid bare `COUNT(*)` over a whole custom table for the same reason. Count what matches *your* fixture.
+
+**2. If your test runs DDL, delete its own rows in `tearDown()`.** See `ActivatorTest::clear_leaked_fixture_rows()` for the pattern and the full explanation. Note it can only clean up *data* — schema left in a modified shape stays that way, which is one more reason the upgrade routines are written to be idempotent.
+
+This is not hypothetical: `PrivacyErasureTest` was written assuming an empty `agnosis_newsletter_queue`, and picked up `ActivatorTest`'s `legacy@example.com` fixture instead of its own (2026-08-07). Test *order* decides whether you see it, which is what makes this class of failure look intermittent. Rule 1 is what makes a test correct regardless of what else ran first; rule 2 just stops the mess accumulating.
+
 ## Making changes
 
 1. Fork the repo and create a branch off `main` for your change.
