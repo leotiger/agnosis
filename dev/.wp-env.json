@@ -1,12 +1,12 @@
 {
     "$schema": "https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/wp-env.json",
-    "core": "WordPress/WordPress#6.8",
+    "core": "WordPress/WordPress#6.9",
     "phpVersion": "8.3",
     "port": 7888,
     "testsPort": 7889,
     "plugins": [
-        "..",
-        "../../lingua-forge"
+        "../../lingua-forge",
+        ".."
     ],
     "themes": [
         "../../agnosis-theme"
@@ -26,8 +26,8 @@
     "env": {
         "tests": {
             "plugins": [
-                "..",
-                "../../lingua-forge"
+                "../../lingua-forge",
+                ".."
             ],
             "config": {
                 "WP_DEBUG":         true,

@@ -60,8 +60,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.66';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.66/agnosis-0.9.66.zip';
+	$version      = '0.9.67';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.67/agnosis-0.9.67.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -113,8 +113,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '76c5c99ae4525204ecb7e6f975d7a463d00e06b8372c353d3fb77fda0d332c99'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-07-31 for agnosis-0.9.66.zip.';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Not yet built for this version — dev/bin/build-zip.sh writes this at release time.';
 	$last_updated = '2026-07-31';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -127,6 +127,16 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.67</h4>' .
+		'<ul>' .
+			'<li><strong>Fixed:</strong> A review link for a submission that no longer exists silently dropped the artist on the home page. It now explains what happened &#8212; as does a link that arrives incomplete because a mail app cut it in half.</li>' .
+			'<li><strong>Fixed:</strong> The email asking you to review the AI-drafted newsletter intro was plain, unstyled text. It now uses the same branded layout as every other Agnosis message.</li>' .
+			'<li><strong>Fixed:</strong> The deliverability test email is now sent in the same branded HTML as real messages, so what arrives is what your artists and subscribers receive.</li>' .
+			'<li><strong>Changed:</strong> Agnosis now requires WordPress 6.9 or newer, up from 6.6. Nothing behaved differently on older versions; this only stops it claiming support for versions it is not tested against.</li>' .
+			'<li><strong>Changed:</strong> The Fediverse code has been reorganized internally &#8212; the single file behind ActivityPub, which had grown past 6,000 lines, is now nine focused ones. Nothing behaves differently and the full test suite passes unchanged.</li>' .
+			'<li><strong>Changed:</strong> Removed a piece of dead code left over from the 0.9.54 change that let translated versions of an artwork federate on their own.</li>' .
+			'<li><strong>Fixed:</strong> Four admin controls had no accessible name for screen-reader and voice-control users &#8212; the status and skip-reason filters on Submissions, the status filter on Contact Messages, and read-only settings fields.</li>' .
+		'</ul>' .
 		'<h4>0.9.66</h4>' .
 		'<ul>' .
 			'<li><strong>Changed:</strong> The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13, including the email inbox poll that artwork submissions arrive through.</li>' .
@@ -143,16 +153,6 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 			'<li><strong>Added:</strong> Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings &#8594; Network.</li>' .
 			'<li><strong>Changed:</strong> The suggested privacy-policy text now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms using the Cloudflare Turnstile check.</li>' .
 		'</ul>' .
-		'<h4>0.9.65</h4>' .
-		'<ul>' .
-			'<li><strong>Added:</strong> A new &#8220;Partner Nodes&#8221; panel (Settings &#8594; Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.</li>' .
-			'<li><strong>Added:</strong> Trusted rhizome peers&#8217; boosts are now actually relayed to your own followers, with a per-peer badge showing whether the trust is mutual and a log of what&#8217;s been relayed.</li>' .
-			'<li><strong>Added:</strong> Your artist newsletter digest now includes a personal summary of likes and boosts on your work since your last digest (can be turned off in your notification preferences).</li>' .
-			'<li><strong>Added:</strong> Your artist newsletter digest now also includes a community-wide summary of rhizome activity &#8212; how much got relayed, and from how many trusted partner nodes.</li>' .
-			'<li><strong>Fixed:</strong> The Partner Nodes panel&#8217;s &#8220;manually trust an actor&#8221; form always failed with a &#8220;link expired&#8221; error instead of saving.</li>' .
-			'<li><strong>Fixed:</strong> A relayed peer boost could be sent to your followers twice when a partner redelivered the same boost.</li>' .
-			'<li><strong>Fixed:</strong> A test send of the artist newsletter showed raw placeholder text where the like, boost, and interaction-summary lines should have been.</li>' .
-		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 
 	// -------------------------------------------------------------------------
@@ -161,7 +161,7 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 
 	$manifest = [
 		'version'      => $version,
-		'requires'     => '6.6',
+		'requires'     => '6.9',
 		'requires_php' => '8.2',
 		'tested'       => $tested,
 		'last_updated' => $last_updated,

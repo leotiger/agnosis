@@ -246,7 +246,9 @@ class ContactMessagesPage {
 			<div class="alignleft actions">
 				<form method="get" style="display:inline-flex;gap:.5rem;align-items:center">
 					<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE ); ?>">
-					<select name="status_filter">
+					<?php // Sixteenth audit, A-4: a list-table filter dropdown's only context is its visual position next to the table, so without a label a screen-reader user hears "combo box, All statuses" with nothing saying what it filters. Visually hidden, matching WP core's own filter dropdowns (edit.php's category filter carries exactly this). ?>
+					<label class="screen-reader-text" for="agnosis-contact-status-filter"><?php esc_html_e( 'Filter messages by status', 'agnosis' ); ?></label>
+					<select id="agnosis-contact-status-filter" name="status_filter">
 						<?php foreach ( $status_labels as $value => $label ) : ?>
 							<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $status_filter, $value ); ?>><?php echo esc_html( $label ); ?></option>
 						<?php endforeach; ?>

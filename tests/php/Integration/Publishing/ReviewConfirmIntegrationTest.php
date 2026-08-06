@@ -142,7 +142,16 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 		$this->addToAssertionCount( 1 ); // reached this line = no redirect fired.
 	}
 
-	public function test_handle_confirm_redirects_to_home_on_missing_id(): void {
+	/**
+	 * Until 0.9.67 these three bailed out to a bare home_url( '/' ) with no
+	 * result param — the assertion here was assertStringNotContainsString(
+	 * 'agnosis_result' ). That silence was the bug: an artist whose link arrived
+	 * truncated landed on the front page with nothing to distinguish it from a
+	 * broken site, which is exactly how a page-caching problem masqueraded as a
+	 * plugin one for a day. All three now carry `agnosis_result=incomplete`,
+	 * which handle_result() renders as "This link is incomplete".
+	 */
+	public function test_handle_confirm_reports_incomplete_on_missing_id(): void {
 		$this->simulate_get( [
 			'agnosis_review' => '1',
 			'action'         => 'approve',
@@ -153,13 +162,12 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 			$this->confirm->handle_confirm();
 			$this->fail( 'Expected redirect.' );
 		} catch ( RedirectCapture $e ) {
-			// Guard-clause bail-out: no result param, goes straight home.
-			$this->assertStringNotContainsString( 'agnosis_result', $e->url );
+			$this->assertStringContainsString( 'agnosis_result=incomplete', $e->url );
 			$this->assertStringContainsString( home_url( '/' ), $e->url );
 		}
 	}
 
-	public function test_handle_confirm_redirects_to_home_on_invalid_action(): void {
+	public function test_handle_confirm_reports_incomplete_on_invalid_action(): void {
 		$this->simulate_get( [
 			'agnosis_review' => '1',
 			'id'             => (string) $this->post_id,
@@ -171,11 +179,11 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 			$this->confirm->handle_confirm();
 			$this->fail( 'Expected redirect.' );
 		} catch ( RedirectCapture $e ) {
-			$this->assertStringNotContainsString( 'agnosis_result', $e->url );
+			$this->assertStringContainsString( 'agnosis_result=incomplete', $e->url );
 		}
 	}
 
-	public function test_handle_confirm_redirects_to_home_on_missing_token(): void {
+	public function test_handle_confirm_reports_incomplete_on_missing_token(): void {
 		$this->simulate_get( [
 			'agnosis_review' => '1',
 			'id'             => (string) $this->post_id,
@@ -186,7 +194,31 @@ class ReviewConfirmIntegrationTest extends \WP_UnitTestCase {
 			$this->confirm->handle_confirm();
 			$this->fail( 'Expected redirect.' );
 		} catch ( RedirectCapture $e ) {
-			$this->assertStringNotContainsString( 'agnosis_result', $e->url );
+			$this->assertStringContainsString( 'agnosis_result=incomplete', $e->url );
+		}
+	}
+
+	/**
+	 * The other half of the 0.9.67 fix: a link naming a submission that no longer
+	 * exists — most often a pending-update staging draft consumed by its own
+	 * approval (ReviewEndpoints hard-deletes those). Previously also a silent
+	 * redirect home; now reported as `gone`, rendered as "This submission no
+	 * longer exists". Uses an id that has never been a post at all, which is the
+	 * same state get_post() reports for a deleted one.
+	 */
+	public function test_handle_confirm_reports_gone_for_a_submission_that_no_longer_exists(): void {
+		$this->simulate_get( [
+			'agnosis_review' => '1',
+			'id'             => '99999999',
+			'action'         => 'approve',
+			'token'          => self::VALID_TOKEN,
+		] );
+
+		try {
+			$this->confirm->handle_confirm();
+			$this->fail( 'Expected redirect.' );
+		} catch ( RedirectCapture $e ) {
+			$this->assertStringContainsString( 'agnosis_result=gone', $e->url );
 		}
 	}
 

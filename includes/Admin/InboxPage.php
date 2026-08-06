@@ -518,12 +518,15 @@ class InboxPage {
 			<div class="alignleft actions">
 				<form method="get" style="display:inline-flex;gap:.5rem;align-items:center">
 					<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE ); ?>">
-					<select name="status_filter">
+					<?php // Sixteenth audit, A-4: two adjacent dropdowns make the missing labels worse than usual — unlabelled, a screen-reader user gets two combo boxes in a row with no way to tell which narrows status and which narrows reason. Visually hidden, matching WP core's own list-table filters. ?>
+					<label class="screen-reader-text" for="agnosis-inbox-status-filter"><?php esc_html_e( 'Filter submissions by status', 'agnosis' ); ?></label>
+					<select id="agnosis-inbox-status-filter" name="status_filter">
 						<?php foreach ( $status_labels as $value => $label ) : ?>
 							<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $status_filter, $value ); ?>><?php echo esc_html( $label ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<select name="reason_filter">
+					<label class="screen-reader-text" for="agnosis-inbox-reason-filter"><?php esc_html_e( 'Filter submissions by skip reason', 'agnosis' ); ?></label>
+					<select id="agnosis-inbox-reason-filter" name="reason_filter">
 						<option value=""><?php esc_html_e( 'All reasons', 'agnosis' ); ?></option>
 						<?php foreach ( self::REASON_FILTER_LABELS as $key => $label ) : ?>
 							<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $reason_filter, $key ); ?>><?php echo esc_html( $label ); ?></option>

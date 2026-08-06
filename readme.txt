@@ -1,10 +1,10 @@
 === Agnosis ===
 Contributors: agnosis
 Tags: art, artists, activitypub, federation, ai
-Requires at least: 6.6
+Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.66
+Stable tag: 0.9.67
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,6 +91,15 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.67 =
+* Fixed: Clicking a review link for a submission that no longer exists — already published, discarded, or replaced by a newer version — silently dropped the artist on the home page with no explanation. It now says what happened and that nothing went wrong on their side. Same for a link that arrives incomplete because a mail app cut it in half.
+* Fixed: The email asking you to review the AI-drafted newsletter intro was plain, unstyled text, unlike every other message Agnosis sends. It now uses the same branded layout, with the draft shown as a quotation and a button to review it.
+* Fixed: The deliverability test email (Settings → Email Inbox) is now sent in the same branded HTML as real messages, so what arrives in your inbox is what your artists and subscribers actually receive.
+* Fixed: Four admin controls had no accessible name for screen-reader and voice-control users — the status and skip-reason filters on Submissions, the status filter on Contact Messages, and read-only settings fields, whose label pointed at nothing.
+* Changed: Agnosis now requires WordPress 6.9 or newer, up from 6.6. Nothing in the plugin behaved differently on older versions; this only stops it claiming support for versions it isn't developed or tested against.
+* Changed: The Fediverse code has been reorganized internally — the single file behind ActivityPub, which had grown to over 6,000 lines, is now nine focused ones. Nothing behaves differently and the full test suite passes unchanged; it makes future federation work safer to build and easier to review.
+* Changed: Removed a piece of dead code left over from the 0.9.54 change that let translated versions of an artwork federate on their own.
+
 = 0.9.66 =
 * Changed: The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13 — including the email inbox poll, which is how artwork submissions arrive. No change in normal operation; it means fewer ways for a scheduled task to go missing unnoticed.
 * Added: Agnosis now warns in the admin when Lingua Forge is older than the version it was written against, instead of the affected feature just silently not appearing. Agnosis keeps working either way.
@@ -106,17 +115,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Added: Data exports and erasure requests now also cover the automatic translations made of a visitor's own reply, which WordPress's built-in comment tools cannot see.
 * Added: Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings → Network.
 * Changed: The suggested privacy-policy text (Settings → Privacy → Policy Guide) now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms that use the Cloudflare Turnstile check.
-
-= 0.9.65 =
-* Added: A new "Partner Nodes" panel (Settings → Rhizome) lets you approve, block, or remove other Agnosis nodes that have registered themselves as peers, with a per-peer choice of trust scope, plus an optional path to manually trust a specific non-Agnosis Fediverse actor.
-* Added: Trusted rhizome peers' boosts are now actually relayed to your own followers, with a per-peer badge showing whether the trust is mutual and a log of what's been relayed.
-* Added: Your artist newsletter digest now includes a personal summary of likes and boosts on your work since your last digest (can be turned off in your notification preferences).
-* Added: Your artist newsletter digest now also includes a community-wide summary of rhizome activity — how much got relayed, and from how many trusted partner nodes.
-* Fixed: The Partner Nodes panel's "manually trust an actor" form always failed with a "link expired" error instead of saving.
-* Fixed: A relayed peer boost could be sent to your followers twice when a partner redelivered the same boost.
-* Fixed: A test send of the artist newsletter showed raw placeholder text where the like, boost, and interaction-summary lines should have been.
-* Fixed: The new personal likes/boosts summary could show an all-time total instead of just the period since your last digest.
-* Fixed: A partner node that trusts you back could still show as one-directional if you had been added to their list by hand.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

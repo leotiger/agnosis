@@ -60,6 +60,33 @@ class JoinPageTest extends \WP_UnitTestCase {
 		return (string) ( $scripts->get_data( $handle, 'data' ) ?: '' );
 	}
 
+	/**
+	 * One decoded value out of a script's localized data object.
+	 *
+	 * Assert against this rather than substring-matching the raw JS, whenever the
+	 * value contains anything JSON escapes — a URL above all. `WP_Scripts::localize()`
+	 * chooses its own `json_encode()` flags, and **WordPress 6.9 changed them**: it
+	 * now passes `JSON_HEX_TAG | JSON_UNESCAPED_SLASHES`, so `"http:\/\/example.com\/"`
+	 * became `"http://example.com/"`. Two tests here hand-built the escaped form and
+	 * broke on that, having pinned a core implementation detail instead of the thing
+	 * they meant to check — that JoinPage localizes the right redirect URL. Decoding
+	 * asserts the value and lets core format it however it likes.
+	 */
+	private function localized_value( string $handle, string $key ): mixed {
+		$js = $this->localized_data( $handle );
+
+		// "var agnosisJoin = {...};" — everything between the first brace and the last.
+		$start = strpos( $js, '{' );
+		$end   = strrpos( $js, '}' );
+		if ( false === $start || false === $end ) {
+			return null;
+		}
+
+		$decoded = json_decode( substr( $js, $start, $end - $start + 1 ), true );
+
+		return is_array( $decoded ) ? ( $decoded[ $key ] ?? null ) : null;
+	}
+
 	public function test_redirect_url_is_empty_by_default(): void {
 		wp_set_current_user( 0 );
 
@@ -80,9 +107,7 @@ class JoinPageTest extends \WP_UnitTestCase {
 
 		( new JoinPage() )->render_block();
 
-		$data      = $this->localized_data( 'agnosis-join' );
-		$permalink = str_replace( '/', '\/', get_permalink( $page_id ) );
-		$this->assertStringContainsString( $permalink, $data );
+		$this->assertSame( get_permalink( $page_id ), $this->localized_value( 'agnosis-join', 'redirectUrl' ) );
 	}
 
 	public function test_redirect_url_ignores_unselected_page_option(): void {
@@ -106,8 +131,7 @@ class JoinPageTest extends \WP_UnitTestCase {
 
 		( new JoinPage() )->render_block();
 
-		$data = $this->localized_data( 'agnosis-join' );
-		$this->assertStringContainsString( 'https:\/\/example.com\/thanks\/', $data );
+		$this->assertSame( 'https://example.com/thanks/', $this->localized_value( 'agnosis-join', 'redirectUrl' ) );
 	}
 
 	// -------------------------------------------------------------------------

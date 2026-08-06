@@ -394,7 +394,13 @@ class Settings {
 				}
 				break;
 			case 'readonly':
-				echo '<input type="text" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
+				// id is load-bearing, not decoration (sixteenth audit, A-4):
+				// render_field() emits `<label for="{$key}">` for EVERY field a
+				// few lines up, and every other branch below pairs it with a
+				// matching id="{$key}". This one didn't, so a readonly field's
+				// label pointed at nothing — the only field type in this
+				// renderer where the association silently broke.
+				echo '<input type="text" id="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" class="regular-text" readonly>';
 				break;
 			case 'color':
 				echo '<input type="color" id="' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" style="width:60px;height:36px;padding:2px;">';

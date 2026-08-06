@@ -38,6 +38,7 @@ namespace Agnosis\Newsletter;
 
 use Agnosis\AI\Pipeline;
 use Agnosis\AI\SubmissionTranslator;
+use Agnosis\Core\EmailTemplate;
 use Agnosis\Core\Logger;
 
 class Scheduler {
@@ -394,21 +395,46 @@ class Scheduler {
 		Logger::info( sprintf( 'Newsletter (%s): AI-drafted intro proposed and saved — admin notified.', $type ), 'newsletter' );
 	}
 
-	/** Email the admin the AI-drafted intro, with a link to review/edit it before it sends. */
+	/**
+	 * Email the admin the AI-drafted intro, with a link to review/edit it before
+	 * it sends.
+	 *
+	 * Branded through Core\EmailTemplate like every other transactional message
+	 * the plugin sends (0.9.67). It shipped as a bare plain-text body — the last
+	 * production email in the plugin that did not go through the shared shell,
+	 * found by Ulises in his own inbox rather than by any sweep, because a
+	 * plain-text email is perfectly functional and only looks wrong next to the
+	 * others. The draft itself is rendered in the same accent-bordered notice box
+	 * `AdmissionNotification` uses for a quoted bio or statement: it is the
+	 * artist-facing copy the admin is being asked to approve, so it should read
+	 * as a quotation, not as body text the admin might mistake for instructions.
+	 */
 	private function notify_admin_of_proposed_intro( string $type, string $draft ): void {
-		$site_name  = get_bloginfo( 'name' );
-		$label      = 'artist' === $type ? __( 'Artist newsletter', 'agnosis' ) : __( 'Public newsletter', 'agnosis' );
+		$site_name    = get_bloginfo( 'name' );
+		$label        = 'artist' === $type ? __( 'Artist newsletter', 'agnosis' ) : __( 'Public newsletter', 'agnosis' );
 		$settings_url = admin_url( 'admin.php?page=agnosis-settings&tab=newsletter' );
+		$accent       = EmailTemplate::accent();
 
-		$body = sprintf(
-			/* translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name */
-			__( "The %1\$s at %2\$s is due to send in about a day. Agnosis drafted an intro from what's new since the last issue:", 'agnosis' ),
-			$label,
-			$site_name
-		) . "\n\n"
-			. '"' . $draft . '"' . "\n\n"
-			. __( "It's already saved and will be used as-is if you don't act — review it, rewrite it, or clear it back to blank here:", 'agnosis' ) . "\n"
-			. $settings_url;
+		$body_html = '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+			. sprintf(
+				/* translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name */
+				esc_html__( "The %1\$s at %2\$s is due to send in about a day. Agnosis drafted an intro from what's new since the last issue:", 'agnosis' ),
+				esc_html( $label ),
+				esc_html( $site_name )
+			)
+			. '</p>'
+			// nl2br(), because the draft is AI-written prose that may carry its own
+			// paragraph breaks — they were visible in the plain-text version and
+			// would otherwise collapse into one run-on block here.
+			. '<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;padding:14px 16px;background:' . esc_attr( EmailTemplate::notice_bg() ) . ';border-left:3px solid ' . esc_attr( $accent ) . ';border-radius:4px;">'
+			. nl2br( esc_html( $draft ) )
+			. '</p>'
+			. '<p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:#555;">'
+			. esc_html__( "It's already saved and will be used as-is if you don't act — review it, rewrite it, or clear it back to blank:", 'agnosis' )
+			. '</p>'
+			. '<table cellpadding="0" cellspacing="0" style="margin:0;"><tr><td>'
+			. EmailTemplate::button( $settings_url, __( 'Review the intro', 'agnosis' ) )
+			. '</td></tr></table>';
 
 		wp_mail(
 			get_option( 'admin_email' ),
@@ -418,9 +444,9 @@ class Scheduler {
 				$label,
 				$site_name
 			),
-			$body,
+			EmailTemplate::render( str_replace( '_', '-', get_locale() ), $body_html ),
 			[
-				'Content-Type: text/plain; charset=UTF-8',
+				'Content-Type: text/html; charset=UTF-8',
 				// Previously carried no From header at all, so wp_mail() fell through to
 				// WordPress's own "WordPress <wordpress@$domain>" default — the same
 				// leftover issue already fixed everywhere else in 0.9.9 (found 2026-07-08

@@ -167,9 +167,13 @@ class ReviewConfirm {
 
 		$allowed = [ 'approve', 'reject', 'remove' ];
 
+		// An incomplete link — a truncated URL, a mail client that ate part of the
+		// query string, a hand-edited address. Until 0.9.67 this redirected
+		// silently to the home page, which is indistinguishable from a working
+		// link landing on a cached page and cost a day of diagnosis in exactly
+		// that scenario. Say what happened instead. (redirect_result() exits.)
 		if ( ! $id || ! $token || ! in_array( $action, $allowed, true ) ) {
-			wp_safe_redirect( home_url( '/' ) );
-			exit;
+			$this->redirect_result( 'incomplete' );
 		}
 
 		// GET only renders the confirm page — a mail scanner prefetching this
@@ -324,6 +328,11 @@ class ReviewConfirm {
 			'remove' === $result && 'agnosis_biography' === $post_type  => [ __( 'Biography removed', 'agnosis' ), __( 'Your biography has been removed.', 'agnosis' ) ],
 			'remove' === $result && 'agnosis_event' === $post_type      => [ __( 'Event removed', 'agnosis' ), __( 'The event has been removed.', 'agnosis' ) ],
 			'remove' === $result                                       => [ __( 'Artwork removed', 'agnosis' ), __( 'Your artwork has been removed from the gallery.', 'agnosis' ) ],
+			// Two failure kinds distinguished from the generic expired/used case
+			// (0.9.67): both used to redirect silently to the home page, which
+			// told the artist nothing and looked identical to a broken site.
+			'gone' === $result                                          => [ __( 'This submission no longer exists', 'agnosis' ), __( 'It was already published, discarded, or replaced by a newer version of the same work — so this link has nothing left to act on. Nothing went wrong on your side. Log in to see your submissions, or just send the work again.', 'agnosis' ) ],
+			'incomplete' === $result                                    => [ __( 'This link is incomplete', 'agnosis' ), __( 'Part of the address is missing — some mail apps cut long links in half. Try opening it from the original email again, or copy the whole link into your browser.', 'agnosis' ) ],
 			default                                                     => [ __( 'Link expired or already used', 'agnosis' ), __( 'This link may have already been used or may have expired. Please log in to manage your submissions.', 'agnosis' ) ],
 		};
 	}
@@ -1216,10 +1225,14 @@ class ReviewConfirm {
 	 * @param array<string,string> $prefill Retry values (see render_confirm()).
 	 */
 	private function render_approve_confirm( int $id, string $token, array $prefill, string $error ): void {
+		// The submission this link names is gone — most often a pending-update
+		// staging draft that its own approval consumed (ReviewEndpoints hard-
+		// deletes those), or a post deleted since the mail went out. Until 0.9.67
+		// this redirected silently to the home page; the artist could not tell a
+		// consumed link from a broken site. (redirect_result() exits.)
 		$post = get_post( $id );
 		if ( ! $post instanceof \WP_Post || ! in_array( $post->post_type, ReviewEndpoints::REVIEWABLE_POST_TYPES, true ) ) {
-			wp_safe_redirect( home_url( '/' ) );
-			exit;
+			$this->redirect_result( 'gone' );
 		}
 
 		// Fourth audit §3a: this used to check only that the post exists and is

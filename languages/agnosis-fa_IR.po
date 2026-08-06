@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-31T15:52+00:00\n"
+"POT-Creation-Date: 2026-08-06T22:01+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:58+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Persian\n"
@@ -64,7 +64,11 @@ msgid ""
 "Agnosis keeps working — features that need the newer version simply stay "
 "inactive, currently the artist-subdomain entries in the multilingual "
 "sitemap. Updating Lingua Forge enables them."
-msgstr "Agnosis بر اساس نسخه %1$s یا جدیدتر از Lingua Forge نوشته شده است؛ این سایت نسخه %2$s را دارد. Agnosis به کار خود ادامه می‌دهد — ویژگی‌هایی که به نسخه جدید نیاز دارند در حال حاضر غیر فعال هستند، به‌ویژه ورودی‌های زیر دامنه هنرمند در نقشه سایت چند زبانه. به‌روزرسانی Lingua Forge باعث فعال شدن آن‌ها می‌شود."
+msgstr ""
+"Agnosis بر اساس نسخه %1$s یا جدیدتر از Lingua Forge نوشته شده است؛ این سایت "
+"نسخه %2$s را دارد. Agnosis به کار خود ادامه می‌دهد — ویژگی‌هایی که به نسخه "
+"جدید نیاز دارند در حال حاضر غیر فعال هستند، به‌ویژه ورودی‌های زیر دامنه هنرمند "
+"در نقشه سایت چند زبانه. به‌روزرسانی Lingua Forge باعث فعال شدن آن‌ها می‌شود."
 
 #: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
@@ -103,8 +107,8 @@ msgid "Prev"
 msgstr "قبلی"
 
 #: blocks/gallery-overview/render.php:578
-#: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
-#: includes/Admin/InboxPage.php:613
+#: includes/Admin/ContactMessagesPage.php:293 includes/Admin/InboxPage.php:282
+#: includes/Admin/InboxPage.php:616
 msgid "Next"
 msgstr "بعدی"
 
@@ -154,7 +158,7 @@ msgstr "برچسب‌ها را به ترجمه‌ها همگام‌سازی کن
 #: includes/Admin/Dashboards/BiographyTitleCache.php:186
 #: includes/Admin/Dashboards/BiographyTitleCache.php:199
 #: includes/Admin/Dashboards/BrandingTestForm.php:70
-#: includes/Admin/Dashboards/DeliverabilityCard.php:187
+#: includes/Admin/Dashboards/DeliverabilityCard.php:199
 #: includes/Admin/Dashboards/InvitationCard.php:78
 #: includes/Admin/Dashboards/InvitationCard.php:105
 #: includes/Admin/Dashboards/LogsTab.php:131
@@ -173,12 +177,12 @@ msgstr "برچسب‌ها را به ترجمه‌ها همگام‌سازی کن
 #: includes/Admin/Dashboards/RhizomeManager.php:453
 #: includes/Admin/Dashboards/RhizomeManager.php:491
 #: includes/Admin/Dashboards/RhizomeManager.php:535
-#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
+#: includes/Admin/InboxPage.php:886 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:910
-#: includes/Admin/Settings.php:929 includes/Admin/TagProposals.php:238
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:916
+#: includes/Admin/Settings.php:935 includes/Admin/TagProposals.php:238
 #: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
@@ -400,56 +404,60 @@ msgid "All statuses"
 msgstr "همهٔ وضعیت‌ها"
 
 #: includes/Admin/ContactMessagesPage.php:241
-#: includes/Admin/ContactMessagesPage.php:300
+#: includes/Admin/ContactMessagesPage.php:302
 msgid "Sent"
 msgstr "ارسال‌شده"
 
 #: includes/Admin/ContactMessagesPage.php:242
-#: includes/Admin/ContactMessagesPage.php:302
+#: includes/Admin/ContactMessagesPage.php:304
 msgid "Rejected"
 msgstr "ردشده"
 
-#: includes/Admin/ContactMessagesPage.php:254 includes/Admin/InboxPage.php:532
+#: includes/Admin/ContactMessagesPage.php:250
+msgid "Filter messages by status"
+msgstr "فیلتر پیام‌ها بر اساس وضعیت"
+
+#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:535
 msgid "Filter"
 msgstr "فیلتر"
 
-#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:534
+#: includes/Admin/ContactMessagesPage.php:258 includes/Admin/InboxPage.php:537
 msgid "Reset"
 msgstr "بازنشانی"
 
 #. translators: 1: current page number, 2: total number of pages
-#: includes/Admin/ContactMessagesPage.php:280 includes/Admin/InboxPage.php:602
+#: includes/Admin/ContactMessagesPage.php:282 includes/Admin/InboxPage.php:605
 #, php-format
 msgid "Page %1$d of %2$d"
 msgstr "صفحهٔ %1$d از %2$d"
 
-#: includes/Admin/ContactMessagesPage.php:288 includes/Admin/InboxPage.php:277
-#: includes/Admin/InboxPage.php:610
+#: includes/Admin/ContactMessagesPage.php:290 includes/Admin/InboxPage.php:277
+#: includes/Admin/InboxPage.php:613
 msgid "Previous"
 msgstr "قبلی"
 
-#: includes/Admin/ContactMessagesPage.php:317
+#: includes/Admin/ContactMessagesPage.php:319
 msgid "Delete this message?"
 msgstr "این پیام حذف شود؟"
 
-#: includes/Admin/ContactMessagesPage.php:322
+#: includes/Admin/ContactMessagesPage.php:324
 #: includes/Admin/Dashboards/MembersDashboard.php:153
-#: includes/Admin/InboxPage.php:789
+#: includes/Admin/InboxPage.php:792
 msgid "Delete"
 msgstr "حذف"
 
-#: includes/Admin/ContactMessagesPage.php:334 includes/Admin/InboxPage.php:800
+#: includes/Admin/ContactMessagesPage.php:336 includes/Admin/InboxPage.php:803
 msgid "just now"
 msgstr "همین الان"
 
 #. translators: %d: number of minutes
-#: includes/Admin/ContactMessagesPage.php:339 includes/Admin/InboxPage.php:805
+#: includes/Admin/ContactMessagesPage.php:341 includes/Admin/InboxPage.php:808
 #, php-format
 msgid "%dm ago"
 msgstr "%d دقیقه پیش"
 
 #. translators: %d: number of hours
-#: includes/Admin/ContactMessagesPage.php:344 includes/Admin/InboxPage.php:810
+#: includes/Admin/ContactMessagesPage.php:346 includes/Admin/InboxPage.php:813
 #, php-format
 msgid "%dh ago"
 msgstr "%d ساعت پیش"
@@ -527,7 +535,7 @@ msgstr "پذیرش"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4954
+#: includes/Network/Federation/Replies.php:2108
 msgid "Reject"
 msgstr "رد"
 
@@ -707,7 +715,7 @@ msgid "Send test email to this address"
 msgstr "ارسال ایمیل آزمایشی به این آدرس"
 
 #: includes/Admin/Dashboards/BrandingTestForm.php:52
-#: includes/Admin/Dashboards/DeliverabilityCard.php:102
+#: includes/Admin/Dashboards/DeliverabilityCard.php:103
 #: includes/Admin/Dashboards/InvitationCard.php:65
 #: includes/Admin/Dashboards/NewsletterDashboard.php:271
 msgid "Send Test"
@@ -745,11 +753,11 @@ msgstr ""
 msgid "[TEST] Branding preview from %s"
 msgstr "[TEST] پیش‌نمایش برندینگ از %s"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:44
+#: includes/Admin/Dashboards/DeliverabilityCard.php:45
 msgid "Deliverability"
 msgstr "قابلیت تحویل"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:46
+#: includes/Admin/Dashboards/DeliverabilityCard.php:47
 msgid ""
 "A diagnostic check only — nothing here changes how mail is sent. On ordinary "
 "hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn't "
@@ -770,41 +778,41 @@ msgstr ""
 "افزودن رکوردهای SPF/DMARC برای دامنه‌ای که از آن ایمیل می‌فرستید در میزبان DNS "
 "شما."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:52
+#: includes/Admin/Dashboards/DeliverabilityCard.php:53
 msgid "From identity"
 msgstr "هویت فرستنده"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:53
+#: includes/Admin/Dashboards/DeliverabilityCard.php:54
 msgid "Domain matches site?"
 msgstr "دامنه با سایت مطابقت دارد؟"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:54
+#: includes/Admin/Dashboards/DeliverabilityCard.php:55
 msgid "SPF record"
 msgstr "رکورد SPF"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:55
+#: includes/Admin/Dashboards/DeliverabilityCard.php:56
 msgid "DMARC record"
 msgstr "رکورد DMARC"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:56
+#: includes/Admin/Dashboards/DeliverabilityCard.php:57
 msgid "DKIM record"
 msgstr "رکورد DKIM"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:57
+#: includes/Admin/Dashboards/DeliverabilityCard.php:58
 msgid "Spamhaus DBL"
 msgstr "Spamhaus DBL"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:75
+#: includes/Admin/Dashboards/DeliverabilityCard.php:76
 msgid "SMTP plugin"
 msgstr "افزونهٔ SMTP"
 
 #. translators: %s: detected plugin name, e.g. "WP Mail SMTP"
-#: includes/Admin/Dashboards/DeliverabilityCard.php:82
+#: includes/Admin/Dashboards/DeliverabilityCard.php:83
 #, php-format
 msgid "Detected: %s"
 msgstr "شناسایی شد: %s"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:87
+#: includes/Admin/Dashboards/DeliverabilityCard.php:88
 msgid ""
 "None of the common SMTP-sending plugins were detected — this site is likely "
 "relying on PHP's built-in mail(), which most hosts deliver poorly through."
@@ -813,7 +821,7 @@ msgstr ""
 "mail داخلی PHP متکی است که بیشتر میزبان‌ها از طریق آن ایمیل را ضعیف تحویل "
 "می‌دهند."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:94
+#: includes/Admin/Dashboards/DeliverabilityCard.php:95
 msgid ""
 "DKIM is best-effort: there's no fixed location for a DKIM record the way SPF "
 "and DMARC have, so this only checks a handful of common provider selectors. "
@@ -829,11 +837,11 @@ msgstr ""
 "نشد. اگر از قبل می‌دانید DKIM شما درست راه‌اندازی شده است (داشبورد "
 "ارائه‌دهنده‌تان آن را تأیید کرده)، همان را بر این ردیف ترجیح دهید."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:100
+#: includes/Admin/Dashboards/DeliverabilityCard.php:101
 msgid "Send a real test email to:"
 msgstr "یک ایمیل آزمایشی واقعی ارسال کن به:"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:105
+#: includes/Admin/Dashboards/DeliverabilityCard.php:106
 msgid ""
 "Sends one plain-text email from the same community identity used for review/"
 "vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
@@ -845,53 +853,47 @@ msgstr ""
 "به اسپم یا اصلاً نرسیدن آن، یک مشکل واقعیِ تحویل‌پذیری را تأیید می‌کند، فارغ از "
 "این‌که بررسی‌های بالا چه می‌گویند."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:114
+#: includes/Admin/Dashboards/DeliverabilityCard.php:115
 msgid "Found"
 msgstr "یافت شد"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:115
+#: includes/Admin/Dashboards/DeliverabilityCard.php:116
 msgid "Not found"
 msgstr "یافت نشد"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:116
-#: includes/Admin/Dashboards/DeliverabilityCard.php:163
+#: includes/Admin/Dashboards/DeliverabilityCard.php:117
+#: includes/Admin/Dashboards/DeliverabilityCard.php:164
 msgid "DNS lookup failed"
 msgstr "جست‌وجوی DNS ناموفق بود"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:117
-#: includes/Admin/Dashboards/DeliverabilityCard.php:164
+#: includes/Admin/Dashboards/DeliverabilityCard.php:118
+#: includes/Admin/Dashboards/DeliverabilityCard.php:165
 msgid "Unavailable on this host"
 msgstr "در این میزبان در دسترس نیست"
 
 #. translators: %s: DKIM selector, e.g. "google"
-#: includes/Admin/Dashboards/DeliverabilityCard.php:136
+#: includes/Admin/Dashboards/DeliverabilityCard.php:137
 #, php-format
 msgid "Found (selector: %s)"
 msgstr "یافت شد (selector: %s)"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:144
+#: includes/Admin/Dashboards/DeliverabilityCard.php:145
 msgid "Not found under common selectors"
 msgstr "زیرِ selectorهای رایج پیدا نشد"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:160
+#: includes/Admin/Dashboards/DeliverabilityCard.php:161
 msgid "Not listed"
 msgstr "فهرست نشده"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:161
+#: includes/Admin/Dashboards/DeliverabilityCard.php:162
 msgid "LISTED"
 msgstr "فهرست‌شده"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:171
+#: includes/Admin/Dashboards/DeliverabilityCard.php:172
 msgid "No address configured"
 msgstr "هیچ نشانی پیکربندی نشده است"
 
-#. translators: %s: site name
-#: includes/Admin/Dashboards/DeliverabilityCard.php:198
-#, php-format
-msgid "[TEST] Deliverability check from %s"
-msgstr "[آزمایشی] بررسی تحویل‌پذیری از %s"
-
-#: includes/Admin/Dashboards/DeliverabilityCard.php:201
+#: includes/Admin/Dashboards/DeliverabilityCard.php:207
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
 "Inbox page. If you're reading this in your inbox (not spam), the community/"
@@ -900,6 +902,19 @@ msgstr ""
 "این یک آزمون یک‌بارهٔ تحویل‌پذیری از صفحهٔ تنظیمات Agnosis → صندوق ورودی ایمیل "
 "شماست. اگر این پیام را در صندوق ورودی‌تان می‌خوانید (نه در اسپم)، هویت From "
 "جامعه/تراکنشی به این نشانی قابل تحویل است."
+
+#: includes/Admin/Dashboards/DeliverabilityCard.php:210
+msgid ""
+"It is sent in the same branded HTML shell as every real Agnosis message, so "
+"what reaches you here is what your artists and subscribers receive. Nothing "
+"was recorded, and no subscriber, queue or setting was touched."
+msgstr "این پیام در همان پوسته HTML برند‌شده‌ای ارسال می‌شود که هر پیام واقعی Agnosis با آن می‌رود، بنابراین آنچه اینجا می‌رسد همان چیزی است که هنرمندان و مشترکین شما دریافت می‌کنند. هیچ چیزی ضبط نشد و هیچ مشترک، صف یا تنظیمی دستخوش تغییر نشد."
+
+#. translators: %s: site name
+#: includes/Admin/Dashboards/DeliverabilityCard.php:217
+#, php-format
+msgid "[TEST] Deliverability check from %s"
+msgstr "[آزمایشی] بررسی تحویل‌پذیری از %s"
 
 #: includes/Admin/Dashboards/InvitationCard.php:37
 msgid "Invite an Artist"
@@ -1124,7 +1139,7 @@ msgstr "%1$d پذیرفته‌شده (%2$d انصراف داده‌اند)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3565
+#: includes/Network/Federation/Replies.php:1009
 msgid "Sending…"
 msgstr "در حال ارسال…"
 
@@ -1221,12 +1236,12 @@ msgid "Relay actor URL"
 msgstr "آدرس URL بازیگر رله"
 
 #: includes/Admin/Dashboards/RelayManager.php:79
-#: includes/Admin/Settings.php:586
+#: includes/Admin/Settings.php:592
 msgid "Enabled"
 msgstr "فعال"
 
 #: includes/Admin/Dashboards/RelayManager.php:81
-#: includes/Admin/Settings.php:588
+#: includes/Admin/Settings.php:594
 msgid "Disabled"
 msgstr "غیرفعال"
 
@@ -1248,7 +1263,7 @@ msgstr ""
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Dashboards/RhizomeManager.php:249
-#: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
+#: includes/Admin/Settings.php:423 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "حذف"
@@ -1331,7 +1346,7 @@ msgid "Check"
 msgstr "بررسی"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:182
-#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
+#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:723
 msgid "Pending"
 msgstr "در انتظار"
 
@@ -1359,7 +1374,7 @@ msgstr "فقط بازیگر"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:239
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4953
+#: includes/Network/Federation/Replies.php:2107
 msgid "Approve"
 msgstr "تأیید"
 
@@ -1493,7 +1508,7 @@ msgstr "موضوع"
 msgid "Endpoint"
 msgstr "نقطهٔ پایانی"
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:611
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:617
 msgid "Files"
 msgstr "فایل‌ها"
 
@@ -1513,8 +1528,8 @@ msgstr "سطر قدیمی — برای پیش‌نمایش حذف و دوبار�
 msgid "Attachment viewer"
 msgstr "نمایشگر پیوست"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3446
-#: includes/Network/ActivityPub.php:3604
+#: includes/Admin/InboxPage.php:276 includes/Network/Federation/Follows.php:273
+#: includes/Network/Federation/Replies.php:1048
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1548,7 +1563,7 @@ msgstr "بازپردازش اجباری: %1$d سطر بازنشانی شد، %2$
 msgid "Processed %d pending item(s)."
 msgstr "%d مورد در انتظار پردازش شد."
 
-#: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:721
+#: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:724
 msgid "Processing"
 msgstr "در حال پردازش"
 
@@ -1556,7 +1571,7 @@ msgstr "در حال پردازش"
 msgid "Published"
 msgstr "منتشرشده"
 
-#: includes/Admin/InboxPage.php:513 includes/Admin/InboxPage.php:722
+#: includes/Admin/InboxPage.php:513 includes/Admin/InboxPage.php:725
 msgid "Failed"
 msgstr "ناموفق"
 
@@ -1564,12 +1579,20 @@ msgstr "ناموفق"
 msgid "Skipped"
 msgstr "ردشده"
 
-#: includes/Admin/InboxPage.php:527
+#: includes/Admin/InboxPage.php:522
+msgid "Filter submissions by status"
+msgstr "فیلتر آثار بر اساس وضعیت"
+
+#: includes/Admin/InboxPage.php:528
+msgid "Filter submissions by skip reason"
+msgstr "فیلتر آثار بر اساس دلیل رد"
+
+#: includes/Admin/InboxPage.php:530
 msgid "All reasons"
 msgstr "همهٔ دلایل"
 
 #. translators: 1: number of collapsed messages, 2: URL to view them
-#: includes/Admin/InboxPage.php:571
+#: includes/Admin/InboxPage.php:574
 #, php-format
 msgid ""
 "%1$d message from an unregistered sender is hidden from this view. <a href="
@@ -1584,76 +1607,76 @@ msgstr[1] ""
 "%1$d پیام از فرستنده‌های ثبت‌نشده از این نما پنهان شده‌اند. <a href=\"%2$s"
 "\">آن‌ها را مشاهده کنید</a>."
 
-#: includes/Admin/InboxPage.php:629
+#: includes/Admin/InboxPage.php:632
 msgid "Poll Inbox"
 msgstr "دریافت صندوق ورودی"
 
-#: includes/Admin/InboxPage.php:638
+#: includes/Admin/InboxPage.php:641
 msgid "Force Reprocess"
 msgstr "بازپردازش اجباری"
 
-#: includes/Admin/InboxPage.php:647
+#: includes/Admin/InboxPage.php:650
 msgid "Process All Pending"
 msgstr "پردازش همهٔ موارد در انتظار"
 
-#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1062
+#: includes/Admin/InboxPage.php:680 includes/Publishing/PostCreator.php:1062
 msgid "Goodbye"
 msgstr "خداحافظ"
 
-#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:311
+#: includes/Admin/InboxPage.php:683 includes/Admin/Settings.php:311
 #: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "جامعه"
 
-#: includes/Admin/InboxPage.php:683
+#: includes/Admin/InboxPage.php:686
 msgid "Bounce"
 msgstr "بازگشت"
 
-#: includes/Admin/InboxPage.php:694
+#: includes/Admin/InboxPage.php:697
 msgid "Awaiting Review"
 msgstr "در انتظار بررسی"
 
-#: includes/Admin/InboxPage.php:697
+#: includes/Admin/InboxPage.php:700
 msgid "Live"
 msgstr "زنده"
 
-#: includes/Admin/InboxPage.php:700
+#: includes/Admin/InboxPage.php:703
 msgid "Processed"
 msgstr "پردازش‌شده"
 
-#: includes/Admin/InboxPage.php:713
+#: includes/Admin/InboxPage.php:716
 msgid "Member Removed"
 msgstr "عضو حذف شد"
 
-#: includes/Admin/InboxPage.php:714
+#: includes/Admin/InboxPage.php:717
 msgid "Broadcast Sent"
 msgstr "پخش ارسال شد"
 
-#: includes/Admin/InboxPage.php:715
+#: includes/Admin/InboxPage.php:718
 msgid "Bounced (too long)"
 msgstr "برگشت خورد (خیلی طولانی)"
 
-#: includes/Admin/InboxPage.php:717
+#: includes/Admin/InboxPage.php:720
 msgid "Handled"
 msgstr "رسیدگی شد"
 
-#: includes/Admin/InboxPage.php:743
+#: includes/Admin/InboxPage.php:746
 msgid "Process"
 msgstr "پردازش"
 
-#: includes/Admin/InboxPage.php:763
+#: includes/Admin/InboxPage.php:766
 msgid "View Post"
 msgstr "مشاهدهٔ پست"
 
-#: includes/Admin/InboxPage.php:773
+#: includes/Admin/InboxPage.php:776
 msgid "Reprocess"
 msgstr "بازپردازش"
 
-#: includes/Admin/InboxPage.php:778
+#: includes/Admin/InboxPage.php:781
 msgid "Running…"
 msgstr "در حال اجرا…"
 
-#: includes/Admin/InboxPage.php:784
+#: includes/Admin/InboxPage.php:787
 msgid "Delete this queue row?"
 msgstr "این سطر صف حذف شود؟"
 
@@ -1950,7 +1973,7 @@ msgstr "شبکه"
 msgid "Rhizome"
 msgstr "ریزوم"
 
-#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:494
+#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:500
 msgid "Donations"
 msgstr "کمک‌های مالی"
 
@@ -1976,7 +1999,7 @@ msgstr ""
 msgid "— None (inline message only) —"
 msgstr "— هیچ‌کدام (فقط پیام درون‌خطی) —"
 
-#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:403
+#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:409
 msgid "Reset to default"
 msgstr "بازنشانی به پیش‌فرض"
 
@@ -1988,19 +2011,19 @@ msgstr ""
 "متن بالا را با پیش‌فرض داخلی افزونه جایگزین می‌کند — برای نگه‌داشتن آن، در "
 "پایین روی «ذخیرهٔ تغییرات» کلیک کنید."
 
-#: includes/Admin/Settings.php:416
+#: includes/Admin/Settings.php:422
 msgid "Select Image"
 msgstr "انتخاب تصویر"
 
-#: includes/Admin/Settings.php:467
+#: includes/Admin/Settings.php:473
 msgid "Bot Protection"
 msgstr "محافظت در برابر بات"
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:476
 msgid "Turnstile is configured."
 msgstr "Turnstile پیکربندی شده است."
 
-#: includes/Admin/Settings.php:471
+#: includes/Admin/Settings.php:477
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
@@ -2008,11 +2031,11 @@ msgstr ""
 "هم فرم درخواست Join و هم فرم اشتراک خبرنامه، پیش از پذیرش هر ارسال، به تأیید "
 "انسانی نیاز دارند."
 
-#: includes/Admin/Settings.php:476
+#: includes/Admin/Settings.php:482
 msgid "Turnstile is not configured."
 msgstr "Turnstile پیکربندی نشده است."
 
-#: includes/Admin/Settings.php:477
+#: includes/Admin/Settings.php:483
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -2030,7 +2053,7 @@ msgstr ""
 "Subscribe، در بالا یک کلید سایت و کلید محرمانهٔ Cloudflare Turnstile اضافه "
 "کنید."
 
-#: includes/Admin/Settings.php:496
+#: includes/Admin/Settings.php:502
 msgid ""
 "A simple way for visitors to support an artist directly is planned, with no "
 "platform fee. That feature hasn't been built yet, so there is nothing to "
@@ -2040,7 +2063,7 @@ msgstr ""
 "پلتفرم در برنامه‌ریزی است. این ویژگی هنوز ایجاد نشده است، بنابراین امروز چیزی "
 "برای پیکربندی در اینجا وجود ندارد."
 
-#: includes/Admin/Settings.php:499
+#: includes/Admin/Settings.php:505
 msgid ""
 "Agnosis is not a marketplace. Art sales, checkout, and other commerce "
 "functionality are left to dedicated plugins."
@@ -2048,24 +2071,24 @@ msgstr ""
 "Agnosis یک بازار نیست. فروش هنر، پرداخت، و سایر عملکردهای تجاری به افزونه‌های "
 "اختصاصی واگذار شده‌اند."
 
-#: includes/Admin/Settings.php:524
+#: includes/Admin/Settings.php:530
 msgid "OpenAI"
 msgstr "OpenAI"
 
-#: includes/Admin/Settings.php:525
+#: includes/Admin/Settings.php:531
 msgid "Anthropic"
 msgstr "Anthropic"
 
-#: includes/Admin/Settings.php:532
+#: includes/Admin/Settings.php:538
 msgid "AI Processing & Privacy Policy"
 msgstr "سیاست پردازش و حریم خصوصی هوش مصنوعی"
 
-#: includes/Admin/Settings.php:535
+#: includes/Admin/Settings.php:541
 msgid "A Privacy Policy page is set."
 msgstr "یک صفحهٔ سیاست حریم خصوصی تنظیم شده است."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:539
+#: includes/Admin/Settings.php:545
 #, php-format
 msgid ""
 "Suggested wording covering %s and public federation was added to it "
@@ -2078,12 +2101,12 @@ msgstr ""
 "تعهدات تطابق خود، با ارائه‌دهنده(ها)ی خود دربارهٔ توافق‌نامهٔ پردازش دادهٔ خود "
 "(DPA) نیز بررسی کنید."
 
-#: includes/Admin/Settings.php:547
+#: includes/Admin/Settings.php:553
 msgid "No Privacy Policy page is set."
 msgstr "هیچ صفحهٔ سیاست حریم خصوصی‌ای تنظیم نشده است."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:551
+#: includes/Admin/Settings.php:557
 #, php-format
 msgid ""
 "Submitted artwork, text, and visitor contact messages are sent to %s for "
@@ -2098,19 +2121,19 @@ msgstr ""
 "«Guide» پیدا می‌کنید. همچنین ممکن است بخواهید توافق‌نامهٔ پردازش دادهٔ آن "
 "ارائه‌دهنده (DPA) را برای تعهدات تطابق خود بررسی کنید."
 
-#: includes/Admin/Settings.php:555
+#: includes/Admin/Settings.php:561
 msgid "Go to Settings → Privacy"
 msgstr "رفتن به Settings → Privacy"
 
-#: includes/Admin/Settings.php:579
+#: includes/Admin/Settings.php:585
 msgid "Debug Files"
 msgstr "فایل‌های اشکال‌زدایی"
 
-#: includes/Admin/Settings.php:583
+#: includes/Admin/Settings.php:589
 msgid "Currently"
 msgstr "در حال حاضر"
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:600
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -2118,7 +2141,7 @@ msgstr ""
 "به‌اجبار روشن توسط ثابت AGNOSIS_DEBUG در wp-config.php — تا وقتی آن خط حذف "
 "نشود، چک‌باکس بالا هیچ اثری ندارد."
 
-#: includes/Admin/Settings.php:596
+#: includes/Admin/Settings.php:602
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -2126,20 +2149,20 @@ msgstr ""
 "به‌اجبار خاموش توسط ثابت AGNOSIS_DEBUG در wp-config.php — تا وقتی آن خط حذف "
 "نشود، چک‌باکس بالا هیچ اثری ندارد."
 
-#: includes/Admin/Settings.php:604
+#: includes/Admin/Settings.php:610
 msgid "Directory"
 msgstr "پوشه"
 
-#: includes/Admin/Settings.php:607
+#: includes/Admin/Settings.php:613
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "با فیلتر agnosis_debug_dir خروجی اشکال‌زدایی را به جای دیگری هدایت کنید."
 
-#: includes/Admin/Settings.php:614
+#: includes/Admin/Settings.php:620
 msgid ".txt file(s) in the directory"
 msgstr "فایل(.های) .txt در پوشه"
 
-#: includes/Admin/Settings.php:620
+#: includes/Admin/Settings.php:626
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -2147,19 +2170,19 @@ msgstr ""
 "همهٔ فایل‌های .txt را در پوشهٔ اشکال‌زدایی حذف کنید؟ خودِ پوشه سر جایش می‌ماند تا "
 "نوشتن‌های اشکال‌زدایی آینده همچنان به‌درستی در آن قرار بگیرند."
 
-#: includes/Admin/Settings.php:625
+#: includes/Admin/Settings.php:631
 msgid "Clear Debug Files"
 msgstr "پاک کردن فایل‌های اشکال‌زدایی"
 
-#: includes/Admin/Settings.php:656
+#: includes/Admin/Settings.php:662
 msgid "Term Translation Cache"
 msgstr "کش ترجمهٔ اصطلاح"
 
-#: includes/Admin/Settings.php:660
+#: includes/Admin/Settings.php:666
 msgid "Cached translations"
 msgstr "ترجمه‌های ذخیره‌شده"
 
-#: includes/Admin/Settings.php:663
+#: includes/Admin/Settings.php:669
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -2172,7 +2195,7 @@ msgstr ""
 "خودش را از قبل به‌طور خودکار پاک می‌کند؛ فقط اگر خودِ ترجمهٔ ذخیره‌شده نادرست "
 "باشد از دکمهٔ زیر استفاده کنید."
 
-#: includes/Admin/Settings.php:669
+#: includes/Admin/Settings.php:675
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
@@ -2181,23 +2204,23 @@ msgstr ""
 "نمی‌شود — اصطلاحات فقط در صورت نیاز، دفعهٔ بعد دوباره با هوش مصنوعی ترجمه "
 "می‌شوند."
 
-#: includes/Admin/Settings.php:674
+#: includes/Admin/Settings.php:680
 msgid "Clear Term Translation Cache"
 msgstr "پاک کردن کش ترجمهٔ اصطلاح"
 
-#: includes/Admin/Settings.php:728
+#: includes/Admin/Settings.php:734
 msgid "Inbox Tools"
 msgstr "ابزارهای صندوق ورودی"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:738
 msgid "Test connection"
 msgstr "آزمایش اتصال"
 
-#: includes/Admin/Settings.php:737
+#: includes/Admin/Settings.php:743
 msgid "Test IMAP Connection"
 msgstr "آزمایش اتصال IMAP"
 
-#: includes/Admin/Settings.php:739
+#: includes/Admin/Settings.php:745
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -2205,15 +2228,15 @@ msgstr ""
 "به صندوق‌پستی پیکربندی‌شده متصل می‌شود و تعداد کل پیام‌ها و پیام‌های دیده‌نشده را "
 "گزارش می‌کند."
 
-#: includes/Admin/Settings.php:743
+#: includes/Admin/Settings.php:749
 msgid "Poll inbox now"
 msgstr "اکنون صندوق ورودی را بررسی کن"
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:754
 msgid "Poll Inbox Now"
 msgstr "اکنون صندوق ورودی را بررسی کنید"
 
-#: includes/Admin/Settings.php:750
+#: includes/Admin/Settings.php:756
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -2221,15 +2244,15 @@ msgstr ""
 "پیام‌های دیده‌نشده را فوراً دریافت می‌کند، بدون اینکه منتظر WP-Cron بماند. سپس "
 "روی «پردازش صف در انتظار» کلیک کنید تا خط لولهٔ هوش مصنوعی اجرا شود."
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:760
 msgid "Process queue"
 msgstr "پردازش صف"
 
-#: includes/Admin/Settings.php:759
+#: includes/Admin/Settings.php:765
 msgid "Process Pending Queue"
 msgstr "پردازش صف در انتظار"
 
-#: includes/Admin/Settings.php:761
+#: includes/Admin/Settings.php:767
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -2238,15 +2261,15 @@ msgstr ""
 "اینکه منتظر WP-Cron بماند. از این گزینه برای آزمودن جریان سرتاسری پس از یک "
 "بررسی صندوق ورودی استفاده کنید."
 
-#: includes/Admin/Settings.php:765
+#: includes/Admin/Settings.php:771
 msgid "Force reprocess"
 msgstr "اجبار به پردازش مجدد"
 
-#: includes/Admin/Settings.php:770
+#: includes/Admin/Settings.php:776
 msgid "Force Reprocess Inbox"
 msgstr "اجبار به پردازش مجدد صندوق ورودی"
 
-#: includes/Admin/Settings.php:772
+#: includes/Admin/Settings.php:778
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -2880,7 +2903,12 @@ msgid ""
 "by the daily cleanup. Only the newsletter's rhizome activity summary reads "
 "this log, and only within one digest period, so a value comfortably above "
 "your digest frequency loses nothing. Default: 90 days."
-msgstr "سوابقی از آنچه که گره‌های شریک معتبر از اینجا ریله کرده‌اند — شامل حساب از راه دوری که آن را تقویت کرده است — که قدیمی‌تر از این هستند به‌طور دائمی توسط پاک‌سازی روزانه حذف می‌شوند. فقط خلاصه فعالیت ریزوم خبرنامه این لاگ را می‌خواند و فقط در یک دوره هفتگی، بنابراین مقداری بر بالای فرکانس هفتگی شما هیچ چیزی را از دست نمی‌دهد. پیش‌فرض: 90 روز."
+msgstr ""
+"سوابقی از آنچه که گره‌های شریک معتبر از اینجا ریله کرده‌اند — شامل حساب از راه "
+"دوری که آن را تقویت کرده است — که قدیمی‌تر از این هستند به‌طور دائمی توسط "
+"پاک‌سازی روزانه حذف می‌شوند. فقط خلاصه فعالیت ریزوم خبرنامه این لاگ را می‌خواند "
+"و فقط در یک دوره هفتگی، بنابراین مقداری بر بالای فرکانس هفتگی شما هیچ چیزی "
+"را از دست نمی‌دهد. پیش‌فرض: 90 روز."
 
 #: includes/Admin/SettingsFields.php:405
 msgid "Per-sender hourly submission limit"
@@ -3928,7 +3956,7 @@ msgstr ""
 "پیشنهاد می‌کند. فقط زمانی اعمال می‌شود که پیش‌نویس خودکار (بالا) فعال باشد. "
 "پیش‌فرض: 24."
 
-#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:414
 msgid "Artist newsletter"
 msgstr "خبرنامه هنرمند"
 
@@ -3972,7 +4000,7 @@ msgstr ""
 "برای بازبینی، ایمیلی برایتان می‌فرستد — هر زمان خواستید برای رد کردن این کار، "
 "متن خودتان را اینجا بنویسید."
 
-#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:414
 msgid "Public newsletter"
 msgstr "خبرنامه عمومی"
 
@@ -4170,7 +4198,7 @@ msgstr ""
 "خودش سخن بگوید."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
-#: includes/Network/ActivityPub.php:442
+#: includes/Network/ActivityPub.php:320
 msgid "Name"
 msgstr "نام"
 
@@ -4188,7 +4216,7 @@ msgstr "بیانیه"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3964
+#: includes/Network/Federation/Replies.php:1122
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s باید %2$d نویسه یا کمتر داشته باشد."
@@ -4284,8 +4312,10 @@ msgstr "سپاس، %s!"
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:367
-#: includes/Network/ActivityPub.php:4854 includes/Network/ActivityPub.php:4861
-#: includes/Network/ActivityPub.php:4868 includes/Network/ActivityPub.php:4976
+#: includes/Network/Federation/Replies.php:2008
+#: includes/Network/Federation/Replies.php:2015
+#: includes/Network/Federation/Replies.php:2022
+#: includes/Network/Federation/Replies.php:2130
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "خطای پیوند"
@@ -4335,8 +4365,9 @@ msgstr "درخواست شما برای %s را دریافت کردیم"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4530
-#: includes/Network/ActivityPub.php:4649
+#: includes/Artist/VoteDigest.php:156
+#: includes/Network/Federation/Replies.php:1688
+#: includes/Network/Federation/Replies.php:1807
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4850,7 +4881,8 @@ msgstr ""
 "اسپم، کلاهبرداری، یا تبلیغات تجاری ناخواسته که ارتباطی با تماس واقعی با "
 "هنرمند دربارهٔ آثارش ندارد"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4177
+#: includes/Artist/ContactForm.php:453
+#: includes/Network/Federation/Replies.php:1335
 msgid "Flagged by automatic content review."
 msgstr "توسط بررسی خودکار محتوا علامت‌گذاری شد."
 
@@ -4885,12 +4917,14 @@ msgid "Reply (translated automatically)"
 msgstr "پاسخ (به طور خودکار ترجمه شده است)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4737 includes/Network/ActivityPub.php:4853
-#: includes/Network/ActivityPub.php:4975
+#: includes/Network/Federation/Replies.php:1891
+#: includes/Network/Federation/Replies.php:2007
+#: includes/Network/Federation/Replies.php:2129
 msgid "This link is invalid or has already expired."
 msgstr "این لینک نامعتبر است یا قبلاً منقضی شده است."
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4742
+#: includes/Artist/ContactForm.php:814
+#: includes/Network/Federation/Replies.php:1896
 msgid "This link has expired."
 msgstr "این لینک منقضی شده است."
 
@@ -4898,15 +4932,18 @@ msgstr "این لینک منقضی شده است."
 msgid "This conversation no longer exists."
 msgstr "این مکالمه دیگر وجود ندارد."
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4910
+#: includes/Artist/ContactForm.php:941
+#: includes/Network/Federation/Replies.php:2064
 msgid "Original"
 msgstr "اصل"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4916
+#: includes/Artist/ContactForm.php:947
+#: includes/Network/Federation/Replies.php:2070
 msgid "Translated"
 msgstr "ترجمه شده"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4919
+#: includes/Artist/ContactForm.php:950
+#: includes/Network/Federation/Replies.php:2073
 msgid "Translation pending…"
 msgstr "ترجمه در انتظار…"
 
@@ -4926,8 +4963,9 @@ msgstr "به این مکالمه پاسخ دهید"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "پاسخ شما (اگر لازم باشد، به طور خودکار ترجمه خواهد شد)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3571
-#: includes/Network/ActivityPub.php:3663
+#: includes/Artist/ContactForm.php:992
+#: includes/Network/Federation/Replies.php:693
+#: includes/Network/Federation/Replies.php:1015
 msgid "Send reply"
 msgstr "ارسال پاسخ"
 
@@ -4970,8 +5008,8 @@ msgstr "شما پاسخ جدیدی به پیام خود دارید:"
 msgid "Original message, as written"
 msgstr "پیام اصلی، به صورت نوشته شده"
 
-#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:454
-#: includes/Network/ActivityPub.php:3584
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:332
+#: includes/Network/Federation/Replies.php:1028
 msgid "Reply"
 msgstr "پاسخ دادن"
 
@@ -4980,12 +5018,12 @@ msgid "You've used all of your replies for this conversation."
 msgstr "شما از تمام پاسخ‌های خود برای این مکالمه استفاده کرده‌اید."
 
 #: includes/Artist/ContactFormBlock.php:102
-#: includes/Network/ActivityPub.php:3653
+#: includes/Network/Federation/Replies.php:683
 msgid "Your name (optional)"
 msgstr "نام شما (اختیاری)"
 
 #: includes/Artist/ContactFormBlock.php:113
-#: includes/Network/ActivityPub.php:3655
+#: includes/Network/Federation/Replies.php:685
 msgid "Your email address"
 msgstr "نشانی ایمیل شما"
 
@@ -5145,7 +5183,7 @@ msgstr ""
 "حساب شما و هرآنچه در %s منتشر کرده‌اید، برای همیشه حذف شده است. دیگر هیچ چیز "
 "مرتبط با شما در اینجا ذخیره نشده است."
 
-#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:327
+#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:336
 msgid "Link expired or already used"
 msgstr "پیوند منقضی شده یا قبلاً استفاده شده است"
 
@@ -5396,7 +5434,7 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr "لطفاً یک نشانی ایمیل معتبر وارد کنید."
 
-#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:161
+#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:162
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
@@ -5409,7 +5447,7 @@ msgid "You're invited to join %s"
 msgstr "شما برای پیوستن به %s دعوت شده‌اید"
 
 #. translators: %s: the actual (non-test) subject line
-#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:154
+#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:155
 #, php-format
 msgid "[TEST] %s"
 msgstr "[آزمایشی] %s"
@@ -6198,7 +6236,7 @@ msgstr "تأیید پشتیبانی جامعه داده شد"
 
 #: includes/Core/Privacy.php:234 includes/Core/Privacy.php:252
 #: includes/Core/Privacy.php:270 includes/Core/Privacy.php:288
-#: includes/Publishing/ReviewConfirm.php:972
+#: includes/Publishing/ReviewConfirm.php:981
 msgid "Date"
 msgstr "تاریخ"
 
@@ -6294,7 +6332,7 @@ msgstr "تحویل شده در"
 msgid "On artwork"
 msgstr "در آثار هنری"
 
-#: includes/Core/Privacy.php:578 includes/Network/ActivityPub.php:3650
+#: includes/Core/Privacy.php:578 includes/Network/Federation/Replies.php:680
 msgid "Your reply"
 msgstr "پاسخ شما"
 
@@ -6361,7 +6399,9 @@ msgid ""
 "Replies written by the artist in these conversations were kept, as they are "
 "the artist's own content; your name, email address and IP have been removed "
 "from them."
-msgstr "پاسخ‌هایی که هنرمند در این گفتگوها نوشته است، نگه داشته شده، چون محتوای خود هنرمند هستند؛ نام، آدرس ایمیل و آدرس IP شما از آن‌ها حذف شده است."
+msgstr ""
+"پاسخ‌هایی که هنرمند در این گفتگوها نوشته است، نگه داشته شده، چون محتوای خود "
+"هنرمند هستند؛ نام، آدرس ایمیل و آدرس IP شما از آن‌ها حذف شده است."
 
 #: includes/Core/Privacy.php:924
 msgid ""
@@ -6405,7 +6445,14 @@ msgid ""
 "translated so it can be read on this site's other language versions and by "
 "the artist in their own language, and those translations are stored "
 "alongside it."
-msgstr "زمانی که شما به یک اثر هنری در این سایت پاسخ می‌دهید، پاسخ شما، نامی که می‌دهید، آدرس ایمیل شما، آدرس IP شما و عامل کاربری مرورگر شما ذخیره می‌شود. یک پاسخ تنها زمانی منتشر می‌شود که هنرمند آن را تأیید کند؛ وقتی منتشر شد به هر کسی قابل مشاهده است و همچنین به سایر سرورها در Fediverse ارسال می‌شود که ما نمی‌توانیم آن را از آنجا بازپس‌گیری کنیم. پاسخ شما همچنین به‌طور ماشینی ترجمه می‌شود تا در نسخه‌های زبانی دیگر این سایت و توسط هنرمند به زبان خودشان قابل خواندن باشد، و آن ترجمه‌ها نیز در کنار آن ذخیره می‌شوند."
+msgstr ""
+"زمانی که شما به یک اثر هنری در این سایت پاسخ می‌دهید، پاسخ شما، نامی که "
+"می‌دهید، آدرس ایمیل شما، آدرس IP شما و عامل کاربری مرورگر شما ذخیره می‌شود. یک "
+"پاسخ تنها زمانی منتشر می‌شود که هنرمند آن را تأیید کند؛ وقتی منتشر شد به هر "
+"کسی قابل مشاهده است و همچنین به سایر سرورها در Fediverse ارسال می‌شود که ما "
+"نمی‌توانیم آن را از آنجا بازپس‌گیری کنیم. پاسخ شما همچنین به‌طور ماشینی ترجمه "
+"می‌شود تا در نسخه‌های زبانی دیگر این سایت و توسط هنرمند به زبان خودشان قابل "
+"خواندن باشد، و آن ترجمه‌ها نیز در کنار آن ذخیره می‌شوند."
 
 #: includes/Core/Privacy.php:935
 msgid ""
@@ -6414,7 +6461,12 @@ msgid ""
 "with a secret that is replaced every day — enough to stop the same like "
 "being counted twice on the same day, and deliberately impossible to trace "
 "back to you or to undo once the day's secret has been replaced."
-msgstr "زمانی که شما یک اثر هنری را بدون ورود به حساب کاربری «پسند» می‌کنید، ما آدرس IP شما را ذخیره نمی‌کنیم. ما تنها یک اثر انگشت یک‌طرفه مشتق شده از آن را همراه با یک راز که هر روز تعویض می‌شود ذخیره می‌کنیم — کافی است تا از شمارش دوباره همان پسند در یک روز جلوگیری کند و عمداً غیرممکن است که به شما پیگیری شود یا پس از تعویض راز آن روز لغو شود."
+msgstr ""
+"زمانی که شما یک اثر هنری را بدون ورود به حساب کاربری «پسند» می‌کنید، ما آدرس "
+"IP شما را ذخیره نمی‌کنیم. ما تنها یک اثر انگشت یک‌طرفه مشتق شده از آن را همراه "
+"با یک راز که هر روز تعویض می‌شود ذخیره می‌کنیم — کافی است تا از شمارش دوباره "
+"همان پسند در یک روز جلوگیری کند و عمداً غیرممکن است که به شما پیگیری شود یا "
+"پس از تعویض راز آن روز لغو شود."
 
 #: includes/Core/Privacy.php:936
 msgid "Who we share it with"
@@ -6431,7 +6483,16 @@ msgid ""
 "Fediverse) as part of this plugin's core federation feature. Replies and "
 "contact messages are sent to the same AI provider for translation, and "
 "approved replies are federated outward in the same way approved posts are."
-msgstr "توضیحات و تصاویر آثار هنری ارسال‌شده ممکن است به یک ارائه‌دهنده هوش مصنوعی شخص ثالث (OpenAI یا Anthropic، بسته به پیکربندی این سایت) ارسال شوند تا به نوشتن متن نشر و بهبود تصاویر کمک کنند. اگر این سایت به جای آن از کلاینت هوش مصنوعی داخلی وردپرس (مجهز شده در مسیر تنظیمات → اتصال‌ها) استفاده کند، محتوای ارسال‌شده به سرویس هوش مصنوعی که آن اتصال به آن اشاره می‌کند ارسال می‌شود. پست‌های تأییدشده همچنین به‌طور عمومی از طریق ActivityPub (Fediverse) به‌عنوان بخشی از ویژگی هسته‌ای فدراسیون این پلاگین پخش می‌شوند. پاسخ‌ها و پیام‌های تماس برای ترجمه به همان ارائه‌دهنده هوش مصنوعی ارسال می‌شوند و پاسخ‌های تأییدشده به‌طور مشابه به سمت خارج فدراسیون می‌شوند."
+msgstr ""
+"توضیحات و تصاویر آثار هنری ارسال‌شده ممکن است به یک ارائه‌دهنده هوش مصنوعی شخص "
+"ثالث (OpenAI یا Anthropic، بسته به پیکربندی این سایت) ارسال شوند تا به نوشتن "
+"متن نشر و بهبود تصاویر کمک کنند. اگر این سایت به جای آن از کلاینت هوش مصنوعی "
+"داخلی وردپرس (مجهز شده در مسیر تنظیمات → اتصال‌ها) استفاده کند، محتوای "
+"ارسال‌شده به سرویس هوش مصنوعی که آن اتصال به آن اشاره می‌کند ارسال می‌شود. "
+"پست‌های تأییدشده همچنین به‌طور عمومی از طریق ActivityPub (Fediverse) به‌عنوان "
+"بخشی از ویژگی هسته‌ای فدراسیون این پلاگین پخش می‌شوند. پاسخ‌ها و پیام‌های تماس "
+"برای ترجمه به همان ارائه‌دهنده هوش مصنوعی ارسال می‌شوند و پاسخ‌های تأییدشده "
+"به‌طور مشابه به سمت خارج فدراسیون می‌شوند."
 
 #: includes/Core/Privacy.php:942
 msgid ""
@@ -6439,7 +6500,11 @@ msgid ""
 "artworks those partner nodes shared through this one, including the "
 "identifier of the remote account that shared each one. This is used only to "
 "report how active the network has been."
-msgstr "اگر این سایت به دیگر گره‌های Agnosis متصل باشد، رکوردی از آثار هنری که آن گره‌های شریک از طریق این سایت به اشتراک گذاشته‌اند نگهداری می‌شود، از جمله شناسه حساب از راه دور که هر کدام را به اشتراک گذاشته است. این فقط برای گزارش دادن فعالیت شبکه استفاده می‌شود."
+msgstr ""
+"اگر این سایت به دیگر گره‌های Agnosis متصل باشد، رکوردی از آثار هنری که آن "
+"گره‌های شریک از طریق این سایت به اشتراک گذاشته‌اند نگهداری می‌شود، از جمله "
+"شناسه حساب از راه دور که هر کدام را به اشتراک گذاشته است. این فقط برای گزارش "
+"دادن فعالیت شبکه استفاده می‌شود."
 
 #: includes/Core/Privacy.php:953
 msgid "Security check (Cloudflare Turnstile)"
@@ -6451,7 +6516,11 @@ msgid ""
 "Join, contact, newsletter-signup and artwork reply forms to block spam "
 "submissions. Completing it sends your IP address to Cloudflare for "
 "verification."
-msgstr "این سایت از Cloudflare Turnstile، یک بررسی امنیتی خودکار، در فرم‌های ملحق شدن، تماس، ثبت‌نام خبرنامه و پاسخ به آثار هنری به‌منظور مسدود کردن ارسال‌های هرزنامه استفاده می‌کند. تکمیل آن آدرس IP شما را برای تأیید به Cloudflare ارسال می‌کند."
+msgstr ""
+"این سایت از Cloudflare Turnstile، یک بررسی امنیتی خودکار، در فرم‌های ملحق "
+"شدن، تماس، ثبت‌نام خبرنامه و پاسخ به آثار هنری به‌منظور مسدود کردن ارسال‌های "
+"هرزنامه استفاده می‌کند. تکمیل آن آدرس IP شما را برای تأیید به Cloudflare "
+"ارسال می‌کند."
 
 #: includes/Core/Privacy.php:957
 msgid "Software updates"
@@ -6481,7 +6550,15 @@ msgid ""
 "logging turned on are deleted after 14 days. Records of what partner nodes "
 "shared through this site are kept for 90 days. This site's administrator can "
 "adjust each of these periods under Settings."
-msgstr "به‌طور پیش‌فرض: پیام‌های فرم تماس به مدت ۹۰ روز نگهداری می‌شوند و آدرس IP فرستنده بر روی آنها زودتر، پس از ۳۰ روز، پاک می‌شود. درخواست‌های عضویت که رد شده، کنار گذاشته شده یا از شبکه خارج شده‌اند پس از ۱۸۰ روز ناشناس می‌شوند. ایمیل‌های خام ارسال‌شده از صف پردازش پس از ۷ روز حذف می‌شوند، و نسخه‌های تشخیصی که تنها در صورتی که مدیر این سایت حالت اشکال‌زدایی را روشن کرده باشد نگهداری می‌شوند پس از ۱۴ روز حذف می‌شوند. رکوردهای آنچه گره‌های شریک از طریق این سایت به اشتراک گذاشته‌اند به مدت ۹۰ روز نگهداری می‌شود. مدیر این سایت می‌تواند هر یک از این دوره‌ها را در زیر تنظیمات تنظیم کند."
+msgstr ""
+"به‌طور پیش‌فرض: پیام‌های فرم تماس به مدت ۹۰ روز نگهداری می‌شوند و آدرس IP "
+"فرستنده بر روی آنها زودتر، پس از ۳۰ روز، پاک می‌شود. درخواست‌های عضویت که رد "
+"شده، کنار گذاشته شده یا از شبکه خارج شده‌اند پس از ۱۸۰ روز ناشناس می‌شوند. "
+"ایمیل‌های خام ارسال‌شده از صف پردازش پس از ۷ روز حذف می‌شوند، و نسخه‌های تشخیصی "
+"که تنها در صورتی که مدیر این سایت حالت اشکال‌زدایی را روشن کرده باشد نگهداری "
+"می‌شوند پس از ۱۴ روز حذف می‌شوند. رکوردهای آنچه گره‌های شریک از طریق این سایت "
+"به اشتراک گذاشته‌اند به مدت ۹۰ روز نگهداری می‌شود. مدیر این سایت می‌تواند هر یک "
+"از این دوره‌ها را در زیر تنظیمات تنظیم کند."
 
 #: includes/Core/Privacy.php:966
 msgid ""
@@ -6490,7 +6567,12 @@ msgid ""
 "any time. Likes are not kept against you at all: the daily fingerprint "
 "described above expires on its own within a day and cannot be linked back to "
 "you afterwards."
-msgstr "پاسخ‌هایی که منتشر کرده‌اید به اندازه آثار هنری که به آنها تعلق دارند نگهداری می‌شوند، مانند هر نظر دیگری در یک وب‌سایت — شما می‌توانید در هر زمان از ما بخواهید که پاسخ شما را حذف کنیم. لایک‌ها به هیچ وجه علیه شما نگهداری نمی‌شوند: اثر انگشت روزانه‌ای که در بالا توصیف شده به‌طور خودکار در عرض یک روز منقضی می‌شود و نمی‌توان آن را به شما پیوند داد."
+msgstr ""
+"پاسخ‌هایی که منتشر کرده‌اید به اندازه آثار هنری که به آنها تعلق دارند نگهداری "
+"می‌شوند، مانند هر نظر دیگری در یک وب‌سایت — شما می‌توانید در هر زمان از ما "
+"بخواهید که پاسخ شما را حذف کنیم. لایک‌ها به هیچ وجه علیه شما نگهداری نمی‌شوند: "
+"اثر انگشت روزانه‌ای که در بالا توصیف شده به‌طور خودکار در عرض یک روز منقضی "
+"می‌شود و نمی‌توان آن را به شما پیوند داد."
 
 #: includes/Core/Privacy.php:967
 msgid ""
@@ -6501,7 +6583,13 @@ msgid ""
 "in a conversation with you are the artist's own words: we will remove your "
 "name, email address and IP address from them, but not the messages "
 "themselves."
-msgstr "شما می‌توانید در هر زمان با استفاده از ابزارهای استاندارد درخواست داده‌های وردپرس سایت، نسخه‌ای از داده‌های شخصی توصیف‌شده در بالا یا حذف آنها را درخواست کنید. توجه داشته باشید که پاسخ‌هایی که قبلاً در سراسر Fediverse ارسال شده‌اند نمی‌توانند از سرورهای دیگر بازیابی شوند و پاسخ‌های نوشته شده توسط یک هنرمند در یک مکالمه با شما، کلمات خود هنرمند هستند: ما نام، آدرس ایمیل و آدرس IP شما را از آنها حذف خواهیم کرد، اما نه خود پیام‌ها را."
+msgstr ""
+"شما می‌توانید در هر زمان با استفاده از ابزارهای استاندارد درخواست داده‌های "
+"وردپرس سایت، نسخه‌ای از داده‌های شخصی توصیف‌شده در بالا یا حذف آنها را درخواست "
+"کنید. توجه داشته باشید که پاسخ‌هایی که قبلاً در سراسر Fediverse ارسال شده‌اند "
+"نمی‌توانند از سرورهای دیگر بازیابی شوند و پاسخ‌های نوشته شده توسط یک هنرمند در "
+"یک مکالمه با شما، کلمات خود هنرمند هستند: ما نام، آدرس ایمیل و آدرس IP شما "
+"را از آنها حذف خواهیم کرد، اما نه خود پیام‌ها را."
 
 #: includes/Core/Privacy.php:1006
 msgid ""
@@ -6518,7 +6606,10 @@ msgid ""
 "Your reply is reviewed by the artist before it appears. Once published it is "
 "public, machine-translated into this site's other languages, and shared "
 "across the Fediverse — which cannot be fully undone later."
-msgstr "پاسخ شما قبل از انتشار توسط هنرمند بررسی می‌شود. بعد از انتشار، آن عمومی بوده، به زبان‌های دیگر این سایت به‌صورت ماشینی ترجمه می‌شود و در سراسر فدیوِرس به اشتراک گذاشته می‌شود — که بعداً به‌طور کامل قابل لغو نیست."
+msgstr ""
+"پاسخ شما قبل از انتشار توسط هنرمند بررسی می‌شود. بعد از انتشار، آن عمومی "
+"بوده، به زبان‌های دیگر این سایت به‌صورت ماشینی ترجمه می‌شود و در سراسر فدیوِرس "
+"به اشتراک گذاشته می‌شود — که بعداً به‌طور کامل قابل لغو نیست."
 
 #: includes/Core/Privacy.php:1008
 msgid ""
@@ -6619,64 +6710,21 @@ msgstr "زمان‌مهرِ درخواست وب‌هوک وجود ندارد، �
 msgid "This webhook request has already been processed."
 msgstr "این درخواست وب‌هوک قبلاً پردازش شده است."
 
-#: includes/Network/ActivityPub.php:629
-msgid "No such artist actor."
-msgstr "No such artist actor."
-
-#. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1117 includes/Network/ActivityPub.php:1134
-#, php-format
-msgid "♥ %d like"
-msgid_plural "♥ %d likes"
-msgstr[0] "♥ %d لایک"
-msgstr[1] "♥ %d لایک"
-
-#. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1119
-#, php-format
-msgid "♥ %d likes"
-msgstr "♥ %d پسند"
-
-#: includes/Network/ActivityPub.php:1120
-msgid "Could not update like."
-msgstr "نتوانستم پسند را به‌روز کنم."
-
-#. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1144
-#, php-format
-msgid "⟲ %d boost"
-msgid_plural "⟲ %d boosts"
-msgstr[0] "⟲ %d بوست"
-msgstr[1] "⟲ %d بوست"
-
-#: includes/Network/ActivityPub.php:2072
-msgid "Sensitive content"
-msgstr "Sensitive content"
-
-#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2237
-#, php-format
-msgid "Also available in: %s"
-msgstr "همچنین در دسترس است در: %s"
-
-#: includes/Network/ActivityPub.php:3014
-msgid "No such artwork."
-msgstr "چنین اثر هنری وجود ندارد."
-
-#: includes/Network/ActivityPub.php:3420
+#: includes/Network/Federation/Follows.php:247
 msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
 msgstr "دامنه نمونه خود را در فدیوِرس وارد کنید (مثلاً mastodon.social)."
 
-#: includes/Network/ActivityPub.php:3421
+#: includes/Network/Federation/Follows.php:248
 msgid "Copied!"
 msgstr "کپی شد!"
 
-#: includes/Network/ActivityPub.php:3437 includes/Network/ActivityPub.php:3480
+#: includes/Network/Federation/Follows.php:264
+#: includes/Network/Federation/Follows.php:307
 #: blocks/follow-overlay/editor.js:21
 msgid "Follow"
 msgstr "دنبال کنید"
 
-#: includes/Network/ActivityPub.php:3454
+#: includes/Network/Federation/Follows.php:281
 msgid ""
 "This artist publishes to the Fediverse — the open, decentralized social "
 "network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
@@ -6686,73 +6734,112 @@ msgstr ""
 "Pixelfed و دیگر اپلیکیشن‌های مبتنی بر ActivityPub. از حساب خود در هر یک از "
 "آن‌ها دنبال کنید، نیازی به حساب Agnosis نیست."
 
-#: includes/Network/ActivityPub.php:3457
+#: includes/Network/Federation/Follows.php:284
 msgid "Their handle:"
 msgstr "نام کاربری آن‌ها:"
 
-#: includes/Network/ActivityPub.php:3461
+#: includes/Network/Federation/Follows.php:288
 msgid "Copy"
 msgstr "کپی کردن"
 
-#: includes/Network/ActivityPub.php:3464
+#: includes/Network/Federation/Follows.php:291
 msgid ""
 "Paste it into the search bar of your own Fediverse app to follow directly."
 msgstr ""
 "آن را در نوار جستجوی اپلیکیشن فدیوِرس خود بچسبانید تا به‌طور مستقیم دنبال کنید."
 
-#: includes/Network/ActivityPub.php:3468
+#: includes/Network/Federation/Follows.php:295
 msgid "Or enter your instance to follow with one click:"
 msgstr "یا برای دنبال کردن با یک کلیک، نمونه خود را وارد کنید:"
 
-#: includes/Network/ActivityPub.php:3475
+#: includes/Network/Federation/Follows.php:302
 msgid "yourinstance.social"
 msgstr "yourinstance.social"
 
-#: includes/Network/ActivityPub.php:3542
-msgid "0 replies"
-msgstr "0 پاسخ"
+#: includes/Network/Federation/Identity.php:156
+msgid "No such artist actor."
+msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:3563
-msgid "Loading replies…"
-msgstr "در حال بارگذاری پاسخ‌ها…"
+#. translators: %d: number of likes.
+#: includes/Network/Federation/Interactions.php:176
+#: includes/Network/Federation/Interactions.php:193
+#, php-format
+msgid "♥ %d like"
+msgid_plural "♥ %d likes"
+msgstr[0] "♥ %d لایک"
+msgstr[1] "♥ %d لایک"
 
-#: includes/Network/ActivityPub.php:3564
-msgid "Could not load replies."
-msgstr "نتوانستم پاسخ‌ها را بارگذاری کنم."
+#. translators: %d: number of likes.
+#: includes/Network/Federation/Interactions.php:178
+#, php-format
+msgid "♥ %d likes"
+msgstr "♥ %d پسند"
 
-#: includes/Network/ActivityPub.php:3566 includes/Network/ActivityPub.php:4033
-msgid "Thanks — your reply has been submitted and is awaiting approval."
-msgstr "متشکرم — پاسخ شما ارسال شده و در انتظار تأیید است."
+#: includes/Network/Federation/Interactions.php:179
+msgid "Could not update like."
+msgstr "نتوانستم پسند را به‌روز کنم."
 
-#: includes/Network/ActivityPub.php:3567
-msgid "Could not send your reply. Please try again."
-msgstr "نتوانستم پاسخ شما را ارسال کنم. لطفاً دوباره تلاش کنید."
+#. translators: %d: number of boosts.
+#: includes/Network/Federation/Interactions.php:203
+#, php-format
+msgid "⟲ %d boost"
+msgid_plural "⟲ %d boosts"
+msgstr[0] "⟲ %d بوست"
+msgstr[1] "⟲ %d بوست"
 
-#: includes/Network/ActivityPub.php:3568 includes/Network/ActivityPub.php:3654
-msgid "Name (optional)"
-msgstr "نام (اختیاری)"
+#: includes/Network/Federation/Interactions.php:453
+msgid "No such artwork."
+msgstr "چنین اثر هنری وجود ندارد."
 
-#: includes/Network/ActivityPub.php:3569 includes/Network/ActivityPub.php:3656
-msgid "Your email"
-msgstr "ایمیل شما"
-
-#: includes/Network/ActivityPub.php:3570 includes/Network/ActivityPub.php:3651
+#: includes/Network/Federation/Replies.php:681
+#: includes/Network/Federation/Replies.php:1014
 msgid "Write a reply…"
 msgstr "پاسخی بنویسید…"
 
+#: includes/Network/Federation/Replies.php:684
+#: includes/Network/Federation/Replies.php:1012
+msgid "Name (optional)"
+msgstr "نام (اختیاری)"
+
+#: includes/Network/Federation/Replies.php:686
+#: includes/Network/Federation/Replies.php:1013
+msgid "Your email"
+msgstr "ایمیل شما"
+
+#: includes/Network/Federation/Replies.php:986
+msgid "0 replies"
+msgstr "0 پاسخ"
+
+#: includes/Network/Federation/Replies.php:1007
+msgid "Loading replies…"
+msgstr "در حال بارگذاری پاسخ‌ها…"
+
+#: includes/Network/Federation/Replies.php:1008
+msgid "Could not load replies."
+msgstr "نتوانستم پاسخ‌ها را بارگذاری کنم."
+
+#: includes/Network/Federation/Replies.php:1010
+#: includes/Network/Federation/Replies.php:1191
+msgid "Thanks — your reply has been submitted and is awaiting approval."
+msgstr "متشکرم — پاسخ شما ارسال شده و در انتظار تأیید است."
+
+#: includes/Network/Federation/Replies.php:1011
+msgid "Could not send your reply. Please try again."
+msgstr "نتوانستم پاسخ شما را ارسال کنم. لطفاً دوباره تلاش کنید."
+
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3581
+#: includes/Network/Federation/Replies.php:1025
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d پاسخ"
 msgstr[1] "%d پاسخ"
 
-#: includes/Network/ActivityPub.php:4103
+#: includes/Network/Federation/Replies.php:1261
 msgid "Replies aren't open on this artwork right now."
 msgstr "پاسخ‌ها در حال حاضر بر روی این اثر هنری باز نیستند."
 
-#: includes/Network/ActivityPub.php:4171
+#: includes/Network/Federation/Replies.php:1329
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6761,20 +6848,20 @@ msgstr ""
 "شدن واقعی با هنرمند درباره کارهایش نیست."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4503
+#: includes/Network/Federation/Replies.php:1661
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "پاسخ جدید در \"%s\""
 
-#: includes/Network/ActivityPub.php:4514
+#: includes/Network/Federation/Replies.php:1672
 msgid "Someone left a reply on your artwork:"
 msgstr "کسی بر روی اثر هنری شما یک پاسخ گذاشته است:"
 
-#: includes/Network/ActivityPub.php:4515
+#: includes/Network/Federation/Replies.php:1673
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "کسی از فدیوورس به اثر هنری شما پاسخ داده است:"
 
-#: includes/Network/ActivityPub.php:4542
+#: includes/Network/Federation/Replies.php:1700
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6782,13 +6869,14 @@ msgstr ""
 "این تا زمانی که شما آن را تایید یا رد کنید نگه داشته می‌شود — شما همچنین "
 "می‌توانید از همین صفحه پاسخ خود را بنویسید."
 
-#: includes/Network/ActivityPub.php:4546 includes/Network/ActivityPub.php:4945
-#: includes/Network/ActivityPub.php:4957
+#: includes/Network/Federation/Replies.php:1704
+#: includes/Network/Federation/Replies.php:2099
+#: includes/Network/Federation/Replies.php:2111
 msgid "Review this reply"
 msgstr "این جواب را بررسی کنید"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:4554
+#: includes/Network/Federation/Replies.php:1712
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
@@ -6796,12 +6884,12 @@ msgstr[0] "این لینک تا %d روز اعتبار دارد."
 msgstr[1] "این لینک تا %d روز اعتبار دارد."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4639
+#: includes/Network/Federation/Replies.php:1797
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr "پاسخی درباره \"%s\" به زبانی دریافت شد که نتوانستیم شناسایی کنیم."
 
-#: includes/Network/ActivityPub.php:4655
+#: includes/Network/Federation/Replies.php:1813
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6811,7 +6899,7 @@ msgstr ""
 "را شناسایی کنیم، بنابراین نمی‌توانیم ترجمه‌ یا صفحه پاسخ/تایید معمول را برای "
 "آن ارائه دهیم."
 
-#: includes/Network/ActivityPub.php:4661
+#: includes/Network/Federation/Replies.php:1819
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6821,45 +6909,55 @@ msgstr ""
 "می‌خواهید بر اساس آن عمل کنید، می‌توانید از داشبورد وردپرس خود این کار را "
 "انجام دهید."
 
-#: includes/Network/ActivityPub.php:4772
+#: includes/Network/Federation/Replies.php:1926
 msgid "Fediverse replies"
 msgstr "پاسخ‌های فدیوورس"
 
-#: includes/Network/ActivityPub.php:4773
+#: includes/Network/Federation/Replies.php:1927
 msgid "Site replies"
 msgstr "پاسخ‌های سایت"
 
-#: includes/Network/ActivityPub.php:4867
+#: includes/Network/Federation/Replies.php:2021
 msgid "This reply no longer exists."
 msgstr "این پاسخ دیگر وجود ندارد."
 
-#: includes/Network/ActivityPub.php:4924
+#: includes/Network/Federation/Replies.php:2078
 msgid "Also post my reply to the Fediverse."
 msgstr "همچنین پاسخ من را به فدیوورس ارسال کنید."
 
-#: includes/Network/ActivityPub.php:4951
+#: includes/Network/Federation/Replies.php:2105
 msgid "Write your own reply (optional)"
 msgstr "پاسخ خود را بنویسید (اختیاری)"
 
-#: includes/Network/ActivityPub.php:4983
+#: includes/Network/Federation/Replies.php:2137
 msgid "Reply approved — it now appears on your artwork."
 msgstr "پاسخ تأیید شد — اکنون بر روی اثر شما نشان داده می‌شود."
 
-#: includes/Network/ActivityPub.php:4986
+#: includes/Network/Federation/Replies.php:2140
 msgid "Reply rejected — it will not be shown."
 msgstr "پاسخ رد شد — نشان داده نخواهد شد."
 
-#: includes/Network/ActivityPub.php:4997
+#: includes/Network/Federation/Replies.php:2151
 msgid "Your reply has been posted."
 msgstr "پاسخ شما منتشر شده است."
 
-#: includes/Network/ActivityPub.php:5000
+#: includes/Network/Federation/Replies.php:2154
 msgid "Reply moderated"
 msgstr "پاسخ مرجوع شده"
 
-#: includes/Network/ActivityPub.php:5026
+#: includes/Network/Federation/Replies.php:2180
 msgid "No such reply."
 msgstr "چنین پاسخی وجود ندارد."
+
+#: includes/Network/Federation/Serialization.php:595
+msgid "Sensitive content"
+msgstr "Sensitive content"
+
+#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
+#: includes/Network/Federation/Serialization.php:760
+#, php-format
+msgid "Also available in: %s"
+msgstr "همچنین در دسترس است در: %s"
 
 #: includes/Network/HttpSignature.php:180
 msgid "Signature keyId does not belong to the activity actor."
@@ -7288,19 +7386,19 @@ msgstr ""
 msgid "Subscribe to the newsletter"
 msgstr "مشترک خبرنامه شوید"
 
-#: includes/Newsletter/Scheduler.php:90 includes/Newsletter/Scheduler.php:113
+#: includes/Newsletter/Scheduler.php:91 includes/Newsletter/Scheduler.php:114
 msgid "Unknown newsletter type."
 msgstr "نوع خبرنامه ناشناخته است."
 
-#: includes/Newsletter/Scheduler.php:94
+#: includes/Newsletter/Scheduler.php:95
 msgid "A previous issue is still sending — please wait for it to finish."
 msgstr "یک شمارهٔ قبلی هنوز در حال ارسال است — لطفاً صبر کنید تا تمام شود."
 
-#: includes/Newsletter/Scheduler.php:116
+#: includes/Newsletter/Scheduler.php:117
 msgid "Please enter a valid email address to send the test to."
 msgstr "لطفاً یک نشانی ایمیل معتبر وارد کنید تا آزمون به آن ارسال شود."
 
-#: includes/Newsletter/Scheduler.php:137
+#: includes/Newsletter/Scheduler.php:138
 msgid ""
 "This is a TEST send — it previews the next issue using the current draft "
 "intro and recent activity. It was not counted as a real send and no "
@@ -7313,7 +7411,7 @@ msgstr ""
 "غیرفعال است."
 
 #. translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name
-#: includes/Newsletter/Scheduler.php:405
+#: includes/Newsletter/Scheduler.php:421
 #, php-format
 msgid ""
 "The %1$s at %2$s is due to send in about a day. Agnosis drafted an intro "
@@ -7322,16 +7420,18 @@ msgstr ""
 "%1$s در %2$s حدوداً تا یک روز دیگر برای ارسال موعد دارد. Agnosis مقدمه‌ای را "
 "بر اساس موارد جدید از زمان شمارهٔ قبلی پیش‌نویس کرده است:"
 
-#: includes/Newsletter/Scheduler.php:410
+#: includes/Newsletter/Scheduler.php:433
 msgid ""
 "It's already saved and will be used as-is if you don't act — review it, "
-"rewrite it, or clear it back to blank here:"
-msgstr ""
-"از قبل ذخیره شده و اگر کاری نکنید همان‌طور استفاده خواهد شد — آن را بررسی "
-"کنید، بازنویسی کنید، یا اینجا دوباره به حالت خالی برگردانید:"
+"rewrite it, or clear it back to blank:"
+msgstr "این متن قبلاً ذخیره شده است و درصورت عدم اقدام شما به‌همان شکل استفاده خواهد شد — آن را بررسی کنید، دوباره بنویسید یا به حالت خالی برگردانید:"
+
+#: includes/Newsletter/Scheduler.php:436
+msgid "Review the intro"
+msgstr "معرفی را بررسی کنید"
 
 #. translators: 1: newsletter label, 2: site name
-#: includes/Newsletter/Scheduler.php:417
+#: includes/Newsletter/Scheduler.php:443
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "مقدمهٔ %1$s برای %2$s پیش‌نویس شد — پیش از ارسال بررسی کنید"
@@ -7588,14 +7688,14 @@ msgstr "[Agnosis] ارسال شما آماده بررسی است: %s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1367
+#: includes/Publishing/ReviewConfirm.php:1380
 msgid "event"
 msgstr "رویداد"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1368
+#: includes/Publishing/ReviewConfirm.php:1381
 msgid "artwork"
 msgstr "اثر هنری"
 
@@ -8252,67 +8352,89 @@ msgstr "پیوند حذف منقضی شده است. لطفاً یک درخواس
 msgid "Invalid removal token."
 msgstr "توکن حذف نامعتبر است."
 
-#: includes/Publishing/ReviewConfirm.php:277
+#: includes/Publishing/ReviewConfirm.php:281
 msgid "View it live"
 msgstr "مشاهده زنده"
 
-#: includes/Publishing/ReviewConfirm.php:320
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Biography published"
 msgstr "زندگینامه منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:320
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Your biography has been published."
 msgstr "زندگینامه شما منتشر شد."
 
-#: includes/Publishing/ReviewConfirm.php:321
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "Event published"
 msgstr "رویداد منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:321
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "The event has been published."
 msgstr "رویداد منتشر شده است."
 
-#: includes/Publishing/ReviewConfirm.php:322
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "Artwork published"
 msgstr "اثر هنری منتشر شد"
 
-#: includes/Publishing/ReviewConfirm.php:322
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "The artwork has been published to the gallery."
 msgstr "اثر هنری در گالری منتشر شد."
 
-#: includes/Publishing/ReviewConfirm.php:323
+#: includes/Publishing/ReviewConfirm.php:327
 msgid "Submission discarded"
 msgstr "ارسال حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:323
+#: includes/Publishing/ReviewConfirm.php:327
 msgid "The submission has been discarded."
 msgstr "ارسال حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:324
+#: includes/Publishing/ReviewConfirm.php:328
 msgid "Biography removed"
 msgstr "بیوگرافی حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:324
+#: includes/Publishing/ReviewConfirm.php:328
 msgid "Your biography has been removed."
 msgstr "بیوگرافی شما حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:325
+#: includes/Publishing/ReviewConfirm.php:329
 msgid "Event removed"
 msgstr "رویداد حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:325
+#: includes/Publishing/ReviewConfirm.php:329
 msgid "The event has been removed."
 msgstr "رویداد حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:326
+#: includes/Publishing/ReviewConfirm.php:330
 msgid "Artwork removed"
 msgstr "اثر هنری حذف شد"
 
-#: includes/Publishing/ReviewConfirm.php:326
+#: includes/Publishing/ReviewConfirm.php:330
 msgid "Your artwork has been removed from the gallery."
 msgstr "اثر هنری شما از گالری حذف شد."
 
-#: includes/Publishing/ReviewConfirm.php:327
+#: includes/Publishing/ReviewConfirm.php:334
+msgid "This submission no longer exists"
+msgstr "این اثر دیگر وجود ندارد"
+
+#: includes/Publishing/ReviewConfirm.php:334
+msgid ""
+"It was already published, discarded, or replaced by a newer version of the "
+"same work — so this link has nothing left to act on. Nothing went wrong on "
+"your side. Log in to see your submissions, or just send the work again."
+msgstr "این اثر قبلاً منتشر شده، حذف شده یا جایگزین شده است با نسخه‌ای جدیدتر از همان اثر — بنابراین این پیوند برای اقدام چیزی باقی نمانده. هیچ مشکلی در سمت شما رخ نداده. برای دیدن آثار خود وارد شوید یا اثر را دوباره بفرستید."
+
+#: includes/Publishing/ReviewConfirm.php:335
+msgid "This link is incomplete"
+msgstr "این پیوند ناقص است"
+
+#: includes/Publishing/ReviewConfirm.php:335
+msgid ""
+"Part of the address is missing — some mail apps cut long links in half. Try "
+"opening it from the original email again, or copy the whole link into your "
+"browser."
+msgstr "بخشی از آدرس گم شده است — برخی برنامه‌های ایمیل پیوندهای طولانی را به نصف می‌برند. سعی کنید آن را از ایمیل اصلی دوباره باز کنید یا کل پیوند را در مرورگر خود کپی کنید."
+
+#: includes/Publishing/ReviewConfirm.php:336
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -8320,7 +8442,7 @@ msgstr ""
 "ممکن است از این لینک قبلاً استفاده شده باشد یا منقضی شده باشد. لطفاً برای "
 "مدیریت ارسال‌های خود وارد شوید."
 
-#: includes/Publishing/ReviewConfirm.php:433
+#: includes/Publishing/ReviewConfirm.php:442
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
@@ -8328,7 +8450,7 @@ msgstr ""
 "عنوان و متن کامل نمی‌توانند خالی باشند. آن‌ها را دوباره وارد کنید، یا به‌جای آن "
 "از «حذف» در ایمیل اصلی استفاده کنید."
 
-#: includes/Publishing/ReviewConfirm.php:434
+#: includes/Publishing/ReviewConfirm.php:443
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
@@ -8336,11 +8458,11 @@ msgstr ""
 "متن کامل نمی‌تواند خالی باشد. آن را دوباره وارد کنید، یا به‌جای آن از «حذف» در "
 "ایمیل اصلی استفاده کنید."
 
-#: includes/Publishing/ReviewConfirm.php:853
+#: includes/Publishing/ReviewConfirm.php:862
 msgid "Account-wide setting"
 msgstr "تنظیمات سراسری حساب"
 
-#: includes/Publishing/ReviewConfirm.php:856
+#: includes/Publishing/ReviewConfirm.php:865
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just this piece."
@@ -8348,89 +8470,89 @@ msgstr ""
 "غیرفعال کردن فهرست‌برداری موتور جستجو و کشف فدیو — این تنظیم به کل پروفایل من "
 "و هر چیزی که اینجا منتشر می‌کنم اعمال می‌شود، نه فقط این قطعه."
 
-#: includes/Publishing/ReviewConfirm.php:879
+#: includes/Publishing/ReviewConfirm.php:888
 msgid "Allow visitors and the Fediverse to reply to this artwork."
 msgstr "اجازه دهید بازدیدکنندگان و فدیوورس به این اثر هنری پاسخ دهند."
 
-#: includes/Publishing/ReviewConfirm.php:913
+#: includes/Publishing/ReviewConfirm.php:922
 msgid "Portfolio link"
 msgstr "لینک پورتفولیو"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:940
+#: includes/Publishing/ReviewConfirm.php:949
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "لینک شبکه اجتماعی %d (اختیاری)"
 
-#: includes/Publishing/ReviewConfirm.php:974
+#: includes/Publishing/ReviewConfirm.php:983
 msgid "Hour"
 msgstr "ساعت"
 
-#: includes/Publishing/ReviewConfirm.php:977
+#: includes/Publishing/ReviewConfirm.php:986
 msgid "Location"
 msgstr "مکان"
 
-#: includes/Publishing/ReviewConfirm.php:979
+#: includes/Publishing/ReviewConfirm.php:988
 msgid "Address"
 msgstr "نشانی"
 
-#: includes/Publishing/ReviewConfirm.php:981
+#: includes/Publishing/ReviewConfirm.php:990
 msgid "Timezone"
 msgstr "منطقه زمانی"
 
-#: includes/Publishing/ReviewConfirm.php:1001
+#: includes/Publishing/ReviewConfirm.php:1010
 msgid "Other"
 msgstr "سایر"
 
-#: includes/Publishing/ReviewConfirm.php:1006
+#: includes/Publishing/ReviewConfirm.php:1015
 msgid "— Not set —"
 msgstr "— تنظیم نشده —"
 
-#: includes/Publishing/ReviewConfirm.php:1126
+#: includes/Publishing/ReviewConfirm.php:1135
 msgid "Discard this submission?"
 msgstr "این ارسال حذف شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:1127
+#: includes/Publishing/ReviewConfirm.php:1136
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr "این کار ارسال را برای همیشه حذف می‌کند — منتشر نخواهد شد."
 
-#: includes/Publishing/ReviewConfirm.php:1128
+#: includes/Publishing/ReviewConfirm.php:1137
 msgid "Yes, discard it"
 msgstr "بله، حذفش کن"
 
-#: includes/Publishing/ReviewConfirm.php:1131
+#: includes/Publishing/ReviewConfirm.php:1140
 msgid "Remove this artwork?"
 msgstr "این اثر هنری حذف شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:1132
+#: includes/Publishing/ReviewConfirm.php:1141
 msgid "This will remove the published artwork from the gallery."
 msgstr "این کار، اثر هنریِ منتشرشده را از گالری حذف می‌کند."
 
-#: includes/Publishing/ReviewConfirm.php:1133
+#: includes/Publishing/ReviewConfirm.php:1142
 msgid "Yes, remove it"
 msgstr "بله، حذفش کن"
 
-#: includes/Publishing/ReviewConfirm.php:1284
+#: includes/Publishing/ReviewConfirm.php:1297
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "عنوان"
 
-#: includes/Publishing/ReviewConfirm.php:1292
+#: includes/Publishing/ReviewConfirm.php:1305
 msgid "Short description"
 msgstr "توضیح کوتاه"
 
-#: includes/Publishing/ReviewConfirm.php:1297
+#: includes/Publishing/ReviewConfirm.php:1310
 msgid "Full text"
 msgstr "متن کامل"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1326
+#: includes/Publishing/ReviewConfirm.php:1339
 #, php-format
 msgid "Publish this %s?"
 msgstr "این %s منتشر شود؟"
 
-#: includes/Publishing/ReviewConfirm.php:1349
+#: includes/Publishing/ReviewConfirm.php:1362
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
@@ -8438,12 +8560,12 @@ msgstr ""
 "در ادامه هر تغییر نهایی را اعمال کنید، یا اگر می‌خواهید دقیقاً همان پیش‌نویس "
 "منتشر شود، همه‌چیز را بدون تغییر بگذارید."
 
-#: includes/Publishing/ReviewConfirm.php:1355
+#: includes/Publishing/ReviewConfirm.php:1368
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "منتشرش کن"
 
-#: includes/Publishing/ReviewConfirm.php:1366
+#: includes/Publishing/ReviewConfirm.php:1379
 msgid "biography"
 msgstr "بیوگرافی"
 

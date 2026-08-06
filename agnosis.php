@@ -3,8 +3,8 @@
  * Plugin Name:       Agnosis
  * Plugin URI:        https://agnosis.art
  * Description:       Art blooming out of oblivion. Email your art, AI polishes it, the world sees it. A free, federated publishing network for independent artists.
- * Version:           0.9.66
- * Requires at least: 6.6
+ * Version:           0.9.67
+ * Requires at least: 6.9
  * Requires PHP:      8.2
  * Requires Plugins:  lingua-forge
  * Author:            Uli Hake
@@ -27,13 +27,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'AGNOSIS_VERSION', '0.9.66' );
+define( 'AGNOSIS_VERSION', '0.9.67' );
 define( 'AGNOSIS_FILE', __FILE__ );
 define( 'AGNOSIS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'AGNOSIS_URL', plugin_dir_url( __FILE__ ) );
 define( 'AGNOSIS_BASENAME', plugin_basename( __FILE__ ) );
 define( 'AGNOSIS_MIN_PHP', '8.2' );
-define( 'AGNOSIS_MIN_WP', '6.6' );
+define( 'AGNOSIS_MIN_WP', '6.9' );
 
 /**
  * Oldest Lingua Forge this version of Agnosis is written against — sixteenth
@@ -197,12 +197,12 @@ add_action(
 // visiting one specific dashboard page) means the very next page load after
 // this ships re-registers whatever's missing, no manual intervention needed.
 //
-// Hooked to 'init', not 'plugins_loaded', deliberately — every sibling
-// self-healing scheduler already in this codebase (Email\Inbox::
-// schedule_poll()/schedule_cleanup(), Admin\TagProposals::
-// schedule_ttl_sweep(), Admin\MediumProposals::schedule_ttl_sweep(),
-// Network\FederationSettlement::schedule_fallback_sweep()) uses 'init' too,
-// specifically because the 'every_five_minutes' custom interval itself is
+// Hooked to 'init', not 'plugins_loaded', deliberately. (This used to note
+// that the five per-class self-healing schedulers hooked 'init' for the same
+// reason; 0.9.66's Q-3 fix folded all five into RECURRING_CRON_SCHEDULE and
+// deleted them, so this callback is now the only scheduler there is — but the
+// timing constraint below is unchanged and is why it must stay on 'init'.)
+// The 'every_five_minutes' custom interval itself is
 // only registered once Core\Plugin::run() applies its own collected
 // 'cron_schedules' filter — which happens later in this same
 // 'plugins_loaded' action (priority 10, in the "Boot." block below).

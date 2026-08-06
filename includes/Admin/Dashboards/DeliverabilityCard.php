@@ -20,6 +20,7 @@ namespace Agnosis\Admin\Dashboards;
 
 use Agnosis\Admin\Deliverability;
 use Agnosis\Core\CommunityMailer;
+use Agnosis\Core\EmailTemplate;
 
 class DeliverabilityCard {
 
@@ -179,6 +180,17 @@ class DeliverabilityCard {
 	 * admin-post handler: send a one-off deliverability test email using the
 	 * same community/transactional identity real workflow mail sends from.
 	 * Diagnostic only — does not touch any subscriber, queue, or setting.
+	 *
+	 * **Sent as branded HTML, not plain text (0.9.67).** It shipped plain-text,
+	 * which was defensible — `BrandingTestForm` already sends a branded preview
+	 * from this same identity, so the two looked like complementary probes. The
+	 * argument that won: a deliverability test is only worth what it predicts
+	 * about real mail, and *every* message Agnosis actually sends is HTML through
+	 * `Core\EmailTemplate`. Content type, HTML-to-text ratio and link structure
+	 * all feed spam scoring, so a plain-text probe could land in the inbox while
+	 * the mail it is standing in for did not. The two tools stay distinct by
+	 * purpose rather than by format: this one answers "does this identity reach
+	 * this address," `BrandingTestForm` answers "do my colours look right."
 	 */
 	public function handle_send_deliverability_test(): void {
 		check_admin_referer( 'agnosis_send_deliverability_test' );
@@ -191,6 +203,13 @@ class DeliverabilityCard {
 		$result     = false;
 
 		if ( is_email( $test_email ) ) {
+			$body_html = '<p style="margin:0 0 16px;font-size:18px;line-height:1.6;color:#555;">'
+				. esc_html__( "This is a one-off deliverability test from your Agnosis Settings → Email Inbox page. If you're reading this in your inbox (not spam), the community/transactional From identity is deliverable to this address.", 'agnosis' )
+				. '</p>'
+				. '<p style="margin:0;font-size:15px;line-height:1.6;color:#999;">'
+				. esc_html__( 'It is sent in the same branded HTML shell as every real Agnosis message, so what reaches you here is what your artists and subscribers receive. Nothing was recorded, and no subscriber, queue or setting was touched.', 'agnosis' )
+				. '</p>';
+
 			$result = wp_mail(
 				$test_email,
 				sprintf(
@@ -198,8 +217,8 @@ class DeliverabilityCard {
 					__( '[TEST] Deliverability check from %s', 'agnosis' ),
 					get_bloginfo( 'name' )
 				),
-				__( "This is a one-off deliverability test from your Agnosis Settings → Email Inbox page. If you're reading this in your inbox (not spam), the community/transactional From identity is deliverable to this address.", 'agnosis' ),
-				CommunityMailer::text_headers()
+				EmailTemplate::render( str_replace( '_', '-', get_locale() ), $body_html ),
+				CommunityMailer::html_headers()
 			);
 		}
 

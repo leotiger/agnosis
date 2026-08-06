@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Agnosis 0.9.21\n"
 "Report-Msgid-Bugs-To: https://github.com/agnosis/agnosis/issues\n"
-"POT-Creation-Date: 2026-07-31T15:52+00:00\n"
+"POT-Creation-Date: 2026-08-06T22:01+00:00\n"
 "PO-Revision-Date: 2026-07-19 16:57+0000\n"
 "Last-Translator: admin\n"
 "Language-Team: Indonesian\n"
@@ -64,7 +64,11 @@ msgid ""
 "Agnosis keeps working — features that need the newer version simply stay "
 "inactive, currently the artist-subdomain entries in the multilingual "
 "sitemap. Updating Lingua Forge enables them."
-msgstr "Agnosis ditulis untuk Lingua Forge %1$s atau yang lebih baru; situs ini memiliki %2$s. Agnosis tetap berfungsi — fitur yang membutuhkan versi terbaru hanya tetap tidak aktif, saat ini entri subdomain-artis dalam peta situs multibahasa. Memperbarui Lingua Forge memungkinkan mereka."
+msgstr ""
+"Agnosis ditulis untuk Lingua Forge %1$s atau yang lebih baru; situs ini "
+"memiliki %2$s. Agnosis tetap berfungsi — fitur yang membutuhkan versi "
+"terbaru hanya tetap tidak aktif, saat ini entri subdomain-artis dalam peta "
+"situs multibahasa. Memperbarui Lingua Forge memungkinkan mereka."
 
 #: blocks/gallery-overview/render.php:428
 msgid "Filter by medium"
@@ -103,8 +107,8 @@ msgid "Prev"
 msgstr "Sebelum"
 
 #: blocks/gallery-overview/render.php:578
-#: includes/Admin/ContactMessagesPage.php:291 includes/Admin/InboxPage.php:282
-#: includes/Admin/InboxPage.php:613
+#: includes/Admin/ContactMessagesPage.php:293 includes/Admin/InboxPage.php:282
+#: includes/Admin/InboxPage.php:616
 msgid "Next"
 msgstr "Berikutnya"
 
@@ -157,7 +161,7 @@ msgstr "Sinkronkan tag ke terjemahan"
 #: includes/Admin/Dashboards/BiographyTitleCache.php:186
 #: includes/Admin/Dashboards/BiographyTitleCache.php:199
 #: includes/Admin/Dashboards/BrandingTestForm.php:70
-#: includes/Admin/Dashboards/DeliverabilityCard.php:187
+#: includes/Admin/Dashboards/DeliverabilityCard.php:199
 #: includes/Admin/Dashboards/InvitationCard.php:78
 #: includes/Admin/Dashboards/InvitationCard.php:105
 #: includes/Admin/Dashboards/LogsTab.php:131
@@ -176,12 +180,12 @@ msgstr "Sinkronkan tag ke terjemahan"
 #: includes/Admin/Dashboards/RhizomeManager.php:453
 #: includes/Admin/Dashboards/RhizomeManager.php:491
 #: includes/Admin/Dashboards/RhizomeManager.php:535
-#: includes/Admin/InboxPage.php:883 includes/Admin/MediumProposals.php:263
+#: includes/Admin/InboxPage.php:886 includes/Admin/MediumProposals.php:263
 #: includes/Admin/MediumProposals.php:298 includes/Admin/QueueController.php:31
 #: includes/Admin/QueueController.php:60 includes/Admin/QueueController.php:95
 #: includes/Admin/QueueController.php:115
-#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:910
-#: includes/Admin/Settings.php:929 includes/Admin/TagProposals.php:238
+#: includes/Admin/QueueController.php:148 includes/Admin/Settings.php:916
+#: includes/Admin/Settings.php:935 includes/Admin/TagProposals.php:238
 #: includes/Admin/TagProposals.php:275
 #: includes/Admin/TaxonomyLanguageFilter.php:333
 #: includes/Admin/TaxonomyLanguageFilter.php:393
@@ -402,56 +406,60 @@ msgid "All statuses"
 msgstr "Semua status"
 
 #: includes/Admin/ContactMessagesPage.php:241
-#: includes/Admin/ContactMessagesPage.php:300
+#: includes/Admin/ContactMessagesPage.php:302
 msgid "Sent"
 msgstr "Terkirim"
 
 #: includes/Admin/ContactMessagesPage.php:242
-#: includes/Admin/ContactMessagesPage.php:302
+#: includes/Admin/ContactMessagesPage.php:304
 msgid "Rejected"
 msgstr "Ditolak"
 
-#: includes/Admin/ContactMessagesPage.php:254 includes/Admin/InboxPage.php:532
+#: includes/Admin/ContactMessagesPage.php:250
+msgid "Filter messages by status"
+msgstr "Filter pesan berdasarkan status"
+
+#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:535
 msgid "Filter"
 msgstr "Filter"
 
-#: includes/Admin/ContactMessagesPage.php:256 includes/Admin/InboxPage.php:534
+#: includes/Admin/ContactMessagesPage.php:258 includes/Admin/InboxPage.php:537
 msgid "Reset"
 msgstr "Atur ulang"
 
 #. translators: 1: current page number, 2: total number of pages
-#: includes/Admin/ContactMessagesPage.php:280 includes/Admin/InboxPage.php:602
+#: includes/Admin/ContactMessagesPage.php:282 includes/Admin/InboxPage.php:605
 #, php-format
 msgid "Page %1$d of %2$d"
 msgstr "Halaman %1$d dari %2$d"
 
-#: includes/Admin/ContactMessagesPage.php:288 includes/Admin/InboxPage.php:277
-#: includes/Admin/InboxPage.php:610
+#: includes/Admin/ContactMessagesPage.php:290 includes/Admin/InboxPage.php:277
+#: includes/Admin/InboxPage.php:613
 msgid "Previous"
 msgstr "Sebelumnya"
 
-#: includes/Admin/ContactMessagesPage.php:317
+#: includes/Admin/ContactMessagesPage.php:319
 msgid "Delete this message?"
 msgstr "Hapus pesan ini?"
 
-#: includes/Admin/ContactMessagesPage.php:322
+#: includes/Admin/ContactMessagesPage.php:324
 #: includes/Admin/Dashboards/MembersDashboard.php:153
-#: includes/Admin/InboxPage.php:789
+#: includes/Admin/InboxPage.php:792
 msgid "Delete"
 msgstr "Hapus"
 
-#: includes/Admin/ContactMessagesPage.php:334 includes/Admin/InboxPage.php:800
+#: includes/Admin/ContactMessagesPage.php:336 includes/Admin/InboxPage.php:803
 msgid "just now"
 msgstr "baru saja"
 
 #. translators: %d: number of minutes
-#: includes/Admin/ContactMessagesPage.php:339 includes/Admin/InboxPage.php:805
+#: includes/Admin/ContactMessagesPage.php:341 includes/Admin/InboxPage.php:808
 #, php-format
 msgid "%dm ago"
 msgstr "%dm yang lalu"
 
 #. translators: %d: number of hours
-#: includes/Admin/ContactMessagesPage.php:344 includes/Admin/InboxPage.php:810
+#: includes/Admin/ContactMessagesPage.php:346 includes/Admin/InboxPage.php:813
 #, php-format
 msgid "%dh ago"
 msgstr "%dj yang lalu"
@@ -529,7 +537,7 @@ msgstr "Terima"
 
 #: includes/Admin/Dashboards/AdmissionDashboard.php:161
 #: includes/Admin/MediumProposals.php:167 includes/Admin/TagProposals.php:137
-#: includes/Network/ActivityPub.php:4954
+#: includes/Network/Federation/Replies.php:2108
 msgid "Reject"
 msgstr "Tolak"
 
@@ -711,7 +719,7 @@ msgid "Send test email to this address"
 msgstr "Kirim email uji ke alamat ini"
 
 #: includes/Admin/Dashboards/BrandingTestForm.php:52
-#: includes/Admin/Dashboards/DeliverabilityCard.php:102
+#: includes/Admin/Dashboards/DeliverabilityCard.php:103
 #: includes/Admin/Dashboards/InvitationCard.php:65
 #: includes/Admin/Dashboards/NewsletterDashboard.php:271
 msgid "Send Test"
@@ -749,11 +757,11 @@ msgstr ""
 msgid "[TEST] Branding preview from %s"
 msgstr "[TEST] Pratinjau branding dari %s"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:44
+#: includes/Admin/Dashboards/DeliverabilityCard.php:45
 msgid "Deliverability"
 msgstr "Keterkiriman"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:46
+#: includes/Admin/Dashboards/DeliverabilityCard.php:47
 msgid ""
 "A diagnostic check only — nothing here changes how mail is sent. On ordinary "
 "hosting (PHP mail(), no SMTP plugin), mail sent from an address that doesn't "
@@ -775,41 +783,41 @@ msgstr ""
 "transaksional yang nyata, serta menambahkan rekaman SPF/DMARC untuk domain "
 "yang Anda gunakan mengirim di host DNS Anda."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:52
+#: includes/Admin/Dashboards/DeliverabilityCard.php:53
 msgid "From identity"
 msgstr "Identitas pengirim"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:53
+#: includes/Admin/Dashboards/DeliverabilityCard.php:54
 msgid "Domain matches site?"
 msgstr "Domain cocok dengan situs?"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:54
+#: includes/Admin/Dashboards/DeliverabilityCard.php:55
 msgid "SPF record"
 msgstr "Rekaman SPF"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:55
+#: includes/Admin/Dashboards/DeliverabilityCard.php:56
 msgid "DMARC record"
 msgstr "Rekaman DMARC"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:56
+#: includes/Admin/Dashboards/DeliverabilityCard.php:57
 msgid "DKIM record"
 msgstr "Rekaman DKIM"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:57
+#: includes/Admin/Dashboards/DeliverabilityCard.php:58
 msgid "Spamhaus DBL"
 msgstr "Spamhaus DBL"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:75
+#: includes/Admin/Dashboards/DeliverabilityCard.php:76
 msgid "SMTP plugin"
 msgstr "Plugin SMTP"
 
 #. translators: %s: detected plugin name, e.g. "WP Mail SMTP"
-#: includes/Admin/Dashboards/DeliverabilityCard.php:82
+#: includes/Admin/Dashboards/DeliverabilityCard.php:83
 #, php-format
 msgid "Detected: %s"
 msgstr "Terdeteksi: %s"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:87
+#: includes/Admin/Dashboards/DeliverabilityCard.php:88
 msgid ""
 "None of the common SMTP-sending plugins were detected — this site is likely "
 "relying on PHP's built-in mail(), which most hosts deliver poorly through."
@@ -818,7 +826,7 @@ msgstr ""
 "mengandalkan mail() bawaan PHP, yang pengirimannya buruk di sebagian besar "
 "host."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:94
+#: includes/Admin/Dashboards/DeliverabilityCard.php:95
 msgid ""
 "DKIM is best-effort: there's no fixed location for a DKIM record the way SPF "
 "and DMARC have, so this only checks a handful of common provider selectors. "
@@ -835,11 +843,11 @@ msgstr ""
 "benar (dasbor penyedia Anda mengonfirmasinya), percayai itu daripada baris "
 "ini."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:100
+#: includes/Admin/Dashboards/DeliverabilityCard.php:101
 msgid "Send a real test email to:"
 msgstr "Kirim email uji yang sebenarnya ke:"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:105
+#: includes/Admin/Dashboards/DeliverabilityCard.php:106
 msgid ""
 "Sends one plain-text email from the same community identity used for review/"
 "vote/vouch mail. Reaching your inbox is a good sign; landing in spam or not "
@@ -852,53 +860,47 @@ msgstr ""
 "sekali, itu menegaskan adanya masalah keterkiriman yang nyata terlepas dari "
 "apa yang dikatakan pemeriksaan di atas."
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:114
+#: includes/Admin/Dashboards/DeliverabilityCard.php:115
 msgid "Found"
 msgstr "Ditemukan"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:115
+#: includes/Admin/Dashboards/DeliverabilityCard.php:116
 msgid "Not found"
 msgstr "Tidak ditemukan"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:116
-#: includes/Admin/Dashboards/DeliverabilityCard.php:163
+#: includes/Admin/Dashboards/DeliverabilityCard.php:117
+#: includes/Admin/Dashboards/DeliverabilityCard.php:164
 msgid "DNS lookup failed"
 msgstr "Pencarian DNS gagal"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:117
-#: includes/Admin/Dashboards/DeliverabilityCard.php:164
+#: includes/Admin/Dashboards/DeliverabilityCard.php:118
+#: includes/Admin/Dashboards/DeliverabilityCard.php:165
 msgid "Unavailable on this host"
 msgstr "Tidak tersedia di host ini"
 
 #. translators: %s: DKIM selector, e.g. "google"
-#: includes/Admin/Dashboards/DeliverabilityCard.php:136
+#: includes/Admin/Dashboards/DeliverabilityCard.php:137
 #, php-format
 msgid "Found (selector: %s)"
 msgstr "Ditemukan (selector: %s)"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:144
+#: includes/Admin/Dashboards/DeliverabilityCard.php:145
 msgid "Not found under common selectors"
 msgstr "Tidak ditemukan pada selector umum"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:160
+#: includes/Admin/Dashboards/DeliverabilityCard.php:161
 msgid "Not listed"
 msgstr "Tidak terdaftar"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:161
+#: includes/Admin/Dashboards/DeliverabilityCard.php:162
 msgid "LISTED"
 msgstr "TERDAFTAR"
 
-#: includes/Admin/Dashboards/DeliverabilityCard.php:171
+#: includes/Admin/Dashboards/DeliverabilityCard.php:172
 msgid "No address configured"
 msgstr "Tidak ada alamat yang dikonfigurasi"
 
-#. translators: %s: site name
-#: includes/Admin/Dashboards/DeliverabilityCard.php:198
-#, php-format
-msgid "[TEST] Deliverability check from %s"
-msgstr "[TEST] Pemeriksaan keterkiriman dari %s"
-
-#: includes/Admin/Dashboards/DeliverabilityCard.php:201
+#: includes/Admin/Dashboards/DeliverabilityCard.php:207
 msgid ""
 "This is a one-off deliverability test from your Agnosis Settings → Email "
 "Inbox page. If you're reading this in your inbox (not spam), the community/"
@@ -907,6 +909,19 @@ msgstr ""
 "Ini adalah tes keterkiriman satu kali dari halaman Agnosis Settings → Email "
 "Inbox Anda. Jika Anda membaca ini di kotak masuk (bukan spam), identitas "
 "From komunitas/transaksional dapat dikirim ke alamat ini."
+
+#: includes/Admin/Dashboards/DeliverabilityCard.php:210
+msgid ""
+"It is sent in the same branded HTML shell as every real Agnosis message, so "
+"what reaches you here is what your artists and subscribers receive. Nothing "
+"was recorded, and no subscriber, queue or setting was touched."
+msgstr "Dikirim dalam shell HTML bermerek yang sama seperti setiap pesan Agnosis asli, jadi apa yang sampai di sini adalah apa yang diterima seniman dan pelanggan Anda. Tidak ada yang direkam, dan tidak ada pelanggan, antrian, atau pengaturan yang disentuh."
+
+#. translators: %s: site name
+#: includes/Admin/Dashboards/DeliverabilityCard.php:217
+#, php-format
+msgid "[TEST] Deliverability check from %s"
+msgstr "[TEST] Pemeriksaan keterkiriman dari %s"
 
 #: includes/Admin/Dashboards/InvitationCard.php:37
 msgid "Invite an Artist"
@@ -1132,7 +1147,7 @@ msgstr "%1$d diterima (%2$d memilih keluar)"
 
 #: includes/Admin/Dashboards/NewsletterDashboard.php:108
 #: includes/Admin/Dashboards/NewsletterDashboard.php:149
-#: includes/Network/ActivityPub.php:3565
+#: includes/Network/Federation/Replies.php:1009
 msgid "Sending…"
 msgstr "Mengirim…"
 
@@ -1232,12 +1247,12 @@ msgid "Relay actor URL"
 msgstr "URL aktor relai"
 
 #: includes/Admin/Dashboards/RelayManager.php:79
-#: includes/Admin/Settings.php:586
+#: includes/Admin/Settings.php:592
 msgid "Enabled"
 msgstr "Diaktifkan"
 
 #: includes/Admin/Dashboards/RelayManager.php:81
-#: includes/Admin/Settings.php:588
+#: includes/Admin/Settings.php:594
 msgid "Disabled"
 msgstr "Dinonaktifkan"
 
@@ -1259,7 +1274,7 @@ msgstr ""
 
 #: includes/Admin/Dashboards/RelayManager.php:96
 #: includes/Admin/Dashboards/RhizomeManager.php:249
-#: includes/Admin/Settings.php:417 includes/Core/EmailFooter.php:85
+#: includes/Admin/Settings.php:423 includes/Core/EmailFooter.php:85
 #: includes/Publishing/PostCreator.php:1060
 msgid "Remove"
 msgstr "Hapus"
@@ -1343,7 +1358,7 @@ msgid "Check"
 msgstr "Periksa"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:182
-#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:720
+#: includes/Admin/InboxPage.php:510 includes/Admin/InboxPage.php:723
 msgid "Pending"
 msgstr "Tertunda"
 
@@ -1371,7 +1386,7 @@ msgstr "Hanya aktor"
 
 #: includes/Admin/Dashboards/RhizomeManager.php:239
 #: includes/Admin/MediumProposals.php:159 includes/Admin/TagProposals.php:134
-#: includes/Network/ActivityPub.php:4953
+#: includes/Network/Federation/Replies.php:2107
 msgid "Approve"
 msgstr "Setujui"
 
@@ -1503,7 +1518,7 @@ msgstr "Subjek"
 msgid "Endpoint"
 msgstr "Endpoint"
 
-#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:611
+#: includes/Admin/InboxPage.php:166 includes/Admin/Settings.php:617
 msgid "Files"
 msgstr "File"
 
@@ -1523,8 +1538,8 @@ msgstr "Baris lama — hapus dan muat ulang untuk pratinjau"
 msgid "Attachment viewer"
 msgstr "Penampil lampiran"
 
-#: includes/Admin/InboxPage.php:276 includes/Network/ActivityPub.php:3446
-#: includes/Network/ActivityPub.php:3604
+#: includes/Admin/InboxPage.php:276 includes/Network/Federation/Follows.php:273
+#: includes/Network/Federation/Replies.php:1048
 #: includes/Network/SubdomainNavigation.php:489
 #: includes/Newsletter/PopoverBlock.php:121
 msgid "Close"
@@ -1560,7 +1575,7 @@ msgstr ""
 msgid "Processed %d pending item(s)."
 msgstr "Berhasil memproses %d item tertunda."
 
-#: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:721
+#: includes/Admin/InboxPage.php:511 includes/Admin/InboxPage.php:724
 msgid "Processing"
 msgstr "Memproses"
 
@@ -1568,7 +1583,7 @@ msgstr "Memproses"
 msgid "Published"
 msgstr "Diterbitkan"
 
-#: includes/Admin/InboxPage.php:513 includes/Admin/InboxPage.php:722
+#: includes/Admin/InboxPage.php:513 includes/Admin/InboxPage.php:725
 msgid "Failed"
 msgstr "Gagal"
 
@@ -1576,12 +1591,20 @@ msgstr "Gagal"
 msgid "Skipped"
 msgstr "Dilewati"
 
-#: includes/Admin/InboxPage.php:527
+#: includes/Admin/InboxPage.php:522
+msgid "Filter submissions by status"
+msgstr "Filter submission berdasarkan status"
+
+#: includes/Admin/InboxPage.php:528
+msgid "Filter submissions by skip reason"
+msgstr "Filter submission berdasarkan alasan skip"
+
+#: includes/Admin/InboxPage.php:530
 msgid "All reasons"
 msgstr "Semua alasan"
 
 #. translators: 1: number of collapsed messages, 2: URL to view them
-#: includes/Admin/InboxPage.php:571
+#: includes/Admin/InboxPage.php:574
 #, php-format
 msgid ""
 "%1$d message from an unregistered sender is hidden from this view. <a href="
@@ -1593,76 +1616,76 @@ msgstr[0] ""
 "%1$d pesan dari pengirim yang tidak terdaftar disembunyikan dari tampilan "
 "ini. <a href=\"%2$s\">Lihat</a>."
 
-#: includes/Admin/InboxPage.php:629
+#: includes/Admin/InboxPage.php:632
 msgid "Poll Inbox"
 msgstr "Poll Inbox"
 
-#: includes/Admin/InboxPage.php:638
+#: includes/Admin/InboxPage.php:641
 msgid "Force Reprocess"
 msgstr "Paksa Proses Ulang"
 
-#: includes/Admin/InboxPage.php:647
+#: includes/Admin/InboxPage.php:650
 msgid "Process All Pending"
 msgstr "Proses Semua yang Tertunda"
 
-#: includes/Admin/InboxPage.php:677 includes/Publishing/PostCreator.php:1062
+#: includes/Admin/InboxPage.php:680 includes/Publishing/PostCreator.php:1062
 msgid "Goodbye"
 msgstr "Selamat tinggal"
 
-#: includes/Admin/InboxPage.php:680 includes/Admin/Settings.php:311
+#: includes/Admin/InboxPage.php:683 includes/Admin/Settings.php:311
 #: includes/Core/EmailFooter.php:101 includes/Publishing/PostCreator.php:1063
 msgid "Community"
 msgstr "Komunitas"
 
-#: includes/Admin/InboxPage.php:683
+#: includes/Admin/InboxPage.php:686
 msgid "Bounce"
 msgstr "Pantulan"
 
-#: includes/Admin/InboxPage.php:694
+#: includes/Admin/InboxPage.php:697
 msgid "Awaiting Review"
 msgstr "Menunggu Tinjauan"
 
-#: includes/Admin/InboxPage.php:697
+#: includes/Admin/InboxPage.php:700
 msgid "Live"
 msgstr "Aktif"
 
-#: includes/Admin/InboxPage.php:700
+#: includes/Admin/InboxPage.php:703
 msgid "Processed"
 msgstr "Diproses"
 
-#: includes/Admin/InboxPage.php:713
+#: includes/Admin/InboxPage.php:716
 msgid "Member Removed"
 msgstr "Anggota Dihapus"
 
-#: includes/Admin/InboxPage.php:714
+#: includes/Admin/InboxPage.php:717
 msgid "Broadcast Sent"
 msgstr "Siaran Terkirim"
 
-#: includes/Admin/InboxPage.php:715
+#: includes/Admin/InboxPage.php:718
 msgid "Bounced (too long)"
 msgstr "Membalik (terlalu panjang)"
 
-#: includes/Admin/InboxPage.php:717
+#: includes/Admin/InboxPage.php:720
 msgid "Handled"
 msgstr "Ditangani"
 
-#: includes/Admin/InboxPage.php:743
+#: includes/Admin/InboxPage.php:746
 msgid "Process"
 msgstr "Proses"
 
-#: includes/Admin/InboxPage.php:763
+#: includes/Admin/InboxPage.php:766
 msgid "View Post"
 msgstr "Lihat Postingan"
 
-#: includes/Admin/InboxPage.php:773
+#: includes/Admin/InboxPage.php:776
 msgid "Reprocess"
 msgstr "Proses Ulang"
 
-#: includes/Admin/InboxPage.php:778
+#: includes/Admin/InboxPage.php:781
 msgid "Running…"
 msgstr "Berjalan…"
 
-#: includes/Admin/InboxPage.php:784
+#: includes/Admin/InboxPage.php:787
 msgid "Delete this queue row?"
 msgstr "Hapus baris antrian ini?"
 
@@ -1959,7 +1982,7 @@ msgstr "Jaringan"
 msgid "Rhizome"
 msgstr "Rhizome"
 
-#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:494
+#: includes/Admin/Settings.php:312 includes/Admin/Settings.php:500
 msgid "Donations"
 msgstr "Donasi"
 
@@ -1985,7 +2008,7 @@ msgstr ""
 msgid "— None (inline message only) —"
 msgstr "— Tidak ada (hanya pesan inline) —"
 
-#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:403
+#: includes/Admin/Settings.php:392 includes/Admin/Settings.php:409
 msgid "Reset to default"
 msgstr "Atur ulang ke default"
 
@@ -1997,19 +2020,19 @@ msgstr ""
 "Mengganti teks di atas dengan bawaan default plugin — klik Simpan Perubahan "
 "di bawah untuk menyimpannya."
 
-#: includes/Admin/Settings.php:416
+#: includes/Admin/Settings.php:422
 msgid "Select Image"
 msgstr "Pilih Gambar"
 
-#: includes/Admin/Settings.php:467
+#: includes/Admin/Settings.php:473
 msgid "Bot Protection"
 msgstr "Perlindungan Bot"
 
-#: includes/Admin/Settings.php:470
+#: includes/Admin/Settings.php:476
 msgid "Turnstile is configured."
 msgstr "Turnstile telah dikonfigurasi."
 
-#: includes/Admin/Settings.php:471
+#: includes/Admin/Settings.php:477
 msgid ""
 "The Join application form and the Newsletter Subscribe form both require "
 "human verification before they accept a submission."
@@ -2017,11 +2040,11 @@ msgstr ""
 "Formulir aplikasi Join dan formulir Berlangganan Newsletter sama-sama "
 "memerlukan verifikasi manusia sebelum menerima kiriman."
 
-#: includes/Admin/Settings.php:476
+#: includes/Admin/Settings.php:482
 msgid "Turnstile is not configured."
 msgstr "Turnstile belum dikonfigurasi."
 
-#: includes/Admin/Settings.php:477
+#: includes/Admin/Settings.php:483
 msgid ""
 "Your Join application form is public — anyone can submit an application, and "
 "a submitted (and confirmed) application still emails every admitted artist "
@@ -2040,7 +2063,7 @@ msgstr ""
 "atas untuk mewajibkan verifikasi manusia pada formulir Join dan formulir "
 "Berlangganan Newsletter."
 
-#: includes/Admin/Settings.php:496
+#: includes/Admin/Settings.php:502
 msgid ""
 "A simple way for visitors to support an artist directly is planned, with no "
 "platform fee. That feature hasn't been built yet, so there is nothing to "
@@ -2050,7 +2073,7 @@ msgstr ""
 "sedang direncanakan, tanpa biaya platform. Fitur tersebut belum dibangun, "
 "jadi tidak ada yang perlu dikonfigurasi di sini hari ini."
 
-#: includes/Admin/Settings.php:499
+#: includes/Admin/Settings.php:505
 msgid ""
 "Agnosis is not a marketplace. Art sales, checkout, and other commerce "
 "functionality are left to dedicated plugins."
@@ -2058,24 +2081,24 @@ msgstr ""
 "Agnosis bukan pasar. Penjualan seni, checkout, dan fungsi perdagangan "
 "lainnya diserahkan kepada plugin khusus."
 
-#: includes/Admin/Settings.php:524
+#: includes/Admin/Settings.php:530
 msgid "OpenAI"
 msgstr "OpenAI"
 
-#: includes/Admin/Settings.php:525
+#: includes/Admin/Settings.php:531
 msgid "Anthropic"
 msgstr "Anthropic"
 
-#: includes/Admin/Settings.php:532
+#: includes/Admin/Settings.php:538
 msgid "AI Processing & Privacy Policy"
 msgstr "Kebijakan Pemrosesan & Privasi AI"
 
-#: includes/Admin/Settings.php:535
+#: includes/Admin/Settings.php:541
 msgid "A Privacy Policy page is set."
 msgstr "Halaman Kebijakan Privasi telah diset."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:539
+#: includes/Admin/Settings.php:545
 #, php-format
 msgid ""
 "Suggested wording covering %s and public federation was added to it "
@@ -2088,12 +2111,12 @@ msgstr ""
 "mempublikasikan, dan periksa dengan penyedia Anda tentang perjanjian "
 "pemrosesan data (DPA) mereka sendiri untuk kewajiban kepatuhan Anda."
 
-#: includes/Admin/Settings.php:547
+#: includes/Admin/Settings.php:553
 msgid "No Privacy Policy page is set."
 msgstr "Belum ada halaman Kebijakan Privasi yang diset."
 
 #. translators: %s: comma-separated list of configured AI providers, e.g. "OpenAI, Anthropic"
-#: includes/Admin/Settings.php:551
+#: includes/Admin/Settings.php:557
 #, php-format
 msgid ""
 "Submitted artwork, text, and visitor contact messages are sent to %s for "
@@ -2108,19 +2131,19 @@ msgstr ""
 "Anda juga mungkin ingin meninjau perjanjian pemrosesan data (DPA) penyedia "
 "tersebut untuk kewajiban kepatuhan Anda sendiri."
 
-#: includes/Admin/Settings.php:555
+#: includes/Admin/Settings.php:561
 msgid "Go to Settings → Privacy"
 msgstr "Buka Pengaturan → Privasi"
 
-#: includes/Admin/Settings.php:579
+#: includes/Admin/Settings.php:585
 msgid "Debug Files"
 msgstr "Berkas Debug"
 
-#: includes/Admin/Settings.php:583
+#: includes/Admin/Settings.php:589
 msgid "Currently"
 msgstr "Saat ini"
 
-#: includes/Admin/Settings.php:594
+#: includes/Admin/Settings.php:600
 msgid ""
 "Forced ON by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -2128,7 +2151,7 @@ msgstr ""
 "Dipaksa AKTIF oleh konstanta AGNOSIS_DEBUG di wp-config.php — kotak centang "
 "di atas tidak berpengaruh sampai baris itu dihapus."
 
-#: includes/Admin/Settings.php:596
+#: includes/Admin/Settings.php:602
 msgid ""
 "Forced OFF by the AGNOSIS_DEBUG constant in wp-config.php — the checkbox "
 "above has no effect until that line is removed."
@@ -2136,21 +2159,21 @@ msgstr ""
 "Dipaksa NONAKTIF oleh konstanta AGNOSIS_DEBUG di wp-config.php — kotak "
 "centang di atas tidak berpengaruh sampai baris itu dihapus."
 
-#: includes/Admin/Settings.php:604
+#: includes/Admin/Settings.php:610
 msgid "Directory"
 msgstr "Direktori"
 
-#: includes/Admin/Settings.php:607
+#: includes/Admin/Settings.php:613
 msgid "Filter with agnosis_debug_dir to redirect debug output elsewhere."
 msgstr ""
 "Gunakan filter agnosis_debug_dir untuk mengarahkan output debug ke lokasi "
 "lain."
 
-#: includes/Admin/Settings.php:614
+#: includes/Admin/Settings.php:620
 msgid ".txt file(s) in the directory"
 msgstr "berkas .txt di dalam direktori"
 
-#: includes/Admin/Settings.php:620
+#: includes/Admin/Settings.php:626
 msgid ""
 "Delete all .txt files in the debug directory? The directory itself stays in "
 "place so future debug writes still land cleanly."
@@ -2158,19 +2181,19 @@ msgstr ""
 "Hapus semua berkas .txt di direktori debug? Direktori itu sendiri tetap ada "
 "sehingga penulisan debug berikutnya tetap tersimpan dengan baik."
 
-#: includes/Admin/Settings.php:625
+#: includes/Admin/Settings.php:631
 msgid "Clear Debug Files"
 msgstr "Bersihkan Berkas Debug"
 
-#: includes/Admin/Settings.php:656
+#: includes/Admin/Settings.php:662
 msgid "Term Translation Cache"
 msgstr "Cache Terjemahan Istilah"
 
-#: includes/Admin/Settings.php:660
+#: includes/Admin/Settings.php:666
 msgid "Cached translations"
 msgstr "Terjemahan yang di-cache"
 
-#: includes/Admin/Settings.php:663
+#: includes/Admin/Settings.php:669
 msgid ""
 "AI-translated tag/medium term names, cached so the same term always gets the "
 "same translated label instead of a fresh AI phrasing per post. Renaming a "
@@ -2183,7 +2206,7 @@ msgstr ""
 "cache miliknya sendiri; gunakan tombol di bawah hanya jika terjemahan yang "
 "di-cache itu sendiri keliru."
 
-#: includes/Admin/Settings.php:669
+#: includes/Admin/Settings.php:675
 msgid ""
 "Clear every cached term translation? Nothing is deleted from your site — "
 "terms will simply be re-translated by AI the next time they're needed."
@@ -2192,23 +2215,23 @@ msgstr ""
 "dari situs Anda — istilah hanya akan diterjemahkan ulang oleh AI saat "
 "dibutuhkan berikutnya."
 
-#: includes/Admin/Settings.php:674
+#: includes/Admin/Settings.php:680
 msgid "Clear Term Translation Cache"
 msgstr "Bersihkan Cache Terjemahan Istilah"
 
-#: includes/Admin/Settings.php:728
+#: includes/Admin/Settings.php:734
 msgid "Inbox Tools"
 msgstr "Alat Kotak Masuk"
 
-#: includes/Admin/Settings.php:732
+#: includes/Admin/Settings.php:738
 msgid "Test connection"
 msgstr "Uji koneksi"
 
-#: includes/Admin/Settings.php:737
+#: includes/Admin/Settings.php:743
 msgid "Test IMAP Connection"
 msgstr "Uji Koneksi IMAP"
 
-#: includes/Admin/Settings.php:739
+#: includes/Admin/Settings.php:745
 msgid ""
 "Connects to the configured mailbox and reports the total and unseen message "
 "count."
@@ -2216,15 +2239,15 @@ msgstr ""
 "Menyambungkan ke kotak surat yang dikonfigurasi dan melaporkan total serta "
 "jumlah pesan yang belum dibaca."
 
-#: includes/Admin/Settings.php:743
+#: includes/Admin/Settings.php:749
 msgid "Poll inbox now"
 msgstr "Ambil kotak masuk sekarang"
 
-#: includes/Admin/Settings.php:748
+#: includes/Admin/Settings.php:754
 msgid "Poll Inbox Now"
 msgstr "Ambil Kotak Masuk Sekarang"
 
-#: includes/Admin/Settings.php:750
+#: includes/Admin/Settings.php:756
 msgid ""
 "Fetches unseen messages immediately without waiting for WP-Cron. Then click "
 "\"Process Pending Queue\" to run the AI pipeline."
@@ -2232,15 +2255,15 @@ msgstr ""
 "Mengambil pesan yang belum dibaca segera tanpa menunggu WP-Cron. Lalu klik "
 "\"Proses Antrean Tertunda\" untuk menjalankan pipeline AI."
 
-#: includes/Admin/Settings.php:754
+#: includes/Admin/Settings.php:760
 msgid "Process queue"
 msgstr "Proses antrean"
 
-#: includes/Admin/Settings.php:759
+#: includes/Admin/Settings.php:765
 msgid "Process Pending Queue"
 msgstr "Proses Antrean Tertunda"
 
-#: includes/Admin/Settings.php:761
+#: includes/Admin/Settings.php:767
 msgid ""
 "Immediately runs the AI pipeline on all pending queue items without waiting "
 "for WP-Cron. Use this to test the end-to-end flow after a poll."
@@ -2249,15 +2272,15 @@ msgstr ""
 "menunggu WP-Cron. Gunakan ini untuk menguji alur end-to-end setelah "
 "pengambilan."
 
-#: includes/Admin/Settings.php:765
+#: includes/Admin/Settings.php:771
 msgid "Force reprocess"
 msgstr "Paksa proses ulang"
 
-#: includes/Admin/Settings.php:770
+#: includes/Admin/Settings.php:776
 msgid "Force Reprocess Inbox"
 msgstr "Paksa Proses Ulang Kotak Masuk"
 
-#: includes/Admin/Settings.php:772
+#: includes/Admin/Settings.php:778
 msgid ""
 "Resets failed/stuck/orphaned queue rows back to pending, then immediately "
 "polls for unprocessed messages. Then click \"Process Pending Queue\" to run "
@@ -2898,7 +2921,13 @@ msgid ""
 "by the daily cleanup. Only the newsletter's rhizome activity summary reads "
 "this log, and only within one digest period, so a value comfortably above "
 "your digest frequency loses nothing. Default: 90 days."
-msgstr "Catatan tentang apa yang direlai oleh node mitra tepercaya melalui yang ini — termasuk akun jarak jauh yang meningkatkan itu — yang lebih tua dari ini akan dihapus secara permanen oleh pembersihan harian. Hanya ringkasan aktivitas rhizome buletin yang membaca log ini, dan hanya dalam satu periode digest, jadi nilai yang jauh di atas frekuensi digest Anda tidak akan kehilangan apa pun. Default: 90 hari."
+msgstr ""
+"Catatan tentang apa yang direlai oleh node mitra tepercaya melalui yang ini "
+"— termasuk akun jarak jauh yang meningkatkan itu — yang lebih tua dari ini "
+"akan dihapus secara permanen oleh pembersihan harian. Hanya ringkasan "
+"aktivitas rhizome buletin yang membaca log ini, dan hanya dalam satu periode "
+"digest, jadi nilai yang jauh di atas frekuensi digest Anda tidak akan "
+"kehilangan apa pun. Default: 90 hari."
 
 #: includes/Admin/SettingsFields.php:405
 msgid "Per-sender hourly submission limit"
@@ -3964,7 +3993,7 @@ msgstr ""
 "Berapa lama sebelum sebuah edisi jatuh tempo Agnosis mengusulkan intro yang "
 "dibuat AI. Hanya berlaku saat auto-draft (di atas) diaktifkan. Default: 24."
 
-#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1181 includes/Newsletter/Scheduler.php:414
 msgid "Artist newsletter"
 msgstr "Buletin artis"
 
@@ -4008,7 +4037,7 @@ msgstr ""
 "edisi dikirim, dan mengirim email kepada Anda untuk meninjaunya terlebih "
 "dahulu — tulis sendiri di sini kapan saja untuk melewati itu."
 
-#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:400
+#: includes/Admin/SettingsFields.php:1206 includes/Newsletter/Scheduler.php:414
 msgid "Public newsletter"
 msgstr "Buletin publik"
 
@@ -4208,7 +4237,7 @@ msgstr ""
 "biarkan gambar berbicara sepenuhnya untuk dirinya sendiri."
 
 #: includes/Artist/Admission.php:108 includes/Artist/ContactForm.php:164
-#: includes/Network/ActivityPub.php:442
+#: includes/Network/ActivityPub.php:320
 msgid "Name"
 msgstr "Nama"
 
@@ -4226,7 +4255,7 @@ msgstr "Pernyataan"
 
 #. translators: 1: field name (e.g. "Name", "Bio", "Message"), 2: maximum character count
 #: includes/Artist/Admission.php:178 includes/Artist/ContactForm.php:203
-#: includes/Network/ActivityPub.php:3964
+#: includes/Network/Federation/Replies.php:1122
 #, php-format
 msgid "%1$s must be %2$d characters or fewer."
 msgstr "%1$s harus terdiri dari %2$d karakter atau kurang."
@@ -4325,8 +4354,10 @@ msgstr "Terima kasih, %s!"
 #: includes/Artist/AdmissionConfirm.php:169 includes/Artist/ContactForm.php:899
 #: includes/Artist/ContactForm.php:904 includes/Artist/ContactForm.php:909
 #: includes/Artist/NotificationPreferences.php:367
-#: includes/Network/ActivityPub.php:4854 includes/Network/ActivityPub.php:4861
-#: includes/Network/ActivityPub.php:4868 includes/Network/ActivityPub.php:4976
+#: includes/Network/Federation/Replies.php:2008
+#: includes/Network/Federation/Replies.php:2015
+#: includes/Network/Federation/Replies.php:2022
+#: includes/Network/Federation/Replies.php:2130
 #: includes/Newsletter/SubscriptionConfirm.php:250
 msgid "Link error"
 msgstr "Galat tautan"
@@ -4376,8 +4407,9 @@ msgstr "Kami telah menerima permohonan Anda ke %s"
 #: includes/Artist/DepartureNotification.php:289
 #: includes/Artist/DepartureNotification.php:372
 #: includes/Artist/DepartureNotification.php:467
-#: includes/Artist/VoteDigest.php:156 includes/Network/ActivityPub.php:4530
-#: includes/Network/ActivityPub.php:4649
+#: includes/Artist/VoteDigest.php:156
+#: includes/Network/Federation/Replies.php:1688
+#: includes/Network/Federation/Replies.php:1807
 #: includes/Publishing/Notification.php:289
 #: includes/Publishing/Notification.php:382
 #: includes/Publishing/Notification.php:558
@@ -4895,7 +4927,8 @@ msgstr ""
 "Spam, penipuan, atau iklan komersial tak diminta yang tidak terkait dengan "
 "upaya menghubungi artis tentang karya mereka secara nyata"
 
-#: includes/Artist/ContactForm.php:453 includes/Network/ActivityPub.php:4177
+#: includes/Artist/ContactForm.php:453
+#: includes/Network/Federation/Replies.php:1335
 msgid "Flagged by automatic content review."
 msgstr "Ditandai oleh peninjauan konten otomatis."
 
@@ -4930,12 +4963,14 @@ msgid "Reply (translated automatically)"
 msgstr "Balas (diterjemahkan secara otomatis)"
 
 #: includes/Artist/ContactForm.php:805 includes/Artist/ContactForm.php:899
-#: includes/Network/ActivityPub.php:4737 includes/Network/ActivityPub.php:4853
-#: includes/Network/ActivityPub.php:4975
+#: includes/Network/Federation/Replies.php:1891
+#: includes/Network/Federation/Replies.php:2007
+#: includes/Network/Federation/Replies.php:2129
 msgid "This link is invalid or has already expired."
 msgstr "Tautan ini tidak valid atau sudah kedaluwarsa."
 
-#: includes/Artist/ContactForm.php:814 includes/Network/ActivityPub.php:4742
+#: includes/Artist/ContactForm.php:814
+#: includes/Network/Federation/Replies.php:1896
 msgid "This link has expired."
 msgstr "Tautan ini telah kedaluwarsa."
 
@@ -4943,15 +4978,18 @@ msgstr "Tautan ini telah kedaluwarsa."
 msgid "This conversation no longer exists."
 msgstr "Percakapan ini tidak lagi ada."
 
-#: includes/Artist/ContactForm.php:941 includes/Network/ActivityPub.php:4910
+#: includes/Artist/ContactForm.php:941
+#: includes/Network/Federation/Replies.php:2064
 msgid "Original"
 msgstr "Asli"
 
-#: includes/Artist/ContactForm.php:947 includes/Network/ActivityPub.php:4916
+#: includes/Artist/ContactForm.php:947
+#: includes/Network/Federation/Replies.php:2070
 msgid "Translated"
 msgstr "Diterjemahkan"
 
-#: includes/Artist/ContactForm.php:950 includes/Network/ActivityPub.php:4919
+#: includes/Artist/ContactForm.php:950
+#: includes/Network/Federation/Replies.php:2073
 msgid "Translation pending…"
 msgstr "Penerjemahan tertunda…"
 
@@ -4971,8 +5009,9 @@ msgstr "Balas percakapan ini"
 msgid "Your reply (it will be translated automatically, if needed)"
 msgstr "Balasan Anda (akan diterjemahkan secara otomatis, jika diperlukan)"
 
-#: includes/Artist/ContactForm.php:992 includes/Network/ActivityPub.php:3571
-#: includes/Network/ActivityPub.php:3663
+#: includes/Artist/ContactForm.php:992
+#: includes/Network/Federation/Replies.php:693
+#: includes/Network/Federation/Replies.php:1015
 msgid "Send reply"
 msgstr "Kirim balasan"
 
@@ -5015,8 +5054,8 @@ msgstr "Anda memiliki balasan baru untuk pesan Anda:"
 msgid "Original message, as written"
 msgstr "Pesan asli, seperti yang ditulis"
 
-#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:454
-#: includes/Network/ActivityPub.php:3584
+#: includes/Artist/ContactForm.php:1250 includes/Network/ActivityPub.php:332
+#: includes/Network/Federation/Replies.php:1028
 msgid "Reply"
 msgstr "Balas"
 
@@ -5025,12 +5064,12 @@ msgid "You've used all of your replies for this conversation."
 msgstr "Anda telah menggunakan semua balasan Anda untuk percakapan ini."
 
 #: includes/Artist/ContactFormBlock.php:102
-#: includes/Network/ActivityPub.php:3653
+#: includes/Network/Federation/Replies.php:683
 msgid "Your name (optional)"
 msgstr "Nama Anda (opsional)"
 
 #: includes/Artist/ContactFormBlock.php:113
-#: includes/Network/ActivityPub.php:3655
+#: includes/Network/Federation/Replies.php:685
 msgid "Your email address"
 msgstr "Alamat email Anda"
 
@@ -5191,7 +5230,7 @@ msgstr ""
 "Akun Anda dan semua yang Anda publikasikan di %s telah dihapus secara "
 "permanen. Tidak ada lagi yang terkait dengan Anda yang disimpan di sini."
 
-#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:327
+#: includes/Artist/Departure.php:134 includes/Publishing/ReviewConfirm.php:336
 msgid "Link expired or already used"
 msgstr "Tautan kedaluwarsa atau sudah digunakan"
 
@@ -5449,7 +5488,7 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr "Silakan masukkan alamat email yang valid."
 
-#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:161
+#: includes/Artist/Invitation.php:89 includes/Newsletter/Scheduler.php:162
 msgid ""
 "wp_mail() reported a failure — check your site's outgoing mail configuration."
 msgstr ""
@@ -5462,7 +5501,7 @@ msgid "You're invited to join %s"
 msgstr "Anda diundang bergabung ke %s"
 
 #. translators: %s: the actual (non-test) subject line
-#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:154
+#: includes/Artist/Invitation.php:130 includes/Newsletter/Scheduler.php:155
 #, php-format
 msgid "[TEST] %s"
 msgstr "[UJI] %s"
@@ -6252,7 +6291,7 @@ msgstr "Dukungan komunitas diberikan"
 
 #: includes/Core/Privacy.php:234 includes/Core/Privacy.php:252
 #: includes/Core/Privacy.php:270 includes/Core/Privacy.php:288
-#: includes/Publishing/ReviewConfirm.php:972
+#: includes/Publishing/ReviewConfirm.php:981
 msgid "Date"
 msgstr "Tanggal"
 
@@ -6348,7 +6387,7 @@ msgstr "Dikirim pada"
 msgid "On artwork"
 msgstr "Pada karya seni"
 
-#: includes/Core/Privacy.php:578 includes/Network/ActivityPub.php:3650
+#: includes/Core/Privacy.php:578 includes/Network/Federation/Replies.php:680
 msgid "Your reply"
 msgstr "Balasan Anda"
 
@@ -6416,7 +6455,10 @@ msgid ""
 "Replies written by the artist in these conversations were kept, as they are "
 "the artist's own content; your name, email address and IP have been removed "
 "from them."
-msgstr "Balasan yang ditulis oleh artis dalam percakapan ini disimpan, karena itu adalah konten milik artis; nama, alamat email, dan IP Anda telah dihapus dari mereka."
+msgstr ""
+"Balasan yang ditulis oleh artis dalam percakapan ini disimpan, karena itu "
+"adalah konten milik artis; nama, alamat email, dan IP Anda telah dihapus "
+"dari mereka."
 
 #: includes/Core/Privacy.php:924
 msgid ""
@@ -6462,7 +6504,15 @@ msgid ""
 "translated so it can be read on this site's other language versions and by "
 "the artist in their own language, and those translations are stored "
 "alongside it."
-msgstr "Ketika Anda membalas karya seni di situs ini, kami menyimpan balasan Anda, nama yang Anda berikan, alamat email Anda, alamat IP Anda, dan agen pengguna browser Anda. Balasan hanya dipublikasikan setelah disetujui oleh artis; setelah dipublikasikan, itu terlihat oleh siapa saja dan juga dikirim ke seluruh Fediverse ke server lain, yang tidak dapat kami tarik kembali. Balasan Anda juga diterjemahkan oleh mesin sehingga dapat dibaca di versi bahasa lain dari situs ini dan oleh artis dalam bahasa mereka sendiri, dan terjemahan tersebut disimpan di sampingnya."
+msgstr ""
+"Ketika Anda membalas karya seni di situs ini, kami menyimpan balasan Anda, "
+"nama yang Anda berikan, alamat email Anda, alamat IP Anda, dan agen pengguna "
+"browser Anda. Balasan hanya dipublikasikan setelah disetujui oleh artis; "
+"setelah dipublikasikan, itu terlihat oleh siapa saja dan juga dikirim ke "
+"seluruh Fediverse ke server lain, yang tidak dapat kami tarik kembali. "
+"Balasan Anda juga diterjemahkan oleh mesin sehingga dapat dibaca di versi "
+"bahasa lain dari situs ini dan oleh artis dalam bahasa mereka sendiri, dan "
+"terjemahan tersebut disimpan di sampingnya."
 
 #: includes/Core/Privacy.php:935
 msgid ""
@@ -6471,7 +6521,13 @@ msgid ""
 "with a secret that is replaced every day — enough to stop the same like "
 "being counted twice on the same day, and deliberately impossible to trace "
 "back to you or to undo once the day's secret has been replaced."
-msgstr "Ketika Anda \"menyukai\" sebuah karya seni tanpa masuk, kami tidak menyimpan alamat IP Anda. Kami hanya menyimpan sidik jari satu arah yang diambil darinya bersama dengan sebuah rahasia yang diganti setiap hari — cukup untuk menghentikan \"like\" yang sama dihitung dua kali di hari yang sama, dan dengan sengaja tidak mungkin dilacak kembali kepada Anda atau dibatalkan setelah rahasia hari itu telah diganti."
+msgstr ""
+"Ketika Anda \"menyukai\" sebuah karya seni tanpa masuk, kami tidak menyimpan "
+"alamat IP Anda. Kami hanya menyimpan sidik jari satu arah yang diambil "
+"darinya bersama dengan sebuah rahasia yang diganti setiap hari — cukup untuk "
+"menghentikan \"like\" yang sama dihitung dua kali di hari yang sama, dan "
+"dengan sengaja tidak mungkin dilacak kembali kepada Anda atau dibatalkan "
+"setelah rahasia hari itu telah diganti."
 
 #: includes/Core/Privacy.php:936
 msgid "Who we share it with"
@@ -6488,7 +6544,17 @@ msgid ""
 "Fediverse) as part of this plugin's core federation feature. Replies and "
 "contact messages are sent to the same AI provider for translation, and "
 "approved replies are federated outward in the same way approved posts are."
-msgstr "Deskripsi dan gambar karya seni yang dikirimkan dapat dikirimkan ke penyedia AI pihak ketiga (OpenAI atau Anthropic, tergantung pada konfigurasi situs ini) untuk membantu menulis teks publikasi dan meningkatkan gambar. Jika situs ini menggunakan Klien AI bawaan WordPress (dikonfigurasi di Pengaturan → Penghubung), konten yang dikirimkan akan dikirim ke layanan AI yang ditunjuk oleh penghubung tersebut. Pos yang disetujui juga disiarkan secara publik melalui ActivityPub (Fediverse) sebagai bagian dari fitur federasi inti plugin ini. Balasan dan pesan kontak dikirim ke penyedia AI yang sama untuk terjemahan, dan balasan yang disetujui disebarluaskan dengan cara yang sama seperti pos yang disetujui."
+msgstr ""
+"Deskripsi dan gambar karya seni yang dikirimkan dapat dikirimkan ke penyedia "
+"AI pihak ketiga (OpenAI atau Anthropic, tergantung pada konfigurasi situs "
+"ini) untuk membantu menulis teks publikasi dan meningkatkan gambar. Jika "
+"situs ini menggunakan Klien AI bawaan WordPress (dikonfigurasi di Pengaturan "
+"→ Penghubung), konten yang dikirimkan akan dikirim ke layanan AI yang "
+"ditunjuk oleh penghubung tersebut. Pos yang disetujui juga disiarkan secara "
+"publik melalui ActivityPub (Fediverse) sebagai bagian dari fitur federasi "
+"inti plugin ini. Balasan dan pesan kontak dikirim ke penyedia AI yang sama "
+"untuk terjemahan, dan balasan yang disetujui disebarluaskan dengan cara yang "
+"sama seperti pos yang disetujui."
 
 #: includes/Core/Privacy.php:942
 msgid ""
@@ -6496,7 +6562,11 @@ msgid ""
 "artworks those partner nodes shared through this one, including the "
 "identifier of the remote account that shared each one. This is used only to "
 "report how active the network has been."
-msgstr "Jika situs ini terhubung ke node Agnosis lainnya, catatan disimpan tentang karya seni mana yang dibagikan oleh node mitra tersebut melalui node ini, termasuk pengidentifikasi akun jarak jauh yang membagikan masing-masing. Ini digunakan hanya untuk melaporkan seberapa aktif jaringan tersebut."
+msgstr ""
+"Jika situs ini terhubung ke node Agnosis lainnya, catatan disimpan tentang "
+"karya seni mana yang dibagikan oleh node mitra tersebut melalui node ini, "
+"termasuk pengidentifikasi akun jarak jauh yang membagikan masing-masing. Ini "
+"digunakan hanya untuk melaporkan seberapa aktif jaringan tersebut."
 
 #: includes/Core/Privacy.php:953
 msgid "Security check (Cloudflare Turnstile)"
@@ -6508,7 +6578,11 @@ msgid ""
 "Join, contact, newsletter-signup and artwork reply forms to block spam "
 "submissions. Completing it sends your IP address to Cloudflare for "
 "verification."
-msgstr "Situs ini menggunakan Cloudflare Turnstile, pemeriksaan keamanan otomatis, pada formulir Bergabung, kontak, pendaftaran buletin, dan balasan karya seni untuk memblokir pengiriman spam. Menyelesaikannya mengirimkan alamat IP Anda ke Cloudflare untuk verifikasi."
+msgstr ""
+"Situs ini menggunakan Cloudflare Turnstile, pemeriksaan keamanan otomatis, "
+"pada formulir Bergabung, kontak, pendaftaran buletin, dan balasan karya seni "
+"untuk memblokir pengiriman spam. Menyelesaikannya mengirimkan alamat IP Anda "
+"ke Cloudflare untuk verifikasi."
 
 #: includes/Core/Privacy.php:957
 msgid "Software updates"
@@ -6539,7 +6613,16 @@ msgid ""
 "logging turned on are deleted after 14 days. Records of what partner nodes "
 "shared through this site are kept for 90 days. This site's administrator can "
 "adjust each of these periods under Settings."
-msgstr "Secara default: pesan formulir kontak disimpan selama 90 hari, dan alamat IP pengirim di dalamnya dihapus lebih cepat, setelah 30 hari. Permohonan keanggotaan yang ditolak, dicabut, atau keluar dari jaringan dianonimkan setelah 180 hari. Email pengiriman mentah dihapus dari antrean pemrosesan setelah 7 hari, dan salinan diagnostik disimpan hanya jika administrator situs ini telah mengaktifkan pencatatan debug dihapus setelah 14 hari. Catatan tentang apa yang dibagikan oleh node mitra melalui situs ini disimpan selama 90 hari. Administrator situs ini dapat menyesuaikan masing-masing periode ini di bawah Pengaturan."
+msgstr ""
+"Secara default: pesan formulir kontak disimpan selama 90 hari, dan alamat IP "
+"pengirim di dalamnya dihapus lebih cepat, setelah 30 hari. Permohonan "
+"keanggotaan yang ditolak, dicabut, atau keluar dari jaringan dianonimkan "
+"setelah 180 hari. Email pengiriman mentah dihapus dari antrean pemrosesan "
+"setelah 7 hari, dan salinan diagnostik disimpan hanya jika administrator "
+"situs ini telah mengaktifkan pencatatan debug dihapus setelah 14 hari. "
+"Catatan tentang apa yang dibagikan oleh node mitra melalui situs ini "
+"disimpan selama 90 hari. Administrator situs ini dapat menyesuaikan masing-"
+"masing periode ini di bawah Pengaturan."
 
 #: includes/Core/Privacy.php:966
 msgid ""
@@ -6548,7 +6631,12 @@ msgid ""
 "any time. Likes are not kept against you at all: the daily fingerprint "
 "described above expires on its own within a day and cannot be linked back to "
 "you afterwards."
-msgstr "Balasan yang telah Anda terbitkan disimpan selama karya seni yang mereka miliki, seperti komentar lainnya di sebuah situs web — Anda dapat meminta kami untuk menghapusnya kapan saja. Suka tidak disimpan sama sekali terhadap Anda: jejak harian yang dijelaskan di atas otomatis kedaluwarsa dalam satu hari dan tidak dapat dihubungkan kembali ke Anda setelahnya."
+msgstr ""
+"Balasan yang telah Anda terbitkan disimpan selama karya seni yang mereka "
+"miliki, seperti komentar lainnya di sebuah situs web — Anda dapat meminta "
+"kami untuk menghapusnya kapan saja. Suka tidak disimpan sama sekali terhadap "
+"Anda: jejak harian yang dijelaskan di atas otomatis kedaluwarsa dalam satu "
+"hari dan tidak dapat dihubungkan kembali ke Anda setelahnya."
 
 #: includes/Core/Privacy.php:967
 msgid ""
@@ -6559,7 +6647,14 @@ msgid ""
 "in a conversation with you are the artist's own words: we will remove your "
 "name, email address and IP address from them, but not the messages "
 "themselves."
-msgstr "Anda dapat meminta salinan, atau penghapusan, data pribadi yang dijelaskan di atas kapan saja menggunakan alat permintaan data standar WordPress situs ini. Harap dicatat bahwa balasan yang telah dikirimkan ke seluruh Fediverse tidak dapat ditarik kembali dari server lain, dan bahwa balasan yang ditulis oleh seniman dalam percakapan dengan Anda adalah kata-kata seniman itu sendiri: kami akan menghapus nama, alamat email, dan alamat IP Anda dari mereka, tetapi tidak dari pesan itu sendiri."
+msgstr ""
+"Anda dapat meminta salinan, atau penghapusan, data pribadi yang dijelaskan "
+"di atas kapan saja menggunakan alat permintaan data standar WordPress situs "
+"ini. Harap dicatat bahwa balasan yang telah dikirimkan ke seluruh Fediverse "
+"tidak dapat ditarik kembali dari server lain, dan bahwa balasan yang ditulis "
+"oleh seniman dalam percakapan dengan Anda adalah kata-kata seniman itu "
+"sendiri: kami akan menghapus nama, alamat email, dan alamat IP Anda dari "
+"mereka, tetapi tidak dari pesan itu sendiri."
 
 #: includes/Core/Privacy.php:1006
 msgid ""
@@ -6576,7 +6671,11 @@ msgid ""
 "Your reply is reviewed by the artist before it appears. Once published it is "
 "public, machine-translated into this site's other languages, and shared "
 "across the Fediverse — which cannot be fully undone later."
-msgstr "Balasan Anda akan ditinjau oleh seniman sebelum ditampilkan. Setelah dipublikasikan, ia menjadi publik, diterjemahkan mesin ke dalam bahasa lain dari situs ini, dan dibagikan ke seluruh Fediverse — yang tidak dapat sepenuhnya dibatalkan kemudian."
+msgstr ""
+"Balasan Anda akan ditinjau oleh seniman sebelum ditampilkan. Setelah "
+"dipublikasikan, ia menjadi publik, diterjemahkan mesin ke dalam bahasa lain "
+"dari situs ini, dan dibagikan ke seluruh Fediverse — yang tidak dapat "
+"sepenuhnya dibatalkan kemudian."
 
 #: includes/Core/Privacy.php:1008
 msgid ""
@@ -6679,62 +6778,21 @@ msgstr ""
 msgid "This webhook request has already been processed."
 msgstr "Permintaan webhook ini sudah diproses."
 
-#: includes/Network/ActivityPub.php:629
-msgid "No such artist actor."
-msgstr "No such artist actor."
-
-#. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1117 includes/Network/ActivityPub.php:1134
-#, php-format
-msgid "♥ %d like"
-msgid_plural "♥ %d likes"
-msgstr[0] "♥ %d suka"
-
-#. translators: %d: number of likes.
-#: includes/Network/ActivityPub.php:1119
-#, php-format
-msgid "♥ %d likes"
-msgstr "♥ %d suka"
-
-#: includes/Network/ActivityPub.php:1120
-msgid "Could not update like."
-msgstr "Tidak dapat memperbarui suka."
-
-#. translators: %d: number of boosts.
-#: includes/Network/ActivityPub.php:1144
-#, php-format
-msgid "⟲ %d boost"
-msgid_plural "⟲ %d boosts"
-msgstr[0] "⟲ %d dorong"
-
-#: includes/Network/ActivityPub.php:2072
-msgid "Sensitive content"
-msgstr "Sensitive content"
-
-#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
-#: includes/Network/ActivityPub.php:2237
-#, php-format
-msgid "Also available in: %s"
-msgstr "Juga tersedia dalam: %s"
-
-#: includes/Network/ActivityPub.php:3014
-msgid "No such artwork."
-msgstr "Karya seni tidak ditemukan."
-
-#: includes/Network/ActivityPub.php:3420
+#: includes/Network/Federation/Follows.php:247
 msgid "Enter your Fediverse instance domain (e.g. mastodon.social)."
 msgstr "Masukkan domain instance Fediverse Anda (misalnya, mastodon.social)."
 
-#: includes/Network/ActivityPub.php:3421
+#: includes/Network/Federation/Follows.php:248
 msgid "Copied!"
 msgstr "Disalin!"
 
-#: includes/Network/ActivityPub.php:3437 includes/Network/ActivityPub.php:3480
+#: includes/Network/Federation/Follows.php:264
+#: includes/Network/Federation/Follows.php:307
 #: blocks/follow-overlay/editor.js:21
 msgid "Follow"
 msgstr "Ikuti"
 
-#: includes/Network/ActivityPub.php:3454
+#: includes/Network/Federation/Follows.php:281
 msgid ""
 "This artist publishes to the Fediverse — the open, decentralized social "
 "network behind Mastodon, Pixelfed, and other ActivityPub-based apps. Follow "
@@ -6745,73 +6803,110 @@ msgstr ""
 "ActivityPub lainnya. Ikuti mereka dari akun Anda sendiri di mana saja, tanpa "
 "perlu akun Agnosis."
 
-#: includes/Network/ActivityPub.php:3457
+#: includes/Network/Federation/Follows.php:284
 msgid "Their handle:"
 msgstr "Nama pengguna mereka:"
 
-#: includes/Network/ActivityPub.php:3461
+#: includes/Network/Federation/Follows.php:288
 msgid "Copy"
 msgstr "Salin"
 
-#: includes/Network/ActivityPub.php:3464
+#: includes/Network/Federation/Follows.php:291
 msgid ""
 "Paste it into the search bar of your own Fediverse app to follow directly."
 msgstr ""
 "Tempelkan ke bilah pencarian aplikasi Fediverse Anda sendiri untuk mengikuti "
 "secara langsung."
 
-#: includes/Network/ActivityPub.php:3468
+#: includes/Network/Federation/Follows.php:295
 msgid "Or enter your instance to follow with one click:"
 msgstr "Atau masukkan instance Anda untuk mengikuti dengan satu klik:"
 
-#: includes/Network/ActivityPub.php:3475
+#: includes/Network/Federation/Follows.php:302
 msgid "yourinstance.social"
 msgstr "yourinstance.social"
 
-#: includes/Network/ActivityPub.php:3542
-msgid "0 replies"
-msgstr "0 balasan"
+#: includes/Network/Federation/Identity.php:156
+msgid "No such artist actor."
+msgstr "No such artist actor."
 
-#: includes/Network/ActivityPub.php:3563
-msgid "Loading replies…"
-msgstr "Memuat balasan…"
+#. translators: %d: number of likes.
+#: includes/Network/Federation/Interactions.php:176
+#: includes/Network/Federation/Interactions.php:193
+#, php-format
+msgid "♥ %d like"
+msgid_plural "♥ %d likes"
+msgstr[0] "♥ %d suka"
 
-#: includes/Network/ActivityPub.php:3564
-msgid "Could not load replies."
-msgstr "Tidak dapat memuat balasan."
+#. translators: %d: number of likes.
+#: includes/Network/Federation/Interactions.php:178
+#, php-format
+msgid "♥ %d likes"
+msgstr "♥ %d suka"
 
-#: includes/Network/ActivityPub.php:3566 includes/Network/ActivityPub.php:4033
-msgid "Thanks — your reply has been submitted and is awaiting approval."
-msgstr "Terima kasih — balasan Anda telah dikirim dan menunggu persetujuan."
+#: includes/Network/Federation/Interactions.php:179
+msgid "Could not update like."
+msgstr "Tidak dapat memperbarui suka."
 
-#: includes/Network/ActivityPub.php:3567
-msgid "Could not send your reply. Please try again."
-msgstr "Tidak bisa mengirim balasan Anda. Silakan coba lagi."
+#. translators: %d: number of boosts.
+#: includes/Network/Federation/Interactions.php:203
+#, php-format
+msgid "⟲ %d boost"
+msgid_plural "⟲ %d boosts"
+msgstr[0] "⟲ %d dorong"
 
-#: includes/Network/ActivityPub.php:3568 includes/Network/ActivityPub.php:3654
-msgid "Name (optional)"
-msgstr "Nama (opsional)"
+#: includes/Network/Federation/Interactions.php:453
+msgid "No such artwork."
+msgstr "Karya seni tidak ditemukan."
 
-#: includes/Network/ActivityPub.php:3569 includes/Network/ActivityPub.php:3656
-msgid "Your email"
-msgstr "Email Anda"
-
-#: includes/Network/ActivityPub.php:3570 includes/Network/ActivityPub.php:3651
+#: includes/Network/Federation/Replies.php:681
+#: includes/Network/Federation/Replies.php:1014
 msgid "Write a reply…"
 msgstr "Tulis balasan…"
 
+#: includes/Network/Federation/Replies.php:684
+#: includes/Network/Federation/Replies.php:1012
+msgid "Name (optional)"
+msgstr "Nama (opsional)"
+
+#: includes/Network/Federation/Replies.php:686
+#: includes/Network/Federation/Replies.php:1013
+msgid "Your email"
+msgstr "Email Anda"
+
+#: includes/Network/Federation/Replies.php:986
+msgid "0 replies"
+msgstr "0 balasan"
+
+#: includes/Network/Federation/Replies.php:1007
+msgid "Loading replies…"
+msgstr "Memuat balasan…"
+
+#: includes/Network/Federation/Replies.php:1008
+msgid "Could not load replies."
+msgstr "Tidak dapat memuat balasan."
+
+#: includes/Network/Federation/Replies.php:1010
+#: includes/Network/Federation/Replies.php:1191
+msgid "Thanks — your reply has been submitted and is awaiting approval."
+msgstr "Terima kasih — balasan Anda telah dikirim dan menunggu persetujuan."
+
+#: includes/Network/Federation/Replies.php:1011
+msgid "Could not send your reply. Please try again."
+msgstr "Tidak bisa mengirim balasan Anda. Silakan coba lagi."
+
 #. translators: %d: number of replies.
-#: includes/Network/ActivityPub.php:3581
+#: includes/Network/Federation/Replies.php:1025
 #, php-format
 msgid "%d reply"
 msgid_plural "%d replies"
 msgstr[0] "%d balasan"
 
-#: includes/Network/ActivityPub.php:4103
+#: includes/Network/Federation/Replies.php:1261
 msgid "Replies aren't open on this artwork right now."
 msgstr "Balasan tidak dibuka untuk karya seni ini saat ini."
 
-#: includes/Network/ActivityPub.php:4171
+#: includes/Network/Federation/Replies.php:1329
 msgid ""
 "Spam, scams, or unsolicited commercial advertising unrelated to genuinely "
 "engaging with the artist about their work"
@@ -6820,20 +6915,20 @@ msgstr ""
 "dengan interaksi yang tulus dengan artis tentang karya mereka"
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4503
+#: includes/Network/Federation/Replies.php:1661
 #, php-format
 msgid "New reply on \"%s\""
 msgstr "Balasan baru pada \"%s\""
 
-#: includes/Network/ActivityPub.php:4514
+#: includes/Network/Federation/Replies.php:1672
 msgid "Someone left a reply on your artwork:"
 msgstr "Seseorang meninggalkan balasan di karya seni Anda:"
 
-#: includes/Network/ActivityPub.php:4515
+#: includes/Network/Federation/Replies.php:1673
 msgid "Someone replied to your artwork from the Fediverse:"
 msgstr "Seseorang membalas karya seni Anda dari Fediverse:"
 
-#: includes/Network/ActivityPub.php:4542
+#: includes/Network/Federation/Replies.php:1700
 msgid ""
 "It's being held until you approve or reject it — you can also write your own "
 "reply from the same page."
@@ -6841,26 +6936,27 @@ msgstr ""
 "Ini ditahan sampai Anda menyetujuinya atau menolaknya — Anda juga dapat "
 "menulis balasan Anda sendiri dari halaman yang sama."
 
-#: includes/Network/ActivityPub.php:4546 includes/Network/ActivityPub.php:4945
-#: includes/Network/ActivityPub.php:4957
+#: includes/Network/Federation/Replies.php:1704
+#: includes/Network/Federation/Replies.php:2099
+#: includes/Network/Federation/Replies.php:2111
 msgid "Review this reply"
 msgstr "Tinjau balasan ini"
 
 #. translators: %d: number of days the link stays valid
-#: includes/Network/ActivityPub.php:4554
+#: includes/Network/Federation/Replies.php:1712
 #, php-format
 msgid "This link expires in %d day."
 msgid_plural "This link expires in %d days."
 msgstr[0] "Tautan ini kedaluwarsa dalam %d hari."
 
 #. translators: %s: artwork title.
-#: includes/Network/ActivityPub.php:4639
+#: includes/Network/Federation/Replies.php:1797
 #, php-format
 msgid "A reply on \"%s\" arrived in a language we could not identify"
 msgstr ""
 "Balasan pada \"%s\" tiba dalam bahasa yang tidak dapat kami identifikasi"
 
-#: includes/Network/ActivityPub.php:4655
+#: includes/Network/Federation/Replies.php:1813
 msgid ""
 "Someone replied to your artwork from the Fediverse, but we weren't able to "
 "identify the language it's written in, so we can't offer a translation or "
@@ -6870,7 +6966,7 @@ msgstr ""
 "mengidentifikasi bahasa yang digunakan, jadi kami tidak dapat menawarkan "
 "terjemahan atau halaman balasan/penyetujuan yang biasa untuk itu."
 
-#: includes/Network/ActivityPub.php:4661
+#: includes/Network/Federation/Replies.php:1819
 msgid ""
 "This is for your information only — there is nothing to approve or reject "
 "here. If you'd like to act on it, you can do so from your WordPress "
@@ -6880,45 +6976,55 @@ msgstr ""
 "di sini. Jika Anda ingin bertindak berdasarkan ini, Anda dapat melakukannya "
 "dari dasbor WordPress Anda."
 
-#: includes/Network/ActivityPub.php:4772
+#: includes/Network/Federation/Replies.php:1926
 msgid "Fediverse replies"
 msgstr "Balasan Fediverse"
 
-#: includes/Network/ActivityPub.php:4773
+#: includes/Network/Federation/Replies.php:1927
 msgid "Site replies"
 msgstr "Balasan Situs"
 
-#: includes/Network/ActivityPub.php:4867
+#: includes/Network/Federation/Replies.php:2021
 msgid "This reply no longer exists."
 msgstr "Balasan ini tidak lagi ada."
 
-#: includes/Network/ActivityPub.php:4924
+#: includes/Network/Federation/Replies.php:2078
 msgid "Also post my reply to the Fediverse."
 msgstr "Juga posting balasan saya ke Fediverse."
 
-#: includes/Network/ActivityPub.php:4951
+#: includes/Network/Federation/Replies.php:2105
 msgid "Write your own reply (optional)"
 msgstr "Tulis balasan Anda sendiri (opsional)"
 
-#: includes/Network/ActivityPub.php:4983
+#: includes/Network/Federation/Replies.php:2137
 msgid "Reply approved — it now appears on your artwork."
 msgstr "Balasan disetujui — sekarang muncul di karya seni Anda."
 
-#: includes/Network/ActivityPub.php:4986
+#: includes/Network/Federation/Replies.php:2140
 msgid "Reply rejected — it will not be shown."
 msgstr "Balasan ditolak — itu tidak akan ditampilkan."
 
-#: includes/Network/ActivityPub.php:4997
+#: includes/Network/Federation/Replies.php:2151
 msgid "Your reply has been posted."
 msgstr "Balasan Anda telah diposting."
 
-#: includes/Network/ActivityPub.php:5000
+#: includes/Network/Federation/Replies.php:2154
 msgid "Reply moderated"
 msgstr "Balasan dimoderasi"
 
-#: includes/Network/ActivityPub.php:5026
+#: includes/Network/Federation/Replies.php:2180
 msgid "No such reply."
 msgstr "Tidak ada balasan tersebut."
+
+#: includes/Network/Federation/Serialization.php:595
+msgid "Sensitive content"
+msgstr "Sensitive content"
+
+#. translators: %s: comma-separated, already-linked list of language names, e.g. "Deutsch, Español"
+#: includes/Network/Federation/Serialization.php:760
+#, php-format
+msgid "Also available in: %s"
+msgstr "Juga tersedia dalam: %s"
 
 #: includes/Network/HttpSignature.php:180
 msgid "Signature keyId does not belong to the activity actor."
@@ -7341,19 +7447,19 @@ msgstr ""
 msgid "Subscribe to the newsletter"
 msgstr "Berlangganan buletin"
 
-#: includes/Newsletter/Scheduler.php:90 includes/Newsletter/Scheduler.php:113
+#: includes/Newsletter/Scheduler.php:91 includes/Newsletter/Scheduler.php:114
 msgid "Unknown newsletter type."
 msgstr "Jenis buletin tidak dikenal."
 
-#: includes/Newsletter/Scheduler.php:94
+#: includes/Newsletter/Scheduler.php:95
 msgid "A previous issue is still sending — please wait for it to finish."
 msgstr "Sebuah edisi sebelumnya masih mengirim — harap tunggu hingga selesai."
 
-#: includes/Newsletter/Scheduler.php:116
+#: includes/Newsletter/Scheduler.php:117
 msgid "Please enter a valid email address to send the test to."
 msgstr "Silakan masukkan alamat email yang valid untuk mengirim uji coba."
 
-#: includes/Newsletter/Scheduler.php:137
+#: includes/Newsletter/Scheduler.php:138
 msgid ""
 "This is a TEST send — it previews the next issue using the current draft "
 "intro and recent activity. It was not counted as a real send and no "
@@ -7367,7 +7473,7 @@ msgstr ""
 "berfungsi."
 
 #. translators: 1: newsletter label (e.g. "Artist newsletter"), 2: site name
-#: includes/Newsletter/Scheduler.php:405
+#: includes/Newsletter/Scheduler.php:421
 #, php-format
 msgid ""
 "The %1$s at %2$s is due to send in about a day. Agnosis drafted an intro "
@@ -7376,16 +7482,18 @@ msgstr ""
 "%1$s di %2$s akan dikirim dalam sekitar satu hari. Agnosis menyusun intro "
 "dari hal-hal baru sejak edisi terakhir:"
 
-#: includes/Newsletter/Scheduler.php:410
+#: includes/Newsletter/Scheduler.php:433
 msgid ""
 "It's already saved and will be used as-is if you don't act — review it, "
-"rewrite it, or clear it back to blank here:"
-msgstr ""
-"Ini sudah disimpan dan akan digunakan apa adanya jika Anda tidak melakukan "
-"tindakan — tinjau, tulis ulang, atau kosongkan kembali di sini:"
+"rewrite it, or clear it back to blank:"
+msgstr "Sudah disimpan dan akan digunakan apa adanya jika Anda tidak mengambil tindakan — tinjau, tulis ulang, atau kosongkan kembali ke kosong:"
+
+#: includes/Newsletter/Scheduler.php:436
+msgid "Review the intro"
+msgstr "Tinjau pengantar"
 
 #. translators: 1: newsletter label, 2: site name
-#: includes/Newsletter/Scheduler.php:417
+#: includes/Newsletter/Scheduler.php:443
 #, php-format
 msgid "%1$s intro drafted for %2$s — review before it sends"
 msgstr "Intro %1$s disusun untuk %2$s — tinjau sebelum dikirim"
@@ -7651,14 +7759,14 @@ msgstr "[Agnosis] Kiriman Anda siap ditinjau: %s"
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:152
-#: includes/Publishing/ReviewConfirm.php:1367
+#: includes/Publishing/ReviewConfirm.php:1380
 msgid "event"
 msgstr "acara"
 
 #: includes/Publishing/Notification.php:550
 #: includes/Publishing/Notification.php:679
 #: includes/Publishing/RemovalEndpoints.php:153
-#: includes/Publishing/ReviewConfirm.php:1368
+#: includes/Publishing/ReviewConfirm.php:1381
 msgid "artwork"
 msgstr "karya seni"
 
@@ -8321,67 +8429,89 @@ msgstr ""
 msgid "Invalid removal token."
 msgstr "Token penghapusan tidak valid."
 
-#: includes/Publishing/ReviewConfirm.php:277
+#: includes/Publishing/ReviewConfirm.php:281
 msgid "View it live"
 msgstr "Lihat langsung"
 
-#: includes/Publishing/ReviewConfirm.php:320
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Biography published"
 msgstr "Biografi diterbitkan"
 
-#: includes/Publishing/ReviewConfirm.php:320
+#: includes/Publishing/ReviewConfirm.php:324
 msgid "Your biography has been published."
 msgstr "Biografi Anda telah diterbitkan."
 
-#: includes/Publishing/ReviewConfirm.php:321
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "Event published"
 msgstr "Acara diterbitkan"
 
-#: includes/Publishing/ReviewConfirm.php:321
+#: includes/Publishing/ReviewConfirm.php:325
 msgid "The event has been published."
 msgstr "Acara telah diterbitkan."
 
-#: includes/Publishing/ReviewConfirm.php:322
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "Artwork published"
 msgstr "Karya diterbitkan"
 
-#: includes/Publishing/ReviewConfirm.php:322
+#: includes/Publishing/ReviewConfirm.php:326
 msgid "The artwork has been published to the gallery."
 msgstr "Karya telah diterbitkan ke galeri."
 
-#: includes/Publishing/ReviewConfirm.php:323
+#: includes/Publishing/ReviewConfirm.php:327
 msgid "Submission discarded"
 msgstr "Kiriman dibuang"
 
-#: includes/Publishing/ReviewConfirm.php:323
+#: includes/Publishing/ReviewConfirm.php:327
 msgid "The submission has been discarded."
 msgstr "Kiriman telah dibuang."
 
-#: includes/Publishing/ReviewConfirm.php:324
+#: includes/Publishing/ReviewConfirm.php:328
 msgid "Biography removed"
 msgstr "Biografi dihapus"
 
-#: includes/Publishing/ReviewConfirm.php:324
+#: includes/Publishing/ReviewConfirm.php:328
 msgid "Your biography has been removed."
 msgstr "Biografi Anda telah dihapus."
 
-#: includes/Publishing/ReviewConfirm.php:325
+#: includes/Publishing/ReviewConfirm.php:329
 msgid "Event removed"
 msgstr "Acara dihapus"
 
-#: includes/Publishing/ReviewConfirm.php:325
+#: includes/Publishing/ReviewConfirm.php:329
 msgid "The event has been removed."
 msgstr "Acara telah dihapus."
 
-#: includes/Publishing/ReviewConfirm.php:326
+#: includes/Publishing/ReviewConfirm.php:330
 msgid "Artwork removed"
 msgstr "Karya dihapus"
 
-#: includes/Publishing/ReviewConfirm.php:326
+#: includes/Publishing/ReviewConfirm.php:330
 msgid "Your artwork has been removed from the gallery."
 msgstr "Karya Anda telah dihapus dari galeri."
 
-#: includes/Publishing/ReviewConfirm.php:327
+#: includes/Publishing/ReviewConfirm.php:334
+msgid "This submission no longer exists"
+msgstr "Submission ini tidak lagi ada"
+
+#: includes/Publishing/ReviewConfirm.php:334
+msgid ""
+"It was already published, discarded, or replaced by a newer version of the "
+"same work — so this link has nothing left to act on. Nothing went wrong on "
+"your side. Log in to see your submissions, or just send the work again."
+msgstr "Sudah dipublikasikan, dibuang, atau diganti dengan versi karya yang lebih baru — jadi tautan ini tidak memiliki apa pun untuk ditindaklanjuti. Tidak ada yang salah di pihak Anda. Masuk untuk melihat submission Anda, atau cukup kirim karya itu lagi."
+
+#: includes/Publishing/ReviewConfirm.php:335
+msgid "This link is incomplete"
+msgstr "Tautan ini tidak lengkap"
+
+#: includes/Publishing/ReviewConfirm.php:335
+msgid ""
+"Part of the address is missing — some mail apps cut long links in half. Try "
+"opening it from the original email again, or copy the whole link into your "
+"browser."
+msgstr "Sebagian dari alamat hilang — beberapa aplikasi email memotong tautan panjang menjadi dua. Coba buka dari email asli lagi, atau salin seluruh tautan ke browser Anda."
+
+#: includes/Publishing/ReviewConfirm.php:336
 msgid ""
 "This link may have already been used or may have expired. Please log in to "
 "manage your submissions."
@@ -8389,7 +8519,7 @@ msgstr ""
 "Tautan ini mungkin sudah digunakan atau mungkin telah kedaluwarsa. Silakan "
 "masuk untuk mengelola kiriman Anda."
 
-#: includes/Publishing/ReviewConfirm.php:433
+#: includes/Publishing/ReviewConfirm.php:442
 msgid ""
 "Title and full text cannot be empty. Fill them back in, or use \"Discard\" "
 "from the original email instead."
@@ -8397,7 +8527,7 @@ msgstr ""
 "Judul dan teks lengkap tidak boleh kosong. Isi kembali, atau gunakan \"Buang"
 "\" dari email asli."
 
-#: includes/Publishing/ReviewConfirm.php:434
+#: includes/Publishing/ReviewConfirm.php:443
 msgid ""
 "The full text cannot be empty. Fill it back in, or use \"Discard\" from the "
 "original email instead."
@@ -8405,11 +8535,11 @@ msgstr ""
 "Teks lengkap tidak boleh kosong. Isi kembali, atau gunakan \"Buang\" dari "
 "email asli."
 
-#: includes/Publishing/ReviewConfirm.php:853
+#: includes/Publishing/ReviewConfirm.php:862
 msgid "Account-wide setting"
 msgstr "Pengaturan untuk seluruh akun"
 
-#: includes/Publishing/ReviewConfirm.php:856
+#: includes/Publishing/ReviewConfirm.php:865
 msgid ""
 "Turn off search engine and Fediverse discovery indexing — applies to my "
 "whole profile and everything I publish here, not just this piece."
@@ -8418,91 +8548,91 @@ msgstr ""
 "seluruh profil saya dan semua yang saya publikasikan di sini, tidak hanya "
 "karya ini."
 
-#: includes/Publishing/ReviewConfirm.php:879
+#: includes/Publishing/ReviewConfirm.php:888
 msgid "Allow visitors and the Fediverse to reply to this artwork."
 msgstr "Izinkan pengunjung dan Fediverse membalas karya seni ini."
 
-#: includes/Publishing/ReviewConfirm.php:913
+#: includes/Publishing/ReviewConfirm.php:922
 msgid "Portfolio link"
 msgstr "Tautan portofolio"
 
 #. translators: %d is the field number (1-3) — each field is otherwise identical, no platform is required.
-#: includes/Publishing/ReviewConfirm.php:940
+#: includes/Publishing/ReviewConfirm.php:949
 #, php-format
 msgid "Social link %d (optional)"
 msgstr "Tautan sosial %d (opsional)"
 
-#: includes/Publishing/ReviewConfirm.php:974
+#: includes/Publishing/ReviewConfirm.php:983
 msgid "Hour"
 msgstr "Jam"
 
-#: includes/Publishing/ReviewConfirm.php:977
+#: includes/Publishing/ReviewConfirm.php:986
 msgid "Location"
 msgstr "Lokasi"
 
-#: includes/Publishing/ReviewConfirm.php:979
+#: includes/Publishing/ReviewConfirm.php:988
 msgid "Address"
 msgstr "Alamat"
 
-#: includes/Publishing/ReviewConfirm.php:981
+#: includes/Publishing/ReviewConfirm.php:990
 msgid "Timezone"
 msgstr "Zona waktu"
 
-#: includes/Publishing/ReviewConfirm.php:1001
+#: includes/Publishing/ReviewConfirm.php:1010
 msgid "Other"
 msgstr "Lainnya"
 
-#: includes/Publishing/ReviewConfirm.php:1006
+#: includes/Publishing/ReviewConfirm.php:1015
 msgid "— Not set —"
 msgstr "— Belum disetel —"
 
-#: includes/Publishing/ReviewConfirm.php:1126
+#: includes/Publishing/ReviewConfirm.php:1135
 msgid "Discard this submission?"
 msgstr "Hapus kiriman ini?"
 
-#: includes/Publishing/ReviewConfirm.php:1127
+#: includes/Publishing/ReviewConfirm.php:1136
 msgid ""
 "This will permanently discard the submission — it will not be published."
 msgstr ""
 "Ini akan menghapus kiriman secara permanen — kiriman tidak akan "
 "dipublikasikan."
 
-#: includes/Publishing/ReviewConfirm.php:1128
+#: includes/Publishing/ReviewConfirm.php:1137
 msgid "Yes, discard it"
 msgstr "Ya, hapus"
 
-#: includes/Publishing/ReviewConfirm.php:1131
+#: includes/Publishing/ReviewConfirm.php:1140
 msgid "Remove this artwork?"
 msgstr "Hapus karya seni ini?"
 
-#: includes/Publishing/ReviewConfirm.php:1132
+#: includes/Publishing/ReviewConfirm.php:1141
 msgid "This will remove the published artwork from the gallery."
 msgstr "Ini akan menghapus karya seni yang sudah dipublikasikan dari galeri."
 
-#: includes/Publishing/ReviewConfirm.php:1133
+#: includes/Publishing/ReviewConfirm.php:1142
 msgid "Yes, remove it"
 msgstr "Ya, hapus"
 
-#: includes/Publishing/ReviewConfirm.php:1284
+#: includes/Publishing/ReviewConfirm.php:1297
 #: includes/Publishing/SubmissionsPage.php:271
 msgid "Title"
 msgstr "Judul"
 
-#: includes/Publishing/ReviewConfirm.php:1292
+#: includes/Publishing/ReviewConfirm.php:1305
 msgid "Short description"
 msgstr "Deskripsi singkat"
 
-#: includes/Publishing/ReviewConfirm.php:1297
+#: includes/Publishing/ReviewConfirm.php:1310
 msgid "Full text"
 msgstr "Teks lengkap"
 
 #. translators: %s is the content type — artwork, biography, or event
-#: includes/Publishing/ReviewConfirm.php:1326
+#: includes/Publishing/ReviewConfirm.php:1339
 #, php-format
 msgid "Publish this %s?"
 msgstr "Publikasikan %s ini?"
 
-#: includes/Publishing/ReviewConfirm.php:1349
+#: includes/Publishing/ReviewConfirm.php:1362
 msgid ""
 "Make any final changes below, or leave everything as-is to publish exactly "
 "what was drafted."
@@ -8510,12 +8640,12 @@ msgstr ""
 "Lakukan perubahan akhir di bawah, atau biarkan semuanya apa adanya untuk "
 "memublikasikan persis seperti yang telah didrafkan."
 
-#: includes/Publishing/ReviewConfirm.php:1355
+#: includes/Publishing/ReviewConfirm.php:1368
 #: includes/Publishing/SubmissionsPage.php:251
 msgid "Publish it"
 msgstr "Publikasikan"
 
-#: includes/Publishing/ReviewConfirm.php:1366
+#: includes/Publishing/ReviewConfirm.php:1379
 msgid "biography"
 msgstr "biografi"
 
