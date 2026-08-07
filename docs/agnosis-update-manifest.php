@@ -113,9 +113,9 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
-	$sha256_note  = 'Build started 2026-08-07T18:12:34Z by build-zip.sh for v0.9.68 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
-	$last_updated = '2026-08-06';
+	$sha256       = '59da127450697c04aeb7abb936a11328a3646d8cf1f46c5264ac15baae5e4ea5'; // Verified — see $sha256_note above for build date/version.
+	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-08-07 for agnosis-0.9.68.zip.';
+	$last_updated = '2026-08-07';
 
 	// Two most recent releases only — do not accumulate history here; it
 	// bloats the manifest. Full changelog: CHANGELOG.md in the plugin repository.
