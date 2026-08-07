@@ -27,3 +27,22 @@ parameters:
     bootstrapFiles:
         - bootstrap.php
 
+    # Constants whose value is environment-dependent and must never be folded
+    # into a compile-time literal.
+    #
+    # LINGUAFORGE_VERSION is defined by the companion Lingua Forge plugin, not by
+    # this one, so its value is whatever version the site actually has installed.
+    # Every `defined( 'LINGUAFORGE_VERSION' ) && version_compare( … )` guard in
+    # Compat\LinguaForge exists precisely because that varies — degrading
+    # gracefully on an older LF is the documented behaviour (0.9.66, L-1).
+    #
+    # Without this, PHPStan resolves the constant differently depending on
+    # whether the sibling `lingua-forge` checkout is present, so a developer with
+    # the companion repos gets a clean run while CI — which deliberately has
+    # neither sibling (see README's Testing section) — folds the comparison to a
+    # literal and reports five "always false" errors in correct code. Local and
+    # CI must agree, and the honest answer is that this value is not knowable at
+    # analysis time.
+    dynamicConstantNames:
+        - LINGUAFORGE_VERSION
+

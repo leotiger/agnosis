@@ -491,12 +491,11 @@ class LinguaForge {
 		// rewrites the values the born-with filter already supplied; on
 		// re-translation it's the only thing that refreshes stale images/meta on
 		// an existing translated sibling (fourth audit, §4b).
-		if (
-			defined( 'LINGUAFORGE_VERSION' )
-			&& version_compare( (string) LINGUAFORGE_VERSION, '2.4.0', '>=' )
-		) {
-			add_filter( 'linguaforge_translated_post_meta', [ $this, 'supply_translated_meta' ], 10, 4 );
-		}
+		// Needs LF >= 2.4.0, which fires this filter. Registered unconditionally (0.9.67):
+		// LF owns the hook, so on an older LF it simply never fires and the callback
+		// never runs — the version test guarded nothing. See the note at the foot of
+		// register_hooks() for why all four of these were dropped.
+		add_filter( 'linguaforge_translated_post_meta', [ $this, 'supply_translated_meta' ], 10, 4 );
 		add_action( 'linguaforge_translation_complete', [ $this, 'copy_translated_meta' ], 10, 3 );
 
 		// Feed SubmissionTranslator's own translation-style instructions through
@@ -517,12 +516,8 @@ class LinguaForge {
 		// specifically for this slot — version-gated the same way
 		// supply_translated_meta() is above, since the filter doesn't exist at
 		// all on an older LF install.
-		if (
-			defined( 'LINGUAFORGE_VERSION' )
-			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.6', '>=' )
-		) {
-			add_filter( 'linguaforge_translation_extra_instruction', [ $this, 'preserve_embedded_other_language_text' ], 10, 2 );
-		}
+		// Needs LF >= 2.6.6, which fires this filter. Registered unconditionally (0.9.67) — LF owns the hook.
+		add_filter( 'linguaforge_translation_extra_instruction', [ $this, 'preserve_embedded_other_language_text' ], 10, 2 );
 
 		// Force the 'quality' AI tier (and a lower, more literal-following
 		// temperature) for every Agnosis CPT's full-page fan-out translation,
@@ -623,12 +618,8 @@ class LinguaForge {
 
 		// Template safeguard (2026-07-09) — LF >= 2.6.1 only. See concern #8
 		// above for why this is additive defense-in-depth, not a workaround.
-		if (
-			defined( 'LINGUAFORGE_VERSION' )
-			&& version_compare( (string) LINGUAFORGE_VERSION, '2.6.1', '>=' )
-		) {
-			add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_template' ], 10, 3 );
-		}
+		// Needs LF >= 2.6.1, which fires this action. Registered unconditionally (0.9.67) — LF owns the hook.
+		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_template' ], 10, 3 );
 
 		// Term-translation cache maintenance (fourth audit §4d): the cache is
 		// keyed by the term's NAME, so renaming a source term orphans its old
@@ -647,30 +638,34 @@ class LinguaForge {
 		// Schema.org type override.
 		add_filter( 'linguaforge_seo_schema_data',   [ $this, 'filter_schema_type'    ], 10, 2 );
 
-		// Sitemap awareness for artist subdomains — LF >= 2.7.1 only (concern
-		// #11 above). Both the extra-URL supply and the cache-flush calls
-		// depend on classes/filters that don't exist before 2.7.1.
-		if (
-			defined( 'LINGUAFORGE_VERSION' )
-			&& version_compare( (string) LINGUAFORGE_VERSION, '2.7.1', '>=' )
-		) {
-			add_filter( 'linguaforge_sitemap_extra_urls', [ $this, 'sitemap_extra_urls' ], 10, 1 );
+		// Sitemap awareness for artist subdomains — needs LF >= 2.7.1 (concern
+		// #11 above). Registered unconditionally as of 0.9.67; the version test
+		// this replaced was the only one of the four that looked load-bearing,
+		// because unlike the others it also hooks AGNOSIS-owned actions, which
+		// fire whatever LF is installed. It is still safe to drop, and L-1 is
+		// why: `flush_sitemap_cache()` returns at its own
+		// `class_exists( '\LinguaForge\Router\Router' )` check, then guards
+		// `isset`/`is_object`/`method_exists` before calling through — precisely
+		// so an older LF gives a quiet no-op rather than a fatal on artist join,
+		// departure, ban and first publish. `sitemap_extra_urls()` self-guards
+		// on `function_exists( 'linguaforge_languages' )` and hangs off an
+		// LF-fired filter besides.
+		add_filter( 'linguaforge_sitemap_extra_urls', [ $this, 'sitemap_extra_urls' ], 10, 1 );
 
-			add_action( 'agnosis_artist_admitted',        [ $this, 'flush_sitemap_cache' ], 10, 0 );
-			add_action( 'agnosis_artist_left',            [ $this, 'flush_sitemap_cache' ], 10, 0 );
-			add_action( 'agnosis_artist_deleted_by_admin', [ $this, 'flush_sitemap_cache' ], 10, 0 );
-			add_action( 'agnosis_post_published',         [ $this, 'flush_sitemap_cache' ], 30, 0 );
+		add_action( 'agnosis_artist_admitted',        [ $this, 'flush_sitemap_cache' ], 10, 0 );
+		add_action( 'agnosis_artist_left',            [ $this, 'flush_sitemap_cache' ], 10, 0 );
+		add_action( 'agnosis_artist_deleted_by_admin', [ $this, 'flush_sitemap_cache' ], 10, 0 );
+		add_action( 'agnosis_post_published',         [ $this, 'flush_sitemap_cache' ], 30, 0 );
 
-			// A ban privatizes the artist's content (Artist\Departure::
-			// hide_artist_content()) and drops them from sitemap_extra_urls()
-			// (role-gated) at once; reinstatement reverses both. LF's own
-			// save_post-hooked flush already fires per privatized/republished
-			// post (each carries _lf_trid), so this is defense-in-depth rather
-			// than the only thing keeping the cache correct — same reasoning
-			// as the other four hooks just above.
-			add_action( 'agnosis_artist_banned',          [ $this, 'flush_sitemap_cache' ], 10, 0 );
-			add_action( 'agnosis_artist_reinstated',      [ $this, 'flush_sitemap_cache' ], 10, 0 );
-		}
+		// A ban privatizes the artist's content (Artist\Departure::
+		// hide_artist_content()) and drops them from sitemap_extra_urls()
+		// (role-gated) at once; reinstatement reverses both. LF's own
+		// save_post-hooked flush already fires per privatized/republished
+		// post (each carries _lf_trid), so this is defense-in-depth rather
+		// than the only thing keeping the cache correct — same reasoning
+		// as the other four hooks just above.
+		add_action( 'agnosis_artist_banned',          [ $this, 'flush_sitemap_cache' ], 10, 0 );
+		add_action( 'agnosis_artist_reinstated',      [ $this, 'flush_sitemap_cache' ], 10, 0 );
 	}
 
 	// -------------------------------------------------------------------------
