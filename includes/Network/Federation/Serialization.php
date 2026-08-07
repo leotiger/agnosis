@@ -521,7 +521,15 @@ class Serialization {
 		// owner_for_post()'s docblock for when that fallback applies).
 		$owner        = $this->identity->owner_for_post( $post );
 		$actor        = $this->identity->actor_url_for( $owner['type'], $owner['id'] );
-		$object_id    = get_permalink( $post->ID );
+		// Cast, matching Identity::object_id_for() — get_permalink() is typed
+		// string|false, and this value lands in the Note's `id` AND `url`
+		// (below), both of which are serialized straight to JSON. Without the
+		// cast a failed lookup would emit `"id": false`, which is not a valid
+		// AS2 object id and would be rejected by the receiving server rather
+		// than degrading. The sibling method one class away has always cast;
+		// this one did not, and only surfaced because a test indexed the shape
+		// (0.9.68).
+		$object_id    = (string) get_permalink( $post->ID );
 		// get_post_thumbnail_id() is typed int|false; normalize to int (0 =
 		// none) so it satisfies get_post_mime_type()/get_post_meta()'s int
 		// parameter below without a separate is-int guard at each call site.

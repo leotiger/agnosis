@@ -77,9 +77,14 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 		return (int) $wpdb->insert_id;
 	}
 
-	/** Build a stub Pipeline that returns the given quality score for every image. */
+	/**
+	 * Build a stub Pipeline that returns the given quality score for every image.
+	 *
+	 * @param list<string> $issues
+	 */
 	private function make_stub_pipeline( int $quality_score, array $issues = [] ): Pipeline {
 		return new class( $quality_score, $issues ) extends Pipeline {
+			/** @param list<string> $issues */
 			public function __construct(
 				private int $score,
 				private array $issues
@@ -158,10 +163,11 @@ class QualityRejectionTest extends \WP_UnitTestCase {
 	 * for exercising the per-image quality gate rather than the single,
 	 * every-attachment-gets-the-same-score stub above.
 	 *
-	 * @param int[] $scores Score for attachment 0, 1, 2, … in submission order.
+	 * @param list<int> $scores Score for attachment 0, 1, 2, … in submission order.
 	 */
 	private function make_stub_pipeline_per_image( array $scores ): Pipeline {
 		return new class( $scores ) extends Pipeline {
+			/** @param list<int> $scores */
 			public function __construct( private array $scores ) {
 				// Skip parent constructor — no real providers needed.
 			}

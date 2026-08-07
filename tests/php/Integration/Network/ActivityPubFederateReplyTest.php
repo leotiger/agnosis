@@ -45,7 +45,6 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$this->artist_id = self::factory()->user->create( [ 'role' => 'subscriber', 'display_name' => 'Test Artist', 'user_email' => 'artist@example.com' ] );
 		get_user_by( 'id', $this->artist_id )->add_role( 'agnosis_artist' );
 
-		// @phpstan-ignore-next-line -- $this->post_id is a real int by the time control reaches here; the int|WP_Error union only exists because of wp_insert_post()'s own return type.
 		$this->post_id = (int) wp_insert_post( [
 			'post_type'   => 'agnosis_artwork',
 			'post_status' => 'publish',
@@ -382,6 +381,11 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 				break;
 			}
 		}
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.impossibleType (by-reference closure capture is invisible to PHPStan)
 		$this->assertNotNull( $delete, 'A Delete{Tombstone} must have been federated when the reply was trashed.' );
 		$this->assertSame( 'Tombstone', $delete['object']['type'] );
 
@@ -427,6 +431,11 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 				break;
 			}
 		}
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.impossibleType (by-reference closure capture is invisible to PHPStan)
 		$this->assertNotNull( $delete, 'A hard/force delete must ALSO federate a Delete — it never fires transition_comment_status, which is why delete_comment is hooked separately.' );
 	}
 
@@ -445,6 +454,11 @@ class ActivityPubFederateReplyTest extends \WP_UnitTestCase {
 		$deliveries = []; // Only interested in what untrashing itself does.
 		wp_untrash_comment( $comment_id );
 
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.alreadyNarrowedType (by-reference closure capture is invisible to PHPStan)
 		$this->assertEmpty( $deliveries, 'Coming OUT of trash must not itself federate anything — only entering trash (or a hard delete) counts as removal.' );
 	}
 }

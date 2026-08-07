@@ -76,6 +76,7 @@ class FakeAliasImapMessage {
 		$email = $this->from_email;
 		return new class( $email ) {
 			public function __construct( private string $email ) {}
+			/** @return list<object{mail: string}> */
 			public function toArray(): array {
 				return '' === $this->email ? [] : [ (object) [ 'mail' => $this->email ] ];
 			}
@@ -86,6 +87,7 @@ class FakeAliasImapMessage {
 		$email = $this->to_email;
 		return new class( $email ) {
 			public function __construct( private string $email ) {}
+			/** @return list<object{mail: string}> */
 			public function toArray(): array {
 				return '' === $this->email ? [] : [ (object) [ 'mail' => $this->email ] ];
 			}

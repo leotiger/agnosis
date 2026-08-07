@@ -17,8 +17,11 @@ declare(strict_types=1);
 namespace Agnosis\Tests\Integration\Publishing;
 
 use Agnosis\Publishing\TagGate;
+use Agnosis\Tests\Integration\Support\NarrowsWpReturns;
 
 class TagGateAssociateTest extends \WP_UnitTestCase {
+
+	use NarrowsWpReturns;
 
 	private int $artist_id;
 	private int $post_id;
@@ -129,7 +132,7 @@ class TagGateAssociateTest extends \WP_UnitTestCase {
 		$this->assertSame( 0, $result['proposed'], 'The cap leaves no budget for new proposals once matched names fill it.' );
 		$this->assertSame( 1, $result['gated'] );
 
-		$assigned = wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'ids', 'hide_empty' => false ] );
+		$assigned = self::term_ids( wp_get_post_terms( $this->post_id, 'post_tag', [ 'fields' => 'ids', 'hide_empty' => false ]  ) );
 		sort( $assigned );
 		$expected = [ $a['term_id'], $b['term_id'] ];
 		sort( $expected );

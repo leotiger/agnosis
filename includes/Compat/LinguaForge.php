@@ -491,7 +491,7 @@ class LinguaForge {
 		// rewrites the values the born-with filter already supplied; on
 		// re-translation it's the only thing that refreshes stale images/meta on
 		// an existing translated sibling (fourth audit, §4b).
-		// Needs LF >= 2.4.0, which fires this filter. Registered unconditionally (0.9.67):
+		// Needs LF >= 2.4.0, which fires this filter. Registered unconditionally (0.9.68):
 		// LF owns the hook, so on an older LF it simply never fires and the callback
 		// never runs — the version test guarded nothing. See the note at the foot of
 		// register_hooks() for why all four of these were dropped.
@@ -516,7 +516,7 @@ class LinguaForge {
 		// specifically for this slot — version-gated the same way
 		// supply_translated_meta() is above, since the filter doesn't exist at
 		// all on an older LF install.
-		// Needs LF >= 2.6.6, which fires this filter. Registered unconditionally (0.9.67) — LF owns the hook.
+		// Needs LF >= 2.6.6, which fires this filter. Registered unconditionally (0.9.68) — LF owns the hook.
 		add_filter( 'linguaforge_translation_extra_instruction', [ $this, 'preserve_embedded_other_language_text' ], 10, 2 );
 
 		// Force the 'quality' AI tier (and a lower, more literal-following
@@ -618,7 +618,7 @@ class LinguaForge {
 
 		// Template safeguard (2026-07-09) — LF >= 2.6.1 only. See concern #8
 		// above for why this is additive defense-in-depth, not a workaround.
-		// Needs LF >= 2.6.1, which fires this action. Registered unconditionally (0.9.67) — LF owns the hook.
+		// Needs LF >= 2.6.1, which fires this action. Registered unconditionally (0.9.68) — LF owns the hook.
 		add_action( 'linguaforge_translation_complete', [ $this, 'sync_translated_template' ], 10, 3 );
 
 		// Term-translation cache maintenance (fourth audit §4d): the cache is
@@ -639,7 +639,7 @@ class LinguaForge {
 		add_filter( 'linguaforge_seo_schema_data',   [ $this, 'filter_schema_type'    ], 10, 2 );
 
 		// Sitemap awareness for artist subdomains — needs LF >= 2.7.1 (concern
-		// #11 above). Registered unconditionally as of 0.9.67; the version test
+		// #11 above). Registered unconditionally as of 0.9.68; the version test
 		// this replaced was the only one of the four that looked load-bearing,
 		// because unlike the others it also hooks AGNOSIS-owned actions, which
 		// fire whatever LF is installed. It is still safe to drop, and L-1 is
@@ -667,6 +667,51 @@ class LinguaForge {
 		add_action( 'agnosis_artist_banned',          [ $this, 'flush_sitemap_cache' ], 10, 0 );
 		add_action( 'agnosis_artist_reinstated',      [ $this, 'flush_sitemap_cache' ], 10, 0 );
 	}
+
+	/*
+	 * ---------------------------------------------------------------------
+	 * Why the four `version_compare( LINGUAFORGE_VERSION, … )` guards that
+	 * used to wrap the registrations above were dropped in 0.9.68
+	 * ---------------------------------------------------------------------
+	 *
+	 * They named LF 2.4.0, 2.6.6, 2.6.1 and 2.7.1 — a spread of historical
+	 * minimums accumulated one feature at a time. `AGNOSIS_MIN_LF` is 2.7.1:
+	 * that single constant is the version this plugin is written against, and
+	 * three of the four gates were therefore testing for versions at or below
+	 * a floor the plugin already declares in one place.
+	 *
+	 * They were also redundant against the policy `agnosis.php` states
+	 * directly: every Lingua Forge call site in this plugin is individually
+	 * guarded by `function_exists()`/`class_exists()` — 28 of them across 6
+	 * files — so on an older LF the affected features simply do not run, and
+	 * 0.9.66's admin notice is what tells the operator why. Gating hook
+	 * *registration* on a version number added a fourth mechanism on top of a
+	 * declared floor, per-call-site feature detection, and a notice, and it
+	 * was the weakest of the four: a version number only implies that the
+	 * thing you need exists, where `function_exists()` establishes it.
+	 *
+	 * `sync_translated_template()` is the one worth naming, because it is the
+	 * case where the guard is doing real work: it hangs off
+	 * `linguaforge_translation_complete`, which older LF does fire, so it can
+	 * be invoked on an install without `linguaforge_sync_templates()`. Its
+	 * own `function_exists()` check one line above the call site is what makes
+	 * that safe — one of the 28, exactly as the policy intends.
+	 *
+	 * What forced the question was CI. `LINGUAFORGE_VERSION` is defined by
+	 * the companion plugin, which CI deliberately does not check out (see
+	 * README's Testing section), so PHPStan folded all four comparisons to a
+	 * literal `false` and reported five "always false" errors in correct
+	 * code — clean locally, red on GitHub. Defining the constant for CI would
+	 * have flipped the lie the other way ("always true"); `dev/phpstan.neon`
+	 * instead marks the constant dynamic for the one comparison that is
+	 * genuinely load-bearing, the admin notice in `agnosis.php`, which really
+	 * does need to know LF's version because telling the admin about it is
+	 * the entire point of that code.
+	 *
+	 * The admin notice is therefore the *only* place left in the plugin that
+	 * reads `LINGUAFORGE_VERSION` for a decision. Everywhere else asks
+	 * whether the thing it needs exists.
+	 */
 
 	// -------------------------------------------------------------------------
 	// Language meta

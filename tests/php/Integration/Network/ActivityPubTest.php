@@ -726,7 +726,14 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 		[ $note, $post_id ] = $this->published_artwork_note();
 
-		$this->assertSame( get_permalink( $post_id ), $note['id'], 'Note id must be the real permalink — under plain permalinks the old hardcoded /art/<slug> id 404ed.' );
+		// assertSame() narrows its ACTUAL argument to the type of the EXPECTED
+		// one, and get_permalink() is string|false — so asserting against it raw
+		// leaves $note['id'] as string|false for the rest of the method. Pinning
+		// the expected value to a string first is also a real check: a false
+		// permalink would otherwise just compare unequal and fail obscurely.
+		$permalink = get_permalink( $post_id );
+		$this->assertIsString( $permalink, 'Precondition: the fixture post must have a permalink.' );
+		$this->assertSame( $permalink, $note['id'], 'Note id must be the real permalink — under plain permalinks the old hardcoded /art/<slug> id 404ed.' );
 		$this->assertSame( $note['id'], $note['url'], 'id and url must be the same URL in every permalink mode.' );
 		$this->assertStringContainsString( 'agnosis_artwork=', $note['id'], 'Precondition: this test must actually be running under plain permalinks.' );
 	}
@@ -745,7 +752,11 @@ class ActivityPubTest extends \WP_UnitTestCase {
 
 		[ $note, $post_id ] = $this->published_artwork_note();
 
-		$this->assertSame( get_permalink( $post_id ), $note['id'] );
+		// See the sibling test above for why the permalink is pinned to a string
+		// before it is used as assertSame()'s expected value.
+		$permalink = get_permalink( $post_id );
+		$this->assertIsString( $permalink, 'Precondition: the fixture post must have a permalink.' );
+		$this->assertSame( $permalink, $note['id'] );
 		$this->assertSame( $note['id'], $note['url'] );
 		$this->assertStringContainsString( '/art/', $note['id'], 'Precondition: the artwork CPT rewrite slug must be in effect.' );
 	}

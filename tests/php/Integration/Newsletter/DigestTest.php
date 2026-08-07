@@ -329,8 +329,18 @@ class DigestTest extends \WP_UnitTestCase {
 
 		$context = Digest::build_intro_context( 'artist', $since );
 
-		$this->assertContains( 'Context Artist', $context['new_members'] );
-		$this->assertSame( 0, $context['open_votes'] );
+		// build_intro_context() declares new_members/open_votes OPTIONAL — they
+		// are only present when there is something to report. Asserting the keys
+		// exist first is what this test actually means (their absence is a
+		// failure, not an empty result), and it narrows the optional arms away.
+		$this->assertArrayHasKey( 'new_members', $context );
+		$this->assertArrayHasKey( 'open_votes', $context );
+		// The two assertions above are the real check; the `??` arms below never
+		// fire at runtime because of them. They are here because
+		// assertArrayHasKey() carries no narrowing annotation, so PHPStan still
+		// treats these declared-optional offsets as possibly absent.
+		$this->assertContains( 'Context Artist', $context['new_members'] ?? [] );
+		$this->assertSame( 0, $context['open_votes'] ?? null );
 	}
 
 	public function test_intro_context_empty_when_nothing_new(): void {

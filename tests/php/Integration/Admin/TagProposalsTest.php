@@ -28,10 +28,13 @@ use Agnosis\Compat\LinguaForge;
 use Agnosis\Publishing\TagGate;
 use Agnosis\Tests\Integration\Compat\LinguaForgeCompatTest;
 use Agnosis\Tests\Integration\Support\FakeLinguaForge;
+use Agnosis\Tests\Integration\Support\NarrowsWpReturns;
 
 require_once __DIR__ . '/../Compat/Stubs/lf_global_stubs.php';
 
 class TagProposalsTest extends \WP_UnitTestCase {
+
+	use NarrowsWpReturns;
 
 	private int $artist_id;
 	private TagProposals $controller;
@@ -291,7 +294,7 @@ class TagProposalsTest extends \WP_UnitTestCase {
 
 		$this->call_approve( 'Ceramics' );
 
-		$names = wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$names = self::term_names( wp_get_post_terms( $post_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ]  ) );
 		sort( $names );
 		$this->assertSame( [ 'Ceramics', 'Oil Painting' ], $names, 'Approving a proposal must ADD to whatever finalize_tags() already assigned, never replace it.' );
 	}

@@ -139,7 +139,16 @@ class NodeTest extends \WP_UnitTestCase {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test setup/assertion against a custom table.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}agnosis_nodes WHERE url = %s", $url ), ARRAY_A );
-		return is_array( $row ) ? $row : null;
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+		// `$wpdb->get_row( …, ARRAY_A )` is typed array<mixed>|object|null, so the
+		// is_array() guard below narrows away the object/null arms but not to the
+		// declared column shape. The guard is the real runtime check; the @var is
+		// this test asserting what it knows about a table the plugin itself creates
+		// (0.9.68 — PHPStan 2.x).
+		/** @var array{status: string, url: string, public_key: string, label: string, description: string|null, trust_scope: string, actor_id: string|null, inbox_url: string|null} $row */
+		return $row;
 	}
 
 	// -------------------------------------------------------------------------

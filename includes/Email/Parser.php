@@ -329,12 +329,17 @@ class Parser {
 					$debug_lines[] = sprintf(
 						'  [%d] type=%s subtype=%s disposition=%s filename=%s name=%s bytes=%d isAttachment=%s',
 						$i,
-						(string) ( $part->type ?? '?' ),
+						// `$type` and `$content` are declared `public int $type = …`
+						// and `public string $content = ""` on Webklex's Part, so
+						// they are neither nullable nor ever uninitialized and the
+						// `??` fallbacks they used to carry were dead (0.9.68).
+						// The other four are genuinely nullable and keep theirs.
+						(string) $part->type,
 						(string) ( $part->subtype ?? '(none)' ),
 						(string) ( $part->disposition ?? '(none)' ),
 						(string) ( $part->filename ?? '(none)' ),
 						(string) ( $part->name ?? '(none)' ),
-						strlen( (string) ( $part->content ?? '' ) ),
+						strlen( $part->content ),
 						method_exists( $part, 'isAttachment' ) ? ( $part->isAttachment() ? 'yes' : 'no' ) : '?'
 					);
 				}

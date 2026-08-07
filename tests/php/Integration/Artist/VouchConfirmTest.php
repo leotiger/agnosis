@@ -46,8 +46,11 @@ use Agnosis\Artist\Admission;
 use Agnosis\Artist\AdmissionNotification;
 use Agnosis\Artist\VouchConfirm;
 use Agnosis\Tests\Integration\Support\DieCapture;
+use Agnosis\Tests\Integration\Support\NarrowsWpReturns;
 
 class VouchConfirmTest extends \WP_UnitTestCase {
+
+	use NarrowsWpReturns;
 
 	private VouchConfirm $confirm;
 	private Admission $admission;
@@ -71,9 +74,12 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 		$die_interceptor = static function (): callable {
 			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
 				$http_status = (int) ( $args['response'] ?? 200 );
-				$title_str   = is_string( $title ) ? $title : '';
+				// Only $message needs narrowing — wp_die() passes either a string
+				// or a WP_Error. $title is already typed `string` by the signature
+				// above, so the is_string() guard it used to carry was dead code
+				// (0.9.68; AdmissionConfirmTest had already dropped its copy).
 				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
-				throw new DieCapture( $msg_str, $title_str, $http_status );
+				throw new DieCapture( $msg_str, $title, $http_status );
 			};
 		};
 		add_filter( 'wp_die_handler',      $die_interceptor );
@@ -182,30 +188,24 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 		$vote = 'yes';
 
 		$url = AdmissionNotification::vote_url( $voter_id, $app_id, $vote );
-		$parsed = [];
-		parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $parsed );
 
 		$this->assertTrue(
-			$this->call_verify( $voter_id, $app_id, $vote, $parsed['token'] )
+			$this->call_verify( $voter_id, $app_id, $vote, self::query_param( $url, 'token' ) )
 		);
 	}
 
 	public function test_yes_token_does_not_verify_as_no(): void {
 		$url = AdmissionNotification::vote_url( 8, 20, 'yes' );
-		$parsed = [];
-		parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $parsed );
 
 		// Use the yes-signed token but claim the vote is 'no'.
-		$this->assertFalse( $this->call_verify( 8, 20, 'no', $parsed['token'] ) );
+		$this->assertFalse( $this->call_verify( 8, 20, 'no', self::query_param( $url, 'token' ) ) );
 	}
 
 	public function test_swapped_voter_id_fails_verify(): void {
 		$url = AdmissionNotification::vote_url( 10, 3, 'yes' );
-		$parsed = [];
-		parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $parsed );
 
 		// Present the token for voter 10 as if it were from voter 11.
-		$this->assertFalse( $this->call_verify( 11, 3, 'yes', $parsed['token'] ) );
+		$this->assertFalse( $this->call_verify( 11, 3, 'yes', self::query_param( $url, 'token' ) ) );
 	}
 
 	// =========================================================================
@@ -332,14 +332,12 @@ class VouchConfirmTest extends \WP_UnitTestCase {
 
 		// Build the token exactly as handle() would receive it.
 		$url = AdmissionNotification::vote_url( $artist, $application_id, 'yes' );
-		$parsed = [];
-		parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $parsed );
 
 		$token_valid = $this->call_verify(
-			(int) $parsed['voter'],
-			(int) $parsed['app'],
-			$parsed['vote'],
-			$parsed['token']
+			(int) self::query_param( $url, 'voter' ),
+			(int) self::query_param( $url, 'app' ),
+			self::query_param( $url, 'vote' ),
+			self::query_param( $url, 'token' )
 		);
 		$this->assertTrue( $token_valid, 'Token from vote_url() must pass verify_token().' );
 

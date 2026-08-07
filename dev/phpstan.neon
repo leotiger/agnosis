@@ -6,6 +6,32 @@ parameters:
     level: 7
     phpVersion: 80200
 
+    # PHPDoc types are documentation, not proof. With this on (PHPStan's
+    # default), any check that defends against a docblock being WRONG gets
+    # reported as redundant — which inverts the reason the check is there.
+    #
+    # Turned off when PHPStan 2.x landed (0.9.68), because 2.x narrows hard
+    # enough for that inversion to become the dominant failure mode: it took
+    # `includes/` from 14 findings to 6, and every one of the 8 it removed was
+    # a defensive guard that would have been *wrong* to delete. The clearest
+    # case is the nine `$term instanceof WP_Term` checks across Compat\LinguaForge,
+    # Federation\Serialization and ReviewEndpoints. `get_term()`'s PHPDoc says
+    # `WP_Term|array|WP_Error|null`, and after the `is_wp_error()`/null guards
+    # PHPStan concludes `WP_Term` — but core genuinely returns a plain array
+    # when asked for one, and the whole point of the instanceof is that we do
+    # not trust the shape we got back. "Delete this check because the docblock
+    # promises it can't fail" is circular, and the same argument covers every
+    # `assertIsInt()`/`assertIsArray()` in the test suite: those assertions
+    # exist precisely to catch a PHPDoc that lied at runtime.
+    #
+    # This does NOT weaken anything derived from real declarations. Native
+    # return types, constants and literals are still treated as certain —
+    # `MediaAdapter`'s dead `false !==` and `PostCreator`'s tautological
+    # `'agnosis_event' === 'agnosis_event'` both survive the change and are
+    # still reported, which is the evidence that the setting is discriminating
+    # rather than blanket-silencing.
+    treatPhpDocTypesAsCertain: false
+
     paths:
         - ../agnosis.php
         - ../uninstall.php
@@ -15,11 +41,23 @@ parameters:
         - ../docs/agnosis-update-manifest.php
         - ../docs/agnosis-manifest-includes/
 
+    # `(?)` marks a path as optional — PHPStan 2.x hard-errors on an
+    # excludePaths entry that doesn't exist, where 1.x ignored it silently.
+    # `node_modules/` only exists after `npm install`, and `build/` only after
+    # a `wp-scripts build`; neither is committed, so a fresh checkout (and CI,
+    # which runs neither) legitimately has neither. `dev/` and `vendor/` are
+    # always present, so they stay required — if either of those goes missing
+    # that IS worth an error.
+    #
+    # `vendor-prefixed/` is deliberately NOT listed. It isn't in `paths`, so it
+    # is never analysed anyway, and excluding a path also stops PHPStan
+    # scanning it — which would cost us the `Agnosis\Vendor\Webklex\PHPIMAP\*`
+    # classes that `Email/Parser.php` is typed against.
     excludePaths:
         - ../dev/
         - ../vendor/
-        - ../node_modules/
-        - ../build/
+        - ../node_modules/ (?)
+        - ../build/ (?)
 
     scanFiles:
         - vendor/php-stubs/wordpress-tests-stubs/wordpress-tests-stubs.php
@@ -32,17 +70,42 @@ parameters:
     #
     # LINGUAFORGE_VERSION is defined by the companion Lingua Forge plugin, not by
     # this one, so its value is whatever version the site actually has installed.
-    # Every `defined( 'LINGUAFORGE_VERSION' ) && version_compare( … )` guard in
-    # Compat\LinguaForge exists precisely because that varies — degrading
-    # gracefully on an older LF is the documented behaviour (0.9.66, L-1).
     #
-    # Without this, PHPStan resolves the constant differently depending on
+    # Exactly one place still reads it to make a decision: the admin notice in
+    # `agnosis.php` that tells an admin their LF is older than the version
+    # Agnosis was written against. That comparison is load-bearing — reporting
+    # the installed version IS the point of that code. (0.9.68 removed the four
+    # guards in `Compat\LinguaForge` that also read it; see the note at the foot
+    # of that class's `register_hooks()` for why they were never load-bearing.)
+    #
+    # Without this entry, PHPStan resolves the constant differently depending on
     # whether the sibling `lingua-forge` checkout is present, so a developer with
     # the companion repos gets a clean run while CI — which deliberately has
     # neither sibling (see README's Testing section) — folds the comparison to a
-    # literal and reports five "always false" errors in correct code. Local and
-    # CI must agree, and the honest answer is that this value is not knowable at
+    # literal and reports the branch as unreachable in correct code. Local and CI
+    # must agree, and the honest answer is that this value is not knowable at
     # analysis time.
     dynamicConstantNames:
         - LINGUAFORGE_VERSION
+
+    ignoreErrors:
+        # `$this->assertTrue( true, 'why reaching here is the pass condition' )`
+        # is the standard PHPUnit way to write "this call must not throw / must
+        # not wp_die()" — the test's subject is the absence of an exception, and
+        # there is no return value to assert on. PHPStan 2.x is right that the
+        # expression is constant; it is constant on purpose.
+        #
+        # A rule rather than seven line-level suppressions because it is one
+        # idiom, and it cannot mask a real defect: `assertTrue( true )` is never
+        # a meaningful assertion in the first place, so nothing is hidden by
+        # ignoring it. Scoped to tests/ so it can never apply to plugin code.
+        #
+        # `expectNotToPerformAssertions()` was the alternative and was rejected:
+        # it makes PHPUnit *fail* the test if any assertion runs, which would
+        # rule out the several cases here that assert this alongside other
+        # checks, and it discards the message explaining what "no throw" proves.
+        -
+            identifier: method.alreadyNarrowedType
+            message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true#'
+            path: ../tests/php/
 

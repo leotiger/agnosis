@@ -191,7 +191,16 @@ class TextPosterGenerator {
 		}
 
 		$remaining = self::MAX_LINES - count( $lines );
-		// @phpstan-ignore-next-line -- always true given MAX_LINES=40 and $lines holding at most one entry (the subject) above; kept as an explicit guard so this doesn't silently break if MAX_LINES is ever lowered to 0/negative or more entries are pushed to $lines before this point.
+		// Always true given MAX_LINES=40 and $lines holding at most one entry
+		// (the subject) above; kept as an explicit guard so this doesn't
+		// silently break if MAX_LINES is ever lowered to 0/negative or more
+		// entries are pushed to $lines before this point. The suppression
+		// comment that used to sit here was removed in 0.9.68 —
+		// `treatPhpDocTypesAsCertain: false` (see dev/phpstan.neon) stopped the
+		// error being reported at all, so the suppression itself became an
+		// error under 2.x's `ignore.unmatchedLine`. (Naming the directive in
+		// prose is not an option: PHPStan parses any comment containing it,
+		// so writing it here would re-create the very thing being described.)
 		if ( $remaining > 0 ) {
 			$raw_lines  = preg_split( '/\r\n|\r|\n/', $text ) ?: [];
 			$body_lines = array_values( array_filter(

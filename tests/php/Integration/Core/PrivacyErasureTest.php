@@ -85,8 +85,17 @@ class PrivacyErasureTest extends \WP_UnitTestCase {
 		return (int) $wpdb->insert_id;
 	}
 
-	/** @return object{email: string, display_name: string, bio: string, portfolio_url: string, statement: string, status: string} */
-	private function application_row( int $id ): object {
+	/**
+	 * `$wpdb->get_row()` returns null when the row is gone, so the null arm is
+	 * real and is now declared (0.9.68). Without it this was both a lie and a
+	 * latent TypeError — an erased row would blow up inside this helper instead
+	 * of failing the caller's own assertNotNull() with its explanation, and
+	 * PHPStan, believing the declaration, reported that assertion as permanently
+	 * true. Which is how the missing arm was found.
+	 *
+	 * @return object{email: string, display_name: string, bio: string, portfolio_url: string, statement: string, status: string}|null
+	 */
+	private function application_row( int $id ): ?object {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test assertion.

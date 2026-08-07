@@ -209,7 +209,11 @@ class MediaAdapter {
 			$resized = $imagick->getImageBlob();
 			$imagick->destroy();
 
-			return ( false !== $resized && '' !== $resized ) ? $resized : $data;
+			// `getImageBlob(): string` is a native return type on both the real
+			// Imagick extension and the fake in dev/bootstrap.php, so it never
+			// returns false — it throws instead, which the catch below handles.
+			// The `false !== $resized` half of this test was dead (0.9.68).
+			return '' !== $resized ? $resized : $data;
 
 		} catch ( \Throwable $e ) {
 			Logger::warning( sprintf(

@@ -362,13 +362,15 @@ class SubdomainNavigation {
 		if ( 'biography' === $type ) {
 			$url          = $this->biography_permalink( $artist_id );
 			$label        = __( 'Biography', 'agnosis' );
-			$default_icon = 'book';
+			$set          = self::LINK_ICON_SETS['biography'];
+			$default_path = $set['book'];
 		} else {
 			$url          = $this->has_published_post( 'agnosis_event', $artist_id )
 				? (string) get_post_type_archive_link( 'agnosis_event' )
 				: '';
 			$label        = __( 'Events', 'agnosis' );
-			$default_icon = 'calendar';
+			$set          = self::LINK_ICON_SETS['events'];
+			$default_path = $set['calendar'];
 		}
 
 		if ( '' === $url ) {
@@ -377,16 +379,21 @@ class SubdomainNavigation {
 
 		$this->enqueue_breadcrumb_icon_link_assets();
 
-		// self::LINK_ICON_SETS has exactly these two keys ('biography'/'events',
-		// matching $type's only two possible values) and $default_icon is
-		// always one of that set's own keys — both guaranteed by the const
-		// array's own definition just below, not by anything at runtime, so
-		// no '??' fallback is needed for either lookup. $icon_key is the only
-		// genuinely unverified value here (an arbitrary block attribute), so
-		// it's the only one that still needs one.
-		$set      = self::LINK_ICON_SETS[ $type ];
+		// $icon_key is the only genuinely unverified value here — an arbitrary
+		// block attribute — so it's the only lookup that needs a '??'.
+		//
+		// The fallback is resolved to a *path* in each branch above rather than
+		// carried down as a key ($default_icon) and looked up here (0.9.68).
+		// Both forms are correct, but the old one paired two variables that
+		// only agree by construction: after the if/else PHPStan sees $set as
+		// the union of BOTH icon sets and $default_icon as 'book'|'calendar',
+		// cannot tell that 'book' only ever accompanies the biography set, and
+		// so reports the fallback lookup as a possible undefined offset. Taking
+		// the default from the set while the branch still knows which set it is
+		// makes the pairing structural instead of a claim in a comment — and
+		// drops a redundant second array lookup on every render.
 		$icon_key = (string) ( $attributes['icon'] ?? '' );
-		$path     = $set[ $icon_key ] ?? $set[ $default_icon ];
+		$path     = $set[ $icon_key ] ?? $default_path;
 
 		$wrapper_attributes = get_block_wrapper_attributes();
 

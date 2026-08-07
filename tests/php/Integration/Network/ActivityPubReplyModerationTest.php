@@ -77,7 +77,6 @@ class ActivityPubReplyModerationTest extends \WP_UnitTestCase {
 		// @phpstan-ignore-next-line -- WP_UnitTest_Factory_For_User::create() is typed int|WP_Error but never fails for this fixture's fixed, valid args (same accepted pattern as every other *Test.php in this suite that assigns a factory-created user id straight to an int-typed property).
 		$this->artist_id = self::factory()->user->create( [ 'role' => 'subscriber', 'display_name' => 'Test Artist', 'user_email' => 'artist@example.com' ] );
 
-		// @phpstan-ignore-next-line -- $this->artist_id is a real int by the time control reaches here; the int|WP_Error union only exists because of factory()->create()'s own return type above, not anything actually wrong with this array.
 		$this->post_id = (int) wp_insert_post( [
 			'post_type'   => 'agnosis_artwork',
 			'post_status' => 'publish',

@@ -4,7 +4,7 @@ Tags: art, artists, activitypub, federation, ai
 Requires at least: 6.9
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.9.67
+Stable tag: 0.9.68
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -91,6 +91,10 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 
 == Changelog ==
 
+= 0.9.68 =
+* Changed: Removed four leftover version checks against Lingua Forge. Agnosis already checks for each Lingua Forge feature it uses before using it, and already tells you in the admin when your Lingua Forge is older than the version Agnosis is written against — so the version checks were a third copy of a decision made twice already. Nothing behaves differently on any version.
+* Changed: Development tooling only — the static analyser used to check this plugin's code was upgraded to its current major version.
+
 = 0.9.67 =
 * Fixed: The "Follow" button on an artwork could show a Fediverse handle that doesn't work — on artworks published by an admin, or by someone who is no longer an artist on your site. The handle looked correct and copied cleanly, but wouldn't resolve in anyone's Fediverse app. The button now doesn't appear at all in those cases.
 * Fixed: Clicking a review link for a submission that no longer exists — already published, discarded, or replaced by a newer version — silently dropped the artist on the home page with no explanation. It now says what happened and that nothing went wrong on their side. Same for a link that arrives incomplete because a mail app cut it in half.
@@ -100,22 +104,6 @@ Yes. Once ActivityPub is enabled, your node is a Fediverse actor. Mastodon users
 * Changed: Agnosis now requires WordPress 6.9 or newer, up from 6.6. Nothing in the plugin behaved differently on older versions; this only stops it claiming support for versions it isn't developed or tested against.
 * Changed: The Fediverse code has been reorganized internally — the single file behind ActivityPub, which had grown to over 6,000 lines, is now nine focused ones. Nothing behaves differently and the full test suite passes unchanged; it makes future federation work safer to build and easier to review.
 * Changed: Removed a piece of dead code left over from the 0.9.54 change that let translated versions of an artwork federate on their own.
-
-= 0.9.66 =
-* Changed: The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13 — including the email inbox poll, which is how artwork submissions arrive. No change in normal operation; it means fewer ways for a scheduled task to go missing unnoticed.
-* Added: Agnosis now warns in the admin when Lingua Forge is older than the version it was written against, instead of the affected feature just silently not appearing. Agnosis keeps working either way.
-* Added: Agnosis posts are now explicitly excluded from Lingua Forge 2.7.0's own comment translation, so replies can never be mirrored twice by both plugins.
-* Fixed: The reply form on an artwork had no field labels, only placeholder text, making it hard to use with a screen reader or voice control. Same for the Partner Nodes trust-scope dropdown, which didn't say which peer it belonged to.
-* Fixed: The "Follow" popover's error message ("enter your instance domain") was never announced to screen readers.
-* Fixed: Hindi-speaking artists received a contact-reply email showing the characters "%s" instead of the sender's name.
-* Fixed: The Arabic translation of the open-community-votes line left out the number for counts between 11 and 99.
-* Fixed: The artist newsletter read "1 likes on your work" and "From 1 trusted partner nodes" instead of the singular. The English plural forms were wrong in the translation catalog.
-* Security: The Partner Nodes panel's "Approve" and "Check" buttons could be used to make your own server contact addresses inside your private network, because anyone can register themselves as a pending peer with any address they like. Those requests now refuse private and loopback addresses, and an unsafe address is rejected at registration so it never appears in the panel at all.
-* Fixed: A visitor asking you to erase their data also wiped the artist's own replies to them, and a visitor's data export included those replies as though the visitor had written them. Erasure now keeps the artist's words while removing the visitor's details from them, and reports the result honestly as a partial erasure.
-* Fixed: The reply form asked for an email address without showing any privacy notice, unlike the join and contact forms. It now explains that a reply is reviewed by the artist, then published, translated and shared across the Fediverse.
-* Added: Data exports and erasure requests now also cover the automatic translations made of a visitor's own reply, which WordPress's built-in comment tools cannot see.
-* Added: Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings → Network.
-* Changed: The suggested privacy-policy text (Settings → Privacy → Policy Guide) now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms that use the Cloudflare Turnstile check.
 
 For the complete version history, see CHANGELOG.md in the plugin's source repository.
 

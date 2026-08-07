@@ -35,6 +35,7 @@ class FakeImapMessage {
 	 */
 	public function getFrom(): object {
 		return new class() {
+			/** @return list<object{mail: string}> */
 			public function toArray(): array {
 				return [];
 			}
@@ -43,6 +44,7 @@ class FakeImapMessage {
 
 	public function getTo(): object {
 		return new class() {
+			/** @return list<object{mail: string}> */
 			public function toArray(): array {
 				return [];
 			}

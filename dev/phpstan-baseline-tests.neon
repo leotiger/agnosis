@@ -146,19 +146,9 @@ parameters:
 			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$id of function wp_set_current_user expects int\\|null, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\AiProviderPingTest\\:\\:\\$admin_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/AiProviderPingTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/ArtworkMediumSyncTest.php
 
 		-
 			message: "#^Filter callback return statement is missing\\.$#"
@@ -191,11 +181,6 @@ parameters:
 			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
-
-		-
 			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
@@ -219,11 +204,6 @@ parameters:
 			message: "#^Static property Agnosis\\\\Tests\\\\Integration\\\\AI\\\\Stubs\\\\WpAiClientTestRegistry\\:\\:\\$response \\(string\\|null\\) does not accept string\\|false\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/ArtworkRetagTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/DeliverabilityTest.php
 
 		-
 			message: "#^Filter callback return statement is missing\\.$#"
@@ -296,11 +276,6 @@ parameters:
 			path: ../tests/php/Integration/Admin/MediumProposalsTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/RelayManagerTest.php
-
-		-
 			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/RelayManagerTest.php
@@ -311,17 +286,7 @@ parameters:
 			path: ../tests/php/Integration/Admin/RelayManagerTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
-
-		-
 			message: "#^Filter callback return statement is missing\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
-
-		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\RhizomeManagerTest\\:\\:get_peer\\(\\) should return array\\{status\\: string, trust_scope\\: string, actor_id\\: string\\|null, inbox_url\\: string\\|null, reciprocal\\: string, reciprocity_checked_at\\: string\\|null\\}\\|null but returns array\\|null\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/RhizomeManagerTest.php
 
@@ -337,11 +302,6 @@ parameters:
 
 		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsInitiateRemovalVoteTest.php
 
@@ -386,11 +346,6 @@ parameters:
 			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
-
-		-
 			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
@@ -404,11 +359,6 @@ parameters:
 			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/SettingsRetryFailedNewsletterTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/SettingsTermTranslationCacheTest.php
 
 		-
 			message: "#^Filter callback return statement is missing\\.$#"
@@ -431,11 +381,6 @@ parameters:
 			path: ../tests/php/Integration/Admin/TagProposalsTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$array of function sort expects TArray of array\\<string\\>, array\\<int, string\\>\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/TagProposalsTest.php
-
-		-
 			message: "#^Parameter \\#1 \\$post_id of function wp_get_post_terms expects int, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/TagProposalsTest.php
@@ -454,11 +399,6 @@ parameters:
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Admin\\\\TagProposalsTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Admin/TagProposalsTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Admin/TaxonomyLanguageFilterTest.php
 
 		-
 			message: "#^Filter callback return statement is missing\\.$#"
@@ -906,16 +846,6 @@ parameters:
 			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\ContactFormReplyGatewayTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/ContactFormReplyGatewayTest.php
@@ -1081,11 +1011,6 @@ parameters:
 			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
-
-		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\DepartureConfirmShimTest\\:\\:create_artist_with_removal_token\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/DepartureConfirmShimTest.php
@@ -1176,11 +1101,6 @@ parameters:
 			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 2
-			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
-
-		-
 			message: "#^Parameter \\#3 \\$user of method Agnosis\\\\Artist\\\\FrontendAccess\\:\\:redirect_after_login\\(\\) expects WP_Error\\|WP_User, WP_User\\|false given\\.$#"
 			count: 4
 			path: ../tests/php/Integration/Artist/FrontendAccessTest.php
@@ -1241,17 +1161,7 @@ parameters:
 			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 2
-			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
-
-		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\NotificationPreferencesTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
-
-		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\NotificationPreferencesTest\\:\\:valid_token\\(\\) should return string but returns array\\|string\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/NotificationPreferencesTest.php
 
@@ -1282,11 +1192,6 @@ parameters:
 
 		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/RemovalVoteConfirmTest.php
 
@@ -1366,11 +1271,6 @@ parameters:
 			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
-
-		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:create_artist\\(\\) should return int but returns int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
@@ -1378,16 +1278,6 @@ parameters:
 		-
 			message: "#^Parameter \\#1 \\$user_id of function get_userdata expects int, int\\|WP_Error given\\.$#"
 			count: 1
-			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
-
-		-
-			message: "#^Parameter \\#3 \\$vote of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:call_verify\\(\\) expects string, array\\|string given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
-
-		-
-			message: "#^Parameter \\#4 \\$token of method Agnosis\\\\Tests\\\\Integration\\\\Artist\\\\VouchConfirmTest\\:\\:call_verify\\(\\) expects string, array\\|string given\\.$#"
-			count: 4
 			path: ../tests/php/Integration/Artist/VouchConfirmTest.php
 
 		-
@@ -1416,11 +1306,6 @@ parameters:
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatNoticesTest.php
 
 		-
-			message: "#^Argument of an invalid type array\\<int, int\\>\\|WP_Error supplied for foreach, only iterables are supported\\.$#"
-			count: 2
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
 			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
 			count: 3
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
@@ -1428,16 +1313,6 @@ parameters:
 		-
 			message: "#^Cannot access offset 0 on array\\<int, WP_Term\\>\\|WP_Error\\.$#"
 			count: 2
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Cannot access offset 0 on array\\<int, int\\>\\|WP_Error\\.$#"
-			count: 6
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$array of function array_intersect expects array, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1496,28 +1371,8 @@ parameters:
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertContains\\(\\) expects iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
-			count: 2
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
 			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, WP_Term\\>\\|WP_Error given\\.$#"
 			count: 3
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 4
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\<int, string\\>\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertNotContains\\(\\) expects iterable, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 2
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1533,11 +1388,6 @@ parameters:
 		-
 			message: "#^Parameter \\#2 \\$source_id of method Agnosis\\\\Compat\\\\LinguaForge\\:\\:sync_translated_terms\\(\\) expects int, int\\|WP_Error given\\.$#"
 			count: 2
-			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
-
-		-
-			message: "#^Parameter \\#2 \\.\\.\\.\\$arrays of function array_intersect expects array, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 1
 			path: ../tests/php/Integration/Compat/LinguaForgeCompatTest.php
 
 		-
@@ -1761,26 +1611,6 @@ parameters:
 			path: ../tests/php/Integration/Email/BounceHandlerTest.php
 
 		-
-			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeAliasImapMessage\\.php\\:77\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Email/FakeAliasImapMessage.php
-
-		-
-			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeAliasImapMessage\\.php\\:87\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Email/FakeAliasImapMessage.php
-
-		-
-			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeImapMessage\\.php\\:37\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Email/FakeImapMessage.php
-
-		-
-			message: "#^Method class@anonymous/tests/php/Integration/Email/FakeImapMessage\\.php\\:45\\:\\:toArray\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Email/FakeImapMessage.php
-
-		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Email/InboxAliasAuthGateTest.php
@@ -1983,11 +1813,6 @@ parameters:
 		-
 			message: "#^Empty array passed to foreach\\.$#"
 			count: 2
-			path: ../tests/php/Integration/Network/ActivityPubFederateReplyTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 1
 			path: ../tests/php/Integration/Network/ActivityPubFederateReplyTest.php
 
 		-
@@ -2231,11 +2056,6 @@ parameters:
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertStringContainsString\\(\\) expects string, bool\\|string given\\.$#"
-			count: 2
-			path: ../tests/php/Integration/Network/ActivityPubTest.php
-
-		-
 			message: "#^Parameter \\#2 \\$signature of function openssl_verify expects string, string\\|false given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/ActivityPubTest.php
@@ -2322,11 +2142,6 @@ parameters:
 
 		-
 			message: "#^Cannot access offset 'key' on array\\|false\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Network/NodeTest.php
-
-		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Network\\\\NodeTest\\:\\:get_node_row\\(\\) should return array\\{status\\: string, url\\: string, public_key\\: string, label\\: string, description\\: string\\|null, trust_scope\\: string, actor_id\\: string\\|null, inbox_url\\: string\\|null\\}\\|null but returns array\\|null\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Network/NodeTest.php
 
@@ -2421,21 +2236,6 @@ parameters:
 			path: ../tests/php/Integration/Newsletter/ArchiveTest.php
 
 		-
-			message: "#^Offset 'medium' on array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\} on left side of \\?\\? does not exist\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Newsletter/DigestTest.php
-
-		-
-			message: "#^Offset 'new_members' does not exist on array\\{artworks\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>, medium\\: array\\<string\\>\\}\\>, events\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\}\\>, new_members\\?\\: array\\<string\\>, open_votes\\?\\: int\\}\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Newsletter/DigestTest.php
-
-		-
-			message: "#^Offset 'open_votes' does not exist on array\\{artworks\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>, medium\\: array\\<string\\>\\}\\>, events\\: array\\<int, array\\{title\\: string, excerpt\\: string, tags\\: array\\<string\\>\\}\\>, new_members\\?\\: array\\<string\\>, open_votes\\?\\: int\\}\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Newsletter/DigestTest.php
-
-		-
 			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: string, post_date\\: string, post_author\\: int\\|WP_Error\\} given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Newsletter/DigestTest.php
@@ -2444,11 +2244,6 @@ parameters:
 			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_event', post_status\\: 'publish', post_title\\: 'Context Event', post_date\\: string, post_author\\: int\\|WP_Error\\} given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Newsletter/DigestTest.php
-
-		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Newsletter/InteractionGatewayTest.php
 
 		-
 			message: "#^Filter callback return statement is missing\\.$#"
@@ -2641,11 +2436,6 @@ parameters:
 			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
-
-		-
 			message: "#^Parameter \\#1 \\$user_id of function get_user_meta expects int, int\\|WP_Error given\\.$#"
 			count: 3
 			path: ../tests/php/Integration/Newsletter/SubscriptionConfirmTest.php
@@ -2684,11 +2474,6 @@ parameters:
 			message: "#^Callback expects 0 parameters, \\$accepted_args is set to 3\\.$#"
 			count: 2
 			path: ../tests/php/Integration/Publishing/EmbedPolicyTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_author\\: int\\|WP_Error, post_title\\: 'Test Artwork'\\} given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/GalleryOverviewIntegrationTest.php
 
 		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\GalleryOverviewIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
@@ -2791,11 +2576,6 @@ parameters:
 			path: ../tests/php/Integration/Publishing/NotificationUrlTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Permission Gate…', post_author\\: int\\|WP_Error\\} given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/PermissionGateIntegrationTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PermissionGateIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/PermissionGateIntegrationTest.php
@@ -2813,11 +2593,6 @@ parameters:
 		-
 			message: "#^Parameter \\#1 \\$pipeline of class Agnosis\\\\Publishing\\\\PostCreator constructor expects Agnosis\\\\AI\\\\Pipeline\\|null, object given\\.$#"
 			count: 7
-			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 1
 			path: ../tests/php/Integration/Publishing/PhotoOnlyTest.php
 
 		-
@@ -2876,11 +2651,6 @@ parameters:
 			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PostCreatorMergeMissSuggestionTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/PostCreatorMergeMissSuggestionTest.php
@@ -2892,11 +2662,6 @@ parameters:
 
 		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/PostCreatorMergeRedraftsPublishedTargetTest.php
 
@@ -2976,11 +2741,6 @@ parameters:
 			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PureLaneMediumClassificationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/PureLaneMediumClassificationTest.php
@@ -3006,37 +2766,12 @@ parameters:
 			path: ../tests/php/Integration/Publishing/PureLaneTest.php
 
 		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/PureLaneTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\PureLaneTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/PureLaneTest.php
 
 		-
 			message: "#^Cannot call method add_role\\(\\) on WP_User\\|false\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
-
-		-
-			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\QualityRejectionTest\\:\\:make_stub_pipeline\\(\\) has parameter \\$issues with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
-
-		-
-			message: "#^Method class@anonymous/tests/php/Integration/Publishing/QualityRejectionTest\\.php\\:164\\:\\:__construct\\(\\) has parameter \\$scores with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
-
-		-
-			message: "#^Method class@anonymous/tests/php/Integration/Publishing/QualityRejectionTest\\.php\\:82\\:\\:__construct\\(\\) has parameter \\$issues with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of function get_user_by expects int\\|string, int\\|WP_Error given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/QualityRejectionTest.php
 
@@ -3052,11 +2787,6 @@ parameters:
 
 		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\RemovalEndpointsIntegrationTest\\:\\:request\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_title\\: 'Artwork To Remove', post_author\\: int\\|WP_Error\\} given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/RemovalEndpointsIntegrationTest.php
 
@@ -3116,11 +2846,6 @@ parameters:
 			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
 
 		-
-			message: "#^Else branch is unreachable because ternary operator condition is always true\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
-
-		-
 			message: "#^Filter callback return statement is missing\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
@@ -3132,11 +2857,6 @@ parameters:
 
 		-
 			message: "#^Method Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewConfirmIntegrationTest\\:\\:simulate_post\\(\\) has parameter \\$params with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Shim Test Artwork', post_author\\: int\\|WP_Error\\} given\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/ReviewConfirmIntegrationTest.php
 
@@ -3196,24 +2916,9 @@ parameters:
 			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
 
 		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Test Artwork', post_excerpt\\: 'A short excerpt\\.', post_content\\: '\\<\\!\\-\\- wp\\:image \\-\\-\\>…', post_author\\: int\\|WP_Error\\} given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
-
-		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsIntegrationTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
 			count: 1
 			path: ../tests/php/Integration/Publishing/ReviewEndpointsIntegrationTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'draft', post_title\\: 'Amanecer sobre la…', post_excerpt\\: 'Un resumen vívido…', post_content\\: '\\<\\!\\-\\- wp\\:paragraph \\-…', post_author\\: int\\|WP_Error\\} given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$user_id of function update_user_meta expects int, int\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/ReviewEndpointsNativeLanguagePipelineTest.php
 
 		-
 			message: "#^Property Agnosis\\\\Tests\\\\Integration\\\\Publishing\\\\ReviewEndpointsNativeLanguagePipelineTest\\:\\:\\$artist_id \\(int\\) does not accept int\\|WP_Error\\.$#"
@@ -3228,16 +2933,6 @@ parameters:
 		-
 			message: "#^Cannot access offset 'term_id' on array\\{term_id\\: int, term_taxonomy_id\\: int\\|string\\}\\|WP_Error\\.$#"
 			count: 6
-			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$array of function sort expects TArray of array\\<int\\>, array\\<int, int\\>\\|WP_Error given\\.$#"
-			count: 1
-			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
-
-		-
-			message: "#^Parameter \\#1 \\$postarr of function wp_insert_post expects array\\{ID\\?\\: int, post_author\\?\\: int, post_date\\?\\: string, post_date_gmt\\?\\: string, post_content\\?\\: string, post_content_filtered\\?\\: string, post_title\\?\\: string, post_excerpt\\?\\: string, \\.\\.\\.\\}, array\\{post_type\\: 'agnosis_artwork', post_status\\: 'publish', post_author\\: int\\|WP_Error, post_title\\: 'Test Artwork'\\} given\\.$#"
-			count: 1
 			path: ../tests/php/Integration/Publishing/TagGateAssociateTest.php
 
 		-
@@ -3316,36 +3011,6 @@ parameters:
 			path: ../tests/php/Unit/Email/IntakeGatesTest.php
 
 		-
-			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
-			count: 3
-			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
-
-		-
-			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
-			count: 3
-			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
-
-		-
-			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
-			count: 4
-			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
-
-		-
-			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
-			count: 9
-			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
-
-		-
-			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
-			count: 9
-			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
-
-		-
-			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
-			count: 8
-			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
-
-		-
 			message: "#^Offset 3 does not exist on array\\{string, bool, string\\}\\.$#"
 			count: 5
 			path: ../tests/php/Unit/Publishing/IndicatorParsingTest.php
@@ -3354,3 +3019,39 @@ parameters:
 			message: "#^Offset 4 does not exist on array\\{string, bool, string\\}\\.$#"
 			count: 5
 			path: ../tests/php/Unit/Publishing/IndicatorParsingTest.php
+
+		-
+			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 3
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 3
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 4
+			path: ../tests/php/Unit/Email/WebhookReplayProtectionTest.php
+
+		-
+			message: "#^Unknown parameter \\$body in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 9
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
+
+		-
+			message: "#^Unknown parameter \\$headers in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 9
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php
+
+		-
+			message: "#^Unknown parameter \\$params in call to WP_REST_Request constructor\\.$#"
+			identifier: argument.unknown
+			count: 8
+			path: ../tests/php/Unit/Email/WebhookSignatureTest.php

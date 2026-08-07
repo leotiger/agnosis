@@ -236,7 +236,9 @@ class PostCreatorMergeRedraftsPublishedTargetTest extends \WP_UnitTestCase {
 			is_wp_error( $response ) ? 'approve() returned an error: ' . $response->get_error_message() : ''
 		);
 
-		$data = is_array( $response ) ? $response : ( method_exists( $response, 'get_data' ) ? $response->get_data() : [] );
+		// The method_exists() guard this used to carry was dead — by here $response
+		// is a WP_REST_Response, which always has get_data() (0.9.68).
+		$data = is_array( $response ) ? $response : $response->get_data();
 		if ( isset( $data['post_id'] ) ) {
 			$this->assertSame( $live_id, (int) $data['post_id'], 'approve() must report the LIVE post id, not the staging draft\'s.' );
 		}

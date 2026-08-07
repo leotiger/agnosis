@@ -99,6 +99,15 @@
             /function docblocks are written where they add value, not by rule.
         -->
         <exclude name="Squiz.Commenting.ClassComment.Missing"/>
+        <!--
+            The sniff's allow-list of class-docblock tags predates PHPStan's
+            local type aliases, so it rejects @phpstan-type outright. That tag
+            is how a shape used in more than one place inside a class gets
+            written once instead of copied (Admin\Deliverability's IdentityRow,
+            0.9.68) — refusing it would mean duplicating an eight-line array
+            shape between a @var and a @return and keeping them in sync by hand.
+        -->
+        <exclude name="Squiz.Commenting.ClassComment.TagNotAllowed"/>
         <exclude name="Squiz.Commenting.VariableComment.Missing"/>
         <exclude name="Squiz.Commenting.FunctionComment.Missing"/>
         <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>

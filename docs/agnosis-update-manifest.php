@@ -60,8 +60,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// UPDATE THESE FIELDS ON EVERY RELEASE
 	// -------------------------------------------------------------------------
 
-	$version      = '0.9.67';
-	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.67/agnosis-0.9.67.zip';
+	$version      = '0.9.68';
+	$download_url = 'https://github.com/leotiger/agnosis/releases/download/v0.9.68/agnosis-0.9.68.zip';
 	$tested       = '7.0';
 
 	// SHA-256 of the release ZIP, a one-line human-readable status note, and
@@ -113,8 +113,8 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// one line up, since the two comments are separate pieces of text. Hand-
 	// editing $sha256 is therefore the same as hand-editing $sha256_note:
 	// don't — the trailing comment is part of what build-zip.sh owns now.
-	$sha256       = '8329b175e5b50beb1518bc11e8bc5e02065b3b9764be802ecee5f5740a91e51e'; // Verified — see $sha256_note above for build date/version.
-	$sha256_note  = 'Verified — sha256 written by build-zip.sh on 2026-08-06 for agnosis-0.9.67.zip.';
+	$sha256       = ''; // Not yet built — dev/bin/build-zip.sh computes this at release time.
+	$sha256_note  = 'Build started 2026-08-07T18:12:34Z by build-zip.sh for v0.9.68 — will be replaced once the build succeeds, or left here (safe: an empty sha256 already skips verification) if it fails.';
 	$last_updated = '2026-08-06';
 
 	// Two most recent releases only — do not accumulate history here; it
@@ -127,6 +127,11 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 	// standing rule this file is now covered by: update on every version
 	// bump, same as CHANGELOG.md and readme.txt.
 	$changelog =
+		'<h4>0.9.68</h4>' .
+		'<ul>' .
+			'<li><strong>Changed:</strong> Removed four version checks against Lingua Forge that were never doing anything &#8212; the features they guarded hang off hooks Lingua Forge itself fires, so on an older version they simply never run. Agnosis now checks whether the thing it needs exists rather than reading a version number, everywhere except the admin notice that tells you which Lingua Forge version you have. Nothing behaves differently on any version.</li>' .
+			'<li><strong>Changed:</strong> Development tooling only &#8212; the static analyser used to check this plugin&#8217;s code was upgraded to its current major version.</li>' .
+		'</ul>' .
 		'<h4>0.9.67</h4>' .
 		'<ul>' .
 			'<li><strong>Fixed:</strong> The &#8220;Follow&#8221; button on an artwork could show a Fediverse handle that doesn&#8217;t resolve &#8212; on artworks published by an admin, or by someone who is no longer an artist. The button no longer appears in those cases.</li>' .
@@ -137,22 +142,6 @@ function agnosis_update_manifest_endpoint( WP_REST_Request $request ): WP_REST_R
 			'<li><strong>Changed:</strong> The Fediverse code has been reorganized internally &#8212; the single file behind ActivityPub, which had grown past 6,000 lines, is now nine focused ones. Nothing behaves differently and the full test suite passes unchanged.</li>' .
 			'<li><strong>Changed:</strong> Removed a piece of dead code left over from the 0.9.54 change that let translated versions of an artwork federate on their own.</li>' .
 			'<li><strong>Fixed:</strong> Four admin controls had no accessible name for screen-reader and voice-control users &#8212; the status and skip-reason filters on Submissions, the status filter on Contact Messages, and read-only settings fields.</li>' .
-		'</ul>' .
-		'<h4>0.9.66</h4>' .
-		'<ul>' .
-			'<li><strong>Changed:</strong> The automatic repair for missing scheduled tasks now covers all 18 of them instead of 13, including the email inbox poll that artwork submissions arrive through.</li>' .
-			'<li><strong>Added:</strong> Agnosis now warns in the admin when Lingua Forge is older than the version it was written against, instead of the affected feature silently not appearing.</li>' .
-			'<li><strong>Added:</strong> Agnosis posts are excluded from Lingua Forge 2.7.0&#8217;s own comment translation, so replies can never be mirrored twice by both plugins.</li>' .
-			'<li><strong>Fixed:</strong> The reply form on an artwork had no field labels, only placeholder text, making it hard to use with a screen reader or voice control &#8212; as did the Partner Nodes trust-scope dropdown, and the &#8220;Follow&#8221; popover never announced its error message.</li>' .
-			'<li><strong>Fixed:</strong> Hindi-speaking artists received a contact-reply email showing the characters &#8220;%s&#8221; instead of the sender&#8217;s name.</li>' .
-			'<li><strong>Fixed:</strong> The Arabic translation of the open-community-votes line left out the number for counts between 11 and 99.</li>' .
-			'<li><strong>Fixed:</strong> The artist newsletter read &#8220;1 likes on your work&#8221; instead of the singular; the English plural forms were wrong in the translation catalog.</li>' .
-			'<li><strong>Security:</strong> The Partner Nodes panel&#8217;s &#8220;Approve&#8221; and &#8220;Check&#8221; buttons could be used to make your own server contact addresses inside your private network, because anyone can register themselves as a pending peer with any address they like. Those requests now refuse private and loopback addresses, and an unsafe address is rejected at registration so it never appears in the panel at all.</li>' .
-			'<li><strong>Fixed:</strong> A visitor asking you to erase their data also wiped the artist&#8217;s own replies to them, and a visitor&#8217;s data export included those replies as though the visitor had written them. Erasure now keeps the artist&#8217;s words while removing the visitor&#8217;s details from them.</li>' .
-			'<li><strong>Fixed:</strong> The reply form asked for an email address without showing any privacy notice, unlike the join and contact forms.</li>' .
-			'<li><strong>Added:</strong> Data exports and erasure requests now also cover the automatic translations made of a visitor&#8217;s own reply, which WordPress&#8217;s built-in comment tools cannot see.</li>' .
-			'<li><strong>Added:</strong> Records of what partner nodes relayed through your site are now deleted after 90 days, adjustable under Settings &#8594; Network.</li>' .
-			'<li><strong>Changed:</strong> The suggested privacy-policy text now covers on-site replies, likes, and the partner-node relay log, and correctly lists the reply form among the forms using the Cloudflare Turnstile check.</li>' .
 		'</ul>' .
 		'<p><a href="https://github.com/leotiger/agnosis/blob/main/CHANGELOG.md">Full changelog on GitHub</a></p>';
 

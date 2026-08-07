@@ -31,8 +31,11 @@ namespace Agnosis\Tests\Integration\Artist;
 
 use Agnosis\Artist\NotificationPreferences;
 use Agnosis\Tests\Integration\Support\DieCapture;
+use Agnosis\Tests\Integration\Support\NarrowsWpReturns;
 
 class NotificationPreferencesTest extends \WP_UnitTestCase {
+
+	use NarrowsWpReturns;
 
 	private NotificationPreferences $prefs;
 
@@ -43,9 +46,12 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		$die_interceptor = static function (): callable {
 			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
 				$http_status = (int) ( $args['response'] ?? 200 );
-				$title_str   = is_string( $title ) ? $title : '';
+				// Only $message needs narrowing — wp_die() passes either a string
+				// or a WP_Error. $title is already typed `string` by the signature
+				// above, so the is_string() guard it used to carry was dead code
+				// (0.9.68; AdmissionConfirmTest had already dropped its copy).
 				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
-				throw new DieCapture( $msg_str, $title_str, $http_status );
+				throw new DieCapture( $msg_str, $title, $http_status );
 			};
 		};
 		add_filter( 'wp_die_handler',      $die_interceptor );
@@ -70,10 +76,7 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 	}
 
 	private function valid_token( int $artist_id ): string {
-		$url    = NotificationPreferences::prefs_url( $artist_id );
-		$parsed = [];
-		parse_str( (string) parse_url( $url, PHP_URL_QUERY ), $parsed );
-		return $parsed['token'];
+		return self::query_param( NotificationPreferences::prefs_url( $artist_id ), 'token' );
 	}
 
 	// =========================================================================
@@ -196,9 +199,10 @@ class NotificationPreferencesTest extends \WP_UnitTestCase {
 		$raw_interceptor = static function (): callable {
 			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
 				$http_status = (int) ( $args['response'] ?? 200 );
-				$title_str   = is_string( $title ) ? $title : '';
+				// See setUp()'s interceptor: $title is typed `string` already, so
+				// only $message needs narrowing (0.9.68).
 				$msg_str     = is_string( $message ) ? $message : (string) $message->get_error_message();
-				throw new DieCapture( $msg_str, $title_str, $http_status );
+				throw new DieCapture( $msg_str, $title, $http_status );
 			};
 		};
 		remove_all_filters( 'wp_die_handler' );

@@ -290,6 +290,11 @@ class ActivityPubBoostTest extends \WP_UnitTestCase {
 		$deliveries = []; // Only the Undo matters from here on.
 		$activitypub->write_boost( $post_id, $booster, false );
 
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.impossibleType (by-reference closure capture is invisible to PHPStan)
 		$this->assertNotEmpty( $deliveries, 'Un-boosting must federate an Undo{Announce}.' );
 		$undo = $deliveries[0]['body'];
 		$this->assertSame( 'Undo', $undo['type'] );

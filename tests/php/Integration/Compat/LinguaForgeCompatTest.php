@@ -73,6 +73,7 @@ use Agnosis\Artist\Profile;
 use Agnosis\Compat\LinguaForge;
 use Agnosis\Tests\Integration\AI\Stubs\WpAiClientTestRegistry;
 use Agnosis\Tests\Integration\Support\FakeLinguaForge;
+use Agnosis\Tests\Integration\Support\NarrowsWpReturns;
 
 // LF constants and global function stubs live in a separate file to satisfy
 // Universal.Files.SeparateFunctionsFromOO (no function declarations alongside OO).
@@ -94,6 +95,8 @@ require_once __DIR__ . '/../AI/Stubs/WpAiClientTestRegistry.php';
 require_once __DIR__ . '/../AI/Stubs/wp_ai_provider_namespace_stubs.php';
 
 class LinguaForgeCompatTest extends \WP_UnitTestCase {
+
+	use NarrowsWpReturns;
 
 	// ── Stubs state (reset in tearDown) ───────────────────────────────────────
 
@@ -587,28 +590,30 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	}
 
 	/**
-	 * This class's docblock (concern #8) documents sync_translated_template()
-	 * as hooked on linguaforge_translation_complete ONLY when LINGUAFORGE_VERSION
-	 * >= 2.6.1 — the version linguaforge_sync_templates() was introduced in.
+	 * Inverted in 0.9.68, when the `version_compare()` gate around this
+	 * registration was removed. The old test asserted the gate's negative case.
 	 *
-	 * Caveat mirrors test_copy_translated_meta_is_hooked_on_translation_complete_unconditionally()'s
-	 * own: LINGUAFORGE_VERSION is a PHP constant fixed at '1.0.0-test' for this
-	 * entire test process (here and in several other Integration test files),
-	 * always below 2.6.1 — so this test cannot cross the boundary in the other
-	 * direction (it can't prove the hook IS added at >= 2.6.1). What it DOES
-	 * prove is the gate's negative case: below 2.6.1, the hook must NOT be
-	 * registered, guarding against ever hooking this unconditionally (which
-	 * would call an undefined LF function on any pre-2.6.1 site running
-	 * alongside Agnosis, before function_exists() inside the method itself
-	 * even gets a chance to no-op it — the method's own guard is a second,
-	 * independent safety net, not a substitute for gating the hook itself).
+	 * The reference version is `AGNOSIS_MIN_LF` (2.7.1) and nothing else; the
+	 * per-feature minimums these gates carried were historical. Safety comes
+	 * from the policy `agnosis.php` documents — every Lingua Forge call site is
+	 * individually guarded by `function_exists()`/`class_exists()` — and this
+	 * method is one of those call sites: it returns at
+	 * `if ( ! function_exists( 'linguaforge_sync_templates' ) )` one line above
+	 * the only call. That check is what makes unconditional registration safe,
+	 * and it is stronger than the gate it replaced, which only tested a version
+	 * number that implies the function exists.
+	 *
+	 * The complementary negative — that the method no-ops when the LF function
+	 * is missing — cannot be exercised here: Stubs/lf_global_stubs.php defines
+	 * `linguaforge_sync_templates()` process-wide and PHP cannot undefine a
+	 * function.
 	 */
-	public function test_sync_translated_template_is_not_hooked_below_2_6_1(): void {
+	public function test_sync_translated_template_is_hooked_unconditionally(): void {
 		$lf = new LinguaForge();
 
-		$this->assertFalse(
+		$this->assertNotFalse(
 			has_action( 'linguaforge_translation_complete', [ $lf, 'sync_translated_template' ] ),
-			'sync_translated_template() must not be registered while LINGUAFORGE_VERSION is below 2.6.1.'
+			'sync_translated_template() must be registered on linguaforge_translation_complete regardless of LINGUAFORGE_VERSION; the method feature-checks linguaforge_sync_templates() itself.'
 		);
 	}
 
@@ -622,22 +627,22 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 	// docblock for why.)
 
 	/**
-	 * Same caveat as test_sync_translated_template_is_not_hooked_below_2_6_1():
-	 * LINGUAFORGE_VERSION is fixed at '1.0.0-test' for this whole test process,
-	 * always below 2.6.6, so this can only prove the gate's negative case —
-	 * that the hook is NOT registered below 2.6.6, guarding against ever
-	 * hooking this unconditionally (which would fire the filter on any
-	 * pre-2.6.6 LF install that doesn't read it at all — harmless there in
-	 * practice, since LF simply never calls apply_filters() for a filter it
-	 * doesn't know about, but the version gate documents the real minimum
-	 * regardless).
+	 * Inverted in 0.9.68 alongside the gate above — see that test's docblock and
+	 * the note at the foot of `Compat\LinguaForge::register_hooks()`.
+	 *
+	 * This one needs no feature check inside the method, and never did: Lingua
+	 * Forge owns `linguaforge_translation_extra_instruction`, so on a version
+	 * that doesn't apply it the callback is registered and simply never runs.
+	 * The old docblock conceded as much while keeping the gate to record a
+	 * minimum version — which is a job for a comment, not for a
+	 * `version_compare()` evaluated at boot on every request.
 	 */
-	public function test_preserve_embedded_other_language_text_is_not_hooked_below_2_6_6(): void {
+	public function test_preserve_embedded_other_language_text_is_hooked_unconditionally(): void {
 		$lf = new LinguaForge();
 
-		$this->assertFalse(
+		$this->assertNotFalse(
 			has_action( 'linguaforge_translation_extra_instruction', [ $lf, 'preserve_embedded_other_language_text' ] ),
-			'preserve_embedded_other_language_text() must not be registered while LINGUAFORGE_VERSION is below 2.6.6.'
+			'preserve_embedded_other_language_text() must be registered regardless of LINGUAFORGE_VERSION; LF only fires this filter from 2.6.6, so it simply never runs on older versions.'
 		);
 	}
 
@@ -914,7 +919,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
 		// No AI provider configured — falls back to the original names.
-		$names = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$names = self::term_names( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ]  ) );
 		$this->assertCount( 2, $names );
 		$this->assertContains( 'Landscape', $names );
 		$this->assertContains( 'Coastal', $names );
@@ -983,7 +988,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$names = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ] );
+		$names = self::term_names( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'names', 'hide_empty' => false ]  ) );
 		$this->assertSame( [ 'Coastal' ], $names );
 		$this->assertNotContains( 'Old Stale Tag', $names );
 	}
@@ -1080,7 +1085,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		// translated post gets its OWN distinct, flagged placeholder terms
 		// instead.
 		wp_set_object_terms( $this->artwork_id, [ 'Landscape', 'Coastal' ], 'post_tag' );
-		$source_ids = wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$source_ids = self::term_ids( wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$translated_id = self::factory()->post->create( [ 'post_type' => 'agnosis_artwork', 'post_status' => 'publish' ] );
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
@@ -1095,7 +1100,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		// TW-3: the translated post must get its OWN placeholder terms,
 		// never the source terms' own IDs directly.
-		$assigned_ids = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$assigned_ids = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertEmpty(
 			array_intersect( $assigned_ids, $source_ids ),
 			"The translated post must never be assigned the SOURCE terms' own IDs directly when no translation is available — see insert_fallback_translated_term()."
@@ -1130,7 +1135,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$assigned = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertCount( 1, $assigned );
 		$this->assertNotSame( [ $colliding_id ], $assigned, 'Must never reuse the pre-existing colliding term.' );
 
@@ -1402,7 +1407,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$assigned = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertCount( 1, $assigned );
 		$this->assertNotSame(
 			[ (int) $existing['term_id'] ],
@@ -1445,7 +1450,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 
 		( new LinguaForge() )->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$assigned = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertNotSame(
 			[ (int) $existing['term_id'] ],
 			$assigned,
@@ -1553,14 +1558,14 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$lf = new LinguaForge();
 		$lf->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$first_assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$first_assigned = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertCount( 1, $first_assigned );
 
 		// Re-run the exact same sync a second time (e.g. the "Sync translations"
 		// row action run twice, or an automatic fanout firing again).
 		$lf->sync_translated_terms( $translated_id, $this->artwork_id, 'es' );
 
-		$second_assigned = wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$second_assigned = self::term_ids( wp_get_post_terms( $translated_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertSame( $first_assigned, $second_assigned, 'A second sync must reuse the same trid-linked term, not swap in a different one.' );
 
 		$paisaje_terms = get_terms( [ 'taxonomy' => 'post_tag', 'name' => 'Paisaje', 'hide_empty' => false ] );
@@ -1789,7 +1794,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 			'Native medium must be synced via sync_taxonomy(), falling back to the primary post\'s own NAME when no AI provider is configured to translate it.'
 		);
 
-		$primary_medium_ids = wp_get_post_terms( $this->artwork_id, 'agnosis_medium', [ 'fields' => 'ids' ] );
+		$primary_medium_ids = self::term_ids( wp_get_post_terms( $this->artwork_id, 'agnosis_medium', [ 'fields' => 'ids' ]  ) );
 		$this->assertNotContains(
 			(int) $sibling_medium->term_id,
 			$primary_medium_ids,
@@ -1832,7 +1837,7 @@ class LinguaForgeCompatTest extends \WP_UnitTestCase {
 		$sibling_tag = $sibling_tags[0];
 		$this->assertSame( 'Landscape', $sibling_tag->name, 'Falls back to the primary post\'s own NAME when no AI provider is configured to translate it.' );
 
-		$primary_tag_ids = wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ] );
+		$primary_tag_ids = self::term_ids( wp_get_post_terms( $this->artwork_id, 'post_tag', [ 'fields' => 'ids' ]  ) );
 		$this->assertNotContains(
 			(int) $sibling_tag->term_id,
 			$primary_tag_ids,

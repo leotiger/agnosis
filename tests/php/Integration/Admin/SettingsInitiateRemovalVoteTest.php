@@ -53,9 +53,12 @@ class SettingsInitiateRemovalVoteTest extends \WP_UnitTestCase {
 		$die_interceptor = static function (): callable {
 			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
 				$http_status = (int) ( $args['response'] ?? 200 );
-				$title_str   = is_string( $title ) ? $title : '';
+				// Only $message needs narrowing — wp_die() passes either a string
+				// or a WP_Error. $title is already typed `string` by the signature
+				// above, so the is_string() guard it used to carry was dead code
+				// (0.9.68; AdmissionConfirmTest had already dropped its copy).
 				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
-				throw new DieCapture( $msg_str, $title_str, $http_status );
+				throw new DieCapture( $msg_str, $title, $http_status );
 			};
 		};
 		add_filter( 'wp_die_handler',      $die_interceptor );

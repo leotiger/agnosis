@@ -75,7 +75,9 @@ class DescriptionResultTest extends TestCase {
 			success:  true,
 		);
 
-		$this->assertIsArray( $result->tags );
+		// assertIsArray() dropped in 0.9.68 — `tags` is a natively typed `array`
+		// promoted property, so it could never be anything else. The line below is
+		// the assertion that actually says something.
 		$this->assertContainsOnly( 'string', $result->tags );
 	}
 

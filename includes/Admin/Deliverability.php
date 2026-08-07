@@ -52,6 +52,18 @@ namespace Agnosis\Admin;
 use Agnosis\Core\CommunityMailer;
 use Agnosis\Newsletter\Mailer as NewsletterMailer;
 
+/**
+ * @phpstan-type IdentityRow array{
+ *     label: string,
+ *     email: string,
+ *     domain: string,
+ *     domain_matches_site: bool,
+ *     spf: array{status: string, records: string[]},
+ *     dmarc: array{status: string, records: string[]},
+ *     dkim: array{status: string, selector: string, records: string[]},
+ *     dbl: array{status: string, reason: string}
+ * }
+ */
 class Deliverability {
 
 	/**
@@ -427,16 +439,7 @@ class Deliverability {
 	 * admin_email), since there's nothing extra to learn from checking the
 	 * same domain's DNS twice.
 	 *
-	 * @return array<int, array{
-	 *     label: string,
-	 *     email: string,
-	 *     domain: string,
-	 *     domain_matches_site: bool,
-	 *     spf: array{status: string, records: string[]},
-	 *     dmarc: array{status: string, records: string[]},
-	 *     dkim: array{status: string, selector: string, records: string[]},
-	 *     dbl: array{status: string, reason: string}
-	 * }>
+	 * @return array<int, IdentityRow>
 	 */
 	public static function identity_report(): array {
 		$site_domain = self::site_domain();
@@ -446,7 +449,16 @@ class Deliverability {
 			__( 'Newsletter', 'agnosis' )                 => NewsletterMailer::sender_header(),
 		];
 
+		// Declared rather than inferred: the `$rows[ $row_by_key[ $key ] ]['label'] .=`
+		// fold below writes through a *computed* offset, and a dynamic-offset write
+		// collapses PHPStan's inferred shape to array<string, mixed> for the rest of
+		// the method — which then makes both the `.=` (concatenating a `mixed` that
+		// could be one of the nested arrays) and the return look wrong. The shape
+		// itself is correct and is built literally a few lines down; this only stops
+		// the analyser forgetting it. (0.9.68 — surfaced by PHPStan 2.x.)
+		/** @var array<int, IdentityRow> $rows */
 		$rows       = [];
+		/** @var array<string, int> $row_by_key */
 		$row_by_key = [];
 
 		foreach ( $identities as $label => $header ) {
@@ -462,7 +474,16 @@ class Deliverability {
 				// Same address already reported under an earlier label — fold
 				// this identity's label into that row instead of duplicating
 				// an identical DNS lookup for a domain already checked.
-				$rows[ $row_by_key[ $key ] ]['label'] .= ' / ' . $label;
+				//
+				// Read-modify-write of the whole row rather than a `.=` straight
+				// into `$rows[ … ]['label']`: appending through a computed offset
+				// lets PHPStan model the write as *creating* an element that has
+				// only a 'label' key, which then fails the return shape. Putting
+				// a complete row back leaves nothing to infer. (0.9.68.)
+				$index          = $row_by_key[ $key ];
+				$row            = $rows[ $index ];
+				$row['label']  .= ' / ' . $label;
+				$rows[ $index ] = $row;
 				continue;
 			}
 			$row_by_key[ $key ] = count( $rows );

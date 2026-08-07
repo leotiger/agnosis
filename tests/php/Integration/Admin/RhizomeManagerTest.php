@@ -45,9 +45,12 @@ class RhizomeManagerTest extends \WP_UnitTestCase {
 		$die_interceptor = static function (): callable {
 			return static function ( string|\WP_Error $message, string $title = '', array $args = [] ): never {
 				$http_status = (int) ( $args['response'] ?? 200 );
-				$title_str   = is_string( $title ) ? $title : '';
+				// Only $message needs narrowing — wp_die() passes either a string
+				// or a WP_Error. $title is already typed `string` by the signature
+				// above, so the is_string() guard it used to carry was dead code
+				// (0.9.68; AdmissionConfirmTest had already dropped its copy).
 				$msg_str     = is_string( $message ) ? wp_strip_all_tags( $message ) : (string) $message->get_error_message();
-				throw new DieCapture( $msg_str, $title_str, $http_status );
+				throw new DieCapture( $msg_str, $title, $http_status );
 			};
 		};
 		add_filter( 'wp_die_handler',      $die_interceptor );
@@ -91,7 +94,16 @@ class RhizomeManagerTest extends \WP_UnitTestCase {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- test assertion.
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}agnosis_nodes WHERE id = %d", $id ), ARRAY_A );
-		return is_array( $row ) ? $row : null;
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+		// `$wpdb->get_row( …, ARRAY_A )` is typed array<mixed>|object|null, so the
+		// is_array() guard below narrows away the object/null arms but not to the
+		// declared column shape. The guard is the real runtime check; the @var is
+		// this test asserting what it knows about a table the plugin itself creates
+		// (0.9.68 — PHPStan 2.x).
+		/** @var array{status: string, trust_scope: string, actor_id: string|null, inbox_url: string|null, reciprocal: string, reciprocity_checked_at: string|null} $row */
+		return $row;
 	}
 
 	/** Mocks the two-hop .well-known -> node-card fetch Node::resolve_peer_node_card() makes. */

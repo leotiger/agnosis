@@ -595,6 +595,11 @@ class AdmissionIntegrationTest extends \WP_UnitTestCase {
 		$this->rest_post( "/agnosis/v1/admission/vouch/{$application_id}", [], $artist2 );
 
 		$new_user = get_user_by( 'email', 'admit@example.com' );
+		// PHPStan 2.x memoizes the type of an identical call expression within a scope,
+		// so it reuses the `false` proved by the assertFalse() above — not knowing that
+		// the second vouch in between actually creates the user. That state change is
+		// exactly what this test exists to check.
+		// @phpstan-ignore method.impossibleType (identical call memoized across a state-changing request)
 		$this->assertNotFalse( $new_user );
 		$this->assertTrue( user_can( $new_user->ID, 'agnosis_artist' ) );
 	}

@@ -121,6 +121,11 @@ class ActivityPubRelayTest extends \WP_UnitTestCase {
 
 		$deliveries = [];
 		$activitypub->follow_relay( self::RELAY_ACTOR_URL );
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.impossibleType (by-reference closure capture is invisible to PHPStan)
 		$this->assertNotEmpty( $deliveries, 'A second follow_relay() call must still deliver a Follow.' );
 		$second_id = $deliveries[0]['body']['id'];
 
@@ -165,6 +170,11 @@ class ActivityPubRelayTest extends \WP_UnitTestCase {
 		$activitypub->unfollow_relay( self::RELAY_ACTOR_URL );
 
 		$this->assertCount( 1, $deliveries );
+		// mock_transport() collects into $deliveries through a by-reference closure
+		// capture, which PHPStan does not model — it still sees the empty literal this
+		// was reset to above. The assertion is the point of the test; the analyser is
+		// wrong here, not the test.
+		// @phpstan-ignore method.impossibleType (by-reference closure capture is invisible to PHPStan)
 		$this->assertNotEmpty( $deliveries );
 		$undo = $deliveries[0]['body'];
 		$this->assertSame( 'Undo', $undo['type'] );
